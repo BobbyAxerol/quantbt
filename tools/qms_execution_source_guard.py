@@ -15,6 +15,8 @@ ALLOW = frozenset({"src/quantbt/endpoint.py", "src/quantbt/walkforward.py", "src
     *["src/quantbt/optimization/meta_selection/domains/"+n for n in ("registry.py", "execution.py")]})
 SEALED_ALLOW = ALLOW
 ALLOW = ALLOW | {"src/quantbt/optimization/meta_selection/domains/base.py"}
+from tools.qms_pre03_source_guard import ALLOW as PRE03_ALLOW
+REVIEWED_SCOPE = ALLOW | PRE03_ALLOW
 
 
 def without_execution_routes(source, name):
@@ -39,8 +41,8 @@ def verify():
         "--", "src", "rust"], cwd=ROOT, text=True).splitlines())
     names.update(subprocess.check_output(["git", "ls-files", "--others", "--exclude-standard",
         "--", "src", "rust"], cwd=ROOT, text=True).splitlines())
-    if names != ALLOW:
-        raise AssertionError(f"unreviewed execution source: {sorted(names ^ ALLOW)}")
+    if names != REVIEWED_SCOPE:
+        raise AssertionError(f"unreviewed execution source: {sorted(names ^ REVIEWED_SCOPE)}")
     for name in names:
         without_execution_routes((ROOT/name).read_bytes(), name)
     return dict(schema="qms-execution-route-exact-amendment-v1", baseline=ENTRY,

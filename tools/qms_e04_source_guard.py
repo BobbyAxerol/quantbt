@@ -57,7 +57,7 @@ def verify():
 
 
 def reviewed_scope():
-    from tools.qms_execution_source_guard import ALLOW as EXEC_ALLOW
+    from tools.qms_execution_source_guard import REVIEWED_SCOPE as EXEC_ALLOW
     from tools.qms_e05_source_guard import ALLOW as later_scope
     from tools.qms_g01_source_guard import ALLOW as G01_ALLOW
     return ALLOW | later_scope | G01_ALLOW | EXEC_ALLOW

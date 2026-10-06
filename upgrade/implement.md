@@ -3,10 +3,11 @@
 <a id="qms-pre-e06-action-plan"></a>
 ## QMS Pre-E06 Sequential Debt Closure - Owner Planning Request 2026-10-06
 
-**Status:** PRE_E06_02_COMPLETE_LOCAL_SOURCE_CONFORMANCE. Owner approved PRE-E06-02 on
+**Status:** PRE_E06_03_IN_PROGRESS_LOCAL. Owner approved PRE-E06-02 on
 2026-10-06 (Asia/Saigon): active/matured no-leakage, raw measurement and original
 account conformance only. PRE-E06-01/02 are complete in their recorded scope;
-03..06 remain planned. [PRE02 report](../docs/meta_selection/PRE_E06_02_REPORT.md):
+PRE-E06-03 is now separately approved for execution; 04..06 remain planned.
+[PRE02 report](../docs/meta_selection/PRE_E06_02_REPORT.md):
 13 routes, 39 active/matured decisions, 623 distinct scoped PASS; 27 scalar-scorer
 cells are explicitly not applicable. No economic/default or artifact promotion.
 Approve/start one phase
@@ -63,7 +64,7 @@ official economic promotion to any route.
 |---|---|---|---|
 | 1 | [PRE-E06-01](#qms-pre-e06-01) | One source-bound current ledger, test inventory and scope/privacy contract | COMPLETE_LOCAL_INVENTORY_GATE; no activation |
 | 2 | [PRE-E06-02](#qms-pre-e06-02) | Active/matured causal and measurement conformance on existing admitted routes | COMPLETE_LOCAL_SOURCE_GATE; no new-mode/economic promotion |
-| 3 | [PRE-E06-03](#qms-pre-e06-03) | Approved C01 nested scalar runtime activation, raw outer-IS/forward parity | PLANNED_NOT_STARTED |
+| 3 | [PRE-E06-03](#qms-pre-e06-03) | Approved C01 nested scalar runtime activation, raw outer-IS/forward parity | IN_PROGRESS_LOCAL_OWNER_APPROVED |
 | 4 | [PRE-E06-04](#qms-pre-e06-04) | Approved C05 policies, actual RNG and owned continuation qualification | PLANNED_NOT_STARTED |
 | 5 | [PRE-E06-05](#qms-pre-e06-05) | Matched profiling and safe optimization; unchanged scientific/decision/account contracts | PLANNED_NOT_STARTED |
 | 6 | [PRE-E06-06](#qms-pre-e06-06) | Final local regression, exact installed artifacts, docs/privacy/cleanup receipt | PLANNED_NOT_STARTED |
@@ -284,6 +285,29 @@ broader mode/schedule/domain capability is separately recorded, never implied.
 **Resources/cleanup:** at most 512 MiB incremental test scratch plus 5 GiB safety;
 reuse current financial/prepared tooling, no real-alpha rerun or native rebuild
 unless necessary source changes are explicitly recorded. Retain receipts/logs.
+
+**Execution registration (before edits/runs):** entry `ca57fc3`, branch
+`feat/meta-selection-samplers`; existing CPython 3.12 G01 consumer/native 0.4.3,
+source-first imports and one numeric thread. Available bytes 26,991,624,192;
+inodes 945,212 / 6,553,600. Retain logs/XML/receipt in
+`.maturin/qms08/pre-e06-03`; no new environment, wheel, Rust build or private
+alpha/data access. Same frozen PRE02 synthetic tape, 2020-04-01 history start,
+90D rolling outer IS/monthly forward, eight attempts/seed 731, three existing
+cutoffs, lambda 10 and default maturity 12. Inner validation is monthly,
+expanding with 30D initial train and at least two inner folds. Register these
+software fixtures before outcomes; no retuning for a positive economic result.
+
+Implement a focused nested capture/record module beside existing shared meta
+runtime; no new learner, financial scorer or per-domain bridge. The inner study
+finishes first. Then original outer-IS observations cover every feasible
+completed adaptive trial and any independently evaluated exact native anchor.
+Auxiliary work is RNG-isolated, counted, and never told to Optuna. A meta winner
+outside the inner shortlist must have unavailable inner-validation metrics, not
+the old anchor's copied diagnostics. Preserve old Mode 4 families/bytes and all
+historical seals; add an exact source-amendment guard for this narrow runtime.
+Initial cohort is five scalar targets (including signed structural ladder);
+nested portfolio/package/execution/W3 remain rejected. Fresh installed artifacts
+join PRE-E06-06, not an unnecessary local rebuild here.
 
 <a id="qms-pre-e06-04"></a>
 ### Phase PRE-E06-04 - Approved C05 Policies And Owned Continuation Completion

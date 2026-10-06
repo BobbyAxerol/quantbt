@@ -383,7 +383,7 @@ def test_q7_t07_protected_financial_source_and_published_pair_unchanged():
     from tools.qms_c03_source_guard import ALLOW as C03_ALLOW
     from tools.qms_c04_source_guard import ALLOW as C04_ALLOW
     from tools.qms_g01_source_guard import ALLOW as G01_ALLOW, verify as verify_g01
-    from tools.qms_execution_source_guard import ALLOW as EXEC_ALLOW
+    from tools.qms_execution_source_guard import REVIEWED_SCOPE as EXEC_ALLOW
     verify()
     verify_g01()
     for name in set(current) & PACKAGING_FILES:

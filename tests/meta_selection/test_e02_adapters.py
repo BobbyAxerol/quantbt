@@ -102,7 +102,8 @@ def test_e02_t05_existing_discovery_exposes_approved_execution_route_amendment()
     for row in matrix:
         assert row["meta_route_activated"] == (row["target_mode"] != "nautilus_validation")
         if row["meta_route_activated"]:
-            assert row["meta_optimization_modes"] == ("mode_4_is_only_robust",)
+            expected = ("mode_4_is_only_robust", "mode_1_decay") if row["meta_domain"] == "scalar" else ("mode_4_is_only_robust",)
+            assert row["meta_optimization_modes"] == expected
             assert row["meta_optimization_schedules"] == ("per_fold_causal",)
         else:
             assert row["meta_optimization_modes"] == ()

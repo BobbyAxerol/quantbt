@@ -55,10 +55,13 @@ def capability(route, *, abi=DOMAIN_ABI, require_active=False):
 
 def route_metadata(route):
     row = capability(route)
+    modes = ("mode_4_is_only_robust",) if row.activated else ()
+    if row.activated and row.domain == "scalar":
+        modes += ("mode_1_decay",)
     return dict(meta_domain=row.domain, meta_input_kind=row.input_kind.value,
         meta_adapter_abi=row.abi, meta_software_status=row.software_status,
         meta_empirical_status=row.empirical_status, meta_gate_phase=row.owner_phase,
-        meta_optimization_modes=("mode_4_is_only_robust",) if row.activated else (),
+        meta_optimization_modes=modes,
         meta_optimization_schedules=("per_fold_causal",) if row.activated else (),
         meta_route_activated=row.activated)
 

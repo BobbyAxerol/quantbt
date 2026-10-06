@@ -33,17 +33,26 @@ def without_intrabar_window_funding(source):
 
 
 def verify():
+    from tools.qms_pre03_source_guard import ALLOW as later_allow, verify as later_verify
     names = subprocess.check_output(["git", "diff", "--name-only", ENTRY, "--", "src", "rust"],
                                     cwd=ROOT, text=True).splitlines()
-    if set(names) != {NAME, BASE}:
+    names += subprocess.check_output(["git", "ls-files", "--others", "--exclude-standard", "--", "src", "rust"],
+                                    cwd=ROOT, text=True).splitlines()
+    later = set(names) & later_allow
+    if later:
+        later_verify()
+    if set(names) != {NAME, BASE} | later:
         raise AssertionError("PRE02 runtime repair must be limited to exact funding bindings")
     for name in names:
         without_pre02_repairs((ROOT/name).read_bytes(), name)
     return dict(baseline=ENTRY, scope="exact intrabar-window and funding-source bindings only",
-                scientific_estimator_changed=False, native_kernel_changed=False)
+                scientific_estimator_changed=False, native_kernel_changed=False,
+                later_source_amendment="PRE03_APPROVED_NESTED_SCALAR" if later else None)
 
 
 def without_pre02_repairs(source, name):
+    from tools.qms_pre03_source_guard import without_pre03
+    source = without_pre03(source, name)
     if name == NAME:
         return without_intrabar_window_funding(source)
     if name != BASE:

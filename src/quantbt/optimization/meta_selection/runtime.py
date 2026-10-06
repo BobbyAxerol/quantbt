@@ -76,7 +76,8 @@ class PublicMetaRuntime:
             settings=self.config.ridge_settings(), runtime=self.numeric
         )
         self.selector = MetaSelector(runtime=self.numeric)
-        self.capture = PublicISPoolCapture(
+        from .nested import NestedISPoolCapture, is_nested
+        self.capture = (NestedISPoolCapture if is_nested(engine.config) else PublicISPoolCapture)(
             resolved_at=lambda f: self.completed(f, "search"),
             max_pools=self.config.max_folds,
         )
@@ -116,6 +117,18 @@ class PublicMetaRuntime:
             "min_trades_per_year",
             "trade_penalty_factor",
         )
+        anchor_policy = {
+            "mode": c.optimization_mode,
+            "schedule": c.optimization_schedule,
+            "policy": {k: getattr(c, k) for k in anchor_keys},
+            "parameter_constraints": strategy_fingerprint(c.parameter_constraints)
+                if c.parameter_constraints is not None else None,
+            "result_constraints": strategy_fingerprint(c.result_constraints)
+                if c.result_constraints is not None else None,
+        }
+        from .nested import family_policy, is_nested
+        if is_nested(c):
+            anchor_policy.update(family_policy(c))
         return CompatibilityFamily(
             strategy_fingerprint(engine.strategy),
             schema.space.identity,
@@ -137,21 +150,7 @@ class PublicMetaRuntime:
             scorer._meta_adapter.contract.metric_id,
             scorer._meta_economics_id,
             getattr(scorer, "meta_route_id", "original-endpoint-reset-v1"),
-            digest(
-                {
-                    "mode": c.optimization_mode,
-                    "schedule": c.optimization_schedule,
-                    "policy": {k: getattr(c, k) for k in anchor_keys},
-                    "parameter_constraints": strategy_fingerprint(
-                        c.parameter_constraints
-                    )
-                    if c.parameter_constraints is not None
-                    else None,
-                    "result_constraints": strategy_fingerprint(c.result_constraints)
-                    if c.result_constraints is not None
-                    else None,
-                }
-            ),
+            digest(anchor_policy),
             digest(
                 {
                     "sampler": asdict(c.sampler_config)
@@ -189,6 +188,8 @@ class PublicMetaRuntime:
         )
         self.snapshots.append(self.snapshot)
         self.elapsed["snapshot"] += perf_counter() - started
+        if hasattr(self.capture, "bind_outer"):
+            self.capture.bind_outer(fold)
 
     def completed(self, fold, stage):
         elapsed = perf_counter() - self.started
@@ -206,6 +207,16 @@ class PublicMetaRuntime:
         return now
 
     def task_from_pool(self, fold, pool, seal):
+        provenance = {
+            "study_id": pool.study_id,
+            "seed": pool.seed,
+            "budget": self.engine.config.optuna_trials,
+            "auxiliary_is_evaluations": pool.auxiliary_is_evaluations,
+            "schema": "qms-public-is-pool-v1",
+        }
+        from .nested import family_policy, is_nested
+        if is_nested(self.engine.config):
+            provenance.update(family_policy(self.engine.config))
         return MetaTask(
             self.family,
             self.context.corpus_id,
@@ -234,13 +245,7 @@ class PublicMetaRuntime:
             "historical_replay",
             "historical_counterfactual",
             "research_only",
-            {
-                "study_id": pool.study_id,
-                "seed": pool.seed,
-                "budget": self.engine.config.optuna_trials,
-                "auxiliary_is_evaluations": pool.auxiliary_is_evaluations,
-                "schema": "qms-public-is-pool-v1",
-            },
+            provenance,
         )
 
     def select(self, fold, native):
@@ -326,6 +331,9 @@ class PublicMetaRuntime:
             "proposal": proposal,
             "numeric_backend": self.numeric.metadata,
         }
+        from .nested import is_nested, selection_metadata
+        if is_nested(self.engine.config):
+            sidecar.update(selection_metadata(pool, chosen, native))
         self.panel = freeze_panel(
             task,
             self.schema,
@@ -344,6 +352,9 @@ class PublicMetaRuntime:
         self.elapsed["fit_select"] += perf_counter() - started
         if self.config.mode == "shadow" or actual_id == pool.anchor_evaluation_id:
             return native
+        if is_nested(self.engine.config):
+            from .nested import selected_record
+            return selected_record(native, chosen, pool)
         # Keep native trial/candidate ledgers intact; final record has actual IS objective.
         required = self.engine._required_trades(fold.train_index)
         from ...walkforward import trade_frequency_penalty
@@ -446,6 +457,19 @@ class PublicMetaRuntime:
             table["native_causality_claim"] = table["causality_claim"]
             for field in fields:
                 table[field] = [by_fold[int(f)][field] for f in table["fold_id"]]
+            from .nested import is_nested
+            if is_nested(self.engine.config):
+                nested_fields = (
+                    "cohort", "native_inner_decay_objective", "native_inner_is_score",
+                    "native_inner_validation_score", "selected_outer_is_raw_sharpe",
+                    "selected_inner_search_objective", "selected_inner_validation_evaluated",
+                    "selected_inner_validation_objective", "selected_inner_validation_score",
+                    "auxiliary_outer_is_evaluations", "auxiliary_outer_is_seconds",
+                )
+                for field in nested_fields:
+                    table[field] = [by_fold[int(f)][field] for f in table["fold_id"]]
+                table["legacy_is_metric_scope"] = "native_inner_train_aggregate"
+                table["legacy_oos_metric_scope"] = "post_selection_outer_forward_penalized"
             table["causality_claim"] = [
                 "current_outer_oos_excluded_past_forward_adaptive"
                 if by_fold[int(f)]["past_matured_forward_used_for_selection"]
@@ -459,6 +483,8 @@ class PublicMetaRuntime:
                 "causality_claim"
             ]
             selected_metadata.update({k: last[k] for k in fields})
+            if is_nested(self.engine.config):
+                selected_metadata.update({k: last[k] for k in nested_fields})
             if last["past_matured_forward_used_for_selection"]:
                 selected_metadata["causality_claim"] = (
                     "current_outer_oos_excluded_past_forward_adaptive"

@@ -1977,6 +1977,13 @@ class WalkForwardEngine:
         if not candidate_records:
             raise ValueError("anti-leakage optimization produced no OOS candidates")
         best = _select_oos_candidate_record(candidate_records, self.config)
+        if self._is_pool_observer is not None:
+            self._is_pool_observer.capture(engine=self, data=data, folds=folds,
+                param_ranges=param_ranges, selected=best, records=records,
+                candidate_records=candidate_records, study_id=study_identifier, seed=study_seed)
+            best = self._is_pool_observer.strip_support(best)
+            records = [self._is_pool_observer.strip_support(r) for r in records]
+            candidate_records = [self._is_pool_observer.strip_support(r) for r in candidate_records]
         records.extend(candidate_records)
         self._capture_research_records(
             trial_records=records,

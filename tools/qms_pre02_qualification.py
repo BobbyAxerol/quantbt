@@ -92,6 +92,8 @@ def passing_junit(path):
 
 def build(lane, regressions, matrices):
     source = source_guard()
+    if source.get("later_source_amendment"):
+        raise ValueError("PRE02 receipts are historical; later runtime needs its own qualification")
     path = ROOT/"benchmarks/optimization/meta_selection/qms_pre_e06_01_inventory.json"
     archived = verify_pre01_archive(json.loads(path.read_text()))
     if file_hash(ROOT/GUIDE) != GUIDE_SHA:

@@ -49,7 +49,7 @@ def protected_changes(entry, protected):
 
 
 def verify():
-    from tools.qms_execution_source_guard import ALLOW as EXEC_ALLOW, verify as verify_execution
+    from tools.qms_execution_source_guard import REVIEWED_SCOPE as EXEC_ALLOW, verify as verify_execution
     verify_execution()
     names = set(subprocess.check_output(["git", "diff", "--name-only", ENTRY,
         "--", "src", "rust"], cwd=ROOT, text=True).splitlines())

@@ -83,7 +83,8 @@ def test_c01_t03_outer_oos_mutation_keeps_first_nested_pool_and_anchor(traces):
     assert original["studies"][0]["selected"] == changed["studies"][0]["selected"]
 
 
-@pytest.mark.parametrize("case", [c for c in CASES if c.meta_status != "SUPPORTED_EXISTING"])
+@pytest.mark.parametrize("case", [c for c in CASES if c.meta_status != "SUPPORTED_EXISTING"
+    and (c.mode, c.schedule) != ("mode_1_decay", "per_fold_causal")])
 @pytest.mark.parametrize("meta_mode", ["shadow", "active"])
 def test_c01_t04_reviewed_but_unapproved_meta_still_fails_before_finance(monkeypatch, case, meta_mode):
     bt = baseline.endpoint(case.mode, case.schedule)

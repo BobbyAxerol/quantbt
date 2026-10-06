@@ -32,7 +32,7 @@ def without_e05_package(source, name):
 
 
 def verify():
-    from tools.qms_execution_source_guard import ALLOW as EXEC_ALLOW
+    from tools.qms_execution_source_guard import REVIEWED_SCOPE as EXEC_ALLOW
     from tools.qms_g01_source_guard import ALLOW as G01_ALLOW, protected_changes, verify as verify_g01
     amendment = verify_g01()
     names = set(subprocess.check_output(["git", "diff", "--name-only", ENTRY,

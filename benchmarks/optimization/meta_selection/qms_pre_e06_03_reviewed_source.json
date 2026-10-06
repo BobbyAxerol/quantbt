@@ -1,0 +1,10 @@
+{
+  "baseline": "ca57fc3",
+  "source_sha256": {
+    "src/quantbt/optimization/meta_selection/config.py": "bb7fd176a307984327a474b53bf4ec3ef9b3375d6a69c9e07b19e963cbb27a66",
+    "src/quantbt/optimization/meta_selection/domains/registry.py": "df64ac136d39dc460d2a1516d20bc164523b5baff456d80c50dfd483ebb5820c",
+    "src/quantbt/optimization/meta_selection/nested.py": "0d0a029c1191003a4ca708612e9c3306931ef45ab3ba985ba54963669222ead2",
+    "src/quantbt/optimization/meta_selection/runtime.py": "797c20373e26907446b2803863061e2780ff0f05a0b9e490105fd604b5ed2c99",
+    "src/quantbt/walkforward.py": "e1dfd4171f48381c6598d073f43312c6eb74265134e60960e85f535d80ce220b"
+  }
+}
