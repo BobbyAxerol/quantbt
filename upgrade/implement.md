@@ -1,5 +1,63 @@
 # QuantBT Upgrade Implementation Plan
 
+<a id="qms-required-execution-routes"></a>
+## Required Execution Routes - Owner Amendment 2026-10-06
+
+**Authorization:** implement intrabar intent/session, generic Python callback
+`event_driven`, explicit command-tape WFO and quarterly expiry/roll locally.
+Synthetic, basic strategy examples are approved. No CI dispatch, push, merge,
+tag, publication or economic promotion is authorized by this amendment.
+This supersedes the E06/E07 entry prohibition, not the scientific guide's
+Ridge, labels, maturity, search, RNG or metrics contracts.
+
+**Guide:** [shared architecture](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s2),
+[typed route admission](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s3),
+[history/maturity](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s6),
+[selection boundary](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s7),
+[execution ownership](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s8),
+[honest economic stopping rule](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s14),
+[E06](#qms-e06), [E07](#qms-e07),
+[intrabar contract](../docs/fast_intrabar.md) and
+[execution architecture](../docs/architecture/execution-plan.md).
+
+### Local Execution Order And Gates
+
+1. **Contract/test first:** a typed window output and an explicit existing
+   execution endpoint. Specify original reset-account IS/forward diagnostics
+   separately from one continuously executed final OOS account. Red tests cover
+   exact calendars, no signal proxies, future mutations and fold transitions.
+2. **E06:** preserve next-open intent, entry sizing, brackets, session IDs and
+   policy. Stitch intents, not independently compounded equity. A carried trade
+   retains engine-owned protection; changing params does not reset the account.
+3. **E07:** fresh callback factory per candidate/window, existing event runner;
+   command tapes preserve effective timestamps/cancel/amend/parent/OCO. Final
+   callbacks change at fold boundaries while the execution account and pending
+   orders remain owned by the original runner. No claim Python code is Rust.
+4. **Quarterly amendment:** authoritative aware expiry/last-trading timestamps
+   and explicit roll orders. Initial bounded policy is executable pre-expiry
+   flatten/roll with original exchange-style fees/slippage, not fabricated cash
+   settlement. Reject cash-settlement requests and insufficient final closing
+   capacity; never parse a symbol suffix as an authoritative settlement source.
+5. **Meta:** all supported cells use the existing Mode 4/per-fold-causal hook,
+   full IS pool, own exact anchor, original-result witness and post-seal observer.
+   No new learner, selector, optimizer, account engine or metric estimator.
+6. **Examples/evidence:** four public synthetic domain strategies; matched
+   off/shadow/active studies with actual params, raw IS/forward Sharpe, R/Q,
+   decay, costs and wall/RSS. Report lack of gain honestly. Synthetic evidence
+   establishes software conformance, not robust market performance.
+7. **Local exit:** domain expected values, original endpoint accounting,
+   shadow pool/RNG parity, active executed params, calendar/future tests,
+   affected regression, exact reviewed source amendment and cleanup receipt.
+   Installed proof must use rebuilt core bytes; historic receipts stay sealed.
+
+**Disk budget:** reuse the retained G01 consumer/native toolchain. Incremental
+tests/examples budget 512 MiB; fresh core artifact proof budget 1 GiB, with
+5 GiB additional free safety margin. Retain source, evidence/logs and exact
+artifacts; delete only reviewed inactive reproducible scratch, never market data.
+**Status:** IN_PROGRESS; local tests and receipts pending. Economic status is
+NOT_ASSESSED. C01/C05 activation remains approved separately but is not silently
+counted as implemented by these execution adapters. Remote/public gates deferred.
+
 <a id="qms-local-finalization"></a>
 ## QMS Local Finalization Before CI And Publication
 
