@@ -26,6 +26,9 @@ environments remain. E04 package/empirical and E05 gates were not promoted.
 Follow-up [E04/E05 cleanup receipt](../docs/maintenance/QMS_E04_E05_CLEANUP_2026-10-06.md)
 records 1.09 GiB reclaimed from two inactive consumers, 1,221 retained files with
 exact hashes, and about 26.08 GiB available. Scientific and release gates did not change.
+Final [E03-G01 cleanup receipt](../docs/maintenance/QMS_G01_CLEANUP_2026-10-06.md)
+records 219.656 MiB actually reclaimed from inactive Rust incremental cache only;
+current consumers, source and protected evidence retain exact hashes.
 
 **Current QMS status (2026-10-06, Asia/Saigon):**
 [QMS-01 to QMS-08: meta-selection and WFO sampler integration](#qms-meta-selection-samplers).
@@ -42,6 +45,8 @@ was **6/6 PASS** on pre-C02 `0970d55` in
 [run 37225926548](https://github.com/BobbyAxerol/quantbt/actions/runs/37225926548);
 current E05 source/artifacts require a new remote gate. Public proof remains
 PENDING_PUBLICATION; no push, merge, tag or upload is authorized by C02/C03/C04.
+The owner subsequently approved **feature-only push to origin for current-source
+CI** under [the gap closure](#qms-gap-closure-2026-10-06); no merge/tag/upload.
 Scientific acceptance, new capability implementation, merge/tag/publication
 remain separate owner decisions. Historical receipts are preserved unchanged.
 
@@ -85,13 +90,16 @@ scalar/W3 migration, all six gates PASS; **1,118 distinct tests** and ten actual
 installed consumer runs PASS. Read the [E02 report](../docs/meta_selection/QMSE02_REPORT.md)
 and [independent receipt](../benchmarks/optimization/meta_selection/qms_e02_final_gate_receipt.json).
 At the E02 seal new domains were not activated. E03 is now
-**BLOCKED_PREPARED_METRIC_PARITY**: 1,193 distinct checks and installed eight-cell
-scalar proofs PASS; all eight real-data pairs and two prepared studies finished.
-Prepared notional preserves pool/params/account; prepared unit fails objective/
-selection parity after liquidation. No cell passes the registered forward-Q gate.
+**SOFTWARE_AND_INSTALLED_COMPLETE_NOT_PROMOTED**: the historical 1,193 checks and
+eight-cell proofs remain sealed. E03-G01 is **CLOSED_LOCAL_CORRECTNESS** after
+fresh native/core artifacts and exact registered full unit replay: 3,584 attempts
+per arm, objective max difference `5.773159728050814e-15`, identical params,
+logical panels/raw observations and account difference zero. Current regression
+has **1,399 distinct Python + 65 Rust checks PASS**. None of the original eight
+real-data pairs passes the registered forward-Q economic gate.
 Bounded notional/unit/structural-ladder software opt-ins are not empirical or
-default promotion. See [the current E03 report](../docs/meta_selection/QMSE03_REPORT.md)
-and [bounded compatibility repair proposal E03-G01](#e03-g01).
+default promotion. See [the historical E03 assessment](../docs/meta_selection/QMSE03_REPORT.md)
+and [executed E03-G01 closure](../docs/meta_selection/QMSE03_G01_CLOSURE.md).
 E04 is **SOFTWARE_AND_INSTALLED_COMPLETE_EMPIRICAL_PENDING**: original
 shared-account integration, 122 scoped checks and fresh wheel/sdist consumers
 PASS. The [actual portfolio diagnostic](../docs/meta_selection/QMSE04_REAL_DIAGNOSTIC.md)
@@ -101,9 +109,10 @@ qualification/owner promotion remains open. E05 is **SOFTWARE_AND_INSTALLED_COMP
 206 distinct scoped checks and final wheel/sdist original-account consumers PASS.
 Read the [E05 report](../docs/meta_selection/QMSE05_REPORT.md). No package
 economic promotion or current-source remote/public certification is implied.
-E06-E08 remain **PLANNED_NOT_AUTHORIZED_FOR_EXECUTION**. E03-G01 compatibility
-repair and the exact real-alpha protocol need their explicit scope decisions.
-No release, push, merge, tag or publication is authorized. Existing WFO routes
+E06-E08 remain **PLANNED_NOT_AUTHORIZED_FOR_EXECUTION**. E03-G01's bounded
+compatibility repair is complete locally; E04 formal locked evaluation and E05
+delivery-domain/data admission need separate decisions. Feature-only CI push is
+authorized; no release, merge, tag or publication is authorized. Existing WFO routes
 must acquire domain-correct meta adapters, not merely relaxed guards. A newly
 integrated route needs its own real-alpha native/meta paired decay study and
 owner promotion review before official support. Original QMS math/scientific
@@ -23459,7 +23468,7 @@ not certify the prepared post-liquidation metric contract or economic gain.
 | E-G12 | C05 conditional Sobol/mixed representatives are review/reference/tests only | Activation/category RNG/checkpoint qualification requires separate owner approval |
 | E-G13 | Real ETH Delta RSI decay evidence exists, but forward-Q interval includes zero and it is not pristine BTC/live certification | Preserve actual R/Q decomposition; registered scientific replacement remains NOT_AUTHORIZED |
 | E-G14 | Domain-wide real-alpha evidence is absent: scalar ETH results do not certify W3/grid, intrabar or portfolio/package | E03-E07 each own an endpoint-specific paired study and promotion decision |
-| E03-G01 | Real prepared-unit study changes native objective after liquidation: Rust skips zero-base returns, legacy keeps zero samples | OPEN_BLOCKER; bounded metric compatibility repair needs owner scope approval, fresh native artifacts and chronological parity; no tolerance widening or scientific replacement |
+| E03-G01 | Historical prepared-unit objective mismatch after liquidation | CLOSED_LOCAL_CORRECTNESS: exact versioned legacy sampling policy, fresh artifacts, 28-fold registered trial/panel/label/params/account parity PASS; original negative economics retained; remote/public separate |
 
 #### Route Inventory And Coverage Target
 
@@ -23471,7 +23480,7 @@ An OOS output route alone is not a native-scored meta capability. Ordinary
 | Domain | Current WFO/meta state | Planned integration and gate |
 |---|---|---|
 | Scalar signal_notional/pct_equity, W0/W1/W2 | Bounded meta already locally qualified | E02 preserves it; E03 regression plus alias/backend discovery |
-| Scalar notional/unit and structural dca_ladder | E03 bounded software research opt-ins; original accounting retained | Eight real pairs finished, 0/8 economic gates pass; prepared-unit metric parity FAIL; no empirical/default promotion |
+| Scalar notional/unit and structural dca_ladder | E03 bounded software research opt-ins; original accounting retained | Eight original real pairs: 0/8 economic gates pass; E03-G01 prepared-unit repair and full replay PASS locally; no empirical/default promotion |
 | Portfolio/multi-symbol target matrix | E04 bounded Mode 4 causal meta software and installed opt-in PASS | Real shared-account diagnostic finished; forward-Q threshold FAIL; formal/locked promotion pending |
 | Basket/bounded arbitrage package | E05 original-account bounded non-expiring software/installed opt-in PASS | Real quarterly expiry/roll contract and sufficient data remain unqualified; no empirical promotion |
 | Intrabar bracket/session, Numba/Rust | Backtest/prepared runner exists; no public target WFO adapter | E06 typed intent WFO/account adapter, then real intrabar meta study |
@@ -23578,7 +23587,7 @@ routes are not silently disabled while new domain coverage is assessed.
 |---|---|---|---|
 | E01 | Close audited provenance/docs/proof-wiring debt | Current C01-C05 records | COMPLETE_LOCAL_APPROVED_SCOPE; E01-T01 through T05 PASS |
 | E02 | Shared typed domain adapter and future-route conformance | E01 local gate | COMPLETE_LOCAL_APPROVED_SCOPE; E02-T01 through T06 PASS; no new activation |
-| E03 | Scalar aliases/structural ladder and native-event signal coverage | E02 | BLOCKED_PREPARED_METRIC_PARITY; ordinary/installed PASS; studies finished, 0/8 economic gates pass |
+| E03 | Scalar aliases/structural ladder and native-event signal coverage | E02 | SOFTWARE_AND_INSTALLED_COMPLETE_NOT_PROMOTED; E03-G01 CLOSED_LOCAL; original studies 0/8 economic gates pass |
 | E04 | Portfolio/shared-account WFO meta | Independently owner authorized | Software/installed PASS; real diagnostic finished, R/Q gate FAIL; owner PENDING |
 | E05 | Bounded basket/arbitrage package WFO meta | Owner authorized; E04 dependency explicit | Software/installed PASS; empirical/owner PENDING |
 | E06 | Intrabar intent/session WFO, then meta qualification | E05 approved gate and existing alpha/data | PLANNED; NOT_RUN |
@@ -23758,7 +23767,7 @@ push/merge/tag/publication remain outside E02 authorization.
 <a id="qms-e03"></a>
 #### QMS-E03 - Scalar Sizing, Structural Ladder And Backend Meta Coverage
 
-**Status:** BLOCKED_PREPARED_METRIC_PARITY; ordinary correctness/installed proofs
+**Status:** SOFTWARE_AND_INSTALLED_COMPLETE_NOT_PROMOTED; ordinary correctness/installed proofs
 PASS; eight registered pairs and two prepared studies finished. Assessment
 sealed; no economic promotion or overall completion certificate.
 **Goal:** complete existing scalar WFO route coverage before matrix/package work.
@@ -23875,17 +23884,18 @@ included in candidate CI; no remote run or publication is authorized here.
 <a id="e03-g01"></a>
 ##### E03-G01 - Prepared Liquidation Metric Compatibility Repair Proposal
 
-**Status:** REPAIR_AUTHORIZED_IN_PROGRESS (2026-10-06). Owner request to close
-the listed gaps authorizes this bounded legacy-metric compatibility repair,
-not an estimator replacement or economic retuning. Historical failed receipts
-and scientific rules remain unchanged. PASS requires new executed evidence.
+**Status:** CLOSED_LOCAL_CORRECTNESS (2026-10-06). Owner-approved bounded
+legacy-metric compatibility repair, fresh artifacts and full registered unit
+replay PASS. Read [the separate executed closure](../docs/meta_selection/QMSE03_G01_CLOSURE.md).
+Historical failed receipts/scientific rules remain unchanged; this is not an
+estimator replacement or economic retuning. Remote/public remain separate.
 **Goal:** preserve the existing canonical objective for every prepared candidate,
 including liquidation/zero-equity paths, before claiming identical search work.
 **Guide:** [raw metric identity, section 5](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s5),
 [prepared/numerical/chronological parity, section 8](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s8),
 [economic interpretation, section 14](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s14)
 and [actual failure/root cause](../docs/meta_selection/QMSE03_REPORT.md#prepared-study-and-parity-blocker).
-**Proposed To-Do After Approval:**
+**Approved To-Do (executed; historical failure below remains sealed):**
 
 1. Pin the legacy return-sample convention and existing native metric contracts
    separately; do not globally replace a scientific estimator. Add an explicit
@@ -23909,11 +23919,12 @@ ordinary objective/selection/account parity PASS at existing tolerances; all
 affected legacy contracts and installed proofs PASS. Economic promotion and
 remote/public gates remain separate. No tolerance increase, early truncation
 of bankrupt tails, silently reset unit reference price, or invented fallback.
-**Interim Guidance:** original endpoint scoring with
-`native_prepared_wfo="off"` for affected contracts. Current auto/require does
-not have a new fail-closed liquidation guard; that limitation is explicit.
-**Debt Disposition:** keep blocker open until actual repaired-artifact evidence;
-the eight ordinary studies and negative economic outcomes remain usable records.
+**Current Guidance:** use the freshly qualified extension with the explicit
+`legacy_zero_base_v1` prepared metric capability. Incompatible old extensions
+fail `require` or visibly fall back under `auto`; prepared-off original scoring
+remains available. Do not install a historical failed artifact as repaired.
+**Debt Disposition:** correctness blocker CLOSED_LOCAL; eight original ordinary
+studies and negative economic outcomes remain records, not economic promotion.
 
 <a id="qms-gap-closure-2026-10-06"></a>
 ##### QMS Gap Closure - Approved Compatibility Repair And Honest Qualification
@@ -23962,6 +23973,21 @@ remove only explicitly inventoried inactive reproducible scratch after checks.
 **Exit:** E03-G01 closes only on T01-T07 PASS at existing tolerances. Report
 economic FAIL/data insufficiency/remote pending separately. No release, merge,
 tag or scientific capability activation is implied. Commit each coherent step.
+
+**Executed local receipt (2026-10-06):** T01-T07 PASS; **1,356 QMS + 50 affected
+Python checks = 1,399 distinct**, plus **65 Rust** checks. Fresh core 1.1.2 /
+native 0.4.3 wheel/sdist consumers have zero required skips. Byte-identical real
+unit registration, 28 folds x 128 attempts, all objectives/params/panels/raw
+observations/chronology match; maximum metric difference `5.773159728050814e-15`,
+accounting difference zero. Single measured ordinary/prepared elapsed
+**549.001 / 291.542 seconds**, peak RSS **367.023 / 374.504 MiB**; **1.883x**,
+RSS +7.480 MiB. Flat final unit account is not economic evidence. Read
+[actual closure and exact artifact hashes](../docs/meta_selection/QMSE03_G01_CLOSURE.md)
+and [cleanup receipt](../docs/maintenance/QMS_G01_CLEANUP_2026-10-06.md).
+E04 remains NOT_PROMOTED; E05 delivery scope/data remains BLOCKED. The owner
+authorized **push only `feat/meta-selection-samplers` to origin for CI**; current
+six-row remote qualification is pending execution. No merge, tag, upload or
+new C01/C05/W3/E06/E07 capability activation is authorized.
 
 <a id="qms-e04"></a>
 #### QMS-E04 - Portfolio Shared-Account And Calendar Meta Integration

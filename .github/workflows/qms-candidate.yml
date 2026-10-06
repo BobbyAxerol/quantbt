@@ -136,4 +136,5 @@ jobs:
             .maturin/qms08/release-gaps.xml
             .maturin/qms08/e02-contracts.xml
             .maturin/qms08/e05-contracts.xml
+            .maturin/qms08/g01-contracts.xml
           if-no-files-found: error

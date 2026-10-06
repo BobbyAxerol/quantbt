@@ -8,8 +8,8 @@
 - QMS-01..05 were completed; owner explicitly authorized each advancement.
   Their sealed owner-pending receipts remain immutable historical records.
 - Current approved scope: QMS-E01 debt closure and QMS-E02 typed adapter migration
-  are complete locally after C02-C05 work; E03 is now authorized but its final
-  exit gate is BLOCKED_PREPARED_METRIC_PARITY.
+  are complete locally after C02-C05 work; E03 software is complete locally,
+  with E03-G01 CLOSED_LOCAL_CORRECTNESS and economic NOT_PROMOTED.
   E04 software and fresh exact wheel/sdist qualification are now complete
   locally (122 scoped checks PASS), with the original portfolio shared account.
   Read [its report](../docs/meta_selection/QMSE04_REPORT.md); real portfolio-alpha
@@ -26,12 +26,13 @@
   Corrected installed wheel/sdist eight-cell proofs and 1,193 distinct checks
   pass locally; eight paired studies and two prepared full studies finished.
   No pair passes the registered Q interval gate. Prepared notional pool/params/
-  account PASS (565.944 to 297.551 s, 1.902x); unit objectives/selection FAIL
-  after liquidation despite equal flat final accounts. Original scoring stays
-  usable; use prepared off for affected contracts. Read [the bounded repair
-  proposal](../upgrade/implement.md#e03-g01). Owner authorized the bounded
-  legacy zero-base sampling repair; fresh native/wheel/sdist proofs pass, while
-  exact registered full-unit replay is in progress. No estimator, alpha,
+  account PASS (565.944 to 297.551 s, 1.902x); the historical unit failure stays
+  sealed. The approved legacy zero-base repair now passes fresh native/core
+  wheel/sdist and exact full-unit replay: 3,584 attempts/arm, objective max diff
+  `5.773159728050814e-15`, logical panels/labels/params exact, account diff zero.
+  Read [the executed repair](../docs/meta_selection/QMSE03_G01_CLOSURE.md).
+  The final unit account is flat due to original margin rejection; it is not
+  economic gain. No estimator, alpha,
   threshold, RNG or financial execution change is authorized by this repair.
   Read [current gap decisions](../docs/meta_selection/GAP_CLOSURE_STATUS.md).
   Earlier QMS-R01/R02/R03 covers release-gap closure and preparation
@@ -39,7 +40,8 @@
   witnesses/W3/numeric-dispatch/thread-telemetry local closure are complete.
   Financial arithmetic, alpha/data, methodology defaults and published pair remain
   unchanged; narrow same-pass native-output plumbing was added for W3.
-- Technical: ordinary regression/installed proofs PASS; prepared-unit FAIL; remote
+- Technical: repaired local ordinary/prepared/installed proofs PASS;
+  **1,399 distinct Python + 65 Rust** checks PASS. Remote
   **6/6 PASS** on `0970d55`, [run 37225926548](https://github.com/BobbyAxerol/quantbt/actions/runs/37225926548).
   This is historical pre-C02 evidence, not the current source's remote gate.
   Final owner/economic acceptance and public-index qualification remain PENDING.
@@ -50,7 +52,13 @@
   366.372/418.501 s (+14.23%), versus 391.024/1,086.556 s (+177.87%) before.
   Active elapsed falls 61.48% (2.60x); peak RSS adds 14.805 MiB over off.
   These are single warm studies, not an all-Rust financial speed certificate.
-- E01/E02/E04 do not authorize push, merge, retag, release or deployment.
+- E01/E02/E04 do not themselves authorize push, merge, retag, release or deployment.
+  The owner separately approved feature-only push to origin for current-source
+  CI. No merge/tag/publication or new capability activation is authorized.
+- Repair performance: same registered unit study 549.001 to 291.542 s (1.883x),
+  peak RSS +7.480 MiB. One shared-VPS observation, not universal performance.
+  [Cleanup](../docs/maintenance/QMS_G01_CLEANUP_2026-10-06.md) reclaimed 219.656 MiB
+  from inactive incremental cache; current consumers/evidence are retained.
 
 ## Current C01 Review
 

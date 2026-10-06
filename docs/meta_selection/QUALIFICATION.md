@@ -92,14 +92,17 @@ their own E06-E08 gates. Local source/installed evidence is not a remote PASS.
 Registered real-alpha decay and owner gates govern official empirical promotion.
 A registry entry alone is not activation.
 
-E03's [executed assessment](QMSE03_REPORT.md) retains **1,193 ordinary checks
-PASS** but a **prepared-unit real-study FAIL**. Post-liquidation zero-equity
+E03's historical [executed assessment](QMSE03_REPORT.md) retains **1,193 ordinary checks
+PASS** and its original **prepared-unit real-study FAIL**. Post-liquidation zero-equity
 sample conventions differ between native and legacy metric reduction and change
 Optuna objectives/selection, even when financial arrays match. The assessment is
 not an overall certificate. Prepared notional passes its matched study; 0/8
-registered economic gates pass. [E03-G01](../../upgrade/implement.md#e03-g01)
-requires scope approval and fresh repaired-native evidence. Neither old local
-nor remote receipts can discharge this blocker.
+registered economic gates pass. The separately approved [E03-G01 closure](QMSE03_G01_CLOSURE.md)
+now supplies fresh artifacts and full registered unit trial/panel/label/params/
+account parity PASS. **1,399 distinct Python + 65 Rust** checks pass locally;
+metric max diff is `5.773159728050814e-15`, accounting diff zero. Old failed
+receipts are unchanged. Current-source remote and public gates still require
+their own execution, and correctness does not override negative economics.
 
 ## Software Gates
 

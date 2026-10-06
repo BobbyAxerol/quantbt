@@ -115,8 +115,11 @@ The [E03 assessment](QMSE03_REPORT.md#prepared-study-and-parity-blocker) reports
 a real prepared-unit metric parity failure after liquidation, not an adapter
 permission to change that metric or the financial arrays. Prepared notional's
 matched study passes; unit's equal flat final arrays cannot certify its search.
-Use original prepared-off scoring for the affected contract until the bounded
-repair gate passes. Software admission is not blanket prepared certification.
+The separately approved [E03-G01 closure](QMSE03_G01_CLOSURE.md) now passes fresh
+artifacts and the unchanged full unit study with explicit `legacy_zero_base_v1`.
+Old incompatible extensions fail required preparation or record auto fallback;
+original prepared-off remains usable. Historical failed receipts are retained.
+Software/metric admission is not blanket economic or remote/public certification.
 
 ## E04 Portfolio Amendment
 

@@ -89,3 +89,6 @@ See the [2026-10-06 receipt](maintenance/CLEANUP_2026-10-06.md) for exact deleti
 retained-file checksums, environment retention and measured disk improvement.
 The [E04/E05 follow-up](maintenance/QMS_E04_E05_CLEANUP_2026-10-06.md) records
 two inactive consumer removals, exact retained artifacts and 1.09 GiB reclaimed.
+The [E03-G01 follow-up](maintenance/QMS_G01_CLEANUP_2026-10-06.md) records only
+inactive Rust incremental-cache removal, unchanged protected hashes and 219.656
+MiB actual free-space improvement; current consumers/evidence remain retained.

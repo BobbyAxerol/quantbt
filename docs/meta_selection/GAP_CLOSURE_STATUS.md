@@ -25,8 +25,13 @@ Policy is part of request/cache and metric identity. Incompatible installed
 wheels fail `require` or produce observable `auto` fallback before scoring.
 The repair needs fresh native/core artifacts; old successful small fixtures
 and old native wheels cannot certify it. Preserve the failed full-study receipt.
-Current result is recorded separately after actual full unit replay, not by
-editing [the historical assessment](QMSE03_REPORT.md).
+**CLOSED_LOCAL_CORRECTNESS:** fresh native/core wheel/sdist and the full registered
+unit replay PASS. Objective/Sharpe maximum difference is `5.773159728050814e-15`;
+params/panels/raw labels match and accounting difference is zero. Read the
+[executed closure](QMSE03_G01_CLOSURE.md); [the historical assessment](QMSE03_REPORT.md)
+and negative economic outcomes remain unchanged. Prepared elapsed was 549.001
+to 291.542 seconds (1.883x), with +7.480 MiB peak RSS in this single study.
+Its final unit account is flat due to original margin rejection, not economic gain.
 
 ## E04 Economic Disposition
 
@@ -64,7 +69,8 @@ An unavailable contract/data source keeps the gate **BLOCKED**, not PASS.
 The candidate workflow includes installed repaired liquidation proof on both
 wheel and sdist for Ubuntu 22.04/24.04 x CPython 3.11-3.13, together with prior
 W3/sampler/continuation/scalar/portfolio/package consumers. Workflow wiring is
-not a runner receipt. Current-source remote execution requires authorized push;
+not a runner receipt. The owner approved feature-only push to `origin` for CI,
+not merge/tag/publication. Current-source remote execution is pending that push;
 the old `0970d55` six-row result is not proof for this repair.
 
 Pair remains **quantbt-engine 1.1.2 / quantbt-native 0.4.3**. Public consumer

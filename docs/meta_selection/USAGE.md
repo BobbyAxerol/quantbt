@@ -157,14 +157,15 @@ UTC days per score window, and the existing `close_target_v2_same_close` contrac
 Do not relabel this as next-open. `pct_equity` retains its separate cost/quantity
 guards. See the [full prepared matrix](../native_prepared_wfo_public.md).
 
-**Current candidate limitation:** the [E03 real study](QMSE03_REPORT.md#prepared-study-and-parity-blocker)
-finds objective/selection drift after liquidation: native daily reduction skips
-zero-base samples that the legacy metric retains. Full prepared notional matches
-in that study; prepared unit does not. Other liquidation-capable requests may be
-affected. Use original endpoint scoring with `native_prepared_wfo="off"` until
-the bounded compatibility repair is approved and qualified. Current auto/require
-does not detect this new mismatch. Installing the candidate or passing a small
-consumer does not certify every bankrupt-tail trajectory.
+**Repaired candidate metric contract:** the [original E03 study](QMSE03_REPORT.md#prepared-study-and-parity-blocker)
+found post-liquidation objective drift from different zero-base sample rules.
+The [executed E03-G01 repair](QMSE03_G01_CLOSURE.md) qualifies the full unchanged
+unit study with `legacy_zero_base_v1` in public prepared scoring. Native request
+defaults remain unchanged. Use the freshly qualified native/core artifacts:
+old extensions lacking the explicit policy fail `require` or record compatible
+`auto` fallback. Original `native_prepared_wfo="off"` remains available; a
+historical failed candidate is not a repaired artifact. Economic promotion and
+final remote/public availability remain independent of this local correctness PASS.
 
 Meta `auto` selects qualified native numeric batches when available, otherwise
 records a NumPy fallback reason. `require` fails if capability/parity is missing;

@@ -58,14 +58,16 @@ the installed examples, and quarterly delivery/roll is not a non-expiring basis.
 E04's [real diagnostic](QMSE04_REAL_DIAGNOSTIC.md) preserves full search and actual
 param/account application, but the forward-Q interval gate fails. It is not a
 new locked scientific acceptance or authority to publish this candidate.
-Its real prepared-unit study now fails objective/selection parity after
-liquidation. **Do not release this candidate as a fully parity-certified
-prepared scorer.** Read the [actual assessment](QMSE03_REPORT.md) and
-[bounded repair gate](../../upgrade/implement.md#e03-g01). Small installed proof
-PASS and reused-native hashes do not certify the failing liquidation contract;
-an approved repair needs newly built, exactly qualified native artifacts.
+E03's historical prepared-unit study failed objective/selection parity after
+liquidation. The separately approved [E03-G01 repair](QMSE03_G01_CLOSURE.md)
+now passes fresh native/core wheel/sdist and the complete unchanged study.
+**Do not release a historical pre-repair artifact as repaired.** Final release
+bytes must qualify the explicit legacy zero-base policy, complete source/loaded
+native hashes and current installed/remote proofs. The original assessment and
+negative economics remain sealed; local correctness is not publication approval.
 
-`.github/workflows/qms-candidate.yml` runs both commands for Ubuntu 22.04/24.04
+`.github/workflows/qms-candidate.yml` runs mandatory W3/scalar/portfolio/package
+and repaired liquidation wheel/sdist proofs for Ubuntu 22.04/24.04
 x CPython 3.11/3.12/3.13 on the pushed feature SHA. Permissions are contents-read
 only. Require **six actual successes**, archive JSON/log receipts and record
 the run URL/SHA. Local PASS is not remote or manylinux portability proof.
@@ -84,7 +86,7 @@ performed by the qualification workflow:
 1. Review exact-pair qualification and scientific limitations; create the
    feature-to-`dev` PR. Require CI, Native Event and QMS matrix success.
 2. Merge `dev` to `main` after reviewing the final release diff. Require all
-   release gates on that source. Do not retag or move a published release.
+release gates on that source. Do not retag or move a published release.
 3. Create `v1.1.2` at the clean approved current `main` tip. For TestPyPI instead,
    prepare a matching RC core version and RC tag at `dev`; a final main tag is
    not a TestPyPI ref. Follow the [channel checklist](../testpypi_release_checklist.md).
