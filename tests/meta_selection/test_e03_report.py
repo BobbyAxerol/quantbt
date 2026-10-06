@@ -80,3 +80,18 @@ def test_e03_t06_summary_counts_unique_params_per_origin_and_separates_execution
     sample["completed"] = 3
     with pytest.raises(AssertionError):
         report.execution_summary(sample)
+
+
+def test_e03_t06_explicit_failed_assessment_never_weakens_default_prepared_certificate():
+    trial = dict(trial_id=1, params={"window":22}, objective=-2.5,
+                 mean_is_sharpe=-2.5, pruned=False, fold_id=0)
+    plain = dict(trials=[trial], params={0:{"window":22}})
+    assert report.prepared_comparison(plain, plain)["gate"] == "PASS"
+    bad = dict(trials=[{**trial, "objective":-4.1}], params={0:{"window":24}})
+    with pytest.raises(AssertionError):
+        report.prepared_comparison(plain, bad)
+    result = report.prepared_comparison(plain, bad, assessment_only=True)
+    assert result["gate"] == "FAIL" and result["parity_failure"]
+    assert result["full_trial_pool_parity"] is False
+    assert result["selected_params_exact"] is False
+    assert plain["params"] == {0:{"window":22}}

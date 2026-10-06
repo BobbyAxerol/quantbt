@@ -62,7 +62,21 @@ def execution_summary(run):
         independent_account_check_seconds=run["account_check_seconds"])
 
 
-def build(*, study, package, junit, before, after):
+def prepared_comparison(normal, prepared, *, assessment_only=False):
+    params_exact = normal["params"] == prepared["params"]
+    failure = None
+    try:
+        prepared_trace_parity(normal, prepared)
+        assert params_exact, "prepared selection changed"
+    except AssertionError as exc:
+        if not assessment_only:
+            raise
+        failure = str(exc)
+    return dict(gate="PASS" if failure is None else "FAIL", selected_params_exact=params_exact,
+                full_trial_pool_parity=failure is None, parity_failure=failure)
+
+
+def build(*, study, package, junit, before, after, assessment_only=False):
     import numpy as np
     from tools.qms_real_review import trial_trace
     source = verify()
@@ -96,10 +110,14 @@ def build(*, study, package, junit, before, after):
         off, active = [json.loads(p.read_text()) for p in arms]
         assert trial_trace(off) == trial_trace(active)
         raw_refs.extend(file_ref(p) for p in arms)
+        position_activity = {}
         assert [r["schedule_fold_id"] for r in off["trials"]] == [r["schedule_fold_id"] for r in active["trials"]]
         for path, run in zip(arms, (off, active), strict=True):
             assert run["source_sha256"] == source["source_sha256"] and all(run["checks"].values())
             raw_refs.append(file_ref(path.with_suffix(".npz")))
+            with np.load(path.with_suffix(".npz")) as arrays:
+                position_activity[run["arm"]] = int(np.count_nonzero(
+                    np.any(arrays["positions"] != 0., axis=1)))
             if run["witness_sha256"]:
                 witness = path.with_name(path.stem + "-witness.json")
                 assert sha256(witness.read_bytes()).hexdigest() == run["witness_sha256"]
@@ -126,29 +144,45 @@ def build(*, study, package, junit, before, after):
                 ("final_equity", "sharpe", "max_drawdown_pct", "num_trades")}
                 for a,r in (("off",off),("active",active))},
             matched_is_pool=True, original_account_parity=True, empirical_promotion=False))
+        rows[-1]["reported_nonzero_position_bars"] = position_activity
     prepared_rows = []
     for target in ("notional", "unit"):
         paths = [study / f"{target}-native_vectorized-active-{p}.json" for p in ("off", "require")]
         normal, prepared = [json.loads(p.read_text()) for p in paths]
-        prepared_trace_parity(normal, prepared)
-        assert normal["params"] == prepared["params"]
+        comparison = prepared_comparison(normal, prepared, assessment_only=assessment_only)
         with np.load(paths[0].with_suffix(".npz")) as a, np.load(paths[1].with_suffix(".npz")) as b:
             assert a.files == b.files
             delta = {}
             for key in a.files:
-                np.testing.assert_allclose(a[key], b[key], rtol=1e-9, atol=1e-8)
+                try:
+                    np.testing.assert_allclose(a[key], b[key], rtol=1e-9, atol=1e-8)
+                except AssertionError as exc:
+                    if not assessment_only:
+                        raise
+                    comparison["gate"] = "FAIL"
+                    comparison["account_failure"] = str(exc)
                 delta[key] = float(np.max(np.abs(a[key]-b[key])))
         raw_refs.append(file_ref(paths[1]))
         raw_refs.append(file_ref(paths[1].with_suffix(".npz")))
         witness = paths[1].with_name(paths[1].stem + "-witness.json")
         assert sha256(witness.read_bytes()).hexdigest() == prepared["witness_sha256"]
         raw_refs.append(file_ref(witness))
+        native_stats = prepared["cache"]["native_prepared_wfo"]
         prepared_rows.append(dict(target=target, original_seconds=normal["wall_seconds"],
-            prepared_seconds=prepared["wall_seconds"], selected_params_exact=True,
-            full_trial_pool_parity=True, account_max_absolute_difference=delta,
+            prepared_seconds=prepared["wall_seconds"], **comparison,
+            wall_comparison_valid=comparison["gate"] == "PASS", account_max_absolute_difference=delta,
             execution=execution_summary(prepared), observer_attempts=prepared["observer_attempts"],
+            prepared_counters={k:native_stats[k] for k in ("native_boundary_calls",
+                "metric_witness_materialization_calls", "native_batches", "native_rows",
+                "native_scored_bars", "native_score_seconds", "metric_witness_rows",
+                "metric_witness_output_bytes", "transient_request_rows", "transient_request_bytes",
+                "score_python_row_objects", "fallback_batches", "fallback_rows", "boundary_count_scope")},
             prepared_peak_rss_mib=prepared["after_memory"]["peak_rss_mib"]))
-    return dict(schema="qms-e03-final-evidence-v1", local_software_gate="PASS",
+    prepared_pass = all(r["gate"] == "PASS" for r in prepared_rows)
+    return dict(schema="qms-e03-assessment-evidence-v1" if assessment_only else "qms-e03-final-evidence-v1",
+        local_software_gate="PASS" if prepared_pass else "PASS_ORIGINAL_SCALAR_PATHS_ONLY",
+        prepared_parity_gate="PASS" if prepared_pass else "FAIL",
+        phase_exit_gate="OWNER_ECONOMIC_REVIEW_PENDING" if prepared_pass else "BLOCKED_PREPARED_METRIC_PARITY",
         empirical_promotion=False, owner_review="PENDING", remote_current_source="NOT_RUN",
         public_index_qualification="NOT_RUN", publication=False, source=source,
         tests=tests, legacy_scalar_reactive_account_exact=True,
@@ -171,6 +205,8 @@ if __name__ == "__main__":
     for name in ("study", "package", "before", "after", "output"):
         parser.add_argument("--"+name, type=Path, required=True)
     parser.add_argument("--junit", type=Path, nargs="+", required=True)
+    parser.add_argument("--assessment-only", action="store_true",
+                        help="Record a failed prepared gate, never issue a PASS certificate for it")
     args = vars(parser.parse_args())
     output = args.pop("output")
     if output.exists():
