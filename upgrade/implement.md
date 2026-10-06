@@ -23880,9 +23880,13 @@ the eight ordinary studies and negative economic outcomes remain usable records.
 <a id="qms-e04"></a>
 #### QMS-E04 - Portfolio Shared-Account And Calendar Meta Integration
 
-**Status:** PLANNED_NOT_AUTHORIZED_FOR_EXECUTION; tests/empirical NOT_RUN.
+**Status:** AUTHORIZED_IN_PROGRESS (2026-10-06, Asia/Saigon); software tests
+pending; real-alpha empirical promotion NOT_RUN / OWNER_INPUT_PENDING.
 **Goal:** support existing portfolio WFO with real shared-account meta labels.
-**Entry:** E03 gate accepted; existing portfolio alpha/universe/data approved.
+**Entry:** owner authorized E04 independently at `7b83ba4`. E03-G01 remains
+BLOCKED_PENDING_SCIENTIFIC_REPAIR_APPROVAL; this phase does not repair, waive or
+inherit the prepared-unit Rust reducer gate. A portfolio alpha/universe has not
+yet been approved: synthetic portfolio tests certify software, not real economics.
 **Guide:** [families and labels, section 6](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s6),
 [route contracts, section 3](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s3),
 [native contracts, section 8](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s8),
@@ -23918,6 +23922,31 @@ multi-symbol carry, options margin or venue-exact portfolio margin.
 accepted as a shortcut. Cross-domain history migration needs explicit permission.
 **Commit Boundary:** typed binding and oracle cases first; observer/public route
 and empirical receipt as separate verified chunks.
+
+**Execution Contract And Scope Lock (2026-10-06):**
+
+- Only Mode 4 / `per_fold_causal`, original `native_portfolio` shared-account
+  evaluator, `exact_v2`, isolated strategy lifecycle and final `carry_position`.
+  Preserve the public endpoint and all meta-off dispatch defaults.
+- Require an explicit ordered universe and a mapping of OHLC DataFrames on the
+  exact aware calendar. Caller-aligned asynchronous calendars retain `NaN`
+  observations; unaligned source calendars fail before Optuna. No resampling,
+  inferred union or stale-price policy changes inside the meta adapter.
+- Accept exact position DataFrames or ordered mappings of Series. Reject
+  changed/missing/extra symbols, non-finite targets and incorrect calendars.
+- Bind portfolio mode, sizing, risk lookback/betas, constraints, funding policy,
+  account and execution policy to the family. Hash each market prefix without
+  future bars, reuse immutable witness material in the existing prepared context,
+  and release it with that context. Never cache financial or RNG state.
+- IS/forward labels use the original aggregate full-report reducer and fresh
+  diagnostic accounts; final OOS positions are stitched once and executed on
+  the original continuous account. No symbol-average Sharpe, financial replay,
+  portfolio Rust promotion, new ridge mathematics or release/version changes.
+- Seal exact source amendments and baseline scalar/W3/native search/account
+  evidence. Test accounting independently, off/shadow/active, future mutation,
+  universe/family isolation, preparation on/off, wheel and sdist consumers.
+- Finish software/docs/proofs before reporting. Real-alpha R/Q and remote/public
+  qualification remain explicit gates; no merge, push, tag or publication here.
 
 <a id="qms-e05"></a>
 #### QMS-E05 - Bounded Basket And Arbitrage Package Meta Integration
