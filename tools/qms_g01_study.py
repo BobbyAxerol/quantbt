@@ -3,8 +3,12 @@
 import argparse
 from hashlib import sha256
 import json
+import os
 from pathlib import Path
 import shutil
+import subprocess
+import sys
+from time import perf_counter
 
 from tools.qms_e03_study import read_registration
 from tools.qms_real_review import dump, private_path
@@ -47,6 +51,52 @@ def verify_installed_source(output, installed, expected):
             if sha256(actual.read_bytes()).hexdigest() != value:
                 raise ValueError(f"G01 installed compatibility source drift: {name}")
     return amendment
+
+
+def queue(*, original, output):
+    output = private_path(output)
+    _, identity = read_registration(output)
+    amendment = json.loads((output/"g01-replay-registration.json").read_text())
+    if amendment["original_registration_sha256"] != identity or amendment["source"] != verify():
+        raise ValueError("G01 replay registration/source amendment changed")
+    environment = dict(os.environ, OPENBLAS_NUM_THREADS="1", OMP_NUM_THREADS="1",
+                       MKL_NUM_THREADS="1", NUMBA_NUM_THREADS="1")
+    environment.pop("PYTHONPATH", None)
+    for preparation in ("off", "require"):
+        name = f"unit-native_vectorized-active-{preparation}"
+        receipt = output/f"{name}.json"
+        if receipt.exists():
+            saved = json.loads(receipt.read_text())
+            if (saved["registration_sha256"] != identity or saved["attempts"] != 28*128 or
+                    saved["approved_metric_amendment"] != amendment):
+                raise ValueError("cannot resume unmatched sealed G01 arm")
+            print(json.dumps(dict(arm=name, stage="existing_sealed_arm")), flush=True)
+            continue
+        ordinal = 1
+        while (output/f"{name}-attempt-{ordinal}.log").exists():
+            ordinal += 1
+        log = output/f"{name}-attempt-{ordinal}.log"
+        command = [sys.executable, "-m", "tools.qms_e03_study", "worker", "--output", str(output),
+                   "--target", "unit", "--backend", "native_vectorized", "--arm", "active",
+                   "--prepared", preparation, "--g01-replay"]
+        began = perf_counter()
+        print(json.dumps(dict(arm=name, stage="worker_started")), flush=True)
+        with log.open("w") as stream:
+            with subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                  text=True, env=environment) as process:
+                for line in process.stdout:
+                    stream.write(line)
+                    stream.flush()
+                    if line.startswith('{"cell":'):
+                        print(line.rstrip(), flush=True)
+                code = process.wait()
+        execution = dict(arm=name, attempt=ordinal, elapsed_seconds=perf_counter()-began,
+                         exit_code=code, log_sha256=sha256(log.read_bytes()).hexdigest())
+        with (output/"queue-executions.jsonl").open("a") as stream:
+            stream.write(json.dumps(execution)+"\n")
+        if code or not receipt.exists():
+            raise RuntimeError(f"G01 worker failed; preserved {log}; no automatic retry")
+    return compare(original=original, output=output)
 
 
 def compare(*, original, output):
@@ -96,7 +146,7 @@ def compare(*, original, output):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("action", choices=("register", "compare"))
+    parser.add_argument("action", choices=("register", "queue", "compare"))
     parser.add_argument("--original", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
