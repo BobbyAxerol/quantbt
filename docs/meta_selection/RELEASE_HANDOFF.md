@@ -50,6 +50,12 @@ cells on the current canonical wheel/sdist. The candidate matrix also invokes
 `tools.qms_e03_installed` and archives `installed-scalar-proof.json` with its
 exact lane/artifact/log hashes. This is research opt-in software admission;
 per-cell R/Q, simulated-ladder limitations and owner promotion stay separate.
+Its real prepared-unit study now fails objective/selection parity after
+liquidation. **Do not release this candidate as a fully parity-certified
+prepared scorer.** Read the [actual assessment](QMSE03_REPORT.md) and
+[bounded repair gate](../../upgrade/implement.md#e03-g01). Small installed proof
+PASS and reused-native hashes do not certify the failing liquidation contract;
+an approved repair needs newly built, exactly qualified native artifacts.
 
 `.github/workflows/qms-candidate.yml` runs both commands for Ubuntu 22.04/24.04
 x CPython 3.11/3.12/3.13 on the pushed feature SHA. Permissions are contents-read

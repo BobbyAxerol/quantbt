@@ -612,6 +612,7 @@ Start with the [documentation map](docs/README.md).
 | Feature-branch prepared meta parity and portable decision/model handoff | [QMS-06 capability/report](docs/meta_selection/QMS06_REPORT.md), [host consumer](docs/meta_selection/HANDOFF.md) (not yet published) |
 | Feature-branch QMS stable usage, sampler/meta policy, history, migration and candidate installation scope | [QMS user guide](docs/meta_selection/USAGE.md), [qualification](docs/meta_selection/QUALIFICATION.md), [complete cases](examples/wfo_meta_contract.py) (not yet published) |
 | Feature-branch exact owned sampler checkpoints, with no automatic WFO resume | [Continuation contract](docs/meta_selection/EXACT_CONTINUATION.md), [four-recipe example](examples/optimization_exact_continuation.py), [local report](docs/meta_selection/QMSC04_REPORT.md) (not yet published) |
+| Feature-branch scalar sizing meta, actual ETH R/Q and cost evidence; prepared-unit blocker | [E03 assessment](docs/meta_selection/QMSE03_REPORT.md), [scalar example](examples/wfo_meta_scalar.py) (not yet published; no economic promotion) |
 | Public scalar WFO prepared-native scorer, W0/W1/W2, and fallback matrix | [Public prepared-native WFO scoring](docs/native_prepared_wfo_public.md) |
 | Fresh cache-cold ordinary/reactive WFO performance, parity, and supported-mode boundaries | [NEXT-02 WFO closure](docs/performance/next02_fresh_wfo_reactive_wfo.md) |
 | Exact run-local WFO candidate-analysis reuse and rollback | [PERF-05 WFO evaluation reuse](docs/performance/perf_05_wfo_evaluation_reuse.md) |

@@ -32,6 +32,22 @@ the request is outside the certified matrix. `"require"` fails before scoring;
 it never silently substitutes a target proxy, timing convention, or Numba
 route.
 
+## Current Liquidation Limitation
+
+The [E03 real-data assessment](meta_selection/QMSE03_REPORT.md#prepared-study-and-parity-blocker)
+finds a prepared metric compatibility defect: Rust skips return samples with
+zero previous equity, whereas the legacy endpoint retains zero returns. Account
+arrays can match while Sharpe/objectives, Optuna proposals and selected params
+diverge. Full prepared notional matches in the registered study; prepared unit
+does not. This is not rounding noise or permission to widen tolerance.
+
+Use `native_prepared_wfo="off"` for affected liquidation-capable contracts until
+the bounded repair is qualified. The current auto/require admission guards do
+**not** detect this new metric mismatch. The historical matrix below describes
+request eligibility; it does not certify every bankrupt-tail trajectory.
+Read [the scope/repair gate](../upgrade/implement.md#e03-g01); native source edits
+and fresh repaired artifacts require separate approval.
+
 ## Certified Matrix
 
 | Dimension | Public prepared-native scope |

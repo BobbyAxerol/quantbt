@@ -110,3 +110,10 @@ legacy calls explicit one-way `fee_rate` must equal `fee / 2`; off behavior is
 untouched. Prepared notional/unit remain bounded same-close targets; ladder and
 event rebalance cannot substitute that timing. One final continuous account is
 rebuilt from stitched signals, not summed/compounded fresh diagnostic accounts.
+
+The [E03 assessment](QMSE03_REPORT.md#prepared-study-and-parity-blocker) reports
+a real prepared-unit metric parity failure after liquidation, not an adapter
+permission to change that metric or the financial arrays. Prepared notional's
+matched study passes; unit's equal flat final arrays cannot certify its search.
+Use original prepared-off scoring for the affected contract until the bounded
+repair gate passes. Software admission is not blanket prepared certification.

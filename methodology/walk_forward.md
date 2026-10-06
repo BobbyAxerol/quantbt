@@ -889,3 +889,8 @@ One final original account executes stitched targets, not concatenated fold
 equities. The [E03 report](../docs/meta_selection/QMSE03_REPORT.md) separates
 software validity, signed decay $R$, forward $Q$, uncertainty and owner promotion.
 Simulation evidence for a ladder is not proof for a private real DCA alpha.
+The completed E03 study has no registered economic gate PASS, despite positive
+mean decay reduction. Prepared-unit additionally fails post-liquidation metric
+parity: zero-base daily sample inclusion changes the objective and later search.
+Matching equity alone is insufficient. This is an open compatibility repair,
+not authorization to change Ridge labels, censoring or the scientific estimator.

@@ -2822,15 +2822,6 @@ was separately gated QMS-05 work; see the [QMS-04 historical evidence](meta_sele
 
 Feature-branch QMS-05 now supports
 `optimization_config["meta_selection"]={"mode": "shadow" | "active", ...}`
-
-E03 adds bounded software research opt-ins for scalar `notional`, `unit` and
-structural `dca_ladder`, plus canonical aliases. See the
-[scalar domain contract](meta_selection/DOMAIN_ADAPTER_CONTRACT.md#e03-scalar-amendment)
-and [runnable example](../examples/wfo_meta_scalar.py). Mode/schedule stay
-Mode 4 / `per_fold_causal`; endpoint scoring is explicit. Original vectorized,
-native-event rebalance or legacy high/low accounting remains authoritative.
-Per-cell empirical/owner promotion is separate; no defaults or dynamic-order
-capabilities are changed.
 on `mode_4_is_only_robust + per_fold_causal`, with scalar endpoint original-result
 or QMS-06 qualified original-pass prepared-witness scoring, isolated
 strategy lifecycle and continuous carry-position accounting. Bind the caller-owned
@@ -2842,6 +2833,20 @@ forward labels and gets distinct information-policy claims. Unsupported routes
 fail before search. Read [complete syntax, clocks, sidecar and account contract](meta_selection/INTEGRATION.md),
 the [executed report](meta_selection/QMS05_REPORT.md), and
 [runnable public example](../examples/wfo_meta_selection.py).
+
+E03 adds bounded software research opt-ins for scalar `notional`, `unit` and
+structural `dca_ladder`, plus canonical aliases. See the
+[scalar domain contract](meta_selection/DOMAIN_ADAPTER_CONTRACT.md#e03-scalar-amendment)
+and [runnable example](../examples/wfo_meta_scalar.py). Mode/schedule stay
+Mode 4 / `per_fold_causal`; endpoint scoring is explicit. Original vectorized,
+native-event rebalance or legacy high/low accounting remains authoritative.
+Per-cell empirical/owner promotion is separate; no defaults or dynamic-order
+capabilities are changed. The [completed E03 assessment](meta_selection/QMSE03_REPORT.md)
+reports 0/8 economic gates passing and a real prepared-unit objective/selection
+failure after liquidation. Use original prepared-off scoring for affected
+contracts until the bounded repair is qualified; ordinary scalar software
+admission does not certify all prepared liquidation paths.
+
 This is not yet in published core 1.1.1. QMS-06 qualifies prepared scalar W0/W1/W2
 under the [exact capability/fallback matrix](meta_selection/INTEGRATION.md#prepared-capability-and-policy)
 and adds [portable host handoff](meta_selection/HANDOFF.md).
@@ -3332,6 +3337,13 @@ fee/slippage equivalence; its final account is the Rust transition contract.
 All other calls retain their historical final route. `mode_2_sbb` retains its
 bounded proxy path; `native_prepared_wfo="require"` therefore raises for it.
 `auto` records the unsupported reason and runs the historical scorer.
+
+The [E03 liquidation assessment](meta_selection/QMSE03_REPORT.md#prepared-study-and-parity-blocker)
+narrows this historical certificate: a full prepared-unit study changes metric
+sample inclusion and Optuna selection after zero equity, despite exact financial
+arrays. Other liquidation-capable prepared contracts may be affected. Current
+auto/require does not detect this mismatch. Use `native_prepared_wfo="off"`
+for the affected contract until the approved compatibility repair passes.
 
 ```python
 pct_wfo = QuantBTEndpoint.walk_forward(

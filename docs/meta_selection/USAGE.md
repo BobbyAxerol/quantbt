@@ -131,6 +131,15 @@ UTC days per score window, and the existing `close_target_v2_same_close` contrac
 Do not relabel this as next-open. `pct_equity` retains its separate cost/quantity
 guards. See the [full prepared matrix](../native_prepared_wfo_public.md).
 
+**Current candidate limitation:** the [E03 real study](QMSE03_REPORT.md#prepared-study-and-parity-blocker)
+finds objective/selection drift after liquidation: native daily reduction skips
+zero-base samples that the legacy metric retains. Full prepared notional matches
+in that study; prepared unit does not. Other liquidation-capable requests may be
+affected. Use original endpoint scoring with `native_prepared_wfo="off"` until
+the bounded compatibility repair is approved and qualified. Current auto/require
+does not detect this new mismatch. Installing the candidate or passing a small
+consumer does not certify every bankrupt-tail trajectory.
+
 Meta `auto` selects qualified native numeric batches when available, otherwise
 records a NumPy fallback reason. `require` fails if capability/parity is missing;
 `reference` explicitly selects the qualified NumPy path. On published native

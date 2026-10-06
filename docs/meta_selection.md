@@ -34,6 +34,11 @@ and [runnable scalar example](../examples/wfo_meta_scalar.py), with the
 This is still Mode 4 / `per_fold_causal`, endpoint-backed scoring and opt-in
 meta. Software admission does not assert reduced decay or economic promotion;
 reactive grid/DCA, portfolio, packages and intrabar have separate pending gates.
+The actual E03 assessment has **no economic gate PASS** and a **prepared-unit
+post-liquidation metric parity FAIL**. Ordinary software checks and prepared
+notional's matched study pass; this does not close the unit gate. Read the
+[bounded repair proposal](../upgrade/implement.md#e03-g01) before extending or
+promoting prepared support. No release/push is authorized.
 
 - [Unified QMS plan](../upgrade/implement.md#qms-01)
 - [Latest local debt closure, costs and real meta-off/on decay](meta_selection/LOCAL_DEBT_CLOSURE_REPORT.md)

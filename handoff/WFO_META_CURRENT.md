@@ -8,21 +8,27 @@
 - QMS-01..05 were completed; owner explicitly authorized each advancement.
   Their sealed owner-pending receipts remain immutable historical records.
 - Current approved scope: QMS-E01 debt closure and QMS-E02 typed adapter migration
-  are complete locally after C02-C05 work; E03 is now authorized/in progress.
+  are complete locally after C02-C05 work; E03 is now authorized but its final
+  exit gate is BLOCKED_PREPARED_METRIC_PARITY.
   E04-E08 execution remains unapproved. E03 adds scalar software research opt-ins,
   with separately registered per-cell R/Q studies, not empirical/default promotion.
   [E02 report](../docs/meta_selection/QMSE02_REPORT.md): six gates, 1,118 distinct
   tests and ten installed consumer runs PASS at its historical seal; E03 software
   coverage and original-account proofs are tracked separately in the unified plan.
   Read [E03 scope, registered study and current qualification](../docs/meta_selection/QMSE03_REPORT.md).
-  Corrected installed wheel/sdist eight-cell proofs pass locally; the registered
-  per-cell studies and final regression are still running, not a claim of gain.
+  Corrected installed wheel/sdist eight-cell proofs and 1,193 distinct checks
+  pass locally; eight paired studies and two prepared full studies finished.
+  No pair passes the registered Q interval gate. Prepared notional pool/params/
+  account PASS (565.944 to 297.551 s, 1.902x); unit objectives/selection FAIL
+  after liquidation despite equal flat final accounts. Original scoring stays
+  usable; use prepared off for affected contracts. Read [the bounded repair
+  proposal](../upgrade/implement.md#e03-g01); Rust edits need scope approval.
   Earlier QMS-R01/R02/R03 covers release-gap closure and preparation
   of 1.1.2/0.4.3. The earlier owner-selected Gradient RSI / ETHUSDT review and
   witnesses/W3/numeric-dispatch/thread-telemetry local closure are complete.
   Financial arithmetic, alpha/data, methodology defaults and published pair remain
   unchanged; narrow same-pass native-output plumbing was added for W3.
-- Technical: regression/end-to-end/docs and installed package PASS; remote
+- Technical: ordinary regression/installed proofs PASS; prepared-unit FAIL; remote
   **6/6 PASS** on `0970d55`, [run 37225926548](https://github.com/BobbyAxerol/quantbt/actions/runs/37225926548).
   This is historical pre-C02 evidence, not the current source's remote gate.
   Final owner/economic acceptance and public-index qualification remain PENDING.

@@ -82,6 +82,15 @@ Other target/meta routes remain rejected until their own E04-E07 qualification.
 Registered real-alpha decay and owner gates govern official empirical promotion.
 A registry entry alone is not activation.
 
+E03's [executed assessment](QMSE03_REPORT.md) retains **1,193 ordinary checks
+PASS** but a **prepared-unit real-study FAIL**. Post-liquidation zero-equity
+sample conventions differ between native and legacy metric reduction and change
+Optuna objectives/selection, even when financial arrays match. The assessment is
+not an overall certificate. Prepared notional passes its matched study; 0/8
+registered economic gates pass. [E03-G01](../../upgrade/implement.md#e03-g01)
+requires scope approval and fresh repaired-native evidence. Neither old local
+nor remote receipts can discharge this blocker.
+
 ## Software Gates
 
 The independent `tools/qms08_gate.py` registry contains all **64** Q1-T01..Q8-T08

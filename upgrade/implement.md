@@ -1,6 +1,6 @@
 # QuantBT Upgrade Implementation Plan
 
-**Current QMS status (2026-10-05, Asia/Saigon):**
+**Current QMS status (2026-10-06, Asia/Saigon):**
 [QMS-01 to QMS-08: meta-selection and WFO sampler integration](#qms-meta-selection-samplers).
 The [QMS-V1.1 detailed guide](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md)
 is required reading before every phase. QMS-01 through QMS-08 software is
@@ -58,10 +58,13 @@ scalar/W3 migration, all six gates PASS; **1,118 distinct tests** and ten actual
 installed consumer runs PASS. Read the [E02 report](../docs/meta_selection/QMSE02_REPORT.md)
 and [independent receipt](../benchmarks/optimization/meta_selection/qms_e02_final_gate_receipt.json).
 At the E02 seal new domains were not activated. E03 is now
-**AUTHORIZED_IN_PROGRESS**: 1,192 distinct correctness checks and installed
-eight-cell scalar proofs PASS; owner-registered real-data pairs are running.
+**BLOCKED_PREPARED_METRIC_PARITY**: 1,193 distinct checks and installed eight-cell
+scalar proofs PASS; all eight real-data pairs and two prepared studies finished.
+Prepared notional preserves pool/params/account; prepared unit fails objective/
+selection parity after liquidation. No cell passes the registered forward-Q gate.
 Bounded notional/unit/structural-ladder software opt-ins are not empirical or
-default promotion. See [the current E03 report](../docs/meta_selection/QMSE03_REPORT.md).
+default promotion. See [the current E03 report](../docs/meta_selection/QMSE03_REPORT.md)
+and [bounded compatibility repair proposal E03-G01](#e03-g01).
 E04-E08 remain **PLANNED_NOT_AUTHORIZED_FOR_EXECUTION**.
 Only the E03 registered study is authorized; no further study or release is
 authorized. Existing WFO routes
@@ -23398,8 +23401,10 @@ No version bump, push, merge, tag, deployment or upload is authorized by plannin
 #### Current Debt And Capability Ledger
 
 This audit is source-grounded, not a fresh remote CI or public-index receipt.
-Local preflight accepts scalar `signal_notional`/`pct_equity`; W3 has its separate
-reset-flat route. Broader target guards currently reject meta as documented.
+Local preflight accepts scalar `signal_notional`/`pct_equity` and E03 bounded
+notional/unit/structural-ladder software opt-ins; W3 has its separate reset-flat
+route. Other target guards reject meta as documented. These admission rows do
+not certify the prepared post-liquidation metric contract or economic gain.
 
 | ID | Current finding / boundary | Disposition and planned owner |
 |---|---|---|
@@ -23417,6 +23422,7 @@ reset-flat route. Broader target guards currently reject meta as documented.
 | E-G12 | C05 conditional Sobol/mixed representatives are review/reference/tests only | Activation/category RNG/checkpoint qualification requires separate owner approval |
 | E-G13 | Real ETH Delta RSI decay evidence exists, but forward-Q interval includes zero and it is not pristine BTC/live certification | Preserve actual R/Q decomposition; registered scientific replacement remains NOT_AUTHORIZED |
 | E-G14 | Domain-wide real-alpha evidence is absent: scalar ETH results do not certify W3/grid, intrabar or portfolio/package | E03-E07 each own an endpoint-specific paired study and promotion decision |
+| E03-G01 | Real prepared-unit study changes native objective after liquidation: Rust skips zero-base returns, legacy keeps zero samples | OPEN_BLOCKER; bounded metric compatibility repair needs owner scope approval, fresh native artifacts and chronological parity; no tolerance widening or scientific replacement |
 
 #### Route Inventory And Coverage Target
 
@@ -23428,7 +23434,7 @@ An OOS output route alone is not a native-scored meta capability. Ordinary
 | Domain | Current WFO/meta state | Planned integration and gate |
 |---|---|---|
 | Scalar signal_notional/pct_equity, W0/W1/W2 | Bounded meta already locally qualified | E02 preserves it; E03 regression plus alias/backend discovery |
-| Scalar notional/unit and structural dca_ladder | E03 bounded software research opt-ins; original accounting retained | Registered per-cell economics pending; no empirical/default promotion |
+| Scalar notional/unit and structural dca_ladder | E03 bounded software research opt-ins; original accounting retained | Eight real pairs finished, 0/8 economic gates pass; prepared-unit metric parity FAIL; no empirical/default promotion |
 | Portfolio/multi-symbol target matrix | Existing WFO; native portfolio scorer exists; meta rejected | E04 shared-account metric/observer/calendar adapter and real portfolio study |
 | Basket/bounded arbitrage package | Final WFO routes exist with scorer/spec limitations | E05 authoritative native IS/forward package evaluator before meta promotion |
 | Intrabar bracket/session, Numba/Rust | Backtest/prepared runner exists; no public target WFO adapter | E06 typed intent WFO/account adapter, then real intrabar meta study |
@@ -23535,7 +23541,7 @@ routes are not silently disabled while new domain coverage is assessed.
 |---|---|---|---|
 | E01 | Close audited provenance/docs/proof-wiring debt | Current C01-C05 records | COMPLETE_LOCAL_APPROVED_SCOPE; E01-T01 through T05 PASS |
 | E02 | Shared typed domain adapter and future-route conformance | E01 local gate | COMPLETE_LOCAL_APPROVED_SCOPE; E02-T01 through T06 PASS; no new activation |
-| E03 | Scalar aliases/structural ladder and native-event signal coverage | E02 | AUTHORIZED_IN_PROGRESS; correctness/installed PASS; registered study running |
+| E03 | Scalar aliases/structural ladder and native-event signal coverage | E02 | BLOCKED_PREPARED_METRIC_PARITY; ordinary/installed PASS; studies finished, 0/8 economic gates pass |
 | E04 | Portfolio/shared-account WFO meta | E03 approved gate | PLANNED; NOT_RUN |
 | E05 | Bounded basket/arbitrage package WFO meta | E04 approved gate | PLANNED; NOT_RUN |
 | E06 | Intrabar intent/session WFO, then meta qualification | E05 approved gate and existing alpha/data | PLANNED; NOT_RUN |
@@ -23715,8 +23721,9 @@ push/merge/tag/publication remain outside E02 authorization.
 <a id="qms-e03"></a>
 #### QMS-E03 - Scalar Sizing, Structural Ladder And Backend Meta Coverage
 
-**Status:** AUTHORIZED_IN_PROGRESS; correctness/installed proofs PASS;
-registered empirical execution IN_PROGRESS (4/8 pairs complete), final seal pending.
+**Status:** BLOCKED_PREPARED_METRIC_PARITY; ordinary correctness/installed proofs
+PASS; eight registered pairs and two prepared studies finished. Assessment
+sealed; no economic promotion or overall completion certificate.
 **Goal:** complete existing scalar WFO route coverage before matrix/package work.
 **Entry:** E02 accepted; per-cell real alpha/data and R/Q thresholds registered.
 **Guide:** [route matrix, section 3](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s3),
@@ -23786,7 +23793,7 @@ Optuna objectives remain explicit nonfinite tokens, never fake zero labels.
 Cold receipt export/account-rebuild memory is separate from execution RSS.
 Remote CI now includes eight scalar installed cells, but is not triggered here.
 
-**Progress Receipt:** 1,192 distinct executed regression/focused cases PASS,
+**Historical Progress Receipt (before final study assessment):** 1,192 distinct executed regression/focused cases PASS,
 zero failures/errors/skips; all E03-T01..T06 groups are represented. Corrected
 core 1.1.2/native 0.4.3 wheel/sdist proofs exercise all eight cells with compiled
 meta `require`; prior mandatory consumers remain PASS. Historical native/scalar/
@@ -23798,6 +23805,77 @@ remaining pairs and two full prepared studies continue without retuning. The
 final report will seal raw hashes, per-origin unique proposals, CPU/wall and
 execution-versus-export memory separately. Receipt rejection tests are now
 included in candidate CI; no remote run or publication is authorized here.
+
+**Executed Assessment (2026-10-06):**
+
+- [Sanitized actual evidence](../benchmarks/optimization/meta_selection/qms_e03_assessment_evidence.json)
+  binds executed JUnit, source/package/baseline/raw hashes. **1,193 distinct
+  checks PASS**, zero failures/errors/skips; all six E03 groups represented.
+  Small installed wheel/sdist proofs pass; they do not cover every liquidation
+  trajectory. Original financial/Rust sources and earlier receipts stay exact.
+- Eight off/active pairs: **57,344 attempts, 51,016 completed, 6,328 duplicate
+  prunes, zero failed**; 3,664 original-pass observer evaluations. Two full
+  prepared studies add 7,168 attempts. Private alpha/params/data stay ignored.
+  Each ordinary pair has the same complete IS pool and its own verified actual
+  selected-parameter/account replay, without changing methodology or RNG.
+- All mean supported R are positive but **0/8 pass the frozen forward-Q
+  lower-bound gate**. Pct-equity Q=1.001062, interval [-0.155061,2.516381],
+  exactly reproduces earlier local data, not an independent economic proof.
+  Ladder is simulated on real OHLC, not a genuine private DCA alpha.
+- Prepared notional full pool/params/account PASS: 565.944 to 297.551 s,
+  **1.902x**; peak RSS 367.281 to 372.121 MiB, not a memory win. Prepared unit
+  changes objective/proposals/params; its apparent elapsed reduction is not a
+  valid same-work speedup. Equal unit final arrays are allflat and uninformative.
+- Failing candidate financial arrays are exact. Rust daily reducer skips
+  previous-equity-zero samples; legacy metrics retain zero returns. Native
+  objective first differs by 1.591948671 in fold 0/trial 27. Default certification
+  rejects this; assessment-only records explicit FAIL, never a PASS waiver.
+- Report [QMSE03](../docs/meta_selection/QMSE03_REPORT.md) discloses IS/FWD/R/Q,
+  actual final accounts, counts, wall/CPU/retention/FFI and unit margin rejection.
+  No gain-driven retuning, new sampler study, Rust rebuild, push or publication.
+  Overall E03 exit remains blocked, distinct from successful ordinary paths.
+
+<a id="e03-g01"></a>
+##### E03-G01 - Prepared Liquidation Metric Compatibility Repair Proposal
+
+**Status:** OPEN_BLOCKER; SCOPE_APPROVAL_PENDING. This is not an activated phase
+or permission to change the scientific method. E03 financial/Rust byte locks
+still apply until the owner approves the bounded amendment.
+**Goal:** preserve the existing canonical objective for every prepared candidate,
+including liquidation/zero-equity paths, before claiming identical search work.
+**Guide:** [raw metric identity, section 5](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s5),
+[prepared/numerical/chronological parity, section 8](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s8),
+[economic interpretation, section 14](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s14)
+and [actual failure/root cause](../docs/meta_selection/QMSE03_REPORT.md#prepared-study-and-parity-blocker).
+**Proposed To-Do After Approval:**
+
+1. Pin the legacy return-sample convention and existing native metric contracts
+   separately; do not globally replace a scientific estimator. Add an explicit
+   versioned compatibility policy where prepared endpoint objectives need it.
+2. Fix the Rust-owned reduction at its existing boundary, with no Python account
+   replay or post-hoc objective substitution. Preserve timing, fees/funding,
+   accepted positions, duplicate logic, labels, RNG and financial kernels.
+3. Add independent zero-base/zero-tail/recovery/daily-boundary expected-value
+   tests plus direct/prepared/compact/audit metric compatibility tests. Existing
+   native contracts retain their documented semantics.
+4. Amend only reviewed source guards under that approval; rebuild new native
+   artifacts, verify wheel/sdist consumers and hash the exact loaded extension.
+   Preserve failed v2 registration/receipt; never reuse its artifact as repaired.
+5. Replay the same unit study and affected liquidation-capable scalar fixtures
+   with unchanged data/params/ranges/sampler/budget/seed/account/thresholds. Check
+   every trial objective, logical pool, proposal/tell trace, actual params and
+   original account; do not rerun until an economic outcome becomes favorable.
+
+**Exit Gate:** independent expected metrics plus full chronological prepared/
+ordinary objective/selection/account parity PASS at existing tolerances; all
+affected legacy contracts and installed proofs PASS. Economic promotion and
+remote/public gates remain separate. No tolerance increase, early truncation
+of bankrupt tails, silently reset unit reference price, or invented fallback.
+**Interim Guidance:** original endpoint scoring with
+`native_prepared_wfo="off"` for affected contracts. Current auto/require does
+not have a new fail-closed liquidation guard; that limitation is explicit.
+**Debt Disposition:** keep blocker open until actual repaired-artifact evidence;
+the eight ordinary studies and negative economic outcomes remain usable records.
 
 <a id="qms-e04"></a>
 #### QMS-E04 - Portfolio Shared-Account And Calendar Meta Integration
