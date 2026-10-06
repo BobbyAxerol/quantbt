@@ -1,5 +1,106 @@
 # QuantBT Upgrade Implementation Plan
 
+<a id="qms-local-finalization"></a>
+## QMS Local Finalization Before CI And Publication
+
+**Status:** IN_PROGRESS_LOCAL; owner request 2026-10-06 (Asia/Saigon).
+**Goal:** resolve the remaining evidence/disposition and quarterly-data inventory
+without turning failed economics, reviewed specifications or old remote receipts
+into newly certified runtime capabilities.
+**Guide:** [methodology matrix, section 3](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s3),
+[shared execution, section 8](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s8),
+[reporting, section 12](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s12),
+[economic stopping rule, section 14](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s14),
+[C01 amendment](../docs/meta_selection/ADDITIONAL_METHODS_REVIEW.md),
+[C05 amendment](../docs/meta_selection/CONDITIONAL_GEOMETRY_REVIEW.md)
+and [remaining decisions](../docs/meta_selection/GAP_CLOSURE_STATUS.md).
+
+**Execution order and To-Do:**
+
+1. Reconcile E04's sealed real-alpha evidence, exact accounting application,
+   R = IS contribution + forward Q, uncertainty and costs. Preserve its negative
+   result. A completed diagnostic is not an unexecuted test, and software-qualified
+   research does not claim economic/default promotion. Owner scope narrowing or
+   a separately registered future study remains explicit, never manufactured.
+2. Audit real quarterly price availability in the central loader's existing
+   Parquet store as well as the previously reviewed 2025 sandbox archives.
+   Read only; never invoke a downloader or modify an external alpha/data store.
+   Stream original timestamps/OHLC/volume/symbols, bind file hashes, report exact
+   jointly priced minute coverage and defects. Calendar price months are not
+   matured, development or locked meta origins. Do not stitch contract prices,
+   infer settlement from a symbol suffix or pretend prices alone certify rolls.
+3. Pin the missing quarterly execution/data admission checklist: authoritative
+   instrument identity/multiplier, exact expiry/settlement event and price,
+   funding event history, pending orders, roll costs/dynamic hedges, source
+   availability and approved original-account authority. Verify current runtime
+   guards remain fail-closed. No new financial runtime is authorized by inventory.
+4. Reconcile C01/C05 and W3 capability statuses with prior separate activation
+   approvals. C01 nested Mode 1 outer-IS cohort and C05 conditional latent/support
+   projection require explicit spec acceptance; do not remove guards to appear
+   complete. Preserve unsupported global/decay, W3 carry/multi-symbol/meta batch,
+   Mode 2 bootstrap and automatic full-account recovery boundaries.
+5. Run focused local evidence/guard regressions, documentation/source checks,
+   and cleanup. Reuse current environments; no native rebuild or full-study rerun
+   is needed for read-only audit/disposition changes. Commit verified local chunks.
+
+**Tests:** sealed E04 hash/account/R-Q checks and tamper rejection; quarterly
+missing/duplicate/off-grid/invalid prices, calendar holes, multiple simultaneous
+contracts, symbol mismatch and immutable inputs; current expiry and capability
+preflight failures; documentation anchors and staged secret/source checks.
+**Resource budget:** less than 256 MiB incremental scratch and at least 5 GiB
+free safety headroom; stream one market batch/month at a time. Retain scientific
+evidence, source and exact artifacts; remove only reviewed inactive scratch.
+**Exit gate:** a source-bound local receipt and current handoff distinguish
+software PASS, negative economics, missing financial/data contracts, unapproved
+activation and deferred release gates. No result or authorization is invented.
+**Debt disposition:** approved local implementation gaps must be fixed; absent
+scientific/financial permission or source data must have exact actionable entry
+requirements. A blocked capability is not relabelled implemented.
+**CI/publication order:** the newest owner instruction supersedes earlier
+feature-push permission for this pass. Do not push, dispatch CI/CD, merge, tag,
+publish or run public-index proof now. Existing remote receipts remain historical;
+qualify the final chosen source/artifacts only after the owner closes local scope.
+
+### Local C01/C05 Activation Amendment
+
+**Authorization:** the owner separately approved the two reviewed specifications
+in this pass: nested Mode 1/per_fold_causal with raw outer-IS/real-forward cohort,
+and frozen conditional Sobol plus finite-support representative. Local execution
+only; no authorization for global/decay meta, W3 carry/multi-symbol/bootstrap or
+publication. Read both linked C01/C05 detailed amendments above before changes.
+
+**C01 To-Do:** retain existing inner search, shortlist/decay objective and native
+winner; acquire fresh original full outer-IS observations for the full eligible
+study pool, with isolated auxiliary RNG and explicit evaluation counts. Use a
+separate `nested_anchor_outer_IS_real_forward_v1` history family binding all
+inner policies and native selector/decay settings. Keep native search objective,
+inner diagnostics, outer raw IS and actual selected candidate metrics distinct.
+Seal before outer forward work; delegate final params/accounting to existing WFO.
+Initial admission is the existing scalar domain; reactive/portfolio/package nested
+adapters need their own domain qualification and remain fail-closed.
+**C01 tests/exit:** off/shadow trials, pool/native winner and account/RNG equality;
+full outer-window witnesses, exact anchor, family isolation, active actually
+applied params, future mutation, reference/prepared parity and installed consumer.
+No new estimator/Ridge or inner search calls; auxiliary outer scores are charged.
+
+**C05 To-Do:** expose explicit versioned policies through the shared sampler and
+selector, not new endpoints/recipe names. Freeze numeric layout before ask; use
+declared independent active-category RNG, one startup after warm prefix, exactly
+one whole Sobol point per remaining attempt with no hidden draws/retries/padding.
+Retain logical attempts and effective constraints. Select an existing admissible
+cluster point with unique-support weighting and canonical absolute tie order;
+keep exact original IS witness, never synthesize mixed params or averaged metrics.
+Extend owned exact continuation bindings/codecs for the new sampler state.
+**C05 tests/exit:** independent spec expected values; actual Optuna category/
+point sequence; warm/failed/pruned/duplicate consumption; public conditional WFO;
+own-anchor and mixed representative invariance; legacy defaults; fresh-process
+owned continuation and installed consumer. Review references remain independent.
+
+**Source/commit rule:** seal exact reviewed activation bytes separately against
+`39185fe`; historical guards may normalize only those exact bytes, never exempt
+whole files. Add focused modules rather than a new optimizer/financial engine.
+Commit each verified capability chunk locally. CI/CD and public proof stay deferred.
+
 ## Mandatory Build/Test Cleanup Gate
 
 **Status:** owner-authorized operational cleanup; independent of financial,
