@@ -531,7 +531,9 @@ def test_q6_t02_incompatible_route_fails_before_search(
         optuna, "create_study", lambda *a, **k: pytest.fail("search before preflight")
     )
     bt = endpoint(prepared="require")
-    with pytest.raises((MetaRecordError, NativePreparedPublicWfoUnsupported)):
+    expected = ValueError if field == "target_mode" else (MetaRecordError, NativePreparedPublicWfoUnsupported)
+    reason = "endpoint and walkforward_config target_mode differ" if field == "target_mode" else None
+    with pytest.raises(expected, match=reason):
         if field in {"target_mode", "scoring_trading_days"}:
             bt = QuantBTEndpoint(
                 replace(
@@ -660,18 +662,24 @@ def test_q6_t04_source_lock_allows_only_reviewed_additive_witness():
     from hashlib import sha256
     import subprocess
     from tools.qms06_source_guard import without_qms06_witness
+    from tools.qms_g01_source_guard import without_g01, verify
 
     root = Path(__file__).resolve().parents[2]
     name = "rust/crates/quantbt-engine/src/metrics_v2.rs"
     current = (root / name).read_bytes()
+    verify()
+    prior = without_g01(current, name)
     baseline = subprocess.check_output(["git", "show", f"3c69cb8:{name}"], cwd=root)
-    assert without_qms06_witness(current, name) == baseline
+    assert without_qms06_witness(prior, name) == baseline
     assert b"self.m2 / denominator as f64" in current
     changed = current.replace(
         b"self.m2 / denominator as f64", b"self.m2 / self.count as f64"
     )
+    with pytest.raises(AssertionError, match="unreviewed G01"):
+        without_g01(changed, name)
+    changed_prior = prior.replace(b"self.m2 / denominator as f64", b"self.m2 / self.count as f64")
     assert (
-        sha256(without_qms06_witness(changed, name)).digest()
+        sha256(without_qms06_witness(changed_prior, name)).digest()
         != sha256(baseline).digest()
     )
     name = "rust/native_event/src/prepared_evaluation.rs"

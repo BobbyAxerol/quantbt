@@ -682,11 +682,20 @@ def test_q5_t08_pct_equity_fees_funding_and_boundary_authority():
     assert sidecar(result)["observer_failures"] == 0
 
 
-def test_q5_t08_public_active_native_numeric_candidate(trained_history):
+def test_q5_t08_public_active_native_numeric_candidate(trained_history, monkeypatch):
     path = os.environ.get("QMS04_NATIVE_EXTENSION")
     if path is None:
-        # Ordinary consumers still exercise the explicit missing/require gate.
-        # Actual certification commands supply a real extension, no fake module.
+        # Installed public wheels now include QMS; absence is an explicit test
+        # condition, not an inference from a private fixture environment variable.
+        from quantbt.optimization.meta_selection import numerics
+        original = numerics.importlib.import_module
+
+        def unavailable(name, *args, **kwargs):
+            if name == "_quantbt_native":
+                raise ImportError("explicit missing native test")
+            return original(name, *args, **kwargs)
+
+        monkeypatch.setattr(numerics.importlib, "import_module", unavailable)
         with pytest.raises(
             MetaRecordError, match="META_NATIVE_UNAVAILABLE_OR_UNQUALIFIED"
         ):

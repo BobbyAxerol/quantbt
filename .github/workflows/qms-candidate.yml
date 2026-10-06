@@ -88,7 +88,7 @@ jobs:
           .venv/bin/python -m pytest -q tests/meta_selection/test_e05_package.py tests/meta_selection/test_e05_installed.py --junitxml=.maturin/qms08/e05-contracts.xml
       - name: Validate liquidation compatibility and replay fail-closed gates
         run: |
-          .venv/bin/python -m pytest -q tests/meta_selection/test_g01_metric_compatibility.py tests/meta_selection/test_g01_study_replay.py --junitxml=.maturin/qms08/g01-contracts.xml
+          .venv/bin/python -m pytest -q tests/meta_selection/test_g01_metric_compatibility.py tests/meta_selection/test_g01_study_replay.py tests/meta_selection/test_g01_installed.py --junitxml=.maturin/qms08/g01-contracts.xml
       - name: Prove installed W3 on this exact interpreter (no source imports)
         shell: bash
         run: |

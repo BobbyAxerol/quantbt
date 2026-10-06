@@ -13,8 +13,10 @@
   E04 software and fresh exact wheel/sdist qualification are now complete
   locally (122 scoped checks PASS), with the original portfolio shared account.
   Read [its report](../docs/meta_selection/QMSE04_REPORT.md); real portfolio-alpha
-  R/Q and owner promotion remain pending. E05 is owner-authorized next; its
-  package adapter and empirical gates remain NOT_RUN. E06-E08 are unapproved.
+  R/Q diagnostic is complete, with economic gate FAIL / NOT_PROMOTED.
+  E05 bounded software and installed proofs are complete (206 scoped checks);
+  real quarterly basis expiry/roll/data admission remains blocked, not parity.
+  E06-E08 are unapproved.
   E03 adds scalar software research opt-ins,
   with separately registered per-cell R/Q studies, not empirical/default promotion.
   [E02 report](../docs/meta_selection/QMSE02_REPORT.md): six gates, 1,118 distinct
@@ -27,7 +29,11 @@
   account PASS (565.944 to 297.551 s, 1.902x); unit objectives/selection FAIL
   after liquidation despite equal flat final accounts. Original scoring stays
   usable; use prepared off for affected contracts. Read [the bounded repair
-  proposal](../upgrade/implement.md#e03-g01); Rust edits need scope approval.
+  proposal](../upgrade/implement.md#e03-g01). Owner authorized the bounded
+  legacy zero-base sampling repair; fresh native/wheel/sdist proofs pass, while
+  exact registered full-unit replay is in progress. No estimator, alpha,
+  threshold, RNG or financial execution change is authorized by this repair.
+  Read [current gap decisions](../docs/meta_selection/GAP_CLOSURE_STATUS.md).
   Earlier QMS-R01/R02/R03 covers release-gap closure and preparation
   of 1.1.2/0.4.3. The earlier owner-selected Gradient RSI / ETHUSDT review and
   witnesses/W3/numeric-dispatch/thread-telemetry local closure are complete.

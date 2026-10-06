@@ -51,6 +51,7 @@ def main():
         runtime.close()
     import _quantbt_native._quantbt_native as extension
     print(json.dumps(dict(schema="qms-g01-installed-metric-v1", checks=3, skipped=0,
+        core_version=quantbt.__version__, native_version=native.version(),
         core_origin=str(Path(quantbt.__file__).resolve()), native_origin=str(Path(extension.__file__).resolve()),
         native_sha256=sha256(Path(extension.__file__).read_bytes()).hexdigest(),
         financial_profile_parity=True, sample_policy="legacy_zero_base_v1", publication=False)))
