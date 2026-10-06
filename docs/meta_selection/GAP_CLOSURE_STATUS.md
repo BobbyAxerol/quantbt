@@ -2,6 +2,14 @@
 
 ## Current Scope
 
+**Latest owner instruction:** finish local decisions first; do not push, dispatch
+CI/CD, merge, tag, publish or run public-index proof in this pass. The earlier
+feature-only CI approval and its receipts below are historical. Endpoint exposure
+for this version will be chosen by the owner from the
+[current route/evidence review](CURRENT_ROUTE_REVIEW.md), before opening more routes.
+C01/C05 now have separate local spec-implementation approval, but runtime
+activation is not implemented yet; historical spec-only reports remain intact.
+
 Owner request on 2026-10-06 authorizes the bounded E03-G01 legacy-metric
 compatibility repair. Read the [execution plan](../../upgrade/implement.md#qms-gap-closure-2026-10-06)
 and unchanged guide sections [5](../../upgrade/QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s5),
@@ -55,6 +63,12 @@ The real basis alpha instead needs quarterly delivery, expiry/settlement and
 rollover/dynamic hedge semantics. Its reviewed 2025 archives do not provide
 the required matured/development/locked origin coverage. No real E05 economic
 study is certified. Read [the original E05 report](QMSE05_REPORT.md).
+
+A subsequent read-only central-loader Parquet metadata inventory finds quarterly
+price archives from 2021 through 2026, not only the sandbox's 2025 data. Read the
+[inventory correction](CURRENT_ROUTE_REVIEW.md#quarterly-data-inventory-correction).
+File bounds and row counts do not prove continuity, source/event availability,
+settlement marks or enough locked valid origins. Quarterly admission remains open.
 
 Before admitting quarterly data, record a versioned amendment covering exact
 instrument identity/contract multiplier, expiry/settlement timestamp and price,

@@ -101,6 +101,23 @@ owned continuation and installed consumer. Review references remain independent.
 whole files. Add focused modules rather than a new optimizer/financial engine.
 Commit each verified capability chunk locally. CI/CD and public proof stay deferred.
 
+**Subsequent owner scope adjustment:** before broader endpoint exposure, report
+which existing routes have implementation/software/installed/real-alpha evidence
+and let the owner select this version's supported endpoints. Read the
+[current route review](../docs/meta_selection/CURRENT_ROUTE_REVIEW.md).
+Local C01/C05 specification acceptance remains recorded, but implementation and
+release-route promotion must not be reported as already completed. E04 retains
+its negative diagnostic; no universal conclusion about parameter sensitivity is
+inferred and research-only release scope has not been approved by implication.
+Read-only central-store metadata inventory also finds quarterly histories from
+2021 through 2026, beyond the old sandbox's 2025 archives. This corrects price
+availability inventory only, not delivery-domain or empirical qualification.
+**Current completion boundary:** route/source/evidence review and documentation
+checks PASS; [verification and cleanup](../docs/meta_selection/CURRENT_ROUTE_REVIEW.md#verification-and-cleanup)
+record no rebuild/study/release and no deletion. C01/C05 runtime implementation
+is still pending, not claimed completed by this review. Owner endpoint selection
+is the next release-scope decision; all current runtime guards remain unchanged.
+
 ## Mandatory Build/Test Cleanup Gate
 
 **Status:** owner-authorized operational cleanup; independent of financial,
@@ -136,8 +153,10 @@ current consumers, source and protected evidence retain exact hashes.
 The [QMS-V1.1 detailed guide](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md)
 is required reading before every phase. QMS-01 through QMS-08 software is
 complete locally, including the separately approved local debt closure.
-Remote qualification and public release preparation are now authorized under
+Historical remote qualification and public release preparation were authorized under
 [QMS-R01 through QMS-R03](#qms-release-gap-closure).
+The [latest local-finalization instruction](#qms-local-finalization) now defers
+new push/CI/CD and publication until the owner chooses the endpoint release scope.
 Prepared pair: **1.1.2 / 0.4.3**, default compiled QMS capability, meta opt-in.
 Historical QMS-R03 release regression: **490 QMS + 34 package checks PASS**.
 Current C02 local regression: **618 checks + 36 affected native checks PASS**;
@@ -152,8 +171,10 @@ downloaded. Pre-C02 `0970d55` receipts remain historical. Public proof remains
 PENDING_PUBLICATION; no push, merge, tag or upload is authorized by C02/C03/C04.
 The owner subsequently approved **feature-only push to origin for current-source
 CI** under [the gap closure](#qms-gap-closure-2026-10-06); no merge/tag/upload.
-Scientific acceptance, new capability implementation, merge/tag/publication
-remain separate owner decisions. Historical receipts are preserved unchanged.
+Scientific acceptance, endpoint release admission and merge/tag/publication
+remain separate owner decisions. C01/C05 specs now have local implementation
+approval in the amendment above; their runtime implementation has not started.
+Historical receipts are preserved unchanged.
 
 **Current capability work:** the owner authorized [QMS-C01](#qms-c01---additional-meta-modes-and-schedules)
 on 2026-10-05 (Asia/Saigon) for **spec/tests; activation separately**. The
@@ -180,7 +201,8 @@ QMS-C05 is **SPEC_AND_TESTS_COMPLETE_RUNTIME_NOT_ACTIVATED**: **366 scoped check
 PASS** (139 C05-specific). The [geometry proposal](../docs/meta_selection/CONDITIONAL_GEOMETRY_REVIEW.md)
 and [C05 report](../docs/meta_selection/QMSC05_REPORT.md) retain conditional-Sobol/
 mixed-centroid public guards and all production bytes. Owner approval of the new
-math and runtime activation remain separate. No new meta mode, public meta batch
+math received subsequent local implementation approval in the amendment above;
+runtime activation is not implemented. No new meta mode, public meta batch
 or publication is authorized by C03/C04/C05.
 
 **New owner-requested planning (2026-10-05):**
@@ -217,8 +239,9 @@ economic promotion is implied; repaired candidate remote proofs pass separately,
 while final publication artifacts and public consumers remain pending.
 E06-E08 remain **PLANNED_NOT_AUTHORIZED_FOR_EXECUTION**. E03-G01's bounded
 compatibility repair is complete locally; E04 formal locked evaluation and E05
-delivery-domain/data admission need separate decisions. Feature-only CI push is
-authorized; no release, merge, tag or publication is authorized. Existing WFO routes
+delivery-domain/data admission need separate decisions. New CI/CD and feature
+push are deferred by the latest owner instruction; no release, merge, tag or
+publication is authorized. Existing WFO routes
 must acquire domain-correct meta adapters, not merely relaxed guards. A newly
 integrated route needs its own real-alpha native/meta paired decay study and
 owner promotion review before official support. Original QMS math/scientific
