@@ -251,6 +251,7 @@ pub struct DirectTargetRequestV1 {
     equity_fraction: Box<[f64]>,
     output: NativeOutputProfileV1,
     audit_detail_row_limit: Option<usize>,
+    metric_zero_base_policy: quantbt_engine::ZeroBaseReturnPolicyV1,
     fingerprint: [u8; 32],
 }
 
@@ -328,10 +329,26 @@ impl DirectTargetRequestV1 {
             equity_fraction: equity_fraction.into_boxed_slice(),
             output,
             audit_detail_row_limit,
+            metric_zero_base_policy: quantbt_engine::ZeroBaseReturnPolicyV1::Skip,
             fingerprint: [0; 32],
         };
         request.fingerprint = request.compute_fingerprint();
         Ok(request)
+    }
+
+    #[must_use]
+    pub fn with_metric_zero_base_policy(
+        mut self,
+        policy: quantbt_engine::ZeroBaseReturnPolicyV1,
+    ) -> Self {
+        self.metric_zero_base_policy = policy;
+        self.fingerprint = self.compute_fingerprint();
+        self
+    }
+
+    #[must_use]
+    pub const fn metric_zero_base_policy(&self) -> quantbt_engine::ZeroBaseReturnPolicyV1 {
+        self.metric_zero_base_policy
     }
 
     pub fn with_audit_detail_limit(mut self, detail_row_limit: usize) -> Result<Self, String> {
@@ -418,6 +435,10 @@ impl DirectTargetRequestV1 {
 
     fn compute_fingerprint(&self) -> [u8; 32] {
         let mut hash = FingerprintWriter::new();
+        if self.metric_zero_base_policy != quantbt_engine::ZeroBaseReturnPolicyV1::Skip {
+            hash.bytes(b"direct-target-metric-zero-base-policy-v1");
+            hash.u8(self.metric_zero_base_policy as u8);
+        }
         hash.bytes(DIRECT_TARGET_REQUEST_SCHEMA_V1.as_bytes());
         hash.u16(DIRECT_TARGET_REQUEST_VERSION_V1);
         hash.bytes(&self.template.fingerprint());
@@ -740,7 +761,8 @@ fn execute_direct_target(
 
     let mut equity = account.initial_capital;
     let mut current_positions = vec![0.0; n_symbols];
-    let metric_contract = MetricContractV2::default();
+    let metric_contract =
+        MetricContractV2::default().with_zero_base_return_policy(request.metric_zero_base_policy);
     let mut metric_reducer = OnlineMetricReducerV2::new(metric_contract, equity)?;
     let mut score = NativeScoreOutputV1 {
         final_equity: equity,

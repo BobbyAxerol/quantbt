@@ -32,7 +32,8 @@ pub use fill_replay::{
 };
 pub use metrics_v2::{
     MetricContractV2, MetricFinishInputV2, NativeMetricSnapshotV2, OnlineMetricReducerV2,
-    ReturnFrequencyV2, ShortRunMetricPolicyV2, TradeCountDefinitionV2, ZeroVariancePolicyV2,
+    ReturnFrequencyV2, ShortRunMetricPolicyV2, TradeCountDefinitionV2, ZeroBaseReturnPolicyV1,
+    ZeroVariancePolicyV2,
 };
 pub use output::{
     AuditRetentionV1, DEFAULT_AUDIT_DETAIL_ROW_LIMIT_V1, NATIVE_EXECUTION_OUTPUT_VERSION_V1,

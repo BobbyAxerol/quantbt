@@ -2672,6 +2672,7 @@ struct NativeMetricFieldsCore {
     zero_variance_policy: &'static str,
     short_run_policy: &'static str,
     trade_count_definition: &'static str,
+    zero_base_return_policy: &'static str,
     total_return: f64,
     cagr: f64,
     mean_return: f64,
@@ -2722,6 +2723,7 @@ impl NativeMetricFieldsCore {
             trade_count_definition: match contract.trade_count_definition {
                 quantbt_engine::TradeCountDefinitionV2::CommittedFills => "committed_fills",
             },
+            zero_base_return_policy: contract.zero_base_return_policy.name(),
             total_return: metrics.total_return,
             cagr: metrics.cagr,
             mean_return: metrics.mean_return,
@@ -3166,6 +3168,10 @@ fn add_metric_fields(
     )?;
     payload.set_item("native_metric_risk_free_rate", metrics.risk_free_rate)?;
     payload.set_item("native_metric_variance_ddof", metrics.variance_ddof)?;
+    payload.set_item(
+        "native_metric_zero_base_return_policy",
+        metrics.zero_base_return_policy,
+    )?;
     payload.set_item(
         "native_metric_zero_variance_policy",
         metrics.zero_variance_policy,
@@ -5288,6 +5294,7 @@ impl NativeTargetExecutionRequestCore {
         min_notional=None,
         equity_fraction=None,
         output_profile=0,
+        metric_zero_base_policy="native_skip_zero_base_v1",
     ))]
     #[allow(clippy::too_many_arguments)]
     fn from_template(
@@ -5305,6 +5312,7 @@ impl NativeTargetExecutionRequestCore {
         min_notional: Option<PyReadonlyArray1<'_, f64>>,
         equity_fraction: Option<PyReadonlyArray1<'_, f64>>,
         output_profile: u8,
+        metric_zero_base_policy: &str,
     ) -> PyResult<Self> {
         let template = template.borrow(py).inner.clone();
         let expected_shape = [template.bar_count(), template.n_symbols()];
@@ -5378,9 +5386,29 @@ impl NativeTargetExecutionRequestCore {
             output,
         )
         .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        let metric_policy = match metric_zero_base_policy {
+            "native_skip_zero_base_v1" => quantbt_engine::ZeroBaseReturnPolicyV1::Skip,
+            "legacy_zero_base_v1" => quantbt_engine::ZeroBaseReturnPolicyV1::LegacyZero,
+            _ => {
+                return Err(pyo3::exceptions::PyNotImplementedError::new_err(
+                    "unsupported direct-target zero-base return policy",
+                ));
+            }
+        };
+        let inner = inner.with_metric_zero_base_policy(metric_policy);
         Ok(Self {
             inner: Arc::new(inner),
         })
+    }
+
+    #[classmethod]
+    fn metric_zero_base_policies(_cls: &Bound<'_, PyType>) -> Vec<&'static str> {
+        vec!["native_skip_zero_base_v1", "legacy_zero_base_v1"]
+    }
+
+    #[getter]
+    fn metric_zero_base_policy(&self) -> &'static str {
+        self.inner.metric_zero_base_policy().name()
     }
 
     #[getter]

@@ -89,7 +89,7 @@ def endpoint(strategy, target, backend, arm, registration, prepared):
                                 min_matured_origins=12)))
 
 
-def worker(output, target, backend, arm, prepared="off"):
+def worker(output, target, backend, arm, prepared="off", *, g01_replay=False):
     import numpy as np
     import pandas as pd
     import optuna
@@ -111,9 +111,16 @@ def worker(output, target, backend, arm, prepared="off"):
     assert "site-packages" in Path(quantbt.__file__).resolve().parts
     assert quantbt.__version__ == "1.1.2" and native.version() == "0.4.3"
     installed = Path(quantbt.__file__).resolve().parent
-    for source, expected in registration["source"]["source_sha256"].items():
-        module = installed / source.removeprefix("src/quantbt/")
-        assert sha256(module.read_bytes()).hexdigest() == expected, source
+    amendment = None
+    if g01_replay:
+        if (target, backend, arm) != ("unit", "native_vectorized", "active"):
+            raise ValueError("G01 replay scope is the original failing unit arm only")
+        from tools.qms_g01_study import verify_installed_source
+        amendment = verify_installed_source(output, installed, registration["source"]["source_sha256"])
+    else:
+        for source, expected in registration["source"]["source_sha256"].items():
+            module = installed / source.removeprefix("src/quantbt/")
+            assert sha256(module.read_bytes()).hexdigest() == expected, source
     optuna.logging.set_verbosity(optuna.logging.WARNING)
     loading = perf_counter()
     original, alpha, data, ranges = load_inputs(PRIVATE_ROOT)
@@ -220,6 +227,10 @@ def worker(output, target, backend, arm, prepared="off"):
         witness_sha256=sha256((output / f"{name}-witness.json").read_bytes()).hexdigest() if witnesses else None)
     # Optuna pruned objectives may be infinite; keep their typed state and
     # explicit nonfinite token rather than feeding them into the label codec.
+    if amendment is not None:
+        import _quantbt_native._quantbt_native as extension
+        sample["approved_metric_amendment"] = amendment
+        sample["native_extension_sha256"] = sha256(Path(extension.__file__).read_bytes()).hexdigest()
     dump(output / f"{name}.json", sample)
     print(json.dumps(dict(cell=f"{target}/{backend}", arm=arm, seconds=elapsed,
         attempts=sample["attempts"], observer=sample["observer_attempts"])), flush=True)
@@ -287,10 +298,11 @@ if __name__ == "__main__":
     parser.add_argument("--backend", choices=("native_vectorized", "native_event", "legacy"))
     parser.add_argument("--arm", choices=("off", "active"))
     parser.add_argument("--prepared", choices=("off", "require"), default="off")
+    parser.add_argument("--g01-replay", action="store_true")
     args = parser.parse_args()
     if args.action == "register":
         print(json.dumps(dict(registered_cells=len(register(args.output)["cells"]))))
     elif args.action == "worker":
-        worker(args.output, args.target, args.backend, args.arm, args.prepared)
+        worker(args.output, args.target, args.backend, args.arm, args.prepared, g01_replay=args.g01_replay)
     else:
         print(json.dumps(summarize(args.output), sort_keys=True))

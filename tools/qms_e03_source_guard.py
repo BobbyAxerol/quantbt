@@ -16,7 +16,10 @@ ALLOW = frozenset({"src/quantbt/endpoint.py",
 
 def without_e03_scalar(source, name):
     from tools.qms_e04_source_guard import without_e04_portfolio
-    source = without_e04_portfolio(source, name)
+    try:
+        source = without_e04_portfolio(source, name)
+    except AssertionError as exc:
+        raise AssertionError(f"unreviewed E03 or later amendment bytes: {name}") from exc
     if name not in ALLOW:
         return source
     original = subprocess.run(["git", "show", f"{ENTRY}:{name}"], cwd=ROOT, capture_output=True)
@@ -46,7 +49,8 @@ def verify():
     protected = ("rust", "src/quantbt/core", "src/quantbt/sizing", "src/quantbt/backtester.py",
         "src/quantbt/engines.py", "pyproject.toml", "uv.lock", "contracts",
         "upgrade/QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md")
-    if subprocess.check_output(["git", "diff", "--name-only", ENTRY, "--", *protected], cwd=ROOT):
+    from tools.qms_g01_source_guard import protected_changes
+    if protected_changes(ENTRY, protected):
         raise AssertionError("E03 financial/math/native/release identity changed")
     return dict(schema="qms-e03-exact-source-v1", baseline=ENTRY,
         source_sha256=json.loads(MANIFEST.read_text())["source_sha256"],

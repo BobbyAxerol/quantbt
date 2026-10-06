@@ -37,6 +37,24 @@ pub enum TradeCountDefinitionV2 {
     CommittedFills = 0,
 }
 
+/// Sampling compatibility is independent of financial execution and DDOF.
+#[repr(u8)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum ZeroBaseReturnPolicyV1 {
+    Skip = 0,
+    /// Match the legacy array reducer's divide(..., out=zeros, where=base!=0).
+    LegacyZero = 1,
+}
+
+impl ZeroBaseReturnPolicyV1 {
+    pub const fn name(self) -> &'static str {
+        match self {
+            Self::Skip => "native_skip_zero_base_v1",
+            Self::LegacyZero => "legacy_zero_base_v1",
+        }
+    }
+}
+
 /// Complete standard-metric policy. Changing any field changes the meaning of
 /// the result and must therefore be carried with a native result envelope.
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -48,6 +66,7 @@ pub struct MetricContractV2 {
     pub zero_variance_policy: ZeroVariancePolicyV2,
     pub short_run_policy: ShortRunMetricPolicyV2,
     pub trade_count_definition: TradeCountDefinitionV2,
+    pub zero_base_return_policy: ZeroBaseReturnPolicyV1,
 }
 
 impl MetricContractV2 {
@@ -75,7 +94,14 @@ impl MetricContractV2 {
             zero_variance_policy,
             short_run_policy,
             trade_count_definition,
+            zero_base_return_policy: ZeroBaseReturnPolicyV1::Skip,
         })
+    }
+
+    #[must_use]
+    pub const fn with_zero_base_return_policy(mut self, policy: ZeroBaseReturnPolicyV1) -> Self {
+        self.zero_base_return_policy = policy;
+        self
     }
 
     /// Crypto-friendly daily contract matching QuantBT's public default
@@ -293,11 +319,17 @@ impl OnlineMetricReducerV2 {
         let Some(previous) = self.previous_sample_equity.replace(equity) else {
             return;
         };
-        if previous <= 0.0 {
+        if previous <= 0.0 && self.contract.zero_base_return_policy == ZeroBaseReturnPolicyV1::Skip
+        {
             return;
         }
         let period_risk_free = self.contract.risk_free_rate / self.contract.annualization_factor;
-        let excess = equity / previous - 1.0 - period_risk_free;
+        let raw_return = match self.contract.zero_base_return_policy {
+            ZeroBaseReturnPolicyV1::Skip => equity / previous - 1.0,
+            ZeroBaseReturnPolicyV1::LegacyZero if previous == 0.0 => 0.0,
+            ZeroBaseReturnPolicyV1::LegacyZero => (equity - previous) / previous,
+        };
+        let excess = raw_return - period_risk_free;
         self.moments.push(excess);
         if excess < 0.0 {
             self.downside_square_sum += excess * excess;
@@ -397,6 +429,100 @@ mod tests {
         MetricContractV2, MetricFinishInputV2, OnlineMetricReducerV2, ReturnFrequencyV2,
         ShortRunMetricPolicyV2, TradeCountDefinitionV2, ZeroVariancePolicyV2,
     };
+
+    fn legacy_snapshot(equities: &[f64], daily: bool) -> super::NativeMetricSnapshotV2 {
+        let mut contract = MetricContractV2::crypto_daily()
+            .with_zero_base_return_policy(super::ZeroBaseReturnPolicyV1::LegacyZero);
+        if !daily {
+            contract.return_frequency = ReturnFrequencyV2::PerBar;
+        }
+        let mut reducer = OnlineMetricReducerV2::new(contract, 100.0).unwrap();
+        for (index, equity) in equities.iter().copied().enumerate() {
+            reducer
+                .observe(index as i64 * super::NS_PER_DAY, equity, 0.0)
+                .unwrap();
+        }
+        reducer.finish(MetricFinishInputV2 {
+            final_equity: *equities.last().unwrap(),
+            turnover: 0.0,
+            total_fee: 0.0,
+            total_funding: 0.0,
+            fill_count: 0,
+            event_count: 0,
+            rejected_count: 0,
+            canceled_count: 0,
+            liquidated: true,
+        })
+    }
+
+    #[test]
+    fn legacy_zero_base_samples_include_bankrupt_tail_and_recovery() {
+        for daily in [false, true] {
+            for (equities, returns) in [
+                (
+                    &[100.0, 120.0, 0.0, 0.0, 0.0][..],
+                    &[0.2, -1.0, 0.0, 0.0][..],
+                ),
+                (&[100.0, 0.0, 100.0, 200.0][..], &[-1.0, 0.0, 1.0][..]),
+                (&[0.0, 0.0, 0.0][..], &[0.0, 0.0][..]),
+                (&[100.0, 100.0, 100.0][..], &[0.0, 0.0][..]),
+            ] {
+                let result = legacy_snapshot(equities, daily);
+                let mean = returns.iter().sum::<f64>() / returns.len() as f64;
+                let variance = returns
+                    .iter()
+                    .map(|value| (value - mean).powi(2))
+                    .sum::<f64>()
+                    / (returns.len() - 1) as f64;
+                let sharpe = if variance > 0.0 {
+                    mean / variance.sqrt() * 365.0_f64.sqrt()
+                } else {
+                    0.0
+                };
+                assert_eq!(result.sample_count, returns.len() as u64);
+                assert!((result.mean_return - mean).abs() < 1e-12);
+                assert!((result.variance - variance).abs() < 1e-12);
+                assert!((result.sharpe - sharpe).abs() < 1e-12);
+            }
+        }
+    }
+
+    #[test]
+    fn legacy_daily_boundary_flushes_once_and_short_sample_is_zero() {
+        let result = legacy_snapshot(&[100.0], true);
+        assert_eq!(result.sample_count, 0);
+        assert_eq!(result.sharpe, 0.0);
+        let contract = MetricContractV2::crypto_daily()
+            .with_zero_base_return_policy(super::ZeroBaseReturnPolicyV1::LegacyZero);
+        let mut reducer = OnlineMetricReducerV2::new(contract, 100.0).unwrap();
+        for (timestamp, equity) in [
+            (0, 100.0),
+            (1, 120.0),
+            (super::NS_PER_DAY, 0.0),
+            (super::NS_PER_DAY + 1, 0.0),
+            (3 * super::NS_PER_DAY, 0.0),
+        ] {
+            reducer.observe(timestamp, equity, 0.0).unwrap();
+        }
+        let expected = legacy_snapshot(&[120.0, 0.0, 0.0], true);
+        let result = reducer.finish(MetricFinishInputV2 {
+            final_equity: 0.0,
+            turnover: 0.0,
+            total_fee: 0.0,
+            total_funding: 0.0,
+            fill_count: 0,
+            event_count: 0,
+            rejected_count: 0,
+            canceled_count: 0,
+            liquidated: true,
+        });
+        assert_eq!(result.sample_count, expected.sample_count);
+        assert_eq!(result.sharpe, expected.sharpe);
+        assert_eq!(
+            MetricContractV2::default().zero_base_return_policy,
+            super::ZeroBaseReturnPolicyV1::Skip
+        );
+    }
 
     #[test]
     fn online_per_bar_metrics_are_stable_for_short_and_zero_variance_runs() {

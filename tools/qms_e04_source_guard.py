@@ -48,7 +48,8 @@ def verify():
         "src/quantbt/backtester.py", "src/quantbt/engines.py", "src/quantbt/metrics",
         "pyproject.toml", "uv.lock", "contracts",
         "upgrade/QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md")
-    if subprocess.check_output(["git", "diff", "--name-only", ENTRY, "--", *protected], cwd=ROOT):
+    from tools.qms_g01_source_guard import protected_changes
+    if protected_changes(ENTRY, protected):
         raise AssertionError("E04 financial/math/native/release identity changed")
     return dict(schema="qms-e04-exact-source-v1", baseline=ENTRY,
         source_sha256=json.loads(MANIFEST.read_text())["source_sha256"],
@@ -57,7 +58,8 @@ def verify():
 
 def reviewed_scope():
     from tools.qms_e05_source_guard import ALLOW as later_scope
-    return ALLOW | later_scope
+    from tools.qms_g01_source_guard import ALLOW as G01_ALLOW
+    return ALLOW | later_scope | G01_ALLOW
 
 
 if __name__ == "__main__":

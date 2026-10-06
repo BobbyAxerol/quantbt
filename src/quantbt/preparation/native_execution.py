@@ -536,6 +536,7 @@ class NativeExecutionPreparationCache:
         min_notional: object | None = None,
         equity_fraction: object | None = None,
         output_profile: int = 0,
+        metric_zero_base_policy: str = "native_skip_zero_base_v1",
     ) -> NativePreparedRequest:
         """Prepare/reuse one Rust-owned direct close-target request."""
 
@@ -553,6 +554,7 @@ class NativeExecutionPreparationCache:
             min_notional=min_notional,
             equity_fraction=equity_fraction,
             output_profile=output_profile,
+            metric_zero_base_policy=metric_zero_base_policy,
         )
 
     def transient_direct_target_request(
@@ -570,6 +572,7 @@ class NativeExecutionPreparationCache:
         min_notional: object | None = None,
         equity_fraction: object | None = None,
         output_profile: int = 0,
+        metric_zero_base_policy: str = "native_skip_zero_base_v1",
     ) -> NativePreparedRequest:
         """Build a one-shot validated direct target request without L4 caching.
 
@@ -593,6 +596,7 @@ class NativeExecutionPreparationCache:
             min_notional=min_notional,
             equity_fraction=equity_fraction,
             output_profile=output_profile,
+            metric_zero_base_policy=metric_zero_base_policy,
         )
 
     def shared_portfolio_target_request(

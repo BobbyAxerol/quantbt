@@ -86,6 +86,7 @@ class NativeEvaluationMetricContractV1:
     trading_days: int = _CERTIFIED_ANNUALIZATION
     scope: str = "fold"
     native_metric_contract_version: int = 2
+    zero_base_return_policy: str = "native_skip_zero_base_v1"
     required_fields: tuple[str, ...] = (
         "final_equity",
         "total_fee",
@@ -115,19 +116,24 @@ class NativeEvaluationMetricContractV1:
             )
         if str(self.scope).lower().strip() not in {"fold", "scenario", "full"}:
             raise ValueError("metric scope must be fold, scenario, or full")
+        if self.zero_base_return_policy not in {"native_skip_zero_base_v1", "legacy_zero_base_v1"}:
+            raise NotImplementedError("unsupported prepared zero-base return policy")
         if not self.required_fields or any(not str(value).strip() for value in self.required_fields):
             raise ValueError("metric required_fields must contain non-empty names")
 
     @property
     def fingerprint(self) -> str:
-        payload = json.dumps(
-            {
+        fields = {
                 "contract_id": str(self.contract_id),
                 "trading_days": int(self.trading_days),
                 "scope": str(self.scope).lower().strip(),
                 "native_metric_contract_version": int(self.native_metric_contract_version),
                 "required_fields": tuple(str(value) for value in self.required_fields),
-            },
+            }
+        if self.zero_base_return_policy != "native_skip_zero_base_v1":
+            fields["zero_base_return_policy"] = self.zero_base_return_policy
+        payload = json.dumps(
+            fields,
             sort_keys=True,
             separators=(",", ":"),
         ).encode("utf-8")
@@ -414,6 +420,9 @@ class NativePreparedEvaluationRuntimeV1:
                 "belongs to a separately versioned execution contract"
             )
         metrics = metric_contract or NativeEvaluationMetricContractV1()
+        actual_policy = getattr(request.core, "metric_zero_base_policy", "native_skip_zero_base_v1")
+        if actual_policy != metrics.zero_base_return_policy:
+            raise ValueError("prepared request and metric zero-base policies differ")
         cost = int(estimated_cost) if estimated_cost is not None else max(1, int(request.request_bytes))
         if cost <= 0:
             raise ValueError("estimated_cost must be > 0")

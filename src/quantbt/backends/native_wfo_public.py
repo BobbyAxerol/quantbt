@@ -115,6 +115,7 @@ class NativePreparedPublicWfoScorerV1:
             "fresh_account_policy": "fresh_account_per_evaluation",
             "final_account_policy": "endpoint_stitched_continuous_account",
             "execution_clock": _RUST_DIRECT_TIMING,
+            "zero_base_return_policy": "legacy_zero_base_v1",
             "required_computation_plan": None,
         }
 
@@ -141,10 +142,11 @@ class NativePreparedPublicWfoScorerV1:
             "fresh_account_per_evaluation": True,
             "deterministic_given_contract": True,
             "cross_run_reuse": False,
-            "engine_semantic_build": "native_prepared_public_wfo_v1",
+            "engine_semantic_build": "native_prepared_public_wfo_legacy_zero_base_v1",
             "numeric_contract": "native_prepared_scalar_columns_v1",
             "market_identity": str(state.template.market.signature),
             "template_identity": str(state.template.signature),
+            "metric_identity": state.metric_contract.fingerprint,
             "execution_clock": _RUST_DIRECT_TIMING,
             "retention": "completed_terminal_metric_mapping_only",
             "score_context_affects_terminal_metrics": False,
@@ -395,6 +397,12 @@ class NativePreparedPublicWfoScorerV1:
             funding_map[symbol].reindex(index).fillna(0.0).to_numpy(dtype=np.float64).reshape(-1, 1)
         )
         cache = NativeExecutionPreparationCache(CachePolicy())
+        target_core = getattr(cache._native(), "NativeTargetExecutionRequestCore", None)
+        policies = getattr(target_core, "metric_zero_base_policies", None)
+        if policies is None or "legacy_zero_base_v1" not in policies():
+            raise NativePreparedPublicWfoUnsupported(
+                "LEGACY_ZERO_BASE_METRIC_MISSING: prepared endpoint scoring requires the repaired native metric policy; auto uses the original endpoint, require needs the qualified native wheel"
+            )
         if self.meta_metric_support:
             from ..optimization.meta_selection.prepared import PREPARED_WITNESS_ABI
             if getattr(cache._native(), "QMS_PREPARED_METRIC_SUPPORT_V1", None) != PREPARED_WITNESS_ABI:
@@ -460,6 +468,7 @@ class NativePreparedPublicWfoScorerV1:
             metric_contract=NativeEvaluationMetricContractV1(
                 trading_days=int(self.wf_config.scoring_trading_days),
                 scope="fold",
+                zero_base_return_policy="legacy_zero_base_v1",
             ),
         )
 
@@ -515,6 +524,7 @@ class NativePreparedPublicWfoScorerV1:
                 min_notional=state.min_notional,
                 equity_fraction=equity_fraction,
                 output_profile=0,
+                metric_zero_base_policy="legacy_zero_base_v1",
             )
             self._stats["transient_request_rows"] = int(self._stats["transient_request_rows"]) + 1
             self._stats["transient_request_bytes"] = int(self._stats["transient_request_bytes"]) + int(

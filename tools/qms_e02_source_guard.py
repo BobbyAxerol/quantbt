@@ -59,7 +59,8 @@ def verify():
         checked_source((ROOT / name).read_bytes(), name)
     protected = ("rust", "pyproject.toml", "uv.lock", "contracts",
         "upgrade/QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md")
-    if subprocess.check_output(["git", "diff", "--name-only", ENTRY, "--", *protected], cwd=ROOT):
+    from tools.qms_g01_source_guard import protected_changes
+    if protected_changes(ENTRY, protected):
         raise AssertionError("E02 changed math/native/release/scientific identity")
     return dict(schema="qms-e02-exact-source-guard-v1", baseline=ENTRY,
         source_sha256=json.loads(MANIFEST.read_text())["source_sha256"],
