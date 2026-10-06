@@ -26,9 +26,21 @@ def build(output, package):
     if verify() != record["source"]:
         raise ValueError("reviewed production source changed")
     package = Path(package).resolve()
+    software = json.loads((ROOT/"benchmarks/optimization/meta_selection/qms_e05_software_closure.json").read_text())
+    installed_ref = software["installed"]
+    proof_path = package/"e05-proof.json"
+    if (software["gates"]["software"] != "PASS" or software["gates"]["installed_wheel_sdist"] != "PASS" or
+            sha256(proof_path.read_bytes()).hexdigest() != installed_ref["sha256"] or
+            proof_path.stat().st_size != installed_ref["bytes"]):
+        raise ValueError("installed proof does not match the sealed software receipt")
     proof = json.loads((package/"e05-proof.json").read_text())
     if proof["source_guard"] != record["source"] or (proof["core"], proof["native"]) != ("1.1.2", "0.4.3"):
         raise ValueError("study does not bind the installed artifact")
+    from tools.qms_e05_installed import validate_consumer
+    if set(proof["consumers"]) != {"wheel", "sdist"}:
+        raise ValueError("wheel and sdist consumers both required")
+    for consumer in proof["consumers"].values():
+        validate_consumer(consumer, ("1.1.2", "0.4.3"))
     for ref in proof["artifact_refs"]:
         path = ROOT/ref["path"]
         if sha256(path.read_bytes()).hexdigest() != ref["sha256"] or path.stat().st_size != ref["bytes"]:
@@ -96,6 +108,8 @@ longshort `%_equity` account, 20,000 capital, 0.25 allocation per symbol,
 leverage one, one-way fee 0.00025, one-bps slippage and original funding policy.
 Mode 4 / per_fold_causal, rolling 365D, 28 monthly forward folds from 2022-01,
 128 attempts per fold, seed 731, unchanged TPE recipe and no early stopping.
+Financial execution stays the original Numba portfolio authority; Rust-required
+QMS numerics do not turn this into an all-Rust portfolio benchmark.
 
 The owner requested real evaluation; the additional universe/protocol does not
 have separate formal economic approval. This is research-exposed diagnostic
@@ -136,9 +150,13 @@ Lower IS alone is not better forward performance. Undefined windows are not zero
 Off: {off["wall_seconds"]:.3f} s, peak RSS {off["peak_rss_mib"]:.1f} MiB.
 Active: {active["wall_seconds"]:.3f} s, peak RSS {active["peak_rss_mib"]:.1f} MiB.
 One cold public call per arm on a shared VPS, single worker/numeric thread;
+after imports and causal-alpha probes, with no financial endpoint warmup;
 not repeated medians or a kernel benchmark. Observer attempts:
 {receipt["observer_attempts"]}. Evaluation and learner timings stay separate
 in the receipt. Costs include the original post-seal labels, not free inference.
+The original portfolio `num_trades` metric counts quantity changes (and its
+initial-column convention), not completed alpha round trips. Equity sizing can
+resize units without a direction change. No metric definition was replaced.
 
 **NOT PROMOTED.** Diagnostic success or failure does not replace owner approval
 and locked evaluation. E03-G01 remains open without scientific repair approval.

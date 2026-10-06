@@ -1,5 +1,9 @@
 """Saved diagnostic rendering keeps financial effect, cost and promotion distinct."""
 
+import json
+
+import pytest
+
 from tools.qms_e04_empirical_report import render
 
 
@@ -25,3 +29,25 @@ def test_zero_supported_origins_remain_undefined_not_zero_gain():
             changed_decisions=0, diagnostic_threshold_pass=False, supported_means=None)))
     assert "R (native decay minus meta decay): UNDEFINED" in text
     assert "Forward Q (meta minus native Sharpe): UNDEFINED" in text
+
+
+@pytest.mark.parametrize("changed", ["registration", "harness", "objective"])
+def test_saved_assessment_rejects_unmatched_arms_before_any_effect_claim(tmp_path, monkeypatch, changed):
+    import tools.qms_e04_empirical_report as report
+
+    original = dict(registration_sha256="sealed", harness_sha256="same",
+                    trials=[dict(trial_id=1, objective=.3, params={"window": 20})])
+    active = json.loads(json.dumps(original))
+    if changed == "registration":
+        active["registration_sha256"] = "different"
+    elif changed == "harness":
+        active["harness_sha256"] = "different"
+    else:
+        active["trials"][0]["objective"] = .4
+    for arm, value in (("off", original), ("active", active)):
+        (tmp_path/f"{arm}.json").write_text(json.dumps(value))
+    monkeypatch.setattr(report, "private_path", lambda path: path)
+    monkeypatch.setattr(report, "read_registration", lambda path:
+                        (dict(paired_arms=["off", "active"]), "sealed"))
+    with pytest.raises(ValueError, match="mismatch|different execution harness"):
+        report.build(tmp_path, tmp_path/"not_an_installed_package")
