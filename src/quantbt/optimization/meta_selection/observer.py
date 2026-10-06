@@ -51,6 +51,10 @@ def _economic_payload(payload, constraints):
     rate = contract["funding"]["funding_rate"]
     if isinstance(rate, dict) and rate.get("type") == "Series":
         contract["funding"]["funding_rate"] = {"source": "aligned_series"}
+    elif payload["mode"] == "portfolio" and isinstance(rate, dict):
+        contract["funding"]["funding_rate"] = {symbol:
+            {"source": "aligned_series"} if isinstance(value, dict) and value.get("type") == "Series"
+            else value for symbol, value in rate.items()}
     contract["fees"] = {
         "canonical_one_way_fee_rate": payload["fees"]["canonical_one_way_fee_rate"]
     }
@@ -82,6 +86,9 @@ def economics_identity(config, *, symbols=None):
 
 
 def market_signature(frame, index, *, config=None):
+    if isinstance(frame, dict) and config is not None and config.mode == "portfolio":
+        from .domains.portfolio_witness import portfolio_market_signature
+        return portfolio_market_signature(frame, index, config=config)
     if not isinstance(frame, pd.DataFrame):
         raise NotImplementedError(
             "QMS-03 metric witnesses require DataFrame market tapes"
@@ -124,6 +131,7 @@ class ResultMetricAdapter:
         from ...core.results import BacktestResultV2
         from ...metrics.performance import _array_returns_for_stats
 
+        original_result = result
         if isinstance(result, BacktestResultV2):
             result = result.to_legacy()
         if not isinstance(result, BacktestResult):
@@ -199,6 +207,9 @@ class ResultMetricAdapter:
             array = np.ascontiguousarray(values.to_numpy(dtype=np.float64))
             witness.update(digest({"shape": array.shape, "dtype": "float64"}).encode())
             witness.update(array.tobytes())
+        if actual_config is not None and actual_config["mode"] == "portfolio":
+            from .domains.portfolio_contract import update_account_witness
+            update_account_witness(witness, original_result)
         return MetricObservation(
             status,
             raw if np.isfinite(raw) else None,

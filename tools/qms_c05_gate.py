@@ -33,6 +33,8 @@ def require_no_production_changes(names):
 
 def source_lock():
     from tools.qms_e03_source_guard import ALLOW as E03_ALLOW, verify as verify_e03
+    from tools.qms_e03_source_guard import reviewed_scope
+    E03_ALLOW = reviewed_scope()
     e03 = verify_e03()
     from tools.qms_e02_source_guard import ALLOW as E02_ALLOW, verify as verify_e02
     verify_e02()

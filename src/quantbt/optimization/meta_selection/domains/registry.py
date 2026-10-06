@@ -27,7 +27,7 @@ CAPABILITIES = (
     DomainCapability("pct_equity", "scalar", InputKind.SCALAR_TARGET, "QUALIFIED_EXISTING", "E03", "EXISTING_BOUNDED_EVIDENCE"),
     *[DomainCapability(route, "scalar", InputKind.SCALAR_TARGET, "SOFTWARE_VALIDATED_OPT_IN", "E03", "OWNER_EMPIRICAL_REVIEW_PENDING")
       for route in ("notional", "unit", "dca_ladder")],
-    DomainCapability("portfolio", "portfolio", InputKind.POSITION_MATRIX, "PENDING_ADAPTER_GATE", "E04"),
+    DomainCapability("portfolio", "portfolio", InputKind.POSITION_MATRIX, "SOFTWARE_VALIDATED_OPT_IN", "E04", "REAL_ALPHA_OWNER_REVIEW_PENDING"),
     *[DomainCapability(route, "package", InputKind.PACKAGE, "PENDING_ADAPTER_GATE", "E05")
       for route in ("basket", "arbitrage")],
     DomainCapability("intrabar", "intrabar", InputKind.INTRABAR_INTENT, "NO_PUBLIC_WFO_ADAPTER", "E06"),
@@ -81,6 +81,9 @@ def adapter_for(runtime):
     if explicit != "original-endpoint-reset-v1":
         raise MetaRecordError("META_ROUTE_UNSUPPORTED: unregistered scorer contract")
     row = capability(runtime.engine.config.target_mode, require_active=True)
+    if row.domain == "portfolio":
+        from .portfolio import PortfolioDomainAdapter
+        return PortfolioDomainAdapter(runtime)
     if row.domain != "scalar":
         raise MetaRecordError("META_DOMAIN_INPUT_MISMATCH")
     from .scalar import ScalarDomainAdapter

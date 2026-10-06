@@ -299,7 +299,11 @@ class PreparedWalkForwardContext:
     def metric_witness(self, config):
         from .optimization.meta_selection.witness import PreparedMetricWitness
 
-        owner = PreparedMetricWitness(self.data, config=config)
+        if config.mode == "portfolio":
+            from .optimization.meta_selection.domains.portfolio_witness import PortfolioMetricWitness
+            owner = PortfolioMetricWitness(self.data, config=config)
+        else:
+            owner = PreparedMetricWitness(self.data, config=config)
         self._witness_owners.append(owner)
         return owner
 

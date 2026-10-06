@@ -54,8 +54,9 @@ def verify():
     if set(names) - E02_ALLOW:
         raise AssertionError("E01 must change only the WFO reporting expression")
     from tools.qms_e02_source_guard import without_e02_adapter
-    current = without_e02_adapter((ROOT / NAME).read_bytes(), NAME)
-    original = without_e01_provenance(current, NAME)
+    source = (ROOT / NAME).read_bytes()
+    current = without_e02_adapter(source, NAME)
+    original = without_e01_provenance(source, NAME)
     return dict(schema="qms-e01-source-guard-v1", baseline=ENTRY,
                 before_sha256=sha256(original).hexdigest(), after_sha256=sha256(current).hexdigest(),
                 search_account_rng_source_exact=True, report_only=True)

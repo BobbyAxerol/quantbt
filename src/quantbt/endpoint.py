@@ -2208,8 +2208,12 @@ class QuantBTEndpoint:
             )
         )
         if wf_config.meta_selection is not None:
-            from .optimization.meta_selection.domains.scalar_contract import scalar_execution_contract
-            scalar_execution_contract(endpoint.config, wf_config)
+            if wf_config.target_mode == "portfolio":
+                from .optimization.meta_selection.domains.portfolio_contract import portfolio_execution_contract
+                portfolio_execution_contract(endpoint.config, wf_config)
+            else:
+                from .optimization.meta_selection.domains.scalar_contract import scalar_execution_contract
+                scalar_execution_contract(endpoint.config, wf_config)
         return endpoint
 
     @classmethod
@@ -4086,6 +4090,11 @@ class QuantBTEndpoint:
         return result
 
     def _run_portfolio(self, data, positions, closes, highs, lows, datetime_index, symbols):
+        if (self.config.mode == "walk_forward" and self.config.walkforward_config.meta_selection is not None
+                and self.config.walkforward_target_mode == "portfolio"):
+            from .optimization.meta_selection.domains.portfolio_contract import validate_portfolio_payload
+            from .walkforward import _infer_datetime_index
+            validate_portfolio_payload(positions, _infer_datetime_index(positions, None), symbols or self.config.symbols or ())
         pos_map = _positions_to_map(positions)
         if not pos_map:
             raise ValueError("portfolio endpoint requires positions DataFrame or mapping")
@@ -4924,6 +4933,14 @@ class _WalkForwardEndpointScorer:
         self.market_datetime_index = market_datetime_index
         self.meta_metric_support = bool(meta_metric_support)
         self._meta_witness = None
+        if self.meta_metric_support and self.target_mode == "portfolio":
+            from .optimization.meta_selection.domains.portfolio_contract import portfolio_execution_contract, validate_portfolio_market
+            from .walkforward import _infer_datetime_index
+            contract = portfolio_execution_contract(config, wf_config, symbols=self.symbols, require_universe=True)
+            if any(value is not None for value in (market_closes, market_highs, market_lows)):
+                raise ValueError("META_ROUTE_UNSUPPORTED: portfolio meta requires one authoritative OHLC mapping")
+            validate_portfolio_market(market_data, _infer_datetime_index(market_data, market_datetime_index), contract.universe)
+            self.score_config = replace(self.score_config, symbols=list(contract.universe))
         if self.meta_metric_support:
             if wf_config is None:
                 raise NotImplementedError("META_METRIC_SUPPORT_MISSING: WFO metric contract required")
@@ -5049,6 +5066,9 @@ class _WalkForwardEndpointScorer:
         trading_days: int,
         _quantbt_prepared_window=None,
     ) -> Dict[str, float]:
+        if self.meta_metric_support and self.target_mode == "portfolio":
+            from .optimization.meta_selection.domains.portfolio_contract import validate_portfolio_payload
+            validate_portfolio_payload(output, index, self.symbols)
         if self.meta_metric_support and self.target_mode == "dca_ladder":
             from .optimization.meta_selection.domains.scalar_contract import validate_scalar_payload
             validate_scalar_payload(output, index, self.target_mode)

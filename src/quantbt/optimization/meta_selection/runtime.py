@@ -83,7 +83,7 @@ class PublicMetaRuntime:
         self.capture.validate(engine.config, engine.scorer)
         self.family = self.compatibility_family(engine, context, self.schema)
         scalar_contract = getattr(self.domain_adapter, "execution_contract", None)
-        if scalar_contract is not None and not scalar_contract.legacy_family:
+        if scalar_contract is not None and not getattr(scalar_contract, "legacy_family", False):
             self.family = self.domain_adapter.compatibility().bind_family(self.family)
         self.records, self.models, self.tasks, self.snapshots = [], {}, [], []
         self.observer = PostDecisionObserver(engine.scorer._meta_adapter)

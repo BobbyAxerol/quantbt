@@ -15,6 +15,8 @@ ALLOW = frozenset({"src/quantbt/endpoint.py",
 
 
 def without_e03_scalar(source, name):
+    from tools.qms_e04_source_guard import without_e04_portfolio
+    source = without_e04_portfolio(source, name)
     if name not in ALLOW:
         return source
     original = subprocess.run(["git", "show", f"{ENTRY}:{name}"], cwd=ROOT, capture_output=True)
@@ -30,12 +32,14 @@ def without_e03_scalar(source, name):
 
 
 def verify():
+    from tools.qms_e04_source_guard import ALLOW as E04_ALLOW, verify as verify_e04
+    verify_e04()
     names = set(subprocess.check_output(["git", "diff", "--name-only", ENTRY,
         "--", "src", "rust"], cwd=ROOT, text=True).splitlines())
     names.update(subprocess.check_output(["git", "ls-files", "--others", "--exclude-standard",
         "--", "src", "rust"], cwd=ROOT, text=True).splitlines())
-    if names != ALLOW:
-        raise AssertionError(f"E03 unreviewed/missing production changes: {sorted(names ^ ALLOW)}")
+    if names != ALLOW | E04_ALLOW:
+        raise AssertionError(f"E03 unreviewed/missing production changes: {sorted(names ^ (ALLOW | E04_ALLOW))}")
     for name in names:
         without_e03_scalar((ROOT / name).read_bytes(), name)
     protected = ("rust", "src/quantbt/core", "src/quantbt/sizing", "src/quantbt/backtester.py",
@@ -46,3 +50,8 @@ def verify():
     return dict(schema="qms-e03-exact-source-v1", baseline=ENTRY,
         source_sha256=json.loads(MANIFEST.read_text())["source_sha256"],
         financial_numeric_source_unchanged=True, publication=False)
+
+
+def reviewed_scope():
+    from tools.qms_e04_source_guard import ALLOW as E04_ALLOW
+    return ALLOW | E04_ALLOW
