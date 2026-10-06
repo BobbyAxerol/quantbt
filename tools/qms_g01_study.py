@@ -99,17 +99,28 @@ def queue(*, original, output):
     return compare(original=original, output=output)
 
 
-def compare(*, original, output):
+def compare(*, original, output, receipt_name="g01-replay-proof.json"):
     import numpy as np
     from tools.qms_e03_queue import prepared_trace_parity
     from tools.qms_g01_parity import witness_parity
     original, output = private_path(original), private_path(output)
+    if Path(receipt_name).name != receipt_name or not receipt_name.endswith(".json"):
+        raise ValueError("G01 proof must be a JSON filename in the private replay lane")
+    destination = output/receipt_name
+    if destination.exists():
+        raise ValueError("sealed G01 comparison exists; use a new receipt name")
     prefix = "unit-native_vectorized-active-"
     historical = json.loads((original/(prefix+"off.json")).read_text())
     ordinary = json.loads((output/(prefix+"off.json")).read_text())
     prepared = json.loads((output/(prefix+"require.json")).read_text())
+    from tools.qms_real_review import trial_trace
+    maxima = dict(objective=0., mean_is_sharpe=0., paired_raw_sharpe=0.)
     for left, right in ((historical, ordinary), (ordinary, prepared)):
         prepared_trace_parity(left, right)
+        for a, b in zip(trial_trace(left), trial_trace(right), strict=True):
+            for field in ("objective", "mean_is_sharpe"):
+                if isinstance(a[field], (int, float)) and isinstance(b[field], (int, float)):
+                    maxima[field] = max(maxima[field], abs(a[field]-b[field]))
         if left["params"] != right["params"]:
             raise AssertionError("registered selected params changed")
         if len(left["paired"]) != len(right["paired"]):
@@ -127,28 +138,35 @@ def compare(*, original, output):
                             raise AssertionError("undefined label changed")
                     else:
                         np.testing.assert_allclose(a[side][field], b[side][field], rtol=1e-9, atol=1e-9)
+                        maxima["paired_raw_sharpe"] = max(maxima["paired_raw_sharpe"],
+                            abs(a[side][field]-b[side][field]))
     witnesses = {}
     for name, a, b in (("historical_ordinary", original/(prefix+"off-witness.json"),
                        output/(prefix+"off-witness.json")),
                       ("ordinary_prepared", output/(prefix+"off-witness.json"),
                        output/(prefix+"require-witness.json"))):
         witnesses[name] = witness_parity(a, b)
+    account_maxima = {}
     for preparation in ("off", "require"):
         with np.load(original/(prefix+"off.npz")) as a, np.load(output/(prefix+preparation+".npz")) as b:
             if set(a.files) != set(b.files):
                 raise AssertionError("account buffers changed")
             for key in a.files:
                 np.testing.assert_allclose(a[key], b[key], rtol=1e-9, atol=1e-8)
+                account_maxima[key] = max(account_maxima.get(key, 0.), float(np.max(np.abs(a[key]-b[key]))))
     receipt = dict(schema="qms-g01-unit-replay-v1", prepared_gate="PASS",
         registration_sha256=ordinary["registration_sha256"], attempts_per_arm=ordinary["attempts"],
         historical_ordinary_parity=True, prepared_pool_objective_params_account_parity=True,
         raw_label_chronology_parity=True,
         full_witness_parity=witnesses,
+        max_abs_metric_difference=maxima, max_abs_account_difference=account_maxima,
         tolerances=dict(objective_rtol=1e-9, objective_atol=1e-9, account_atol=1e-8),
         ordinary_seconds=ordinary["wall_seconds"], prepared_seconds=prepared["wall_seconds"],
+        ordinary_peak_rss_mib=ordinary["after_memory"]["peak_rss_mib"],
+        prepared_peak_rss_mib=prepared["after_memory"]["peak_rss_mib"],
         source=verify(), raw_receipts_sha256={p:sha256((output/(prefix+p+".json")).read_bytes()).hexdigest()
             for p in ("off", "require")}, empirical_promotion=False, publication=False)
-    dump(output/"g01-replay-proof.json", receipt)
+    dump(destination, receipt)
     return receipt
 
 
@@ -157,5 +175,9 @@ if __name__ == "__main__":
     parser.add_argument("action", choices=("register", "queue", "compare"))
     parser.add_argument("--original", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--receipt-name", default="g01-replay-proof.json")
     args = parser.parse_args()
-    print(json.dumps(globals()[args.action](original=args.original, output=args.output), sort_keys=True))
+    kwargs = dict(original=args.original, output=args.output)
+    if args.action == "compare":
+        kwargs["receipt_name"] = args.receipt_name
+    print(json.dumps(globals()[args.action](**kwargs), sort_keys=True))
