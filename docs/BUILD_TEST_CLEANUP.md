@@ -87,3 +87,5 @@ proof. Resume domain work only after disk and evidence checks are complete.
 
 See the [2026-10-06 receipt](maintenance/CLEANUP_2026-10-06.md) for exact deletions,
 retained-file checksums, environment retention and measured disk improvement.
+The [E04/E05 follow-up](maintenance/QMS_E04_E05_CLEANUP_2026-10-06.md) records
+two inactive consumer removals, exact retained artifacts and 1.09 GiB reclaimed.

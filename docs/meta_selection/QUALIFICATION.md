@@ -83,6 +83,8 @@ see [the portfolio contract](DOMAIN_ADAPTER_CONTRACT.md#e04-portfolio-amendment)
 and [its local report](QMSE04_REPORT.md). Its real-alpha/owner gate is not run.
 E05 adds original native-event bounded package software opt-ins; read the
 [package contract](DOMAIN_ADAPTER_CONTRACT.md#e05-package-amendment).
+Its [local report](QMSE05_REPORT.md) records 206 distinct checks and fresh wheel/
+sdist consumers PASS; current-source remote/public qualification is not run.
 Its empirical gate remains separate. Intrabar/order/future domains still need
 their own E06-E08 gates. Local source/installed evidence is not a remote PASS.
 Registered real-alpha decay and owner gates govern official empirical promotion.

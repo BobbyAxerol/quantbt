@@ -50,6 +50,11 @@ cells on the current canonical wheel/sdist. The candidate matrix also invokes
 `tools.qms_e03_installed` and archives `installed-scalar-proof.json` with its
 exact lane/artifact/log hashes. This is research opt-in software admission;
 per-cell R/Q, simulated-ladder limitations and owner promotion stay separate.
+E04 and E05 additionally pass local installed wheel/sdist original shared-account
+and bounded package consumers. Read [E04](QMSE04_REPORT.md) and [E05](QMSE05_REPORT.md).
+The candidate matrix invokes both installed proofs; six actual current-source
+runner successes are still required. Real-alpha economics are not certified by
+the installed examples, and quarterly delivery/roll is not a non-expiring basis.
 Its real prepared-unit study now fails objective/selection parity after
 liquidation. **Do not release this candidate as a fully parity-certified
 prepared scorer.** Read the [actual assessment](QMSE03_REPORT.md) and

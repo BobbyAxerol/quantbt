@@ -23,6 +23,9 @@ databases, alpha data, research evidence and other project sources are excluded.
 Root disk went from 100%/0 available to 93%/about 7.32 GiB available; 304 protected
 evidence/artifact/log files retain exact hashes. Active/current test and build
 environments remain. E04 package/empirical and E05 gates were not promoted.
+Follow-up [E04/E05 cleanup receipt](../docs/maintenance/QMS_E04_E05_CLEANUP_2026-10-06.md)
+records 1.09 GiB reclaimed from two inactive consumers, 1,221 retained files with
+exact hashes, and about 26.08 GiB available. Scientific and release gates did not change.
 
 **Current QMS status (2026-10-06, Asia/Saigon):**
 [QMS-01 to QMS-08: meta-selection and WFO sampler integration](#qms-meta-selection-samplers).
@@ -92,8 +95,10 @@ and [bounded compatibility repair proposal E03-G01](#e03-g01).
 E04 is **SOFTWARE_AND_INSTALLED_COMPLETE_EMPIRICAL_PENDING**: original
 shared-account integration, 122 scoped checks and fresh wheel/sdist consumers
 PASS. Read the [E04 report](../docs/meta_selection/QMSE04_REPORT.md). Real-alpha
-qualification remains open. E05 is **OWNER_AUTHORIZED_PENDING_E04_GATE**
-under the 2026-10-06 debt-closure request; no package promotion is implied.
+qualification remains open. E05 is **SOFTWARE_AND_INSTALLED_COMPLETE_EMPIRICAL_PENDING**:
+206 distinct scoped checks and final wheel/sdist original-account consumers PASS.
+Read the [E05 report](../docs/meta_selection/QMSE05_REPORT.md). No package
+economic promotion or current-source remote/public certification is implied.
 E06-E08 remain **PLANNED_NOT_AUTHORIZED_FOR_EXECUTION**. E03-G01 compatibility
 repair and the exact real-alpha protocol need their explicit scope decisions.
 No release, push, merge, tag or publication is authorized. Existing WFO routes
@@ -23572,7 +23577,7 @@ routes are not silently disabled while new domain coverage is assessed.
 | E02 | Shared typed domain adapter and future-route conformance | E01 local gate | COMPLETE_LOCAL_APPROVED_SCOPE; E02-T01 through T06 PASS; no new activation |
 | E03 | Scalar aliases/structural ladder and native-event signal coverage | E02 | BLOCKED_PREPARED_METRIC_PARITY; ordinary/installed PASS; studies finished, 0/8 economic gates pass |
 | E04 | Portfolio/shared-account WFO meta | Independently owner authorized | Software/installed PASS; empirical/owner PENDING |
-| E05 | Bounded basket/arbitrage package WFO meta | Owner authorized; E04 dependency explicit | Authorized; package tests/empirical NOT_RUN |
+| E05 | Bounded basket/arbitrage package WFO meta | Owner authorized; E04 dependency explicit | Software/installed PASS; empirical/owner PENDING |
 | E06 | Intrabar intent/session WFO, then meta qualification | E05 approved gate and existing alpha/data | PLANNED; NOT_RUN |
 | E07 | Event-driven/reactive/order adapters and real-alpha qualification | E06 approved gate; C02/C01 where expanded | PLANNED; NOT_RUN |
 | E08 | Domain matrix, installed/remote evidence and owner handoff | Approved preceding gate dispositions | PLANNED; NOT_RUN |
@@ -24006,10 +24011,13 @@ and empirical receipt as separate verified chunks.
 <a id="qms-e05"></a>
 #### QMS-E05 - Bounded Basket And Arbitrage Package Meta Integration
 
-**Status:** SOFTWARE_COMPLETE_INSTALLED_IN_PROGRESS (2026-10-06); 194 scoped
-checks PASS, original financial regression 11 PASS separately. Final repaired
-artifact proof is building; earlier v2 software consumers PASS but do not certify
-the newly repaired rejection-metadata witness. Real-alpha empirical NOT_RUN.
+**Status:** SOFTWARE_AND_INSTALLED_COMPLETE_EMPIRICAL_PENDING (2026-10-06);
+206 distinct scoped checks PASS (194 conformance, 11 original financial, one
+report check). Final fresh v3 core wheel/sdist, exact native reuse, mandatory
+scalar/portfolio/package consumers PASS, including the repaired rejection witness.
+Earlier failed/incomplete artifact receipts stay historical. Real-alpha empirical
+NOT_RUN. Read the [report](../docs/meta_selection/QMSE05_REPORT.md) and
+[sealed receipt](../benchmarks/optimization/meta_selection/qms_e05_software_closure.json).
 **Goal:** add meta only after native package IS and forward scores are authoritative.
 **Entry:** E04 gate accepted; supported package specs and real package tapes frozen.
 **Guide:** [evaluation architecture, section 2](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s2),

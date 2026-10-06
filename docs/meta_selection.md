@@ -38,6 +38,10 @@ E04's bounded portfolio shared-account research opt-in has its own
 [contract](meta_selection/DOMAIN_ADAPTER_CONTRACT.md#e04-portfolio-amendment),
 [example](../examples/wfo_meta_portfolio.py) and [local report](meta_selection/QMSE04_REPORT.md).
 Portfolio real-alpha R/Q and owner promotion remain pending.
+E05's bounded original-account basket/basis/stat-pair opt-ins have a separate
+[contract](meta_selection/DOMAIN_ADAPTER_CONTRACT.md#e05-package-amendment),
+[example](../examples/wfo_meta_package.py) and [installed/software report](meta_selection/QMSE05_REPORT.md).
+Non-expiring linear software support does not certify real quarterly roll/expiry.
 The actual E03 assessment has **no economic gate PASS** and a **prepared-unit
 post-liquidation metric parity FAIL**. Ordinary software checks and prepared
 notional's matched study pass; this does not close the unit gate. Read the
