@@ -395,3 +395,14 @@ Optimization scope completed:
 Remaining optimization target: report construction is still a residual bucket
 for full stakeholder artifacts, so Cython/C++ is not justified before larger
 real service-loop profiling.
+
+## Causal WFO Meta Research
+
+E04 reuses this original shared account in Mode 4 / `per_fold_causal` portfolio
+WFO. There is no new portfolio endpoint or accounting engine. Financial arrays
+remain NumPy/Numba-owned; the existing meta fit/rank can resolve Rust separately.
+Read the [exact domain contract](meta_selection/DOMAIN_ADAPTER_CONTRACT.md#e04-portfolio-amendment),
+[runnable example](../examples/wfo_meta_portfolio.py) and
+[software/empirical qualification](meta_selection/QMSE04_REPORT.md).
+The opt-in preserves meta-off behavior; real portfolio-alpha decay improvement
+and owner promotion are not certified by synthetic software tests.

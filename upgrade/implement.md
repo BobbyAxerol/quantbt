@@ -89,9 +89,10 @@ selection parity after liquidation. No cell passes the registered forward-Q gate
 Bounded notional/unit/structural-ladder software opt-ins are not empirical or
 default promotion. See [the current E03 report](../docs/meta_selection/QMSE03_REPORT.md)
 and [bounded compatibility repair proposal E03-G01](#e03-g01).
-E04 is **AUTHORIZED_IN_PROGRESS**: original shared-account portfolio integration
-is committed, scoped software/account tests PASS, and installed proof/docs and
-real-alpha qualification remain open. E05 is **OWNER_AUTHORIZED_PENDING_E04_GATE**
+E04 is **SOFTWARE_AND_INSTALLED_COMPLETE_EMPIRICAL_PENDING**: original
+shared-account integration, 122 scoped checks and fresh wheel/sdist consumers
+PASS. Read the [E04 report](../docs/meta_selection/QMSE04_REPORT.md). Real-alpha
+qualification remains open. E05 is **OWNER_AUTHORIZED_PENDING_E04_GATE**
 under the 2026-10-06 debt-closure request; no package promotion is implied.
 E06-E08 remain **PLANNED_NOT_AUTHORIZED_FOR_EXECUTION**. E03-G01 compatibility
 repair and the exact real-alpha protocol need their explicit scope decisions.
@@ -23570,8 +23571,8 @@ routes are not silently disabled while new domain coverage is assessed.
 | E01 | Close audited provenance/docs/proof-wiring debt | Current C01-C05 records | COMPLETE_LOCAL_APPROVED_SCOPE; E01-T01 through T05 PASS |
 | E02 | Shared typed domain adapter and future-route conformance | E01 local gate | COMPLETE_LOCAL_APPROVED_SCOPE; E02-T01 through T06 PASS; no new activation |
 | E03 | Scalar aliases/structural ladder and native-event signal coverage | E02 | BLOCKED_PREPARED_METRIC_PARITY; ordinary/installed PASS; studies finished, 0/8 economic gates pass |
-| E04 | Portfolio/shared-account WFO meta | E03 approved gate | PLANNED; NOT_RUN |
-| E05 | Bounded basket/arbitrage package WFO meta | E04 approved gate | PLANNED; NOT_RUN |
+| E04 | Portfolio/shared-account WFO meta | Independently owner authorized | Software/installed PASS; empirical/owner PENDING |
+| E05 | Bounded basket/arbitrage package WFO meta | Owner authorized; E04 dependency explicit | Authorized; package tests/empirical NOT_RUN |
 | E06 | Intrabar intent/session WFO, then meta qualification | E05 approved gate and existing alpha/data | PLANNED; NOT_RUN |
 | E07 | Event-driven/reactive/order adapters and real-alpha qualification | E06 approved gate; C02/C01 where expanded | PLANNED; NOT_RUN |
 | E08 | Domain matrix, installed/remote evidence and owner handoff | Approved preceding gate dispositions | PLANNED; NOT_RUN |
@@ -23908,10 +23909,14 @@ the eight ordinary studies and negative economic outcomes remain usable records.
 <a id="qms-e04"></a>
 #### QMS-E04 - Portfolio Shared-Account And Calendar Meta Integration
 
-**Status:** AUTHORIZED_IN_PROGRESS (2026-10-06, Asia/Saigon); scoped software
-tests PASS (113 checks in `e04-tests-v3.xml`, 57 accounting checks in
-`e04-financial-v1.xml`, not a sum of distinct tests); installed artifact gate
-INCOMPLETE_ENOSPC; real-alpha empirical promotion NOT_RUN / OWNER_INPUT_PENDING.
+**Status:** SOFTWARE_AND_INSTALLED_COMPLETE_EMPIRICAL_PENDING (2026-10-06);
+fresh scoped software 122 distinct checks PASS; original financial checks
+separately PASS (57, not added to the distinct total). Fresh E04 v4 exact core
+wheel/sdist plus original native pair and mandatory/scalar/portfolio consumers
+PASS. Failed v2 ENOSPC and v3 wrong build environment receipts are retained.
+Real-alpha empirical promotion NOT_RUN / OWNER_INPUT_PENDING. Read the
+[generated report](../docs/meta_selection/QMSE04_REPORT.md) and
+[verified software receipt](../benchmarks/optimization/meta_selection/qms_e04_software_closure.json).
 **Goal:** support existing portfolio WFO with real shared-account meta labels.
 **Entry:** owner authorized E04 independently at `7b83ba4`. E03-G01 remains
 BLOCKED_PENDING_SCIENTIFIC_REPAIR_APPROVAL; this phase does not repair, waive or

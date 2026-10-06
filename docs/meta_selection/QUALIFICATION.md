@@ -78,7 +78,10 @@ E03 extends bounded scalar research opt-ins after original-account software
 qualification; this does not promote meta to a default or certify economic gain.
 `notional`, `unit` and structural `dca_ladder` have separate software and empirical
 statuses. Native-event scalar support is rebalance execution, not reactive orders.
-Other target/meta routes remain rejected until their own E04-E07 qualification.
+E04 additionally qualifies bounded portfolio shared-account software opt-ins;
+see [the portfolio contract](DOMAIN_ADAPTER_CONTRACT.md#e04-portfolio-amendment)
+and [its local report](QMSE04_REPORT.md). Its real-alpha/owner gate is not run.
+Other target/meta routes remain rejected until their own E05-E07 qualification.
 Registered real-alpha decay and owner gates govern official empirical promotion.
 A registry entry alone is not activation.
 

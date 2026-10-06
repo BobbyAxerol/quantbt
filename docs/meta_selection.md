@@ -33,7 +33,11 @@ and [runnable scalar example](../examples/wfo_meta_scalar.py), with the
 [phase scope/study report](meta_selection/QMSE03_REPORT.md).
 This is still Mode 4 / `per_fold_causal`, endpoint-backed scoring and opt-in
 meta. Software admission does not assert reduced decay or economic promotion;
-reactive grid/DCA, portfolio, packages and intrabar have separate pending gates.
+reactive grid/DCA, packages and intrabar have separate pending gates.
+E04's bounded portfolio shared-account research opt-in has its own
+[contract](meta_selection/DOMAIN_ADAPTER_CONTRACT.md#e04-portfolio-amendment),
+[example](../examples/wfo_meta_portfolio.py) and [local report](meta_selection/QMSE04_REPORT.md).
+Portfolio real-alpha R/Q and owner promotion remain pending.
 The actual E03 assessment has **no economic gate PASS** and a **prepared-unit
 post-liquidation metric parity FAIL**. Ordinary software checks and prepared
 notional's matched study pass; this does not close the unit gate. Read the

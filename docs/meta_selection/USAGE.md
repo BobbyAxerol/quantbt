@@ -28,7 +28,9 @@ Meta supports **Mode 4 / `per_fold_causal`**, scalar `signal_notional`,
 aware calendar, isolated strategy lifecycle and final
 carry-position account. A separate W3 sequential adapter supports reactive native
 reset-flat windows; see [its exact contract](INTEGRATION.md#w3-sequential-meta).
-Other modes/schedules and portfolio/package/order target meta remain unsupported.
+E04 also admits bounded portfolio shared-account research opt-ins, described
+in the [portfolio contract](DOMAIN_ADAPTER_CONTRACT.md#e04-portfolio-amendment).
+Other modes/schedules and package/order target meta remain unsupported.
 They keep their old behavior when meta is off. No request is silently converted.
 
 Existing `walkforward_support_matrix()` now reports additive meta domain/ABI,
@@ -44,6 +46,19 @@ notional/unit meta-off defaults remain proxy. Legacy fee/slippage overrides must
 agree (`fee_rate == fee / 2`). Structural ladder expects signed integer caps and
 actual high/low, not units, execution orders or a dynamic grid. Software
 validation is not an assertion that meta improves this alpha's forward returns.
+
+For portfolio use the same constructor with `target_mode="portfolio"`,
+`backend="native_portfolio"`, an explicit ordered `symbols` list and the
+original `portfolio_mode`/`sizing` settings. Market input is `{symbol: OHLCFrame}`
+on one aware exact calendar; strategy output is a position DataFrame with those
+ordered columns, or an ordered `{symbol: Series}` mapping on the evaluation
+index. Align asynchronous calendars yourself; preserve missing observations
+as `NaN` under your existing price policy. Raw unaligned calendars are rejected,
+not resampled. Keep `scoring_backend="endpoint"`,
+`use_scalar_trial_scoring=False`, `native_prepared_wfo="off"`.
+Prepared portfolio arrays are independent of scalar prepared Rust scoring.
+See [the runnable example](../../examples/wfo_meta_portfolio.py) and
+[E04 local qualification](QMSE04_REPORT.md). This is not empirical promotion.
 
 Conditional Sobol and mixed/constrained representatives are under
 [C05 methodology review](CONDITIONAL_GEOMETRY_REVIEW.md), not available public

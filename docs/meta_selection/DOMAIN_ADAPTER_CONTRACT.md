@@ -117,3 +117,54 @@ permission to change that metric or the financial arrays. Prepared notional's
 matched study passes; unit's equal flat final arrays cannot certify its search.
 Use original prepared-off scoring for the affected contract until the bounded
 repair gate passes. Software admission is not blanket prepared certification.
+
+## E04 Portfolio Amendment
+
+E04 extends the shared adapter to existing `target_mode="portfolio"` on
+Mode 4 / `per_fold_causal`. It is `SOFTWARE_VALIDATED_OPT_IN`; real-alpha R/Q,
+owner promotion and final-source remote/public proofs remain separate gates.
+It does not repair E03-G01, enable another methodology, or replace financial
+execution with a scalar/Rust proxy. Read the [E04 plan](../../upgrade/implement.md#qms-e04),
+[local report](QMSE04_REPORT.md), [example](../../examples/wfo_meta_portfolio.py)
+and original [portfolio accounting guide](../portfolio_engine_v3.md).
+
+- Financial authority is the original `native_portfolio` shared account
+  (NumPy/Numba). Existing Rust-first meta fit/rank remains independent. Backend
+  `auto` resolves to that original portfolio path; legacy, Nautilus and Rust
+  portfolio substitutions are rejected with meta. Scalar prepared `require`
+  does not qualify a shared account.
+- Input is an exact aware, ordered, unique calendar with an explicit ordered
+  universe and a mapping of OHLC DataFrames. Actual close/high/low are required.
+  Caller-aligned asynchronous observations retain `NaN`; no union/resampling,
+  forward-fill, new stale-price policy or instrument inference occurs here.
+- Output is a finite position DataFrame in universe order, or ordered Series
+  mapping, on the exact evaluation index. Wrong/extra/missing symbols, reordered
+  targets and non-finite targets fail closed before financial evaluation.
+- Mode, sizing, betas, risk lookback, account constraints, funding policy,
+  economics, calendar policy and account/timing/witness ABI bind history families.
+  Actual market/funding prefixes bind evaluation signatures, not future dates
+  in a compatibility family. No scalar/W3 history is automatically transferred.
+- Raw IS/forward metrics come from the original aggregate full-report reducer,
+  never an average symbol Sharpe or summed symbol return ratio. Original accepted
+  and requested quantities, fees, slippage, funding, margin, turnover and
+  diagnostics enter the accounting witness. Missing buffers or a non-original
+  result is rejected; there is no accounting replay to manufacture evidence.
+- Each diagnostic uses a fresh reset-flat account and isolated strategy/RNG.
+  Final OOS positions are stitched and executed once on the original continuous
+  `carry_position` account. Fresh diagnostic equities are not concatenated.
+  Timing remains close-to-close without an extra signal shift; rebalance,
+  rounding, liquidation and Risk Parity warmup remain engine-owned.
+- Immutable per-symbol row witnesses reuse the existing run-owned prepared WFO
+  context and one bounded witness cache. No accounts/orders/RNG are cached.
+  `optimization_config["metadata"]["use_prepared_meta_witness"]=False` disables
+  witness reuse; `use_prepared_scoring_cache=False` disables market-array reuse.
+  Original scientific observations/selection/account outputs must still match.
+  Measured wall-generation clocks and their revision hashes need not match
+  between separate runs; no availability is backdated to force byte equality.
+
+The software corpus covers all 11 existing sizing aliases and six portfolio
+modes, original off/shadow accounting, actual learned selection, independently
+computed costs/margin and future/history isolation. This is not W3 multi-symbol
+carry, a venue-exact portfolio-margin engine, an intrabar portfolio fill model
+or evidence of positive forward economic gain. E04's synthetic example and
+reduced-support fixtures are engineering tests only, not registered studies.

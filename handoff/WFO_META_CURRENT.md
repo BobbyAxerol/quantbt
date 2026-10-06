@@ -10,7 +10,12 @@
 - Current approved scope: QMS-E01 debt closure and QMS-E02 typed adapter migration
   are complete locally after C02-C05 work; E03 is now authorized but its final
   exit gate is BLOCKED_PREPARED_METRIC_PARITY.
-  E04-E08 execution remains unapproved. E03 adds scalar software research opt-ins,
+  E04 software and fresh exact wheel/sdist qualification are now complete
+  locally (122 scoped checks PASS), with the original portfolio shared account.
+  Read [its report](../docs/meta_selection/QMSE04_REPORT.md); real portfolio-alpha
+  R/Q and owner promotion remain pending. E05 is owner-authorized next; its
+  package adapter and empirical gates remain NOT_RUN. E06-E08 are unapproved.
+  E03 adds scalar software research opt-ins,
   with separately registered per-cell R/Q studies, not empirical/default promotion.
   [E02 report](../docs/meta_selection/QMSE02_REPORT.md): six gates, 1,118 distinct
   tests and ten installed consumer runs PASS at its historical seal; E03 software
@@ -39,7 +44,7 @@
   366.372/418.501 s (+14.23%), versus 391.024/1,086.556 s (+177.87%) before.
   Active elapsed falls 61.48% (2.60x); peak RSS adds 14.805 MiB over off.
   These are single warm studies, not an all-Rust financial speed certificate.
-- E01/E02 do not authorize push, merge, retag, release, deploy or another phase.
+- E01/E02/E04 do not authorize push, merge, retag, release or deployment.
 
 ## Current C01 Review
 

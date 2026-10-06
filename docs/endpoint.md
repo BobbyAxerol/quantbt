@@ -2847,6 +2847,13 @@ failure after liquidation. Use original prepared-off scoring for affected
 contracts until the bounded repair is qualified; ordinary scalar software
 admission does not certify all prepared liquidation paths.
 
+E04 extends the same public WFO constructor to bounded portfolio meta research
+opt-ins, preserving the original native shared account. See the exact
+[market/position/account contract](meta_selection/DOMAIN_ADAPTER_CONTRACT.md#e04-portfolio-amendment),
+[example](../examples/wfo_meta_portfolio.py) and [local software evidence](meta_selection/QMSE04_REPORT.md).
+This does not qualify W3 multi-symbol carry, another financial backend or a
+portfolio alpha's forward economic improvement.
+
 This is not yet in published core 1.1.1. QMS-06 qualifies prepared scalar W0/W1/W2
 under the [exact capability/fallback matrix](meta_selection/INTEGRATION.md#prepared-capability-and-policy)
 and adds [portable host handoff](meta_selection/HANDOFF.md).

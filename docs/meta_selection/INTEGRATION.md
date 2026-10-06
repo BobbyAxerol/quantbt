@@ -36,8 +36,17 @@ E02 now routes existing observers through the
 [shared typed adapter contract](DOMAIN_ADAPTER_CONTRACT.md). Public calls and
 account behavior remain unchanged. `walkforward_support_matrix()` adds separate
 meta domain/ABI, mode/schedule, software/empirical status and gate-owner columns;
-pending registrations do not activate portfolio/package/intrabar/order meta.
+pending registrations do not activate package/intrabar/order meta.
 Read [E02's exact local evidence and limits](QMSE02_REPORT.md) before extending a route.
+
+E04 adds bounded portfolio research opt-ins through the
+[shared-account contract](DOMAIN_ADAPTER_CONTRACT.md#e04-portfolio-amendment).
+Use `target_mode="portfolio"`, `backend="native_portfolio"`, an explicit universe,
+caller-aligned OHLC mappings and exact position-matrix output. Endpoint original
+aggregate metrics and accounting remain authoritative; use prepared financial
+arrays, not the scalar Rust prepared scorer. Real portfolio-alpha R/Q and owner
+promotion are pending. See [its runnable example](../../examples/wfo_meta_portfolio.py)
+and [local evidence](QMSE04_REPORT.md).
 
 E03's [scalar contract](DOMAIN_ADAPTER_CONTRACT.md#e03-scalar-amendment) and
 [runnable scalar/ladder example](../../examples/wfo_meta_scalar.py) cover original
