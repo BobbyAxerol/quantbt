@@ -5174,7 +5174,7 @@ def _target_snapshot(output: StrategyOutput, timestamp: pd.Timestamp):
     raise TypeError("unsupported stitched walk-forward target type")
 
 
-def _changed_target_count(before, after, tolerance: float = 1e-12) -> int:
+def _changed_target_count(before, after, tolerance: float = 1e-12) -> Optional[int]:
     if before is None or after is None:
         return None
     if isinstance(before, dict) and isinstance(after, dict):

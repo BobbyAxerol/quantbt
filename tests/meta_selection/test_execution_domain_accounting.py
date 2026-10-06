@@ -150,3 +150,22 @@ def test_execution_witness_binds_original_cost_and_margin_buffers(field):
     setattr(changed, field, None)
     with pytest.raises(MetaRecordError, match="costs/margin missing"):
         adapter.observe(changed, **kwargs)
+
+
+@pytest.mark.parametrize("mode", ("orders", "native_event_strategy"))
+def test_future_funding_series_in_map_cannot_change_nominal_economics_identity(mode):
+    from quantbt.optimization.meta_selection.observer import economics_identity, market_signature
+    data = frame()
+    rates = pd.Series(.0001, index=data.index)
+    endpoint = QuantBTEndpoint.event_driven(input_mode="orders" if mode == "orders" else "strategy",
+        backend="python", symbols=["X"], use_funding=True, funding_rate={"X": rates})
+    changed = pd.concat((rates, pd.Series(.002, index=[data.index[-1]+pd.Timedelta(hours=1)])))
+    assert economics_identity(endpoint.config) == economics_identity(
+        replace(endpoint.config, funding_rate={"X": changed}))
+    signature = market_signature({"X": data}, data.index, config=endpoint.config)
+    assert signature == market_signature({"X": data}, data.index,
+        config=replace(endpoint.config, funding_rate={"X": changed}))
+    inside = rates.copy()
+    inside.iloc[1] = .002
+    assert signature != market_signature({"X": data}, data.index,
+        config=replace(endpoint.config, funding_rate={"X": inside}))

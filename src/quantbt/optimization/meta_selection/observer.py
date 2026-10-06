@@ -51,7 +51,7 @@ def _economic_payload(payload, constraints):
     rate = contract["funding"]["funding_rate"]
     if isinstance(rate, dict) and rate.get("type") == "Series":
         contract["funding"]["funding_rate"] = {"source": "aligned_series"}
-    elif payload["mode"] in {"portfolio", "basket", "arbitrage"} and isinstance(rate, dict):
+    elif payload["mode"] in {"portfolio", "basket", "arbitrage", "orders", "native_event_strategy"} and isinstance(rate, dict):
         contract["funding"]["funding_rate"] = {symbol:
             {"source": "aligned_series"} if isinstance(value, dict) and value.get("type") == "Series"
             else value for symbol, value in rate.items()}
