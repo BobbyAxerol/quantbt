@@ -12,7 +12,10 @@ proof are deferred until that scope is settled. No push or publication here.
 C01 nested Mode 1 and C05 conditional sampling/support projection now have
 separate **local implementation approval**. Their activation plan is recorded
 in [the sequential unified plan](../../upgrade/implement.md#qms-pre-e06-action-plan).
-They are **not implemented runtime capabilities yet**. The original review
+PRE-E06-03 now implements C01 only for five scalar targets on Mode 1 /
+`per_fold_causal` with genuine inner validation. Read the
+[nested call/contract](NESTED_MODE1.md) and [execution report](PRE_E06_03_REPORT.md).
+C05 is still pending PRE-E06-04. The original review
 documents and receipts describe their earlier spec-only work; preserve them.
 The [PRE-E06 source-bound inventory](PRE_E06_BASELINE.md) separates actual
 discovery/preflight, original account/metric witnesses, retained tests and
@@ -26,6 +29,8 @@ All generic WFO rows below currently use `QuantBTEndpoint.walk_forward`,
 Mode 4 / `per_fold_causal`, explicit authoritative endpoint scoring and opt-in
 meta. Calling a standalone endpoint does not automatically attach meta.
 Meta off preserves the original strategy, search and accounting behavior.
+The first five scalar rows additionally support the approved nested Mode 1
+cohort. All other rows remain Mode 4-only; no blanket method/domain activation.
 
 | WFO target / surface | Actual financial owner and scope | Executed evidence |
 |---|---|---|
@@ -74,7 +79,7 @@ W3 has a different strategy protocol and segmented account contract.
 | Hold-through-expiry quarterly settlement / real venue admission | Executable pre-expiry flatten/roll exists; authoritative settlement source/provider and financial runtime remain separate |
 | Options / Nautilus validation meta | Explicit domain evaluation/WFO adapter; standalone engine availability is not meta support |
 | W3 carry, shared multi-symbol, public meta batch, Mode 2 bootstrap | Separately approved financial/scheduler/label semantics and runtime implementation |
-| Meta outside current Mode 4 causal | C01 approved local nested Mode 1 implementation still pending; global/decay remains unapproved |
+| Meta outside Mode 4 causal and five nested scalar Mode 1 targets | Global/decay and nested execution/portfolio/package/W3 remain unapproved |
 | Conditional Sobol / mixed support representative | C05 approved local implementation/continuation/installed gates still pending |
 
 ## What The Real Tests Establish

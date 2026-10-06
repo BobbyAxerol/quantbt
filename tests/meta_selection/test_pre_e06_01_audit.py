@@ -65,7 +65,8 @@ def test_pre01_t01_inventory_cannot_certify_missing_or_tampered_contract(invento
 def test_pre01_t02_discovery_matches_actual_adapter_and_method_guard(route):
     row = capability(route, require_active=True)
     metadata = route_metadata(route)
-    assert metadata["meta_optimization_modes"] == ("mode_4_is_only_robust",)
+    modes = ("mode_4_is_only_robust", "mode_1_decay") if metadata["meta_domain"] == "scalar" else ("mode_4_is_only_robust",)
+    assert metadata["meta_optimization_modes"] == modes
     assert metadata["meta_optimization_schedules"] == ("per_fold_causal",)
     kind, *_ = audit.OWNERS[route]
     scorer_id = "reactive-native-original-reset-v1" if route == "reactive_reset" else "original-endpoint-reset-v1"
@@ -108,7 +109,6 @@ def test_pre01_t02_unqualified_account_calendar_or_scorer_is_rejected(route, fie
 
 
 @pytest.mark.parametrize("mode,schedule,extra", [
-    ("mode_1_decay", "per_fold_causal", dict(inner_split_frequency="monthly", inner_window_mode="expanding", inner_train_window="180D")),
     ("mode_1_decay", "per_fold_decay", {}),
     ("mode_2_sbb", "global", {}), ("mode_3_flat_minima", "global", {}),
     ("mode_4_is_only_robust", "global", {}), ("mode_5_full_robust", "global", {}),
@@ -145,7 +145,7 @@ def test_pre01_t04_source_symbols_links_and_current_state_are_consistent(invento
     assert "IMPLEMENTED_LOCAL_QUALIFICATION_INCOMPLETE" in current
     handoff = (audit.ROOT / "handoff/WFO_META_CURRENT.md").read_text().split("## Historical Local Debt Closure", 1)[0]
     assert "E06-E08 are unapproved" not in handoff
-    assert "C01 additional methods | Nested scalar implementation approved; runtime pending" in handoff
+    assert "C01 additional methods | Nested scalar runtime implemented PRE-E06-03" in handoff
     assert "C05 geometry | Reviewed implementation approved" in handoff
     baseline = (audit.ROOT / "docs/meta_selection/PRE_E06_BASELINE.md").read_text()
     assert all(token in baseline for token in (

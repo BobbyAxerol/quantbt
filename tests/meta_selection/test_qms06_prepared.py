@@ -27,7 +27,7 @@ from quantbt.optimization.meta_selection.handoff import (
 from quantbt.optimization.meta_selection.history import MetaHistory
 from quantbt.preparation.native_execution import NativeExecutionPreparationCache
 from quantbt.preparation.cache import CachePolicy
-from tools.build_qms06_candidate import load
+from tools.build_qms04_candidate import load_candidate
 
 
 RTOL, ATOL = 1e-10, 1e-10
@@ -39,6 +39,7 @@ EXTENSION = Path(
         / ".maturin/qms06/_quantbt_native.cpython-312-x86_64-linux-gnu.so",
     )
 )
+CANDIDATE_VERSION = os.environ.get("QMS06_NATIVE_VERSION", "0.4.3.dev2")
 
 
 def endpoint(
@@ -111,7 +112,7 @@ def native():
     assert EXTENSION.is_file(), (
         "Build isolated QMS06 candidate; no fake/skip native evidence"
     )
-    return load(EXTENSION)
+    return load_candidate(EXTENSION, candidate=CANDIDATE_VERSION)
 
 
 @pytest.fixture
@@ -508,7 +509,7 @@ def test_q6_t03_native_meta_require_does_not_upgrade_financial_wheel(native, mon
     assert cache["native_batches"] == 0
     assert (
         sidecar(result)["records"][-1]["numeric_backend"]["native"]["version"]
-        == "0.4.3.dev2"
+        == CANDIDATE_VERSION
     )
     assert importlib.import_module("_quantbt_native").version() == installed_version
 

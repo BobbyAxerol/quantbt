@@ -81,7 +81,10 @@ Observers use independent RNG and existing isolated fresh strategy/account
 lifecycle. Scalar final account remains continuous stitched targets; W3 remains
 segmented reset-flat and never gains continuous equity by concatenating returns.
 Prepared same-pass evidence is reused without replay. Missing evidence fails.
-No C01/C05 method or geometry activation is implied.
+That historical E02 scope did not activate C01/C05. PRE-E06-03 separately adds
+the [nested Mode 1 cohort](NESTED_MODE1.md) to the five scalar targets only,
+reusing this adapter and its original metric/account authority. C05 remains
+pending; Mode 1 W3/portfolio/package/execution cells are not admitted.
 
 ## Empirical Promotion
 

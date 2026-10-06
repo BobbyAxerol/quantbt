@@ -45,15 +45,20 @@ E05's bounded original-account basket/basis/stat-pair opt-ins have a separate
 [contract](meta_selection/DOMAIN_ADAPTER_CONTRACT.md#e05-package-amendment),
 [example](../examples/wfo_meta_package.py) and [installed/software report](meta_selection/QMSE05_REPORT.md).
 Non-expiring linear software support does not certify real quarterly roll/expiry.
-The actual E03 assessment has **no economic gate PASS** and a **prepared-unit
-post-liquidation metric parity FAIL**. Ordinary software checks and prepared
-notional's matched study pass; this does not close the unit gate. Read the
-[bounded repair proposal](../upgrade/implement.md#e03-g01) before extending or
-promoting prepared support. No release/push is authorized.
+The historical E03 assessment retains **no economic gate PASS** and its
+prepared-unit post-liquidation parity failure. The separately approved
+[G01 metric compatibility repair](meta_selection/QMSE03_G01_CLOSURE.md) now closes
+that correctness gap with fresh artifacts and full replay, not economic promotion.
+PRE-E06-02 qualifies thirteen actual matured routes; PRE-E06-03 adds only
+the [approved nested Mode 1 scalar cohort](meta_selection/NESTED_MODE1.md), keeping
+the original inner decay and raw outer-IS/real-forward measurements separate.
+No release/push is authorized.
 
 - [Unified QMS plan](../upgrade/implement.md#qms-01)
 - [Latest local debt closure, costs and real meta-off/on decay](meta_selection/LOCAL_DEBT_CLOSURE_REPORT.md)
-- [C01 additional-mode methodology review; activation not authorized](meta_selection/ADDITIONAL_METHODS_REVIEW.md)
+- [C01 historical methodology review; scope retained](meta_selection/ADDITIONAL_METHODS_REVIEW.md)
+- [Nested Mode 1 configuration, clocks, metadata and costs](meta_selection/NESTED_MODE1.md)
+- [PRE-E06-03 nested source qualification](meta_selection/PRE_E06_03_REPORT.md)
 - [C01 actual route tests, findings and activation decisions](meta_selection/QMSC01_REPORT.md)
 - [QMS-02 technical report and tests](meta_selection/QMS02_REPORT.md)
 - [QMS-05 public endpoint certification](meta_selection/QMS05_REPORT.md)

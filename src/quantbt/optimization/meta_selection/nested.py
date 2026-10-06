@@ -135,4 +135,8 @@ def selected_record(native, chosen, pool):
         selection_metadata={**native.selection_metadata, **source.selection_metadata, **details, "stage": "meta_actual_selection",
             "meta_actual_selection": True, "native_trial_id": native.trial_id,
             "native_objective": native.objective,
+            "source_trial_id": source.trial_id,
+            "source_is_objective": None if search is None else search.objective,
+            "candidate_id": None if validation is None else validation.selection_metadata.get("candidate_id"),
+            "requires_evaluation": False,
             "actual_objective_scope": "inner_decay_validation" if validation is not None else "inner_IS_adaptive_search"})

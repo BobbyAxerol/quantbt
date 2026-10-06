@@ -1,0 +1,736 @@
+{
+  "cutoff": "2022-04-30 00:00:00+00:00",
+  "economic_claim": false,
+  "financial_prepared": "off",
+  "history_sha256": "6f3ea94533ee63347ea56194084803a62c15c7b1168df619d086de440ddf3804",
+  "native_batch_policy": "require",
+  "numeric_threads": 1,
+  "observer": true,
+  "p50": {
+    "active": {
+      "elapsed_seconds": 0.37627480999799445,
+      "peak_rss_mib": 229.8828125
+    },
+    "off": {
+      "elapsed_seconds": 0.18961108603980392,
+      "peak_rss_mib": 229.8828125
+    },
+    "shadow": {
+      "elapsed_seconds": 0.38824569497955963,
+      "peak_rss_mib": 229.8828125
+    }
+  },
+  "repeats": 3,
+  "rows": [
+    {
+      "auxiliary_outer_is_evaluations": 0,
+      "auxiliary_outer_is_seconds": 0.0,
+      "current_outer_oos_used_for_selection": false,
+      "elapsed_seconds": 0.1837950089829974,
+      "matured_origins": 0,
+      "meta_elapsed_seconds": {},
+      "mode": "off",
+      "model_status": "OFF",
+      "native_attempts": 8,
+      "numeric": {},
+      "observer_evaluations": 0,
+      "observer_seconds": 0.0,
+      "peak_rss_mib": 229.8828125,
+      "repeat": 0,
+      "selected_params": {
+        "window": 5
+      }
+    },
+    {
+      "auxiliary_outer_is_evaluations": 3,
+      "auxiliary_outer_is_seconds": 0.04003139503765851,
+      "current_outer_oos_used_for_selection": false,
+      "elapsed_seconds": 0.4052526549785398,
+      "matured_origins": 14,
+      "meta_elapsed_seconds": {
+        "fit_select": 0.046749476983677596,
+        "observer": 0.041748938034288585,
+        "snapshot": 0.00045847403816878796
+      },
+      "mode": "shadow",
+      "model_status": "META_MODEL_PROPOSAL",
+      "native_attempts": 8,
+      "numeric": {
+        "dispatch": {},
+        "dispatch_probe_ffi_calls": 0,
+        "dispatch_probe_owned_copy_bytes": 0,
+        "dispatch_probe_seconds": 0.0,
+        "exact_work_cache": {
+          "clears": 0,
+          "hits": 0,
+          "identity": "context_and_complete_float64_buffers_v1",
+          "lifetime": "one_numeric_runtime_no_financial_state",
+          "maximum_bytes": 8000000,
+          "maximum_entries": 2,
+          "misses": 2,
+          "retained_bytes": 168
+        },
+        "fallback_reason": null,
+        "fast_math": false,
+        "ffi_calls": 4,
+        "input_owned_copy_bytes": 3158,
+        "native": {
+          "api": "0.4",
+          "descriptor": {
+            "abi": "qms-numeric-v1",
+            "blocks": [
+              "transform",
+              "gram_solve",
+              "rank"
+            ],
+            "dtype": "float64",
+            "fast_math": false,
+            "owned_inputs": true
+          },
+          "version": "0.4.3"
+        },
+        "numba": "not_used_no_additional_jit_path",
+        "numpy_version": "2.2.6",
+        "qualification_calls": 3,
+        "requested_backend": "require",
+        "selected_backend_by_block": {
+          "diagnostics": "numpy",
+          "gram_solve": "rust",
+          "historical_scaler_fit": "numpy",
+          "parameter_encoding": "python_schema_numpy",
+          "rank": "rust",
+          "transform": "rust"
+        },
+        "thread_telemetry": {
+          "configured": {},
+          "environment": {
+            "MKL_NUM_THREADS": "1",
+            "NUMBA_NUM_THREADS": "1",
+            "OMP_NUM_THREADS": "1",
+            "OPENBLAS_NUM_THREADS": "1"
+          },
+          "inspection_limits": [],
+          "mismatches": [],
+          "observed": {
+            "libraries": [
+              {
+                "internal_api": "openmp",
+                "num_threads": 1,
+                "prefix": "libgomp",
+                "user_api": "openmp",
+                "version": null
+              },
+              {
+                "internal_api": "openblas",
+                "num_threads": 1,
+                "prefix": "libscipy_openblas",
+                "user_api": "blas",
+                "version": "0.3.31.dev"
+              },
+              {
+                "internal_api": "openblas",
+                "num_threads": 1,
+                "prefix": "libscipy_openblas",
+                "user_api": "blas",
+                "version": "0.3.29"
+              }
+            ],
+            "native_worker_basis": "qualified_serial_numeric_contract",
+            "native_workers": 1,
+            "numba_threads": 1
+          }
+        }
+      },
+      "observer_evaluations": 3,
+      "observer_seconds": 0.041748938034288585,
+      "peak_rss_mib": 229.8828125,
+      "repeat": 0,
+      "selected_params": {
+        "window": 5
+      }
+    },
+    {
+      "auxiliary_outer_is_evaluations": 3,
+      "auxiliary_outer_is_seconds": 0.036221536982338876,
+      "current_outer_oos_used_for_selection": false,
+      "elapsed_seconds": 0.37627480999799445,
+      "matured_origins": 14,
+      "meta_elapsed_seconds": {
+        "fit_select": 0.04668233700795099,
+        "observer": 0.039213369018398225,
+        "snapshot": 0.00042507000034675
+      },
+      "mode": "active",
+      "model_status": "META_MODEL_PROPOSAL",
+      "native_attempts": 8,
+      "numeric": {
+        "dispatch": {},
+        "dispatch_probe_ffi_calls": 0,
+        "dispatch_probe_owned_copy_bytes": 0,
+        "dispatch_probe_seconds": 0.0,
+        "exact_work_cache": {
+          "clears": 0,
+          "hits": 0,
+          "identity": "context_and_complete_float64_buffers_v1",
+          "lifetime": "one_numeric_runtime_no_financial_state",
+          "maximum_bytes": 8000000,
+          "maximum_entries": 2,
+          "misses": 2,
+          "retained_bytes": 168
+        },
+        "fallback_reason": null,
+        "fast_math": false,
+        "ffi_calls": 4,
+        "input_owned_copy_bytes": 3158,
+        "native": {
+          "api": "0.4",
+          "descriptor": {
+            "abi": "qms-numeric-v1",
+            "blocks": [
+              "transform",
+              "gram_solve",
+              "rank"
+            ],
+            "dtype": "float64",
+            "fast_math": false,
+            "owned_inputs": true
+          },
+          "version": "0.4.3"
+        },
+        "numba": "not_used_no_additional_jit_path",
+        "numpy_version": "2.2.6",
+        "qualification_calls": 3,
+        "requested_backend": "require",
+        "selected_backend_by_block": {
+          "diagnostics": "numpy",
+          "gram_solve": "rust",
+          "historical_scaler_fit": "numpy",
+          "parameter_encoding": "python_schema_numpy",
+          "rank": "rust",
+          "transform": "rust"
+        },
+        "thread_telemetry": {
+          "configured": {},
+          "environment": {
+            "MKL_NUM_THREADS": "1",
+            "NUMBA_NUM_THREADS": "1",
+            "OMP_NUM_THREADS": "1",
+            "OPENBLAS_NUM_THREADS": "1"
+          },
+          "inspection_limits": [],
+          "mismatches": [],
+          "observed": {
+            "libraries": [
+              {
+                "internal_api": "openmp",
+                "num_threads": 1,
+                "prefix": "libgomp",
+                "user_api": "openmp",
+                "version": null
+              },
+              {
+                "internal_api": "openblas",
+                "num_threads": 1,
+                "prefix": "libscipy_openblas",
+                "user_api": "blas",
+                "version": "0.3.29"
+              },
+              {
+                "internal_api": "openblas",
+                "num_threads": 1,
+                "prefix": "libscipy_openblas",
+                "user_api": "blas",
+                "version": "0.3.31.dev"
+              }
+            ],
+            "native_worker_basis": "qualified_serial_numeric_contract",
+            "native_workers": 1,
+            "numba_threads": 1
+          }
+        }
+      },
+      "observer_evaluations": 3,
+      "observer_seconds": 0.039213369018398225,
+      "peak_rss_mib": 229.8828125,
+      "repeat": 0,
+      "selected_params": {
+        "window": 3
+      }
+    },
+    {
+      "auxiliary_outer_is_evaluations": 0,
+      "auxiliary_outer_is_seconds": 0.0,
+      "current_outer_oos_used_for_selection": false,
+      "elapsed_seconds": 0.18961108603980392,
+      "matured_origins": 0,
+      "meta_elapsed_seconds": {},
+      "mode": "off",
+      "model_status": "OFF",
+      "native_attempts": 8,
+      "numeric": {},
+      "observer_evaluations": 0,
+      "observer_seconds": 0.0,
+      "peak_rss_mib": 229.8828125,
+      "repeat": 1,
+      "selected_params": {
+        "window": 5
+      }
+    },
+    {
+      "auxiliary_outer_is_evaluations": 3,
+      "auxiliary_outer_is_seconds": 0.03889203199651092,
+      "current_outer_oos_used_for_selection": false,
+      "elapsed_seconds": 0.38353807502426207,
+      "matured_origins": 14,
+      "meta_elapsed_seconds": {
+        "fit_select": 0.04640150599880144,
+        "observer": 0.043615153001155704,
+        "snapshot": 0.0004421620396897197
+      },
+      "mode": "shadow",
+      "model_status": "META_MODEL_PROPOSAL",
+      "native_attempts": 8,
+      "numeric": {
+        "dispatch": {},
+        "dispatch_probe_ffi_calls": 0,
+        "dispatch_probe_owned_copy_bytes": 0,
+        "dispatch_probe_seconds": 0.0,
+        "exact_work_cache": {
+          "clears": 0,
+          "hits": 0,
+          "identity": "context_and_complete_float64_buffers_v1",
+          "lifetime": "one_numeric_runtime_no_financial_state",
+          "maximum_bytes": 8000000,
+          "maximum_entries": 2,
+          "misses": 2,
+          "retained_bytes": 168
+        },
+        "fallback_reason": null,
+        "fast_math": false,
+        "ffi_calls": 4,
+        "input_owned_copy_bytes": 3158,
+        "native": {
+          "api": "0.4",
+          "descriptor": {
+            "abi": "qms-numeric-v1",
+            "blocks": [
+              "transform",
+              "gram_solve",
+              "rank"
+            ],
+            "dtype": "float64",
+            "fast_math": false,
+            "owned_inputs": true
+          },
+          "version": "0.4.3"
+        },
+        "numba": "not_used_no_additional_jit_path",
+        "numpy_version": "2.2.6",
+        "qualification_calls": 3,
+        "requested_backend": "require",
+        "selected_backend_by_block": {
+          "diagnostics": "numpy",
+          "gram_solve": "rust",
+          "historical_scaler_fit": "numpy",
+          "parameter_encoding": "python_schema_numpy",
+          "rank": "rust",
+          "transform": "rust"
+        },
+        "thread_telemetry": {
+          "configured": {},
+          "environment": {
+            "MKL_NUM_THREADS": "1",
+            "NUMBA_NUM_THREADS": "1",
+            "OMP_NUM_THREADS": "1",
+            "OPENBLAS_NUM_THREADS": "1"
+          },
+          "inspection_limits": [],
+          "mismatches": [],
+          "observed": {
+            "libraries": [
+              {
+                "internal_api": "openblas",
+                "num_threads": 1,
+                "prefix": "libscipy_openblas",
+                "user_api": "blas",
+                "version": "0.3.31.dev"
+              },
+              {
+                "internal_api": "openmp",
+                "num_threads": 1,
+                "prefix": "libgomp",
+                "user_api": "openmp",
+                "version": null
+              },
+              {
+                "internal_api": "openblas",
+                "num_threads": 1,
+                "prefix": "libscipy_openblas",
+                "user_api": "blas",
+                "version": "0.3.29"
+              }
+            ],
+            "native_worker_basis": "qualified_serial_numeric_contract",
+            "native_workers": 1,
+            "numba_threads": 1
+          }
+        }
+      },
+      "observer_evaluations": 3,
+      "observer_seconds": 0.043615153001155704,
+      "peak_rss_mib": 229.8828125,
+      "repeat": 1,
+      "selected_params": {
+        "window": 5
+      }
+    },
+    {
+      "auxiliary_outer_is_evaluations": 3,
+      "auxiliary_outer_is_seconds": 0.04428392602130771,
+      "current_outer_oos_used_for_selection": false,
+      "elapsed_seconds": 0.42423614294966683,
+      "matured_origins": 14,
+      "meta_elapsed_seconds": {
+        "fit_select": 0.04733671998837963,
+        "observer": 0.040763169003184885,
+        "snapshot": 0.0007572750328108668
+      },
+      "mode": "active",
+      "model_status": "META_MODEL_PROPOSAL",
+      "native_attempts": 8,
+      "numeric": {
+        "dispatch": {},
+        "dispatch_probe_ffi_calls": 0,
+        "dispatch_probe_owned_copy_bytes": 0,
+        "dispatch_probe_seconds": 0.0,
+        "exact_work_cache": {
+          "clears": 0,
+          "hits": 0,
+          "identity": "context_and_complete_float64_buffers_v1",
+          "lifetime": "one_numeric_runtime_no_financial_state",
+          "maximum_bytes": 8000000,
+          "maximum_entries": 2,
+          "misses": 2,
+          "retained_bytes": 168
+        },
+        "fallback_reason": null,
+        "fast_math": false,
+        "ffi_calls": 4,
+        "input_owned_copy_bytes": 3158,
+        "native": {
+          "api": "0.4",
+          "descriptor": {
+            "abi": "qms-numeric-v1",
+            "blocks": [
+              "transform",
+              "gram_solve",
+              "rank"
+            ],
+            "dtype": "float64",
+            "fast_math": false,
+            "owned_inputs": true
+          },
+          "version": "0.4.3"
+        },
+        "numba": "not_used_no_additional_jit_path",
+        "numpy_version": "2.2.6",
+        "qualification_calls": 3,
+        "requested_backend": "require",
+        "selected_backend_by_block": {
+          "diagnostics": "numpy",
+          "gram_solve": "rust",
+          "historical_scaler_fit": "numpy",
+          "parameter_encoding": "python_schema_numpy",
+          "rank": "rust",
+          "transform": "rust"
+        },
+        "thread_telemetry": {
+          "configured": {},
+          "environment": {
+            "MKL_NUM_THREADS": "1",
+            "NUMBA_NUM_THREADS": "1",
+            "OMP_NUM_THREADS": "1",
+            "OPENBLAS_NUM_THREADS": "1"
+          },
+          "inspection_limits": [],
+          "mismatches": [],
+          "observed": {
+            "libraries": [
+              {
+                "internal_api": "openblas",
+                "num_threads": 1,
+                "prefix": "libscipy_openblas",
+                "user_api": "blas",
+                "version": "0.3.29"
+              },
+              {
+                "internal_api": "openblas",
+                "num_threads": 1,
+                "prefix": "libscipy_openblas",
+                "user_api": "blas",
+                "version": "0.3.31.dev"
+              },
+              {
+                "internal_api": "openmp",
+                "num_threads": 1,
+                "prefix": "libgomp",
+                "user_api": "openmp",
+                "version": null
+              }
+            ],
+            "native_worker_basis": "qualified_serial_numeric_contract",
+            "native_workers": 1,
+            "numba_threads": 1
+          }
+        }
+      },
+      "observer_evaluations": 3,
+      "observer_seconds": 0.040763169003184885,
+      "peak_rss_mib": 229.8828125,
+      "repeat": 1,
+      "selected_params": {
+        "window": 3
+      }
+    },
+    {
+      "auxiliary_outer_is_evaluations": 0,
+      "auxiliary_outer_is_seconds": 0.0,
+      "current_outer_oos_used_for_selection": false,
+      "elapsed_seconds": 0.19601744099054486,
+      "matured_origins": 0,
+      "meta_elapsed_seconds": {},
+      "mode": "off",
+      "model_status": "OFF",
+      "native_attempts": 8,
+      "numeric": {},
+      "observer_evaluations": 0,
+      "observer_seconds": 0.0,
+      "peak_rss_mib": 229.8828125,
+      "repeat": 2,
+      "selected_params": {
+        "window": 5
+      }
+    },
+    {
+      "auxiliary_outer_is_evaluations": 3,
+      "auxiliary_outer_is_seconds": 0.03976864501601085,
+      "current_outer_oos_used_for_selection": false,
+      "elapsed_seconds": 0.38824569497955963,
+      "matured_origins": 14,
+      "meta_elapsed_seconds": {
+        "fit_select": 0.04686755797592923,
+        "observer": 0.042600089975167066,
+        "snapshot": 0.000711764965672046
+      },
+      "mode": "shadow",
+      "model_status": "META_MODEL_PROPOSAL",
+      "native_attempts": 8,
+      "numeric": {
+        "dispatch": {},
+        "dispatch_probe_ffi_calls": 0,
+        "dispatch_probe_owned_copy_bytes": 0,
+        "dispatch_probe_seconds": 0.0,
+        "exact_work_cache": {
+          "clears": 0,
+          "hits": 0,
+          "identity": "context_and_complete_float64_buffers_v1",
+          "lifetime": "one_numeric_runtime_no_financial_state",
+          "maximum_bytes": 8000000,
+          "maximum_entries": 2,
+          "misses": 2,
+          "retained_bytes": 168
+        },
+        "fallback_reason": null,
+        "fast_math": false,
+        "ffi_calls": 4,
+        "input_owned_copy_bytes": 3158,
+        "native": {
+          "api": "0.4",
+          "descriptor": {
+            "abi": "qms-numeric-v1",
+            "blocks": [
+              "transform",
+              "gram_solve",
+              "rank"
+            ],
+            "dtype": "float64",
+            "fast_math": false,
+            "owned_inputs": true
+          },
+          "version": "0.4.3"
+        },
+        "numba": "not_used_no_additional_jit_path",
+        "numpy_version": "2.2.6",
+        "qualification_calls": 3,
+        "requested_backend": "require",
+        "selected_backend_by_block": {
+          "diagnostics": "numpy",
+          "gram_solve": "rust",
+          "historical_scaler_fit": "numpy",
+          "parameter_encoding": "python_schema_numpy",
+          "rank": "rust",
+          "transform": "rust"
+        },
+        "thread_telemetry": {
+          "configured": {},
+          "environment": {
+            "MKL_NUM_THREADS": "1",
+            "NUMBA_NUM_THREADS": "1",
+            "OMP_NUM_THREADS": "1",
+            "OPENBLAS_NUM_THREADS": "1"
+          },
+          "inspection_limits": [],
+          "mismatches": [],
+          "observed": {
+            "libraries": [
+              {
+                "internal_api": "openblas",
+                "num_threads": 1,
+                "prefix": "libscipy_openblas",
+                "user_api": "blas",
+                "version": "0.3.29"
+              },
+              {
+                "internal_api": "openblas",
+                "num_threads": 1,
+                "prefix": "libscipy_openblas",
+                "user_api": "blas",
+                "version": "0.3.31.dev"
+              },
+              {
+                "internal_api": "openmp",
+                "num_threads": 1,
+                "prefix": "libgomp",
+                "user_api": "openmp",
+                "version": null
+              }
+            ],
+            "native_worker_basis": "qualified_serial_numeric_contract",
+            "native_workers": 1,
+            "numba_threads": 1
+          }
+        }
+      },
+      "observer_evaluations": 3,
+      "observer_seconds": 0.042600089975167066,
+      "peak_rss_mib": 229.8828125,
+      "repeat": 2,
+      "selected_params": {
+        "window": 5
+      }
+    },
+    {
+      "auxiliary_outer_is_evaluations": 3,
+      "auxiliary_outer_is_seconds": 0.039097645960282534,
+      "current_outer_oos_used_for_selection": false,
+      "elapsed_seconds": 0.3758914259960875,
+      "matured_origins": 14,
+      "meta_elapsed_seconds": {
+        "fit_select": 0.0465162189793773,
+        "observer": 0.04082267702324316,
+        "snapshot": 0.0004481279756873846
+      },
+      "mode": "active",
+      "model_status": "META_MODEL_PROPOSAL",
+      "native_attempts": 8,
+      "numeric": {
+        "dispatch": {},
+        "dispatch_probe_ffi_calls": 0,
+        "dispatch_probe_owned_copy_bytes": 0,
+        "dispatch_probe_seconds": 0.0,
+        "exact_work_cache": {
+          "clears": 0,
+          "hits": 0,
+          "identity": "context_and_complete_float64_buffers_v1",
+          "lifetime": "one_numeric_runtime_no_financial_state",
+          "maximum_bytes": 8000000,
+          "maximum_entries": 2,
+          "misses": 2,
+          "retained_bytes": 168
+        },
+        "fallback_reason": null,
+        "fast_math": false,
+        "ffi_calls": 4,
+        "input_owned_copy_bytes": 3158,
+        "native": {
+          "api": "0.4",
+          "descriptor": {
+            "abi": "qms-numeric-v1",
+            "blocks": [
+              "transform",
+              "gram_solve",
+              "rank"
+            ],
+            "dtype": "float64",
+            "fast_math": false,
+            "owned_inputs": true
+          },
+          "version": "0.4.3"
+        },
+        "numba": "not_used_no_additional_jit_path",
+        "numpy_version": "2.2.6",
+        "qualification_calls": 3,
+        "requested_backend": "require",
+        "selected_backend_by_block": {
+          "diagnostics": "numpy",
+          "gram_solve": "rust",
+          "historical_scaler_fit": "numpy",
+          "parameter_encoding": "python_schema_numpy",
+          "rank": "rust",
+          "transform": "rust"
+        },
+        "thread_telemetry": {
+          "configured": {},
+          "environment": {
+            "MKL_NUM_THREADS": "1",
+            "NUMBA_NUM_THREADS": "1",
+            "OMP_NUM_THREADS": "1",
+            "OPENBLAS_NUM_THREADS": "1"
+          },
+          "inspection_limits": [],
+          "mismatches": [],
+          "observed": {
+            "libraries": [
+              {
+                "internal_api": "openblas",
+                "num_threads": 1,
+                "prefix": "libscipy_openblas",
+                "user_api": "blas",
+                "version": "0.3.29"
+              },
+              {
+                "internal_api": "openblas",
+                "num_threads": 1,
+                "prefix": "libscipy_openblas",
+                "user_api": "blas",
+                "version": "0.3.31.dev"
+              },
+              {
+                "internal_api": "openmp",
+                "num_threads": 1,
+                "prefix": "libgomp",
+                "user_api": "openmp",
+                "version": null
+              }
+            ],
+            "native_worker_basis": "qualified_serial_numeric_contract",
+            "native_workers": 1,
+            "numba_threads": 1
+          }
+        }
+      },
+      "observer_evaluations": 3,
+      "observer_seconds": 0.04082267702324316,
+      "peak_rss_mib": 229.8828125,
+      "repeat": 2,
+      "selected_params": {
+        "window": 3
+      }
+    }
+  ],
+  "schema": "pre03-matched-cost-v1",
+  "seed": 731,
+  "target": "pct_equity",
+  "trials": 8,
+  "warmup": "one_financial_off_run_per_fresh_process"
+}

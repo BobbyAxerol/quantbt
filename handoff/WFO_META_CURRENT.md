@@ -65,13 +65,15 @@
 - E01/E02/E04 do not themselves authorize push, merge, retag, release or deployment.
   Earlier feature-only CI permission and remote 6901a66 receipts are historical,
   not certification of later execution-route bytes. The latest scope is local
-  PRE-E06-02 active/matured local source conformance, including the approved
-  history amendment; no push/workflow, merge/tag/publication or new-mode activation.
+  PRE-E06-03 nested scalar local runtime, after PRE-E06-02 active/matured
+  conformance and approved history amendment; no push/workflow or merge/tag/publication.
 - [PRE-E06 current baseline](../docs/meta_selection/PRE_E06_BASELINE.md): source-bound
   route/method/backend/test inventory and metric/account/privacy lock. PRE-E06-02
   source gate PASS: 13 routes/39 actual matured fits, 623 distinct scoped PASS,
   16 non-anchor applications; 27 scalar-scorer N/A cells are not PASS. This does
-  not certify economic gain or newly installed final artifacts. 03 through 06 remain planned and each
+  not certify economic gain or newly installed final artifacts. PRE-E06-03 now
+  completes the approved nested scalar cohort: 15 actual fits, 582 distinct
+  scoped PASS and three N/A skips; 04 through 06 remain planned and each
   requires its own phase start.
 - Repair performance: same registered unit study 549.001 to 291.542 s (1.883x),
   peak RSS +7.480 MiB. One shared-VPS observation, not universal performance.
@@ -85,11 +87,12 @@ nested scalar Mode 1 subsequently received local implementation approval.
 Read the [amendment](../docs/meta_selection/ADDITIONAL_METHODS_REVIEW.md) and
 [actual report](../docs/meta_selection/QMSC01_REPORT.md). All eight existing
 native combinations are audited; omitted/explicit-off accounting, full pools,
-native winners and RNG match in that historical scope. No additional meta runtime
-is enabled; scientific replacement, financial source changes and release are
+native winners and RNG match in that historical scope. The separate
+[PRE-E06-03 source execution](../docs/meta_selection/PRE_E06_03_REPORT.md) adds nested scalar runtime;
+scientific replacement, financial source changes and release are
 not authorized by PRE-E06-01.
 
-Approved first causal extension, implementation pending PRE-E06-03: nested Mode 1 with the exact inner-decay native
+Implemented first causal extension under PRE-E06-03: nested Mode 1 with the exact inner-decay native
 anchor, full-pool original outer-IS witnesses and a distinct versioned family;
 target/cohort semantics remain bounded by the reviewed spec. E01 repairs C01-D01 reporting:
 default Mode 2 robust_decay finally ranks on real OOS and now reports true;
@@ -99,7 +102,7 @@ change. See [E01 evidence and current gate](../docs/meta_selection/QMSE01_REPORT
 
 | Capability | Current local disposition |
 |---|---|
-| C01 additional methods | Nested scalar implementation approved; runtime pending PRE-E06-03; other modes not enabled |
+| C01 additional methods | Nested scalar runtime implemented PRE-E06-03; final-source installed proof PRE-E06-06; other methods/domains not enabled |
 | C02 transport | Safe Linux process, original-pass witnesses and native cooperative deadlines qualified |
 | C03 samplers | Four recipes on sequential/safe-process W3 and native-off-meta R3B qualified |
 | C04 continuation | Owned exact journal, four recipes and fresh-process resume qualified; not automatic WFO/account resume |

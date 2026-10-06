@@ -22,6 +22,7 @@ Installing a native wheel does not make arbitrary Python strategies Rust-owned.
 | Sampler-only | Explicit shared search recipe | Existing objective/mode/schedule |
 | Mode 4 causal + shadow | Proposal/diagnostics, native winner still executes | Stock native IS-only; proposal has distinct past-history scope |
 | Mode 4 causal + active | Learned proposal or documented native fallback executes | Current IS and permitted matured historical forward labels when learned |
+| Nested Mode 1 causal + shadow/active | Original inner-decay anchor; shadow preserves execution, active may apply meta | Inner validation inside outer IS; separate raw full outer-IS witnesses and permitted matured real-forward labels |
 
 Meta supports **Mode 4 / `per_fold_causal`**, scalar `signal_notional`,
 `pct_equity` and E03 software opt-ins `notional`, `unit`, `dca_ladder`, exact
@@ -37,7 +38,9 @@ The local execution amendment additionally admits `intrabar`, `event_driven`,
 `execution_endpoint` and typed `WfoExecutionWindow`. Read
 [the execution WFO guide](EXECUTION_WFO.md) for stable calls, continuous final
 accounting and the pre-expiry flatten/roll boundary. Synthetic software proof
-does not establish economic promotion. Other modes/schedules remain unsupported.
+does not establish economic promotion. PRE-E06-03 additionally supports nested
+Mode 1 / per_fold_causal for the five scalar targets only; read
+[its call/contract](NESTED_MODE1.md). Other modes/schedules remain unsupported.
 They keep their old behavior when meta is off. No request is silently converted.
 
 Existing `walkforward_support_matrix()` now reports additive meta domain/ABI,

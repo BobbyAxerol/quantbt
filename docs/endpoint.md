@@ -2887,7 +2887,7 @@ routes: `intrabar`, `event_driven`, `order_commands`, `delivery_arbitrage`.
 Pass `execution_endpoint=financial_endpoint` to the existing constructor;
 the strategy returns `WfoExecutionWindow`, not an effective signal proxy.
 Read [stable calls and fold-account semantics](meta_selection/EXECUTION_WFO.md).
-Meta admission remains Mode 4/per-fold-causal, with synthetic software evidence
+Meta admission for these execution routes remains Mode 4/per-fold-causal, with synthetic software evidence
 separate from economic promotion. Delivery uses explicit pre-expiry flatten/roll,
 not cash settlement. Existing standalone endpoints/defaults are unchanged.
 

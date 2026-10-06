@@ -93,4 +93,7 @@ def test_pre03_missing_inner_validation_does_not_copy_anchor_metrics():
     assert selected.objective==1.2 and selected.params==params
     assert math.isnan(selected.mean_oos_sharpe) and math.isnan(selected.mean_decay)
     assert selected.selection_metadata["selected_inner_validation_objective"] is None
+    assert selected.selection_metadata["source_trial_id"] == source.trial_id
+    assert selected.selection_metadata["candidate_id"] is None
+    assert selected.selection_metadata["source_is_objective"] == source.objective
     assert selected.selection_metadata["actual_objective_scope"]=="inner_IS_adaptive_search"

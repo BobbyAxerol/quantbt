@@ -12,7 +12,7 @@ compiled numeric/witness capabilities in ordinary builds. See the
 [release handoff](RELEASE_HANDOFF.md); missing-capability behavior documented
 for published 0.4.2 below is historical, not a limitation of the prepared wheel.
 
-Supported opt-in route:
+Mode 4 opt-in route:
 
 - `mode_4_is_only_robust` with `optimization_schedule="per_fold_causal"`.
 - Scalar `signal_notional`, `pct_equity`, `notional`, `unit` or structural
@@ -61,6 +61,10 @@ and the existing compatible same-close contract. Ladder/event rebalance do not
 qualify that prepared route. No dynamic order, intrabar or new method support
 is implied; each family and real-alpha cell has its own provenance.
 
+PRE-E06-03 separately supports **Mode 1 / per_fold_causal on five scalar targets**,
+with genuine inner validation and full outer-IS witnesses. Read the
+[nested configuration and metadata](NESTED_MODE1.md); it is not a Mode 4 alias,
+and it does not extend Mode 1 to W3/portfolio/package/execution domains.
 Other modes and schedules remain unsupported for meta. The owner-approved
 [C01 methodology review](ADDITIONAL_METHODS_REVIEW.md) and
 [spec/test report](QMSC01_REPORT.md) do not activate them. In particular, default

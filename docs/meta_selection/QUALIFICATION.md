@@ -25,8 +25,10 @@ Detailed requirements remain the
 ## Additional Methodology Review
 
 QMS-C01's historical scope was specification and tests only. The reviewed nested
-scalar Mode 1 implementation now has local approval, but runtime is pending
-PRE-E06-03; other methods are not enabled. The [amendment](ADDITIONAL_METHODS_REVIEW.md)
+scalar Mode 1 runtime is implemented under PRE-E06-03; its
+[execution report](PRE_E06_03_REPORT.md) and [usage](NESTED_MODE1.md) distinguish
+source conformance from pending final-source installed proof. Other methods are
+not enabled. The [amendment](ADDITIONAL_METHODS_REVIEW.md)
 and [phase report](QMSC01_REPORT.md) classify actual native anchors, data roles,
 full pools and decision frontiers for eight existing native combinations.
 They preserve the original guide, Ridge, financial sources and supported meta

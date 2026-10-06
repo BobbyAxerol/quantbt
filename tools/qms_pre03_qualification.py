@@ -20,6 +20,8 @@ VERIFICATION = (
     "tests/meta_selection/test_pre_e06_03_conformance.py",
     "tests/meta_selection/test_pre_e06_03_runtime.py", "tests/meta_selection/test_pre_e06_03_policy.py",
     "tests/meta_selection/test_pre_e06_03_gate.py",
+    "tests/meta_selection/test_pre_e06_03_docs.py", "examples/wfo_meta_nested.py",
+    "tests/meta_selection/test_qms06_prepared.py", "tools/qms_pre03_cost.py",
     "tools/qms_pre03_qualification.py", "tools/qms_pre03_source_guard.py",
     "tools/qms_pre02_source_guard.py", "tools/qms_execution_source_guard.py",
 )
@@ -97,6 +99,26 @@ def build(lane, regression, matrix):
         c01_activated="NESTED_MODE1_SCALAR_FIVE_ONLY", c05_activated=False,
         installed_current_source="DEFERRED_PRE_E06_06", remote="DEFERRED_E08_OWNER_APPROVAL",
         public="PENDING_OWNER_PUBLICATION", economic="NOT_ASSESSED_SYNTHETIC_SOFTWARE_ONLY", publication=False)
+    cost_path=lane/"cost-v2.json"
+    cost=json.loads(cost_path.read_text())
+    if (cost.get("trials") != 8 or cost.get("seed") != 731 or cost.get("repeats") != 3
+            or len(cost.get("rows", ())) != 9 or cost.get("numeric_threads") != 1
+            or {(r["repeat"],r["mode"]) for r in cost["rows"]}
+                != {(i,m) for i in range(3) for m in ("off","shadow","active")}
+            or any(r["native_attempts"] != 8 or r["current_outer_oos_used_for_selection"]
+                   or (r["mode"] != "off" and (r["matured_origins"] < 12
+                       or r["model_status"] != "META_MODEL_PROPOSAL"
+                       or r["auxiliary_outer_is_evaluations"] != 3
+                       or r["observer_evaluations"] != 3 or r["numeric"]["ffi_calls"] != 4)) for r in cost["rows"])):
+        raise ValueError("unmatched/vacuous fitted cost receipt")
+    if cost["history_sha256"] != file_hash(lane/"cost-history-v2.json"):
+        raise ValueError("cost original history changed")
+    import _quantbt_native
+    native_files=list(Path(_quantbt_native.__file__).parent.glob("*.so"))
+    if _quantbt_native.version() != "0.4.3" or len(native_files) != 1:
+        raise ValueError("expected retained compiled G01 numeric/financial runtime")
+    payload.update(cost_sha256=file_hash(cost_path), cost_p50=cost["p50"],
+        native_extension_sha256=file_hash(native_files[0]), native_version="0.4.3")
     check_public_text(json.dumps(payload))
     return payload
 

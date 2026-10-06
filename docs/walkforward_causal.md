@@ -152,6 +152,12 @@ back to `per_fold_decay`.
 
 ## Strict Mode 4 Configuration
 
+The separately approved PRE-E06-03 [nested Mode 1 meta cohort](meta_selection/NESTED_MODE1.md)
+supports five scalar targets with true inner validation inside outer IS. It
+preserves the native inner-decay anchor and acquires original full outer-IS
+observations for the entire eligible pool. It does not enable other domains,
+global schedules or current-outer-OOS decay selection for causal meta.
+
 Use Mode 4 when selection must use IS evidence only. The selector combines
 subperiod stability with a high-scoring parameter plateau and does not need
 inner OOS decay:

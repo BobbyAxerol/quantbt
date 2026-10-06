@@ -983,6 +983,12 @@ hit/miss/store, bypass adaptive và trạng thái release; xem
 
 ## 19. Feature-Branch Causal Meta-Selection
 
+PRE-E06-03 adds the approved [nested Mode 1 scalar cohort](meta_selection/NESTED_MODE1.md).
+Inner-validation decay remains the native selection objective; raw full outer-IS
+and true outer-forward observations form the separate unchanged meta target.
+All inner work remains inside outer IS; current outer-forward labels cannot
+enter selection. Other domain/method cells retain their existing guards.
+
 QMS-05 adds an optional final selector to Mode 4 `per_fold_causal`, not a new
 WFO mode. Native search stays current-IS-only; active final selection can use
 compatible past matured forward labels, never current outer OOS. Shadow retains
