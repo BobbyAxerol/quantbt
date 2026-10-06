@@ -62,3 +62,23 @@ def test_g01_registration_drift_prevents_any_worker_start(tmp_path, monkeypatch)
     monkeypatch.setattr(study, "verify", lambda: {"unapproved": "source"})
     with pytest.raises(ValueError, match="source amendment changed"):
         study.queue(original=tmp_path, output=tmp_path)
+
+
+def test_g01_witness_comparison_never_masks_pool_or_numeric_drift():
+    from tools.qms_g01_parity import equal_values
+    record = dict(params={"window": 20}, sharpe=.5, members=[1, 2], valid=True)
+    equal_values(record, {**record, "sharpe": .5+1e-12})
+    for change in (dict(params={"window": 22}), dict(sharpe=.6), dict(members=[2, 1]),
+                   dict(valid=False)):
+        with pytest.raises(AssertionError):
+            equal_values(record, {**record, **change})
+
+
+def test_g01_recorded_notional_witnesses_keep_logical_panels_and_labels():
+    from tools.qms_g01_parity import witness_parity
+    root = study.ROOT/"data/local/qms-real-review/e03-study-v2"
+    a, b = [root/f"notional-native_vectorized-active-{p}-witness.json" for p in ("off", "require")]
+    if not a.is_file() or not b.is_file():
+        pytest.skip("private historical research witnesses are not public test inputs")
+    receipt = witness_parity(a, b)
+    assert receipt["task_count"] == 28 and receipt["ordered_base_panels"]

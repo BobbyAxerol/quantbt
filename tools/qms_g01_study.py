@@ -102,6 +102,7 @@ def queue(*, original, output):
 def compare(*, original, output):
     import numpy as np
     from tools.qms_e03_queue import prepared_trace_parity
+    from tools.qms_g01_parity import witness_parity
     original, output = private_path(original), private_path(output)
     prefix = "unit-native_vectorized-active-"
     historical = json.loads((original/(prefix+"off.json")).read_text())
@@ -126,6 +127,12 @@ def compare(*, original, output):
                             raise AssertionError("undefined label changed")
                     else:
                         np.testing.assert_allclose(a[side][field], b[side][field], rtol=1e-9, atol=1e-9)
+    witnesses = {}
+    for name, a, b in (("historical_ordinary", original/(prefix+"off-witness.json"),
+                       output/(prefix+"off-witness.json")),
+                      ("ordinary_prepared", output/(prefix+"off-witness.json"),
+                       output/(prefix+"require-witness.json"))):
+        witnesses[name] = witness_parity(a, b)
     for preparation in ("off", "require"):
         with np.load(original/(prefix+"off.npz")) as a, np.load(output/(prefix+preparation+".npz")) as b:
             if set(a.files) != set(b.files):
@@ -136,6 +143,7 @@ def compare(*, original, output):
         registration_sha256=ordinary["registration_sha256"], attempts_per_arm=ordinary["attempts"],
         historical_ordinary_parity=True, prepared_pool_objective_params_account_parity=True,
         raw_label_chronology_parity=True,
+        full_witness_parity=witnesses,
         tolerances=dict(objective_rtol=1e-9, objective_atol=1e-9, account_atol=1e-8),
         ordinary_seconds=ordinary["wall_seconds"], prepared_seconds=prepared["wall_seconds"],
         source=verify(), raw_receipts_sha256={p:sha256((output/(prefix+p+".json")).read_bytes()).hexdigest()
