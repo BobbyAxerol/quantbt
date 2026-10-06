@@ -70,6 +70,12 @@ price archives from 2021 through 2026, not only the sandbox's 2025 data. Read th
 File bounds and row counts do not prove continuity, source/event availability,
 settlement marks or enough locked valid origins. Quarterly admission remains open.
 
+Local owner-approved [pre-expiry execution](EXECUTION_WFO.md) is now implemented
+on an exact priced calendar, with explicit old-leg flatten and new-leg commands.
+This closes the bounded software route, not the real venue/data or hold-through-
+expiry cash-settlement admission described below. Its synthetic study does not
+certify the earlier private quarterly basis alpha.
+
 Before admitting quarterly data, record a versioned amendment covering exact
 instrument identity/contract multiplier, expiry/settlement timestamp and price,
 position and pending-order treatment, roll/cost/funding semantics, calendar
@@ -114,6 +120,10 @@ authorized here; follow [release handoff](RELEASE_HANDOFF.md) after approval.
 
 These are not switches to remove from preflight. Each needs explicit bounded
 implementation approval and tests through the existing shared architecture.
-E06/E07 adapters remain the next separately approved domain work, followed by
-E08 integrated artifact/remote handoff. Cleanup remains mandatory after tests;
+The owner-approved [execution amendment](EXECUTION_WFO.md) now implements
+E06/E07 local typed intent/session, callback and command adapters, plus bounded
+quarterly pre-expiry flatten/roll. These delegate to original execution; W3
+carry and hold-through-expiry cash settlement remain distinct capabilities.
+Synthetic conformance is not real-market promotion. E08 integrated remote/public
+handoff remains deferred. Cleanup remains mandatory after tests;
 preserve private alpha, data, logs and scientific evidence.

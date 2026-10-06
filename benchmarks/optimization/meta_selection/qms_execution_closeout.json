@@ -1,0 +1,105 @@
+{
+  "cleanup": {
+    "after_available_bytes": 27106091008,
+    "before_available_bytes": 26530459648,
+    "cleaned_consumer_requires_reinstall": true,
+    "current_g01_tooling_retained": true,
+    "removed": [
+      ".maturin/qms08/execution-package-v2/consumer",
+      ".maturin/qms08/execution-package-v2/stage/build"
+    ],
+    "source_stage_and_artifacts_retained": true
+  },
+  "economics": "NOT_PROMOTED_SYNTHETIC_ONLY",
+  "failed_exact_names_rerun": true,
+  "installed_proof_sha256": "4de75d3b23864c44771066cf6d446e155b848dc9e573872b8710028b2a9e9522",
+  "publication": false,
+  "remote": "DEFERRED_OWNER_GATE",
+  "retained_sha256": {
+    ".maturin/qms08/execution-package-v2/build.log": "26c8f8571a4c3bd396d69fd67bcc2f5ecb93f7a8d4373ad1cabb152f6fabed26",
+    ".maturin/qms08/execution-package-v2/dependencies.log": "442b7648b0b7f378c29ca97fc453a0bfd3a419ce526c0c25f238bf4897ad6c1f",
+    ".maturin/qms08/execution-package-v2/dist/quantbt_engine-1.1.2-py3-none-any.whl": "a547330a1a5a8ec8b9b4a770c72b51f6f5ae07b6cfce02cba401ec82173ce511",
+    ".maturin/qms08/execution-package-v2/dist/quantbt_engine-1.1.2.tar.gz": "3288ccc0c8c80f43a5aa8a237590f5f599d7ed5142abadcda61db04bffefceb2",
+    ".maturin/qms08/execution-package-v2/install.log": "36bd7621fcb6375eee1f68b8807f858e4dba1fd03f99fdf34ec892263644264a",
+    ".maturin/qms08/execution-package-v2/proof.json": "4de75d3b23864c44771066cf6d446e155b848dc9e573872b8710028b2a9e9522",
+    ".maturin/qms08/execution-package-v2/sdist-consumer.log": "b754cbb916f04a28b794c926d71a3910b17083a1bd4db40b88633170e4adba52",
+    ".maturin/qms08/execution-package-v2/sdist-install.log": "e4196795e03819894bfbc744a295a15677367b31d70ca3371c9ec217ecf46c7b",
+    ".maturin/qms08/execution-package-v2/test-logs/qms-execution-prepared.xml": "6f9e56d98d1bc5148c88305f97743ea48e2d337b05c7427a6071d722fc35e837",
+    ".maturin/qms08/execution-package-v2/test-logs/qms-execution-regression.xml": "80190c6b08dfd94658e443d925f92ad89c41c552874ff9678ebb9afaea52f52d",
+    ".maturin/qms08/execution-package-v2/test-logs/qms-execution-tests.xml": "bb2ba42aa5ad864d28368fd87a03f583096f999f1279223a54ebb004ab484f29",
+    ".maturin/qms08/execution-package-v2/venv.log": "6c0cd3dee053c3e8f10c0516c2e9b2ee7bfe1d8faa54d3bc295d6295f79bd99b",
+    ".maturin/qms08/execution-package-v2/wheel-consumer.log": "b754cbb916f04a28b794c926d71a3910b17083a1bd4db40b88633170e4adba52",
+    ".maturin/qms08/g01-package-v1-native/quantbt_native-0.4.3-cp312-cp312-manylinux_2_34_x86_64.whl": "f5fe1ec4d9268752733ba2c7023cc0e2548215986a8cd73fb6fafb285422a3b6",
+    "benchmarks/optimization/meta_selection/qms_execution_synthetic_study_intrabar_off.log": "fe817a0473a132811473300cad844dbcee8057ec5cffa1566853571855ac535d",
+    "benchmarks/optimization/meta_selection/qms_execution_synthetic_study_intrabar_shadow.log": "82e729ce905fc63efba1aaabc3cc0e94c7f65b8fc42611a57b7556c03d287178",
+    "benchmarks/optimization/meta_selection/qms_execution_synthetic_study_v2_delivery_arbitrage_active.log": "9b00bed3767231746c7d0b37225eb13d97748cdea5168c4762cf60bce3bc5bc7",
+    "benchmarks/optimization/meta_selection/qms_execution_synthetic_study_v2_delivery_arbitrage_off.log": "319ebb0bc8d5b9556284c8b6ff285d004d286e3333ecbb30d2cc8eb46a2a9fb7",
+    "benchmarks/optimization/meta_selection/qms_execution_synthetic_study_v2_delivery_arbitrage_shadow.log": "c36e19f7041c68a6f8b2e2bc6026a0174088f7b556945da6132dfaea627fee1f",
+    "benchmarks/optimization/meta_selection/qms_execution_synthetic_study_v2_event_driven_active.log": "0fbe68d805712c7d83cb197dc63874a8c595c68a38fd896d15c10934b889985e",
+    "benchmarks/optimization/meta_selection/qms_execution_synthetic_study_v2_event_driven_off.log": "648c409cbfd30c98f4185e7f36bac531fcd5d0e253f4824d2d7e970b68beadc5",
+    "benchmarks/optimization/meta_selection/qms_execution_synthetic_study_v2_event_driven_shadow.log": "116a61aed4aadb43f68e09eaeb86ea6a5c2b46637bf4867f651dd300af3a37ae",
+    "benchmarks/optimization/meta_selection/qms_execution_synthetic_study_v2_intrabar_active.log": "44312213cc3d70af8087f7acf31fe0c74904f4a483ca5450c57a94af46834773",
+    "benchmarks/optimization/meta_selection/qms_execution_synthetic_study_v2_intrabar_off.log": "476c6320528c1cf04b9266bd6e4be7b25bf9523e6144c711ab3d30dbb50aac7f",
+    "benchmarks/optimization/meta_selection/qms_execution_synthetic_study_v2_intrabar_shadow.log": "9896f1ace60098444b894d4adda2b8ecf55a828b312ad8ab367b40a04d5c54dd",
+    "benchmarks/optimization/meta_selection/qms_execution_synthetic_study_v2_order_commands_active.log": "e088fbca70091dd5a26e8acfb674ec241cee2b0ee7f1b6ec5c3a579bac9fa597",
+    "benchmarks/optimization/meta_selection/qms_execution_synthetic_study_v2_order_commands_off.log": "130219bb08be13d2c1678ffde79c1c9b6ccc47a21fb7d26f1560425c10f783a6",
+    "benchmarks/optimization/meta_selection/qms_execution_synthetic_study_v2_order_commands_shadow.log": "f7a886031269399819fd6e3eabfa94b1a64053e430b93175ebd2db02cb5cba54",
+    "benchmarks/optimization/meta_selection/qms_execution_synthetic_study_v3.json": "76f984f65a5e31480884d729c2af9b4817e3078b161e6bcd3a491901b94e78d4",
+    "benchmarks/optimization/meta_selection/qms_execution_synthetic_study_v3_delivery_arbitrage_active.log": "21c6529b0bbfb460a3440af67abb113a67fd0feac16f33894db825b2253b225b",
+    "benchmarks/optimization/meta_selection/qms_execution_synthetic_study_v3_delivery_arbitrage_off.log": "7af8add11dd7d4fa2d339d59de64ca31b8652980020a1c8ce095e850748d9216",
+    "benchmarks/optimization/meta_selection/qms_execution_synthetic_study_v3_delivery_arbitrage_shadow.log": "10a0d2f3e5c4b37c1566888e3bf1bd400e25b9b5d969342ac03f18bed89d0a69",
+    "benchmarks/optimization/meta_selection/qms_execution_synthetic_study_v3_event_driven_active.log": "125d7aac3e16511119e00298cdea161a2193a42223c32958ec8c9b9c13dec937",
+    "benchmarks/optimization/meta_selection/qms_execution_synthetic_study_v3_event_driven_off.log": "619d703cae7b0422b616c70bfa9298566cef6f17f56920d1a48e22e435d17642",
+    "benchmarks/optimization/meta_selection/qms_execution_synthetic_study_v3_event_driven_shadow.log": "019e043fc8725cf46433152ef95b4737b3696ec5f85dfd1cb88eb0ac15b94aa9",
+    "benchmarks/optimization/meta_selection/qms_execution_synthetic_study_v3_intrabar_active.log": "e6248d3070a47a51acab7733a1bf54127908d3c8364b3122a8b86304297e0e04",
+    "benchmarks/optimization/meta_selection/qms_execution_synthetic_study_v3_intrabar_off.log": "404b901edf1ca614f5b61c3c0b4679b7821e74bac21c0c4631a6e547cae62e91",
+    "benchmarks/optimization/meta_selection/qms_execution_synthetic_study_v3_intrabar_shadow.log": "6a50b107e589d80ab243a611f75b4f0071edfaa31af53f9bbaceeea3d09f70db",
+    "benchmarks/optimization/meta_selection/qms_execution_synthetic_study_v3_order_commands_active.log": "fa9e89a3ed05469468b58ed6e48eba14b224c6301a753e41a8248c9aed6b3f19",
+    "benchmarks/optimization/meta_selection/qms_execution_synthetic_study_v3_order_commands_off.log": "6e8571b620c26277532ff9011b96be0e6448df255f81df3aa1e48299da633ee2",
+    "benchmarks/optimization/meta_selection/qms_execution_synthetic_study_v3_order_commands_shadow.log": "78feeb0007a766d0c27b6af98078a26f8d16930ba5056fd321e2f1a806282d22",
+    "upgrade/QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md": "adad24b16024ec5d9f3bdaf3a4098a8c60305c1fc181f1c30a0ff0f648a8170d"
+  },
+  "schema": "qms-execution-local-closeout-v1",
+  "software": "PASS_LOCAL_BOUNDED",
+  "source_guard": {
+    "baseline": "566adcb",
+    "cash_settlement": false,
+    "native_financial_kernel_changed": false,
+    "publication": false,
+    "quarterly_policy": "pre_expiry_flatten_v1",
+    "schema": "qms-execution-route-exact-amendment-v1",
+    "scientific_estimator_changed": false,
+    "source_sha256": {
+      "src/quantbt/core/delivery_lifecycle.py": "d312627bb67bfe346fd806e5301292e6f7d47d42e6c6772a8459e916df064017",
+      "src/quantbt/endpoint.py": "47e91585a8cd2d11a56d3351d27c475ca2aaffdbfc7866efe1c20de2457ed878",
+      "src/quantbt/engines.py": "56254b5c929e331b0be583d2479194fce5882bc4bcce2b348fec0d5d0813358b",
+      "src/quantbt/optimization/meta_selection/config.py": "58b7a04bdbd24a9ea15fcedd82ef628a8e5faa8b16501d21911de173b06f1264",
+      "src/quantbt/optimization/meta_selection/domains/execution.py": "bac75f0e5a05052557f87039561dd1052062d84c76c1d4866bfd507eab21eec9",
+      "src/quantbt/optimization/meta_selection/domains/registry.py": "eee3507560a0013624218ad6726cc895e5b9b1e545946b0c0d24743f6b975f45",
+      "src/quantbt/optimization/meta_selection/observer.py": "483e852459bca91af8b93617edf5289c0c66dbb6fe09283e57563f64c5c53e98",
+      "src/quantbt/walkforward.py": "f5ced824a7fc7745c20d8c96799d1547378db998c60d2f6052854484e2462d48",
+      "src/quantbt/wfo_execution.py": "200b5867cc8b0a1bb525aba0c6397a594a2ff4996f3ce382fe55b0ee28331331"
+    }
+  },
+  "suites": {
+    "prepared": {
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0,
+      "tests": 4
+    },
+    "regression": {
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0,
+      "tests": 103
+    },
+    "tests": {
+      "errors": 0,
+      "failures": 4,
+      "skipped": 0,
+      "tests": 48
+    }
+  },
+  "unique_passed_tests": 151
+}

@@ -54,8 +54,17 @@ Ridge, labels, maturity, search, RNG or metrics contracts.
 tests/examples budget 512 MiB; fresh core artifact proof budget 1 GiB, with
 5 GiB additional free safety margin. Retain source, evidence/logs and exact
 artifacts; delete only reviewed inactive reproducible scratch, never market data.
-**Status:** IN_PROGRESS; local tests and receipts pending. Economic status is
-NOT_ASSESSED. C01/C05 activation remains approved separately but is not silently
+**Status:** LOCAL_BOUNDED_IMPLEMENTED; 151 affected tests plus 2 funding follow-up
+tests PASS. Original-account/Rust-reference/prepared/shadow/active parity PASS.
+Twelve synthetic studies completed; no valid R/Q improvement was established.
+Final source-exact installed proof/cleanup are tracked in the
+[execution report](../docs/meta_selection/EXECUTION_WFO_REPORT.md).
+Fresh wheel/sdist and the four-route explicit Rust/meta native supplement PASS;
+[final closeout](../benchmarks/optimization/meta_selection/qms_execution_closeout_v4.json)
+retains exact hashes and cleanup. No approved local software blocker remains
+inside this bounded execution amendment; cash settlement, real venue admission,
+economic promotion and the listed separate capabilities are not claimed closed.
+Economic status is NOT_PROMOTED_SYNTHETIC_ONLY. C01/C05 activation remains approved separately but is not silently
 counted as implemented by these execution adapters. Remote/public gates deferred.
 
 <a id="qms-local-finalization"></a>
@@ -24408,7 +24417,12 @@ after byte/source checks. No empirical, remote or release gate is waived.
 <a id="qms-e06"></a>
 #### QMS-E06 - Intrabar Intent/Session WFO Adapter And Real Meta Qualification
 
-**Status:** PLANNED_NOT_AUTHORIZED_FOR_EXECUTION; tests/empirical NOT_RUN.
+**Status:** LOCAL_BOUNDED_SOFTWARE_IMPLEMENTED under the
+[owner execution amendment](#qms-required-execution-routes). Original real-alpha
+economic promotion NOT_RUN; authorized synthetic conformance does not imply it.
+**Current receipt:** [execution report](../docs/meta_selection/EXECUTION_WFO_REPORT.md)
+and [usage](../docs/meta_selection/EXECUTION_WFO.md). The original broader real-
+market entry/gate below remains historical scope, not a forged PASS.
 **Goal:** create the missing faithful intrabar WFO adapter before enabling meta.
 **Entry:** E05 accepted; owner approves the bounded WFO intent/fold-account
 contract and real existing intrabar alpha/data before financial route edits.
@@ -24461,7 +24475,13 @@ docs; keep kernel accounting changes separate from performance-only work.
 <a id="qms-e07"></a>
 #### QMS-E07 - Event-Driven, Reactive And Command WFO Meta Qualification
 
-**Status:** PLANNED_NOT_AUTHORIZED_FOR_EXECUTION; tests/empirical NOT_RUN.
+**Status:** LOCAL_BOUNDED_SOFTWARE_IMPLEMENTED for generic callbacks and command
+tapes under the [owner execution amendment](#qms-required-execution-routes).
+Synthetic conformance is qualified separately from real-alpha economic promotion.
+Numeric W3 carry/batch/multi-symbol capabilities are not activated by this route.
+**Current receipt:** [execution report](../docs/meta_selection/EXECUTION_WFO_REPORT.md)
+and [usage](../docs/meta_selection/EXECUTION_WFO.md). The original broader real-
+market entry/gate below remains historical scope, not a forged PASS.
 **Goal:** make existing supported event WFO use the same optional meta layer and
 certify it on a real reactive/order alpha, not scalar RSI results.
 **Entry:** E06 accepted; owner approves actual grid/MRS/order alpha, factory and

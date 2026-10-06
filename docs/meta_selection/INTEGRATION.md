@@ -36,7 +36,11 @@ E02 now routes existing observers through the
 [shared typed adapter contract](DOMAIN_ADAPTER_CONTRACT.md). Public calls and
 account behavior remain unchanged. `walkforward_support_matrix()` adds separate
 meta domain/ABI, mode/schedule, software/empirical status and gate-owner columns;
-pending registrations do not activate package/intrabar/order meta.
+pending registrations do not activate unsupported domains. The separately
+authorized local [execution amendment](EXECUTION_WFO.md) adds intrabar
+intent/session, generic callbacks, command tapes and explicit pre-expiry
+delivery flatten/roll. It delegates to the original financial endpoint and
+retains continuous final accounting; it is not W3 carry activation.
 Read [E02's exact local evidence and limits](QMSE02_REPORT.md) before extending a route.
 
 E04 adds bounded portfolio research opt-ins through the

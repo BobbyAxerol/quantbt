@@ -32,7 +32,12 @@ E04 also admits bounded portfolio shared-account research opt-ins, described
 in the [portfolio contract](DOMAIN_ADAPTER_CONTRACT.md#e04-portfolio-amendment).
 E05 additionally admits bounded package software opt-ins under the
 [exact package contract](DOMAIN_ADAPTER_CONTRACT.md#e05-package-amendment).
-Other modes/schedules and order target meta remain unsupported.
+The local execution amendment additionally admits `intrabar`, `event_driven`,
+`order_commands` and bounded `delivery_arbitrage` through an explicit original
+`execution_endpoint` and typed `WfoExecutionWindow`. Read
+[the execution WFO guide](EXECUTION_WFO.md) for stable calls, continuous final
+accounting and the pre-expiry flatten/roll boundary. Synthetic software proof
+does not establish economic promotion. Other modes/schedules remain unsupported.
 They keep their old behavior when meta is off. No request is silently converted.
 
 Existing `walkforward_support_matrix()` now reports additive meta domain/ABI,

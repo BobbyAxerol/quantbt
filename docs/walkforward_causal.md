@@ -66,6 +66,12 @@ separate private installed-artifact proof from empirical/live acceptance. No
 global/per-fold schedule semantics are changed, and per-fold optimization still
 requires `param_ranges`, not one fixed parameter dictionary.
 
+Local [execution WFO](meta_selection/EXECUTION_WFO.md) additionally accepts
+typed intrabar intent/session, callback factories, command tapes and bounded
+quarterly pre-expiry flatten/roll through `execution_endpoint`. The same causal
+meta hook uses original financial outcomes, not a position/signal proxy. This
+amendment does not change the ordinary schedule table or activate W3 carry.
+
 | Mode and schedule | Parameter lifecycle | What the reported outer OOS means |
 |---|---|---|
 | Any supported mode + `global` | One retrospective study across all folds | Compatible legacy calibration. Do not present early folds as strict chronological validation. |

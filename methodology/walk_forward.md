@@ -859,6 +859,16 @@ No such study is claimed by the QMS-08 synthetic/installed-consumer fixtures.
 Read [usage and clocks](../docs/meta_selection/USAGE.md) and
 [qualification/registration](../docs/meta_selection/QUALIFICATION.md).
 
+### Execution Route Amendment
+
+The local [execution-route extension](../docs/meta_selection/EXECUTION_WFO.md)
+uses the same Mode 4 causal selection and original raw IS/forward observations
+for intrabar intents, callback factories, command tapes and bounded pre-expiry
+delivery/roll. Diagnostics reset flat; the final account executes stitched
+payloads continuously, not concatenated fold equities. Meta Rust numerics do
+not convert arbitrary Python callbacks into Rust-owned strategy code. Synthetic
+route tests do not certify economic improvement or exchange cash settlement.
+
 ### QMS-C04: Exact Owned Search Continuation
 
 The opt-in [owned journal session](../docs/meta_selection/EXACT_CONTINUATION.md)
