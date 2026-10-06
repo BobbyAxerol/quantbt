@@ -1,5 +1,12 @@
 # PRE-E06-01 Current Contract And Qualification Inventory
 
+**Current-source follow-up:** PRE-E06-02 is recorded separately in the
+[active-matured report](PRE_E06_02_REPORT.md). PRE01 inventory/receipt remains
+bound to its archived commit, not today's amended source. The original fixture
+registration below is historical; owner-approved PRE02-A01 adds measured history
+from 2020-04-01 after preserving the original 9/12 pct-equity failure. All other
+registered contracts and three cutoffs remain unchanged.
+
 ## Scope And Source
 
 Entry `74879f1`, branch `feat/meta-selection-samplers`, local pair **1.1.2 / 0.4.3**.

@@ -66,6 +66,7 @@ promoting prepared support. No release/push is authorized.
 - [Actual executed tests and gate receipt](../benchmarks/optimization/meta_selection/qms01_gate_receipt.json)
 - [Current handoff](../handoff/WFO_META_CURRENT.md)
 - [PRE-E06 source-bound contracts, tests and privacy](meta_selection/PRE_E06_BASELINE.md)
+- [PRE-E06-02 active-matured no-leakage and original measurement](meta_selection/PRE_E06_02_REPORT.md)
 
 ## Existing Behavior
 

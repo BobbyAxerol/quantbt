@@ -16,7 +16,9 @@ They are **not implemented runtime capabilities yet**. The original review
 documents and receipts describe their earlier spec-only work; preserve them.
 The [PRE-E06 source-bound inventory](PRE_E06_BASELINE.md) separates actual
 discovery/preflight, original account/metric witnesses, retained tests and
-missing active/matured qualification. This review does not close those missing tests.
+missing active/matured qualification at that historical inventory. The separate
+[PRE-E06-02 execution report](PRE_E06_02_REPORT.md) owns current-source matured
+coverage; it does not confer economic, installed-final-pair or public promotion.
 
 ## Executable And Tested Now
 
@@ -49,6 +51,13 @@ and [C03 sampler/scheduler qualification](QMSC03_REPORT.md).
 The new [execution-route report](EXECUTION_WFO_REPORT.md) records source/tests,
 installed artifacts, synthetic R/Q dispositions, performance and exact limits.
 Counts belong to their own historical scopes; do not sum overlapping suites.
+
+Current-source PRE-E06-02 adds actual default-maturity fit/rank/application on
+all thirteen rows at three registered cutoffs, including numeric W3 reset-flat.
+Its 623 distinct scoped PASS include future-input/label/artifact mutations,
+original measurement and stitched-account replay. The 27 scalar-only N/A cells
+are excluded. This separate source proof does not recertify historical installed
+artifacts, enable a new mode or establish economic improvement.
 
 **Native event distinction:** E03 uses signals translated to rebalance orders.
 That did not certify arbitrary callbacks, command tapes or intrabar execution.

@@ -94,7 +94,8 @@ including installed E05 and G01. Public qualification remains pending.
 Its empirical gate remains separate. Bounded intrabar/callback/command/pre-expiry
 delivery adapters and CPython 3.12 wheel/sdist proofs are now implemented in
 [the execution amendment](EXECUTION_WFO_REPORT.md). Missing active/matured route
-coverage, owner scope and final-source E08 gates remain separate. Read the
+coverage is hardened separately by [PRE-E06-02](PRE_E06_02_REPORT.md); owner scope
+and final-source E08 gates remain separate. Read the
 [source-bound PRE-E06 contract inventory](PRE_E06_BASELINE.md).
 Local source/installed evidence is not a remote PASS.
 Registered real-alpha decay and owner gates govern official empirical promotion.

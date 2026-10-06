@@ -3,9 +3,12 @@
 <a id="qms-pre-e06-action-plan"></a>
 ## QMS Pre-E06 Sequential Debt Closure - Owner Planning Request 2026-10-06
 
-**Status:** PRE_E06_02_IN_PROGRESS_LOCAL. Owner approved PRE-E06-02 on
+**Status:** PRE_E06_02_COMPLETE_LOCAL_SOURCE_CONFORMANCE. Owner approved PRE-E06-02 on
 2026-10-06 (Asia/Saigon): active/matured no-leakage, raw measurement and original
-account conformance only. PRE-E06-01 is complete; 03..06 remain planned.
+account conformance only. PRE-E06-01/02 are complete in their recorded scope;
+03..06 remain planned. [PRE02 report](../docs/meta_selection/PRE_E06_02_REPORT.md):
+13 routes, 39 active/matured decisions, 623 distinct scoped PASS; 27 scalar-scorer
+cells are explicitly not applicable. No economic/default or artifact promotion.
 Approve/start one phase
 at a time; a failed required gate stops advancement. Entry source is `3887966`
 on `feat/meta-selection-samplers`; prepared pair stays **1.1.2 / 0.4.3**.
@@ -59,7 +62,7 @@ official economic promotion to any route.
 | Order | Phase | Required result before advancing | Status |
 |---|---|---|---|
 | 1 | [PRE-E06-01](#qms-pre-e06-01) | One source-bound current ledger, test inventory and scope/privacy contract | COMPLETE_LOCAL_INVENTORY_GATE; no activation |
-| 2 | [PRE-E06-02](#qms-pre-e06-02) | Active/matured causal and measurement conformance on existing admitted routes | IN_PROGRESS_LOCAL |
+| 2 | [PRE-E06-02](#qms-pre-e06-02) | Active/matured causal and measurement conformance on existing admitted routes | COMPLETE_LOCAL_SOURCE_GATE; no new-mode/economic promotion |
 | 3 | [PRE-E06-03](#qms-pre-e06-03) | Approved C01 nested scalar runtime activation, raw outer-IS/forward parity | PLANNED_NOT_STARTED |
 | 4 | [PRE-E06-04](#qms-pre-e06-04) | Approved C05 policies, actual RNG and owned continuation qualification | PLANNED_NOT_STARTED |
 | 5 | [PRE-E06-05](#qms-pre-e06-05) | Matched profiling and safe optimization; unchanged scientific/decision/account contracts | PLANNED_NOT_STARTED |
@@ -221,6 +224,23 @@ The quarterly fixture also submitted a scheduled close after its selected leg's
 flatten boundary. Keep the original rejection guard; choose a leg tradable through
 the scheduled close using the already declared catalog (not forward outcomes).
 Retain this failing fixture receipt; no lifecycle source/policy change is made.
+
+**Execution closure:** [source-bound receipt](../benchmarks/optimization/meta_selection/qms_pre_e06_02_closure.json)
+and [report](../docs/meta_selection/PRE_E06_02_REPORT.md) PASS. Thirteen routes at
+three cutoffs use actual model proposal/ranking/application with 15..48 permitted
+valid origins; 16 decisions apply a non-anchor candidate. Required conformance
+cells: 311 PASS; only 27 scalar-scorer N/A cells skip. Scoped regression receipt:
+312 distinct PASS, without double-counting repeated test identities. Total 623
+scoped PASS, not a full-repository suite claim. Cached/uncached decisions/accounts
+are exact; prepared/Rust-reference parity retains the registered 1e-10 profile.
+No-leakage, original raw IS/forward reduction and full stitched account replay
+pass, including W3 segmented reset and explicit pre-expiry/new-leg delivery.
+Only two exact funding-binding repairs change runtime source; all 317 runtime
+files are hashed, 69 historical scientific/source seals and 50 retained artifacts
+remain exact. Original guide, Ridge, estimator, samplers/RNG, public API, native
+financial kernels and pair are unchanged. [Cleanup receipt](../docs/maintenance/QMS_PRE_E06_02_CLEANUP.md)
+retains failures/evidence, reuses tooling and creates no disposable build environment.
+PRE-E06-03..06 and final-source E08/public qualification are not entered here.
 
 <a id="qms-pre-e06-03"></a>
 ### Phase PRE-E06-03 - Approved C01 Nested Mode 1 Runtime Completion
@@ -24114,7 +24134,7 @@ post-liquidation compatibility is CLOSED_LOCAL_CORRECTNESS, not economic gain.
 | E-G04 | Anchor verification gap | CLOSED_LOCAL E01: current docs/full unified plan fragment checks and independent negatives PASS; explicit legacy roadmap anchor preserved |
 | E-G05 | Historical stored remote PASS was pre-C02 source 0970d55 | CLOSED_REPAIRED_CANDIDATE_REMOTE: six rows and eleven required steps PASS on 6901a66; final publication/manylinux/public bytes need separate gates |
 | E-G06 | Former scalar-specific observer could not safely extend other domains | CLOSED_LOCAL_ARCHITECTURE E02: typed registry/adapters and scalar/W3 parity PASS; new domain evaluators/studies remain E03-E07, no guard relaxation |
-| E-G07 | Intrabar/session, callback, commands and pre-expiry delivery adapters implemented locally; active/matured qualification incomplete | PRE-E06-02/E06/E07 own missing coverage; options/Nautilus remain future admission, not enabled |
+| E-G07 | Intrabar/session, callback, commands and pre-expiry delivery adapters implemented locally; active/matured source conformance PASS in PRE-E06-02 | E06/E07 accepted-scope handoff and PRE-E06-06 final artifacts remain separate; options/Nautilus are not enabled |
 | E-G08 | C01 additional modes/schedules have spec/tests, not activated runtime | Nested scalar Mode 1 local implementation approved; PRE-E06-03 pending; global/decay/SBB/full-sample meta remains closed |
 | E-G09 | W3 continuous carry, multi-symbol shared account and public meta batching remain unavailable | C02 financial/scheduler extensions need explicit approval; E07 must preserve current reset-flat/sequential scope or stop at that boundary |
 | E-G10 | W3 Mode 2 lacks a certified causal return-path bootstrap contract | Separate method/evaluator work; do not substitute static return proxies for reactive execution |
@@ -24137,9 +24157,9 @@ An OOS output route alone is not a native-scored meta capability. Ordinary
 | Scalar notional/unit and structural dca_ladder | E03 bounded software research opt-ins; original accounting retained | Eight original real pairs: 0/8 economic gates pass; E03-G01 prepared-unit repair and full replay PASS locally; no empirical/default promotion |
 | Portfolio/multi-symbol target matrix | E04 bounded Mode 4 causal meta software and installed opt-in PASS | Real shared-account diagnostic finished; forward-Q threshold FAIL; formal/locked promotion pending |
 | Basket/bounded arbitrage package | E05 original-account bounded non-expiring software/installed opt-in PASS | Real quarterly expiry/roll contract and sufficient data remain unqualified; no empirical promotion |
-| Intrabar bracket/session, Numba/Rust | Explicit typed WFO intent/session adapter and original-account local artifacts exist | PRE-E06-02 active/matured coverage, then E06 accepted-scope qualification; no economic promotion |
+| Intrabar bracket/session, Numba/Rust | Explicit typed WFO intent/session adapter; PRE-E06-02 active/matured source coverage PASS | E06 accepted-scope qualification and final installed artifacts; no economic promotion |
 | Event-driven numeric strategy/W3 R1/R2/R3 | Meta is Mode 4 causal/sequential/single-symbol/reset-flat | E07 real reactive alpha qualification; keep existing lifecycle/protocol |
-| Generic event callback or explicit orders/commands | Explicit typed/factory WFO adapters and original-account local artifacts exist | PRE-E06-02 active/matured coverage, then E07 accepted-scope qualification; no universal auto-adapter |
+| Generic event callback or explicit orders/commands | Explicit typed/factory WFO adapters; PRE-E06-02 active/matured source coverage PASS | E07 accepted-scope qualification and final installed artifacts; no universal auto-adapter |
 | Quarterly delivery pre-expiry flatten/roll | Explicit lifecycle, exact priced calendar and original orders adapter implemented/tested | Hold-through-expiry cash settlement, provider and real venue/data remain separately unqualified |
 | W3 R3B/batch, carry or multi-symbol | Native/meta scheduling and account permissions differ | Dependency E-G09/C01; no automatic promotion from route-wide API consistency |
 | Options or Nautilus validation WFO | Standalone engines, no complete WFO/meta adapter | Future route admission contract; no implicit options engine or venue rewrite in E01-E08 |

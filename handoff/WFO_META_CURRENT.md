@@ -18,8 +18,10 @@
   real quarterly basis expiry/roll/data admission remains blocked, not parity.
   E06/E07 bounded local adapters and exact CPython 3.12 installed artifacts are
   implemented under the [execution amendment](../docs/meta_selection/EXECUTION_WFO_REPORT.md),
-  with 153 scoped checks PASS; active/matured coverage and owner handoff remain
-  incomplete. E08/final-source remote and publication are deferred.
+  with 153 scoped checks PASS at that historical artifact. Active/matured source
+  coverage is recorded separately in [PRE-E06-02](../docs/meta_selection/PRE_E06_02_REPORT.md);
+  owner handoff and final-source artifacts are separate. E08/final-source remote
+  and publication are deferred.
   E03 adds scalar software research opt-ins,
   with separately registered per-cell R/Q studies, not empirical/default promotion.
   [E02 report](../docs/meta_selection/QMSE02_REPORT.md): six gates, 1,118 distinct
@@ -63,10 +65,14 @@
 - E01/E02/E04 do not themselves authorize push, merge, retag, release or deployment.
   Earlier feature-only CI permission and remote 6901a66 receipts are historical,
   not certification of later execution-route bytes. The latest scope is local
-  PRE-E06-01 only; no push/workflow, merge/tag/publication or runtime activation.
+  PRE-E06-02 active/matured local source conformance, including the approved
+  history amendment; no push/workflow, merge/tag/publication or new-mode activation.
 - [PRE-E06 current baseline](../docs/meta_selection/PRE_E06_BASELINE.md): source-bound
   route/method/backend/test inventory and metric/account/privacy lock. PRE-E06-02
-  through 06 remain planned; each requires its own phase start.
+  source gate PASS: 13 routes/39 actual matured fits, 623 distinct scoped PASS,
+  16 non-anchor applications; 27 scalar-scorer N/A cells are not PASS. This does
+  not certify economic gain or newly installed final artifacts. 03 through 06 remain planned and each
+  requires its own phase start.
 - Repair performance: same registered unit study 549.001 to 291.542 s (1.883x),
   peak RSS +7.480 MiB. One shared-VPS observation, not universal performance.
   [Cleanup](../docs/maintenance/QMS_G01_CLEANUP_2026-10-06.md) reclaimed 219.656 MiB

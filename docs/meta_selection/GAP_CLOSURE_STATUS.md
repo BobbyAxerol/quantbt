@@ -25,8 +25,15 @@ now orders local reconciliation, active/matured conformance, approved C01/C05
 implementation, matched profiling and final local artifacts before returning
 to E06. Read the [source-bound baseline](PRE_E06_BASELINE.md) for exact test owners,
 frozen measurement/account/privacy rules and registered missing coverage.
-Only PRE-E06-01 is authorized in the current goal; no subsequent activation,
-alpha study, CI/CD or publication is implied.
+PRE-E06-01 is complete; the owner also authorized PRE-E06-02's active/matured
+conformance and PRE02-A01 history amendment. Read the
+[separate execution report](PRE_E06_02_REPORT.md). PRE-E06-03..06 still need their
+individual starts; no subsequent activation, alpha study, CI/CD or publication
+is implied.
+PRE02's source gate is now PASS: 39 actual matured fit/rank decisions across
+13 routes, original measurement/stitched accounting parity and 623 distinct
+scoped tests. This closes that local coverage gap, not E04 economic promotion,
+real quarterly settlement/data admission or final installed/remote/public gates.
 
 ## E03-G01 Compatibility
 
