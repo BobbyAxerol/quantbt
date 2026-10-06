@@ -73,6 +73,8 @@ def build(*, study, package, junit, before, after):
     artifact = json.loads((package / "e03-proof.json").read_text())
     assert artifact["source_guard"] == source
     assert artifact["source_exact_wheel"] and artifact["source_exact_sdist"]
+    base_proof = file_ref(package / "e01-proof.json")
+    assert base_proof["sha256"] == artifact["base_proof_sha256"]
     expected = set(CELLS)
     for consumer in artifact["consumers"].values():
         assert {(c["target"], c["backend"]) for c in consumer["cells"]} == expected
@@ -153,6 +155,7 @@ def build(*, study, package, junit, before, after):
         baseline_refs=[file_ref(before), file_ref(after)],
         installed_pair=dict(core=artifact["core"], native=artifact["native"],
             evidence=file_ref(package / "e03-proof.json"), artifact_refs=artifact["artifact_refs"],
+            mandatory_consumer_evidence=base_proof,
             exact_core_source=True, native_rebuilt=False, software_cells=8),
         registration_sha256=registration_hash,
         protocol=dict(trials=128, seed=731, matured_origins=12, paired_folds=28,
