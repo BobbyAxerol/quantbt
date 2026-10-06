@@ -3,9 +3,9 @@
 <a id="qms-pre-e06-action-plan"></a>
 ## QMS Pre-E06 Sequential Debt Closure - Owner Planning Request 2026-10-06
 
-**Status:** PRE_E06_01_COMPLETE_LOCAL. The active goal authorizes PRE-E06-01 only:
-current-state reconciliation, source-bound inventory, contract/privacy lock and
-local verification. Remaining phases are planned, not authorized to start.
+**Status:** PRE_E06_02_IN_PROGRESS_LOCAL. Owner approved PRE-E06-02 on
+2026-10-06 (Asia/Saigon): active/matured no-leakage, raw measurement and original
+account conformance only. PRE-E06-01 is complete; 03..06 remain planned.
 Approve/start one phase
 at a time; a failed required gate stops advancement. Entry source is `3887966`
 on `feat/meta-selection-samplers`; prepared pair stays **1.1.2 / 0.4.3**.
@@ -59,7 +59,7 @@ official economic promotion to any route.
 | Order | Phase | Required result before advancing | Status |
 |---|---|---|---|
 | 1 | [PRE-E06-01](#qms-pre-e06-01) | One source-bound current ledger, test inventory and scope/privacy contract | COMPLETE_LOCAL_INVENTORY_GATE; no activation |
-| 2 | [PRE-E06-02](#qms-pre-e06-02) | Active/matured causal and measurement conformance on existing admitted routes | PLANNED_NOT_STARTED |
+| 2 | [PRE-E06-02](#qms-pre-e06-02) | Active/matured causal and measurement conformance on existing admitted routes | IN_PROGRESS_LOCAL |
 | 3 | [PRE-E06-03](#qms-pre-e06-03) | Approved C01 nested scalar runtime activation, raw outer-IS/forward parity | PLANNED_NOT_STARTED |
 | 4 | [PRE-E06-04](#qms-pre-e06-04) | Approved C05 policies, actual RNG and owned continuation qualification | PLANNED_NOT_STARTED |
 | 5 | [PRE-E06-05](#qms-pre-e06-05) | Matched profiling and safe optimization; unchanged scientific/decision/account contracts | PLANNED_NOT_STARTED |
@@ -183,6 +183,44 @@ do not defer a genuine leakage/accounting error to E06 or release.
 **Resources/cleanup:** tooling reuse, at most 512 MiB incremental scratch plus
 5 GiB headroom. Budget native rebuild separately only if reviewed native source
 changes; retain XML/log/evidence and remove exact inactive scratch at exit.
+
+**Execution registration (before financial runs):** entry `feb61e1`, existing
+CPython 3.12 G01 tooling/native extension, source-first imports, one numeric
+thread. Free space 27,014,422,528 bytes, inode use 15%; no environment/native
+build is planned. Retain logs/XML/new receipts in `.maturin/qms08/pre-e06-02`;
+ceiling 512 MiB plus 5 GiB headroom, no deletion of historical evidence.
+Use the exact PRE01 synthetic prices, monthly/90D/8-trial/seed-731 protocol
+and three registered cutoffs. Generate historical labels with the original
+endpoint, then use identical immutable revisions for paired current runs;
+actual publication/completion times are retained, not backdated to equal hashes.
+The shared harness uses existing scalar/portfolio/package examples and actual
+execution payloads. The simple ladder always submits signed integer cap 3
+(not a fitted flat-band threshold); W3 submits fresh cyclic entry/close orders
+whose holding horizon is `window`. Delivery uses explicit quarterly catalog,
+pre-expiry flatten and new-symbol roll; no cash settlement is fabricated.
+These public software strategies are frozen before outcomes, not private alpha
+or economic gain evidence. Preserve default Ridge lambda 10/maturity 12/Q-floor
+and original sampling/account rules. Do not activate C01/C05 or remote/release.
+
+**Registered amendment PRE02-A01:** owner approved adding historical calibration
+from 2020-04-01 (previously 2021-01-01) after the first receipt found only nine
+valid pct-equity origins at 2022-04-30. Same immutable 2020+ synthetic tape,
+90D windows, monthly schedule, eight trials, seed 731, lambda 10, maturity 12
+and all three cutoffs remain. Keep the original failing receipt; this adds
+genuine measured past tasks, not fabricated labels or a relaxed maturity gate.
+Initial runs also exposed an intrabar execution adapter defect: full-tape
+funding Series reached an exact-window market guard. Repair only window binding
+and certify against an explicitly sliced original endpoint; no funding estimator,
+phase, contract or historical source seal is rewritten.
+The default-maturity matrix then found a second binding defect: the common
+adapter tried to serialize symbol-mapped funding Series as portable scalars.
+Use nominal `aligned_series` per mapped symbol; exact eligible rates remain
+bound by the original market witness. Preserve existing scalar policy hashes,
+compatibility families, scientific/source receipts and financial kernels.
+The quarterly fixture also submitted a scheduled close after its selected leg's
+flatten boundary. Keep the original rejection guard; choose a leg tradable through
+the scheduled close using the already declared catalog (not forward outcomes).
+Retain this failing fixture receipt; no lifecycle source/policy change is made.
 
 <a id="qms-pre-e06-03"></a>
 ### Phase PRE-E06-03 - Approved C01 Nested Mode 1 Runtime Completion

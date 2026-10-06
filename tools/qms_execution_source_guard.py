@@ -13,9 +13,13 @@ ALLOW = frozenset({"src/quantbt/endpoint.py", "src/quantbt/walkforward.py", "src
     "src/quantbt/core/delivery_lifecycle.py",
     *["src/quantbt/optimization/meta_selection/"+n for n in ("config.py", "observer.py")],
     *["src/quantbt/optimization/meta_selection/domains/"+n for n in ("registry.py", "execution.py")]})
+SEALED_ALLOW = ALLOW
+ALLOW = ALLOW | {"src/quantbt/optimization/meta_selection/domains/base.py"}
 
 
 def without_execution_routes(source, name):
+    from tools.qms_pre02_source_guard import without_pre02_repairs
+    source = without_pre02_repairs(source, name)
     if name not in ALLOW:
         return source
     original = subprocess.run(["git", "show", f"{ENTRY}:{name}"], cwd=ROOT, capture_output=True)
@@ -23,7 +27,7 @@ def without_execution_routes(source, name):
     if source == before:
         return source
     manifest = json.loads(MANIFEST.read_text())
-    if manifest["baseline"] != ENTRY or set(manifest["source_sha256"]) != ALLOW:
+    if manifest["baseline"] != ENTRY or set(manifest["source_sha256"]) != SEALED_ALLOW:
         raise AssertionError("execution amendment reviewed scope mismatch")
     if sha256(source).hexdigest() != manifest["source_sha256"][name]:
         raise AssertionError(f"unreviewed execution route bytes: {name}")

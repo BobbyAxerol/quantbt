@@ -82,12 +82,17 @@ class DomainAdapter:
         if prepared is not None:
             source = digest({"prepared": prepared.signature, "witness": source})
         execution = scorer.score_config
+        from collections.abc import Mapping
+        funding_source = execution.funding_rate
+        if isinstance(funding_source, Mapping):
+            funding_source = {s: "aligned_series" if hasattr(v, "index") else v
+                              for s, v in funding_source.items()}
         compatibility = DomainCompatibility(self.domain, self.input_kind,
             tuple(scorer.symbols or [owner.context.instrument_id]), config.calendar_contract,
             digest({"instrument": owner.context.instrument_id, "asset": execution.asset_type,
                     "contract_size": execution.contract_size}),
             digest({"use_funding": execution.use_funding,
-                    "source": "aligned_series" if hasattr(execution.funding_rate, "index") else execution.funding_rate}),
+                    "source": "aligned_series" if hasattr(execution.funding_rate, "index") else funding_source}),
             scorer._meta_economics_id, scorer._meta_adapter.contract.metric_id,
             digest(config.intent_contract.metadata()), "reset_flat", config.fold_account_policy,
             "original-reactive-window-v1" if self.domain == "reactive" else "original-result-or-same-pass-v1")

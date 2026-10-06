@@ -14,6 +14,7 @@ from quantbt.optimization.meta_selection.config import MetaSelectionConfig, vali
 from quantbt.optimization.meta_selection.domains.registry import adapter_for, capability, route_metadata
 from tools.check_docs_links import validate_links
 from tools import qms_pre_e06_inventory as audit
+from tools.qms_pre02_source_guard import verify_pre01_archive, verify_pre01_patch
 
 
 ACTIVE = tuple(r for r in audit.OWNERS if audit.OWNERS[r][0] is not None)
@@ -35,7 +36,8 @@ def config(route="signal_notional", **changes):
 
 
 def test_pre01_t01_complete_source_bound_discovery_and_retained_receipts(inventory):
-    assert audit.verify_manifest(inventory) is inventory
+    # Subsequent phases preserve this historical receipt; it is not a live-source certificate.
+    assert verify_pre01_archive(inventory) is inventory
     assert len(inventory["routes"]) == 15
     assert len(ACTIVE) == 13
     assert inventory["protected"]["retained_artifacts"] == 50
@@ -56,7 +58,7 @@ def test_pre01_t01_inventory_cannot_certify_missing_or_tampered_contract(invento
     else:
         payload["routes"][0]["existing_test_owners"] = []
     with pytest.raises(ValueError, match="incomplete, tampered or stale"):
-        audit.verify_manifest(payload)
+        verify_pre01_archive(payload)
 
 
 @pytest.mark.parametrize("route", ACTIVE)
@@ -152,7 +154,7 @@ def test_pre01_t04_source_symbols_links_and_current_state_are_consistent(invento
 
 
 def test_pre01_t05_staged_scope_secret_and_artifact_safety():
-    assert audit.check_patch_safety()
+    assert verify_pre01_patch()
     for name in (".env", "private_alpha.py", "dist/new.whl", "src/quantbt/endpoint.py"):
         with pytest.raises(ValueError, match="non-phase"):
             audit.check_patch_safety([name])

@@ -174,6 +174,11 @@ def execute_window(config, data, output, *, symbols=None):
     frame = ({s: f.loc[output.index] for s, f in data.items()}
              if isinstance(data, dict) else data.loc[output.index])
     if output.route == "intrabar":
+        # This endpoint requires exact-window rates; retain its strict guard.
+        if isinstance(config.funding_rate, pd.Series):
+            if not config.funding_rate.index.is_unique:
+                raise ValueError("funding series index must be unique")
+            endpoint = QuantBTEndpoint(replace(config, funding_rate=config.funding_rate.loc[output.index]))
         frame = frame.copy()
         for c in output.intent:
             frame[c] = output.intent[c]
