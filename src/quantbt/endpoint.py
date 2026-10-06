@@ -3753,6 +3753,8 @@ class QuantBTEndpoint:
                 raise ValueError("META_HISTORY_INCOMPATIBLE: backtest(meta_history=MetaHistoryContext(...)) required")
             if params is not None or not param_ranges:
                 raise ValueError("META_METHODOLOGY_UNSUPPORTED: optimizing param_ranges required")
+            if target_mode in {"basket", "arbitrage"} and hedge_ratios is not None:
+                raise ValueError("META_ROUTE_UNSUPPORTED: external dynamic hedge ratios are not bound to IS/observer package scoring")
         native_proxy_scorer_required = (
             wf_config.scoring_backend == "proxy"
             and str(wf_config.proxy_validation_mode).lower().strip() != "off"
@@ -4933,6 +4935,14 @@ class _WalkForwardEndpointScorer:
         self.market_datetime_index = market_datetime_index
         self.meta_metric_support = bool(meta_metric_support)
         self._meta_witness = None
+        if self.meta_metric_support and self.target_mode in {"basket", "arbitrage"}:
+            from .optimization.meta_selection.domains.package_contract import package_execution_contract, validate_package_market
+            from .walkforward import _infer_datetime_index
+            contract = package_execution_contract(config, wf_config, symbols=self.symbols)
+            if any(value is not None for value in (market_closes, market_highs, market_lows)):
+                raise ValueError("META_ROUTE_UNSUPPORTED: package meta requires one authoritative OHLC mapping")
+            validate_package_market(market_data, _infer_datetime_index(market_data, market_datetime_index), contract.universe)
+            self.score_config = replace(self.score_config, symbols=list(contract.universe))
         if self.meta_metric_support and self.target_mode == "portfolio":
             from .optimization.meta_selection.domains.portfolio_contract import portfolio_execution_contract, validate_portfolio_market
             from .walkforward import _infer_datetime_index
@@ -5066,6 +5076,9 @@ class _WalkForwardEndpointScorer:
         trading_days: int,
         _quantbt_prepared_window=None,
     ) -> Dict[str, float]:
+        if self.meta_metric_support and self.target_mode in {"basket", "arbitrage"}:
+            from .optimization.meta_selection.domains.package_contract import validate_package_payload
+            validate_package_payload(output, index)
         if self.meta_metric_support and self.target_mode == "portfolio":
             from .optimization.meta_selection.domains.portfolio_contract import validate_portfolio_payload
             validate_portfolio_payload(output, index, self.symbols)
@@ -5513,6 +5526,8 @@ def _walkforward_scoring_config(config: EndpointConfig, target_mode: str) -> End
         return replace(config, mode="single_signal", backend=config.backend, sizing=mode)
     if mode == "portfolio":
         return replace(config, mode="portfolio", backend="native_portfolio")
+    if mode in {"basket", "arbitrage"}:
+        return replace(config, mode=mode)
     raise NotImplementedError(f"endpoint scoring is not implemented for walk-forward target_mode={target_mode!r}")
 
 

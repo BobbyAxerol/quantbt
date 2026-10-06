@@ -24006,7 +24006,10 @@ and empirical receipt as separate verified chunks.
 <a id="qms-e05"></a>
 #### QMS-E05 - Bounded Basket And Arbitrage Package Meta Integration
 
-**Status:** OWNER_AUTHORIZED_PENDING_E04_GATE (2026-10-06); tests/empirical NOT_RUN.
+**Status:** SOFTWARE_COMPLETE_INSTALLED_IN_PROGRESS (2026-10-06); 194 scoped
+checks PASS, original financial regression 11 PASS separately. Final repaired
+artifact proof is building; earlier v2 software consumers PASS but do not certify
+the newly repaired rejection-metadata witness. Real-alpha empirical NOT_RUN.
 **Goal:** add meta only after native package IS and forward scores are authoritative.
 **Entry:** E04 gate accepted; supported package specs and real package tapes frozen.
 **Guide:** [evaluation architecture, section 2](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s2),
@@ -24041,6 +24044,32 @@ gates. Synthetic package tests alone cannot pass empirical promotion.
 **Debt Disposition:** delivery-futures provider, cross-exchange/triangular/options-
 vol specialized engines remain explicit dependencies, not newly supported by meta.
 **Commit Boundary:** one bounded spec/evaluator with tests and evidence at a time.
+
+**Execution Amendment (2026-10-06):** the owner's latest request authorizes E05
+software work alongside the still-open E04 empirical study, not a waiver of
+either economic promotion gate. Initial cells are original `native_event`
+best-effort frozen `BasketSpec`, linear frozen `BasisArbitrageSpec` and
+`StatArbPairSpec`. Use exact aware aligned leg tapes, scalar package signals,
+original account reports and same prepared prefix witnesses. Reject unbound
+external dynamic hedge ratios, expiry/quanto/inverse, unsupported package
+policies and endpoint quantity knobs not forwarded by the original package
+runtime. Preserve meta-off proxy defaults; endpoint scoring is explicit. No
+financial kernel, Ridge, metric or RNG repair is included. Source baseline is
+E04 closure commit `1df2aaf`; separately seal exact reviewed adapter bytes.
+Tests cover original IS/forward/final accounting, off/shadow, active application,
+future mutations, family separation, rejection/fees/funding/PnL, prepared parity
+and installed wheel/sdist. Real study/owner promotion remains a separate gate.
+
+**Software Verification (2026-10-06):** final scoped XML is
+`.maturin/qms08/e05-final-regression-v1.xml` (194 PASS, no skip), independent
+financial XML `.maturin/qms08/e05-financial-v2.xml` (11 PASS). Nested original
+rejection metadata now receives deterministic structural hashing, without
+changing target/accepted quantities, costs or accounting. Failed old XMLs and
+the failed untracked-module artifact lane are retained. Earlier E04/E03 source
+seals normalize only exact reviewed E05 bytes; financial/Rust/metric/sampler
+and scientific guide sources remain unchanged. Endpoint defaults remain intact;
+the new package opt-in requires original endpoint scoring. Native is reused only
+after byte/source checks. No empirical, remote or release gate is waived.
 
 <a id="qms-e06"></a>
 #### QMS-E06 - Intrabar Intent/Session WFO Adapter And Real Meta Qualification

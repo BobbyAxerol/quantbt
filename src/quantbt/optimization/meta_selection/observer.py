@@ -51,7 +51,7 @@ def _economic_payload(payload, constraints):
     rate = contract["funding"]["funding_rate"]
     if isinstance(rate, dict) and rate.get("type") == "Series":
         contract["funding"]["funding_rate"] = {"source": "aligned_series"}
-    elif payload["mode"] == "portfolio" and isinstance(rate, dict):
+    elif payload["mode"] in {"portfolio", "basket", "arbitrage"} and isinstance(rate, dict):
         contract["funding"]["funding_rate"] = {symbol:
             {"source": "aligned_series"} if isinstance(value, dict) and value.get("type") == "Series"
             else value for symbol, value in rate.items()}
@@ -86,7 +86,7 @@ def economics_identity(config, *, symbols=None):
 
 
 def market_signature(frame, index, *, config=None):
-    if isinstance(frame, dict) and config is not None and config.mode == "portfolio":
+    if isinstance(frame, dict) and config is not None and config.mode in {"portfolio", "basket", "arbitrage"}:
         from .domains.portfolio_witness import portfolio_market_signature
         return portfolio_market_signature(frame, index, config=config)
     if not isinstance(frame, pd.DataFrame):
@@ -210,6 +210,9 @@ class ResultMetricAdapter:
         if actual_config is not None and actual_config["mode"] == "portfolio":
             from .domains.portfolio_contract import update_account_witness
             update_account_witness(witness, original_result)
+        if actual_config is not None and actual_config["mode"] in {"basket", "arbitrage"}:
+            from .domains.package_contract import update_package_witness
+            update_package_witness(witness, original_result)
         return MetricObservation(
             status,
             raw if np.isfinite(raw) else None,

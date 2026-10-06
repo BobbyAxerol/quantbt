@@ -30,7 +30,9 @@ carry-position account. A separate W3 sequential adapter supports reactive nativ
 reset-flat windows; see [its exact contract](INTEGRATION.md#w3-sequential-meta).
 E04 also admits bounded portfolio shared-account research opt-ins, described
 in the [portfolio contract](DOMAIN_ADAPTER_CONTRACT.md#e04-portfolio-amendment).
-Other modes/schedules and package/order target meta remain unsupported.
+E05 additionally admits bounded package software opt-ins under the
+[exact package contract](DOMAIN_ADAPTER_CONTRACT.md#e05-package-amendment).
+Other modes/schedules and order target meta remain unsupported.
 They keep their old behavior when meta is off. No request is silently converted.
 
 Existing `walkforward_support_matrix()` now reports additive meta domain/ABI,
@@ -59,6 +61,15 @@ not resampled. Keep `scoring_backend="endpoint"`,
 Prepared portfolio arrays are independent of scalar prepared Rust scoring.
 See [the runnable example](../../examples/wfo_meta_portfolio.py) and
 [E04 local qualification](QMSE04_REPORT.md). This is not empirical promotion.
+
+For bounded packages use the same constructor with `target_mode="basket"` or
+`"arbitrage"`, `backend="native_event"`, the exact `basket`/`arbitrage_spec` and
+ordered leg `symbols`. Input is `{symbol: OHLCFrame}`; strategy returns a scalar
+package-signal Series, not a positions matrix or a spread-PnL proxy. Keep the
+same three scoring settings above. Run
+`python -m examples.wfo_meta_package --kind basis --mode shadow` for a synthetic
+example (`basket` and `stat_pair` are also available). Frozen linear bounded
+software is not delivery-futures, dynamic hedge or empirical certification.
 
 Conditional Sobol and mixed/constrained representatives are under
 [C05 methodology review](CONDITIONAL_GEOMETRY_REVIEW.md), not available public

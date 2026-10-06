@@ -81,7 +81,10 @@ statuses. Native-event scalar support is rebalance execution, not reactive order
 E04 additionally qualifies bounded portfolio shared-account software opt-ins;
 see [the portfolio contract](DOMAIN_ADAPTER_CONTRACT.md#e04-portfolio-amendment)
 and [its local report](QMSE04_REPORT.md). Its real-alpha/owner gate is not run.
-Other target/meta routes remain rejected until their own E05-E07 qualification.
+E05 adds original native-event bounded package software opt-ins; read the
+[package contract](DOMAIN_ADAPTER_CONTRACT.md#e05-package-amendment).
+Its empirical gate remains separate. Intrabar/order/future domains still need
+their own E06-E08 gates. Local source/installed evidence is not a remote PASS.
 Registered real-alpha decay and owner gates govern official empirical promotion.
 A registry entry alone is not activation.
 

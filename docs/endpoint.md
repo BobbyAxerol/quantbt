@@ -2854,6 +2854,14 @@ opt-ins, preserving the original native shared account. See the exact
 This does not qualify W3 multi-symbol carry, another financial backend or a
 portfolio alpha's forward economic improvement.
 
+E05 adds bounded basket/basis/statistical-pair meta software opt-ins on the
+original package account with explicit endpoint scoring. See the
+[package contract](meta_selection/DOMAIN_ADAPTER_CONTRACT.md#e05-package-amendment)
+and [sanitized example](../examples/wfo_meta_package.py). Missing calendar,
+delivery/roll, dynamic hedge and unbound quantity-policy requests fail closed;
+existing meta-off proxy defaults are unchanged. This is not a real-alpha
+economic or exchange-native atomicity certificate.
+
 This is not yet in published core 1.1.1. QMS-06 qualifies prepared scalar W0/W1/W2
 under the [exact capability/fallback matrix](meta_selection/INTEGRATION.md#prepared-capability-and-policy)
 and adds [portable host handoff](meta_selection/HANDOFF.md).

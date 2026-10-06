@@ -68,8 +68,7 @@ def test_e02_t04_market_mutation_changes_exact_binding_but_not_nominal_family(fi
     assert new.compatibility.compatibility_id == old.compatibility.compatibility_id
 
 
-@pytest.mark.parametrize("route", ["basket", "arbitrage",
-                                  "intrabar", "order_commands", "options", "nautilus_validation"])
+@pytest.mark.parametrize("route", ["intrabar", "order_commands", "options", "nautilus_validation"])
 def test_e02_t05_pending_entries_are_not_activated(route):
     assert not route_metadata(route)["meta_route_activated"]
     with pytest.raises(MetaRecordError, match="META_ROUTE_UNSUPPORTED"):

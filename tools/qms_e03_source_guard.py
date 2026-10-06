@@ -32,7 +32,8 @@ def without_e03_scalar(source, name):
 
 
 def verify():
-    from tools.qms_e04_source_guard import ALLOW as E04_ALLOW, verify as verify_e04
+    from tools.qms_e04_source_guard import reviewed_scope, verify as verify_e04
+    E04_ALLOW = reviewed_scope()
     verify_e04()
     names = set(subprocess.check_output(["git", "diff", "--name-only", ENTRY,
         "--", "src", "rust"], cwd=ROOT, text=True).splitlines())
@@ -53,5 +54,5 @@ def verify():
 
 
 def reviewed_scope():
-    from tools.qms_e04_source_guard import ALLOW as E04_ALLOW
-    return ALLOW | E04_ALLOW
+    from tools.qms_e04_source_guard import reviewed_scope as later_scope
+    return ALLOW | later_scope()

@@ -87,9 +87,12 @@ class PortfolioDomainAdapter(DomainAdapter):
                     input_signature=signature, information_as_of=task.data_cutoff,
                     decision_sealed_at=task.decision_sealed_at)
                 diagnostic = QuantBTEndpoint(scorer.score_config)
-                result = self.evaluate(binding, lambda b: diagnostic.backtest(
-                    data={s: frame.loc[fold.test_index] for s, frame in prefix.items()},
-                    positions=b.payload, symbols=scorer.symbols))
+                result = self.evaluate(binding, lambda b: self._execute_diagnostic(diagnostic,
+                    {s: frame.loc[fold.test_index] for s, frame in prefix.items()},
+                    b.payload, scorer.symbols))
                 return DomainEvaluationOutput(binding, result)
 
         return evaluate, auxiliary._lifecycle_records
+
+    def _execute_diagnostic(self, endpoint, data, payload, symbols):
+        return endpoint.backtest(data=data, positions=payload, symbols=symbols)

@@ -99,7 +99,7 @@ def test_e02_t05_existing_discovery_exposes_domain_method_axes_without_new_route
     assert [r["target_mode"] for r in matrix] == ["signal_notional", "notional", "unit", "pct_equity",
         "dca_ladder", "portfolio", "basket", "arbitrage", "nautilus_validation"]
     for row in matrix:
-        assert row["meta_route_activated"] == (row["target_mode"] in {"signal_notional", "pct_equity", "notional", "unit", "dca_ladder"})
+        assert row["meta_route_activated"] == (row["target_mode"] in {"signal_notional", "pct_equity", "notional", "unit", "dca_ladder", "portfolio", "basket", "arbitrage"})
         if row["meta_route_activated"]:
             assert row["meta_optimization_modes"] == ("mode_4_is_only_robust",)
             assert row["meta_optimization_schedules"] == ("per_fold_causal",)

@@ -168,3 +168,44 @@ computed costs/margin and future/history isolation. This is not W3 multi-symbol
 carry, a venue-exact portfolio-margin engine, an intrabar portfolio fill model
 or evidence of positive forward economic gain. E04's synthetic example and
 reduced-support fixtures are engineering tests only, not registered studies.
+
+## E05 Package Amendment
+
+Only Mode 4 / `per_fold_causal` with explicit endpoint scoring is admitted.
+Meta-off basket/arbitrage proxy defaults are unchanged. Read the
+[E05 plan](../../upgrade/implement.md#qms-e05),
+[original pair/basket guide](../pair_basket_guide.md) and
+[sanitized example](../../examples/wfo_meta_package.py).
+
+- Original `native_event` owns all execution/accounting. Supported software
+  cells are frozen best-effort `BasketSpec`, linear non-expiring
+  `BasisArbitrageSpec` and `StatArbPairSpec` with frozen base-quantity hedges.
+  Statistical pairs require target-gross-notional sizing. No new Rust package
+  financial promotion is implied by Rust Ridge execution.
+- Declare `symbols` in exact spec-leg order. Provide an aware OHLC mapping on
+  one exact calendar and a finite scalar package-signal Series on the window
+  index. Missing/unbound asynchronous tapes fail before search; the adapter
+  does not interpolate, resample or invent a stale-price policy.
+- The family binds the exact spec, execution/account, universe, metric, nominal
+  funding policy and original package timing. Market/volume/funding prefixes
+  reuse the same run-owned row witness as E04; no financial/RNG state is cached.
+- IS and post-seal forward labels use original aggregate account full reports,
+  not spread returns, average symbol Sharpe or simulated leg equity. Final
+  stitched signals run once on the original continuous package account.
+- Original accepted positions, fees, funding, margin, diagnostics, typed fills,
+  target plan, rejection report and available leg/package PnL bind the witness.
+  Targets are not assumed accepted: best-effort rejects can leave partial legs.
+  Atomic margin admission is not an exchange-native atomic execution guarantee.
+- Reject external dynamic hedge ratios, unsupported hedge/margin/carry/cost
+  models, expiry/rolling/inverse/quanto/options, non-market/IOC execution and
+  unbound endpoint instrument/quantity knobs. Basis planner leg quantity
+  constraints remain original; statistical-pair leg rounding/tick constraints
+  are not forwarded by its existing basket planner and therefore rejected.
+- `scoring_backend="endpoint"`, `use_scalar_trial_scoring=False`,
+  `native_prepared_wfo="off"` and an explicit meta history are required.
+  `native_prepared_wfo="require"` cannot substitute a scalar Rust account.
+
+Software/installed qualification is not empirical promotion. Each package
+alpha needs a frozen study, original-account R/Q/decay evidence and owner review.
+Quarterly delivery/provider, additional package specs and specialized engines
+retain their own gates; private source/data must never enter wheel/sdist/Git.

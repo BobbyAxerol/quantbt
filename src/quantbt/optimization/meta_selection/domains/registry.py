@@ -28,7 +28,7 @@ CAPABILITIES = (
     *[DomainCapability(route, "scalar", InputKind.SCALAR_TARGET, "SOFTWARE_VALIDATED_OPT_IN", "E03", "OWNER_EMPIRICAL_REVIEW_PENDING")
       for route in ("notional", "unit", "dca_ladder")],
     DomainCapability("portfolio", "portfolio", InputKind.POSITION_MATRIX, "SOFTWARE_VALIDATED_OPT_IN", "E04", "REAL_ALPHA_OWNER_REVIEW_PENDING"),
-    *[DomainCapability(route, "package", InputKind.PACKAGE, "PENDING_ADAPTER_GATE", "E05")
+    *[DomainCapability(route, "package", InputKind.PACKAGE, "SOFTWARE_VALIDATED_OPT_IN", "E05", "REAL_PACKAGE_ALPHA_OWNER_REVIEW_PENDING")
       for route in ("basket", "arbitrage")],
     DomainCapability("intrabar", "intrabar", InputKind.INTRABAR_INTENT, "NO_PUBLIC_WFO_ADAPTER", "E06"),
     DomainCapability("reactive_reset", "reactive", InputKind.REACTIVE_WINDOW, "QUALIFIED_EXISTING", "E07", "ENGINEERING_ONLY_DOMAIN_ALPHA_PENDING"),
@@ -84,6 +84,9 @@ def adapter_for(runtime):
     if row.domain == "portfolio":
         from .portfolio import PortfolioDomainAdapter
         return PortfolioDomainAdapter(runtime)
+    if row.domain == "package":
+        from .package import PackageDomainAdapter
+        return PackageDomainAdapter(runtime)
     if row.domain != "scalar":
         raise MetaRecordError("META_DOMAIN_INPUT_MISMATCH")
     from .scalar import ScalarDomainAdapter

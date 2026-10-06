@@ -31,3 +31,8 @@ PYTHONPATH=/root/bobby/pool_alpha python3 quantbt/examples/single_order_event.py
 | `phase6_public_api.py` | multiple | Compact API snippets for service authors |
 
 Nautilus examples require the optional `nautilus-trader` dependency.
+
+`python -m examples.wfo_meta_package --kind basis --mode shadow` exercises
+bounded original package-account meta (`basket` / `stat_pair` also supported).
+Read [the exact admission contract](../docs/meta_selection/DOMAIN_ADAPTER_CONTRACT.md#e05-package-amendment).
+The fixture is synthetic software evidence, not empirical promotion.
