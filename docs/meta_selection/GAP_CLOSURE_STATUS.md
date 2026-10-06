@@ -78,6 +78,9 @@ retains source/job IDs and uploaded bundle digests. Remote payloads were not
 independently downloaded; six bundle uploads succeeded with seven-day retention.
 The old `0970d55` receipt remains historical. Later changed source or final
 publication artifacts require their own qualification, not automatic inheritance.
+The final retention follow-up also archives the exact allowlisted wheel/sdist
+binaries, not only proofs/logs, for seven days; its final-SHA gate is separate
+from the source-bound API receipt above. No private alpha/data is in that bundle.
 
 Pair remains **quantbt-engine 1.1.2 / quantbt-native 0.4.3**. Public consumer
 proof cannot run against an unpublished pair. No merge, tag or upload is

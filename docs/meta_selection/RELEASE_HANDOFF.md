@@ -71,6 +71,10 @@ and repaired liquidation wheel/sdist proofs for Ubuntu 22.04/24.04
 x CPython 3.11/3.12/3.13 on the pushed feature SHA. Permissions are contents-read
 only. Require **six actual successes**, archive JSON/log receipts and record
 the run URL/SHA. Local PASS is not remote or manylinux portability proof.
+The retention follow-up includes the exact allowlisted wheel/sdist in the
+seven-day bundles; earlier source-bound bundles contain proofs/logs only.
+Download final qualification bundles before expiry when long-term remote-byte
+archiving is needed; never treat a digest as an independently downloaded payload.
 
 Completed repaired remote gate: **six successes** on source `6901a66`,
 [run 37447291412](https://github.com/BobbyAxerol/quantbt/actions/runs/37447291412).

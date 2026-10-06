@@ -24001,6 +24001,16 @@ downloaded. Final-source publication artifacts/public-index gates are separate.
 No merge, tag, upload or
 new C01/C05/W3/E06/E07 capability activation is authorized.
 
+**Remote retention follow-up:** the earlier two candidate bundles contain
+structured proofs/logs, not the exact wheel/sdist binaries. Add only the fresh
+allowlisted `qualified/cp*/dist/*.whl` and `*.tar.gz` to the existing seven-day
+artifact upload. Preserve failed logs and require the artifact step to succeed;
+tests assert binary/proof/XML paths, retention and no publication permission.
+This closes evidence-retention scope without a runtime, scientific or feature
+change. Incremental remote bundle budget is under 10 MiB per row; no new local
+environment/build is needed. Keep prior source-bound receipts intact and run
+the same six-row gate on the final retention-enabled SHA before handoff.
+
 <a id="qms-e04"></a>
 #### QMS-E04 - Portfolio Shared-Account And Calendar Meta Integration
 

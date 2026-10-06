@@ -73,6 +73,17 @@ def test_remote_workflow_has_all_six_installed_w3_rows_without_publish():
     assert "sys.version_info[:2]" in step["run"]
     assert "installed-w3-proof.json" in text
     assert "id-token" not in text and "pypi-publish" not in text
+    upload = next(s for s in job["steps"] if s.get("uses", "").startswith("actions/upload-artifact@"))
+    retained = set(upload["with"]["path"].splitlines())
+    assert {
+        ".maturin/qms08/qualified/cp*/dist/*.whl",
+        ".maturin/qms08/qualified/cp*/dist/*.tar.gz",
+        ".maturin/qms08/qualified/cp*/installed-g01-proof.json",
+        ".maturin/qms08/g01-contracts.xml",
+    } <= retained
+    assert upload["if"] == "always()"
+    assert upload["with"]["if-no-files-found"] == "error"
+    assert upload["with"]["retention-days"] == "7"
 
 
 def test_installed_proof_checks_both_wheel_and_sdist_with_isolation(tmp_path, monkeypatch):

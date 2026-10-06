@@ -121,6 +121,8 @@ jobs:
           name: qms-candidate-${{ matrix.runner }}-cp${{ matrix.python }}
           retention-days: 7
           path: |
+            .maturin/qms08/qualified/cp*/dist/*.whl
+            .maturin/qms08/qualified/cp*/dist/*.tar.gz
             .maturin/qms08/qualified/cp*/proof.json
             .maturin/qms08/qualified/cp*/installed-w3-proof.json
             .maturin/qms08/qualified/cp*/installed-scalar-proof.json
