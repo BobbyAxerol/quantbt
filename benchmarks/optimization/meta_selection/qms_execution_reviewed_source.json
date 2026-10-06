@@ -1,0 +1,14 @@
+{
+  "baseline": "566adcb",
+  "source_sha256": {
+    "src/quantbt/core/delivery_lifecycle.py": "d312627bb67bfe346fd806e5301292e6f7d47d42e6c6772a8459e916df064017",
+    "src/quantbt/endpoint.py": "47e91585a8cd2d11a56d3351d27c475ca2aaffdbfc7866efe1c20de2457ed878",
+    "src/quantbt/engines.py": "56254b5c929e331b0be583d2479194fce5882bc4bcce2b348fec0d5d0813358b",
+    "src/quantbt/optimization/meta_selection/config.py": "58b7a04bdbd24a9ea15fcedd82ef628a8e5faa8b16501d21911de173b06f1264",
+    "src/quantbt/optimization/meta_selection/domains/execution.py": "bac75f0e5a05052557f87039561dd1052062d84c76c1d4866bfd507eab21eec9",
+    "src/quantbt/optimization/meta_selection/domains/registry.py": "eee3507560a0013624218ad6726cc895e5b9b1e545946b0c0d24743f6b975f45",
+    "src/quantbt/optimization/meta_selection/observer.py": "483e852459bca91af8b93617edf5289c0c66dbb6fe09283e57563f64c5c53e98",
+    "src/quantbt/walkforward.py": "f5ced824a7fc7745c20d8c96799d1547378db998c60d2f6052854484e2462d48",
+    "src/quantbt/wfo_execution.py": "200b5867cc8b0a1bb525aba0c6397a594a2ff4996f3ce382fe55b0ee28331331"
+  }
+}

@@ -32,14 +32,15 @@ def without_e05_package(source, name):
 
 
 def verify():
+    from tools.qms_execution_source_guard import ALLOW as EXEC_ALLOW
     from tools.qms_g01_source_guard import ALLOW as G01_ALLOW, protected_changes, verify as verify_g01
     amendment = verify_g01()
     names = set(subprocess.check_output(["git", "diff", "--name-only", ENTRY,
         "--", "src", "rust"], cwd=ROOT, text=True).splitlines())
     names.update(subprocess.check_output(["git", "ls-files", "--others", "--exclude-standard",
         "--", "src", "rust"], cwd=ROOT, text=True).splitlines())
-    if names != ALLOW | G01_ALLOW:
-        raise AssertionError(f"E05 unreviewed/missing production changes: {sorted(names ^ (ALLOW | G01_ALLOW))}")
+    if names != ALLOW | G01_ALLOW | EXEC_ALLOW:
+        raise AssertionError(f"E05 unreviewed/missing production changes: {sorted(names ^ (ALLOW | G01_ALLOW | EXEC_ALLOW))}")
     for name in names:
         without_e05_package((ROOT / name).read_bytes(), name)
     protected = ("rust", "src/quantbt/core", "src/quantbt/backends", "src/quantbt/sizing",

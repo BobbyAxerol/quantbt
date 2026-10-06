@@ -30,9 +30,11 @@ CAPABILITIES = (
     DomainCapability("portfolio", "portfolio", InputKind.POSITION_MATRIX, "SOFTWARE_VALIDATED_OPT_IN", "E04", "REAL_ALPHA_OWNER_REVIEW_PENDING"),
     *[DomainCapability(route, "package", InputKind.PACKAGE, "SOFTWARE_VALIDATED_OPT_IN", "E05", "REAL_PACKAGE_ALPHA_OWNER_REVIEW_PENDING")
       for route in ("basket", "arbitrage")],
-    DomainCapability("intrabar", "intrabar", InputKind.INTRABAR_INTENT, "NO_PUBLIC_WFO_ADAPTER", "E06"),
+    DomainCapability("intrabar", "intrabar", InputKind.INTRABAR_INTENT, "SOFTWARE_VALIDATED_OPT_IN", "E06", "SYNTHETIC_CONFORMANCE_ONLY"),
+    DomainCapability("event_driven", "callback", InputKind.REACTIVE_WINDOW, "SOFTWARE_VALIDATED_OPT_IN", "E07", "SYNTHETIC_CONFORMANCE_ONLY"),
     DomainCapability("reactive_reset", "reactive", InputKind.REACTIVE_WINDOW, "QUALIFIED_EXISTING", "E07", "ENGINEERING_ONLY_DOMAIN_ALPHA_PENDING"),
-    DomainCapability("order_commands", "orders", InputKind.ORDER_COMMANDS, "NO_PUBLIC_WFO_ADAPTER", "E07"),
+    DomainCapability("order_commands", "orders", InputKind.ORDER_COMMANDS, "SOFTWARE_VALIDATED_OPT_IN", "E07", "SYNTHETIC_CONFORMANCE_ONLY"),
+    DomainCapability("delivery_arbitrage", "delivery", InputKind.ORDER_COMMANDS, "SOFTWARE_VALIDATED_OPT_IN", "E05_DELIVERY", "SYNTHETIC_CONFORMANCE_ONLY"),
     DomainCapability("options", "options", InputKind.PACKAGE, "FUTURE_ROUTE_ADMISSION", "FUTURE"),
     DomainCapability("nautilus_validation", "nautilus", InputKind.SCALAR_TARGET, "FUTURE_ROUTE_ADMISSION", "FUTURE"),
 )
@@ -81,6 +83,9 @@ def adapter_for(runtime):
     if explicit != "original-endpoint-reset-v1":
         raise MetaRecordError("META_ROUTE_UNSUPPORTED: unregistered scorer contract")
     row = capability(runtime.engine.config.target_mode, require_active=True)
+    if row.domain in {"intrabar", "callback", "orders", "delivery"}:
+        from .execution import ExecutionDomainAdapter
+        return ExecutionDomainAdapter(runtime)
     if row.domain == "portfolio":
         from .portfolio import PortfolioDomainAdapter
         return PortfolioDomainAdapter(runtime)

@@ -21,6 +21,8 @@ ALLOW = frozenset({
 
 
 def without_g01(source, name):
+    from tools.qms_execution_source_guard import without_execution_routes
+    source = without_execution_routes(source, name)
     if name not in ALLOW:
         return source
     original = subprocess.check_output(["git", "show", f"{ENTRY}:{name}"], cwd=ROOT)
@@ -47,12 +49,14 @@ def protected_changes(entry, protected):
 
 
 def verify():
+    from tools.qms_execution_source_guard import ALLOW as EXEC_ALLOW, verify as verify_execution
+    verify_execution()
     names = set(subprocess.check_output(["git", "diff", "--name-only", ENTRY,
         "--", "src", "rust"], cwd=ROOT, text=True).splitlines())
     names.update(subprocess.check_output(["git", "ls-files", "--others", "--exclude-standard",
         "--", "src", "rust"], cwd=ROOT, text=True).splitlines())
-    if names != ALLOW:
-        raise AssertionError(f"unreviewed/missing G01 production changes: {sorted(names ^ ALLOW)}")
+    if names != ALLOW | EXEC_ALLOW:
+        raise AssertionError(f"unreviewed/missing G01 production changes: {sorted(names ^ (ALLOW | EXEC_ALLOW))}")
     for name in names:
         without_g01((ROOT/name).read_bytes(), name)
     return dict(schema="qms-g01-exact-amendment-v1", baseline=ENTRY,

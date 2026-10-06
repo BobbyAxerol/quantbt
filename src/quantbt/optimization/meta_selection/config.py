@@ -94,7 +94,8 @@ def validate_meta_route(config, *, route="target_series"):
         )
     if (
         canonical_scalar_route(config.target_mode) not in (
-            {"signal_notional", "pct_equity"} if reactive else SCALAR_ROUTES | {"portfolio", "basket", "arbitrage"})
+            {"signal_notional", "pct_equity"} if reactive else SCALAR_ROUTES | {"portfolio", "basket", "arbitrage",
+                "intrabar", "event_driven", "order_commands", "delivery_arbitrage"})
         or config.scoring_backend != "endpoint"
         or config.calendar_contract != "exact_v2"
         or config.strategy_lifecycle_policy != "isolated_v1"

@@ -86,7 +86,7 @@ def economics_identity(config, *, symbols=None):
 
 
 def market_signature(frame, index, *, config=None):
-    if isinstance(frame, dict) and config is not None and config.mode in {"portfolio", "basket", "arbitrage"}:
+    if isinstance(frame, dict) and config is not None and config.mode in {"portfolio", "basket", "arbitrage", "orders", "native_event_strategy"}:
         from .domains.portfolio_witness import portfolio_market_signature
         return portfolio_market_signature(frame, index, config=config)
     if not isinstance(frame, pd.DataFrame):
@@ -213,6 +213,14 @@ class ResultMetricAdapter:
         if actual_config is not None and actual_config["mode"] in {"basket", "arbitrage"}:
             from .domains.package_contract import update_package_witness
             update_package_witness(witness, original_result)
+        if result.metadata.get("wfo_execution_window") is not None:
+            for name in ("fees", "funding", "margin"):
+                values = getattr(original_result, name, None)
+                if not isinstance(values, (pd.Series, pd.DataFrame)) or not values.index.equals(result.equity.index):
+                    raise MetaRecordError("META_DOMAIN_RESULT_UNBOUND: original execution costs/margin missing")
+                array = np.ascontiguousarray(values.to_numpy(dtype=np.float64))
+                witness.update(digest({"execution_account_v1": name, "shape": array.shape}).encode())
+                witness.update(array.tobytes())
         return MetricObservation(
             status,
             raw if np.isfinite(raw) else None,

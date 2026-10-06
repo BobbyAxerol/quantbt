@@ -299,7 +299,7 @@ class PreparedWalkForwardContext:
     def metric_witness(self, config):
         from .optimization.meta_selection.witness import PreparedMetricWitness
 
-        if config.mode in {"portfolio", "basket", "arbitrage"}:
+        if config.mode in {"portfolio", "basket", "arbitrage"} or isinstance(self.data, dict):
             from .optimization.meta_selection.domains.portfolio_witness import PortfolioMetricWitness
             owner = PortfolioMetricWitness(self.data, config=config)
         else:
@@ -979,6 +979,11 @@ def walkforward_support_matrix(as_dataframe: bool = True):
             notes="Reserved for future WFO parity validation, not routed by walk-forward today.",
         ),
     ]
+    from .wfo_execution import EXECUTION_ROUTES
+    entries.extend(WalkForwardCompatibilityEntry(target_mode=route,
+        expected_output="WfoExecutionWindow", final_engine="explicit existing execution_endpoint",
+        status="opt_in", notes="Original reset diagnostics; continuous final account; synthetic qualification only.")
+        for route in sorted(EXECUTION_ROUTES))
     from .optimization.meta_selection.domains.registry import check_route_inventory, route_metadata
 
     check_route_inventory(entry.target_mode for entry in entries)
@@ -3264,6 +3269,10 @@ def validate_walkforward_strategy_output(
     array-like output would silently reindex to all zeros, which is dangerous in
     production research.
     """
+    from .wfo_execution import WfoExecutionWindow
+    if isinstance(output, WfoExecutionWindow):
+        output.slice(expected_index)
+        return output
     contract = WfoIntentContractV1.from_value(intent_contract)
     if contract.kind is WfoIntentKindV1.DESIRED_ORDER:
         raise NotImplementedError(
@@ -4851,6 +4860,9 @@ def stitch_oos_outputs(
         return None
 
     first = outputs[0]
+    from .wfo_execution import WfoExecutionWindow, stitch_execution_windows
+    if isinstance(first, WfoExecutionWindow):
+        return stitch_execution_windows(outputs, idx)
     if isinstance(first, pd.DataFrame):
         columns = list(first.columns)
         stitched = pd.DataFrame(fill_value, index=idx, columns=columns, dtype=float)
@@ -5150,6 +5162,9 @@ def _fold_boundary_table(
 
 
 def _target_snapshot(output: StrategyOutput, timestamp: pd.Timestamp):
+    from .wfo_execution import WfoExecutionWindow
+    if isinstance(output, WfoExecutionWindow):
+        return None  # Actual holdings belong to the execution result, not intent.
     if isinstance(output, pd.Series):
         return float(output.loc[timestamp])
     if isinstance(output, pd.DataFrame):
@@ -5160,6 +5175,8 @@ def _target_snapshot(output: StrategyOutput, timestamp: pd.Timestamp):
 
 
 def _changed_target_count(before, after, tolerance: float = 1e-12) -> int:
+    if before is None or after is None:
+        return None
     if isinstance(before, dict) and isinstance(after, dict):
         keys = set(before) | set(after)
         return int(
@@ -5341,6 +5358,9 @@ def _default_params_from_ranges(param_ranges: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def _slice_output_to_test(output: StrategyOutput, test_index: pd.DatetimeIndex) -> StrategyOutput:
+    from .wfo_execution import WfoExecutionWindow
+    if isinstance(output, WfoExecutionWindow):
+        return output.slice(test_index)
     if isinstance(output, pd.DataFrame):
         return _normalize_frame_output(output).reindex(test_index).fillna(0.0)
     if isinstance(output, dict):

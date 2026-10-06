@@ -351,6 +351,7 @@ class EndpointConfig:
     shadow_evidence_dir: Optional[str] = None
     strategy_class: object = None
     walkforward_config: Optional[WalkForwardConfig] = None
+    wfo_execution_config: Optional["EndpointConfig"] = None
     walkforward_target_mode: str = "signal_notional"
     metadata: Dict = field(default_factory=dict)
 
@@ -1951,6 +1952,7 @@ class QuantBTEndpoint:
         optuna_trials: int = 0,
         optuna_early_stopping: Optional[int] = None,
         random_seed: int = 42,
+        execution_endpoint: Optional["QuantBTEndpoint"] = None,
         **kwargs,
     ) -> "QuantBTEndpoint":
         """
@@ -1979,6 +1981,22 @@ class QuantBTEndpoint:
         `optimization_mode="none"` and pass `params=...` to `backtest()`.
         """
         optimization_config = dict(optimization_config or {})
+        from .wfo_execution import EXECUTION_ROUTES
+        execution_route = target_mode in EXECUTION_ROUTES
+        if execution_route:
+            if not isinstance(execution_endpoint, cls):
+                raise TypeError("execution WFO requires execution_endpoint=QuantBTEndpoint(...)")
+            if kwargs:
+                raise ValueError("put financial settings on execution_endpoint, not duplicate WFO kwargs")
+            if optimization_config.get("scoring_backend", "endpoint") != "endpoint":
+                raise NotImplementedError("execution WFO cannot use position/proxy scoring")
+            optimization_config.setdefault("scoring_backend", "endpoint")
+            optimization_config.setdefault("use_scalar_trial_scoring", False)
+            optimization_config.setdefault("intent_contract", dict(kind="desired_order",
+                observation_phase="bar_close", effective_phase="downstream_execution",
+                route_id="wfo-execution-window-v1", certified=True))
+        elif execution_endpoint is not None:
+            raise ValueError("execution_endpoint requires an explicit execution WFO target_mode")
         wf_config = kwargs.pop("walkforward_config", None)
         scoring_backend = str(
             optimization_config.get(
@@ -2207,8 +2225,16 @@ class QuantBTEndpoint:
                 **kwargs,
             )
         )
+        if execution_route:
+            endpoint.config = replace(execution_endpoint.config, mode="walk_forward",
+                strategy_class=strategy_class, walkforward_config=wf_config,
+                walkforward_target_mode=target_mode, wfo_execution_config=execution_endpoint.config)
+            from .wfo_execution import validate_execution_route
+            validate_execution_route(endpoint.config, wf_config)
         if wf_config.meta_selection is not None:
-            if wf_config.target_mode == "portfolio":
+            if execution_route:
+                pass  # The typed financial route was validated above.
+            elif wf_config.target_mode == "portfolio":
                 from .optimization.meta_selection.domains.portfolio_contract import portfolio_execution_contract
                 portfolio_execution_contract(endpoint.config, wf_config)
             else:
@@ -3358,11 +3384,22 @@ class QuantBTEndpoint:
         prepared_instruments: Optional[InstrumentRegistryV2] = None,
         calendar_contract: str = "legacy_v1",
     ):
-        if not orders and not order_commands:
+        if orders is None and order_commands is None:
             raise ValueError("orders endpoint requires orders=[OrderIntent(...)] or order_commands=[OrderCommand(...)]")
         if prepared_market is not None:
             prepared_market.require_open()
             idx = prepared_market.datetime_index
+            frame = data
+        elif isinstance(data, dict):
+            # Preserve each instrument's actual OHLCV; do not duplicate one
+            # DataFrame across delivery/perpetual legs.
+            symbol_list = list(symbols or self.config.symbols or data)
+            idx = _ensure_utc_index(datetime_index if datetime_index is not None else data[symbol_list[0]].index)
+            if set(data) != set(symbol_list) or any(
+                not isinstance(data[s], pd.DataFrame) or not data[s].index.equals(idx)
+                or not {"open", "high", "low", "close"}.issubset(data[s]) for s in symbol_list
+            ):
+                raise ValueError("orders require one exact OHLCV calendar and fixed instrument universe")
             frame = data
         else:
             frame, idx, _ = _normalize_single_data(
@@ -3812,7 +3849,10 @@ class QuantBTEndpoint:
                 "fold target at one timestamp without an explicit order-tape adapter."
             )
 
-        if target_mode == "portfolio":
+        from .wfo_execution import EXECUTION_ROUTES, execute_window
+        if target_mode in EXECUTION_ROUTES:
+            result = execute_window(self.config.wfo_execution_config, data, stitched, symbols=symbols)
+        elif target_mode == "portfolio":
             if isinstance(stitched, pd.Series):
                 raise TypeError("portfolio walk_forward target_mode requires DataFrame or {symbol: Series} output")
             result = self._run_portfolio(
@@ -4934,6 +4974,8 @@ class _WalkForwardEndpointScorer:
         self.market_lows = market_lows
         self.market_datetime_index = market_datetime_index
         self.meta_metric_support = bool(meta_metric_support)
+        if config.wfo_execution_config is not None:
+            self.meta_account_authority = "existing_execution_endpoint_continuous_account"
         self._meta_witness = None
         if self.meta_metric_support and self.target_mode in {"basket", "arbitrage"}:
             from .optimization.meta_selection.domains.package_contract import package_execution_contract, validate_package_market
@@ -5194,6 +5236,9 @@ class _WalkForwardEndpointScorer:
         temp = QuantBTEndpoint(self.score_config)
         sliced_data = _slice_wf_data_to_index(data, index)
         symbol_list = self._symbol_list(output)
+        from .wfo_execution import EXECUTION_ROUTES, execute_window
+        if self.target_mode in EXECUTION_ROUTES:
+            return execute_window(self.score_config, sliced_data, output.slice(index), symbols=symbol_list)
         if self.score_config.mode == "portfolio":
             return temp.backtest(data=sliced_data, positions=output, symbols=symbol_list)
         return temp.backtest(data=sliced_data, signal=output, symbols=symbol_list)
@@ -5516,6 +5561,11 @@ class _WalkForwardEndpointScorer:
 
 def _walkforward_scoring_config(config: EndpointConfig, target_mode: str) -> EndpointConfig:
     mode = str(target_mode).lower().strip()
+    from .wfo_execution import EXECUTION_ROUTES
+    if mode in EXECUTION_ROUTES:
+        if config.wfo_execution_config is None:
+            raise ValueError("execution WFO requires an explicit financial endpoint config")
+        return config.wfo_execution_config
     if mode in {"pct_equity", "%_equity"}:
         return replace(config, mode="pct_equity", backend="legacy", sizing="%_equity")
     if mode == "dca_ladder":

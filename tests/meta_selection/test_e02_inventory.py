@@ -11,4 +11,4 @@ def test_e02_t05_future_dispatch_omitted_from_matrix_cannot_escape_conformance()
     with pytest.raises(MetaRecordError, match="unregistered"):
         verify("def dispatch(target_mode):\n    if target_mode == 'new_financial_domain': pass\n")
     with pytest.raises(ValueError, match="discovery"):
-        verify("def dispatch(target_mode):\n    if target_mode == 'intrabar': pass\n")
+        verify("def dispatch(target_mode):\n    if target_mode == 'options': pass\n")

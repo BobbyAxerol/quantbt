@@ -133,6 +133,7 @@ class BacktestEngineV2:
         self.target_units = target_units
         self.orders = tuple(orders or ())
         self.order_commands = tuple(order_commands or ())
+        self._explicit_order_commands = order_commands is not None
         self.strategy = strategy
         self.event_engine_version = str(event_engine_version).lower().strip()
         self.execution_contract = execution_contract
@@ -377,7 +378,7 @@ class BacktestEngineV2:
             commands = self.order_commands
             if not commands and self.orders:
                 commands = order_intents_to_lifecycle_commands(self.orders)
-            if not commands:
+            if not commands and (not self._explicit_order_commands or self.positions is not None or self.signals is not None):
                 raw_positions = self.positions if self.positions is not None else self.signals
                 if raw_positions is None:
                     raise ValueError("native_event v2 requires order_commands, orders, signals, positions, or a basket")

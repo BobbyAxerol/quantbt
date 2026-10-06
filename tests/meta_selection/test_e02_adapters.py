@@ -94,12 +94,13 @@ def test_e02_t04_failure_and_nested_execution_leave_no_busy_adapter():
     adapter.clear()
 
 
-def test_e02_t05_existing_discovery_exposes_domain_method_axes_without_new_routes():
+def test_e02_t05_existing_discovery_exposes_approved_execution_route_amendment():
     matrix = walkforward_support_matrix(False)
     assert [r["target_mode"] for r in matrix] == ["signal_notional", "notional", "unit", "pct_equity",
-        "dca_ladder", "portfolio", "basket", "arbitrage", "nautilus_validation"]
+        "dca_ladder", "portfolio", "basket", "arbitrage", "nautilus_validation",
+        "delivery_arbitrage", "event_driven", "intrabar", "order_commands"]
     for row in matrix:
-        assert row["meta_route_activated"] == (row["target_mode"] in {"signal_notional", "pct_equity", "notional", "unit", "dca_ladder", "portfolio", "basket", "arbitrage"})
+        assert row["meta_route_activated"] == (row["target_mode"] != "nautilus_validation")
         if row["meta_route_activated"]:
             assert row["meta_optimization_modes"] == ("mode_4_is_only_robust",)
             assert row["meta_optimization_schedules"] == ("per_fold_causal",)
