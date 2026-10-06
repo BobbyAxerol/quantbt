@@ -16,7 +16,10 @@
   R/Q diagnostic is complete, with economic gate FAIL / NOT_PROMOTED.
   E05 bounded software and installed proofs are complete (206 scoped checks);
   real quarterly basis expiry/roll/data admission remains blocked, not parity.
-  E06-E08 are unapproved.
+  E06/E07 bounded local adapters and exact CPython 3.12 installed artifacts are
+  implemented under the [execution amendment](../docs/meta_selection/EXECUTION_WFO_REPORT.md),
+  with 153 scoped checks PASS; active/matured coverage and owner handoff remain
+  incomplete. E08/final-source remote and publication are deferred.
   E03 adds scalar software research opt-ins,
   with separately registered per-cell R/Q studies, not empirical/default promotion.
   [E02 report](../docs/meta_selection/QMSE02_REPORT.md): six gates, 1,118 distinct
@@ -58,8 +61,12 @@
   Active elapsed falls 61.48% (2.60x); peak RSS adds 14.805 MiB over off.
   These are single warm studies, not an all-Rust financial speed certificate.
 - E01/E02/E04 do not themselves authorize push, merge, retag, release or deployment.
-  The owner separately approved feature-only push to origin for current-source
-  CI. No merge/tag/publication or new capability activation is authorized.
+  Earlier feature-only CI permission and remote 6901a66 receipts are historical,
+  not certification of later execution-route bytes. The latest scope is local
+  PRE-E06-01 only; no push/workflow, merge/tag/publication or runtime activation.
+- [PRE-E06 current baseline](../docs/meta_selection/PRE_E06_BASELINE.md): source-bound
+  route/method/backend/test inventory and metric/account/privacy lock. PRE-E06-02
+  through 06 remain planned; each requires its own phase start.
 - Repair performance: same registered unit study 549.001 to 291.542 s (1.883x),
   peak RSS +7.480 MiB. One shared-VPS observation, not universal performance.
   [Cleanup](../docs/maintenance/QMS_G01_CLEANUP_2026-10-06.md) reclaimed 219.656 MiB
@@ -67,16 +74,18 @@
 
 ## Current C01 Review
 
-The owner chose **spec and tests; activation separately** on 2026-10-05.
+The owner originally chose **spec and tests; activation separately** on 2026-10-05;
+nested scalar Mode 1 subsequently received local implementation approval.
 Read the [amendment](../docs/meta_selection/ADDITIONAL_METHODS_REVIEW.md) and
 [actual report](../docs/meta_selection/QMSC01_REPORT.md). All eight existing
 native combinations are audited; omitted/explicit-off accounting, full pools,
-native winners and RNG match. No additional meta route, scientific replacement,
-financial source change, version change or release is authorized.
+native winners and RNG match in that historical scope. No additional meta runtime
+is enabled; scientific replacement, financial source changes and release are
+not authorized by PRE-E06-01.
 
-Proposed first causal extension: nested Mode 1 with the exact inner-decay native
+Approved first causal extension, implementation pending PRE-E06-03: nested Mode 1 with the exact inner-decay native
 anchor, full-pool original outer-IS witnesses and a distinct versioned family;
-target/cohort semantics need owner approval. E01 repairs C01-D01 reporting:
+target/cohort semantics remain bounded by the reviewed spec. E01 repairs C01-D01 reporting:
 default Mode 2 robust_decay finally ranks on real OOS and now reports true;
 IS-only selectors and fixed-param diagnostics report false. The adaptive search
 still uses synthetic IS paths; its pool/objectives/params/RNG/accounting do not
@@ -84,11 +93,11 @@ change. See [E01 evidence and current gate](../docs/meta_selection/QMSE01_REPORT
 
 | Capability | Current local disposition |
 |---|---|
-| C01 additional methods | Spec/tests complete; activation NOT_AUTHORIZED |
+| C01 additional methods | Nested scalar implementation approved; runtime pending PRE-E06-03; other modes not enabled |
 | C02 transport | Safe Linux process, original-pass witnesses and native cooperative deadlines qualified |
 | C03 samplers | Four recipes on sequential/safe-process W3 and native-off-meta R3B qualified |
 | C04 continuation | Owned exact journal, four recipes and fresh-process resume qualified; not automatic WFO/account resume |
-| C05 geometry | Spec/reference tests complete; conditional Sobol/mixed centroid NOT_ACTIVATED |
+| C05 geometry | Reviewed implementation approved; conditional Sobol/finite-support runtime pending PRE-E06-04 |
 | Carry/multi-symbol/public meta batch | Unsupported; contracts/specs do not activate runtime |
 
 The repaired candidate remote gate passes above; public/final publication

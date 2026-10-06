@@ -23,9 +23,10 @@ def test_e02_final_current_summary_is_complete_without_authorizing_next_phase():
     assert "AUTHORIZED_IN_PROGRESS" not in e02
     current = (ROOT/"handoff/WFO_META_CURRENT.md").read_text().split("## Historical Local Debt Closure")[0]
     assert "no E02-E08 execution is authorized" not in current
-    assert "E06-E08 are unapproved" in current
+    assert "E06/E07 bounded local adapters" in current
+    assert "E08/final-source remote and publication are deferred" in current
     assert "E05 bounded software and installed proofs are complete" in current
-    assert "E03 is now authorized" in current
+    assert "E03-G01 CLOSED_LOCAL_CORRECTNESS" in current
 
 
 def test_e02_final_docs_preserve_original_guide_and_separate_empirical_promotion():

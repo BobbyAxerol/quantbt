@@ -11,6 +11,10 @@ Read [the unified plan](../../upgrade/implement.md#qms-e02) and the original
 and [measurement](../../upgrade/QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s10).
 It extends adapter architecture, not Ridge mathematics or methodology permissions.
 The original guide and historical receipts are not rewritten.
+For current route activation, test owners and exact metric/account semantics,
+read the [PRE-E06 baseline](PRE_E06_BASELINE.md). The E02-era admission paragraph
+below is historical; subsequent E03-E07 bounded adapters are already implemented.
+No new methodology, metric, fee or account behavior is activated by this note.
 
 ## Typed Boundary
 

@@ -11,9 +11,12 @@ proof are deferred until that scope is settled. No push or publication here.
 
 C01 nested Mode 1 and C05 conditional sampling/support projection now have
 separate **local implementation approval**. Their activation plan is recorded
-in [the unified plan](../../upgrade/implement.md#qms-local-finalization).
+in [the sequential unified plan](../../upgrade/implement.md#qms-pre-e06-action-plan).
 They are **not implemented runtime capabilities yet**. The original review
 documents and receipts describe their earlier spec-only work; preserve them.
+The [PRE-E06 source-bound inventory](PRE_E06_BASELINE.md) separates actual
+discovery/preflight, original account/metric witnesses, retained tests and
+missing active/matured qualification. This review does not close those missing tests.
 
 ## Executable And Tested Now
 
@@ -31,7 +34,7 @@ Meta off preserves the original strategy, search and accounting behavior.
 | `dca_ladder` | Original structural high/low ladder and signed level caps | E03 tests, wheel/sdist, real OHLC with owner-approved simple simulated ladder; not a real proprietary grid alpha |
 | `portfolio` | Original native_portfolio shared account; ordered position matrix/calendar | E04 122 scoped software checks, wheel/sdist, real ETH/BTC RSI diagnostic and saved-param account replay |
 | `basket` | Original native_event frozen best-effort basket | E05 original account/witness tests and wheel/sdist; real-alpha economic study not executed |
-| `arbitrage` | Original native_event bounded linear non-expiring basis/statistical pair, frozen hedge | E05 original account/witness tests and wheel/sdist; quarterly delivery/roll not admitted |
+| `arbitrage` | Original native_event bounded linear non-expiring basis/statistical pair, frozen hedge | E05 original account/witness tests and wheel/sdist; quarterly uses the separate `delivery_arbitrage` row, not this contract |
 | `intrabar` | Explicit original intrabar intent/session endpoint; continuous final execution | Local intent/protection/session/account tests; synthetic on/off study; no real-market promotion |
 | `event_driven` | Generic callback factory and original event account, not numeric W3 | Local callback/fill-feedback, pool/labels, shadow and active rebuild tests; synthetic qualification |
 | `order_commands` | Explicit original command tape; pending orders continue across folds | Local typed tape/cancel/account tests and synthetic qualification |
@@ -95,7 +98,7 @@ claiming all available price data is limited to 2025; equally, do not claim the
 central store closes real venue expiry/roll/settlement semantics. That admission gate stays
 open pending exact instruments/events/account contracts and per-window validation.
 
-## Suggested First Release Scope
+## Historical First-Release Suggestion
 
 Start with scalar WFO (`signal_notional`, `notional`, `unit`, `pct_equity`) as
 explicit research opt-ins. Decide structural ladder and bounded W3 separately:
@@ -103,6 +106,10 @@ their software gates are real, but simulated/numeric protocol evidence is not
 domain-specific economic qualification. Portfolio and bounded package adapters
 may remain experimental or excluded from this release, according to owner choice.
 No default meta promotion, universal decay claim or automatic endpoint coverage.
+That earlier suggestion is not an owner scope decision. The subsequent required
+execution amendment includes intrabar, callbacks, commands and bounded pre-expiry
+delivery. Their current software scope is above; economic/default exposure and
+remaining capabilities still require separate review.
 
 ## Verification And Cleanup
 

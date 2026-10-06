@@ -20,6 +20,14 @@ Correctness, economic effectiveness, domain availability, installed artifacts,
 remote runners and publication are independent gates. A failed forward-Q
 interval is not a software bug that can be repaired by retuning the study.
 
+The [sequential PRE-E06 plan](../../upgrade/implement.md#qms-pre-e06-action-plan)
+now orders local reconciliation, active/matured conformance, approved C01/C05
+implementation, matched profiling and final local artifacts before returning
+to E06. Read the [source-bound baseline](PRE_E06_BASELINE.md) for exact test owners,
+frozen measurement/account/privacy rules and registered missing coverage.
+Only PRE-E06-01 is authorized in the current goal; no subsequent activation,
+alpha study, CI/CD or publication is implied.
+
 ## E03-G01 Compatibility
 
 The original array estimator includes zero returns where previous equity is
@@ -110,8 +118,8 @@ authorized here; follow [release handoff](RELEASE_HANDOFF.md) after approval.
 
 | Capability | Current boundary | Required next contract |
 |---|---|---|
-| C01 extra meta modes/schedules | Reviewed specs/tests; inactive | Approve native anchor, full-IS witnesses, history cohort and data roles per route |
-| C05 conditional Sobol/mixed representatives | Reference/spec only | Approve latent layout, category RNG, admissibility and exact continuation |
+| C01 extra meta modes/schedules | Reviewed nested scalar spec; local implementation approved, runtime pending | PRE-E06-03: exact inner anchor, original outer-IS witnesses and separate family; other methods remain unapproved |
+| C05 conditional Sobol/mixed representatives | Reference/spec; local implementation approved, runtime pending | PRE-E06-04: frozen layout, actual category RNG, finite support and owned continuation |
 | W3 continuous carry | Existing reset-flat route only | Orders/protection/state and parameter effect across fold boundaries |
 | W3 shared multi-symbol | No certified financial carry runtime | Shared account, calendars, instruments and admission/margin semantics |
 | Public meta batch | Not activated by sampler qualification | Batch seal/maturity/selection and worker ownership |

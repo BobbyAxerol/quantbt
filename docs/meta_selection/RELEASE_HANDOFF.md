@@ -15,6 +15,13 @@ Read the [qualification boundary](QUALIFICATION.md),
 Private `1.1.1+qms08 / 0.4.3.dev4` seals remain historical; they cannot certify
 the new public pair or imply public availability.
 
+Current action is [PRE-E06 local closure](../../upgrade/implement.md#qms-pre-e06-action-plan),
+not a publishing run. Bounded execution routes have their own
+[local artifact receipt](EXECUTION_WFO_REPORT.md); old remote `6901a66` proves
+only its recorded bytes. Missing active/matured qualification, C01/C05 runtime
+and final integrated artifacts are tracked in [the baseline](PRE_E06_BASELINE.md).
+Remote/public steps below wait for final scope and separate owner approval.
+
 ## Non-Publishing Qualification
 
 From the feature branch, with QuantBT's own tooling installed:

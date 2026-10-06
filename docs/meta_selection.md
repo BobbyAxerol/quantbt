@@ -65,6 +65,7 @@ promoting prepared support. No release/push is authorized.
 - [Frozen host baseline](../benchmarks/optimization/meta_selection/legacy_baseline_manifest.json)
 - [Actual executed tests and gate receipt](../benchmarks/optimization/meta_selection/qms01_gate_receipt.json)
 - [Current handoff](../handoff/WFO_META_CURRENT.md)
+- [PRE-E06 source-bound contracts, tests and privacy](meta_selection/PRE_E06_BASELINE.md)
 
 ## Existing Behavior
 

@@ -24,8 +24,9 @@ Detailed requirements remain the
 
 ## Additional Methodology Review
 
-QMS-C01 is approved for specification and tests only; additional meta activation
-requires a separate owner decision. The [amendment](ADDITIONAL_METHODS_REVIEW.md)
+QMS-C01's historical scope was specification and tests only. The reviewed nested
+scalar Mode 1 implementation now has local approval, but runtime is pending
+PRE-E06-03; other methods are not enabled. The [amendment](ADDITIONAL_METHODS_REVIEW.md)
 and [phase report](QMSC01_REPORT.md) classify actual native anchors, data roles,
 full pools and decision frontiers for eight existing native combinations.
 They preserve the original guide, Ridge, financial sources and supported meta
@@ -62,8 +63,9 @@ and versioned R3B. Active meta remains on sequential Mode 4/per_fold_causal,
 reset-flat/single-symbol; R3B qualification is not public meta-batch activation.
 [C04](QMSC04_REPORT.md) qualifies an opt-in owned exact study journal and fresh-
 process resume, not automatic public fold/financial-account resume.
-[C05](QMSC05_REPORT.md) is specification/reference tests only; conditional Sobol
-and admissible mixed centroids remain closed pending math/activation approval.
+[C05](QMSC05_REPORT.md) retains its historical specification/reference tests.
+Reviewed conditional Sobol/finite-support implementation has local approval,
+but actual runtime/continuation qualification remains pending PRE-E06-04.
 
 E01 wires the real installed transport/sampler/continuation consumers into
 candidate, exact-release and public proof commands. Each gate uses the shared
@@ -89,8 +91,12 @@ Its [local report](QMSE05_REPORT.md) records 206 distinct checks and fresh wheel
 sdist consumers PASS. Repaired candidate remote qualification is now 6/6 PASS
 on `6901a66` in [run 37447291412](https://github.com/BobbyAxerol/quantbt/actions/runs/37447291412),
 including installed E05 and G01. Public qualification remains pending.
-Its empirical gate remains separate. Intrabar/order/future domains still need
-their own E06-E08 gates. Local source/installed evidence is not a remote PASS.
+Its empirical gate remains separate. Bounded intrabar/callback/command/pre-expiry
+delivery adapters and CPython 3.12 wheel/sdist proofs are now implemented in
+[the execution amendment](EXECUTION_WFO_REPORT.md). Missing active/matured route
+coverage, owner scope and final-source E08 gates remain separate. Read the
+[source-bound PRE-E06 contract inventory](PRE_E06_BASELINE.md).
+Local source/installed evidence is not a remote PASS.
 Registered real-alpha decay and owner gates govern official empirical promotion.
 A registry entry alone is not activation.
 

@@ -38,7 +38,11 @@ def test_e03_t01_software_opt_in_is_not_empirical_promotion(target):
     assert row["meta_empirical_status"] == "OWNER_EMPIRICAL_REVIEW_PENDING"
     assert row["meta_route_activated"]
     assert row["meta_optimization_schedules"] == ("per_fold_causal",)
-    assert len(walkforward_support_matrix(False)) == 9
+    assert {r["target_mode"] for r in walkforward_support_matrix(False)} == {
+        "signal_notional", "notional", "unit", "pct_equity", "dca_ladder",
+        "portfolio", "basket", "arbitrage", "nautilus_validation",
+        "intrabar", "event_driven", "order_commands", "delivery_arbitrage",
+    }
 
 
 @pytest.mark.parametrize("target,backend", CELLS)
