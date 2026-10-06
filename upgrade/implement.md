@@ -40,10 +40,14 @@ Remote qualification and public release preparation are now authorized under
 Prepared pair: **1.1.2 / 0.4.3**, default compiled QMS capability, meta opt-in.
 Historical QMS-R03 release regression: **490 QMS + 34 package checks PASS**.
 Current C02 local regression: **618 checks + 36 affected native checks PASS**;
-fresh wheel/sdist C02 process consumers and runnable example PASS. Remote matrix
-was **6/6 PASS** on pre-C02 `0970d55` in
-[run 37225926548](https://github.com/BobbyAxerol/quantbt/actions/runs/37225926548);
-current E05 source/artifacts require a new remote gate. Public proof remains
+fresh wheel/sdist C02 process consumers and runnable example PASS. Latest repaired
+candidate remote matrix is **6/6 PASS** on `6901a66` in
+[run 37447291412](https://github.com/BobbyAxerol/quantbt/actions/runs/37447291412),
+including all eleven mandatory steps per row: G01, W3, scalar, portfolio and
+bounded package consumers. The
+[new source-bound receipt](../benchmarks/optimization/meta_selection/qms_g01_remote_qualification.json)
+records exact jobs/uploaded bundle digests; payloads were not independently
+downloaded. Pre-C02 `0970d55` receipts remain historical. Public proof remains
 PENDING_PUBLICATION; no push, merge, tag or upload is authorized by C02/C03/C04.
 The owner subsequently approved **feature-only push to origin for current-source
 CI** under [the gap closure](#qms-gap-closure-2026-10-06); no merge/tag/upload.
@@ -108,7 +112,8 @@ supported origins, but the forward-Q lower bound is negative. Formal empirical
 qualification/owner promotion remains open. E05 is **SOFTWARE_AND_INSTALLED_COMPLETE_EMPIRICAL_PENDING**:
 206 distinct scoped checks and final wheel/sdist original-account consumers PASS.
 Read the [E05 report](../docs/meta_selection/QMSE05_REPORT.md). No package
-economic promotion or current-source remote/public certification is implied.
+economic promotion is implied; repaired candidate remote proofs pass separately,
+while final publication artifacts and public consumers remain pending.
 E06-E08 remain **PLANNED_NOT_AUTHORIZED_FOR_EXECUTION**. E03-G01's bounded
 compatibility repair is complete locally; E04 formal locked evaluation and E05
 delivery-domain/data admission need separate decisions. Feature-only CI push is
@@ -23458,7 +23463,7 @@ not certify the prepared post-liquidation metric contract or economic gain.
 | E-G02 | Installed C02/C03/C04 proof wiring | CLOSED_LOCAL E01: shared mandatory gate and eight actual wheel/sdist consumer runs PASS; E08 owns final remote/public artifacts |
 | E-G03 | Current-summary hygiene debt | CLOSED_LOCAL E01: current handoff/release/qualification reconciled; historical seals retained |
 | E-G04 | Anchor verification gap | CLOSED_LOCAL E01: current docs/full unified plan fragment checks and independent negatives PASS; explicit legacy roadmap anchor preserved |
-| E-G05 | Stored six-row remote PASS is on pre-C02 source 0970d55, not current C02-C04 bytes | Current-source gate outstanding; E08 owns remote/exact-pair proof after authorized push |
+| E-G05 | Historical stored remote PASS was pre-C02 source 0970d55 | CLOSED_REPAIRED_CANDIDATE_REMOTE: six rows and eleven required steps PASS on 6901a66; final publication/manylinux/public bytes need separate gates |
 | E-G06 | Former scalar-specific observer could not safely extend other domains | CLOSED_LOCAL_ARCHITECTURE E02: typed registry/adapters and scalar/W3 parity PASS; new domain evaluators/studies remain E03-E07, no guard relaxation |
 | E-G07 | Intrabar/session, explicit command tape, options and Nautilus lack corresponding complete public WFO/meta adapters | Missing/new WFO capabilities, not an existing backtest-engine defect; E06/E07 bounded adapters, future options/Nautilus entry gates below |
 | E-G08 | C01 additional modes/schedules have spec/tests, not activated runtime | Separate methodology approval; no E-phase silently enables global/decay/SBB/full-sample meta |
@@ -23985,8 +23990,15 @@ RSS +7.480 MiB. Flat final unit account is not economic evidence. Read
 [actual closure and exact artifact hashes](../docs/meta_selection/QMSE03_G01_CLOSURE.md)
 and [cleanup receipt](../docs/maintenance/QMS_G01_CLEANUP_2026-10-06.md).
 E04 remains NOT_PROMOTED; E05 delivery scope/data remains BLOCKED. The owner
-authorized **push only `feat/meta-selection-samplers` to origin for CI**; current
-six-row remote qualification is pending execution. No merge, tag, upload or
+authorized **push only `feat/meta-selection-samplers` to origin for CI**; repaired
+candidate six-row remote qualification is **PASS** on `6901a66` in
+[run 37447291412](https://github.com/BobbyAxerol/quantbt/actions/runs/37447291412).
+All eleven mandatory steps per row passed, including installed repaired
+wheel/sdist G01 and W3 proofs. Read the
+[new API receipt](../benchmarks/optimization/meta_selection/qms_g01_remote_qualification.json)
+for exact source/jobs/uploaded bundle digests; payloads were not independently
+downloaded. Final-source publication artifacts/public-index gates are separate.
+No merge, tag, upload or
 new C01/C05/W3/E06/E07 capability activation is authorized.
 
 <a id="qms-e04"></a>
@@ -24004,8 +24016,8 @@ NOT_PROMOTED (negative forward-Q lower bound, no new locked evaluation). Read th
 then the [real diagnostic](../docs/meta_selection/QMSE04_REAL_DIAGNOSTIC.md) and
 [independently verified actual-param receipt](../benchmarks/optimization/meta_selection/qms_e04_real_diagnostic_v2.json).
 **Goal:** support existing portfolio WFO with real shared-account meta labels.
-**Entry:** owner authorized E04 independently at `7b83ba4`. E03-G01 remains
-BLOCKED_PENDING_SCIENTIFIC_REPAIR_APPROVAL; this phase does not repair, waive or
+**Entry:** owner authorized E04 independently at `7b83ba4`. At that historical
+entry E03-G01 was BLOCKED_PENDING_SCIENTIFIC_REPAIR_APPROVAL; E04 does not repair, waive or
 inherit the prepared-unit Rust reducer gate. A portfolio alpha/universe has not
 yet been approved: synthetic portfolio tests certify software, not real economics.
 **Guide:** [families and labels, section 6](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s6),

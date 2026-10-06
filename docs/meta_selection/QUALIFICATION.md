@@ -86,7 +86,9 @@ remains pending, independently of correct software and installed artifacts.
 E05 adds original native-event bounded package software opt-ins; read the
 [package contract](DOMAIN_ADAPTER_CONTRACT.md#e05-package-amendment).
 Its [local report](QMSE05_REPORT.md) records 206 distinct checks and fresh wheel/
-sdist consumers PASS; current-source remote/public qualification is not run.
+sdist consumers PASS. Repaired candidate remote qualification is now 6/6 PASS
+on `6901a66` in [run 37447291412](https://github.com/BobbyAxerol/quantbt/actions/runs/37447291412),
+including installed E05 and G01. Public qualification remains pending.
 Its empirical gate remains separate. Intrabar/order/future domains still need
 their own E06-E08 gates. Local source/installed evidence is not a remote PASS.
 Registered real-alpha decay and owner gates govern official empirical promotion.
@@ -101,8 +103,9 @@ registered economic gates pass. The separately approved [E03-G01 closure](QMSE03
 now supplies fresh artifacts and full registered unit trial/panel/label/params/
 account parity PASS. **1,399 distinct Python + 65 Rust** checks pass locally;
 metric max diff is `5.773159728050814e-15`, accounting diff zero. Old failed
-receipts are unchanged. Current-source remote and public gates still require
-their own execution, and correctness does not override negative economics.
+receipts are unchanged. The [current remote receipt](../../benchmarks/optimization/meta_selection/qms_g01_remote_qualification.json)
+records six successful candidate runners and all required steps. Final public
+artifacts need separate execution; correctness does not override negative economics.
 
 ## Software Gates
 

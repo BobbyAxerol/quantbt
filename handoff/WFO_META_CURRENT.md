@@ -42,8 +42,13 @@
   unchanged; narrow same-pass native-output plumbing was added for W3.
 - Technical: repaired local ordinary/prepared/installed proofs PASS;
   **1,399 distinct Python + 65 Rust** checks PASS. Remote
-  **6/6 PASS** on `0970d55`, [run 37225926548](https://github.com/BobbyAxerol/quantbt/actions/runs/37225926548).
-  This is historical pre-C02 evidence, not the current source's remote gate.
+  **6/6 PASS** on repaired source `6901a66`,
+  [run 37447291412](https://github.com/BobbyAxerol/quantbt/actions/runs/37447291412),
+  including installed G01/W3/scalar/portfolio/package and exact default-feature
+  artifacts. [New API receipt](../benchmarks/optimization/meta_selection/qms_g01_remote_qualification.json)
+  records job/bundle identities; payloads were not independently downloaded.
+  Historical `0970d55` receipt stays unchanged; final publication artifacts
+  require their own qualification.
   Final owner/economic acceptance and public-index qualification remain PENDING.
   Historical QMS-08 empirical
   NOT_RUN_BUDGET stays sealed; follow-up PASS_REAL_ETH is a separate receipt,
@@ -86,7 +91,8 @@ change. See [E01 evidence and current gate](../docs/meta_selection/QMSE01_REPORT
 | C05 geometry | Spec/reference tests complete; conditional Sobol/mixed centroid NOT_ACTIVATED |
 | Carry/multi-symbol/public meta batch | Unsupported; contracts/specs do not activate runtime |
 
-Remote/public gates require new source/artifact qualification. Existing historical
+The repaired candidate remote gate passes above; public/final publication
+artifacts still need new source/artifact qualification and separate approval. Existing historical
 seals and market numbers below retain their original scope and bytes.
 
 ## Historical Local Debt Closure

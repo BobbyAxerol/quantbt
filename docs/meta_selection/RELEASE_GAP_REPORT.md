@@ -2,6 +2,14 @@
 
 ## Current Status
 
+**Current amendment (2026-10-06):** E03-G01 correctness repair and the full
+registered unit study pass locally. The updated candidate is **6/6 PASS** on
+`6901a66`, [run 37447291412](https://github.com/BobbyAxerol/quantbt/actions/runs/37447291412),
+including installed G01, W3, scalar, portfolio and bounded package proofs.
+Read the [new source-bound API receipt](../../benchmarks/optimization/meta_selection/qms_g01_remote_qualification.json)
+and [current gap ledger](GAP_CLOSURE_STATUS.md). Public qualification and
+economic promotion remain separate. R01-R03 evidence below stays historical.
+
 2026-10-05; branch `feat/meta-selection-samplers`. Owner approved preparation
 of **quantbt-engine 1.1.2 / quantbt-native 0.4.3**, not merge/tag/publication.
 Current E01 debt closure and artifact receipts are in [the E01 report](QMSE01_REPORT.md).
@@ -87,7 +95,9 @@ This Ubuntu proof does not certify a manylinux2014 publication wheel.
 
 E01 connects installed C02 transport and actual C03/C04 consumers to the candidate,
 exact-release and later Public Native Consumer Proof, in addition to scalar/W3.
-Final-source remote/manylinux/public gates remain pending. Public consumers
+At the R03 historical seal, final-source remote/manylinux/public gates remained
+pending; the repaired candidate remote gate is recorded in the amendment above.
+Final manylinux/public gates still remain pending. Public consumers
 first resolve `poetry add quantbt-engine`, then its exact optimization extra.
 They execute outside checkout with `python -I`; local source cannot satisfy
 that public-index proof. Follow the [owner-controlled runbook](RELEASE_HANDOFF.md)

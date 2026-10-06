@@ -52,8 +52,8 @@ exact lane/artifact/log hashes. This is research opt-in software admission;
 per-cell R/Q, simulated-ladder limitations and owner promotion stay separate.
 E04 and E05 additionally pass local installed wheel/sdist original shared-account
 and bounded package consumers. Read [E04](QMSE04_REPORT.md) and [E05](QMSE05_REPORT.md).
-The candidate matrix invokes both installed proofs; six actual current-source
-runner successes are still required. Real-alpha economics are not certified by
+The candidate matrix invokes both installed proofs; the repaired `6901a66`
+candidate has six actual runner successes recorded below. Real-alpha economics are not certified by
 the installed examples, and quarterly delivery/roll is not a non-expiring basis.
 E04's [real diagnostic](QMSE04_REAL_DIAGNOSTIC.md) preserves full search and actual
 param/account application, but the forward-Q interval gate fails. It is not a
@@ -72,10 +72,15 @@ x CPython 3.11/3.12/3.13 on the pushed feature SHA. Permissions are contents-rea
 only. Require **six actual successes**, archive JSON/log receipts and record
 the run URL/SHA. Local PASS is not remote or manylinux portability proof.
 
-Completed remote gate: **six successes** on source `0970d55`,
-[run 37225926548](https://github.com/BobbyAxerol/quantbt/actions/runs/37225926548).
-See the [current gap report](RELEASE_GAP_REPORT.md) for exact jobs, local artifact
-hashes and retained receipt links. Later release artifacts still require their
+Completed repaired remote gate: **six successes** on source `6901a66`,
+[run 37447291412](https://github.com/BobbyAxerol/quantbt/actions/runs/37447291412).
+All eleven mandatory steps per row passed, including installed G01/W3 and
+scalar/portfolio/package consumers. See the
+[new API receipt](../../benchmarks/optimization/meta_selection/qms_g01_remote_qualification.json)
+and [current gap report](GAP_CLOSURE_STATUS.md). Uploaded bundle digests are
+recorded; payloads were not independently downloaded. Earlier `0970d55` proof
+remains historical in [the original release-gap report](RELEASE_GAP_REPORT.md).
+Later release artifacts still require their
 own manylinux/public-index gates; this is not permission to publish.
 
 ## Later Owner-Controlled Publication
@@ -121,8 +126,9 @@ not automatic public WFO/financial state resume. Other mode/schedule activation,
 conditional Sobol and admissible mixed-space centroids remain separately
 reviewed work in [QMS-C01..C05](../../upgrade/implement.md#qms-capability-gap-roadmap---planning_only).
 C05 reference geometry tests do not activate conditional Sobol or mixed centroids.
-Current E03 source/artifacts still require remote matrix and public-index proof;
-do not reuse the pre-C02 remote receipt or private local artifacts as release evidence.
+The repaired candidate remote matrix passes; public-index and final manylinux
+publication artifacts still need separate proof. Do not reuse pre-repair native
+bytes, pre-C02 remote receipts or private local artifacts as public release evidence.
 The scientific study/protocol requires a separate owner decision before any
 methodological replacement or additional research; software PASS does not
 certify an economic edge.

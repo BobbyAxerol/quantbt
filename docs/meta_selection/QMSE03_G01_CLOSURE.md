@@ -50,7 +50,8 @@ No original notebook, alpha module or data loader was edited or published.
 | Rust engine / execution crates | 50 + 15 = 65 PASS |
 | Fresh core wheel and sdist / native consumers | PASS; required repaired consumer has 3 checks and zero skips per artifact |
 | Registered real unit ordinary/prepared replay | PASS, including logical panels and all raw IS/forward observations |
-| Secret/source/docs guards and resource cleanup | Checked separately before the feature-only push |
+| Secret/source/docs guards and resource cleanup | PASS before feature-only push; 31 focused docs/report/installed-proof checks also PASS |
+| Ubuntu 22.04/24.04 x CPython 3.11-3.13 | 6/6 PASS on repair source `6901a66`, including installed G01/W3/scalar/portfolio/package |
 
 The first regression XML with five stale test-assumption failures is retained.
 The assumptions were corrected explicitly; no estimator or tolerance was changed.
@@ -134,8 +135,13 @@ Reproduction uses `tools.qms_g01_study compare` with a new receipt name and
   forward-Q interval includes zero. No retry-until-positive or scientific change.
 - **E05:** real quarterly expiry/roll and required historical coverage remain
   DOMAIN/DATA_BLOCKED. Non-expiring bounded proof is not delivery parity.
-- **Remote:** owner approved pushing this feature branch only; six exact-source
-  runner rows, including installed G01/W3 proofs, must execute before remote PASS.
+- **Remote:** owner approved feature-only push; all six rows passed on
+  `6901a66b29c4039b2522a1a6367431fcfe7016ad` in
+  [run 37447291412](https://github.com/BobbyAxerol/quantbt/actions/runs/37447291412),
+  including eleven mandatory steps per row. The
+  [new API receipt](../../benchmarks/optimization/meta_selection/qms_g01_remote_qualification.json)
+  preserves job IDs and uploaded artifact digests; payloads were not independently
+  downloaded. This is a candidate Ubuntu gate, not final manylinux2014/public proof.
 - **Public:** no merge, tag or publication is authorized. Pair 1.1.2 / 0.4.3 is
   prepared only; C01/C05/W3/new route activation remains a separate decision.
 

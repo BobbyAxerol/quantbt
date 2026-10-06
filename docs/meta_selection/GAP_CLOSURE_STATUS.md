@@ -70,8 +70,14 @@ The candidate workflow includes installed repaired liquidation proof on both
 wheel and sdist for Ubuntu 22.04/24.04 x CPython 3.11-3.13, together with prior
 W3/sampler/continuation/scalar/portfolio/package consumers. Workflow wiring is
 not a runner receipt. The owner approved feature-only push to `origin` for CI,
-not merge/tag/publication. Current-source remote execution is pending that push;
-the old `0970d55` six-row result is not proof for this repair.
+not merge/tag/publication. **6/6 PASS** on repair source `6901a66` in
+[run 37447291412](https://github.com/BobbyAxerol/quantbt/actions/runs/37447291412).
+Each job passed all eleven required steps, including installed G01 and W3.
+The [separate API receipt](../../benchmarks/optimization/meta_selection/qms_g01_remote_qualification.json)
+retains source/job IDs and uploaded bundle digests. Remote payloads were not
+independently downloaded; six bundle uploads succeeded with seven-day retention.
+The old `0970d55` receipt remains historical. Later changed source or final
+publication artifacts require their own qualification, not automatic inheritance.
 
 Pair remains **quantbt-engine 1.1.2 / quantbt-native 0.4.3**. Public consumer
 proof cannot run against an unpublished pair. No merge, tag or upload is
