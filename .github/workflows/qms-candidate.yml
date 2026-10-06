@@ -26,6 +26,7 @@ on:
       - "tools/qms_e03*"
       - "tools/qms_e04*"
       - "tools/qms_e05*"
+      - "tools/qms_g01*"
       - "tools/check_docs_links.py"
       - "examples/wfo_reactive_samplers.py"
       - "examples/wfo_meta_scalar.py"
@@ -105,6 +106,11 @@ jobs:
         run: |
           lane="$(python -c 'import sys; print("cp" + "".join(map(str, sys.version_info[:2])) )')"
           .venv/bin/python -m tools.qms_e05_installed --lane "$PWD/.maturin/qms08/qualified/$lane"
+      - name: Prove repaired liquidation metrics from installed wheel and sdist
+        shell: bash
+        run: |
+          lane="$(python -c 'import sys; print("cp" + "".join(map(str, sys.version_info[:2])) )')"
+          .venv/bin/python -m tools.qms_g01_installed --lane "$PWD/.maturin/qms08/qualified/$lane"
       - name: Retain installed consumer and build receipts
         if: always()
         uses: actions/upload-artifact@v4
@@ -117,11 +123,13 @@ jobs:
             .maturin/qms08/qualified/cp*/installed-scalar-proof.json
             .maturin/qms08/qualified/cp*/installed-portfolio-proof.json
             .maturin/qms08/qualified/cp*/installed-package-proof.json
+            .maturin/qms08/qualified/cp*/installed-g01-proof.json
             .maturin/qms08/qualified/cp*/*.log
             .maturin/qms08/qualified/cp*/installed-w3-proof/**/*.log
             .maturin/qms08/qualified/cp*/installed-scalar-proof/*.log
             .maturin/qms08/qualified/cp*/installed-portfolio-proof/*.log
             .maturin/qms08/qualified/cp*/installed-package-proof/*.log
+            .maturin/qms08/qualified/cp*/installed-g01-proof/*.log
             .maturin/qms08/release-gaps.xml
             .maturin/qms08/e02-contracts.xml
             .maturin/qms08/e05-contracts.xml

@@ -61,6 +61,21 @@ def compare(*, original, output):
         prepared_trace_parity(left, right)
         if left["params"] != right["params"]:
             raise AssertionError("registered selected params changed")
+        if len(left["paired"]) != len(right["paired"]):
+            raise AssertionError("forward label coverage changed")
+        for a, b in zip(left["paired"], right["paired"], strict=True):
+            for field in ("fold_id", "start", "end", "matured_origins"):
+                if a[field] != b[field]:
+                    raise AssertionError(f"chronological label identity changed: {field}")
+            for side in ("native", "meta"):
+                if a[side]["status"] != b[side]["status"]:
+                    raise AssertionError("label validity changed")
+                for field in ("is_sharpe", "forward_sharpe"):
+                    if a[side][field] is None or b[side][field] is None:
+                        if a[side][field] != b[side][field]:
+                            raise AssertionError("undefined label changed")
+                    else:
+                        np.testing.assert_allclose(a[side][field], b[side][field], rtol=1e-9, atol=1e-9)
     for preparation in ("off", "require"):
         with np.load(original/(prefix+"off.npz")) as a, np.load(output/(prefix+preparation+".npz")) as b:
             if set(a.files) != set(b.files):
@@ -70,6 +85,7 @@ def compare(*, original, output):
     receipt = dict(schema="qms-g01-unit-replay-v1", prepared_gate="PASS",
         registration_sha256=ordinary["registration_sha256"], attempts_per_arm=ordinary["attempts"],
         historical_ordinary_parity=True, prepared_pool_objective_params_account_parity=True,
+        raw_label_chronology_parity=True,
         tolerances=dict(objective_rtol=1e-9, objective_atol=1e-9, account_atol=1e-8),
         ordinary_seconds=ordinary["wall_seconds"], prepared_seconds=prepared["wall_seconds"],
         source=verify(), raw_receipts_sha256={p:sha256((output/(prefix+p+".json")).read_bytes()).hexdigest()

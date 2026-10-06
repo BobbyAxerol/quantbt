@@ -23400,10 +23400,11 @@ debt/gaps and extend meta consistently across existing public WFO routes;
 validate each new domain with an existing real strategy before official support.
 This section is a proposed extension to the original guide's bounded route
 matrix, not a claim that its original scalar-only scope included every engine.
-**Execution authorization:** E01 and E02 completed locally under separate owner
-execution requests. E03 is separately authorized, including the fixed Gradient/
-Delta RSI protocol and simple simulated ladder. E04-E08 still require separate
-owner approval; no release/publication approval.
+**Execution authorization:** E01-E05 have separate owner execution requests.
+E03 includes the fixed Gradient/Delta RSI protocol and simple simulated ladder;
+E04/E05 software/installed work and E04 diagnostic are executed, with their
+economic/data gates explicitly below. E06-E08 execution and publication remain
+separate decisions. The owner approved bounded E03-G01 repair on 2026-10-06.
 **Current baseline:** `07f7606`, `feat/meta-selection-samplers`; clean at audit.
 Prepared release identities remain **quantbt-engine 1.1.2 / quantbt-native 0.4.3**.
 No version bump, push, merge, tag, deployment or upload is authorized by planning.
@@ -23471,8 +23472,8 @@ An OOS output route alone is not a native-scored meta capability. Ordinary
 |---|---|---|
 | Scalar signal_notional/pct_equity, W0/W1/W2 | Bounded meta already locally qualified | E02 preserves it; E03 regression plus alias/backend discovery |
 | Scalar notional/unit and structural dca_ladder | E03 bounded software research opt-ins; original accounting retained | Eight real pairs finished, 0/8 economic gates pass; prepared-unit metric parity FAIL; no empirical/default promotion |
-| Portfolio/multi-symbol target matrix | Existing WFO; native portfolio scorer exists; meta rejected | E04 shared-account metric/observer/calendar adapter and real portfolio study |
-| Basket/bounded arbitrage package | Final WFO routes exist with scorer/spec limitations | E05 authoritative native IS/forward package evaluator before meta promotion |
+| Portfolio/multi-symbol target matrix | E04 bounded Mode 4 causal meta software and installed opt-in PASS | Real shared-account diagnostic finished; forward-Q threshold FAIL; formal/locked promotion pending |
+| Basket/bounded arbitrage package | E05 original-account bounded non-expiring software/installed opt-in PASS | Real quarterly expiry/roll contract and sufficient data remain unqualified; no empirical promotion |
 | Intrabar bracket/session, Numba/Rust | Backtest/prepared runner exists; no public target WFO adapter | E06 typed intent WFO/account adapter, then real intrabar meta study |
 | Event-driven numeric strategy/W3 R1/R2/R3 | Meta is Mode 4 causal/sequential/single-symbol/reset-flat | E07 real reactive alpha qualification; keep existing lifecycle/protocol |
 | Generic event callback or explicit orders/commands | Standalone backtest exists; no universal auto-WFO/meta route | E07 approved typed/factory adapter only where existing execution can honor it; otherwise explicit BLOCKED |
