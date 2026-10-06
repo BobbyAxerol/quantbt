@@ -49,7 +49,7 @@ def without_c02_witness(source, name):
     from tools.qms_c03_source_guard import without_c03_sampler
     from tools.qms_e01_source_guard import without_e01_provenance
     source = without_e01_provenance(source, name)
-    source = without_c03_sampler(source, name)
+    source = without_c03_sampler(source, name, later_normalized=True)
     if name not in ALLOW:
         return source
     if name == "rust/native_event/src/reactive_numeric.rs":

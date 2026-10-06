@@ -20,10 +20,11 @@ def validate_changes(names):
         raise AssertionError(f"unapproved C03 production source change: {sorted(forbidden)}")
 
 
-def without_c03_sampler(source, name):
+def without_c03_sampler(source, name, *, later_normalized=False):
     from tools.qms_e02_source_guard import without_e02_adapter
     try:
-        source = without_e02_adapter(source, name)
+        if not later_normalized:
+            source = without_e02_adapter(source, name)
     except AssertionError as exc:
         raise AssertionError("unapproved C03 source outside reviewed later adapter") from exc
     if name not in ALLOW:

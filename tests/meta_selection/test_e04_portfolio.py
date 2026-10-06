@@ -309,6 +309,30 @@ def test_e04_t06_exact_source_guard_still_rejects_unreviewed_bytes():
             without_e04_portfolio((ROOT/name).read_bytes()+b"\n# unreviewed\n", name)
 
 
+def test_e04_t06_historical_guard_chain_normalizes_once_and_keeps_byte_locks():
+    from tools.qms_c02_source_guard import verify, without_c02_witness
+    from tools.qms_e04_source_guard import ROOT
+    assert verify()["financial_rust_unchanged"]
+    name = "src/quantbt/endpoint.py"
+    with pytest.raises(AssertionError, match="unapproved|unreviewed"):
+        without_c02_witness((ROOT/name).read_bytes()+b"\n# unreviewed\n", name)
+
+
+def test_e04_t01_single_symbol_still_uses_original_portfolio_account():
+    from quantbt.optimization.meta_selection.config import MetaHistoryContext
+    from quantbt.optimization.meta_selection.history import MetaHistory
+    data = {SYMBOLS[0]: market()[SYMBOLS[0]]}
+    results = {}
+    for mode in ("off", "shadow"):
+        endpoint = QuantBTEndpoint(replace(make_endpoint(mode).config, symbols=[SYMBOLS[0]]))
+        context = MetaHistoryContext(MetaHistory(), "e04-one", "one-linear", "1D", "e04-one")
+        results[mode] = endpoint.backtest(data=data, param_ranges=PARAM_RANGES,
+            **({"meta_history": context} if mode != "off" else {}))
+    exact_accounts(results["off"], results["shadow"])
+    assert meta(results["shadow"])["observer_failures"] == 0
+    assert meta(results["shadow"])["domain_adapter"]["portfolio_execution"]["universe"] == (SYMBOLS[0],)
+
+
 def mapping_strategy(data, params, train_index, test_index, fold):
     frame = strategy(data, params, train_index, test_index, fold)
     return {s: frame[s] for s in SYMBOLS}

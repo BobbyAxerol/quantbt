@@ -20,6 +20,10 @@ ALLOW = frozenset([
 def checked_source(source, name):
     from tools.qms_e03_source_guard import without_e03_scalar
     source = without_e03_scalar(source, name)
+    _checked_manifest(source, name)
+
+
+def _checked_manifest(source, name):
     manifest = json.loads(MANIFEST.read_text())
     if manifest.get("baseline") != ENTRY or set(manifest.get("source_sha256", {})) != ALLOW:
         raise AssertionError("E02 reviewed manifest scope mismatch")
@@ -36,7 +40,7 @@ def without_e02_adapter(source, name):
                               capture_output=True, check=False)
     if original.returncode == 0 and source == original.stdout:
         return source
-    checked_source(source, name)
+    _checked_manifest(source, name)
     return original.stdout if original.returncode == 0 else source
 
 
