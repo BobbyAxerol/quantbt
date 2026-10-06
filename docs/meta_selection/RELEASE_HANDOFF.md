@@ -55,6 +55,9 @@ and bounded package consumers. Read [E04](QMSE04_REPORT.md) and [E05](QMSE05_REP
 The candidate matrix invokes both installed proofs; six actual current-source
 runner successes are still required. Real-alpha economics are not certified by
 the installed examples, and quarterly delivery/roll is not a non-expiring basis.
+E04's [real diagnostic](QMSE04_REAL_DIAGNOSTIC.md) preserves full search and actual
+param/account application, but the forward-Q interval gate fails. It is not a
+new locked scientific acceptance or authority to publish this candidate.
 Its real prepared-unit study now fails objective/selection parity after
 liquidation. **Do not release this candidate as a fully parity-certified
 prepared scorer.** Read the [actual assessment](QMSE03_REPORT.md) and

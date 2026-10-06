@@ -21,12 +21,16 @@ new portfolio engine, Ridge mathematics or sampler changes.
 | Scoped software | PASS: 122 distinct checks |
 | Source/historical scalar/reactive/account locks | PASS |
 | Installed wheel and sdist, pair 1.1.2 / 0.4.3 | PASS |
-| Real portfolio alpha, paired R/Q/decay (T05) | NOT_RUN |
+| Real portfolio alpha, paired R/Q/decay (T05) | Diagnostic finished; Q interval gate FAIL, formal locked/owner gate pending |
 | Empirical promotion / owner review | PENDING |
 | Remote / public release | NOT_RUN for current bytes / NOT_AUTHORIZED |
 
 Earlier failed XML/build/install lanes remain unchanged. A software receipt
 does not waive E03-G01 prepared-unit liquidation metric incompatibility.
+The [real portfolio follow-up](QMSE04_REAL_DIAGNOSTIC.md) now has actual off/active
+search/account/params evidence and separate cost measurements. Its negative Q
+lower bound does not override economic or owner gates. Read the new receipt;
+the earlier software seal and failed logs remain unchanged.
 
 ## Matched Synthetic Performance
 
@@ -57,7 +61,8 @@ unaligned source calendars are rejected, not resampled.
 No W3 multi-symbol carry, options/venue-specific portfolio margin, additional
 meta methodology or official empirical promotion is certified here. Real
 alpha/universe/search/R/Q analysis must be frozen before results, with no
-gain-driven retuning. NEXT: finish the separately approved real portfolio gate;
+gain-driven retuning. NEXT: review the completed diagnostic and decide on a
+separately approved protocol/locked evaluation, without retrospective retuning;
 E05 requires its own authoritative package scorer and original-account proof.
 
 ## Reproduce And Cleanup

@@ -38,6 +38,9 @@ E04's bounded portfolio shared-account research opt-in has its own
 [contract](meta_selection/DOMAIN_ADAPTER_CONTRACT.md#e04-portfolio-amendment),
 [example](../examples/wfo_meta_portfolio.py) and [local report](meta_selection/QMSE04_REPORT.md).
 Portfolio real-alpha R/Q and owner promotion remain pending.
+The [executed portfolio diagnostic](meta_selection/QMSE04_REAL_DIAGNOSTIC.md)
+has exact account/search/param application, but fails the forward-Q confidence
+gate. Better sample equity and lower measured decay are not proof of forward edge.
 E05's bounded original-account basket/basis/stat-pair opt-ins have a separate
 [contract](meta_selection/DOMAIN_ADAPTER_CONTRACT.md#e05-package-amendment),
 [example](../examples/wfo_meta_package.py) and [installed/software report](meta_selection/QMSE05_REPORT.md).

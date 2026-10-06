@@ -27,7 +27,9 @@ The adapter observes original account outputs; it does not replay execution.
 ## Remaining Gates
 
 **Not empirical promotion.** Real E04 portfolio on/off R/Q/decay study needs the
-alpha/universe/protocol decision; no synthetic result claims better forward edge.
+formal alpha/universe/protocol decision. Its [diagnostic](QMSE04_REAL_DIAGNOSTIC.md)
+has now finished without a forward-Q threshold PASS; no synthetic result or
+historical software receipt claims better forward edge.
 E05 real basis source includes quarterly expiry/roll and limited 2025 coverage.
 The bounded non-expiring adapter cannot silently erase settlement or claim the
 registered minimum-origin gate from insufficient history. This needs reviewed

@@ -80,7 +80,9 @@ qualification; this does not promote meta to a default or certify economic gain.
 statuses. Native-event scalar support is rebalance execution, not reactive orders.
 E04 additionally qualifies bounded portfolio shared-account software opt-ins;
 see [the portfolio contract](DOMAIN_ADAPTER_CONTRACT.md#e04-portfolio-amendment)
-and [its local report](QMSE04_REPORT.md). Its real-alpha/owner gate is not run.
+and [its local report](QMSE04_REPORT.md). The [actual diagnostic](QMSE04_REAL_DIAGNOSTIC.md)
+is finished, without forward-Q gate PASS. Formal locked-evaluation/owner promotion
+remains pending, independently of correct software and installed artifacts.
 E05 adds original native-event bounded package software opt-ins; read the
 [package contract](DOMAIN_ADAPTER_CONTRACT.md#e05-package-amendment).
 Its [local report](QMSE05_REPORT.md) records 206 distinct checks and fresh wheel/

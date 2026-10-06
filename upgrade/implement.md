@@ -40,7 +40,7 @@ Current C02 local regression: **618 checks + 36 affected native checks PASS**;
 fresh wheel/sdist C02 process consumers and runnable example PASS. Remote matrix
 was **6/6 PASS** on pre-C02 `0970d55` in
 [run 37225926548](https://github.com/BobbyAxerol/quantbt/actions/runs/37225926548);
-current E03 source/artifacts require a new remote gate. Public proof remains
+current E05 source/artifacts require a new remote gate. Public proof remains
 PENDING_PUBLICATION; no push, merge, tag or upload is authorized by C02/C03/C04.
 Scientific acceptance, new capability implementation, merge/tag/publication
 remain separate owner decisions. Historical receipts are preserved unchanged.
@@ -94,8 +94,10 @@ default promotion. See [the current E03 report](../docs/meta_selection/QMSE03_RE
 and [bounded compatibility repair proposal E03-G01](#e03-g01).
 E04 is **SOFTWARE_AND_INSTALLED_COMPLETE_EMPIRICAL_PENDING**: original
 shared-account integration, 122 scoped checks and fresh wheel/sdist consumers
-PASS. Read the [E04 report](../docs/meta_selection/QMSE04_REPORT.md). Real-alpha
-qualification remains open. E05 is **SOFTWARE_AND_INSTALLED_COMPLETE_EMPIRICAL_PENDING**:
+PASS. The [actual portfolio diagnostic](../docs/meta_selection/QMSE04_REAL_DIAGNOSTIC.md)
+also finished: original account/params/search exact, 28 paired folds and 15
+supported origins, but the forward-Q lower bound is negative. Formal empirical
+qualification/owner promotion remains open. E05 is **SOFTWARE_AND_INSTALLED_COMPLETE_EMPIRICAL_PENDING**:
 206 distinct scoped checks and final wheel/sdist original-account consumers PASS.
 Read the [E05 report](../docs/meta_selection/QMSE05_REPORT.md). No package
 economic promotion or current-source remote/public certification is implied.
@@ -23576,7 +23578,7 @@ routes are not silently disabled while new domain coverage is assessed.
 | E01 | Close audited provenance/docs/proof-wiring debt | Current C01-C05 records | COMPLETE_LOCAL_APPROVED_SCOPE; E01-T01 through T05 PASS |
 | E02 | Shared typed domain adapter and future-route conformance | E01 local gate | COMPLETE_LOCAL_APPROVED_SCOPE; E02-T01 through T06 PASS; no new activation |
 | E03 | Scalar aliases/structural ladder and native-event signal coverage | E02 | BLOCKED_PREPARED_METRIC_PARITY; ordinary/installed PASS; studies finished, 0/8 economic gates pass |
-| E04 | Portfolio/shared-account WFO meta | Independently owner authorized | Software/installed PASS; empirical/owner PENDING |
+| E04 | Portfolio/shared-account WFO meta | Independently owner authorized | Software/installed PASS; real diagnostic finished, R/Q gate FAIL; owner PENDING |
 | E05 | Bounded basket/arbitrage package WFO meta | Owner authorized; E04 dependency explicit | Software/installed PASS; empirical/owner PENDING |
 | E06 | Intrabar intent/session WFO, then meta qualification | E05 approved gate and existing alpha/data | PLANNED; NOT_RUN |
 | E07 | Event-driven/reactive/order adapters and real-alpha qualification | E06 approved gate; C02/C01 where expanded | PLANNED; NOT_RUN |
@@ -23919,9 +23921,12 @@ fresh scoped software 122 distinct checks PASS; original financial checks
 separately PASS (57, not added to the distinct total). Fresh E04 v4 exact core
 wheel/sdist plus original native pair and mandatory/scalar/portfolio consumers
 PASS. Failed v2 ENOSPC and v3 wrong build environment receipts are retained.
-Real-alpha empirical promotion NOT_RUN / OWNER_INPUT_PENDING. Read the
+Real shared-account diagnostic finished; formal empirical/owner promotion is
+NOT_PROMOTED (negative forward-Q lower bound, no new locked evaluation). Read the
 [generated report](../docs/meta_selection/QMSE04_REPORT.md) and
-[verified software receipt](../benchmarks/optimization/meta_selection/qms_e04_software_closure.json).
+[verified software receipt](../benchmarks/optimization/meta_selection/qms_e04_software_closure.json),
+then the [real diagnostic](../docs/meta_selection/QMSE04_REAL_DIAGNOSTIC.md) and
+[independently verified actual-param receipt](../benchmarks/optimization/meta_selection/qms_e04_real_diagnostic_v2.json).
 **Goal:** support existing portfolio WFO with real shared-account meta labels.
 **Entry:** owner authorized E04 independently at `7b83ba4`. E03-G01 remains
 BLOCKED_PENDING_SCIENTIFIC_REPAIR_APPROVAL; this phase does not repair, waive or
@@ -24027,6 +24032,26 @@ promotion. Keep alpha, data and raw evidence ignored; publish only sanitized
 summary/hashes. Bound incremental output to 1 GiB, retain the current consumer,
 and review inactive generated scratch after completion. E03-G01 remains open.
 
+**Actual Diagnostic Receipt (2026-10-06):** fresh installed off/active calls
+finished, 3,584 attempts each (3,538 complete, 46 duplicate-pruned, no failure).
+Full IS pools/objectives exact; native anchor equals off-fold params. First
+13 folds use fallback; all 15 sufficiently matured decisions change params.
+Original aggregate account and independent saved-param regeneration both match
+all seven financial buffers exactly (maximum difference zero). Eleven focused
+study/report/replay checks PASS; they do not replace the previous software gates.
+Off/active equity: 17,284.61 / 19,670.12; OOS account Sharpe -0.4726 / 0.0049.
+Supported native/meta decay 2.6216 / -0.4533; R 3.0749, IS contribution 3.0655,
+Q 0.00945, Q95% [-2.0571, 1.9639]. Threshold FAIL: 99.69% of point R comes
+from lower IS, not meaningful mean forward-Q improvement. No positive economic
+certificate or default promotion. Wall 786.289 / 885.919 s (+12.67%), peak RSS
+428.7 / 432.4 MiB (+3.74). Fit/select 2.301 s, original observer 36.354 s,
+459 evaluations, no observer failures. These are single public observations,
+not repeated medians. Financial execution remains original Numba portfolio;
+require-Rust QMS numerics do not certify an all-Rust financial workload.
+Private evidence stays ignored; no alpha, ranges or selected params published.
+E03-G01, new formal portfolio protocol/locked data, real quarterly package scope,
+current-source remote/public qualification and owner approval remain separate.
+
 <a id="qms-e05"></a>
 #### QMS-E05 - Bounded Basket And Arbitrage Package Meta Integration
 
@@ -24038,7 +24063,9 @@ Earlier failed/incomplete artifact receipts stay historical. Real-alpha empirica
 NOT_RUN. Read the [report](../docs/meta_selection/QMSE05_REPORT.md) and
 [sealed receipt](../benchmarks/optimization/meta_selection/qms_e05_software_closure.json).
 **Goal:** add meta only after native package IS and forward scores are authoritative.
-**Entry:** E04 gate accepted; supported package specs and real package tapes frozen.
+**Entry:** owner authorized bounded software work in parallel with E04's pending
+economic gate. Software fixtures/specs are frozen; real package scope/tapes still
+need their own reviewed pre-outcome registration, not assumed E04 acceptance.
 **Guide:** [evaluation architecture, section 2](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s2),
 [actual selection, section 7](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s7),
 [labels/families, section 6](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s6),

@@ -58,6 +58,19 @@ def build(output, package):
             raise ValueError("meta native anchor differs from off-arm actual params")
         if active["params"][str(row["fold_id"])] != candidates[row["selected"]]["effective_params"]:
             raise ValueError("meta params were not executed")
+    application_path = output/"param-application-proof.json"
+    application = json.loads(application_path.read_text())
+    if (application["registration_sha256"] != registered_hash or
+            application["original_account"] is not True or set(application["arms"]) != {"off", "active"}):
+        raise ValueError("independent parameter application proof missing")
+    for arm in ("off", "active"):
+        row = application["arms"][arm]
+        if (row["original_arm_sha256"] != sha256((output/f"{arm}.json").read_bytes()).hexdigest() or
+                row["original_buffers_sha256"] != sha256((output/f"{arm}.npz").read_bytes()).hexdigest() or
+                row["maximum_absolute_difference"] != 0. or row["optimizer_calls"] != 0 or
+                row["learner_calls"] != 0 or row["original_account_calls"] != 1 or
+                set(row["checked_buffers"]) != {"equity", "returns", "positions", "fees", "funding", "margin", "diagnostics"}):
+            raise ValueError("independent original-account regeneration failed")
     from numpy import load
     financial = {}
     for arm, value in zip(record["paired_arms"], (off, active), strict=True):
@@ -73,8 +86,9 @@ def build(output, package):
             peak_rss_mib=value["after_memory"]["peak_rss_mib"], pss_mib=value["after_memory"]["pss_mib"],
             attempts=value["attempts"], completed=value["completed"], pruned=value["pruned"],
             account_conformance_seconds=value["account_check_seconds"])
-    return dict(schema="qms-e04-sanitized-real-diagnostic-v1", source=record["source"],
+    return dict(schema="qms-e04-sanitized-real-diagnostic-v2", source=record["source"],
         registration=reference(output/"registration.json"), installed_proof=reference(package/"e05-proof.json"),
+        parameter_application=reference(application_path), independent_params_account=application["arms"],
         evidence=[reference(output/name) for name in ("off.json", "active.json", "off.npz", "active.npz", "active-witness.json")],
         alpha_sha256=record["alpha_sha256"], market=record["market"], universe=record["symbols"],
         account=record["account"], methodology=dict(mode="mode_4_is_only_robust", schedule="per_fold_causal",
@@ -94,6 +108,12 @@ def render(receipt):
     analysis = receipt["analysis"]
     off, active = [receipt["financial"][arm] for arm in ("off", "active")]
     means = analysis["supported_means"]
+    interval = analysis["interval"]
+    q_interval = (f'[{interval["lower"][1]:.4f}, {interval["upper"][1]:.4f}]'
+                  if interval is not None else "UNDEFINED")
+    overhead = 100.*(active["wall_seconds"]/off["wall_seconds"]-1.)
+    is_share = (f'{100.*means["is_difference"]/means["r"]:.2f}%'
+                if means and means["r"] != 0. else "UNDEFINED")
     rows = "\n".join(f"| {label} | {off['report'][key]:.4f} | {active['report'][key]:.4f} |"
         for label, key in (("Final equity", "final_equity"), ("Return (%)", "total_return_pct"),
                           ("OOS account Sharpe", "sharpe"), ("Max drawdown (%)", "max_drawdown_pct")))
@@ -125,6 +145,10 @@ symbol-average Sharpe. Final positions are stitched into one continuous account,
 not compounded fold equities. Accepted positions, costs, funding, margin,
 turnover, diagnostics and equity match an independent original-account call
 exactly; its conformance cost is charged separately, not used for learning.
+An additional verifier rebuilds every fold's signal from saved params and the
+unchanged alpha, without optimization or fitting. All seven original-account
+buffers again match exactly (maximum absolute difference zero). Its cost is
+separate and the original primary studies/evidence remain unchanged.
 
 ## Observed Effect
 
@@ -141,14 +165,22 @@ R (native decay minus meta decay): {means["r"] if means else "UNDEFINED"}.
 Forward Q (meta minus native Sharpe): {means["q"] if means else "UNDEFINED"}.
 IS contribution: {means["is_difference"] if means else "UNDEFINED"}.
 Intervals are paired moving-block bootstrap, three months, 4,096 resamples,
-95%, seed 731. Read exact bounds in the [sanitized receipt](../../benchmarks/optimization/meta_selection/qms_e04_real_diagnostic.json).
+95%, seed 731. Forward-Q interval: **{q_interval}**.
+Read exact bounds in the [sanitized receipt](../../benchmarks/optimization/meta_selection/qms_e04_real_diagnostic_v2.json).
 Diagnostic R > 0 / lower-Q >= 0 threshold: **{analysis["diagnostic_threshold_pass"]}**.
 Lower IS alone is not better forward performance. Undefined windows are not zero.
+IS contribution / point-mean R: **{is_share}** (arithmetic decomposition,
+not causal effect attribution). Read it together with the forward-Q interval.
+A different continuous-account outcome is not statistical certification of
+better future Sharpe or a profitable alpha.
 
 ## Cost And Decision
 
 Off: {off["wall_seconds"]:.3f} s, peak RSS {off["peak_rss_mib"]:.1f} MiB.
 Active: {active["wall_seconds"]:.3f} s, peak RSS {active["peak_rss_mib"]:.1f} MiB.
+Measured added latency: {overhead:.2f}%; added peak RSS:
+{active["peak_rss_mib"]-off["peak_rss_mib"]:.2f} MiB. These are observations,
+not a guaranteed overhead bound for other alphas/domains.
 One cold public call per arm on a shared VPS, single worker/numeric thread;
 after imports and causal-alpha probes, with no financial endpoint warmup;
 not repeated medians or a kernel benchmark. Observer attempts:
@@ -170,14 +202,25 @@ witnesses remain ignored. No push, merge, tag or upload was performed.
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--study", type=Path, required=True)
-    parser.add_argument("--package", type=Path, required=True)
-    parser.add_argument("--output", type=Path, required=True)
+    source = parser.add_mutually_exclusive_group(required=True)
+    source.add_argument("--study", type=Path)
+    source.add_argument("--render-receipt", type=Path)
+    parser.add_argument("--package", type=Path)
+    parser.add_argument("--output", type=Path)
     parser.add_argument("--report", type=Path, required=True)
     args = parser.parse_args()
-    if args.output.exists():
-        raise ValueError("do not overwrite sealed diagnostic receipt")
-    receipt = build(args.study, args.package)
-    args.output.write_text(json.dumps(receipt, indent=2, sort_keys=True)+"\n")
+    if args.render_receipt is not None:
+        if args.package is not None or args.output is not None:
+            parser.error("render-only must not write another receipt or build artifacts")
+        receipt = json.loads(args.render_receipt.read_text())
+        if receipt["schema"] != "qms-e04-sanitized-real-diagnostic-v2":
+            raise ValueError("render current sealed v2 diagnostic only")
+    else:
+        if args.package is None or args.output is None:
+            parser.error("study assessment requires --package and a fresh --output")
+        if args.output.exists():
+            raise ValueError("do not overwrite sealed diagnostic receipt")
+        receipt = build(args.study, args.package)
+        args.output.write_text(json.dumps(receipt, indent=2, sort_keys=True)+"\n")
     args.report.write_text(render(receipt))
     print(json.dumps(receipt["gates"], sort_keys=True))
