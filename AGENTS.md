@@ -7,6 +7,22 @@
 - After each coherent change is implemented and verified, create a commit immediately.
 - Preserve unrelated dirty changes; do not revert or include them without explicit user approval.
 
+## Build And Test Cleanup
+
+- Every build/test phase must include a disk budget and an explicit cleanup
+  inventory before execution, and a cleanup receipt before its exit gate.
+- Read [the cleanup runbook](docs/BUILD_TEST_CLEANUP.md). Check free bytes and
+  inodes; do not mistake inode availability for available disk space.
+- Preserve source, Git, private data, scientific evidence, sealed receipts,
+  logs, exact wheel/sdist artifacts and actively used environments. Failed
+  builds do not become PASS receipts when their scratch is removed.
+- Delete only reviewed, ignored, inactive and reproducible scratch paths.
+  Keep one current test/build environment and the dependency cache needed for
+  offline work. Never recursively delete `.maturin`, all caches or `target`.
+- Verify preserved artifact/log hashes and source state after cleanup. Report
+  actual free-space changes; hard-linked directory sizes are not reclaimable
+  bytes. Cleaned consumer environments require fresh installation before rerun.
+
 ## Shared Architecture And Future WFO Methodology
 
 - These rules govern implementation quality, not the choice of mathematical

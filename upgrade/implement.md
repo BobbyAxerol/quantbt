@@ -1,5 +1,29 @@
 # QuantBT Upgrade Implementation Plan
 
+## Mandatory Build/Test Cleanup Gate
+
+**Status:** owner-authorized operational cleanup; independent of financial,
+methodology and release gates. Read the [cleanup runbook](../docs/BUILD_TEST_CLEANUP.md)
+before every build/test phase. This is required by the workspace agent rules.
+**Goal:** retain reproducible certification evidence without accumulating one
+large disposable environment per historical consumer run.
+**To-Do:** inventory free bytes/inodes and expected peak scratch before building;
+declare exact retained artifacts, logs, receipts, active environments and offline
+dependencies; remove only reviewed inactive scratch after evidence is verified.
+**Tests:** protected-source state unchanged; artifact/log/receipt hashes exact;
+current environment/native import checks PASS; completed deletion inventory and
+actual free-space measurement recorded. Do not rebuild engines to test cleanup.
+**Exit Gate:** no active source/data/environment or required evidence removed;
+available bytes cover the next planned peak plus safety headroom; report paths,
+retention/reinstallation requirements and before/after space. Do not silently
+reset scientific gate status or overwrite historical receipts during housekeeping.
+**Scope:** cache and obsolete consumer scratch only. Docker volumes, service
+databases, alpha data, research evidence and other project sources are excluded.
+**Cleanup Receipt (2026-10-06):** [reviewed inventory and retained hashes](../docs/maintenance/CLEANUP_2026-10-06.md).
+Root disk went from 100%/0 available to 93%/about 7.32 GiB available; 304 protected
+evidence/artifact/log files retain exact hashes. Active/current test and build
+environments remain. E04 package/empirical and E05 gates were not promoted.
+
 **Current QMS status (2026-10-06, Asia/Saigon):**
 [QMS-01 to QMS-08: meta-selection and WFO sampler integration](#qms-meta-selection-samplers).
 The [QMS-V1.1 detailed guide](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md)
