@@ -1,5 +1,387 @@
 # QuantBT Upgrade Implementation Plan
 
+<a id="qms-pre-e06-action-plan"></a>
+## QMS Pre-E06 Sequential Debt Closure - Owner Planning Request 2026-10-06
+
+**Status:** PLAN_RECORDED_EXECUTION_NOT_STARTED. The owner requested a sequential
+action plan to close necessary local debt/gaps before returning to E06. This
+authorizes this plan, not execution of all its phases. Approve/start one phase
+at a time; a failed required gate stops advancement. Entry source is `3887966`
+on `feat/meta-selection-samplers`; prepared pair stays **1.1.2 / 0.4.3**.
+No push, CI dispatch, merge, tag, publication or new scientific study is implied.
+
+**Current truth and precedence:** the [execution amendment](#qms-required-execution-routes)
+already implemented bounded E06/E07 intent/session, callback and command routes,
+plus pre-expiry delivery roll. The latest [report](../docs/meta_selection/EXECUTION_WFO_REPORT.md)
+records 153 scoped PASS and exact local artifact proof. Returning to E06 means
+finishing its route-specific qualification/accepted-scope handoff, not pretending
+its adapter has not been written or building another financial engine. Older
+current-summary statements that E06/E07 are wholly unimplemented are stale.
+This current plan takes precedence; historical receipts and phase-era facts
+must stay immutable. E03-G01 and C01-D01 are closed correctness/provenance issues,
+not repairs to redo. E08 remains deferred until the chosen local scope is closed.
+
+**Acceptance policy:** no leakage, faithful raw measurement, actual applied
+params and account parity are necessary software gates. A synthetic no-gain
+result is not a defect to tune away. Economic/default promotion is a separate
+owner decision under [guide section 14](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s14);
+preserve failed/inconclusive R/Q and do not waive the registered scientific gate.
+Private-alpha disclosure or repeated searches until R/Q becomes positive is
+not a prerequisite for the technical gates below. This does not silently grant
+official economic promotion to any route.
+
+### Required Reading And Common Rules
+
+- Read this phase's guide links, [AGENTS](../AGENTS.md), the
+  [cleanup runbook](../docs/BUILD_TEST_CLEANUP.md) and original QMS guide before
+  each phase. The guide's Ridge, estimators, panels, validity, weights and clocks
+  remain authoritative unless a specifically approved amendment says otherwise.
+- Reuse shared domain adapters, prepared market/calendar ownership, history,
+  original financial endpoints, samplers and numeric Rust boundary. No new
+  endpoint, learner, account loop or per-domain Python/Rust bridge.
+- Preserve old defaults and off/shadow search/RNG/account contracts. Reject
+  unsupported requests before financial work; registration/spec PASS is not
+  activation. Newly approved policies must be explicit and versioned.
+- Keep source changes narrow and seal exact reviewed bytes; never weaken source
+  guards to whole-file exemptions or relabel historical receipts as current.
+- Use public synthetic fixtures with independent expected values for software
+  tests. Any later private alpha stays read-only and outside public artifacts.
+  Raw params, trial traces, paths and descriptors can reveal the strategy too:
+  retain privately and export only reviewed aggregates with owner approval.
+- Register budgets, repeats, thread policy and comparison contract before
+  measurements. No post-outcome seed/range/threshold/tolerance selection.
+- Commit each verified coherent chunk locally; report implementation, software,
+  performance, empirical, artifact and owner states separately.
+
+### Sequential Phase Map
+
+| Order | Phase | Required result before advancing | Status |
+|---|---|---|---|
+| 1 | [PRE-E06-01](#qms-pre-e06-01) | One source-bound current ledger, test inventory and scope/privacy contract | PLANNED_NOT_STARTED |
+| 2 | [PRE-E06-02](#qms-pre-e06-02) | Active/matured causal and measurement conformance on existing admitted routes | PLANNED_NOT_STARTED |
+| 3 | [PRE-E06-03](#qms-pre-e06-03) | Approved C01 nested scalar runtime activation, raw outer-IS/forward parity | PLANNED_NOT_STARTED |
+| 4 | [PRE-E06-04](#qms-pre-e06-04) | Approved C05 policies, actual RNG and owned continuation qualification | PLANNED_NOT_STARTED |
+| 5 | [PRE-E06-05](#qms-pre-e06-05) | Matched profiling and safe optimization; unchanged scientific/decision/account contracts | PLANNED_NOT_STARTED |
+| 6 | [PRE-E06-06](#qms-pre-e06-06) | Final local regression, exact installed artifacts, docs/privacy/cleanup receipt | PLANNED_NOT_STARTED |
+| Next | [E06](#qms-e06) resumed qualification | Owner approves entry using the final local handoff | NOT_ENTERED_BY_THIS_PLAN |
+
+Do not combine stages to hide a failing earlier gate. C01/C05 specs have prior
+local implementation approval; their execution chunks here still get an explicit
+phase start and receipt. Broad Mode 1 execution-domain activation is not included
+in C01's initial scalar-only cohort.
+
+<a id="qms-pre-e06-01"></a>
+### Phase PRE-E06-01 - Current Truth, Contract Inventory And Privacy Lock
+
+**Goal:** remove contradictory live status and establish the exact scope/tests
+to certify, without changing financial or methodological behavior.
+**Guide:** [source and identity, section 0](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s0),
+[route matrix, section 3](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s3),
+[reporting, section 12](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s12),
+[current route review](../docs/meta_selection/CURRENT_ROUTE_REVIEW.md),
+[gap ledger](../docs/meta_selection/GAP_CLOSURE_STATUS.md) and
+[adapter contract](../docs/meta_selection/DOMAIN_ADAPTER_CONTRACT.md).
+
+**To-Do:**
+1. Reconcile live plan summaries, phase map, capability discovery and docs:
+   E06/E07 bounded software is implemented; E03-G01/C01-D01 are closed; C01/C05
+   implementations are pending; historical remote proof is not current-source proof.
+2. Create a source-bound route x method x schedule x backend/account inventory.
+   Distinguish ordinary scalar, prepared scalar, portfolio/package, W3 reset,
+   generic callback, command and intrabar contracts. Inventory actual tests and
+   missing cases, not merely booleans in metadata.
+3. Freeze raw metric/sample/activity, annualization, fees/funding/margin, zero-base
+   policy, diagnostic reset and final carry rules per route; no inferred economics
+   equivalence and no pooling incompatible history between endpoints.
+4. Freeze software-test fixtures, actual-matured cutoffs and expected invariants
+   for PRE-E06-02. Protect the original guide/scientific receipts/source references.
+5. Record public/private output classes, including params/trial/descriptor logs.
+   Use public fixtures by default; do not import/copy an external alpha for this audit.
+
+**Tests:** current links/anchors and discovery versus actual dispatch; negative
+unsupported mode/domain/account requests; closed-gap receipt hashes; staged
+secret/private-file and artifact-path checks. Do not rerun real-alpha optimization.
+**Outputs:** current ledger and matrix with exact links, expected test IDs,
+scope decisions and protected-source hashes; local reconciliation receipt.
+**Exit gate:** no contradictory current capability states, no missing required
+test owner, no new activation and no changed historical receipt/guide bytes.
+**Debt disposition:** classify each item as required repair, approved activation,
+blocked entry requirement, deferred capability or evidence limitation. A failed
+economic test does not get relabelled a software defect.
+**Resources/cleanup:** reuse tooling; incremental scratch ceiling 256 MiB plus
+5 GiB safety headroom. No native build; retain receipts/logs and clean only exact
+inactive scratch paths after hashes are checked.
+
+<a id="qms-pre-e06-02"></a>
+### Phase PRE-E06-02 - Active-Matured Causality And Raw Measurement Hardening
+
+**Goal:** close the concrete coverage gap beyond first-fold shadow/cold-start
+mutation tests, using the actual shared public runners and admitted domains.
+**Guide:** [labels/measurement, section 5](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s5),
+[no leakage/revisions, section 6](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s6),
+[seal/observer, section 7](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s7),
+[chronological parity, section 8](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s8),
+[existing public tests](../tests/meta_selection/test_qms05_public.py),
+[execution tests](../tests/meta_selection/test_execution_window_public.py) and
+[execution-account limits](../docs/meta_selection/EXECUTION_WFO.md).
+
+**To-Do:**
+1. Add one reusable causal-conformance harness, not one learner per endpoint.
+   Exercise already admitted scalar/prepared, portfolio/package, W3 reset and
+   all four execution routes with active models and nonempty permitted history.
+2. Register a finite synthetic history sufficient for the chosen maturity gate;
+   assert actual fit/rank/proposal execution. Distinguish reduced-support smoke
+   from default 12-origin qualification. A no-model fallback cannot pass a
+   test intended to cover active inference.
+3. At several predeclared cutoffs, mutate only unavailable market OHLC/volume/
+   funding, forward labels, future candidates/anchors, revisions/model artifacts
+   and physical record order. Earlier pool, features/scaler, snapshot membership,
+   predictions, eligibility/ties and effective params must remain equivalent.
+4. Positive controls: permitted mature history can affect a later fit; actual
+   late publication is excluded until available. Test equality event ordering,
+   delayed search/fit, immutable prior revisions and origin reweighting explicitly.
+5. Independently regenerate candidate/anchor IS and forward original-account
+   observations, including daily/hourly reduction, positive-variance valid zero,
+   undefined windows, costs/funding/margin and post-liquidation samples. Preserve
+   own exact witnesses; no averaged cluster/symbol Sharpe or objective substitution.
+6. Check off/shadow exact pools/RNG/account, active actual application, prepared/
+   reference and Rust/reference policy parity. In at least one declared fixture,
+   active must select a different candidate and execute it; record honestly if
+   another fixture retains the anchor. A planted synthetic math fixture is
+   labelled as such, never real-market gain evidence.
+
+**Tests:** red-first mutation/availability/tamper cases on actual runner hooks;
+fresh candidate strategy state; future funding signature behavior; all-six-buffer
+account reconciliation; near-Q-floor/tie chronological cases; protocol failures
+before execution. Observe current OOS only after seal and fit only past history.
+**Outputs:** route coverage receipt with exact mature cutoffs, tasks/revisions,
+model readiness, original metric/account references, failures and fixture provenance.
+**Exit gate:** every required admitted-route cell has nonvacuous active/matured
+coverage or fails closed with a documented owner blocker. Fix reproducible defects
+without relaxing tolerances/estimators or backdating clocks; no universal alpha-
+feature-causality claim follows from framework tests.
+**Debt disposition:** finish required local causal/measurement repairs here;
+do not defer a genuine leakage/accounting error to E06 or release.
+**Resources/cleanup:** tooling reuse, at most 512 MiB incremental scratch plus
+5 GiB headroom. Budget native rebuild separately only if reviewed native source
+changes; retain XML/log/evidence and remove exact inactive scratch at exit.
+
+<a id="qms-pre-e06-03"></a>
+### Phase PRE-E06-03 - Approved C01 Nested Mode 1 Runtime Completion
+
+**Goal:** implement the previously approved first additional meta methodology,
+not remove the Mode 4-only guard for every mode/domain.
+**Guide:** [C01 activation amendment](#qms-local-finalization),
+[nested cohort spec](../docs/meta_selection/ADDITIONAL_METHODS_REVIEW.md#proposal-a-nested-mode-1),
+[C01 phase](#qms-c01---additional-meta-modes-and-schedules),
+[math, section 5](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s5),
+[cutoffs, section 6](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s6)
+and [prepared ownership, section 8](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s8).
+
+**To-Do:**
+1. Initial scope is existing qualified scalar domains, Mode 1/per_fold_causal
+   with genuine inner validation. Preserve original inner search, shortlist,
+   seeds, penalties/decay objective and exact inner-decay native anchor.
+2. Acquire original full outer-IS observations for the entire feasible completed
+   pool and exact anchor, with isolated auxiliary RNG. Do not substitute averaged
+   inner Sharpe or invent inner-validation scores for unscored candidates.
+3. Bind `nested_anchor_outer_IS_real_forward_v1`, inner policies and native
+   selection settings in a separate family. Existing Mode 4 identity is unchanged.
+4. Fit/rank unchanged Ridge, seal before true outer-forward work and pass actual
+   selected params through the existing final account path. Charge auxiliary
+   outer-IS work and bind all original metric/sample witnesses.
+5. Publish explicit capability/metadata for native objective, inner diagnostics,
+   outer raw IS, predicted scores and actual selected candidate. Keep unsupported
+   global/outer-decay/SBB/full-sample meta and unqualified execution domains closed.
+
+**Tests:** independent nested index/window and full-outer metric expected values;
+off/shadow full pool/native winner/RNG/account equality; active applied lineage;
+family isolation; PRE-E06-02 active/matured no-leakage harness; prepared/reference
+parity and exact-IS anchor tests. Fresh installed proof joins PRE-E06-06.
+**Outputs:** narrowly activated C01 runtime, source-bound tests/receipt,
+current docs and explicit auxiliary-evaluation counts/ownership.
+**Exit gate:** full pool/raw witnesses and actual financial application PASS;
+legacy modes and Mode 4 scientific/decision contracts unchanged; new domain/mode
+cells remain rejected until independently qualified. No new economic claim.
+**Debt disposition:** C01 becomes runtime-complete only for this approved cohort;
+broader mode/schedule/domain capability is separately recorded, never implied.
+**Resources/cleanup:** at most 512 MiB incremental test scratch plus 5 GiB safety;
+reuse current financial/prepared tooling, no real-alpha rerun or native rebuild
+unless necessary source changes are explicitly recorded. Retain receipts/logs.
+
+<a id="qms-pre-e06-04"></a>
+### Phase PRE-E06-04 - Approved C05 Policies And Owned Continuation Completion
+
+**Goal:** turn the reviewed conditional-Sobol and finite-support representative
+specs into explicit shared runtime policies without changing old defaults.
+**Guide:** [C05 frozen layout](../docs/meta_selection/CONDITIONAL_GEOMETRY_REVIEW.md#proposed-frozen-numeric-latent-contract),
+[finite support](../docs/meta_selection/CONDITIONAL_GEOMETRY_REVIEW.md#proposed-finite-support-representative),
+[actual integration gates](../docs/meta_selection/CONDITIONAL_GEOMETRY_REVIEW.md#integration-gates-after-approval),
+[shared recipes, section 4](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s4),
+[C03 scheduling](../docs/meta_selection/W3_SAMPLER_SCHEDULES.md)
+and [C04 owned continuation](../docs/meta_selection/EXACT_CONTINUATION.md).
+
+**To-Do:**
+1. Expose versioned opt-in policies through the existing normalized space,
+   sampler factory and selector. No fifth recipe, inferred conditional scheme
+   or silent replacement of old Sobol/medoid behavior.
+2. Freeze schema-order numeric coordinates before ask; separate actual active-
+   category RNG, warm prefix and single independent startup. Preserve numeric
+   transforms, masks, one whole Sobol point per QMC attempt and full consumption
+   provenance for failed/pruned/infeasible/effective-duplicate attempts.
+3. Select only an existing admissible evaluated cluster point with unique-support
+   geometry and absolute total tie order. Require its own original IS witness;
+   do not execute category averages or average cluster metrics into an anchor.
+4. Extend owned C04 codecs/bindings for new policy/category/QMC state and verify
+   fresh-process continuation. No automatic account/fold/strategy resume claim.
+5. Exercise actual public scalar WFO and applicable existing W3/process/private
+   fixed-batch scheduler cells. Unsupported policy/space combinations reject
+   before ask; fixed replay is not adaptive sequential TPE or public meta batching.
+
+**Tests:** independent review-reference and hand-calculated values, pinned
+Sobol/category prefixes, warm/startup/terminal consumption, mixed feasibility,
+own-anchor/future witness rejection, vocabulary/permutation/duplicate neutrality,
+actual ask/tell and resumed sequence. All four old recipes/default medoid/off/
+shadow financial paths remain exact on their existing qualified cells.
+**Outputs:** activated reviewed policies, honest capability matrix, exact source
+amendment and continuation/effective-candidate evidence; no sampler superiority claim.
+**Exit gate:** actual runtime agrees with approved independent specs and C04
+continuation, old defaults remain intact, no hidden draws/retries/financial calls.
+Fresh installed proof and final pair checks are required in PRE-E06-06.
+**Debt disposition:** close C05 approved implementation, not arbitrary continuous
+constrained optimization, distributed checkpointing or all future mixed geometries.
+**Resources/cleanup:** at most 512 MiB incremental scratch plus 5 GiB headroom;
+reuse caches/tooling and retain RNG/journal/negative-test receipts. Review any
+required native build budget before building; do not rebuild for a Python policy alone.
+
+<a id="qms-pre-e06-05"></a>
+### Phase PRE-E06-05 - Matched Cost Profiling And Safe Shared Optimization
+
+**Goal:** optimize QuantBT-owned costs without changing the permitted information,
+candidate pool, labels, RNG or account behavior to make the benchmark look faster.
+**Guide:** [DSA/boundary and parity, section 8](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s8),
+[performance/budgets, section 10](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s10),
+[resource reporting, section 12](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s12),
+[existing execution measurements](../docs/meta_selection/EXECUTION_WFO_REPORT.md)
+and [G01 matched study](../docs/meta_selection/QMSE03_G01_CLOSURE.md#matched-runtime-and-memory).
+
+**To-Do:**
+1. Register fixtures/repeats/threads and retention before results. Measure native
+   off across the five existing modes and all admitted route/account cells;
+   measure on/off/shadow only where a meta combination is actually admitted.
+   Include C01's additional outer-IS work, not a fake free reuse benchmark.
+2. Profile preparation/witness/hash/packing, main financial scoring, post-seal
+   observer calls, fit/rank/FFI, final account and report adaptation separately.
+   Record cold/warm full-call wall/CPU, p50/p95 where adequately sampled, RSS/
+   retention growth, actual fallback/backend, labels and financial calls.
+3. Optimize measured duplicate immutable preparation or derived witness work;
+   preserve exact market/cutoff/constraint bindings. Batch owned numerical work
+   through existing Rust interfaces where useful; qualify NumPy/Numba/reference
+   fallback and do not claim arbitrary Python callback logic is Rust-owned.
+4. Keep model cache keys tied to exact permitted snapshot, basis, policies and
+   revisions. Do not cross-reuse mutable strategy/account/RNG or stochastic
+   evaluations based on params alone. No winner-only history or reduced panels.
+5. Use repeated paired public workloads to assess performance-only changes.
+   Record the guide's proposed disabled p50 +3% / p95 +5% targets explicitly as
+   owner-reviewed budgets before the run, not thresholds invented after timing.
+   If unresolved, report INCONCLUSIVE/NOT_MET and fix or ask for a scope/budget
+   decision; do not call a three-sample noisy median a qualified p95 gate.
+
+**Tests:** full decision-sequence parity, near-Q/tie behavior, exact pools/RNG/
+panels/labels, all original account fields, native require/fallback, cache invalidation,
+many-fold retention and unchanged requested reports. Benchmark before/after
+the same methodology; mathematical activation deltas have separate baselines.
+**Outputs:** component and end-to-end cost receipts, source-bound parity,
+measured backend disposition and precise residual/non-beneficial bottlenecks.
+**Exit gate:** no correctness regression, no unbounded retention or unobserved
+fallback, and accepted cost disposition for every required workload. Unhelpful
+experimental fast paths stay unpromoted; absolute meta-on runtime need not beat
+off because additional legitimate observer work is part of the method.
+**Debt disposition:** no necessary performance repair hidden in E06. Residual
+strategy-owned costs and explicitly accepted engineering limits stay transparent.
+**Resources/cleanup:** fresh workers, not fresh full environments per sample;
+incremental scratch ceiling 1 GiB plus 5 GiB safety. Retain samples/logs/artifacts,
+release workers/results and remove exact inactive reproducible scratch at exit.
+
+<a id="qms-pre-e06-06"></a>
+### Phase PRE-E06-06 - Local Conformance, Exact Artifacts And E06 Entry Gate
+
+**Goal:** bind the final changed bytes to local software/artifact/privacy evidence
+before the owner resumes E06; this is not E08 remote/public certification.
+**Guide:** [Definition of Done, section 15](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s15),
+[report/receipts, section 12](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s12),
+[economic limits, section 14](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s14),
+[existing artifact closeout](../benchmarks/optimization/meta_selection/qms_execution_closeout_v4.json),
+[cleanup rules](../docs/BUILD_TEST_CLEANUP.md) and [E06](#qms-e06).
+
+**To-Do:**
+1. Run the full affected QMS/sampler/WFO/W3 regression plus original endpoint
+   accounting/lifecycle/metric tests for every changed domain. Preserve failed
+   runs and exact reruns; no skipped required capability or overlapping test-count sums.
+2. Build fresh source-exact canonical core wheel/sdist once, verify complete
+   module inventory/allowlists and install into an isolated local consumer.
+   Reuse native only when exact unchanged source/artifact/capability is verified;
+   rebuild if actual native changes require it. Never substitute checkout imports.
+3. Consumers must exercise required scalar/prepared/W3/portfolio/package and
+   all four execution routes, new C01/C05 and owned continuation cells; fit/rank
+   must actually run where claimed. Record original metric/account lineage.
+4. Update current unified plan, endpoint/methodology/sampler/meta usage, examples
+   and gap ledger from receipts. Historical evidence remains sealed. Add no
+   private alpha/source/data/params/trial log to Git, wheel, sdist or public bundle.
+5. Verify exact source/API/dependency/native-pair and secret/private-file gates.
+   Cleanup inactive consumer/build scratch after artifacts/logs/hashes are retained;
+   preserve one working tooling environment and offline dependencies.
+6. Issue an explicit `READY_FOR_E06_LOCAL` handoff with completed required gates,
+   accepted scope/budget decisions and deferred entry requirements. Request
+   owner approval before resuming intrabar qualification, not an automatic next phase.
+
+**Tests:** independent receipt negatives, source/package origins and exact bytes,
+all active/matured causal cells, measurement/decision/account parity, privacy and
+cleanup hashes; current discovery agrees with actual supported behavior.
+**Outputs:** final source-bound local gate, exact artifact references, updated
+docs/matrix, cleanup inventory/receipt and accepted E06 entry checklist.
+**Exit gate:** PRE-E06-01..05 required gates satisfied; no unresolved local
+leakage/metric/account/RNG correctness defect; all claimed installed capabilities
+present in exact tested artifacts. Source state clean after local commits.
+**Debt disposition:** missing permission/data or future capabilities are recorded
+as separate scopes, not falsely closed and not hidden mandatory E06 prerequisites.
+**Resources/cleanup:** estimate before entry; ceiling 2 GiB local artifact/test
+scratch plus 5 GiB safety, with any native build budget reviewed separately.
+No remote workflow, push, merge, tag, upload or public-index proof in this phase.
+
+### Deferred Scope And Resume Order
+
+| Item | Disposition before returning to E06 |
+|---|---|
+| E04 inconclusive/negative economic gate | Retain exact evidence; software-qualified opt-in is distinct from owner economic/default promotion; no retune-until-positive |
+| E05 quarterly production admission | Bounded pre-expiry software exists; cash settlement, venue provider/data, dynamic hedges/atomic roll require their own approved financial/data contract |
+| Options and Nautilus WFO/meta | Future adapter admission, not required repairs of current supported routes; do not implement silently in PRE-E06 |
+| W3 carry/shared multi-symbol/public meta batch/Mode 2 | Existing spec/guards stay; separate financial/scheduler/label authority and owner approval required |
+| Automatic whole-WFO/account/strategy/model recovery | C04 utility does not implement it; separate state/lifecycle contract required |
+| Extra meta global/outer-decay/SBB/full-sample methods | Not activated by C01 nested scalar work; explicit scientific cohort/permissions first |
+| Scientific estimator/model replacement or economic retest | Separate owner approval; current negative results remain visible |
+| E08 six-row CI, portability, final release/public proof | Last, after owner closes local scope; historical remote PASS cannot certify new bytes |
+
+**Resume sequence:** PRE-E06-01 -> 02 -> 03 -> 04 -> 05 -> 06 -> owner-approved
+E06 intrabar completion -> E07 remaining reactive/order qualification -> E08
+integrated final-source/remote/release gates when separately authorized. E06/E07
+must reuse the already implemented typed execution adapters and the causal
+conformance harness, adding only missing domain cases/accepted-scope evidence.
+Private real-alpha testing remains optional for software certification and
+requires an explicitly reviewed private harness if the owner later supplies it.
+
+### Planning-Only Verification And Cleanup Receipt
+
+This pass changes only `upgrade/implement.md`; all six phases remain NOT_STARTED.
+Local Markdown links/anchors and whitespace checks PASS. The execution source
+guard and 50 retained evidence/artifact hashes remain exact. No financial tests,
+alpha optimization, native build or installed-consumer run was repeated here;
+old PASS receipts are not new phase certificates. No private alpha was accessed.
+Available filesystem bytes observed before/after were 27,044,327,424 /
+27,042,942,976; inode use was 15%. No disposable environment/build/cache lane
+was created, so no scratch deletion is warranted. Retained evidence and active
+tooling remain; no push, workflow, merge, tag or upload occurred.
+
 <a id="qms-required-execution-routes"></a>
 ## Required Execution Routes - Owner Amendment 2026-10-06
 
