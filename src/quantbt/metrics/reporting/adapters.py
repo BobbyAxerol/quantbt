@@ -1,7 +1,10 @@
 """Cold adapters for completed outputs. No simulation, inferred lots or replay."""
 
+import numpy as np
+
 from ..report_contracts import ReportingCoverageV1
-from .inputs import AccountObservations
+from .inputs import (AccountObservations, derived_returns, frozen_array,
+                     validate_account_path, validate_account_scope)
 from .ledger_inputs import LedgerObservations, RecordedOutcome
 
 
@@ -16,7 +19,8 @@ def _utc_index(index, *, naive_timezone=None):
             raise ValueError("naive timestamps require explicit naive_timezone='UTC'")
         index = index.tz_localize("UTC")
     # asi8 follows the index resolution; the reporting contract always uses ns.
-    return index.tz_convert("UTC").as_unit("ns")
+    index = index.tz_convert("UTC")
+    return index if index.unit == "ns" else index.as_unit("ns")
 
 
 def account_from_completed(result, contract, *, result_identity, profile="completed",
@@ -41,12 +45,21 @@ def account_from_completed(result, contract, *, result_identity, profile="comple
     coverage = ReportingCoverageV1(result_identity=result_identity, producer="completed account path",
         profile=profile, ledger="unsupported", retained_rows=0, dropped_rows=0,
         reason="account path cannot certify executed outcome/action ledger completeness")
-    observations = AccountObservations(times_ns=times.asi8[selected], equity=equity.to_numpy()[selected], coverage=coverage)
-    observations.validate_contract(contract)
+    # A complete scope needs one immutable snapshot, not a boolean-index copy first.
+    timestamps, marks = times.asi8, equity.to_numpy()
+    if not selected.all():
+        timestamps, marks = timestamps[selected], marks[selected]
+    timestamps = frozen_array(timestamps, np.int64, integer=True)
+    marks = frozen_array(marks, np.float64)
+    validate_account_path(timestamps, marks)
+    validate_account_scope(timestamps, contract)
+    returns = None
     if partial_mask is not None:
         if not return_witness:
             raise ValueError("return/partial-period producer witness required")
-        observations = observations.with_derived_returns(contract, partial_mask=partial_mask, witness=return_witness)
+        returns = derived_returns(timestamps, marks, contract, partial_mask=partial_mask, witness=return_witness)
+    observations = AccountObservations(times_ns=timestamps, equity=marks, coverage=coverage, returns=returns)
+    observations.validate_contract(contract)
     return observations
 
 

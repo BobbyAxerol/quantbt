@@ -26,6 +26,11 @@ class CompletedReport:
 
 
 def build_completed_report(result, request, *, scope="auto"):
+    return _build_completed_report(result, request, scope=scope)[0]
+
+
+def _build_completed_report(result, request, *, scope="auto"):
+    """Also return the local snapshot for plotting; never retain it in a cache."""
     if not isinstance(request, ReportingRequest):
         raise TypeError("reporting must be a ReportingRequest")
     if scope not in {"auto", request.account.scope}:
@@ -38,10 +43,11 @@ def build_completed_report(result, request, *, scope="auto"):
         reducer = {"account": reduce_account, "ledger": reduce_ledger, "execution": reduce_execution}[kind]
         return reducer(observations, contract, **options)
 
+    obs = None
     try:
         obs = account_from_completed(result, request.account, result_identity=request.result_identity,
             profile=request.profile, index=request.index, naive_timezone=request.naive_timezone,
-            partial_mask=request.partial_mask, return_witness=request.return_witness)
+            partial_mask=request._partial_mask_array, return_witness=request.return_witness)
     except LookupError as error:
         unavailable.append(("account_period", str(error)))
     else:
@@ -65,7 +71,7 @@ def build_completed_report(result, request, *, scope="auto"):
         if request.execution.coverage.result_identity != request.result_identity:
             raise ValueError("execution witness belongs to a different completed result")
         groups.append(("execution", reduce("execution", request.execution, request.account)))
-    return CompletedReport(request=request, groups=tuple(groups), unavailable=tuple(unavailable))
+    return CompletedReport(request=request, groups=tuple(groups), unavailable=tuple(unavailable)), obs
 
 
 def reporting_metadata(result, request, *, scope="auto"):

@@ -1,6 +1,6 @@
 """Explicit, opt-in cold-report configuration; no execution or global cache."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from ..report_contracts import ReportingContractV1
 
@@ -20,6 +20,7 @@ class ReportingRequest:
     ledger_contracts: tuple[ReportingContractV1, ...] = ()
     execution: object = None
     cache: object = None
+    _partial_mask_bytes: bytes | None = field(init=False, repr=False, compare=False, default=None)
 
     def __post_init__(self):
         if not isinstance(self.account, ReportingContractV1) or self.account.unit != "account_period":
@@ -35,6 +36,9 @@ class ReportingRequest:
                 raise TypeError("partial_mask must be an immutable tuple of booleans")
             if not self.return_witness:
                 raise ValueError("explicit return/partial-period witness required")
+            import numpy as np
+            mask = np.fromiter(self.partial_mask, dtype=np.bool_, count=len(self.partial_mask))
+            object.__setattr__(self, "_partial_mask_bytes", mask.tobytes())
         if self.naive_timezone not in {None, "UTC"}:
             raise ValueError("only explicit naive_timezone='UTC' is supported")
         if not isinstance(self.ledger_contracts, tuple):
@@ -49,3 +53,10 @@ class ReportingRequest:
                     raise ValueError("ledger/account scope, baseline and currency must agree")
         if self.ledger is not None and not self.ledger_contracts:
             raise ValueError("recorded ledger requires explicit matching/grouping contracts")
+
+    @property
+    def _partial_mask_array(self):
+        if self._partial_mask_bytes is None:
+            return None
+        import numpy as np
+        return np.frombuffer(self._partial_mask_bytes, np.bool_)

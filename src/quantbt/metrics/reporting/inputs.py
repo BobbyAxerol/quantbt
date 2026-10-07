@@ -24,7 +24,12 @@ def frozen_array(values, dtype, *, integer=False):
         raise ValueError("missing NaT timestamp is not a UTC nanosecond observation")
     if dtype == np.float64 and not np.isfinite(array).all():
         raise ValueError("finite observations required; invalid rows cannot be dropped")
-    # Bytes-backed snapshots cannot be made writable again, unlike setflags(False).
+    # Only a bytes owner is irreversible; readonly flags over mutable owners are not.
+    owner = array
+    while isinstance(owner, np.ndarray):
+        owner = owner.base
+    if isinstance(owner, bytes):
+        return array
     return np.frombuffer(array.tobytes(), dtype=dtype)
 
 
@@ -36,6 +41,23 @@ def identity(metadata, *arrays):
         digest.update(str(array.shape).encode("ascii"))
         digest.update(memoryview(array))
     return digest.hexdigest()
+
+
+def validate_account_path(times, equity):
+    if not len(times) or len(times) != len(equity):
+        raise ValueError("nonempty aligned account path required")
+    if np.any(times[1:] <= times[:-1]):
+        raise ValueError("strictly ordered account times required")
+
+
+def validate_account_scope(times, contract):
+    if contract.unit != "account_period":
+        raise ValueError("account reducer requires account_period contract")
+    if times[0] < contract.baseline_time_ns or times[-1] != contract.scope_end_ns:
+        raise ValueError("path must end at declared scope end and start at/after baseline")
+    bounds = np.iinfo(np.int64)
+    if not bounds.min <= contract.baseline_time_ns <= bounds.max or contract.scope_end_ns - contract.baseline_time_ns > bounds.max:
+        raise ValueError("observation duration exceeds signed int64 nanoseconds")
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -76,10 +98,7 @@ class AccountObservations:
     def __post_init__(self):
         times = frozen_array(self.times_ns, np.int64, integer=True)
         equity = frozen_array(self.equity, np.float64)
-        if not len(times) or len(times) != len(equity):
-            raise ValueError("nonempty aligned account path required")
-        if np.any(times[1:] <= times[:-1]):
-            raise ValueError("strictly ordered account times required")
+        validate_account_path(times, equity)
         if not isinstance(self.coverage, ReportingCoverageV1):
             raise ValueError("typed producer coverage required")
         arrays = [times, equity]
@@ -94,13 +113,7 @@ class AccountObservations:
         object.__setattr__(self, "identity", identity(metadata, *arrays))
 
     def validate_contract(self, contract: ReportingContractV1):
-        if contract.unit != "account_period":
-            raise ValueError("account reducer requires account_period contract")
-        if self.times_ns[0] < contract.baseline_time_ns or self.times_ns[-1] != contract.scope_end_ns:
-            raise ValueError("path must end at declared scope end and start at/after baseline")
-        bounds = np.iinfo(np.int64)
-        if not bounds.min <= contract.baseline_time_ns <= bounds.max or contract.scope_end_ns - contract.baseline_time_ns > bounds.max:
-            raise ValueError("observation duration exceeds signed int64 nanoseconds")
+        validate_account_scope(self.times_ns, contract)
         if self.returns is not None:
             if self.returns.sampling != contract.sampling:
                 raise ValueError("return sampling does not match reporting contract")
@@ -111,17 +124,23 @@ class AccountObservations:
     def with_derived_returns(self, contract, *, partial_mask, witness):
         """Observe bars or UTC day closes; never synthesize a missing-day mark."""
         self.validate_contract(contract)
-        if contract.sampling == "explicit_period_returns":
-            raise ValueError("explicit return sampling requires producer-supplied returns")
-        indices = np.arange(len(self.equity))
-        if contract.sampling == "observed_daily_utc":
-            days = self.times_ns // 86_400_000_000_000
-            indices = indices[np.r_[days[1:] != days[:-1], True]]
-        marks = self.equity[indices]
-        previous = np.r_[contract.baseline_equity, marks[:-1]]
-        if np.any(previous <= 0):
-            raise ValueError("period return after nonpositive equity is undefined")
-        returns = ReturnObservations(values=marks / previous - 1, end_times_ns=self.times_ns[indices],
-                                     partial_mask=partial_mask, sampling=contract.sampling, witness=witness)
+        returns = derived_returns(self.times_ns, self.equity, contract,
+                                  partial_mask=partial_mask, witness=witness)
         return AccountObservations(times_ns=self.times_ns, equity=self.equity,
                                    coverage=self.coverage, returns=returns)
+
+
+def derived_returns(times, equity, contract, *, partial_mask, witness):
+    """Derive the same observed periods without all-bar fancy-index copies."""
+    if contract.sampling == "explicit_period_returns":
+        raise ValueError("explicit return sampling requires producer-supplied returns")
+    marks, ends = equity, times
+    if contract.sampling == "observed_daily_utc":
+        days = times // 86_400_000_000_000
+        selected = np.r_[days[1:] != days[:-1], True]
+        marks, ends = equity[selected], times[selected]
+    previous = np.r_[contract.baseline_equity, marks[:-1]]
+    if np.any(previous <= 0):
+        raise ValueError("period return after nonpositive equity is undefined")
+    return ReturnObservations(values=marks / previous - 1, end_times_ns=ends,
+        partial_mask=partial_mask, sampling=contract.sampling, witness=witness)

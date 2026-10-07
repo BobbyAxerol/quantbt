@@ -26688,6 +26688,43 @@ then local artifact/cleanup/final handoff. Preserve phase receipts independently
   explicit raw-coverage/capability limits and remote/public gates are separate.
   No push, CI, merge, tag, version change or publication.
 
+### MET-03 Reporting Performance Follow-Up - 2026-10-07
+
+**Status:** REGISTERED; tests and performance gates NOT_RUN.
+
+- **Goal/scope:** profile and reduce completed-report snapshot/adaptation costs
+  against immutable baseline `24ad469`, under [G01](#metrics-guide-contract),
+  [G02](#metrics-guide-drawdown), [G03](#metrics-guide-trades),
+  [G04](#metrics-guide-output) and [G05](#metrics-guide-certification).
+  Preserve output detail, input/contract hashes, formulas, validity, clocks,
+  cache invalidation, raw accounting, scientific selection and RNG. No Rust ABI,
+  default backend, endpoint, version or financial replay changes.
+- **To do:** capture a profile first; optimize only measured copy/conversion
+  costs; reuse only genuinely immutable snapshots, never writable-base views;
+  test mutable-source changes and exact report/episode parity; update live docs
+  and benchmark tables honestly; build exact new wheel/sdist installed proofs.
+- **Tests/gates:** Python/Numba and independent oracle; all prior timestamp/NaT,
+  scope, open-action and valuation regressions; immutable ownership and SHA
+  equivalence; cache hit/mutation isolation; matched full public account report
+  (2k/100k/1M), recorded trade/action report, plot and default compatibility.
+  Same outputs and thread budget, separate warm/JIT costs and fresh-process RSS.
+  Full metrics/raw/scientific guard regression, installed consumers, privacy,
+  local links, preserved historical receipts/artifact hashes and cleanup PASS.
+  Performance is measured, not a post-result tolerance or claimed universal
+  guarantee. Remote/public qualification remains separate and unauthorized.
+- **Resources/cleanup registered:** <=3 GiB incremental disk, <=20k concurrent
+  inodes, <=2 GiB worker RSS; one thread, >=5 GiB safety reserve. Preflight:
+  25,522,528,256 free bytes / 5,587,039 free inodes. Owned scratch only
+  `/tmp/quantbt-met03-performance-*` and fresh `/tmp/quantbt-met03-*` consumers;
+  retain evidence under `docs/metrics/evidence/met03/performance-*` and exact
+  artifacts under `.maturin/met03/`. Reuse offline `/tmp/quantbt-uv-cache` and
+  unchanged native 0.4.3 wheel. Preserve primary environment, source staging,
+  all old/new receipts/logs/artifacts; remove owned inactive consumers only.
+- **Debt policy/exit:** no reproduced in-scope correctness gap left open;
+  disclose unavailable raw coverage, noisy measurements, unimplemented native
+  Reporting V1 and remaining optimization headroom independently. Commit each
+  coherent verified change; no push, CI, merge, tag or publication.
+
 ### Metrics Completion, Evidence And Owner Review Rules
 
 Each phase records planned/implemented/software-qualified/performance-qualified/

@@ -2,8 +2,7 @@
 
 from dataclasses import replace
 
-from .adapters import account_from_completed
-from .public import build_completed_report
+from .public import _build_completed_report
 
 
 def plot_reporting_account(result, request, *, scope="auto", theme="dark", figsize=(14, 6)):
@@ -14,12 +13,10 @@ def plot_reporting_account(result, request, *, scope="auto", theme="dark", figsi
     if theme not in {"dark", "light"}:
         raise ValueError("theme must be dark or light")
     request = replace(request, retain_episodes=True)
-    report = build_completed_report(result, request, scope=scope)
+    report, obs = _build_completed_report(result, request, scope=scope)
     account = dict(report.groups).get("account_period")
     if account is None:
         raise LookupError(dict(report.unavailable)["account_period"])
-    obs = account_from_completed(result, request.account, result_identity=request.result_identity,
-        index=request.index, naive_timezone=request.naive_timezone)
     times = pd.to_datetime(obs.times_ns, utc=True)
     # Include the declared starting equity; first-bar fees are not erased.
     plot_times = times.insert(0, pd.Timestamp(request.account.baseline_time_ns, tz="UTC"))
