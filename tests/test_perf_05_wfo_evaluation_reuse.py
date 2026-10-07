@@ -434,4 +434,8 @@ def test_perf05_public_native_prepared_score_reuse_is_real_and_preserves_public_
     assert runtime["cache_hits"] > 0
     assert runtime["cache_stores"] > 0
     assert runtime["adaptive_read_bypasses"] > 0
-    assert runtime["semantic_contract"]["engine_semantic_build"] == "native_prepared_public_wfo_v1"
+    contract = runtime["semantic_contract"]
+    assert contract["engine_semantic_build"] == "native_prepared_public_wfo_legacy_zero_base_v1"
+    assert contract["fresh_account_per_evaluation"]
+    assert contract["pure_terminal_metrics"]
+    assert contract["cross_run_reuse"] is False

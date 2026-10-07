@@ -207,6 +207,7 @@ def build(lane, native, shards, *, failed_shards=(), label="matched-v3"):
         ("chronological", 2),
         ("receipt", 15),
         ("evidence", 5),
+        ("cleanup", 3),
         ("w3", 3),
         ("conditional", 2),
     ):
@@ -303,27 +304,57 @@ def build(lane, native, shards, *, failed_shards=(), label="matched-v3"):
 
 def cleanup_snapshot(lane, protected):
     """Retain evidence; no disposable environment or compilation was created."""
+    if lane.is_symlink() or lane.resolve() != ROOT / ".maturin/qms08/pre-e06-05":
+        raise ValueError("unreviewed cleanup lane")
+    scratch = lane / "mpl-cache"
+    reviewed = []
+    if scratch.exists() or scratch.is_symlink():
+        if scratch.is_symlink() or not scratch.is_dir():
+            raise ValueError("unreviewed Matplotlib scratch")
+        reviewed = list(scratch.iterdir())
+        if any(
+            p.name != "fontlist-v390.json" or p.is_symlink() or not p.is_file()
+            for p in reviewed
+        ):
+            raise ValueError("unreviewed Matplotlib scratch")
+        if subprocess.run(
+            ["git", "check-ignore", "-q", str(scratch)], cwd=ROOT
+        ).returncode:
+            raise ValueError("cleanup scratch is not ignored")
     paths = {p for p in lane.rglob("*") if p.is_file()}
+    paths.difference_update(reviewed)
     paths.update(protected)
     before = {str(p): file_hash(p) for p in sorted(paths)}
     fs = os.statvfs(ROOT)
+    available_before = fs.f_bavail * fs.f_frsize
     allocated = sum(p.stat().st_blocks * 512 for p in lane.rglob("*") if p.is_file())
-    if allocated > 1024**3 or fs.f_bavail * fs.f_frsize < 5 * 1024**3:
+    if allocated > 1024**3 or available_before < 5 * 1024**3:
         raise ValueError("registered disk budget exceeded")
+    removed = {str(p): file_hash(p) for p in reviewed}
+    removed_allocated = sum(p.stat().st_blocks * 512 for p in reviewed)
+    for path in reviewed:
+        path.unlink()
+    if scratch.exists():
+        scratch.rmdir()
     if before != {str(p): file_hash(p) for p in sorted(paths)}:
         raise ValueError("protected files changed during cleanup verification")
+    fs = os.statvfs(ROOT)
     return dict(
-        status="PASS_ZERO_DELETION",
-        deleted_paths=[],
-        reviewed_reclaimable_paths=[],
-        allocated_lane_bytes=allocated,
+        status="PASS_REVIEWED_FONT_CACHE_ONLY" if removed else "PASS_ZERO_DELETION",
+        deleted_paths=sorted(removed),
+        deleted_scratch_sha256=removed,
+        reviewed_reclaimable_paths=sorted(removed),
+        deleted_cache_allocated_bytes=removed_allocated,
+        allocated_lane_bytes=allocated - removed_allocated,
+        available_bytes_before=available_before,
         available_bytes=fs.f_bavail * fs.f_frsize,
+        observed_filesystem_change_bytes=fs.f_bavail * fs.f_frsize - available_before,
         free_inodes=fs.f_favail,
         protected_sha256=before,
         protected_before_after_equal=True,
         new_environment=False,
         new_native_build=False,
-        task_attributed_reclaimed_bytes=0,
+        task_attributed_reclaimed_bytes=None if removed else 0,
     )
 
 

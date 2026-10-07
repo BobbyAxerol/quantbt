@@ -20,8 +20,8 @@
   implemented under the [execution amendment](../docs/meta_selection/EXECUTION_WFO_REPORT.md),
   with 153 scoped checks PASS at that historical artifact. Active/matured source
   coverage is recorded separately in [PRE-E06-02](../docs/meta_selection/PRE_E06_02_REPORT.md);
-  owner handoff and final-source artifacts are separate. E08/final-source remote
-  and publication are deferred.
+  owner handoff and final-source artifacts are separate.
+  E08/final-source remote and publication are deferred.
   E03 adds scalar software research opt-ins,
   with separately registered per-cell R/Q studies, not empirical/default promotion.
   [E02 report](../docs/meta_selection/QMSE02_REPORT.md): six gates, 1,118 distinct
