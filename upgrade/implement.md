@@ -3,20 +3,24 @@
 <a id="qms-pre-e06-action-plan"></a>
 ## QMS Pre-E06 Sequential Debt Closure - Owner Planning Request 2026-10-06
 
-**Status:** READY_FOR_E06_LOCAL. Owner approved PRE-E06-02 on
+**Status:** PRE_E06_COMPLETE; E06_COMPLETE_LOCAL_SOFTWARE_QUALIFIED_OPT_IN. Owner approved PRE-E06-02 on
 2026-10-06 (Asia/Saigon): active/matured no-leakage, raw measurement and original
 account conformance only. PRE-E06-01/02 are complete in their recorded scope;
 PRE-E06-03 is complete for the approved nested scalar cohort; PRE-E06-04 completes
 approved C05 runtime/continuation locally. PRE05 implementation/software is
 qualified locally; on 2026-10-07 (Asia/Saigon) the owner accepts the seven measured
-latency exceptions and closes its cost gate. The owner now starts PRE06 only:
+latency exceptions and closes its cost gate. The owner then started PRE06 only:
 source-exact local artifacts, installed consumers, regression, privacy and cleanup.
 PRE06 completes these gates locally: 2,551 distinct affected PASS, 30 registered
 N/A, 152 exact installed workload cells and 88 actual matured fit/rank cells.
 Read [the completed PRE06 report](../docs/meta_selection/PRE_E06_06_REPORT.md).
-Owner now approves E06 local qualification (2026-10-07 UTC). Follow the
-[E06 execution registration](../docs/meta_selection/QMSE06_QUALIFICATION.md);
-remote/public gates and E07/E08 execution stay deferred.
+Owner approved E06 local qualification (2026-10-07 UTC), now complete:
+124 distinct scoped source PASS, 32 installed rerun PASS, 12 exact installed
+full-work cells and mature intent-only/session x Numba/Rust qualification.
+Read [registration](../docs/meta_selection/QMSE06_QUALIFICATION.md),
+[E06 report](../docs/meta_selection/QMSE06_REPORT.md) and
+[cleanup](../docs/maintenance/QMS_E06_CLEANUP.md). Real-market empirical/default
+promotion, remote/public gates and E07/E08 execution stay deferred.
 [PRE02 report](../docs/meta_selection/PRE_E06_02_REPORT.md):
 13 routes, 39 active/matured decisions, 623 distinct scoped PASS; 27 scalar-scorer
 cells are explicitly not applicable. No economic/default or artifact promotion.
@@ -51,7 +55,9 @@ already implemented bounded E06/E07 intent/session, callback and command routes,
 plus pre-expiry delivery roll. The latest [report](../docs/meta_selection/EXECUTION_WFO_REPORT.md)
 records 153 scoped PASS and exact local artifact proof. Returning to E06 means
 finishing its route-specific qualification/accepted-scope handoff, not pretending
-its adapter has not been written or building another financial engine. Older
+its adapter has not been written or building another financial engine. E06 now
+finishes this accepted local software scope under its separate current report;
+the original execution receipt remains historical. Older
 current-summary statements that E06/E07 are wholly unimplemented are stale.
 This current plan takes precedence; historical receipts and phase-era facts
 must stay immutable. E03-G01 and C01-D01 are closed correctness/provenance issues,
@@ -99,7 +105,7 @@ official economic promotion to any route.
 | 4 | [PRE-E06-04](#qms-pre-e06-04) | Approved C05 policies, actual RNG and owned continuation qualification | COMPLETE_LOCAL_SOURCE_GATE; final local installed PASS PRE06 |
 | 5 | [PRE-E06-05](#qms-pre-e06-05) | Matched profiling and safe optimization; unchanged scientific/decision/account contracts | COMPLETE_LOCAL; OWNER_ACCEPTED_COST_EXCEPTION |
 | 6 | [PRE-E06-06](#qms-pre-e06-06) | Final local regression, exact installed artifacts, docs/privacy/cleanup receipt | READY_FOR_E06_LOCAL; no remote/public qualification |
-| Next | [E06](#qms-e06) resumed qualification | Accepted bounded intent/session contract, mature meta, original measurement/account and installed proof | IN_PROGRESS_LOCAL; owner approved entry |
+| Next | [E06](#qms-e06) resumed qualification | Accepted bounded intent/session contract, mature meta, original measurement/account and installed proof | COMPLETE_LOCAL_SOFTWARE_QUALIFIED_OPT_IN; no economic/default/public promotion |
 
 Do not combine stages to hide a failing earlier gate. C01/C05 specs have prior
 local implementation approval; their execution chunks here still get an explicit
@@ -25317,14 +25323,32 @@ economic study. Preserve original T06 as NOT_ASSESSED / NOT_PROMOTED, rather
 than labeling software results as all-seven economic PASS. E07/E08, CI and
 publication require their own approval.
 
-**Status:** LOCAL_BOUNDED_SOFTWARE_IMPLEMENTED under the
+**Current completion:** COMPLETE_LOCAL_SOFTWARE_QUALIFIED_OPT_IN. Read the
+[E06 report](../docs/meta_selection/QMSE06_REPORT.md) and
+[source-bound receipt](../benchmarks/optimization/meta_selection/qms_e06_closure.json):
+124 distinct source PASS, no unexpected skip, 32 installed rerun PASS and 12
+installed full-work cells. All 322 runtime/build files and 260 installed package
+files remain exact; no source/native/default change. Mature own-family fit/rank
+for intent-only/session x Numba/Rust, future mutation guards and actual applied
+params pass. One continuous account rebuild diff=0; SL/TP, pending entry,
+session quota and prepared/minimal/audit are checked independently.
+Matched one-fold active wall 348.53 ms versus off 212.43 ms (witness on); process
+peak RSS +6.28 MiB. Synthetic R=+2.167831 decomposes into IS +1.314751 and
+forward-Q +0.853080, not a real-market economic certificate. Existing 2,000-bar
+Rust score/compact kernel remains fast, but its Python result adapter is 3.887 ms
+versus Numba 2.490 ms; no whole-facade speedup is claimed. Only two inactive E06
+consumers removed, 1,135.17 MiB observed freed; exact artifacts/evidence retained.
+E07/E08 have not started in this execution. The original historical status,
+goal and broader real-market gates below are preserved, not relabeled PASS.
+
+**Historical adapter baseline:** LOCAL_BOUNDED_SOFTWARE_IMPLEMENTED under the
 [owner execution amendment](#qms-required-execution-routes). Original real-alpha
 economic promotion NOT_RUN; authorized synthetic conformance does not imply it.
-**Current receipt:** [execution report](../docs/meta_selection/EXECUTION_WFO_REPORT.md)
+**Historical receipt:** [execution report](../docs/meta_selection/EXECUTION_WFO_REPORT.md)
 and [usage](../docs/meta_selection/EXECUTION_WFO.md). The original broader real-
 market entry/gate below remains historical scope, not a forged PASS.
-**Goal:** create the missing faithful intrabar WFO adapter before enabling meta.
-**Entry:** E05 accepted; owner approves the bounded WFO intent/fold-account
+**Original Goal:** create the missing faithful intrabar WFO adapter before enabling meta.
+**Original Entry:** E05 accepted; owner approves the bounded WFO intent/fold-account
 contract and real existing intrabar alpha/data before financial route edits.
 **Guide:** [typed public routes, section 3](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s3),
 [causal/history rules, section 6](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s6),

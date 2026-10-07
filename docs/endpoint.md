@@ -2897,6 +2897,13 @@ Meta admission for these execution routes remains Mode 4/per-fold-causal, with s
 separate from economic promotion. Delivery uses explicit pre-expiry flatten/roll,
 not cash settlement. Existing standalone endpoints/defaults are unchanged.
 
+Intrabar accepted local software qualification is now complete in
+[QMS-E06](meta_selection/QMSE06_REPORT.md): mature intent-only/session x explicit
+Numba/Rust, original measurements, no-leakage controls, carried protection/
+session/account parity and exact installed wheel/sdist proof. Public signatures
+and financial defaults are unchanged. Real-market economic promotion, E07/E08
+qualification and publication remain separate gates.
+
 QMS-C04 adds a separate [owned persisted sampler journal](meta_selection/EXACT_CONTINUATION.md)
 through `quantbt.optimization.continuation`; it adds no endpoint argument or
 automatic study/fold resume. Existing WFO and generic storage semantics stay

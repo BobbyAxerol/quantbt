@@ -11,6 +11,11 @@ proof are deferred until that scope is settled. Final local wheel/sdist
 artifact qualification is now executed under
 [PRE-E06-06](PRE_E06_06_REPORT.md); no push or publication here.
 
+QMS-E06 now completes accepted local intrabar qualification:
+[report](QMSE06_REPORT.md), 124 distinct source PASS, 32 installed rerun PASS,
+own-history mature intent-only/session x Numba/Rust and exact accounting.
+This is software-qualified opt-in, not real-market/default/public promotion.
+
 C01 nested Mode 1 and C05 conditional sampling/support projection now have
 separate **local implementation approval**. Their activation plan is recorded
 in [the sequential unified plan](../../upgrade/implement.md#qms-pre-e06-action-plan).
@@ -47,7 +52,7 @@ cohort. All other rows remain Mode 4-only; no blanket method/domain activation.
 | `portfolio` | Original native_portfolio shared account; ordered position matrix/calendar | E04 122 scoped software checks, wheel/sdist, real ETH/BTC RSI diagnostic and saved-param account replay |
 | `basket` | Original native_event frozen best-effort basket | E05 original account/witness tests and wheel/sdist; real-alpha economic study not executed |
 | `arbitrage` | Original native_event bounded linear non-expiring basis/statistical pair, frozen hedge | E05 original account/witness tests and wheel/sdist; quarterly uses the separate `delivery_arbitrage` row, not this contract |
-| `intrabar` | Explicit original intrabar intent/session endpoint; continuous final execution | Local intent/protection/session/account tests; synthetic on/off study; no real-market promotion |
+| `intrabar` | Explicit original intrabar intent/session endpoint; continuous final execution | E06 source/installed qualification, mature intent-only/session x Numba/Rust, original measurements, no-leakage, account/protection/quota parity; no real-market promotion |
 | `event_driven` | Generic callback factory and original event account, not numeric W3 | Local callback/fill-feedback, pool/labels, shadow and active rebuild tests; synthetic qualification |
 | `order_commands` | Explicit original command tape; pending orders continue across folds | Local typed tape/cancel/account tests and synthetic qualification |
 | `delivery_arbitrage` | Explicit multi-leg orders plus `pre_expiry_flatten_v1`; new-leg roll commands | Independent v2/v3 fill/fee/expiry checks and synthetic qualification; no cash settlement or real venue admission |

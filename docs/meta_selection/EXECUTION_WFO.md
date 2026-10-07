@@ -8,6 +8,12 @@ Not published and not an economic/default promotion. The owner's
 extends the original QMS guide; its Ridge, maturity, labels, metrics and search
 rules remain unchanged.
 
+Current intrabar local qualification is [QMS-E06](QMSE06_REPORT.md): mature
+intent-only/session x explicit Numba/Rust, original raw IS/forward measurements,
+no-leakage controls and exact installed wheel/sdist proof. Meta stays opt-in;
+Mode 4 / `per_fold_causal` remains the admitted execution-route method. Software
+correctness does not assert persistent decay improvement or public availability.
+
 | `target_mode` | Financial endpoint | Strategy output |
 |---|---|---|
 | `intrabar` | Existing `intrabar_bracket`, reference or Rust endpoint | Exact intent frame and optional `IntrabarSessionTape` |
@@ -36,7 +42,8 @@ financial = QuantBTEndpoint.intrabar_bracket(
 
 def strategy(data, params, train_index, test_index, fold):
     # Caller-owned causal indicators can use the supplied historical prefix.
-    intent = build_intent(data, params).loc[test_index]
+    history = data.loc[:test_index[-1]]
+    intent = build_intent(history, params).loc[test_index]
     return WfoExecutionWindow("intrabar", test_index, intent=intent)
 
 bt = QuantBTEndpoint.walk_forward(
@@ -68,6 +75,11 @@ bt.quick_plot()
 `build_intent` is the user's alpha, not a library helper. Intent columns follow
 the [intrabar contract](../fast_intrabar.md); `entry_signal` is required.
 Supply `session=` for session rules and declare the policy on `financial`.
+Build session IDs globally before slicing; do not restart a fold-local ID counter.
+Final account/session quotas continue across folds. Entry-bound SL/TP are not
+automatically amended by new fold params. Explicit per-bar dynamic trailing
+keeps its existing update semantics. For safety review use the
+[independent carry/session tests](../../tests/meta_selection/test_e06_intrabar_fold_contract.py).
 Do not place duplicate account/fee/backend settings on the WFO wrapper.
 
 For callbacks, return

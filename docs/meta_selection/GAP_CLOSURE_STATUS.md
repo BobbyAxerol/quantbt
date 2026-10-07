@@ -47,6 +47,11 @@ future source/workload inherits this allowance. PRE-E06-06 is now
 [report](PRE_E06_06_REPORT.md) and [cleanup](../maintenance/QMS_PRE_E06_06_CLEANUP.md)
 bind current wheel/sdist/source and privacy gates. No broader activation,
 alpha study, CI/CD, publication or automatic E06 start is implied.
+The owner subsequently approved E06 separately. Its
+[completed accepted-scope report](QMSE06_REPORT.md) records 124 distinct source
+PASS, 32 installed rerun PASS, four actual mature financial families, original
+measurement/continuous-account parity and exact local artifacts. It introduces
+no runtime/default change; economic/public promotion remains separate.
 PRE02's source gate is now PASS: 39 actual matured fit/rank decisions across
 13 routes, original measurement/stitched accounting parity and 623 distinct
 scoped tests. This closes that local coverage gap, not E04 economic promotion,
@@ -165,11 +170,13 @@ preserve private alpha, data, logs and scientific evidence.
 PRE-E06-01..06 local gates are closed; [the PRE06 handoff](PRE_E06_06_REPORT.md)
 does not grant automatic execution or release authority.
 
-1. **E06:** finish intrabar intent/session accepted-scope qualification and
-   owner handoff using the already implemented adapter. No new simulator.
-2. **E07:** finish callback, numeric reactive and command-route accepted-scope
+E06 accepted local software qualification is now complete under its
+[separate report](QMSE06_REPORT.md). No open correctness/installed-source gap
+in that scope; its original real-market economic gate is not relabeled PASS.
+
+1. **E07:** finish callback, numeric reactive and command-route accepted-scope
    qualification/handoff. Their account/scheduler contracts stay distinct.
-3. **E08:** integrated final matrix/docs/artifacts, then separately approved
+2. **E08:** integrated final matrix/docs/artifacts, then separately approved
    remote qualification and release/public proof last for pair 1.1.2/0.4.3.
 
 Each still requires its individual start. The E04 negative economic result,

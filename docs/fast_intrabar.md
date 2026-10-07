@@ -1,5 +1,14 @@
 # Fast Intrabar Bracket And Fill Replay
 
+Optional meta-enabled WFO uses the existing financial endpoint through
+`QuantBTEndpoint.walk_forward(execution_endpoint=financial, target_mode="intrabar", ...)`.
+The [stable typed call and fold-account contract](meta_selection/EXECUTION_WFO.md)
+and [E06 qualification](meta_selection/QMSE06_REPORT.md) cover bounded intent/
+session, Mode 4/per_fold_causal, original raw measurements and exact accounting.
+Core/native 1.1.2/0.4.3 are locally prepared, not published by that certificate.
+Meta stays opt-in; this does not alter standalone execution or certify a
+strategy's market edge.
+
 Phase 31 adds a strict single-symbol intrabar route for alphas that previously
 mixed signal generation and exit-price simulation in notebook code.
 
