@@ -29,7 +29,8 @@ def frozen_array(values, dtype, *, integer=False):
     while isinstance(owner, np.ndarray):
         owner = owner.base
     if isinstance(owner, bytes):
-        return array
+        # Share immutable storage, not the caller's mutable shape/dtype header.
+        return array.view()
     return np.frombuffer(array.tobytes(), dtype=dtype)
 
 

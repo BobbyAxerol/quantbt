@@ -93,6 +93,19 @@ def test_only_bytes_owned_contiguous_arrays_reuse(kind):
         frozen.setflags(write=True)
 
 
+@pytest.mark.parametrize("mutation", ["shape", "dtype"])
+def test_reused_bytes_keep_an_independent_array_header(mutation):
+    owner = np.frombuffer(np.array([1., 2., 3.]).tobytes(), np.float64)
+    frozen = frozen_array(owner, np.float64)
+    assert frozen is not owner and np.shares_memory(frozen, owner)
+    if mutation == "shape":
+        owner.shape = (3, 1)
+    else:
+        owner.dtype = np.int64
+    assert frozen.shape == (3,) and frozen.dtype == np.float64
+    np.testing.assert_array_equal(frozen, [1., 2., 3.])
+
+
 @pytest.mark.parametrize("clone", [lambda v: v, deepcopy, lambda v: pickle.loads(pickle.dumps(v))])
 def test_mask_preparation_survives_request_copy_and_is_not_reversible(clone):
     _, request, *_ = fixture()

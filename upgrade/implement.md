@@ -26709,6 +26709,10 @@ source tests PASS. Matched timing and final installed gates IN_PROGRESS.
   `bytes(bool_tuple)` packing (same canonical 0/1 bytes), reruns final-source
   gates and preserves that intermediate source receipt unchanged. No formulas,
   inputs, outputs, thresholds or benchmark repeats are changed.
+  Additional review reproduced caller shape/dtype-header aliasing on bytes-owned
+  arrays. Share storage through a new ndarray view/header, not the caller's
+  object; preserve the failed repro, add two isolation cases and installed proof,
+  then rerun final-source regression and matched benchmarks before artifacts.
 - **Tests/gates:** Python/Numba and independent oracle; all prior timestamp/NaT,
   scope, open-action and valuation regressions; immutable ownership and SHA
   equivalence; cache hit/mutation isolation; matched full public account report

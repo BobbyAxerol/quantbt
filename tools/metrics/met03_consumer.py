@@ -93,6 +93,11 @@ def main():
     mutable[:] = 0
     assert frozen.tolist() == [1., 2., 3.]
     assert np.shares_memory(frozen, frozen_array(frozen, np.float64))
+    isolated_header = frozen_array(frozen, np.float64)
+    frozen.shape = (3, 1)
+    frozen.dtype = np.int64
+    assert isolated_header.shape == (3,) and isolated_header.dtype == np.float64
+    np.testing.assert_array_equal(isolated_header, [1., 2., 3.])
     with ReportingCache() as cache:
         from dataclasses import replace
         cached = replace(request, cache=cache)

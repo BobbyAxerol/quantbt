@@ -72,7 +72,7 @@ def main():
                 groups[f"MET03-T{value}"] += 1
     assert all(groups.values())
     if args.performance:
-        assert counts["passed"] >= 714
+        assert counts["passed"] >= 716
         for name, old_source, old_package in (("closure.json", SOURCE, PACKAGE),
             ("review-closure.json", LANE/"run-20261007T203616400281Z", LANE/"run-20261007T204118067245Z")):
             historical = json.loads((LANE/name).read_text())
