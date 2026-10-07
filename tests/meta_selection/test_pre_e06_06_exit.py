@@ -40,8 +40,11 @@ def test_installed_gate_rejects_status_only(tmp_path, monkeypatch):
 
 
 def test_privacy_gate_current_public_patch():
-    result = gate.privacy()
+    result = gate.privacy(historical=True)
     assert result["private_alpha_access"] is False and result["publication"] is False
+    assert result["historical"] is True and result["scope_revision"] == "b035d20"
+    with pytest.raises(ValueError, match="unapproved phase scope"):
+        gate.privacy()
 
 
 def collection_fixture(tmp_path, monkeypatch):

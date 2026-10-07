@@ -34,29 +34,42 @@ def checked_hashes(mapping):
             raise ValueError(f"sealed source/evidence drift: {name}")
 
 
-def source_inventory():
+def source_inventory(*, historical=False):
     names = subprocess.check_output(
         ["git", "ls-files", "src/quantbt", "rust", "pyproject.toml", "MANIFEST.in"],
         cwd=ROOT, text=True).splitlines()
     result = {n: file_hash(ROOT / n) for n in names}
     for n in names:
         old = subprocess.check_output(["git", "show", f"{ENTRY}:{n}"], cwd=ROOT)
-        if sha256(old).hexdigest() != result[n]:
+        if historical:
+            result[n] = sha256(old).hexdigest()
+        elif sha256(old).hexdigest() != result[n]:
             raise ValueError(f"unapproved runtime/build change: {n}")
     return result
 
 
-def prerequisites():
+def prerequisites(*, historical=False):
     from tools.qms_pre05_source_guard import verify
     guard = verify()
+    def checked(mapping):
+        if not historical:
+            return checked_hashes(mapping)
+        for name, expected in mapping.items():
+            original = subprocess.run(["git", "show", f"{ENTRY}:{name}"], cwd=ROOT,
+                                      capture_output=True, check=False)
+            if original.returncode == 0:
+                if sha256(original.stdout).hexdigest() != expected:
+                    raise ValueError(f"historical PRE05 source identity drift: {name}")
+            else:
+                checked_hashes({name: expected})
     prior, owner = json.loads(PRE05.read_text()), json.loads(OWNER.read_text())
     for key in ("runtime_source_sha256", "verification_source_sha256",
                 "historical_preserved_sha256", "primary_artifacts_sha256"):
-        checked_hashes(prior[key])
+        checked(prior[key])
     checked_hashes({f".maturin/qms08/pre-e06-05/samples/matched-v3-{identity}.json": value
                     for identity, value in prior["samples_sha256"].items()})
     checked_hashes(owner["sealed_evidence_sha256"])
-    checked_hashes(owner["runtime_source_sha256"])
+    checked(owner["runtime_source_sha256"])
     if (owner["status"] != "COMPLETE_LOCAL_OWNER_ACCEPTED_COST_EXCEPTION"
             or owner["correctness_rng_accounting_tolerances_waived"] is not False
             or owner["original_budget_pct"] != {"p50": 3, "p95": 5}
@@ -64,7 +77,8 @@ def prerequisites():
             or len(owner["accepted_exceptions"]) != 7
             or file_hash(ROOT / GUIDE) != prior["guide_sha256"]):
         raise ValueError("prerequisite/owner contract mismatch")
-    return dict(source_guard=guard, runtime_sha256=source_inventory(),
+    return dict(source_guard=guard, runtime_sha256=source_inventory(historical=historical),
+                historical=historical,
                 predecessor_sha256=file_hash(PRE05), owner_sha256=file_hash(OWNER),
                 guide_sha256=file_hash(ROOT / GUIDE))
 

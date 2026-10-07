@@ -138,21 +138,24 @@ def installed():
                 no_checkout_runtime=True, native_rebuilt=False)
 
 
-def privacy():
-    names = subprocess.check_output(["git", "diff", "--name-only", ENTRY], cwd=ROOT, text=True).splitlines()
-    names += subprocess.check_output(["git", "ls-files", "--others", "--exclude-standard"], cwd=ROOT, text=True).splitlines()
+def privacy(*, historical=False):
+    revision = ["b035d20"] if historical else []
+    names = subprocess.check_output(["git", "diff", "--name-only", ENTRY, *revision], cwd=ROOT, text=True).splitlines()
+    if not historical:
+        names += subprocess.check_output(["git", "ls-files", "--others", "--exclude-standard"], cwd=ROOT, text=True).splitlines()
     for name in names:
         if not name.startswith(("tools/qms_pre06_", "tests/meta_selection/test_pre_e06_06_",
                                 "docs/", "handoff/", "methodology/", "upgrade/implement.md",
                                 "benchmarks/optimization/meta_selection/qms_pre_e06_06")):
             raise ValueError(f"unapproved phase scope: {name}")
-        diff = subprocess.check_output(["git", "diff", "--unified=0", ENTRY, "--", name], cwd=ROOT, text=True)
+        diff = subprocess.check_output(["git", "diff", "--unified=0", ENTRY, *revision, "--", name], cwd=ROOT, text=True)
         if not diff:
             diff = (ROOT / name).read_text()
         check_public_text("\n".join(line[1:] for line in diff.splitlines() if line.startswith("+") and not line.startswith("+++"))
                           if diff.startswith("diff ") else diff)
     return dict(private_alpha_access=False, new_private_study=False, patch_files=len(set(names)),
-                artifact_allowlist_checked=True, publication=False)
+                artifact_allowlist_checked=True, historical=historical,
+                scope_revision="b035d20" if historical else None, publication=False)
 
 
 def cleanup():

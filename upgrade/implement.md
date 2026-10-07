@@ -1,6 +1,17 @@
 # QuantBT Upgrade Implementation Plan
 
-## Current QMS-E07 Local Closure - Owner Approval 2026-10-07
+## Current QMS-E08 Local Integration - Owner Approval 2026-10-07
+
+**Status:** LOCAL_INTEGRATED_QUALIFICATION_IN_PROGRESS. Owner approved bracket
+incident investigation and E08 local gap closure, then explicitly deferred
+CI/release. The [E08 report](../docs/meta_selection/QMSE08_REPORT.md) and
+[registered execution addendum](#qms-e08) govern this run. Exact new core
+wheel/sdist execution consumers already pass 298 rerun tests; remaining local
+integrated regression/consumer/cleanup gates are not yet declared complete.
+Remote/public qualification, push, merge/tag and publication are not authorized.
+Meta stays opt-in; no financial arithmetic, scientific/RNG or native changes.
+
+## Historical QMS-E07 Local Closure - Owner Approval 2026-10-07
 
 **Status:** COMPLETE_LOCAL_SOFTWARE_QUALIFIED_OPT_IN. E06 and E07 are accepted
 in their recorded bounded local software scope. E07 callback, command-tape and
@@ -44,7 +55,7 @@ Read [registration](../docs/meta_selection/QMSE06_QUALIFICATION.md),
 [E06 report](../docs/meta_selection/QMSE06_REPORT.md) and
 [cleanup](../docs/maintenance/QMS_E06_CLEANUP.md). Real-market empirical/default
 promotion and remote/public gates stay deferred. E07 has separate local approval
-and completes its current registered scope; E08 execution remains deferred.
+and completes its recorded registered scope; E08 now has separate local approval.
 [PRE02 report](../docs/meta_selection/PRE_E06_02_REPORT.md):
 13 routes, 39 active/matured decisions, 623 distinct scoped PASS; 27 scalar-scorer
 cells are explicitly not applicable. No economic/default or artifact promotion.
@@ -85,7 +96,7 @@ the original execution receipt remains historical. Older
 current-summary statements that E06/E07 are wholly unimplemented are stale.
 This current plan takes precedence; historical receipts and phase-era facts
 must stay immutable. E03-G01 and C01-D01 are closed correctness/provenance issues,
-not repairs to redo. E08 remains deferred until the chosen local scope is closed.
+not repairs to redo. E08 has separate local approval; remote/public stay deferred.
 
 **Acceptance policy:** no leakage, faithful raw measurement, actual applied
 params and account parity are necessary software gates. A synthetic no-gain
@@ -24705,7 +24716,7 @@ routes are not silently disabled while new domain coverage is assessed.
 | E05 | Bounded basket/arbitrage package WFO meta | Owner authorized; E04 dependency explicit | Software/installed PASS; empirical/owner PENDING |
 | E06 | Intrabar intent/session WFO, then meta qualification | PRE-E06 local handoff and accepted owner scope | COMPLETE_LOCAL_SOFTWARE_QUALIFIED_OPT_IN; real-market/default/public promotion separate |
 | E07 | Event-driven/reactive/order accepted synthetic qualification | E06 accepted scope; C02/C01 where expanded | COMPLETE_LOCAL_SOFTWARE_QUALIFIED_OPT_IN; expanded account/economic/public gates separate |
-| E08 | Domain matrix, installed/remote evidence and owner handoff | Approved preceding gate dispositions | DEFERRED_NOT_AUTHORIZED; final-source remote/public NOT_RUN |
+| E08 | Domain matrix, installed/remote evidence and owner handoff | Approved preceding gate dispositions | AUTHORIZED_LOCAL_IN_PROGRESS; remote/public DEFERRED_BY_OWNER |
 
 Proceed one phase and one route cell at a time. Owner approval is required
 before starting and before widening certified support. A blocked required gate
@@ -25625,6 +25636,20 @@ tests, preserving every historical receipt. Historical artifact checks must
 explicitly validate their historical Git/source identity; they must still reject
 being used as current-source certification. Do not exempt whole runtime files,
 change accounting or alter the detailed scientific guide to pass old guards.
+
+**E08-R01 Verification Repair Registration:** the full meta regression v1
+retains 2,458 passing cases, 30 registered scalar-only N/A comparators and one
+failure: PRE06's current-patch privacy allowlist rejects E07/E08 files. Bind
+historical PRE06 privacy to its recorded final revision `b035d20`; keep the
+default current-source rejection. Add a separate E08 current-patch scope/secret
+gate and mutation tests. Rerun the complete affected verification modules under
+`meta-repair`, then independently reconcile their XML with the original full
+regression. Only this exact failed privacy case may be repaired, never a
+financial/metric/selection failure; the original receipt remains FAILED and
+its passing cases count only with unchanged runtime/source guard identity.
+Reject unexpected failures/skips, missing repair cases, changed manifests or
+self-attested counts. WFO/account/plot shards must independently pass. This
+does not authorize another study, CI run or publication.
 
 #### Future Options/Nautilus And New Endpoint Entry Gate
 

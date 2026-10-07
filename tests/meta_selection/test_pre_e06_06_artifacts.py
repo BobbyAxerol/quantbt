@@ -93,8 +93,11 @@ def test_cleanup_rejects_symlink(tmp_path, monkeypatch):
 
 
 def test_predecessor_seals_and_owner_exception():
-    current = gate.prerequisites()
+    current = gate.prerequisites(historical=True)
     assert current["runtime_sha256"] and current["source_guard"]["publication"] is False
+    assert current["historical"] is True
+    with pytest.raises(ValueError, match="drift|runtime/build change"):
+        gate.prerequisites()
 
 
 def test_native_reuse_requires_exact_hash(tmp_path):
