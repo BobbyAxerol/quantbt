@@ -83,9 +83,26 @@ def main():
     plt.close(fig)
     json.dumps(report, allow_nan=False)
     edge_cases = check_reporting_edges()
+    import numpy as np
+    from quantbt.metrics.reporting.inputs import frozen_array
+    mutable = np.array([1., 2., 3.])
+    mutable.setflags(write=False)
+    frozen = frozen_array(mutable, np.float64)
+    assert not np.shares_memory(mutable, frozen)
+    mutable.setflags(write=True)
+    mutable[:] = 0
+    assert frozen.tolist() == [1., 2., 3.]
+    assert np.shares_memory(frozen, frozen_array(frozen, np.float64))
+    with ReportingCache() as cache:
+        from dataclasses import replace
+        cached = replace(request, cache=cache)
+        first = endpoint.full_report(reporting=cached)
+        assert endpoint.full_report(reporting=cached) == first and cache.hits == 1
+        result.equity.iloc[-1] -= 1
+        assert endpoint.full_report(reporting=cached) != first and cache.misses == 2
     print(json.dumps(dict(status="PASS", modules=len(actual), core="1.1.2", native="0.4.3",
         package_origin=str(root), outside_checkout=True, extension_sha256=registration["native_reuse"]["extension_sha256"],
-        matplotlib_optional=True, review_edge_cases=edge_cases, publication=False)))
+        matplotlib_optional=True, review_edge_cases=edge_cases, performance_ownership_cache="PASS", publication=False)))
 
 
 if __name__ == "__main__":

@@ -31,6 +31,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--stage", choices=("source", "package"), required=True)
     parser.add_argument("--allow-download", action="store_true", help="Populate missing public dependency wheels; no package upload")
+    parser.add_argument("--performance", action="store_true", help="Also compare completed reporting against owner recheck baseline")
     args = parser.parse_args()
     before = shutil.disk_usage(ROOT).free
     inodes = os.statvfs(ROOT).f_favail
@@ -42,6 +43,9 @@ def main():
         native_reuse=native_reuse(NATIVE), budget_bytes=BUDGET, inode_budget=20000, worker_rss_mib=2048,
         threads=1, warmup=1, repeats=5, sizes=[2000, 100000, 1000000], source_parent="864b38a",
         benchmark_cells=12, financial_or_scientific_changes=False, native_rebuilt=False, publication=False)
+    if args.performance:
+        registration["performance_baseline"] = "24ad469"
+        registration["matched_public_cells"] = 6
     (lane/"registration.json").write_text(json.dumps(registration, indent=2, sort_keys=True)+"\n")
     steps, artifacts, scratch_inventory = [], {}, []
     peak_files, peak_bytes = 0, 0
@@ -79,6 +83,8 @@ def main():
                     "tests/test_phase60_execution_metrics_native_result.py", f"--basetemp={scratch/'pytest'}",
                     f"--junitxml={lane/'pytest.xml'}"], source=True)
                 run([python, "tools/metrics/benchmark_met03.py", "--output", lane/"benchmark.json"], source=True)
+                if args.performance:
+                    run([python, "tools/metrics/benchmark_reporting_performance.py", "--output", lane/"performance.json"], source=True)
                 run([python, "-m", "examples.reporting_metrics_v1"], source=True)
             else:
                 build_env = scratch/"build-env"

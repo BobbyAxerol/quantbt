@@ -113,6 +113,9 @@ def worker(kind, count, backend):
     data["peak_rss_mib"] = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024
     data["peak_delta_mib"] = data["peak_rss_mib"] - rss_start
     primary = data.get("fresh_public_with_episodes", data.get("fresh_public_with_ledger"))
+    from hashlib import sha256
+    data["report_sha256"] = sha256(json.dumps(metadata, sort_keys=True, allow_nan=False).encode()).hexdigest()
+    data["input_identity"] = obs.identity
     data["observations_per_second"] = count/(primary["p50_ms"]/1000)
     assert data["peak_rss_mib"] < 2048, "preregistered worker RSS budget"
     return data

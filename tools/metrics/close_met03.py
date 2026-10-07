@@ -30,11 +30,14 @@ def main():
     parser.add_argument("--source", type=Path, default=SOURCE)
     parser.add_argument("--package", type=Path, default=PACKAGE)
     parser.add_argument("--recheck", action="store_true")
+    parser.add_argument("--performance", action="store_true")
     args = parser.parse_args()
     source, package = args.source.resolve(), args.package.resolve()
     if any(not p.is_relative_to(LANE) or p.is_symlink() for p in (source, package)):
         raise ValueError("local proof lanes must remain inside MET-03 evidence")
-    destination = LANE/("review-closure.json" if args.recheck else "closure.json")
+    if args.performance and args.recheck:
+        raise ValueError("choose one distinct follow-up receipt")
+    destination = LANE/("performance-closure.json" if args.performance else "review-closure.json" if args.recheck else "closure.json")
     if destination.exists():
         raise RuntimeError("refuse to rewrite a completed phase receipt")
     receipts = [json.loads((p/"receipt.json").read_text()) for p in (source, package)]
@@ -50,6 +53,8 @@ def main():
             assert digest(ROOT/step["log"]) == step["sha256"] and step["exit_code"] == 0
         if lane == package and args.recheck:
             assert all(a["consumer"].get("review_edge_cases") == "PASS" for a in receipt["artifacts"].values())
+        if lane == package and args.performance:
+            assert all(a["consumer"].get("performance_ownership_cache") == "PASS" for a in receipt["artifacts"].values())
     parent = json.loads((ROOT/"docs/metrics/evidence/met02/baseline.json").read_text())
     for name, expected in parent["protected_sources"].items():
         assert_protected(name, expected)
@@ -66,6 +71,21 @@ def main():
             for value in re.findall(r"_t(\d{2})(?=_|\b)", case.attrib["name"]):
                 groups[f"MET03-T{value}"] += 1
     assert all(groups.values())
+    if args.performance:
+        assert counts["passed"] >= 714
+        for name, old_source, old_package in (("closure.json", SOURCE, PACKAGE),
+            ("review-closure.json", LANE/"run-20261007T203616400281Z", LANE/"run-20261007T204118067245Z")):
+            historical = json.loads((LANE/name).read_text())
+            assert all(digest(ROOT/p) == expected for p, expected in historical["evidence_sha256"].items())
+            registration = json.loads((old_package/"registration.json").read_text())
+            for artifact in json.loads((old_package/"receipt.json").read_text())["artifacts"].values():
+                assert digest(ROOT/artifact["path"]) == artifact["sha256"]
+                artifact_source(ROOT/artifact["path"], registration["core_inventory"])
+        matched = json.loads((source/"performance.json").read_text())
+        assert len(matched["rows"]) == len(matched["ledgers"]) == 6 and matched["scratch_removed"]
+        for cell in matched["rows"]+matched["ledgers"]:
+            assert cell["before"]["report_sha256"] == cell["after"]["report_sha256"]
+            assert cell["before"]["input_identity"] == cell["after"]["input_identity"]
     if args.recheck:
         historical = json.loads((LANE/"closure.json").read_text())
         assert all(digest(ROOT/name) == expected for name, expected in historical["evidence_sha256"].items())
@@ -81,7 +101,7 @@ def main():
     exploratory = Path("/tmp/quantbt-met03-initial")
     cleaned = []
     before = shutil.disk_usage(ROOT).free
-    if exploratory.exists():
+    if exploratory.exists() and not args.performance:
         assert not exploratory.is_symlink() and exploratory.resolve() == exploratory
         retained = LANE/"exploratory-retained"
         retained.mkdir()
@@ -118,7 +138,8 @@ def main():
             implicit_closed_ledger="UNAVAILABLE without authoritative witness", local_python="3.12",
             remote_manylinux_public="NOT_RUN; separate owner approval"),
         test_counts=counts, owner_recheck=args.recheck,
-        historical_receipts_and_artifacts="PASS" if args.recheck else "NOT_APPLICABLE",
+        historical_receipts_and_artifacts="PASS" if args.recheck or args.performance else "NOT_APPLICABLE",
+        performance_follow_up=args.performance,
         owner_final_review="PENDING", publication=False)
     destination.write_text(json.dumps(closure, sort_keys=True, indent=2)+"\n")
     print(json.dumps(dict(status=closure["status"], gates=closure["gates"], removed=cleaned)))

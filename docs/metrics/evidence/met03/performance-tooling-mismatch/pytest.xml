@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="2.464" timestamp="2026-10-07T21:28:05.819092+00:00" hostname="Bobby"><testcase classname="tests.metrics.test_public_reporting" name="test_met03_t04_t05_actual_w3_reset_flat_results_remain_independent" time="0.174"><failure message="RuntimeError: reactive WFO candidate failed: fold_id=0, stage=anti-leakage in-sample search, candidate_id=e66e82daf89dd4617d6b7cf0: native-event Rust R1 is unavailable: unsupported quantbt-engine/quantbt-native pair: core='1.1.2', native='0.4.2', registry=b5f12f390a642b6f595e19d82d980c0720a16957d4cb6a10f210eb4f8fcf2820">self = &lt;quantbt.backends.reactive_wfo.ReactivePreparedWfoRuntimeV1 object at 0x7f3a55dd9730&gt;
+markers = [ReactiveWfoScoreMarkerV1(task=ReactiveWfoTaskV1(run_id='2cb3b9eaebf1b3a0ebcf7da787a52dfc0e22b4654cc7792ebc3ee2fa11734...678034562, market_signature='7b7b4caa46a040e16c1903cf4acb28b044a1f1b20f4bd69a829d90d11cd43468'), params={'window': 5})]
+
+    def score_markers(self, markers: Sequence[ReactiveWfoScoreMarkerV1]) -&gt; list[dict[str, float]]:
+        if self._adapter is None:
+            raise RuntimeError("reactive WFO strategy adapter is not prepared")
+        self._check_canceled()
+        budget = self.runtime_config.runtime_budget
+        workers = 1
+        budget.require_preflight(
+            bars=sum(marker.task.bars for marker in markers),
+            workers=workers,
+            native_memory_bytes=0,
+            metric_rows=len(markers),
+        )
+        started = perf_counter()
+        rows: list[dict[str, float]] = []
+        for marker in markers:
+            self._check_canceled()
+            try:
+                if self._meta_boundary is not None:
+                    row, _result, _signature = self._meta_boundary.execute(marker)
+                    rows.append(row)
+                elif self.runtime_config.worker_mode == "process":
+                    worker = self._ensure_process_worker()
+                    rows.append(worker.score(marker, canceled=lambda: self._cancel.canceled))
+                else:
+                    scalar_sessions = self._ensure_scalar_sessions()
+&gt;                   row, _fingerprint = scalar_sessions.score(marker)
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+src/quantbt/backends/reactive_wfo.py:279: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/quantbt/backends/reactive_wfo_workers.py:175: in score
+    runner, prepared_requirements = self._prepared_runner.prepare_reactive_scalar_score(
+src/quantbt/endpoint.py:764: in prepare_reactive_scalar_score
+    runner, _ = self.backend._prepare_reactive_numeric_coruntime(
+src/quantbt/backends/native_event.py:2089: in _prepare_reactive_numeric_coruntime
+    runner = RustReactiveNumericCoRuntime(
+src/quantbt/backends/_native_event_rust.py:3104: in __init__
+    self._module = _require_r1_extension()
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def _require_r1_extension() -&gt; ModuleType:
+        module = _load_extension()
+        status = probe_native_event_rust_extension(module=module)
+        if not status.available or not status.compatible or not status.executable:
+            detail = status.reason or "unknown native extension state"
+&gt;           raise NativeEventRustBackendError(f"native-event Rust R1 is unavailable: {detail}")
+E           quantbt.backends._native_event_rust.NativeEventRustBackendError: native-event Rust R1 is unavailable: unsupported quantbt-engine/quantbt-native pair: core='1.1.2', native='0.4.2', registry=b5f12f390a642b6f595e19d82d980c0720a16957d4cb6a10f210eb4f8fcf2820
+
+src/quantbt/backends/_native_event_rust.py:1068: NativeEventRustBackendError
+
+The above exception was the direct cause of the following exception:
+
+    def test_met03_t04_t05_actual_w3_reset_flat_results_remain_independent():
+        from tests.meta_selection import e07_support
+&gt;       value = e07_support.run(("reactive_reset", "rust"), "off")
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/metrics/test_public_reporting.py:253: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/meta_selection/e07_support.py:63: in run
+    return execute(prepare_run(case, mode, **kwargs))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/meta_selection/e07_support.py:55: in execute
+    result = bt.backtest(**kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^
+src/quantbt/backends/reactive_wfo.py:377: in backtest
+    return self._backtest(params=params, param_ranges=param_ranges,
+src/quantbt/backends/reactive_wfo.py:490: in _backtest
+    self._select(engine=engine, folds=folds, params=params, param_ranges=param_ranges)
+src/quantbt/backends/reactive_wfo.py:762: in _select
+    selected, fold_trials, fold_candidates = engine.optimize_params(
+src/quantbt/walkforward.py:1884: in optimize_params
+    study.optimize(
+.venv/lib/python3.12/site-packages/optuna/study/study.py:490: in optimize
+    _optimize(
+.venv/lib/python3.12/site-packages/optuna/study/_optimize.py:68: in _optimize
+    _optimize_sequential(
+.venv/lib/python3.12/site-packages/optuna/study/_optimize.py:165: in _optimize_sequential
+    frozen_trial_id = _run_trial(study, func, catch)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.12/site-packages/optuna/study/_optimize.py:263: in _run_trial
+    raise func_err
+.venv/lib/python3.12/site-packages/optuna/study/_optimize.py:206: in _run_trial
+    value_or_values = func(trial)
+                      ^^^^^^^^^^^
+src/quantbt/walkforward.py:1843: in objective
+    record = self.evaluate_params_is(
+src/quantbt/backends/reactive_wfo_support.py:440: in evaluate_params_is
+    scored = self._score_strategy_outputs_batch(data, score_tasks)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/quantbt/backends/reactive_wfo_support.py:362: in _score_strategy_outputs_batch
+    return self._reactive_runtime.score_markers(markers)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = &lt;quantbt.backends.reactive_wfo.ReactivePreparedWfoRuntimeV1 object at 0x7f3a55dd9730&gt;
+markers = [ReactiveWfoScoreMarkerV1(task=ReactiveWfoTaskV1(run_id='2cb3b9eaebf1b3a0ebcf7da787a52dfc0e22b4654cc7792ebc3ee2fa11734...678034562, market_signature='7b7b4caa46a040e16c1903cf4acb28b044a1f1b20f4bd69a829d90d11cd43468'), params={'window': 5})]
+
+    def score_markers(self, markers: Sequence[ReactiveWfoScoreMarkerV1]) -&gt; list[dict[str, float]]:
+        if self._adapter is None:
+            raise RuntimeError("reactive WFO strategy adapter is not prepared")
+        self._check_canceled()
+        budget = self.runtime_config.runtime_budget
+        workers = 1
+        budget.require_preflight(
+            bars=sum(marker.task.bars for marker in markers),
+            workers=workers,
+            native_memory_bytes=0,
+            metric_rows=len(markers),
+        )
+        started = perf_counter()
+        rows: list[dict[str, float]] = []
+        for marker in markers:
+            self._check_canceled()
+            try:
+                if self._meta_boundary is not None:
+                    row, _result, _signature = self._meta_boundary.execute(marker)
+                    rows.append(row)
+                elif self.runtime_config.worker_mode == "process":
+                    worker = self._ensure_process_worker()
+                    rows.append(worker.score(marker, canceled=lambda: self._cancel.canceled))
+                else:
+                    scalar_sessions = self._ensure_scalar_sessions()
+                    row, _fingerprint = scalar_sessions.score(marker)
+                    rows.append(row)
+            except (RuntimeCanceledError, RuntimeBudgetError) as exc:
+                self._worker_errors.append(
+                    {
+                        "candidate_id": marker.task.candidate_id,
+                        "fold_id": int(marker.task.fold_id),
+                        "stage": marker.task.stage,
+                        "error_type": type(exc).__name__,
+                        "message": str(exc),
+                    }
+                )
+                raise
+            except Exception as exc:
+                self._worker_errors.append(
+                    {
+                        "candidate_id": marker.task.candidate_id,
+                        "fold_id": int(marker.task.fold_id),
+                        "stage": marker.task.stage,
+                        "error_type": type(exc).__name__,
+                        "message": str(exc),
+                    }
+                )
+&gt;               raise RuntimeError(
+                    "reactive WFO candidate failed: "
+                    f"fold_id={marker.task.fold_id}, stage={marker.task.stage}, "
+                    f"candidate_id={marker.task.candidate_id}: {exc}"
+                ) from exc
+E               RuntimeError: reactive WFO candidate failed: fold_id=0, stage=anti-leakage in-sample search, candidate_id=e66e82daf89dd4617d6b7cf0: native-event Rust R1 is unavailable: unsupported quantbt-engine/quantbt-native pair: core='1.1.2', native='0.4.2', registry=b5f12f390a642b6f595e19d82d980c0720a16957d4cb6a10f210eb4f8fcf2820
+
+src/quantbt/backends/reactive_wfo.py:302: RuntimeError</failure></testcase></testsuite></testsuites>

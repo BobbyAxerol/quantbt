@@ -26690,7 +26690,8 @@ then local artifact/cleanup/final handoff. Preserve phase receipts independently
 
 ### MET-03 Reporting Performance Follow-Up - 2026-10-07
 
-**Status:** REGISTERED; tests and performance gates NOT_RUN.
+**Status:** IMPLEMENTED; 47 new snapshot/ownership cases and 714 qualified
+source tests PASS. Matched timing and final installed gates IN_PROGRESS.
 
 - **Goal/scope:** profile and reduce completed-report snapshot/adaptation costs
   against immutable baseline `24ad469`, under [G01](#metrics-guide-contract),
