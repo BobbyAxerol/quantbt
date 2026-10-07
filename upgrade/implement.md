@@ -543,7 +543,7 @@ implementation with explicit resource disposition, not a forced Rust rewrite.
 `matched-v1` as exploratory, not the final latency gate. A/A full semantic proof
 passes after validating today's publication time equals nominal maturity plus
 actual observer elapsed; historical clocks/hashes are never normalized. Physical
-task generation clocks are not logical work. Final `matched-v2` uses the same
+task generation clocks are not logical work. Final `matched-v3` uses the same
 21 paired repetitions, fixtures, budgets and retention, but BOTH arms compile/
 bind the exact reviewed portable/witness blocks outside the timer, with entry
 bytes read once per worker. This removes asymmetric baseline subprocess/alias
@@ -552,6 +552,11 @@ Every raw sample remains retained. The benchmark projects physical clocks only
 after testing their exact runtime formula; it never discards history eligibility.
 Report per-cell point budgets literally, dispersion separately and any unresolved
 timing gate as INCONCLUSIVE/NOT_MET, not certified statistical non-inferiority.
+The balanced prototype `matched-v2` is also retained but unpromoted: custom
+metaclass equality requires identity checks rather than type-tuple membership.
+The final exact source seal is `qms_pre_e06_05_reviewed_source_v2.json`; the
+prototype seal remains historical. New negative type tests and chronological
+tests must pass before measuring this final source; no numeric/math change.
 
 <a id="qms-pre-e06-06"></a>
 ### Phase PRE-E06-06 - Local Conformance, Exact Artifacts And E06 Entry Gate

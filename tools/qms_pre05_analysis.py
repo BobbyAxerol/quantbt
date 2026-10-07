@@ -110,7 +110,7 @@ def main():
     import argparse
 
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--label", default="matched-v1")
+    parser.add_argument("--label", default="matched-v3")
     parser.add_argument("--output", required=True)
     args = parser.parse_args()
     result = collect(ROOT / ".maturin/qms08/pre-e06-05", args.label)

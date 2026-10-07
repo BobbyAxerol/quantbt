@@ -8,7 +8,7 @@ import subprocess
 ROOT = Path(__file__).resolve().parents[1]
 ENTRY = "d0cd95a"
 MANIFEST = (
-    ROOT / "benchmarks/optimization/meta_selection/qms_pre_e06_05_reviewed_source.json"
+    ROOT / "benchmarks/optimization/meta_selection/qms_pre_e06_05_reviewed_source_v2.json"
 )
 ALLOW = frozenset({"src/quantbt/optimization/meta_selection/common.py"})
 

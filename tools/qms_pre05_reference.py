@@ -26,6 +26,7 @@ def sources():
     }
 
 
+@lru_cache(maxsize=4)
 def entry_module(module, name, *, optimized=False):
     source = sources()[name][bool(optimized)]
     namespace = dict(module.__dict__)

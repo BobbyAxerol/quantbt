@@ -30,6 +30,30 @@ class String(str):
     pass
 
 
+class EqualityMeta(type):
+    __hash__ = type.__hash__
+
+    def __eq__(cls, other):
+        return other is str
+
+
+class RaisingMeta(type):
+    __hash__ = type.__hash__
+
+    def __eq__(cls, other):
+        if other is str or other is bool or other is int:
+            raise AssertionError("portable dispatch must not invoke type equality")
+        return type.__eq__(cls, other)
+
+
+class Impostor(metaclass=EqualityMeta):
+    pass
+
+
+class RaisingType(metaclass=RaisingMeta):
+    pass
+
+
 @dataclass(frozen=True)
 class Record:
     when: pd.Timestamp
@@ -108,3 +132,13 @@ def test_frozen_records_cannot_be_mutated():
     with pytest.raises(TypeError):
         value["x"][1]["y"] = 3
     assert json.loads(common.canonical(value)) == {"x": [1, {"y": 2}]}
+
+
+@pytest.mark.parametrize("value", [Impostor(), RaisingType()])
+def test_metaclass_equality_never_bypasses_portable_rejection(value):
+    old, _ = entry_module(common, BLOCKS[0])
+    with pytest.raises(common.MetaRecordError) as expected:
+        old["wire"](value)
+    with pytest.raises(common.MetaRecordError) as actual:
+        common.wire(value)
+    assert str(actual.value) == str(expected.value)

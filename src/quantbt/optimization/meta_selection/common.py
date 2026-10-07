@@ -34,7 +34,7 @@ def token(value, name="reference"):
 def wire(value):
     # Exact built-ins dominate portable records; subclasses retain the old dispatch.
     kind = type(value)
-    if value is None or kind in (str, bool, int):
+    if value is None or kind is str or kind is bool or kind is int:
         return value
     if kind is float and math.isfinite(value):
         return value
