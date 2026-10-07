@@ -204,7 +204,16 @@ def execute_window(config, data, output, *, symbols=None):
             datetime_index=output.index)
         if output.route == "delivery_arbitrage":
             lifecycle.reconcile(result)
+    clock = result.metadata.get("event_clock_contract", {})
+    intrabar = result.metadata.get("execution_contract", {})
+    activation = clock.get("command_activation_phase", intrabar.get("entry_fill_phase"))
+    boundary = ("bar_close_next_open" if activation in {"next_bar_open", "next_open"}
+                else "bar_close_next_bar_close" if activation == "next_bar_close" else "unreported")
     result.metadata["wfo_execution_window"] = dict(schema=output.schema, route=output.route,
         diagnostic_account="reset_flat", final_stitch="one_original_continuous_account",
-        callback_boundary="bar_close_next_open", financial_replays=0)
+        callback_boundary=boundary if output.route == "event_driven" else "not_applicable",
+        intent_boundary=boundary if output.route == "intrabar" else "not_applicable",
+        command_timestamp_semantics="effective_bar" if output.route in {"order_commands", "delivery_arbitrage"} else "signal_bar_close",
+        execution_contract_id=result.metadata.get("execution_contract_id", intrabar.get("engine_id")),
+        financial_replays=0)
     return result
