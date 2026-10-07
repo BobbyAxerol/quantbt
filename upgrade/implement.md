@@ -3,11 +3,11 @@
 <a id="qms-pre-e06-action-plan"></a>
 ## QMS Pre-E06 Sequential Debt Closure - Owner Planning Request 2026-10-06
 
-**Status:** PRE_E06_04_COMPLETE_LOCAL_APPROVED_SOURCE_GATE. Owner approved PRE-E06-02 on
+**Status:** PRE_E06_05_IN_PROGRESS_LOCAL. Owner approved PRE-E06-02 on
 2026-10-06 (Asia/Saigon): active/matured no-leakage, raw measurement and original
 account conformance only. PRE-E06-01/02 are complete in their recorded scope;
 PRE-E06-03 is complete for the approved nested scalar cohort; PRE-E06-04 completes
-approved C05 runtime/continuation locally; 05/06 remain planned.
+approved C05 runtime/continuation locally; 05 is in progress and 06 remains planned.
 [PRE02 report](../docs/meta_selection/PRE_E06_02_REPORT.md):
 13 routes, 39 active/matured decisions, 623 distinct scoped PASS; 27 scalar-scorer
 cells are explicitly not applicable. No economic/default or artifact promotion.
@@ -79,7 +79,7 @@ official economic promotion to any route.
 | 2 | [PRE-E06-02](#qms-pre-e06-02) | Active/matured causal and measurement conformance on existing admitted routes | COMPLETE_LOCAL_SOURCE_GATE; no new-mode/economic promotion |
 | 3 | [PRE-E06-03](#qms-pre-e06-03) | Approved C01 nested scalar runtime activation, raw outer-IS/forward parity | COMPLETE_LOCAL_SOURCE_GATE; final installed proof PRE06 |
 | 4 | [PRE-E06-04](#qms-pre-e06-04) | Approved C05 policies, actual RNG and owned continuation qualification | COMPLETE_LOCAL_SOURCE_GATE; final installed proof PRE06 |
-| 5 | [PRE-E06-05](#qms-pre-e06-05) | Matched profiling and safe optimization; unchanged scientific/decision/account contracts | PLANNED_NOT_STARTED |
+| 5 | [PRE-E06-05](#qms-pre-e06-05) | Matched profiling and safe optimization; unchanged scientific/decision/account contracts | IN_PROGRESS_LOCAL_MATCHED_GATE |
 | 6 | [PRE-E06-06](#qms-pre-e06-06) | Final local regression, exact installed artifacts, docs/privacy/cleanup receipt | PLANNED_NOT_STARTED |
 | Next | [E06](#qms-e06) resumed qualification | Owner approves entry using the final local handoff | NOT_ENTERED_BY_THIS_PLAN |
 
@@ -538,6 +538,20 @@ pool/RNG/witness/measurement/account and requested report parity; inspect all
 chronological outcomes and invalidation/close/retention. Final artifact proofs
 remain PRE-E06-06. Accepted non-beneficial blocks stay on their existing qualified
 implementation with explicit resource disposition, not a forced Rust rewrite.
+
+**Measurement-control correction:** retain A/A failure receipts and interrupted
+`matched-v1` as exploratory, not the final latency gate. A/A full semantic proof
+passes after validating today's publication time equals nominal maturity plus
+actual observer elapsed; historical clocks/hashes are never normalized. Physical
+task generation clocks are not logical work. Final `matched-v2` uses the same
+21 paired repetitions, fixtures, budgets and retention, but BOTH arms compile/
+bind the exact reviewed portable/witness blocks outside the timer, with entry
+bytes read once per worker. This removes asymmetric baseline subprocess/alias
+setup; no sampler/evaluator/model/financial code or numerical tolerance changes.
+Every raw sample remains retained. The benchmark projects physical clocks only
+after testing their exact runtime formula; it never discards history eligibility.
+Report per-cell point budgets literally, dispersion separately and any unresolved
+timing gate as INCONCLUSIVE/NOT_MET, not certified statistical non-inferiority.
 
 <a id="qms-pre-e06-06"></a>
 ### Phase PRE-E06-06 - Local Conformance, Exact Artifacts And E06 Entry Gate

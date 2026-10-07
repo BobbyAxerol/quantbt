@@ -22,8 +22,10 @@ from tools.qms_pre05_workloads import (
     prepare,
     semantic,
     export_history,
+    metadata,
 )
 from tools.qms_pre05_profile import PublicCostProfile
+from tools.qms_pre05_reference import baseline_blocks
 
 
 def write_once(path, value):
@@ -60,7 +62,12 @@ def register(lane):
     return dict(cells=len(cells()), available_bytes=manifest["available_bytes"])
 
 
-def profile(cell, lane, label, *, warm=False):
+def profile(cell, lane, label, *, warm=False, reference=False):
+    with baseline_blocks(optimized=not reference):
+        return _profile(cell, lane, label, warm=warm)
+
+
+def _profile(cell, lane, label, *, warm=False):
     if warm:
         execute(prepare(cell, lane), cell)
     bt, data, ctx, ranges = prepare(cell, lane)
@@ -86,6 +93,22 @@ def profile(cell, lane, label, *, warm=False):
         components=stages.report(wall),
         semantic_sha256=key,
         work=work,
+        model_shapes=[
+            dict(
+                N=m.diagnostics["rows"],
+                d=m.diagnostics["dimension"],
+                origins=m.origin_count,
+                P=len(r["proposal"].predictions),
+            )
+            for m, r in zip(
+                metadata(result, cell)
+                .get("meta_selection", {})
+                .get("models", {})
+                .values(),
+                metadata(result, cell).get("meta_selection", {}).get("records", ()),
+                strict=True,
+            )
+        ],
         hot=[
             dict(
                 file=k[0],
@@ -118,6 +141,7 @@ def main():
     p.add_argument("--route", default="pct_equity")
     p.add_argument("--label", default="before")
     p.add_argument("--warm", action="store_true")
+    p.add_argument("--reference", action="store_true")
     args = p.parse_args()
     optuna.logging.set_verbosity(optuna.logging.WARNING)
     lane = args.lane.resolve()
@@ -179,7 +203,13 @@ def main():
         write_once(lane / (args.label + "-matrix.json"), values)
         value = dict(completed=len(values))
     else:
-        value = profile(cells()[args.cell], lane, args.label, warm=args.warm)
+        value = profile(
+            cells()[args.cell],
+            lane,
+            args.label,
+            warm=args.warm,
+            reference=args.reference,
+        )
     print(json.dumps(value, sort_keys=True))
 
 

@@ -2,6 +2,7 @@
 
 from contextlib import contextmanager
 from hashlib import sha256
+from functools import lru_cache
 import inspect
 import subprocess
 import sys
@@ -14,8 +15,19 @@ BLOCKS = (
 )
 
 
-def entry_module(module, name):
-    source = subprocess.check_output(["git", "show", ENTRY + ":" + name], cwd=ROOT)
+@lru_cache(maxsize=1)
+def sources():
+    return {
+        name: (
+            subprocess.check_output(["git", "show", ENTRY + ":" + name], cwd=ROOT),
+            (ROOT / name).read_bytes(),
+        )
+        for name in BLOCKS
+    }
+
+
+def entry_module(module, name, *, optimized=False):
+    source = sources()[name][bool(optimized)]
     namespace = dict(module.__dict__)
     exec(compile(source, name + "@" + ENTRY, "exec"), namespace)
     # Exceptions retain the current type; only identical portable block bodies vary.
@@ -24,10 +36,10 @@ def entry_module(module, name):
 
 
 @contextmanager
-def baseline_blocks():
+def baseline_blocks(*, optimized=False):
     from quantbt.optimization.meta_selection import common, witness
 
-    old, common_sha = entry_module(common, BLOCKS[0])
+    old, common_sha = entry_module(common, BLOCKS[0], optimized=optimized)
     functions = {
         id(getattr(common, n)): old[n]
         for n in ("wire", "canonical", "digest", "freeze")
@@ -43,7 +55,7 @@ def baseline_blocks():
                 if id(value) in functions:
                     saved.append((module, attr, value))
                     setattr(module, attr, functions[id(value)])
-    previous, witness_sha = entry_module(witness, BLOCKS[1])
+    previous, witness_sha = entry_module(witness, BLOCKS[1], optimized=optimized)
     previous["digest"] = old["digest"]
     owner = witness.PreparedMetricWitness
     names = (

@@ -1,6 +1,5 @@
 """Uninstrumented paired public timing, with full semantic proof retained."""
 
-from contextlib import nullcontext
 import gc
 from hashlib import sha256
 import resource
@@ -40,7 +39,7 @@ def sample(cell, lane, label):
             else ("optimized", "reference")
         )
         for arm in order:
-            with baseline_blocks() if arm == "reference" else nullcontext():
+            with baseline_blocks(optimized=arm == "optimized"):
                 fixture_t = perf_counter()
                 prepared = prepare(cell, lane, frozen_history=frozen)
                 fixture_seconds = perf_counter() - fixture_t
