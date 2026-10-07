@@ -95,3 +95,8 @@ MiB actual free-space improvement; current consumers/evidence remain retained.
 The [PRE-E06-02 receipt](maintenance/QMS_PRE_E06_02_CLEANUP.md) records tooling
 reuse, under 1 MiB retained test evidence and unchanged protected hashes; no
 disposable build scratch was created or deleted.
+The [PRE-E06-06 receipt](maintenance/QMS_PRE_E06_06_CLEANUP.md) records four
+exact inactive artifact-consumer/build removals, 401 protected hashes unchanged
+and 1,155.10 MiB observed free-space improvement. Exact artifacts, staged source,
+passing/failing evidence, current tooling and offline dependencies remain;
+cleaned consumers require fresh installation before rerun.

@@ -3,7 +3,7 @@
 <a id="qms-pre-e06-action-plan"></a>
 ## QMS Pre-E06 Sequential Debt Closure - Owner Planning Request 2026-10-06
 
-**Status:** PRE_E06_06_RUNNING_LOCAL_ARTIFACT_QUALIFICATION. Owner approved PRE-E06-02 on
+**Status:** READY_FOR_E06_LOCAL. Owner approved PRE-E06-02 on
 2026-10-06 (Asia/Saigon): active/matured no-leakage, raw measurement and original
 account conformance only. PRE-E06-01/02 are complete in their recorded scope;
 PRE-E06-03 is complete for the approved nested scalar cohort; PRE-E06-04 completes
@@ -11,6 +11,10 @@ approved C05 runtime/continuation locally. PRE05 implementation/software is
 qualified locally; on 2026-10-07 (Asia/Saigon) the owner accepts the seven measured
 latency exceptions and closes its cost gate. The owner now starts PRE06 only:
 source-exact local artifacts, installed consumers, regression, privacy and cleanup.
+PRE06 completes these gates locally: 2,551 distinct affected PASS, 30 registered
+N/A, 152 exact installed workload cells and 88 actual matured fit/rank cells.
+Read [the completed PRE06 report](../docs/meta_selection/PRE_E06_06_REPORT.md).
+E06 entry still requires individual owner approval; remote/public gates stay deferred.
 [PRE02 report](../docs/meta_selection/PRE_E06_02_REPORT.md):
 13 routes, 39 active/matured decisions, 623 distinct scoped PASS; 27 scalar-scorer
 cells are explicitly not applicable. No economic/default or artifact promotion.
@@ -23,13 +27,13 @@ No push, CI dispatch, merge, tag, publication or new scientific study is implied
 Mode 1/per_fold_causal on five scalar targets, 15 actual matured fits/ranks,
 582 distinct scoped PASS and three ladder scalar-prepared N/A cells. Original
 inner-decay anchor, full outer-IS/real-forward measurements, unchanged Mode 4
-identity and final accounting are locked. Final installed artifacts remain PRE06.
+identity and final accounting are locked. Final local installed proof now passes PRE06.
 
 [PRE04 report](../docs/meta_selection/PRE_E06_04_REPORT.md): explicit conditional
 numeric Sobol and feasible evaluated-support projection, 104 new policy checks,
 590 distinct legacy-regression checks and seven docs/example/gate checks PASS.
 Old defaults/accounting/Ridge unchanged; exact owned continuation and original
-IS anchors qualified. Final installed artifacts remain PRE06; no economic claim.
+IS anchors qualified. Final local installed proof now passes PRE06; no economic claim.
 
 [PRE05 report](../docs/meta_selection/PRE_E06_05_REPORT.md): 76 matched cells,
 3,192 paired-arm warm executions, 2,346 distinct scoped PASS and 30 registered
@@ -38,7 +42,7 @@ RNG, raw measurements, decisions or accounting. Disabled latency budgets pass
 25/32 cells; seven remain measured NOT_MET despite zero changed-block calls in
 paired profiles. The [separate owner disposition](../benchmarks/optimization/meta_selection/qms_pre_e06_05_owner_acceptance.json)
 accepts exactly these source-bound exceptions; no measured result or original
-budget is rewritten, and no automatic PRE06 advancement is authorized.
+budget is rewritten; PRE06 has separate execution approval and no cost waiver is inherited.
 
 **Current truth and precedence:** the [execution amendment](#qms-required-execution-routes)
 already implemented bounded E06/E07 intent/session, callback and command routes,
@@ -89,10 +93,10 @@ official economic promotion to any route.
 |---|---|---|---|
 | 1 | [PRE-E06-01](#qms-pre-e06-01) | One source-bound current ledger, test inventory and scope/privacy contract | COMPLETE_LOCAL_INVENTORY_GATE; no activation |
 | 2 | [PRE-E06-02](#qms-pre-e06-02) | Active/matured causal and measurement conformance on existing admitted routes | COMPLETE_LOCAL_SOURCE_GATE; no new-mode/economic promotion |
-| 3 | [PRE-E06-03](#qms-pre-e06-03) | Approved C01 nested scalar runtime activation, raw outer-IS/forward parity | COMPLETE_LOCAL_SOURCE_GATE; final installed proof PRE06 |
-| 4 | [PRE-E06-04](#qms-pre-e06-04) | Approved C05 policies, actual RNG and owned continuation qualification | COMPLETE_LOCAL_SOURCE_GATE; final installed proof PRE06 |
+| 3 | [PRE-E06-03](#qms-pre-e06-03) | Approved C01 nested scalar runtime activation, raw outer-IS/forward parity | COMPLETE_LOCAL_SOURCE_GATE; final local installed PASS PRE06 |
+| 4 | [PRE-E06-04](#qms-pre-e06-04) | Approved C05 policies, actual RNG and owned continuation qualification | COMPLETE_LOCAL_SOURCE_GATE; final local installed PASS PRE06 |
 | 5 | [PRE-E06-05](#qms-pre-e06-05) | Matched profiling and safe optimization; unchanged scientific/decision/account contracts | COMPLETE_LOCAL; OWNER_ACCEPTED_COST_EXCEPTION |
-| 6 | [PRE-E06-06](#qms-pre-e06-06) | Final local regression, exact installed artifacts, docs/privacy/cleanup receipt | RUNNING_LOCAL; no remote/public qualification |
+| 6 | [PRE-E06-06](#qms-pre-e06-06) | Final local regression, exact installed artifacts, docs/privacy/cleanup receipt | READY_FOR_E06_LOCAL; no remote/public qualification |
 | Next | [E06](#qms-e06) resumed qualification | Owner approves entry using the final local handoff | NOT_ENTERED_BY_THIS_PLAN |
 
 Do not combine stages to hide a failing earlier gate. C01/C05 specs have prior
@@ -778,11 +782,13 @@ No numerical, financial, sampler, Ridge, endpoint, policy or default change.
    consumers need reinstall. Final status requires `READY_FOR_E06_LOCAL`, not
    automatic E06/E07 entry or economic/default/public promotion.
 
-**Progress:** fresh source-exact wheel/sdist and independent installed consumers
-PASS_LOCAL: 152 full-work cells, 88 actual matured fit/rank cells and conditional
-fresh-process continuation. Full affected source regression is RUNNING; final
-privacy/cleanup handoff is still pending. Read the
-[live phase report](../docs/meta_selection/PRE_E06_06_REPORT.md).
+**Outcome:** COMPLETE implementation; PASS_LOCAL technical/artifact/privacy gate;
+empirical NOT_ASSESSED; owner outcome review PENDING. Fresh source-exact wheel/
+sdist and independent installed consumers PASS: 152 full-work cells, 88 actual
+matured fit/rank cells and conditional fresh-process continuation. Full affected
+regression has 2,551 distinct PASS plus 30 registered N/A. Read the
+[completed phase report](../docs/meta_selection/PRE_E06_06_REPORT.md) and
+[source-bound gate](../benchmarks/optimization/meta_selection/qms_pre_e06_06_closure.json).
 
 **Registered environment correction before accounting rerun:** full meta PASS
 (2,216 plus 30 registered N/A), external WFO PASS (162). The original account
@@ -801,6 +807,23 @@ from the existing project environment, including Hypothesis's native helper;
 do not place that environment's other packages on the numeric test import path.
 Verify copied RECORD hashes, versions, and unchanged numeric/native identity,
 then run all registered account modules and plotting under fresh `v3` receipts.
+
+**Exit disposition:** accounting rerun PASS 160 cases across all fourteen
+modules; plotting PASS one case; original collection errors remain recorded,
+not executed financial failures or PASS. The final privacy check rejects raw
+parametrized negative-test payloads before public export; retain the rejected
+draft privately and export counts/digests/XML hashes only. Exact passing reruns
+close the tooling failures without weakening source, scientific or privacy gates.
+Cleanup removes only the four registered inactive scratch roots, verifies 401
+protected file hashes and records +1,211,211,776 observed free bytes. Exact
+artifacts/stage/evidence/G01/project env/cache remain. Read the
+[cleanup receipt](../docs/maintenance/QMS_PRE_E06_06_CLEANUP.md).
+No unresolved local correctness gate remains in this scope. Existing benchmark-
+helper local-loader reference is retained byte-exact and disclosed, not certified
+as newly portable. E04 economics, full quarterly settlement/data, W3 carry/shared
+multi-symbol, broader methodologies and E08 remote/public remain separate scopes.
+This is READY_FOR_E06_LOCAL, not automatic E06/E07 execution or economic/default
+promotion. All coherent chunks are committed locally; nothing is pushed/published.
 
 ### Deferred Scope And Resume Order
 

@@ -41,9 +41,12 @@ certified. On 2026-10-07 (Asia/Saigon), the owner accepts these exact measured
 exceptions; the [separate source-bound receipt](../../benchmarks/optimization/meta_selection/qms_pre_e06_05_owner_acceptance.json)
 closes the engineering gate without rewriting budgets, raw results or the
 original OPEN receipt. No correctness/scientific tolerance is waived, and no
-future source/workload inherits this allowance. PRE-E06-06 still needs its
-individual start. No broader activation, alpha study, CI/CD or publication
-is implied.
+future source/workload inherits this allowance. PRE-E06-06 is now
+**READY_FOR_E06_LOCAL**: 2,551 distinct affected PASS plus 30 registered N/A,
+152 exact installed cells and 88 actual matured fit/rank cells. Its
+[report](PRE_E06_06_REPORT.md) and [cleanup](../maintenance/QMS_PRE_E06_06_CLEANUP.md)
+bind current wheel/sdist/source and privacy gates. No broader activation,
+alpha study, CI/CD, publication or automatic E06 start is implied.
 PRE02's source gate is now PASS: 39 actual matured fit/rank decisions across
 13 routes, original measurement/stitched accounting parity and 623 distinct
 scoped tests. This closes that local coverage gap, not E04 economic promotion,
@@ -139,8 +142,8 @@ authorized here; follow [release handoff](RELEASE_HANDOFF.md) after approval.
 
 | Capability | Current boundary | Required next contract |
 |---|---|---|
-| C01 extra meta modes/schedules | Nested scalar Mode 1 runtime implemented under PRE-E06-03 | Final-source installed proof PRE-E06-06; other methodologies/domains remain unapproved |
-| C05 conditional Sobol/mixed representatives | Approved explicit runtime qualified locally in PRE-E06-04 | Final-source wheel/sdist PRE-E06-06; unadmitted representative routes remain fail-closed |
+| C01 extra meta modes/schedules | Nested scalar Mode 1 runtime implemented under PRE-E06-03; local installed proof PASS PRE06 | Other methodologies/domains remain unapproved; remote/public proof separate |
+| C05 conditional Sobol/mixed representatives | Approved explicit runtime qualified locally in PRE-E06-04 and installed wheel/sdist PRE06 | Unadmitted representative routes remain fail-closed; remote/public proof separate |
 | W3 continuous carry | Existing reset-flat route only | Orders/protection/state and parameter effect across fold boundaries |
 | W3 shared multi-symbol | No certified financial carry runtime | Shared account, calendars, instruments and admission/margin semantics |
 | Public meta batch | Not activated by sampler qualification | Batch seal/maturity/selection and worker ownership |
@@ -159,13 +162,14 @@ preserve private alpha, data, logs and scientific evidence.
 
 ## Remaining Approved-Plan Sequence
 
-1. **PRE-E06-06:** final source-exact local wheel/sdist and installed consumers,
-   integrated regression, docs/privacy and cleanup; issue E06 entry handoff.
-2. **E06:** finish intrabar intent/session accepted-scope qualification and
+PRE-E06-01..06 local gates are closed; [the PRE06 handoff](PRE_E06_06_REPORT.md)
+does not grant automatic execution or release authority.
+
+1. **E06:** finish intrabar intent/session accepted-scope qualification and
    owner handoff using the already implemented adapter. No new simulator.
-3. **E07:** finish callback, numeric reactive and command-route accepted-scope
+2. **E07:** finish callback, numeric reactive and command-route accepted-scope
    qualification/handoff. Their account/scheduler contracts stay distinct.
-4. **E08:** integrated final matrix/docs/artifacts, then separately approved
+3. **E08:** integrated final matrix/docs/artifacts, then separately approved
    remote qualification and release/public proof last for pair 1.1.2/0.4.3.
 
 Each still requires its individual start. The E04 negative economic result,

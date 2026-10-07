@@ -21,8 +21,11 @@ not a publishing run. Bounded execution routes have their own
 only its recorded bytes. Active/matured source qualification and the approved
 nested scalar C01/conditional C05 runtime now pass PRE02/03/04. PRE05 closes
 locally with [owner-accepted measured latency exceptions](PRE_E06_05_REPORT.md#owner-accepted-cost-disposition),
-not rewritten budgets or an economic claim. Final-source installed artifacts
-remain PRE06; E06/E07 accepted-scope handoff and E08 follow individually.
+not rewritten budgets or an economic claim. Final-source local installed artifacts
+now PASS [PRE06](PRE_E06_06_REPORT.md): 152 exact cells, 88 actual matured fits,
+2,551 distinct affected PASS and completed privacy/cleanup. E06/E07 accepted-scope
+handoff and E08 follow individually. These Linux CPython 3.12 artifacts are not
+the final manylinux2014 release or current-source remote/public certificate.
 The [current plan](../../upgrade/implement.md#qms-pre-e06-action-plan) takes
 precedence over historical baseline statuses.
 Remote/public steps below wait for final scope and separate owner approval.
@@ -142,7 +145,7 @@ continuous carry, multi-symbol and public meta batching remain unsupported.
 C04 locally qualifies a separate [owned exact continuation session](EXACT_CONTINUATION.md),
 not automatic public WFO/financial state resume. PRE-E06-04 locally qualifies
 explicit conditional numeric Sobol and feasible evaluated-support projection
-with exact owned continuation. Final-source installed proof remains PRE06;
+with exact owned continuation. Final-source local installed proof passes PRE06;
 this is not arbitrary mixed-space centroid or extra mode/schedule activation.
 Broader capabilities stay separately reviewed in
 [QMS-C01..C05](../../upgrade/implement.md#qms-capability-gap-roadmap---planning_only).

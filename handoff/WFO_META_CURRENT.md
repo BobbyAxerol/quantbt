@@ -20,7 +20,7 @@
   implemented under the [execution amendment](../docs/meta_selection/EXECUTION_WFO_REPORT.md),
   with 153 scoped checks PASS at that historical artifact. Active/matured source
   coverage is recorded separately in [PRE-E06-02](../docs/meta_selection/PRE_E06_02_REPORT.md);
-  owner handoff and final-source artifacts are separate.
+  owner handoff is separate; current-source local artifact proof now passes PRE06.
   E08/final-source remote and publication are deferred.
   E03 adds scalar software research opt-ins,
   with separately registered per-cell R/Q studies, not empirical/default promotion.
@@ -65,7 +65,8 @@
 - E01/E02/E04 do not themselves authorize push, merge, retag, release or deployment.
   Earlier feature-only CI permission and remote 6901a66 receipts are historical,
   not certification of later execution-route bytes. The latest scope is local
-  PRE-E06-05 matched local cost/parity work, after PRE-E06-03 nested scalar and
+  PRE-E06-06 source-exact local artifact/regression/privacy/cleanup closure,
+  after PRE-E06-05 matched local cost/parity work, PRE-E06-03 nested scalar and
   PRE-E06-04 conditional runtime, following PRE-E06-02 active/matured
   conformance and approved history amendment; no push/workflow or merge/tag/publication.
 - [PRE-E06 current baseline](../docs/meta_selection/PRE_E06_BASELINE.md): source-bound
@@ -86,9 +87,16 @@
   Full paired profiles show no changed-block calls in the missed cells, but
   do not themselves waive budgets or certify tail latency. Read the
   [current performance report](../docs/meta_selection/PRE_E06_05_REPORT.md).
-  PRE-E06-06 remains planned and needs its own phase start, followed by E06/E07
-  accepted-scope handoff, then E08 remote/release gates last when authorized.
-  No fresh final-source installed/remote/public claim here.
+  PRE-E06-06 is **READY_FOR_E06_LOCAL**: 2,551 distinct affected PASS plus 30
+  registered N/A; both exact core artifacts pass 76 full-work cells each,
+  including 44 actual matured fit/rank cells each. Conditional fresh-process
+  continuation, original accounts and installed origins pass. Read its
+  [report](../docs/meta_selection/PRE_E06_06_REPORT.md) and
+  [cleanup](../docs/maintenance/QMS_PRE_E06_06_CLEANUP.md): four scratch roots
+  removed, 401 protected hashes unchanged, +1,155.10 MiB observed free space.
+  This is Linux CPython 3.12 local evidence only. E06/E07 require individual
+  owner entry approval; E08 remote/release/public gates stay last and NOT_RUN
+  for these final bytes. No push, publication or automatic next-phase start.
 - Repair performance: same registered unit study 549.001 to 291.542 s (1.883x),
   peak RSS +7.480 MiB. One shared-VPS observation, not universal performance.
   [Cleanup](../docs/maintenance/QMS_G01_CLEANUP_2026-10-06.md) reclaimed 219.656 MiB
@@ -116,17 +124,17 @@ change. See [E01 evidence and current gate](../docs/meta_selection/QMSE01_REPORT
 
 | Capability | Current local disposition |
 |---|---|
-| C01 additional methods | Nested scalar runtime implemented PRE-E06-03; final-source installed proof PRE-E06-06; other methods/domains not enabled |
+| C01 additional methods | Nested scalar runtime implemented PRE-E06-03; final-source local installed PASS PRE-E06-06; other methods/domains not enabled |
 | C02 transport | Safe Linux process, original-pass witnesses and native cooperative deadlines qualified |
 | C03 samplers | Four recipes on sequential/safe-process W3 and native-off-meta R3B qualified |
 | C04 continuation | Owned exact journal, four recipes and fresh-process resume qualified; not automatic WFO/account resume |
-| C05 geometry | Reviewed implementation approved; explicit conditional Sobol/support projection and owned continuation qualified locally by PRE-E06-04; final installed artifacts PRE-E06-06 |
+| C05 geometry | Reviewed implementation approved; explicit conditional Sobol/support projection and owned continuation qualified locally by PRE-E06-04; final local installed artifacts PASS PRE-E06-06 |
 | Carry/multi-symbol/public meta batch | Unsupported; contracts/specs do not activate runtime |
 
 Broader C01 modes/schedules/execution-domain cohorts and unadmitted C05 policies
 remain **NOT_ACTIVATED**. This does not undo the separately approved nested
 scalar and conditional-policy local activations above; their final-source
-installed proof is still PRE-E06-06.
+local installed proof now passes PRE-E06-06; remote/public proof remains separate.
 
 The repaired candidate remote gate passes above; public/final publication
 artifacts still need new source/artifact qualification and separate approval. Existing historical

@@ -27,7 +27,8 @@ Detailed requirements remain the
 QMS-C01's historical scope was specification and tests only. The reviewed nested
 scalar Mode 1 runtime is implemented under PRE-E06-03; its
 [execution report](PRE_E06_03_REPORT.md) and [usage](NESTED_MODE1.md) distinguish
-source conformance from pending final-source installed proof. Other methods are
+source conformance from final-source local installed proof, now PASS under
+[PRE-E06-06](PRE_E06_06_REPORT.md). Other methods are
 not enabled. The [amendment](ADDITIONAL_METHODS_REVIEW.md)
 and [phase report](QMSC01_REPORT.md) classify actual native anchors, data roles,
 full pools and decision frontiers for eight existing native combinations.
@@ -84,12 +85,14 @@ immutable. Zero changed-block calls do not certify statistical non-inferiority.
 No correctness/scientific tolerance or later source/workload gate is waived.
 Existing `.venv` validates plotting only;
 the qualified G01 0.4.3 consumer validates numerical/WFO work. Neither is a new
-source-exact core wheel/sdist proof. PRE-E06-06 now builds the exact final core
-wheel/sdist and installs them into two independent non-editable environments.
+source-exact core wheel/sdist proof. PRE-E06-06 builds the exact final core
+wheel/sdist and qualifies them in two independent non-editable environments.
 All 152 full-work cells match the sealed PRE05 corpus; 88 enabled cells actually
 fit/rank with at least 12 matured origins. Four-recipe W3/process/continuation,
 original-account scalar/portfolio/package/execution, liquidation and conditional
-fresh-process proofs PASS. See [the source-bound report](PRE_E06_06_REPORT.md).
+fresh-process proofs PASS. Full affected regression adds 2,551 distinct PASS
+and exactly 30 registered N/A. Privacy/cleanup and local handoff are complete;
+cleaned consumers require reinstallation. See [the source-bound report](PRE_E06_06_REPORT.md).
 This is Linux CPython 3.12 local evidence only; no release or next-phase approval
 is implied. Original latency exceptions are retained, not remeasured or widened.
 
