@@ -119,7 +119,9 @@ def test_cannot_self_attest_a_changed_reference():
 
 
 def test_checkout_module_origin_rejected():
+    import quantbt
     from tools.qms_pre06_consumer import origins
+    assert quantbt.__file__
     with pytest.raises(ValueError, match="substitution"):
         origins(gate.ROOT / ".maturin/not-installed/quantbt")
 
