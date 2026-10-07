@@ -26704,6 +26704,11 @@ source tests PASS. Matched timing and final installed gates IN_PROGRESS.
   costs; reuse only genuinely immutable snapshots, never writable-base views;
   test mutable-source changes and exact report/episode parity; update live docs
   and benchmark tables honestly; build exact new wheel/sdist installed proofs.
+  First source run passed 714 tests and all 12 exact-report/input SHA comparisons;
+  its NumPy mask packing added request-setup overhead. Follow-up compares native
+  `bytes(bool_tuple)` packing (same canonical 0/1 bytes), reruns final-source
+  gates and preserves that intermediate source receipt unchanged. No formulas,
+  inputs, outputs, thresholds or benchmark repeats are changed.
 - **Tests/gates:** Python/Numba and independent oracle; all prior timestamp/NaT,
   scope, open-action and valuation regressions; immutable ownership and SHA
   equivalence; cache hit/mutation isolation; matched full public account report

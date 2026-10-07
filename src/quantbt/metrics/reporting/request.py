@@ -36,9 +36,7 @@ class ReportingRequest:
                 raise TypeError("partial_mask must be an immutable tuple of booleans")
             if not self.return_witness:
                 raise ValueError("explicit return/partial-period witness required")
-            import numpy as np
-            mask = np.fromiter(self.partial_mask, dtype=np.bool_, count=len(self.partial_mask))
-            object.__setattr__(self, "_partial_mask_bytes", mask.tobytes())
+            object.__setattr__(self, "_partial_mask_bytes", bytes(self.partial_mask))
         if self.naive_timezone not in {None, "UTC"}:
             raise ValueError("only explicit naive_timezone='UTC' is supported")
         if not isinstance(self.ledger_contracts, tuple):
