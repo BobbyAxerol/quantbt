@@ -14,7 +14,9 @@ source-exact local artifacts, installed consumers, regression, privacy and clean
 PRE06 completes these gates locally: 2,551 distinct affected PASS, 30 registered
 N/A, 152 exact installed workload cells and 88 actual matured fit/rank cells.
 Read [the completed PRE06 report](../docs/meta_selection/PRE_E06_06_REPORT.md).
-E06 entry still requires individual owner approval; remote/public gates stay deferred.
+Owner now approves E06 local qualification (2026-10-07 UTC). Follow the
+[E06 execution registration](../docs/meta_selection/QMSE06_QUALIFICATION.md);
+remote/public gates and E07/E08 execution stay deferred.
 [PRE02 report](../docs/meta_selection/PRE_E06_02_REPORT.md):
 13 routes, 39 active/matured decisions, 623 distinct scoped PASS; 27 scalar-scorer
 cells are explicitly not applicable. No economic/default or artifact promotion.
@@ -97,7 +99,7 @@ official economic promotion to any route.
 | 4 | [PRE-E06-04](#qms-pre-e06-04) | Approved C05 policies, actual RNG and owned continuation qualification | COMPLETE_LOCAL_SOURCE_GATE; final local installed PASS PRE06 |
 | 5 | [PRE-E06-05](#qms-pre-e06-05) | Matched profiling and safe optimization; unchanged scientific/decision/account contracts | COMPLETE_LOCAL; OWNER_ACCEPTED_COST_EXCEPTION |
 | 6 | [PRE-E06-06](#qms-pre-e06-06) | Final local regression, exact installed artifacts, docs/privacy/cleanup receipt | READY_FOR_E06_LOCAL; no remote/public qualification |
-| Next | [E06](#qms-e06) resumed qualification | Owner approves entry using the final local handoff | NOT_ENTERED_BY_THIS_PLAN |
+| Next | [E06](#qms-e06) resumed qualification | Accepted bounded intent/session contract, mature meta, original measurement/account and installed proof | IN_PROGRESS_LOCAL; owner approved entry |
 
 Do not combine stages to hide a failing earlier gate. C01/C05 specs have prior
 local implementation approval; their execution chunks here still get an explicit
@@ -25300,6 +25302,20 @@ after byte/source checks. No empirical, remote or release gate is waived.
 
 <a id="qms-e06"></a>
 #### QMS-E06 - Intrabar Intent/Session WFO Adapter And Real Meta Qualification
+
+**Current execution, 2026-10-07 UTC:** owner approves route-specific local
+qualification after PRE-E06-06. Entry `c0dfcc5`, branch
+`feat/meta-selection-samplers`, exact prepared pair **1.1.2 / 0.4.3**.
+Reuse the implemented adapter; no new engine, optimizer, estimator, sampler
+recipe, endpoint, financial default or public activation. The
+[registration](../docs/meta_selection/QMSE06_QUALIFICATION.md) freezes tests,
+matched software workloads, resource budget, artifact/source checks and cleanup.
+The [owner execution amendment](#qms-required-execution-routes) and current
+acceptance policy supersede the old real-alpha entry restriction below:
+public synthetic qualification is accepted software evidence, not a real-market
+economic study. Preserve original T06 as NOT_ASSESSED / NOT_PROMOTED, rather
+than labeling software results as all-seven economic PASS. E07/E08, CI and
+publication require their own approval.
 
 **Status:** LOCAL_BOUNDED_SOFTWARE_IMPLEMENTED under the
 [owner execution amendment](#qms-required-execution-routes). Original real-alpha
