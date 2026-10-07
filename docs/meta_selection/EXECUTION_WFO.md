@@ -154,6 +154,52 @@ Mode 2 execution bootstrap and scalar prepared-target `require` are rejected.
 Generic Python callbacks remain Python; Rust may own their financial runner,
 not their indicator/decision code. Numeric meta backend is recorded separately.
 
+## Inspect The Actual Meta Run
+
+The ordinary endpoint returns the complete WFO result and its existing financial
+reports. Access the opt-in sidecar without keeping the caller's history alive:
+
+```python
+wf = result.metadata["walk_forward"]
+meta = wf["meta_selection"]
+display(wf["fold_table"], wf["trial_table"])
+display(wf["params_by_fold"], meta["records"])
+
+for record, revision in zip(meta["records"], meta["observed_revisions"], strict=True):
+    candidates = {c.evaluation_id: c for c in revision.task.candidates}
+    forward = {o.evaluation_id: o.observation for o in revision.outcomes}
+    anchor = candidates[record["native_selected_evaluation_id"]]
+    actual = candidates[record["selected_evaluation_id"]]
+    observations = (anchor.observation, actual.observation,
+                    forward[anchor.evaluation_id], forward[actual.evaluation_id])
+    if all(o.status.value == "VALID" for o in observations):
+        a, m, fa, fm = (o.raw_sharpe for o in observations)
+        is_contribution, forward_q = a - m, fm - fa
+        decay_reduction = is_contribution + forward_q
+```
+
+For prepared numeric W3, the corresponding container is `result.metadata`
+instead of `result.metadata["walk_forward"]`; `params_by_fold`, `trial_table`
+and `fold_results` are direct result attributes. Its financial accounts remain
+segmented reset-flat; do not compound or concatenate them into a live equity.
+
+`records` distinguish native anchor, meta proposal and actual applied params,
+cutoff/seal/effective clocks, maturity, guard/tie/fallback and numeric backend.
+`tasks` retain the full candidate IS pool and original raw sample/activity/status
+observations. `snapshots`/`models` retain fit lineage, scaler and coefficients;
+`proposal.predictions` is predicted Y/Q, never raw Sharpe or Optuna objective.
+`observed_revisions` contains only this run's published counterfactual panels,
+raw forward outcomes and labels with availability clocks, not the entire archive
+or extra account paths. These are the original immutable revision objects,
+also referenced by history, with no financial replay or serialization by default.
+Outcome publication is later than selection; returned outcomes must not be used
+to retune that same fold. Invalid/censored/failed outcomes are not zero labels.
+
+Use `result.fills`, costs, margin and existing reports for the final financial
+account; counterfactual diagnostics are not that account. Meta off has no sidecar.
+These traces can reveal an alpha: export only explicitly reviewed data; no
+automatic logging, disk export or public release is added by this metadata.
+
 No default is promoted and no gain is guaranteed. Signed point decay and forward
 contribution are reported separately:
 

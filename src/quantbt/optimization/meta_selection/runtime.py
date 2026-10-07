@@ -87,6 +87,7 @@ class PublicMetaRuntime:
         if scalar_contract is not None and not getattr(scalar_contract, "legacy_family", False):
             self.family = self.domain_adapter.compatibility().bind_family(self.family)
         self.records, self.models, self.tasks, self.snapshots = [], {}, [], []
+        self.observed_revisions = []
         self.observer = PostDecisionObserver(engine.scorer._meta_adapter)
         self.elapsed = {"snapshot": 0.0, "fit_select": 0.0, "observer": 0.0}
 
@@ -403,6 +404,7 @@ class PublicMetaRuntime:
         outcomes = tuple(replace(o, label_available_at=actual_available) for o in outcomes)
         revision = SealedTaskRevision(task, panel, outcomes, actual_available)
         self.context.history.append(revision)
+        self.observed_revisions.append(revision)
         self.records[-1].update(
             observer_revision_id=revision.revision_id,
             observer_label_available_at=wire(actual_available), observer_evaluations=len(outcomes),
@@ -428,6 +430,7 @@ class PublicMetaRuntime:
             "models": dict(self.models),
             "tasks": tuple(self.tasks),
             "snapshots": tuple(self.snapshots),
+            "observed_revisions": tuple(self.observed_revisions),
             "elapsed_seconds": dict(self.elapsed),
             "observer_attempts": self.observer.attempts,
             "observer_failures": self.observer.failures,
