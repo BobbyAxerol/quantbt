@@ -309,6 +309,7 @@ def semantic(result, cell, context):
         "fit_seconds",
         "rank_seconds",
         "search_elapsed_seconds",
+        "sampler_wall_seconds",
         "wall_generated_at",
     }
 

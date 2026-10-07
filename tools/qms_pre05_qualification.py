@@ -130,6 +130,7 @@ def build(lane, native, shards, *, label="matched-v3"):
         ("chronological", 2),
         ("receipt", 9),
         ("w3", 3),
+        ("conditional", 2),
     ):
         found = {
             k for k in union if k[0] == "tests.meta_selection.test_pre_e06_05_" + module

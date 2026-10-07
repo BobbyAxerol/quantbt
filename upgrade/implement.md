@@ -582,6 +582,14 @@ all uncompleted cells with the same label/21 pairs and separate attempt logs;
 ordinary completed samples, source runtime, history, timing/retention/budgets
 remain unchanged. No failure is converted to a latency PASS.
 
+**Conditional telemetry correction:** after 74 completed cells the first C05
+cell's exact work comparison differed only at `sampler_wall_seconds`, a physical
+`perf_counter` diagnostic. Keep the full expected/actual failure artifact. Exclude
+only that elapsed key from semantic identity and retain it separately per raw
+sample. Verify both actual conditional routes under both controls, then resume
+the remaining two cells with separate attempt logs. Candidate/RNG/account and
+all non-clock sampler fields remain exact; existing samples are not rewritten.
+
 <a id="qms-pre-e06-06"></a>
 ### Phase PRE-E06-06 - Local Conformance, Exact Artifacts And E06 Entry Gate
 

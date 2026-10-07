@@ -45,6 +45,10 @@ re-seal old receipts, exempt whole files or waive financial/scientific guards.
   an independent history container, endpoint, account and strategy state.
   History-load and fixture preparation are recorded separately, not hidden as
   financial speedups. No source-alpha or market file is copied into public evidence.
+- Ordinary endpoint construction is outside the timer. For W3 the constructor
+  also prepares native market ownership; its per-run fixture/constructor cost
+  is retained separately. W3 timing is the complete prepared public `backtest`
+  call, not a fresh-data constructor-plus-backtest throughput certificate.
 - Backtest timer includes normal preparation/scoring/meta/observer/final account
   and adaptation. Profiles are separate instrumented runs, not latency gates.
   Legitimate additional C01 raw outer-IS evaluations are retained and charged.
@@ -96,6 +100,20 @@ and the same fixtures/repeats/budgets with balanced setup. New negative fixtures
 initially required explicit class hashing to reach the intended dispatch test;
 both failed fixture receipts are retained. All original files remain retained.
 No failed run is rewritten as PASS.
+
+`matched-v3` stopped after 44 complete ordinary cells because its untimed W3
+reader used an ordinary metadata key instead of the typed result attribute.
+The failed log is retained. Actual off/shadow/active W3 reader tests pass after
+the schema correction, including segmented reset-flat accounts, fold/candidate
+tables, selected params and task/state/metric provenance. Resume uses separate
+attempt logs and does not overwrite completed timing cells or alter execution.
+
+The first conditional cell stopped after 74 complete cells because the sampler
+bridge exposes `sampler_wall_seconds`. Exact diff shows only that elapsed value
+changes, not RNG/proposals/selection/account. Both actual conditional routes
+pass reader parity after excluding that one physical diagnostic from logical
+identity; it remains in per-sample raw telemetry and full-call latency. Failed
+expected/actual JSON and logs remain retained; completed samples are unchanged.
 
 ## Remaining Gate
 

@@ -91,6 +91,11 @@ def sample(cell, lane, label):
                     meta_seconds=wire(meta.get("elapsed_seconds", {})),
                     observer_label_available_at=r.get("observer_label_available_at"),
                     prepared_cache=wire(wf.get("prepared_scoring_cache", {})),
+                    sampler_wall_seconds=[
+                        s["sampler_wall_seconds"]
+                        for s in wf.get("sampler_studies", ())
+                        if "sampler_wall_seconds" in s
+                    ],
                 )
                 rows.append(row)
                 del result, prepared
