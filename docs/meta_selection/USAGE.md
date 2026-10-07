@@ -82,7 +82,8 @@ software is not delivery-futures, dynamic hedge or empirical certification.
 PRE-E06-04 implements approved [conditional numeric Sobol and support projection](CONDITIONAL_POLICIES.md)
 as separate opt-ins on the feature branch. Their matrix is narrower than generic
 meta coverage; no new meta mode/domain is inferred. Old Sobol and ordinary
-centroid guards remain. Final installed qualification is PRE-E06-06; unpublished.
+centroid guards remain. Current-source wheel/sdist installed qualification PASS
+locally in [PRE-E06-06](PRE_E06_06_REPORT.md); unpublished, meta still opt-in.
 
 ## Minimal Call
 

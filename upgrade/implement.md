@@ -778,8 +778,11 @@ No numerical, financial, sampler, Ridge, endpoint, policy or default change.
    consumers need reinstall. Final status requires `READY_FOR_E06_LOCAL`, not
    automatic E06/E07 entry or economic/default/public promotion.
 
-**Progress:** registered; build, installed conformance and final regression
-NOT_RUN. Read the [live phase report](../docs/meta_selection/PRE_E06_06_REPORT.md).
+**Progress:** fresh source-exact wheel/sdist and independent installed consumers
+PASS_LOCAL: 152 full-work cells, 88 actual matured fit/rank cells and conditional
+fresh-process continuation. Full affected source regression is RUNNING; final
+privacy/cleanup handoff is still pending. Read the
+[live phase report](../docs/meta_selection/PRE_E06_06_REPORT.md).
 
 ### Deferred Scope And Resume Order
 

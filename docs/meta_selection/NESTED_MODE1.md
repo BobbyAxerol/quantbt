@@ -4,7 +4,9 @@
 
 PRE-E06-03 enables only the owner-approved cohort
 `nested_anchor_outer_IS_real_forward_v1` in local source. This is not in the
-published 1.1.1/0.4.2 pair. Current-source installed proof belongs to PRE-E06-06;
+published 1.1.1/0.4.2 pair. Current-source core 1.1.2/native 0.4.3 wheel and sdist
+installed parity PASS locally in [PRE-E06-06](PRE_E06_06_REPORT.md), including
+all five nested targets and actual matured fit/rank;
 remote and public release require separate approval. Meta remains off by default.
 
 Supported targets: `signal_notional` (`single_signal`), `notional`, `unit`,

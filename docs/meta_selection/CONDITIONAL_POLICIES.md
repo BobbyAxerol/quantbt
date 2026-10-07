@@ -5,7 +5,10 @@
 PRE-E06-04 implements the owner-approved C05 policies on the feature branch.
 They are opt-in, not a fifth recipe, a new endpoint or a released capability.
 The [original review](CONDITIONAL_GEOMETRY_REVIEW.md) and its sealed receipts
-remain historical. Final-source wheel/sdist proof belongs to PRE-E06-06.
+remain historical. Current-source core 1.1.2/native 0.4.3 installed wheel/sdist
+proof PASS locally in [PRE-E06-06](PRE_E06_06_REPORT.md), including the actual
+conditional WFO example and exact fresh-process conditional continuation.
+This is local CPython 3.12 evidence, not remote/public certification.
 
 ```python
 from quantbt.optimization import SamplerConfig

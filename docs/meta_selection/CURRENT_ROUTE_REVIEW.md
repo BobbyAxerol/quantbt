@@ -7,7 +7,9 @@ Original inventory: `39185fe`; local execution amendment: `a139f35`,
 existing executable adapters and their actual evidence, not approval to expose
 every row in the next release. The owner will select the version's endpoint
 scope before broader activation. CI/CD, final artifact qualification and public
-proof are deferred until that scope is settled. No push or publication here.
+proof are deferred until that scope is settled. Final local wheel/sdist
+artifact qualification is now executed under
+[PRE-E06-06](PRE_E06_06_REPORT.md); no push or publication here.
 
 C01 nested Mode 1 and C05 conditional sampling/support projection now have
 separate **local implementation approval**. Their activation plan is recorded
@@ -16,7 +18,8 @@ PRE-E06-03 now implements C01 only for five scalar targets on Mode 1 /
 `per_fold_causal` with genuine inner validation. Read the
 [nested call/contract](NESTED_MODE1.md) and [execution report](PRE_E06_03_REPORT.md).
 C05 now has locally qualified opt-in runtime policies under
-[PRE-E06-04](CONDITIONAL_POLICIES.md); final installed proof remains PRE-E06-06.
+[PRE-E06-04](CONDITIONAL_POLICIES.md); current-source local installed proof PASS
+in [PRE-E06-06](PRE_E06_06_REPORT.md), without broader route promotion.
 The original review
 documents and receipts describe their earlier spec-only work; preserve them.
 The [PRE-E06 source-bound inventory](PRE_E06_BASELINE.md) separates actual
@@ -82,7 +85,7 @@ W3 has a different strategy protocol and segmented account contract.
 | Options / Nautilus validation meta | Explicit domain evaluation/WFO adapter; standalone engine availability is not meta support |
 | W3 carry, shared multi-symbol, public meta batch, Mode 2 bootstrap | Separately approved financial/scheduler/label semantics and runtime implementation |
 | Meta outside Mode 4 causal and five nested scalar Mode 1 targets | Global/decay and nested execution/portfolio/package/W3 remain unapproved |
-| Conditional Sobol / mixed support representative | Local explicit policies/continuation qualified by PRE-E06-04; final installed/remote/public and unadmitted routes remain separate |
+| Conditional Sobol / mixed support representative | Local explicit policies/continuation qualified by PRE-E06-04 and final-source local wheel/sdist by PRE-E06-06; remote/public and unadmitted routes remain separate |
 
 ## What The Real Tests Establish
 

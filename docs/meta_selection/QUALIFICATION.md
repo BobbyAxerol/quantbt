@@ -68,7 +68,8 @@ process resume, not automatic public fold/financial-account resume.
 [C05](QMSC05_REPORT.md) retains its historical specification/reference tests.
 Approved conditional Sobol/finite-support runtime and owned continuation now
 have [local PRE-E06-04 qualification](PRE_E06_04_REPORT.md), with explicit scope.
-Final-source installed artifacts remain PRE-E06-06; no public promotion here.
+Final-source installed artifacts PASS locally under
+[PRE-E06-06](PRE_E06_06_REPORT.md); no public promotion here.
 
 PRE-E06-05's [source report](PRE_E06_05_REPORT.md) and
 [receipt](../../benchmarks/optimization/meta_selection/qms_pre_e06_05_closure.json)
@@ -83,7 +84,14 @@ immutable. Zero changed-block calls do not certify statistical non-inferiority.
 No correctness/scientific tolerance or later source/workload gate is waived.
 Existing `.venv` validates plotting only;
 the qualified G01 0.4.3 consumer validates numerical/WFO work. Neither is a new
-source-exact core wheel/sdist proof. No release or next-phase approval is implied.
+source-exact core wheel/sdist proof. PRE-E06-06 now builds the exact final core
+wheel/sdist and installs them into two independent non-editable environments.
+All 152 full-work cells match the sealed PRE05 corpus; 88 enabled cells actually
+fit/rank with at least 12 matured origins. Four-recipe W3/process/continuation,
+original-account scalar/portfolio/package/execution, liquidation and conditional
+fresh-process proofs PASS. See [the source-bound report](PRE_E06_06_REPORT.md).
+This is Linux CPython 3.12 local evidence only; no release or next-phase approval
+is implied. Original latency exceptions are retained, not remeasured or widened.
 
 E01 wires the real installed transport/sampler/continuation consumers into
 candidate, exact-release and public proof commands. Each gate uses the shared

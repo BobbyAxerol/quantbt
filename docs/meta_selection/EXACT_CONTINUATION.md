@@ -10,7 +10,10 @@ sobol_policy="conditional_numeric_latent_v1")` through this same session.
 Whole-point QMC state, the independent category stream, warm prefix and active
 masks are reconstructed and checked in the final witness. Read
 [the policy/version contract](CONDITIONAL_POLICIES.md). Old-source checkpoints
-are not silently migrated; final-source installed proof is PRE-E06-06.
+are not silently migrated. Current-source wheel/sdist proof PASS locally in
+[PRE-E06-06](PRE_E06_06_REPORT.md), including four-recipe fresh-process checks
+and conditional COMPLETE/FAIL/PRUNED continuation. No automatic financial or
+whole-WFO recovery is implied, and remote/public proof remains separate.
 
 ## What Is Exact
 
