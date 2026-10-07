@@ -23,6 +23,8 @@ def baseline(name):
 
 
 def without_pre04(source, name):
+    from tools.qms_pre05_source_guard import without_pre05
+    source = without_pre05(source, name)
     if name not in ALLOW:
         return source
     before = baseline(name)
@@ -40,6 +42,8 @@ def verify():
                                       cwd=ROOT, text=True).splitlines())
     names.update(subprocess.check_output(["git", "ls-files", "--others", "--exclude-standard", "--", "src", "rust"],
                                         cwd=ROOT, text=True).splitlines())
+    from tools.qms_pre05_source_guard import prior_names
+    names = prior_names(names, ENTRY)
     if names != ALLOW:
         raise AssertionError(f"unreviewed PRE04 runtime scope: {sorted(names ^ ALLOW)}")
     for name in names:

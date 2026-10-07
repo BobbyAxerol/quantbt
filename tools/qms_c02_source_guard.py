@@ -76,6 +76,8 @@ def verify():
     c03 = verify_c03()
     names = subprocess.check_output(["git", "diff", "--name-only", ENTRY, "--", "src", "rust"],
                                     cwd=ROOT, text=True).splitlines()
+    from tools.qms_pre05_source_guard import prior_names
+    names = prior_names(names, ENTRY)
     validate_changes(set(names) - C03_ALLOW - C04_ALLOW - {E01_NAME} - E02_ALLOW)
     for name in set(names) & ALLOW:
         without_c02_witness((ROOT / name).read_bytes(), name)

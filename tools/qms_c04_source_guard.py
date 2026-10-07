@@ -25,6 +25,8 @@ def verify():
     verify_e01()
     names = subprocess.check_output(["git", "diff", "--name-only", ENTRY, "--", "src", "rust"],
                                     cwd=ROOT, text=True).splitlines()
+    from tools.qms_pre05_source_guard import prior_names
+    names = prior_names(names, ENTRY)
     names = [name for name in names if name != E01_NAME and (name not in E02_ALLOW or name in ALLOW)]
     validate_changes(names)
     hashes = {}

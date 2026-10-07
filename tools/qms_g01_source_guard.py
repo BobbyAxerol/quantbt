@@ -55,6 +55,8 @@ def verify():
         "--", "src", "rust"], cwd=ROOT, text=True).splitlines())
     names.update(subprocess.check_output(["git", "ls-files", "--others", "--exclude-standard",
         "--", "src", "rust"], cwd=ROOT, text=True).splitlines())
+    from tools.qms_pre05_source_guard import prior_names
+    names = prior_names(names, ENTRY)
     if names != ALLOW | EXEC_ALLOW:
         raise AssertionError(f"unreviewed/missing G01 production changes: {sorted(names ^ (ALLOW | EXEC_ALLOW))}")
     for name in names:

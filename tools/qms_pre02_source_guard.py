@@ -40,6 +40,8 @@ def verify():
                                     cwd=ROOT, text=True).splitlines()
     names += subprocess.check_output(["git", "ls-files", "--others", "--exclude-standard", "--", "src", "rust"],
                                     cwd=ROOT, text=True).splitlines()
+    from tools.qms_pre05_source_guard import prior_names
+    names = prior_names(names, ENTRY)
     later = set(names) & later_allow
     if later:
         later_verify()

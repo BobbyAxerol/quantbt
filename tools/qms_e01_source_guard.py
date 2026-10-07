@@ -51,6 +51,8 @@ def verify():
     E02_ALLOW = reviewed_scope()
     names = subprocess.check_output(["git", "diff", "--name-only", ENTRY, "--", "src", "rust"],
                                     cwd=ROOT, text=True).splitlines()
+    from tools.qms_pre05_source_guard import prior_names
+    names = prior_names(names, ENTRY)
     if set(names) - E02_ALLOW:
         raise AssertionError("E01 must change only the WFO reporting expression")
     from tools.qms_e02_source_guard import without_e02_adapter

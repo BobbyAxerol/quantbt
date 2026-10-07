@@ -1,6 +1,8 @@
 """Registered public software workloads; no private alpha or economic tuning."""
 
-from dataclasses import asdict, dataclass, replace
+from dataclasses import asdict, dataclass, fields, is_dataclass, replace
+from collections.abc import Mapping
+from enum import Enum
 from hashlib import sha256
 import json
 from pathlib import Path
@@ -220,6 +222,26 @@ def metadata(result, cell):
     )
 
 
+def audit_value(value):
+    """Lossless report shape, labels and values, with explicit nonfinite tokens."""
+    if isinstance(value, Enum):
+        return audit_value(value.value)
+    if is_dataclass(value):
+        return {f.name: audit_value(getattr(value, f.name)) for f in fields(value)}
+    if isinstance(value, pd.DataFrame):
+        return dict(
+            index=legacy.safe(value.index.tolist()),
+            columns=legacy.safe(value.columns.tolist()),
+            dtypes=[str(d) for d in value.dtypes],
+            values=legacy.safe(value.to_numpy()),
+        )
+    if isinstance(value, Mapping):
+        return {str(k): audit_value(v) for k, v in value.items()}
+    if isinstance(value, (tuple, list)):
+        return [audit_value(v) for v in value]
+    return legacy.safe(value)
+
+
 def semantic(result, cell, context):
     """Exact logical work/measurement/account; physical generation clocks excluded."""
     wf = metadata(result, cell)
@@ -254,6 +276,31 @@ def semantic(result, cell, context):
                 for k in ("equity", "returns", "positions", "fees", "funding", "margin")
             }
         )
+        arrays[-1]["audit"] = audit_value(
+            {
+                k: getattr(account, k, None)
+                for k in (
+                    "closes",
+                    "symbols",
+                    "initial_capital",
+                    "leverage",
+                    "liquidated",
+                    "liquidation_bar",
+                    "orders",
+                    "fills",
+                    "trades",
+                    "diagnostics",
+                )
+            }
+        )
+        arrays[-1]["reports"] = audit_value(
+            {
+                k: v
+                for k, v in account.metadata.items()
+                if k.endswith(("_report", "_ledger"))
+            }
+        )
+        arrays[-1]["metrics"] = audit_value(account.full_report(trading_days=365))
     # These fields are elapsed telemetry, not information/measurement or params.
     elapsed = {
         "auxiliary_outer_is_seconds",

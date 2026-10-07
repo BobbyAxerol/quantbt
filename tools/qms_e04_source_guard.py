@@ -40,6 +40,8 @@ def verify():
     names.update(subprocess.check_output(["git", "ls-files", "--others", "--exclude-standard",
         "--", "src", "rust"], cwd=ROOT, text=True).splitlines())
     scope = reviewed_scope()
+    from tools.qms_pre05_source_guard import prior_names
+    names = prior_names(names, ENTRY)
     if names != scope:
         raise AssertionError(f"E04 unreviewed/missing production changes: {sorted(names ^ scope)}")
     for name in names:

@@ -42,6 +42,8 @@ def verify():
         "--", "src", "rust"], cwd=ROOT, text=True).splitlines())
     names.update(subprocess.check_output(["git", "ls-files", "--others", "--exclude-standard",
         "--", "src", "rust"], cwd=ROOT, text=True).splitlines())
+    from tools.qms_pre05_source_guard import prior_names
+    names = prior_names(names, ENTRY)
     if names != REVIEWED_SCOPE:
         raise AssertionError(f"unreviewed execution source: {sorted(names ^ REVIEWED_SCOPE)}")
     for name in names:

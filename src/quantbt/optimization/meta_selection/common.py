@@ -32,6 +32,18 @@ def token(value, name="reference"):
 
 
 def wire(value):
+    # Exact built-ins dominate portable records; subclasses retain the old dispatch.
+    kind = type(value)
+    if value is None or kind in (str, bool, int):
+        return value
+    if kind is float and math.isfinite(value):
+        return value
+    if kind is dict:
+        if any(not isinstance(k, str) for k in value):
+            raise MetaRecordError("portable mappings require string keys")
+        return {k: wire(v) for k, v in value.items()}
+    if kind is tuple or kind is list:
+        return [wire(v) for v in value]
     if isinstance(value, Enum):
         return value.value
     if isinstance(value, pd.Timestamp):
