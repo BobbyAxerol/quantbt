@@ -85,6 +85,11 @@ proof. Resume domain work only after disk and evidence checks are complete.
 
 ## Recorded Cleanup
 
+The [MET-03 receipt](maintenance/MET03_CLEANUP.md) records source/installed
+reporting certification, sequential consumer removal, preserved exact artifacts
+and failed evidence, and concurrent resource budgets. It distinguishes apparent
+hard-linked sizes from measured filesystem recovery; no Rust rebuild occurred.
+
 See the [2026-10-06 receipt](maintenance/CLEANUP_2026-10-06.md) for exact deletions,
 retained-file checksums, environment retention and measured disk improvement.
 The [E04/E05 follow-up](maintenance/QMS_E04_E05_CLEANUP_2026-10-06.md) records

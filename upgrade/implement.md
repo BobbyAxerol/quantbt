@@ -5,9 +5,10 @@
 **Status:** MET-01 COMPLETE_SPEC_ORACLE_LOCAL (phase approval 2026-10-07);
 MET01-T01..T08 PASS, 452 tests passed/no skips, 322 production hashes unchanged.
 Reporting definitions accepted through owner approval of MET-02 on 2026-10-07;
-MET-02 COMPLETE_ADDITIVE_LOCAL (567 tests, T01..T10 PASS), MET-03 IN_PROGRESS_LOCAL
-under separate owner approval 2026-10-07. Historical receipts remain unchanged.
-Installed-artifact/public formatting gates are being certified in MET-03.
+MET-02 COMPLETE_ADDITIVE_LOCAL (567 tests, T01..T10 PASS), MET-03 COMPLETE_LOCAL
+(598 source tests, T01..T10 PASS; exact wheel/sdist consumers PASS). Separate
+phase approval 2026-10-07; final owner review remains PENDING. Historical
+receipts remain unchanged. No CI/push/merge/tag/version change or publication.
 Owner requests the [three-phase metrics program](#metrics-upgrade) below, with
 separate approval before each phase. Read the [MET-01 report](../docs/metrics/MET01_REPORT.md)
 and [reporting definitions](../docs/metrics/REPORTING_CONTRACT_V1.md) for review.
@@ -26077,8 +26078,8 @@ correctness are separate checks.
 | Order | Phase | Main result | Status / owner gate |
 |---|---|---|---|
 | 1 | [MET-01](#metrics-met-01) | Reporting contract, source inventory and independent expected-value fixtures | COMPLETE_SPEC_ORACLE_LOCAL; definitions accepted through MET-02 approval |
-| 2 | [MET-02](#metrics-met-02) | Additive typed reducers and honest raw-data capabilities | COMPLETE_ADDITIVE_LOCAL; 567 tests, T01..T10 PASS; owner phase review before MET-03 |
-| 3 | [MET-03](#metrics-met-03) | Public reporting/docs, same-contract parity, raw preservation and local artifact/performance proof | IN_PROGRESS_LOCAL; owner approval 2026-10-07; MET-02 accepted |
+| 2 | [MET-02](#metrics-met-02) | Additive typed reducers and honest raw-data capabilities | COMPLETE_ADDITIVE_LOCAL; 567 tests, T01..T10 PASS; accepted through MET-03 approval |
+| 3 | [MET-03](#metrics-met-03) | Public reporting/docs, same-contract parity, raw preservation and local artifact/performance proof | COMPLETE_LOCAL; 598 tests, exact wheel/sdist and T01..T10 PASS; final owner review PENDING |
 
 All test groups and cost/installed gates below are NOT_RUN at registration.
 The following detailed guides are normative for this owner-requested program;
@@ -26504,8 +26505,9 @@ No push, workflow, merge, native build, version/tag or publication.
 <a id="metrics-met-03"></a>
 ### Phase MET-03 - Public Reports, Documentation And Local Certification
 
-**Status:** IN_PROGRESS_LOCAL; owner phase approval APPROVED (2026-10-07);
-MET-02 accepted through this approval; MET03-T01..T10 NOT_RUN at registration.
+**Status:** COMPLETE_LOCAL; owner phase approval APPROVED (2026-10-07);
+MET-02 accepted through this approval; MET03-T01..T10 PASS. Final owner
+review PENDING; preserve all historical registration and completion receipts.
 **Goal:** expose the accepted metrics clearly and certify mathematical,
 compatibility, financial-preservation and reporting-cost behavior on exact source.
 **Entry:** MET-02 accepted and separate owner approval. Freeze requested public
@@ -26606,6 +26608,33 @@ then local artifact/cleanup/final handoff. Preserve phase receipts independently
   Clean only this registration's build staging, venvs, pytest/JIT/plot scratch.
 - Qualification is local CPython 3.12 only. No push, CI, merge, tag, version
   change or publication. Owner final acceptance remains separate.
+
+**MET-03 Local Completion - 2026-10-07:**
+- Optional public reporting and observed-episode plots are implemented; legacy
+  scientific defaults, endpoint constructors/backtest routes and raw fields
+  remain unchanged. Explicit scope/currency/population/retention witnesses;
+  missing ledger attribution is unavailable, never inferred or replayed.
+- 598 tests passed, zero failures/skips. 321 protected byte hashes plus four
+  exact legacy AST/public-cold-surface guards pass. Independent oracle,
+  Python/Numba equality, pinned QuantStats conventions, actual route/W3 raw
+  preservation and mature meta off/shadow/active/RNG sentinels pass.
+- Twelve matched reporting cost cells and resource budgets pass. New requested
+  account/episode output: Numba p50 2.420 / 43.827 / 326.657 ms at 2k/100k/1M.
+  First-call JIT 5.54-5.77 s and worker RSS are disclosed. The 1M default legacy
+  worker comparison includes a 12.88% higher median; retained without retuning,
+  with equal legacy body/results and nonexclusive host noise. Cost acceptance
+  is owner review; no fabricated latency gate or universal speedup claim.
+- Exact local core wheel/sdist and outside-checkout consumers pass, 275 source
+  modules, unchanged native 0.4.3 identity; no Rust rebuild. Failed attempts,
+  logs, exact artifacts and offline dependencies retained; owned scratch cleaned.
+- Read [final report](../docs/metrics/MET03_REPORT.md),
+  [public guide](../docs/metrics/PUBLIC_REPORTING.md),
+  [closure](../docs/metrics/evidence/met03/closure.json) and
+  [cleanup](../docs/maintenance/MET03_CLEANUP.md).
+- No in-scope correctness/package blocker remains. Missing automatic ledger
+  attribution, Rust Reporting V1 and new financial domains are explicit
+  capabilities, not claimed implementations. Remote/public qualification and
+  final owner acceptance remain separate. No push/workflow/merge/tag/upload.
 
 ### Metrics Completion, Evidence And Owner Review Rules
 

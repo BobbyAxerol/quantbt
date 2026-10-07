@@ -72,8 +72,6 @@ except PackageNotFoundError:
 Read the [native installation matrix](docs/native/install.md) for supported
 platforms, backend controls, and troubleshooting.
 
-## Quick Start
-
 ## Optional Reporting V1
 
 Completed endpoint/result `full_report()`, `show_metrics()` and `quick_plot()`
