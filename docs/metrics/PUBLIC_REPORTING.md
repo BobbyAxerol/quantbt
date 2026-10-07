@@ -140,6 +140,18 @@ on cache hits; direct reducer hits are a different workload. `release(identity)`
 `clear()` and `close()` provide explicit disposal. Requested episode detail can
 exceed the byte cap and bypass cache, never silently disappear.
 
+The immutable request prepares its boolean partial mask once (one extra byte
+per observed return). Reuse a request for repeated reports rather than rebuild
+it each call. Completed mutable equity is still freshly snapshotted and SHA256
+hashed on every public call, including cache hits; object identity/length alone
+never permits reuse. Only contiguous arrays with an immutable `bytes` owner
+can share snapshot storage. Read-only views of writable arrays/memoryviews are
+copied, so later source changes cannot corrupt a report or its cached identity.
+Reports and plots use the same local snapshot within a plot call; that snapshot
+is not retained by the reduction cache. No output detail or validity test is
+omitted to obtain the measured gain. Request preparation, reducer, warm full
+report and cache-hit costs are measured separately, including request+report.
+
 Migration is opt-in. Keep scientific/WFO calls without `reporting=`. Don't replace
 their objective/selection dictionary with the grouped report. Full runnable public
 synthetic example: [reporting_metrics_v1.py](../../examples/reporting_metrics_v1.py).

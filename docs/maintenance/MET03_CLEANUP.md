@@ -4,7 +4,28 @@ Local source and installed-artifact qualification completed on 2026-10-07.
 No services, environments from other phases, data, alpha files, Git objects or
 global caches were removed. No Rust build occurred.
 
-## Owner Recheck
+## Reporting Performance Follow-Up
+
+The [performance report](../metrics/MET03_PERFORMANCE_REPORT.md) and
+[sealed closure](../metrics/evidence/met03/performance-closure.json) cover the
+latest source. Removed exact new source consumers `/tmp/quantbt-met03-qa4nbm10`,
+`/tmp/quantbt-met03-kgdm0kvy`, `/tmp/quantbt-met03-o1dk4loe` and final build/
+sequential consumers `/tmp/quantbt-met03-srglr5h_`; their nested comparison
+scratch also completed its owned lifetime. Only owned focused pytest scratch
+`/tmp/pytest-of-root/pytest-161` was additionally removed after preserving both
+theme figures and verifying its single exact internal `current` symlink.
+The initial inventory guard rejection is retained. No general symlink cleanup
+exception or deletion of other pytest paths is introduced.
+
+Installed peak: 14,886 files / 694,102,339 apparent bytes. Final consumer cleanup
+recovered 13,037,568 actual filesystem bytes; the 1,373,285,390 apparent
+hard-linked lifetime bytes are not physically reclaimed bytes. Figure copy/
+cleanup reclaimed zero net bytes. The final exact artifacts remain under
+`.maturin/met03/run-20261007T220807135175Z/dist/`; historical artifact/evidence
+hashes pass, primary tooling/offline cache and all unrelated resources remain.
+Cleaned environments need fresh installation to rerun; no Rust rebuild occurred.
+
+## Historical Owner Recheck
 
 The [latest recheck](../metrics/MET03_RECHECK_REPORT.md) has fresh source/artifact
 receipts; the original completion below remains historical, not rewritten.

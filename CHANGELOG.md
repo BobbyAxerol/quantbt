@@ -11,6 +11,10 @@ All notable changes to `quantbt-engine` are documented here.
   drawdown episode output has explicit baseline, frequency, currency, coverage
   and unavailable policies. Legacy reports, scientific/WFO scores and raw
   execution/accounting remain unchanged. Read [Reporting V1](docs/metrics/PUBLIC_REPORTING.md).
+- Reduced optional reporting copies and duplicate hashing using immutable
+  bytes-owned snapshots, a prepared boolean mask and one report/plot snapshot.
+  Cache hits still rehash mutable completed input; formulas, exact identities,
+  requested episode detail, legacy reports and financial/WFO metrics are unchanged.
 
 - Added opt-in Mode 4 / per-fold causal meta selection and a shared sampler
   bridge for legacy TPE, grouped multivariate TPE, CMA-ES and fixed-space Sobol.

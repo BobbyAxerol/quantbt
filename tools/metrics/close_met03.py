@@ -101,6 +101,27 @@ def main():
     exploratory = Path("/tmp/quantbt-met03-initial")
     cleaned = []
     before = shutil.disk_usage(ROOT).free
+    focused_plots = Path("/tmp/pytest-of-root/pytest-161")
+    if args.performance and focused_plots.exists():
+        assert not focused_plots.is_symlink()
+        expected = {"test_met03_t07_plot_episode_st0/light.png", "test_met03_t07_plot_episode_st0/dark.png"}
+        actual = {p.relative_to(focused_plots).as_posix() for p in focused_plots.rglob("*") if p.is_file()}
+        links = [p for p in focused_plots.rglob("*") if p.is_symlink()]
+        current_link = focused_plots/"test_met03_t07_plot_episode_stcurrent"
+        assert actual == expected and links == [current_link]
+        assert current_link.resolve() == focused_plots/"test_met03_t07_plot_episode_st0"
+        retained = LANE/"performance-focused-plots"
+        retained.mkdir()
+        hashes = {}
+        for relative in sorted(expected):
+            path = focused_plots/relative
+            target = retained/path.name
+            shutil.copy2(path, target)
+            hashes[target.relative_to(ROOT).as_posix()] = digest(path)
+            assert digest(target) == digest(path)
+        cleaned.append(dict(path=str(focused_plots), files=2, retained_sha256=hashes,
+            owned_internal_symlink=str(current_link), symlink_target=str(current_link.resolve())))
+        shutil.rmtree(focused_plots)
     if exploratory.exists() and not args.performance:
         assert not exploratory.is_symlink() and exploratory.resolve() == exploratory
         retained = LANE/"exploratory-retained"

@@ -1,6 +1,8 @@
 # MET-03 Local Certification
 
-**Latest source:** the [owner recheck](MET03_RECHECK_REPORT.md) closes five
+**Latest source:** read the [performance follow-up](MET03_PERFORMANCE_REPORT.md)
+for snapshot optimization and new costs/artifacts. The
+[owner recheck](MET03_RECHECK_REPORT.md) closes five
 additional reporting edge defects with 667 tests and fresh installed artifacts.
 The results/hashes below remain the original MET-03 qualification, not proof
 for the subsequently changed source.

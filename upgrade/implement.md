@@ -6,11 +6,12 @@
 MET01-T01..T08 PASS, 452 tests passed/no skips, 322 production hashes unchanged.
 Reporting definitions accepted through owner approval of MET-02 on 2026-10-07;
 MET-02 COMPLETE_ADDITIVE_LOCAL (567 tests, T01..T10 PASS), MET-03 COMPLETE_LOCAL
-(667 source tests after owner recheck, T01..T10 PASS; new exact wheel/sdist
+(716 source tests after reporting performance follow-up, T01..T10 PASS; new exact wheel/sdist
 consumers and edge-case proof PASS). Separate
 phase approval 2026-10-07; final owner review remains PENDING. Historical
 receipts remain unchanged. Owner recheck closed five reporting edge defects;
-read the [recheck report](../docs/metrics/MET03_RECHECK_REPORT.md).
+read the [recheck report](../docs/metrics/MET03_RECHECK_REPORT.md) and latest
+[performance report](../docs/metrics/MET03_PERFORMANCE_REPORT.md).
 No CI/push/merge/tag/version change or publication.
 Owner requests the [three-phase metrics program](#metrics-upgrade) below, with
 separate approval before each phase. Read the [MET-01 report](../docs/metrics/MET01_REPORT.md)
@@ -26082,7 +26083,7 @@ correctness are separate checks.
 |---|---|---|---|
 | 1 | [MET-01](#metrics-met-01) | Reporting contract, source inventory and independent expected-value fixtures | COMPLETE_SPEC_ORACLE_LOCAL; definitions accepted through MET-02 approval |
 | 2 | [MET-02](#metrics-met-02) | Additive typed reducers and honest raw-data capabilities | COMPLETE_ADDITIVE_LOCAL; 567 tests, T01..T10 PASS; accepted through MET-03 approval |
-| 3 | [MET-03](#metrics-met-03) | Public reporting/docs, same-contract parity, raw preservation and local artifact/performance proof | COMPLETE_LOCAL; owner recheck 667 tests, new exact wheel/sdist and T01..T10 PASS; final owner review PENDING |
+| 3 | [MET-03](#metrics-met-03) | Public reporting/docs, same-contract parity, raw preservation and local artifact/performance proof | COMPLETE_LOCAL; reporting follow-up 716 tests, new exact wheel/sdist and T01..T10 PASS; final owner review PENDING |
 
 All test groups and cost/installed gates below are NOT_RUN at registration.
 The following detailed guides are normative for this owner-requested program;
@@ -26510,7 +26511,7 @@ No push, workflow, merge, native build, version/tag or publication.
 
 **Status:** COMPLETE_LOCAL; owner phase approval APPROVED (2026-10-07);
 MET-02 accepted through this approval; MET03-T01..T10 PASS, including the new
-667-test owner recheck and exact-source artifact proof. Final owner
+716-test reporting follow-up and exact-source artifact proof. Final owner
 review PENDING; preserve all historical registration and completion receipts.
 **Goal:** expose the accepted metrics clearly and certify mathematical,
 compatibility, financial-preservation and reporting-cost behavior on exact source.
@@ -26690,8 +26691,12 @@ then local artifact/cleanup/final handoff. Preserve phase receipts independently
 
 ### MET-03 Reporting Performance Follow-Up - 2026-10-07
 
-**Status:** IMPLEMENTED; 47 new snapshot/ownership cases and 714 qualified
-source tests PASS. Matched timing and final installed gates IN_PROGRESS.
+**Status:** COMPLETE_LOCAL; 49 new snapshot/ownership cases and 716 qualified
+source tests PASS. All 12 exact-report/input SHA comparisons PASS; wheel/sdist
+installed consumers and T01..T10 PASS. Numba 1M matched median 315.899 -> 182.206 ms,
+RSS 428.70 -> 371.25 MiB; Python/ledger cells are not uniformly faster.
+Owner acceptance remains PENDING. Read the [report](../docs/metrics/MET03_PERFORMANCE_REPORT.md)
+and immutable [closure](../docs/metrics/evidence/met03/performance-closure.json).
 
 - **Goal/scope:** profile and reduce completed-report snapshot/adaptation costs
   against immutable baseline `24ad469`, under [G01](#metrics-guide-contract),
@@ -26730,10 +26735,30 @@ source tests PASS. Matched timing and final installed gates IN_PROGRESS.
   artifacts under `.maturin/met03/`. Reuse offline `/tmp/quantbt-uv-cache` and
   unchanged native 0.4.3 wheel. Preserve primary environment, source staging,
   all old/new receipts/logs/artifacts; remove owned inactive consumers only.
+  Focused plot pytest used its default temp location; inventory contains only
+  two generated theme images under `/tmp/pytest-of-root/pytest-161/` (156 KiB).
+  Pytest also creates exactly `test_met03_t07_plot_episode_stcurrent` pointing
+  inside that same owned directory; verify this exact link and target before
+  cleanup. The first stricter inventory rejection is retained, not bypassed
+  with a general symlink exception.
+  Register this exact owned exception for preservation then cleanup; no other
+  pytest/user temp directory is eligible. Keep the deviation explicit.
 - **Debt policy/exit:** no reproduced in-scope correctness gap left open;
   disclose unavailable raw coverage, noisy measurements, unimplemented native
   Reporting V1 and remaining optimization headroom independently. Commit each
   coherent verified change; no push, CI, merge, tag or publication.
+
+**Completion receipt:** final source lane `run-20261007T215523607051Z` and package
+lane `run-20261007T220807135175Z`. Both artifact consumers load all 275 exact source
+modules, correct native 0.4.3, and pass clock/action/header/cache/plot proofs.
+All historical evidence/artifacts remain hash-identical. The extra header-alias
+gap was reproduced and closed; cleanup initially stopped on an unregistered
+pytest-owned internal link, then verified the exact link/target before removal.
+Source/build consumers and only owned focused scratch are removed; all failed
+and passing evidence, retained figures, artifacts, primary environment and
+offline cache remain. Package final cleanup recovered 13,037,568 actual bytes;
+apparent hard-linked lifetime size is not a reclamation claim. No language-wide
+speed guarantee, new financial/scientific semantics or remote/public claim.
 
 ### Metrics Completion, Evidence And Owner Review Rules
 

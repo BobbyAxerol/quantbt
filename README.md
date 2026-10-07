@@ -88,21 +88,30 @@ and grouped dictionary adaptation; it does not time strategy/execution.
 
 | Account observations | Python full report p50 / p95 | Explicit Numba p50 / p95 | Numba observations/s | Worker peak RSS Python / Numba |
 |---:|---:|---:|---:|---:|
-| 2,000 | 8.816 / 9.143 ms | 2.420 / 3.551 ms | 0.83M | 201.02 / 304.46 MiB |
-| 100,000 | 440.436 / 657.913 ms | 43.827 / 70.266 ms | 2.28M | 172.15 / 270.11 MiB |
-| 1,000,000 | 3.460 / 3.931 s | 326.657 / 351.821 ms | 3.06M | 331.34 / 423.95 MiB |
+| 2,000 | 9.139 / 9.546 ms | 1.809 / 1.952 ms | 1.11M | 201.29 / 305.27 MiB |
+| 100,000 | 316.497 / 320.122 ms | 21.869 / 23.207 ms | 4.57M | 169.46 / 265.55 MiB |
+| 1,000,000 | 3.168 / 3.309 s | 177.952 / 243.112 ms | 5.62M | 286.44 / 373.51 MiB |
 
 These are **new report definitions and requested extra work**, not comparable
 to the shorter legacy scientific metric set as a speedup. Text formatting was
-0.05-0.10 ms; immutable snapshot/hash alone was about 0.88/29.49/283.62 ms.
-First-call Numba account compilation/reduction took 5.54-5.77 s and is not in
+0.05-0.10 ms in the original qualification; direct snapshot/hash with a raw tuple
+mask is about 0.80/20.46/194.22 ms in this follow-up. Public requests prepare that
+mask once; request preparation is measured separately, not advertised as free.
+First-call Numba account compilation/reduction took 5.84-6.13 s and is not in
 the warm table. Python remains the reporting default; small ledgers may be
 faster without compilation. Peak RSS includes the import/JIT floor, and the
 2k row also draws the optional plot, so rows are not memory-scaling forecasts.
 Public cache hits still rehash mutable input and adapt output. Full matched
 legacy/new timings, coverage, caveats and local artifact receipts are in the
-[MET-03 certification report](docs/metrics/MET03_REPORT.md). No universal
+[reporting performance follow-up](docs/metrics/MET03_PERFORMANCE_REPORT.md), with
+historical evidence in the [MET-03 report](docs/metrics/MET03_REPORT.md). No universal
 1-10 ms promise or Rust Reporting V1 reducer is claimed.
+
+Same-host matched 1M reporting comparison against the prior source:
+Numba full report **315.899 -> 182.206 ms**, peak RSS **428.70 -> 371.25 MiB**,
+with exact report/input hashes. Including request setup: **362.418 -> 227.065 ms**.
+Python/ledger and p95 results are not uniformly better; retained comparison
+tables include worse cells. This is a reporting gain, not a WFO execution claim.
 
 ## Quick Start
 
