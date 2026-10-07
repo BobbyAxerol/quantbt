@@ -40,8 +40,14 @@ def commands():
     }
 
 
-def run():
+def run(labels=None, attempt=""):
     plan = commands()
+    if labels is not None:
+        if set(labels) - plan.keys() or len(labels) != len(set(labels)):
+            raise ValueError("unknown/duplicate regression shard")
+        plan = {k: plan[k] for k in labels}
+    if attempt and not attempt.isalnum():
+        raise ValueError("attempt must be an alphanumeric fresh label")
     if not (LANE / "regression-registration.json").exists():
         write_once(LANE / "regression-registration.json", dict(
             schema="qms-pre06-regression-registration-v1", commands={k: list(map(str, v)) for k, v in plan.items()},
@@ -49,7 +55,8 @@ def run():
             plotting_is_separate=True, numeric_threads=1))
     union, seen_na, records = set(), set(), {}
     for label, command in plan.items():
-        xml, log = LANE / (label+"-regression.xml"), LANE / (label+"-regression.log")
+        suffix = "-"+attempt if attempt else ""
+        xml, log = LANE / (label+"-regression"+suffix+".xml"), LANE / (label+"-regression"+suffix+".log")
         if xml.exists() or log.exists():
             raise ValueError("refuse to overwrite regression; use explicit retained rerun")
         env = dict(os.environ, PYTHONPATH="src:.", OMP_NUM_THREADS="1", OPENBLAS_NUM_THREADS="1",
@@ -63,13 +70,15 @@ def run():
                                        cwd=ROOT, env=env, stdout=stream, stderr=subprocess.STDOUT)
         records[label] = dict(returncode=completed.returncode, elapsed_seconds=time.perf_counter()-start,
                               xml_sha256=file_hash(xml) if xml.exists() else None, log_sha256=file_hash(log))
-        write_once(LANE / (label+"-regression-result.json"), records[label])
+        write_once(LANE / (label+"-regression"+suffix+"-result.json"), records[label])
         if completed.returncode:
             raise ValueError(f"regression failed; preserve and inspect {log}")
         union.update(passed_cases(xml, admitted_na=REGISTERED_NA))
         seen_na.update((c.get("classname"), c.get("name")) for c in ET.parse(xml).iter("testcase")
                        if c.find("skipped") is not None)
         print(f"{label}: PASS; cumulative distinct cases {len(union)}", flush=True)
+    if labels is not None:
+        return
     if seen_na != REGISTERED_NA:
         raise ValueError("unexpected/missing registered N/A coverage")
     write_once(LANE / "regression-proof.json", dict(schema="qms-pre06-regression-v1",
@@ -78,5 +87,8 @@ def run():
 
 
 if __name__ == "__main__":
-    argparse.ArgumentParser(description=__doc__).parse_args()
-    run()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--shards", nargs="+", choices=tuple(commands()))
+    parser.add_argument("--attempt", default="")
+    args = parser.parse_args()
+    run(args.shards, args.attempt)

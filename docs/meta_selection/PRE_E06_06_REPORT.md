@@ -70,6 +70,14 @@ Raw source/artifact/consumer hashes and logs remain in the ignored phase lane;
 the final public aggregate receipt follows only after regression and cleanup.
 Two initial harness-only negative-fixture failures were corrected and separately
 passed before artifact qualification; their diagnostic and passing XML remain.
+The original accounting shard then stops at collection because the retained
+numeric test environment lacks the already-declared Hypothesis dev dependency.
+Offline resolution of lockfile version 6.164.0 is unavailable; that log and both
+collection-only attempts remain retained. Reuse only RECORD-verified Hypothesis
+6.164.0 and sortedcontainers 2.4.0 files from the existing project environment;
+verify destination hashes and unchanged numeric/native dependencies, then rerun
+the exact full account module set under fresh `v3` logs/XML. No financial
+assertion/tolerance/source or numerical dependency changes in this correction.
 
 ## Limits
 

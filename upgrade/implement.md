@@ -784,6 +784,24 @@ fresh-process continuation. Full affected source regression is RUNNING; final
 privacy/cleanup handoff is still pending. Read the
 [live phase report](../docs/meta_selection/PRE_E06_06_REPORT.md).
 
+**Registered environment correction before accounting rerun:** full meta PASS
+(2,216 plus 30 registered N/A), external WFO PASS (162). The original account
+shard fails collection because Hypothesis is absent; no financial assertion
+runs. Preserve `account-regression.log/xml/result.json`, install the unchanged
+lockfile's Hypothesis 6.164.0 into the retained G01 test env,
+then rerun every original account module under fresh output names and run
+the separately registered plotting shard. Pin/verify existing numerical and
+native versions remain unchanged. This is a missing dev-test dependency, not
+a scientific waiver, dropped module, tolerance change or whole-suite rerun.
+
+The offline resolver does not contain the lockfile's Linux wheel. Retain its
+failure log and the second collection-only `v2` attempt. Reuse only the exact
+RECORD-verified Hypothesis 6.164.0 and sortedcontainers 2.4.0 installed files
+from the existing project environment, including Hypothesis's native helper;
+do not place that environment's other packages on the numeric test import path.
+Verify copied RECORD hashes, versions, and unchanged numeric/native identity,
+then run all registered account modules and plotting under fresh `v3` receipts.
+
 ### Deferred Scope And Resume Order
 
 | Item | Disposition before returning to E06 |
