@@ -69,12 +69,30 @@ No observer removal or changed audit work. Three repeats are descriptive, not
 a significance or speedup acceptance threshold. Process peak RSS includes imports;
 record resident/PSS at the end of the measured call separately.
 
+After this matrix, capture the existing final-account owner/callback/native
+telemetry and search/fit/rank/observer timings in five separate fresh-process
+active diagnostic calls, one per registered case. The existing meta timer groups
+fit/select; do not invent separate search/fit/rank times absent from the runtime.
+Cross-check their logical
+digests against the matrix; do not mix these cold diagnostics into warm medians
+or infer additive stage percentages from overlapping native timers.
+
 Run all 30 cells once in each isolated exact wheel/sdist consumer. Check all
 canonical package hashes and loaded runtime origins before/after. Legacy logical
 digests stay comparable: the new additive revision sidecar is tested separately.
 Rerun affected shared-meta, event lifecycle, W3 transport and E06 conformance;
 do not rerun unrelated real-market optimization or old source-seal receipts as
 though they certified new bytes.
+
+Clock clarification before final order tests: generic matched histories retain
+their original default `v2_next_bar_close`; W3 explicitly uses `v3_next_open`.
+Add eight cross-fold quantity/rejection cases on both generic protocols/backends
+x legacy/v3, with different open/close prices and independent expected costs.
+Keep global timestamp identity separate from the callback's fold-local bar index.
+Explicit command timestamps denote effective execution bars, not close-observation
+times. Assert their exact fill timestamps independently from callback retiming;
+use the existing [tape clock contract](../endpoint.md#event-clock-contracts).
+No clock default or financial engine change is authorized by these tests.
 
 ## Resource Plan And Exit
 

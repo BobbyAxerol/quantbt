@@ -59,7 +59,7 @@ def install():
         print(json.dumps(dict(consumer=kind, status="INSTALLED_EXACT")), flush=True)
 
 
-def test_installed():
+def test_installed(bounds=False):
     from importlib.util import spec_from_file_location, module_from_spec
     spec = spec_from_file_location("e07_installed_check", ROOT / "tools/qms_pre06_consumer.py")
     checker = module_from_spec(spec)
@@ -71,23 +71,26 @@ def test_installed():
     from tools.qms_e07_contract import write_once
     import pytest
     label = "wheel" if "wheel-consumer" in sys.executable else "sdist"
+    names = ("test_e07_order_bounds.py",) if bounds else ("test_e07_output.py", "test_e07_lifecycle.py")
+    suffix = "-bounds-v1" if bounds else "-tests-v1"
     code = pytest.main(["-q", "--tb=short", "--import-mode=importlib",
-        str(ROOT / "tests/meta_selection/test_e07_output.py"),
-        str(ROOT / "tests/meta_selection/test_e07_lifecycle.py"),
-        f"--junitxml={LANE / (label+'-tests-v1.xml')}"])
+        *[str(ROOT / "tests/meta_selection" / name) for name in names],
+        f"--junitxml={LANE / (label+suffix+'.xml')}"])
     checker.origins(Path(identity["core_origin"]))
     if code:
         raise ValueError("installed route/output tests failed")
-    write_once(LANE / (label+"-tests-identity.json"), identity)
+    identity_suffix = "-bounds-v1" if bounds else "-tests"
+    write_once(LANE / (label+identity_suffix+"-identity.json"), identity)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--install", action="store_true")
     parser.add_argument("--tests", action="store_true")
+    parser.add_argument("--bounds", action="store_true")
     args = parser.parse_args()
     if args.tests:
-        test_installed()
+        test_installed(args.bounds)
     elif args.install:
         install()
     else:

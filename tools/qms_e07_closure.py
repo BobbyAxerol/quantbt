@@ -16,9 +16,9 @@ from tools.qms_pre_e06_inventory import check_public_text
 
 CLEANABLE = ("build-env", "wheel-consumer", "sdist-consumer", "stage/build")
 SUITES = {"output-v1.xml": 13, "output-regression-v1.xml": 66,
-    "lifecycle-v2.xml": 15, "mature-v2.xml": 35, "unavailable-v3.xml": 5,
+    "lifecycle-v2.xml": 15, "final-v2.xml": 61,
     "gate-v1.xml": 12, "financial-transport-regression-v1.xml": 175,
-    "closure-v1.xml": 13}
+}
 MATRICES = {"source": "source-matrix-v3.json", "wheel": "wheel-matrix-v1.json",
             "sdist": "sdist-matrix-v1.json"}
 
@@ -59,7 +59,10 @@ def workload_evidence():
                 raise ValueError("installed tests/matrix origins differ")
             if len(passed_cases(LANE / (kind+"-tests-v1.xml"))) != 28:
                 raise ValueError("incomplete installed lifecycle/output proof")
-            evidence[kind]["rerun_tests"] = 28
+            if (len(passed_cases(LANE / (kind+"-bounds-v1.xml"))) != 8
+                    or json.loads((LANE / (kind+"-bounds-v1-identity.json")).read_text()) != identity):
+                raise ValueError("incomplete installed quantity/rejection proof")
+            evidence[kind]["rerun_tests"] = 36
     return evidence
 
 
@@ -68,7 +71,8 @@ def privacy():
     names.update(subprocess.check_output(["git", "ls-files", "--others", "--exclude-standard"], cwd=ROOT, text=True).splitlines())
     allowed = ("tools/qms_e07_", "tests/meta_selection/test_e07_",
         "tests/meta_selection/e07_support.py", "examples/wfo_meta_reactive_grid.py", "docs/",
-        "upgrade/implement.md", "src/quantbt/optimization/meta_selection/runtime.py",
+        "upgrade/implement.md", "handoff/WFO_META_CURRENT.md",
+        "src/quantbt/optimization/meta_selection/runtime.py",
         "benchmarks/optimization/meta_selection/qms_e07_closure.json")
     for name in names:
         if not name.startswith(allowed):
@@ -149,6 +153,11 @@ def main():
             raise ValueError(f"incomplete E07 qualification shard: {name}")
         cases.update(passed)
     evidence = workload_evidence()
+    ownership = json.loads((LANE / "observability-v1.json").read_text())
+    from tests.meta_selection.e07_support import CASES
+    if (not ownership["diagnostic_only"] or len(ownership["rows"]) != 5
+            or {tuple(r["case"]) for r in ownership["rows"]} != set(CASES)):
+        raise ValueError("incomplete ownership diagnostics")
     safe = privacy()
     cleaned = cleanup(registered)
     verification = ["examples/wfo_meta_reactive_grid.py", "tests/meta_selection/e07_support.py",
@@ -160,17 +169,18 @@ def main():
         runtime_change="three_exact_opt_in_output_insertions_only", guide_sha256=registered["guide_sha256"],
         artifacts=exact_artifacts, native_sha256=registered["native"]["wheel_sha256"], native_rebuilt=False,
         distinct_source_pass=len(cases), unexpected_skip=0, evidence=evidence,
-        installed_rerun_pass=56, installed_reruns_not_new_distinct_tests=True,
+        installed_rerun_pass=72, installed_reruns_not_new_distinct_tests=True,
         verification_source_sha256={n: file_hash(ROOT / n) for n in verification},
         privacy=safe, cleanup_sha256=file_hash(LANE / "cleanup.json"),
         protected_files=cleaned["protected_files"], freed_bytes=cleaned["actual_free_bytes_change"],
         mature_process_cells=3, financial_replay_for_reporting=0,
+        observability_sha256=file_hash(LANE / "observability-v1.json"),
         scope="mode4_causal_event_callback_commands_continuous_numeric_w3_reset_flat",
         economic="REAL_MARKET_NOT_ASSESSED_NOT_PROMOTED", meta_default_changed=False,
         remote="DEFERRED_E08_OWNER_APPROVAL", next_phase_started=False, publication=False)
     check_public_text(json.dumps(receipt, sort_keys=True))
     write_once(ROOT / "benchmarks/optimization/meta_selection/qms_e07_closure.json", receipt)
-    print(json.dumps(dict(status=receipt["status"], source_tests=len(cases), installed_tests=56,
+    print(json.dumps(dict(status=receipt["status"], source_tests=len(cases), installed_tests=72,
         workload_cells=sum(e["cells"] for e in evidence.values()),
         freed_mib=receipt["freed_bytes"]/1024**2, publication=False)))
 
@@ -181,7 +191,8 @@ def verify_handoff():
     checked_hashes(receipt["verification_source_sha256"])
     cleaned = cleanup(registered)
     if (file_hash(LANE / "cleanup.json") != receipt["cleanup_sha256"]
-            or artifacts(registered) != receipt["artifacts"]):
+            or artifacts(registered) != receipt["artifacts"]
+            or file_hash(LANE / "observability-v1.json") != receipt["observability_sha256"]):
         raise ValueError("E07 cleanup/artifact handoff drift")
     for kind, name in MATRICES.items():
         if file_hash(LANE / name) != receipt["evidence"][kind]["sha256"]:

@@ -14,6 +14,11 @@ no-leakage controls and exact installed wheel/sdist proof. Meta stays opt-in;
 Mode 4 / `per_fold_causal` remains the admitted execution-route method. Software
 correctness does not assert persistent decay improvement or public availability.
 
+Event qualification is [QMS-E07](QMSE07_REPORT.md): callback and command accounts
+are continuous, while numeric W3 remains segmented reset-flat. Five financial
+protocol/backend families have actual mature fit/rank, original measurements,
+no-leakage controls and exact installed proof; no universal decay claim.
+
 | `target_mode` | Financial endpoint | Strategy output |
 |---|---|---|
 | `intrabar` | Existing `intrabar_bracket`, reference or Rust endpoint | Exact intent frame and optional `IntrabarSessionTape` |
@@ -97,6 +102,7 @@ python -m examples.wfo_meta_execution --route intrabar --mode shadow
 python -m examples.wfo_meta_execution --route event_driven --mode active
 python -m examples.wfo_meta_execution --route order_commands --mode off
 python -m examples.wfo_meta_execution --route delivery_arbitrage --mode shadow
+python -m examples.wfo_meta_reactive_grid --mode active --worker inprocess
 ```
 
 ## Account And Causality
@@ -114,8 +120,20 @@ owned by the original engine. A held intrabar position retains its original
 protection when the next fold chooses different parameters.
 
 Callback alpha instances switch at the first close of each new fold; new commands
-use original next-open behavior. The account and pending orders do not reset.
+use the financial endpoint's declared clock. The legacy default is
+`event_lifecycle_v2_next_bar_close`; explicitly pass
+`execution_contract="event_lifecycle_v3_next_open"` on the financial endpoint
+for next-open semantics. The account and pending orders do not reset.
 `initialize` runs for each new child; `finalize` runs only for the final child.
+`context.bar_index` is fold-local; `context.timestamp` stays absolute. Order IDs
+must stay unique across the final tape. The original result's
+`execution_contract_id`/`event_clock_contract` are the timing authority; the
+legacy `wfo_execution_window.callback_boundary` descriptive string is not a
+clock override or evidence of open-price execution.
+Command-tape timestamps instead denote effective execution bars, with no extra
+automatic shift. Bar zero is the initial snapshot, not an executable command
+bar; the final explicit bar remains executable. See the
+[original event clock](../endpoint.md#event-clock-contracts).
 The final result's positions/fills are the authority. Boundary-table target
 snapshots/counts are null because order intents are not held position targets.
 
@@ -165,7 +183,11 @@ meta = wf["meta_selection"]
 display(wf["fold_table"], wf["trial_table"])
 display(wf["params_by_fold"], meta["records"])
 
-for record, revision in zip(meta["records"], meta["observed_revisions"], strict=True):
+revisions = {r.revision_id: r for r in meta["observed_revisions"]}
+for record in meta["records"]:
+    revision = revisions.get(record.get("observer_revision_id"))
+    if revision is None:
+        continue  # Observer disabled/failed: no forward observation to measure.
     candidates = {c.evaluation_id: c for c in revision.task.candidates}
     forward = {o.evaluation_id: o.observation for o in revision.outcomes}
     anchor = candidates[record["native_selected_evaluation_id"]]
@@ -192,6 +214,8 @@ observations. `snapshots`/`models` retain fit lineage, scaler and coefficients;
 raw forward outcomes and labels with availability clocks, not the entire archive
 or extra account paths. These are the original immutable revision objects,
 also referenced by history, with no financial replay or serialization by default.
+If the observer is disabled or fails, inspect the existing observer failure/
+disposition fields; no unpublished partial revision or zero measurement is added.
 Outcome publication is later than selection; returned outcomes must not be used
 to retune that same fold. Invalid/censored/failed outcomes are not zero labels.
 
