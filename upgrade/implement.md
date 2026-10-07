@@ -1,6 +1,25 @@
 # QuantBT Upgrade Implementation Plan
 
-## Current QMS-SH01 Optional Sampler Helper - Owner Approval 2026-10-07
+## Current Post-Simulation Metrics Upgrade - Owner Planning Request 2026-10-07
+
+**Status:** PLAN_REGISTERED_ONLY; MET-01/MET-02/MET-03 NOT_STARTED;
+all implementation, regression, performance and installed-artifact gates NOT_RUN.
+Owner requests the [three-phase metrics program](#metrics-upgrade) below, with
+separate approval before each phase. This registration does not start a phase.
+
+Scope is a versioned reporting contract, independent mathematical oracles,
+additive account-return/closed-trade/closed-action statistics and source-exact
+report certification. Preserve financial execution/raw accounting, endpoint
+defaults, optimizer/WFO/meta scientific metrics, candidate/RNG/selection order,
+historical source/artifact receipts and the prepared **1.1.2 / 0.4.3** pair.
+Any scientific-score migration or missing engine-ledger capability requires
+separate owner approval. No push, workflow, merge, tag or publication is implied.
+
+Read the [common rules and baseline findings](#metrics-common-rules), then each
+phase's linked detailed guide. QuantStats **0.0.81** is an optional, pinned
+comparison source, not the sole oracle or a new optimizer/runtime dependency.
+
+## Historical QMS-SH01 Optional Sampler Helper - Owner Approval 2026-10-07
 
 **Status:** COMPLETE_LOCAL_SOFTWARE_QUALIFIED_OPTIONAL. Owner additionally approved the optional
 [sampler-space helper](#qms-sh01), customization and registered pct-equity
@@ -25951,3 +25970,524 @@ remain historical after this new source addition. Owner review PENDING.
 - `git diff --check` passed; the detailed guide's bytes/SHA256 are unchanged.
 - These are documentation checks only. No QMS implementation, financial
   backtest, empirical study, native rebuild or phase-gate execution has occurred.
+
+<a id="metrics-upgrade"></a>
+## Post-Simulation Metrics Correctness And Reporting Upgrade - MET-01 To MET-03
+
+**Authorization:** owner approves planning only on 2026-10-07. Implement phases
+sequentially after their individual approvals, not as an automatic goal/run.
+**Program Goal:** give researchers correctly named, reproducible account-return,
+closed-trade and closed-action metrics from authoritative executed results,
+without changing financial simulation or silently changing WFO methodology.
+**Entry Source:** branch `feat/meta-selection-samplers`, planning parent
+`c25933b`; working tree clean at registration. Recheck exact source/version and
+owner branch instructions before execution; this plan does not create a branch.
+
+<a id="metrics-common-rules"></a>
+### Metrics Common Rules, Source Inventory And Baseline Findings
+
+**Required Reading Before Every Phase:** [workspace rules](../AGENTS.md),
+[execution ownership](../docs/architecture/execution-plan.md#ownership-boundaries),
+[strategy/engine boundary](../docs/adr/ADR-RP-002-strategy-engine-boundary.md),
+[native metrics/result contract](../docs/contracts/v1_1_execution_metrics_result.md#metric-contract-v2),
+[WFO schedule provenance](../docs/adr/ADR-RP-005-wfo-optimizer-schedules.md),
+[QMS report/scientific discipline](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s12),
+the phase's detailed guide below and [cleanup](../docs/BUILD_TEST_CLEANUP.md).
+Use current source to confirm ownership; an older backend-selection paragraph
+does not override a newer qualified route/capability record.
+
+**Primary Comparison Sources:** pin source/version/artifact identities for
+[QuantStats 0.0.81 statistics](https://github.com/ranaroussi/quantstats/blob/v0.0.81/quantstats/stats.py),
+[QuantStats reports](https://github.com/ranaroussi/quantstats/blob/v0.0.81/quantstats/reports.py)
+and [input preparation](https://github.com/ranaroussi/quantstats/blob/v0.0.81/quantstats/utils.py).
+For closed-trade interpretation compare TradingView's
+[total trades](https://www.tradingview.com/support/solutions/43000681704-total-trades/),
+[profit factor](https://www.tradingview.com/support/solutions/43000681698-profit-factor/)
+and [expected payoff](https://www.tradingview.com/support/solutions/43000772770-expected-payoff/).
+External implementation agreement is evidence only for the same declared
+input/convention. It cannot certify QuantBT execution, grouped actions or all
+edge cases. No copy of private alpha/data is required for these software gates.
+
+**Inspect Actual Producers/Consumers:** [public reducers](../src/quantbt/metrics/performance.py),
+[legacy result](../src/quantbt/core/types.py), [typed results](../src/quantbt/core/results.py),
+[report scope](../src/quantbt/core/scopes.py), [fills/trades](../src/quantbt/core/orders.py),
+[accounting authority](../src/quantbt/core/accounting_contracts.py),
+[native result adapter](../src/quantbt/core/native_result_v2.py),
+[native metric reducer](../rust/crates/quantbt-engine/src/metrics_v2.rs),
+[event scalar metrics](../src/quantbt/backends/native_event.py),
+[reactive Rust score](../rust/native_event/src/reactive_score.rs),
+[endpoint/report/scorer](../src/quantbt/endpoint.py) and
+[meta observation adapter](../src/quantbt/optimization/meta_selection/observer.py).
+
+**Read-Only Findings To Reproduce, Not Phase PASS Receipts:**
+
+| Area | Current observation | Required disposition |
+|---|---|---|
+| Trade count | Public legacy counts position changes plus the first row per symbol; native V2 has a committed-fill definition | Separate transitions/fills/closed trades/actions; do not silently change an optimizer's existing count |
+| PF / Avg Win-Loss | Public functions operate on daily/bar returns and match QuantStats on a matched return sample | Keep valid period statistics with explicit units; add ledger-based trade/action statistics |
+| Expectancy | Legacy combines side-conditioned bar hit rates with daily/bar conditional means | Preserve only as identified compatibility output; define a consistent new sample/unit |
+| DD duration | Public array reducer counts observed underwater daily samples, not elapsed peak-to-recovery time | Keep observed-period counts distinct from elapsed/calendar/session durations |
+| Avg DD | Public reducer averages underwater observations; its docstring describes troughs | Correct labeling/documentation and add episode-depth mean separately |
+| Baseline / CAGR | Total Return uses initial capital; legacy CAGR/DD can start from first recorded equity | Declare full/scope baseline and timing; include initial costs without fabricating a pre-bar timestamp |
+| Sortino | Legacy uses negative-sample denominator; native V2 and QuantStats use all observations | Identify both contracts; compare only like-for-like, without migrating scientific scores implicitly |
+| Empty samples | Zero, infinity and unavailable are not consistently distinguished across contracts | Record validity/reason/sample counts; preserve named legacy/native policies |
+| Scope / retention | OOS slicing keeps fills/trades unchanged; score/truncated audit may lack a complete ledger | Apply explicit ledger scope/carry policy; unavailable is not zero trades |
+
+QuantStats's daily underwater duration is not elapsed peak-to-recovery time;
+its CAGR uses `N / periods_per_year`. Reproduce its raw-currency baseline
+heuristic and first-loss/unrecovered episode edge cases before treating it as
+an oracle. Different conventions are not automatically calculation bugs.
+The review has not found a financial raw-accounting defect; it is not a new
+certificate that every route/field is correct. Raw completeness and financial
+correctness are separate checks.
+
+**Non-Negotiable Boundaries:**
+1. No changes to matching, accepted quantity, price/fee/slippage/funding,
+   margin, liquidation, instrument/calendar constraints, pending orders,
+   strategy lifecycle, account/fold carry or final financial state.
+2. New reporting calculations observe completed results. Existing online
+   scientific reducers remain independent and unchanged by default; do not
+   make score trials retain paths, fill rows or DataFrames for reporting.
+3. Existing `full_report()` is also consumed by WFO/scorers. Isolate any new
+   report contract from the compatibility scientific contract before changing
+   labels/keys or reducers; same-account data alone does not preserve selection.
+4. Preserve public endpoint constructors/backtest calls and existing serialized
+   result shapes. Optional report settings/new result metadata must be tested,
+   documented and additive; no new backtest endpoint or per-domain report engine.
+5. No financial replay, hidden rerun or inference of actual fills from signals,
+   requested targets or net position snapshots. Missing authoritative information
+   must yield `unavailable` with a reason, not guessed closed-trade/action results.
+6. Reuse focused shared typed modules and array reducers. Rust/Numba is preferred
+   where measured; avoid a monolithic performance/endpoint rewrite, per-row FFI,
+   unnecessary pandas copies or eager QuantStats/matplotlib imports in hot paths.
+7. Keep historical mathematical contracts, hashes and receipts intact. New
+   report definitions receive distinct identities; current source/artifact
+   certification must be regenerated for changed bytes, not widened exemptions.
+8. No private-alpha promotion, scientific retune, release-version change, remote
+   qualification or publishing without separate approval. Software correctness
+   here is not evidence of a new trading edge or universal decay improvement.
+
+### Metrics Phase Map And Execution Order
+
+| Order | Phase | Main result | Status / owner gate |
+|---|---|---|---|
+| 1 | [MET-01](#metrics-met-01) | Reviewed reporting contract, source inventory and independent expected-value fixtures | NOT_STARTED; phase approval PENDING |
+| 2 | [MET-02](#metrics-met-02) | Additive typed reducers and honest raw-data capabilities | NOT_STARTED; MET-01 accepted and separate phase approval required |
+| 3 | [MET-03](#metrics-met-03) | Public reporting/docs, same-contract parity, raw preservation and local artifact/performance proof | NOT_STARTED; MET-02 accepted and separate phase approval required |
+
+All test groups and cost/installed gates below are NOT_RUN at registration.
+The following detailed guides are normative for this owner-requested program;
+they do not amend the QMS learner, sampler or WFO objective methodology.
+
+<a id="metrics-guide-contract"></a>
+### Metrics Detailed Guide G01 - Contract, Baseline, Frequency And Validity
+
+1. Define an immutable, versioned reporting contract and input requirements:
+   scope, unit (`account_period`, `closed_trade`, `closed_action`), reporting
+   currency, baseline equity/time, sampling/annualization, risk-free/MAR/DDOF,
+   cost inclusion, drawdown clock, matching/grouping and validity policies.
+   Publish metric ID, contract version, source/coverage and sample counts.
+2. Full-run baseline uses the authoritative starting account balance/equity
+   at its declared instant; a scoped report needs scope-entry equity and any
+   required carried state. Do not reuse original initial capital for an
+   arbitrary middle slice, silently reset equity, or invent a prior bar.
+   External cashflows require recorded flow-adjusted semantics; otherwise
+   reject that interpretation or state that it is unavailable.
+3. Resolve daily versus per-bar statistics explicitly, with UTC/calendar,
+   missing-day, partial-first/last-period and short-sample policies. Do not
+   silently fill missing observations as no-risk/no-trading time. Distinguish
+   elapsed-calendar CAGR from period-count CAGR and disclose any short-run
+   annualization guard; Total Return must not be presented as actual CAGR.
+4. New Sortino must declare denominator and MAR/excess-return convention;
+   preserve existing conditional-downside and native V2 definitions by identity.
+   Declare Omega threshold and undefined Calmar/Sharpe policies. Display N/A
+   versus compatibility zero versus no-loss infinity accurately. Do not apply
+   `abs()` to bankrupt/negative growth or clip extreme ratios silently.
+5. Classify each existing field as valid unchanged, valid with clearer label,
+   incorrect for its claimed unit, or unavailable under an input/profile.
+   Legacy aliases may remain compatible but must not be promoted as closed
+   trades or standard expectancy. Fixing presentation is not permission to
+   change existing `trade_count`, turnover proxies, penalties or meta labels.
+6. Document any proposed default report/alias migration and receive owner
+   acceptance in MET-01 before implementation. If it changes scientific score
+   values/identity, stop and register separate approval; do not include it here.
+
+<a id="metrics-guide-drawdown"></a>
+### Metrics Detailed Guide G02 - Drawdown Episodes And Time Semantics
+
+1. Derive observed drawdown from authoritative equity and the declared baseline:
+   `H_t = max(baseline_equity, E_s for s <= t)` and `D_t = 1 - E_t / H_t` when
+   the high-water mark is positive. Preserve signs/units and do not clip a
+   genuine drawdown above 100 percent if the supported account can go negative.
+2. Represent each episode with peak time/value, first-underwater time, trough
+   time/value/depth, recovery time or observation end, recovered/open status,
+   elapsed time, observed bars and calendar/session counts. The deepest episode
+   and longest episode are separate selections with deterministic tie breaks.
+3. Peak-to-recovery elapsed duration uses actual timestamps; an open episode
+   uses observation-end minus peak time and is right-censored, not recovered.
+   Preserve hours/fractional days; rounding is presentation-only. Calendar
+   inclusive underwater days, observed-day counts and trading sessions are
+   distinct requested metrics. No one-day floor for a two-hour elapsed duration.
+4. Use the available equity clock. A daily series cannot certify an intraday
+   recovery; bar-close MTM cannot certify within-bar liquidation/runup/DD extrema.
+   Keep daily and bar-close reports explicitly named. Declare missing-calendar,
+   scope-entry high-water-mark and disjoint OOS segment policies before coding.
+5. Add longest underwater, current underwater, longest recovered duration,
+   duration of deepest DD, episode count and average episode depth/duration.
+   Keep mean underwater-observation depth separately. Declare treatment of
+   censored episodes in each average; do not mix them into recovered averages.
+6. Recovery equality/tolerance is reporting-only, explicit and independently
+   tested near the threshold. Never alter ledger precision or erase a real fee
+   to obtain recovery. QuantStats parity applies only to its matching daily
+   inclusive underwater convention, not this elapsed-duration contract.
+
+<a id="metrics-guide-trades"></a>
+### Metrics Detailed Guide G03 - Closed Trades, Closed Actions And Cost Attribution
+
+1. Inventory committed fills, authoritative realized/unrealized PnL, fees,
+   funding, slippage representation, settlement events and trade/package/action
+   identities by route/profile. Accepted execution is authority, not alpha
+   intent. Distinguish an actually empty full ledger from an omitted/truncated
+   ledger. State completeness and scope before calculating trade statistics.
+2. Use the existing accounting/matching convention, declared explicitly:
+   position episode, average-cost or lot matching are not interchangeable.
+   Read-only matching/grouping may allocate recorded costs to executed legs;
+   it must not synthesize fills, recompute execution prices/costs from market
+   assumptions, or replay margin/funding/liquidation. If raw information cannot
+   support exact PnL attribution, expose unavailable and record the dependency.
+3. Handle partial exits, scale-in/out, pyramiding/DCA, reversal, simultaneous
+   long/short legs, rejected orders and forced exits. A reversal closes the old
+   exposure and opens a new one under the declared matching policy. A fill is
+   not automatically a completed trade; an entry fee does not imply a closed loss.
+4. Group an action only by an authoritative identity/approved grouping contract.
+   Closure means all associated obligations/exposures are closed or settled,
+   even if unrelated account positions remain. Do not group by timestamp alone.
+   Expiry/roll/hedge belong to the recorded campaign semantics, not a new report-
+   invented continuity rule. Never extend financial expiry/settlement support.
+5. For net realized PnL `x_i` in one declared currency/unit, let
+   `G = sum(max(x_i, 0))`, `L = sum(max(-x_i, 0))`, `N = closed_count`.
+   Win rate is `N_win / N`, including breakeven in N. Average winning profit
+   is `G / N_win`, signed average losing PnL is `-L / N_loss`, average PnL
+   and expected payoff are `(G - L) / N`, and realized PF is `G / L`.
+   Payoff ratio is average winning profit / absolute average losing PnL.
+   Empty populations are unavailable; `G > 0, L == 0` is a no-loss case, while
+   `G == 0, L == 0` is undefined. Define numeric breakeven tolerance explicitly.
+6. Include fees/funding according to authoritative net/gross ledger semantics;
+   slipped fill prices already contain price slippage. Do not subtract the same
+   fee/slippage twice. Package net PnL is the sum of its net leg attribution,
+   including recorded shared costs once. Keep open/unrealized PnL separate.
+7. Percentage trade returns require an explicit denominator: entry gross
+   notional, capital at risk or margin, with valid coverage. Never divide a
+   hedged package's PnL by nearly zero net notional. Do not infer R-multiples
+   when authoritative initial risk is unavailable.
+8. For scope/carry, declare closed-in-scope lifetime PnL versus in-scope PnL
+   attribution separately. Retain opening history needed for carried trades,
+   filter the ledger consistently, and do not artificially close positions at
+   report/fold boundaries. Reconcile closed/open PnL, attributed costs and
+   scope equity change under the same cashflow/funding/valuation convention.
+
+<a id="metrics-guide-output"></a>
+### Metrics Detailed Guide G04 - Additive Output And Numeric Architecture
+
+1. Keep existing backtest/result APIs stable. Introduce a focused, typed report
+   observation/result layer and shared pure numeric reductions. Group output
+   into account-return, execution counters, closed trades and closed actions,
+   with definitions/validity/provenance separate from formatted display strings.
+   A new reporting convention must not overwrite authoritative `native_metric_*`
+   values, native headers, fingerprints or the existing scientific metric ID;
+   expose a separate reporting contract/namespace and its own provenance.
+2. Core additions are counts (fills/transitions/open/closed/win/loss/breakeven),
+   realized/open PnL, PF, win rate, average profit/loss/all-trade PnL, payoff,
+   largest win/loss, median PnL, top-profit concentration, deterministic streaks,
+   holding bars/time, recorded costs/turnover and available exposure/margin.
+   Define streak ordering with close timestamp plus stable event sequence.
+3. Add equity-only Ulcer Index and geometric/arithmetic period means if their
+   contract/coverage is accepted in MET-01. MFE/MAE, R-multiples and true
+   intrabar drawdowns are capability-gated: calculate only from adequate
+   existing mark/risk/path data with explicit sampling, otherwise unavailable.
+   Never sum separate leg extrema taken at different times into package MFE/MAE.
+4. Compute final reports once on demand, cache by immutable result identity,
+   scope, contract, units/currency and grouping/ledger coverage, with bounded
+   retention and defined release. Do not duplicate whole market/account tapes,
+   put report generation into strategy callbacks, or retain new audit rows in
+   optimizer trials. No eager reporting dependencies on ordinary imports.
+5. Use contiguous numeric buffers and O(N) reducers where possible; sorted
+   quantiles/grouping may cost more and must be measured separately. A single
+   batched Rust call or an existing Numba reducer is appropriate only if it
+   avoids copies/overhead. Do not promise a universal 1-10 ms runtime.
+6. If Rust reduction is useful, it consumes read-only result buffers through
+   the established result boundary, not a new execution bridge/state machine.
+   A changed native build needs exact local wheel proof; unchanged Rust must
+   not be rebuilt just for a Python report/doc change.
+
+<a id="metrics-guide-certification"></a>
+### Metrics Detailed Guide G05 - Oracle, Parity, Benchmark And Cleanup
+
+1. Independent fixtures use explicit equity/returns/fills/identities and
+   hand-computed answers. Do not derive expected values by invoking the same
+   production reducer. A legacy incorrect count/label is not the new oracle.
+2. QuantStats differential tests pin 0.0.81 bytes/version and use explicit
+   prepared returns; align frequency, zero/NaN policy, baseline, risk-free,
+   annualization/DDOF and duration convention. Test optional dependency absence.
+   Preserve expected differences rather than weakening assertions to match it.
+3. Cover initial-bar costs, flat/empty/single-point/all-win/all-loss/breakeven,
+   bankrupt/negative equity, finite-value validation, timezone/calendar gaps,
+   intraday recovery, repeated peaks, unrecovered and disjoint/scoped periods.
+   Include the reproduced QuantStats currency-baseline and first-loss cases.
+4. Compare Python oracle/Numba/Rust report reducers only under the same new
+   report contract. Separately preserve old native/legacy scientific outputs.
+   Test prepared/nonprepared and output profiles wherever raw coverage permits;
+   truncated/score-only unavailable results are expected capability assertions.
+5. Before benchmarking register matched sizes (2,000, 100,000 and 1,000,000
+   account observations; sparse/high-churn and multi-leg ledger counts), CPU/
+   thread policy, warmup/repeats and memory budget. Record ms/s, observations/
+   fills per second, p50/p95, cold/warm/cache hit, reducer/grouping/frame costs
+   and isolated peak/delta RSS. Register tolerances before results; performance
+   acceptance budgets require owner review, not post-outcome threshold changes.
+6. Compare the original versus new reporting workload fairly. New extra work
+   is not a regression on the unchanged compatibility path, nor is skipped
+   requested detail a speedup. Add a bounded public WFO off/shadow/active
+   sentinel: proposal sequence, objective/selection/account must remain exact
+   under unchanged scientific contracts; no economic gain is required here.
+7. Each approved phase preregisters disk/inode/resource budget and exact scratch
+   inventory, preserves passed/failed receipts and source/artifact hashes, then
+   cleans only reviewed inactive reproducible scratch. Keep one usable tooling
+   environment and offline dependencies; never delete alpha/data/evidence or
+   rewrite historical receipts. Report before/after free bytes and cleanup.
+8. Final local wheel/sdist consumers run outside the checkout on exact artifacts;
+   inventory changed modules, stable imports and no hidden execution/rerun.
+   Manylinux/remote/public proof remain separate owner-approved release gates.
+
+<a id="metrics-met-01"></a>
+### Phase MET-01 - Reporting Contract, Independent Oracle And Baseline Lock
+
+**Status:** NOT_STARTED; owner phase approval PENDING; MET01-T01..T08 NOT_RUN.
+**Goal:** make every metric's unit/input/baseline/time/validity explicit and
+freeze an independently testable reporting contract before changing outputs.
+**Entry:** owner approves MET-01; current source/branch/status and existing
+native/legacy/scientific contracts are recorded. This is spec/oracle/inventory
+work, not financial runtime, public-default or scientific-score activation.
+**Detailed Guide:** read [G01 contract](#metrics-guide-contract),
+[G02 drawdown](#metrics-guide-drawdown), [G03 trade/action](#metrics-guide-trades),
+[G05 oracle/verification](#metrics-guide-certification), the
+[common rules](#metrics-common-rules), [native contract](../docs/contracts/v1_1_execution_metrics_result.md#metric-contract-v2)
+and pinned primary comparison sources above.
+
+**To-Do:**
+1. Trace all current metric producers and consumers by endpoint/backend/profile:
+   public reporting, arrays/scalar score, native V2, WFO constraints/penalties,
+   bootstrap, meta measurement and plots. Distinguish values from formatter labels.
+2. Build a route/raw-coverage table for scalar/vectorized, portfolio, bounded
+   basket/package, intrabar intent/session, generic callback, command-tape and
+   numeric W3; inventory options/Nautilus only where existing artifacts expose
+   usable outputs. Do not claim missing-ledger routes have zero closed actions.
+3. Record each old metric's formula/sample/contract and keep/split/deprecate
+   decision, including Number of Trades, PF, Avg Win/Loss, Expectancy, hit rates,
+   Total Return, CAGR, Sharpe/Sortino/Calmar/Omega and DD depth/duration averages.
+4. Specify the new report contract/output names, baseline/scope/cashflow,
+   frequency/annualization, DD episodes, grouping/costs and unavailable policies.
+   Put unresolved scientific/default/API decisions before the owner, not into
+   implementation assumptions. Keep researcher-selectable valid conventions.
+5. Add pure spec/schema validation and independent expected-value fixture data
+   with a small reference oracle; no production reducer swap. Include explicit
+   expected differences from legacy/native/QuantStats, not just passing equality.
+6. Register protected financial/scientific source and raw-field identities,
+   fixtures and test budgets. Plan compatibility isolation so future MET-02/03
+   reporting changes cannot alter WFO `full_report()`-derived objectives.
+7. Write the metric dictionary, exact scope examples, capability table and
+   owner review checklist; preserve the read-only findings as observations,
+   not source-final phase qualification. Commit verified planning/spec chunks.
+
+**Tests:**
+- MET01-T01 inventory covers every producer/consumer and maps protected scientific contracts.
+- T02 full/scope baseline, first-bar costs, partial periods, cashflow and invalid inputs.
+- T03 regular/gapped/calendar/timezone/intraday DD, repeated peaks and open/recovered episodes.
+- T04 hand-computed return distribution/CAGR/Sortino/zero-denominator semantics.
+- T05 closed trade/action net PnL, matching/unit/cost/double-count and scope examples.
+- T06 pinned QuantStats same-convention matches and registered expected disagreements.
+- T07 schema/serialization/provenance and unavailable versus zero coverage.
+- T08 docs links/anchors, privacy, protected source/no financial change and cleanup.
+
+**Deliverables:** versioned reporting specification, producer/raw-capability
+inventory, metric dictionary/migration proposal, independent oracle fixtures,
+source-bound receipt and reviewed resource/cleanup record.
+**Exit Gate:** T01..T08 PASS, no unresolved in-scope contract ambiguity, owner
+accepts reporting definitions/compatibility boundary. Every missing raw field
+has a reasoned capability disposition. MET-02 still needs separate approval.
+**Technical Debt / Gap Policy:** no TODO/default ambiguity may be carried into
+reducers. Missing engine data, new matching/account behavior or scientific-score
+migration is an explicit separate dependency, not a silent MET-01 activation.
+**Commit Boundary:** source inventory/spec, then oracle/tests and docs receipt;
+never include unrelated engine or methodology edits.
+
+<a id="metrics-met-02"></a>
+### Phase MET-02 - Additive Account, Closed-Trade And Closed-Action Reducers
+
+**Status:** NOT_STARTED; owner phase approval PENDING; MET02-T01..T10 NOT_RUN.
+**Goal:** implement the accepted statistics from read-only authoritative outputs,
+retaining valid existing period metrics and truthful raw-data limitations.
+**Entry:** accepted MET-01 contract/oracle and owner approval for MET-02.
+Do not begin while baseline/scope/matching/cost semantics are unresolved.
+**Detailed Guide:** [G01 contract](#metrics-guide-contract),
+[G02 episodes](#metrics-guide-drawdown), [G03 net trade/action](#metrics-guide-trades),
+[G04 numeric/output](#metrics-guide-output), [G05 tests/cost](#metrics-guide-certification),
+[typed outputs](../src/quantbt/core/results.py),
+[existing native adapter](../src/quantbt/core/native_result_v2.py) and
+[metric/scientific ownership](../docs/contracts/v1_1_execution_metrics_result.md).
+
+**To-Do:**
+1. Add cohesive typed report inputs/results and pure shared reducers in focused
+   metrics/reporting modules. Separate return-period statistics, execution
+   counters, closed trades and closed actions; avoid another account engine.
+2. Implement accepted baseline/scope/frequency/validity calculations and
+   drawdown episode extraction with fractional elapsed time and open/censored
+   states. Keep valid observed-period/underwater-mean outputs distinctly named.
+3. Read supported executed ledgers through existing cold-path adapters. Match/
+   group only under the accepted accounting and identity convention; preserve
+   partial/reversal/multi-leg/roll/settlement event ordering and recorded costs.
+4. Add core counts/PnL/PF/win rate/average profit-loss/expected payoff/payoff ratio,
+   holding-time/streak/median/largest/concentration and available cost/exposure/
+   margin statistics. Implement accepted equity-only extras; capability-gate
+   MFE/MAE/R metrics instead of fabricating missing marks or initial risk.
+5. Reconcile leg-to-action, symbol-to-account and closed/open/cost allocations
+   under exact scope/cashflow definitions. A target, rejection or unmatched
+   partial exposure must not become a realized closed-trade PnL row.
+6. Return machine-readable completeness, validity/reason, currency/units,
+   sample counts, contract/grouping identities and scope/clock metadata. A
+   truncated audit cannot certify full action PF/count; known exact aggregate
+   counters may remain available independently of unavailable ledger metrics.
+7. Reuse contiguous buffers and measured Numba/Rust reducers with a small
+   batched result boundary. Add bounded on-demand caching without input mutation,
+   per-trial reports, extra path retention or eager optional dependencies.
+8. Keep legacy/native scientific reducers, aliases and default endpoint/scorer
+   behavior intact. Demonstrate unchanged compatibility results before any
+   report adapter is allowed to replace a shared function consumed by WFO.
+
+**Tests:**
+- MET02-T01 numeric results match MET-01 independent oracle for all accepted metric units.
+- T02 full/scope/first-cost/cashflow and daily/bar/short/invalid-value fixtures.
+- T03 deepest/longest/current/recovered DD, missing days and tolerance boundaries.
+- T04 long/short, scale-in/out, partial close, reversal, funding and fee/slippage once.
+- T05 mixed-side multi-leg net winner/loss, asynchronous leg closure and action identity.
+- T06 liquidation/forced closing and supported expiry/roll/hedge ledger semantics unchanged.
+- T07 missing/empty/truncated ledger, no phantom trades and honest capability reasons.
+- T08 Python/Numba/Rust same-report-contract parity; cache scope/identity/isolation/release.
+- T09 unchanged old scientific/native outputs and bounded WFO proposal/selection/account sentinel.
+- T10 focused regressions, no input mutation/replay/hot-path imports, privacy and cleanup.
+
+**Deliverables:** shared typed reporting inputs/results, tested numeric reducers,
+ledger observation/grouping adapters, coverage/provenance output, exact software
+receipt and measured cost/resource record. Public final formatting is MET-03.
+**Exit Gate:** T01..T10 PASS for every admitted route/profile/metric; accounting
+and scientific defaults unchanged; no required numerical or attribution gap.
+Unavailable coverage is explicit and tested, not advertised as supported.
+Owner accepts MET-02 before approving MET-03.
+**Technical Debt / Gap Policy:** no fake grouping, guessed PnL, unfinished
+reducer or unbounded cache. A missing financial raw-data capability must stop
+that capability's claim and be separately approved, not patched inside core.
+**Commit Boundary:** account/DD reducers, then supported trade/action reducers,
+then numeric/cache conformance and source receipt, each with its focused tests.
+
+<a id="metrics-met-03"></a>
+### Phase MET-03 - Public Reports, Documentation And Local Certification
+
+**Status:** NOT_STARTED; owner phase approval PENDING; MET03-T01..T10 NOT_RUN.
+**Goal:** expose the accepted metrics clearly and certify mathematical,
+compatibility, financial-preservation and reporting-cost behavior on exact source.
+**Entry:** MET-02 accepted and separate owner approval. Freeze requested public
+report defaults/aliases and benchmark resource/acceptance budgets before runs.
+**Detailed Guide:** [G01 compatibility/units](#metrics-guide-contract),
+[G02 DD clocks](#metrics-guide-drawdown), [G03 scope/grouping](#metrics-guide-trades),
+[G04 cold-path output](#metrics-guide-output), [G05 certification/cleanup](#metrics-guide-certification),
+[report scope](../src/quantbt/core/scopes.py), [public endpoint docs](../docs/endpoint.md)
+and [native result ownership](../docs/contracts/v1_1_execution_metrics_result.md#nativeresult-v2).
+
+**To-Do:**
+1. Integrate optional new report configuration/results into existing endpoint
+   and result reporting methods without changing constructor/backtest routing.
+   Preserve documented compatibility output and make new definitions discoverable.
+2. Present account/time-series, execution, closed-trade and closed-action groups
+   separately. Show currency/percent, frequency/scope and unavailable reasons;
+   do not label every return-period win as a trade or every fill as an action.
+3. Add DD episode tables and consistent plot/report labels, with open versus
+   recovered timestamps, hours/days formatting and readable alignment. Do not
+   show a last-underwater timestamp as a recovery date or imply unseen extrema.
+4. Update official endpoint/result docs, methodology/metric dictionary, runnable
+   public synthetic examples and migration guidance. Explain QuantStats versus
+   TradingView conventions, initial-cost/scoped baselines and raw requirements.
+   README gives measured reporting costs, not an unverified 1-10 ms promise.
+5. Run focused domain/result/profile tests on representative existing routes;
+   compare hashes/values of raw equity, returns, accepted positions, fills,
+   fees, funding, margin, liquidation, events and package attribution before/
+   after reporting. If raw is wrong, stop and report separately; do not repair
+   financial execution under a metrics phase or claim unchanged wrong data is certified.
+6. Prove compatibility scientific metrics and WFO/meta search/selection/RNG
+   remain unchanged with deterministic synthetic off/shadow/active sentinels
+   under currently admitted modes/schedules. Do not rewrite historical labels,
+   objective receipts or tolerance to pass a new reporting definition.
+7. Execute the preregistered final-report benchmarks and separate reduction,
+   grouping/sorting, adaptation and formatting. Compare matched old/new base
+   reports plus requested extras; report p50/p95, ms/s, throughput and RSS.
+   Cache-hit timings are not fresh-report costs. No strategy/engine timing is
+   attributed to a reporting speedup and no requested detail is dropped.
+8. Build focused exact-source local core wheel/sdist and run outside-checkout
+   consumers; reuse unchanged native artifact after identity checks, or certify
+   a new local native artifact if reporting-only Rust code changed. Verify
+   installed helpers/docs examples, optional dependency absence and imports.
+9. Complete source/links/privacy/artifact inventory, clean reviewed inactive
+   scratch, and write the final capability matrix/debt and handoff report.
+   Local artifact evidence is not a remote/manylinux/public release certificate.
+
+**Tests:**
+- MET03-T01 stable endpoint/result API, old keys/serialization and new report configuration.
+- T02 same-contract Python/Numba/Rust and pinned QuantStats differential coverage.
+- T03 scope/full/OOS/carry-in/out/disjoint slices, costs and ledger filtering.
+- T04 representative vectorized/portfolio/package/intrabar/event/W3 profiles and unavailable coverage.
+- T05 raw accounting/trace/source preservation, no financial replay or mutation.
+- T06 old WFO/meta scientific metrics, proposals/RNG/selected params and final account unchanged.
+- T07 readable report/chart labels/precision, episode status and docs/example/link checks.
+- T08 preregistered full reporting wall/throughput/p50/p95/RSS and bounded cache retention.
+- T09 exact local installed wheel/sdist/native-pair consumers outside checkout, import/allowlist/privacy.
+- T10 cleanup hashes/budget/receipts, final capability ledger and owner handoff.
+
+**Deliverables:** stable public reporting integration, official metric/methodology
+docs and examples, exact same-contract differential corpus, raw-preservation
+receipt, reporting benchmark table, local installed proof and cleanup/handoff.
+**Exit Gate:** T01..T10 PASS under the accepted report/compatibility contracts;
+any cost miss remains recorded for explicit owner disposition, not hidden by
+fewer outputs. No open in-scope arithmetic, labeling, scope, attribution,
+mutation, compatibility, privacy or package blocker. Final owner review PENDING
+until actual acceptance; no workflow/push/merge/tag/publication is authorized.
+**Technical Debt / Gap Policy:** distinguish report coverage unavailable due to
+raw retention from a broken reducer, and distinguish different named conventions
+from numerical drift. Do not claim every optional metric/financial domain is
+certified or that report completion closes remote/public release qualification.
+**Commit Boundary:** integration/docs, then matched parity/performance evidence,
+then local artifact/cleanup/final handoff. Preserve phase receipts independently.
+
+### Metrics Completion, Evidence And Owner Review Rules
+
+Each phase records planned/implemented/software-qualified/performance-qualified/
+artifact-qualified/owner-accepted states separately, with exact source/contract,
+tests, unavailable capability rows, failures, cost and cleanup. Follow the
+[existing report template](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s12).
+Do not mark a future phase started or create a PASS receipt at registration.
+Register additions to tests/scope before execution; preserve failed evidence.
+At this planning change MET-01..MET-03 remain NOT_STARTED, all their gates
+NOT_RUN. Only documentation structure/link verification is authorized now.
+
+### Metrics Planning-Only Verification - 2026-10-07
+
+- Three phase sections verified, each with status, goal, entry, linked detailed
+  guide, to-do, tests, deliverables, exit gate, debt policy and commit boundary.
+- Five embedded detailed guides and the common source/ownership rules are
+  linked per phase. All local links/anchors in `upgrade/implement.md` PASS the
+  repository documentation checker; `git diff --check` PASS.
+- Historical plan bodies/receipts remain byte-identical to planning parent
+  `c25933b`; only the live summary/header and this metrics program are added.
+- Only `upgrade/implement.md` changes. No metric implementation, native build,
+  pytest/runtime benchmark, artifact generation or scientific migration ran.
+- No test/build environment or disposable scratch was created; cleanup not
+  required for this documentation-only pass. No source/data/evidence deleted.
+- MET-01..MET-03 implementation and acceptance gates remain NOT_RUN/PENDING.
+  No push, CI dispatch, merge, tag, version change or publication occurred.
