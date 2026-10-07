@@ -149,6 +149,7 @@ stitched account has an independent replay. Private code/data/ranges/winners
 never enter Git or package artifacts.
 
 Four folds are a bounded diagnostic, not the twelve-fold promotion study or a
-test of meta edge. Correct already-numeric manual CMA should have identical
-results with the helper. See the phase report for measured outcomes; no helper
-can guarantee better future performance.
+test of meta edge. Correct already-numeric manual CMA has identical results
+with the helper. See the [phase report](QMS_SAMPLER_HELPER_REPORT.md) for all
+outcomes, including the public-alpha mixed-CMA comparison that does not favor
+the helper uniformly. No helper can guarantee better future performance.

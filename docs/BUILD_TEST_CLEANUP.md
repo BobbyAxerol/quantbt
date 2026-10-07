@@ -113,3 +113,7 @@ The [E08 receipt](maintenance/QMS_E08_CLEANUP.md) records four exact inactive
 build/consumer removals, 410 protected hashes unchanged and 1,155.875 MiB
 actual free-space improvement. Exact final artifacts, histories and successful/
 failed evidence remain; no broad cache or historical-lane deletion occurred.
+The [sampler-helper receipt](maintenance/QMS_SAMPLER_HELPER_CLEANUP.md) records
+seven exact inactive build/consumer removals, 740 protected hashes unchanged
+and 1,697.207 MiB actual improvement. Failed and passing lanes remain sealed;
+the copy-mode disk-budget variance is explicit and future preflight corrected.

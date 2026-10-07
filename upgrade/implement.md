@@ -2,12 +2,24 @@
 
 ## Current QMS-SH01 Optional Sampler Helper - Owner Approval 2026-10-07
 
-**Status:** IMPLEMENTING_LOCAL. Owner additionally approved the optional
+**Status:** COMPLETE_LOCAL_SOFTWARE_QUALIFIED_OPTIONAL. Owner additionally approved the optional
 [sampler-space helper](#qms-sh01), customization and registered pct-equity
 diagnostics. No helper requirement for meta/WFO, category ordinal encoding,
 learned auto-sampler or financial/methodology rewrite. Current E08 source/artifact
 seals below remain historical after this separately approved source addition.
 CI/release, push, merge/tag and publication are still deferred by owner.
+
+[Helper report](../docs/meta_selection/QMS_SAMPLER_HELPER_REPORT.md): 184 affected
+tests PASS; 21 registered full WFO studies, 10,752 attempts and six exact
+helper/manual comparisons; 21 independent stitched-account replays EXACT.
+New focused wheel/sdist consumers certify all 261 Python/typing members locally.
+Delta RSI favors CMA over TPE in the bounded four-period comparison; correct
+manual numeric CMA is identical to the helper. Public MA mixed-CMA comparison
+is not uniformly positive. No claim that the helper guarantees superior search.
+[Cleanup](../docs/maintenance/QMS_SAMPLER_HELPER_CLEANUP.md) preserves 740 hashes
+and reclaims 1,697.207 MiB. Original 1 GiB scratch estimate was exceeded due to
+UV copy-mode dependencies; retained registrations show the variance and future
+package preflight uses 2 GiB + 5 GiB safety. No scientific tolerance is changed.
 
 ## Historical QMS-E08 Local Integration - Owner Approval 2026-10-07
 
@@ -25800,7 +25812,8 @@ result, scientific finding or permission to advance a phase.
 
 **Authorization/Status (2026-10-07):** owner approved a local optional helper,
 caller overrides/customization and a Delta RSI/additional-alpha comparison.
-Implementation NOT_STARTED; tests and comparisons NOT_RUN. No push, workflow,
+Current status COMPLETE_LOCAL_SOFTWARE_QUALIFIED_OPTIONAL; completion receipt
+below records actual implementation/tests/outcomes. No push, workflow,
 merge, tag or publication is authorized. Earlier E08 receipts stay historical;
 the helper/export addition needs its own source/package evidence.
 
@@ -25880,6 +25893,53 @@ logs/XML, results and exact core/native artifacts. Only this phase's inactive
 build/consumer scratch may be removed after process/source/hash checks; no
 global cache, historical lane, alpha or evidence deletion. Final source changes
 invalidate only affected current-source release inventory, never old receipts.
+
+#### QMS-SH01 Completion Receipt - 2026-10-07
+
+**Authorization/scope:** optional helper and caller overrides; unchanged private
+Delta RSI plus public MA diagnostic, local only. Guide remains immutable.
+**Technical:** SH-T01..T05 PASS in 25 helper cases; all 184 affected helper/
+sampler/public-meta/conditional-Sobol cases PASS (`regression-v2.xml`).
+SH-T06 PASS: 21 registered studies, 10,752 attempts, no failed trials; every
+seed/outcome retained; six numeric helper/manual proposal/objective/selection/
+raw-measurement/account comparisons EXACT and 21 stitched-account replays EXACT.
+SH-T07 PASS: source-exact local wheel/sdist installed consumers, 261 Python/
+typing members, original param types, no checkout runtime import, meta optional;
+artifact allowlist/privacy, docs/import/lint and reviewed cleanup verified.
+
+**Changed:** focused `optimization/sampler_space.py`, public optimization exports,
+shared pure geometry validation extraction, tests/public example, local diagnostic/
+artifact/consumer/report/cleanup tools and linked docs/evidence. **Protected:**
+all financial/meta kernels, endpoints, WFO schedule/selector/objective, Rust,
+declared 1.1.2/0.4.3 pair, private alpha/market and original guide. No new engine,
+bridge, endpoint, sampler algorithm or automatic helper activation.
+
+**Results/cost:** [report](../docs/meta_selection/QMS_SAMPLER_HELPER_REPORT.md) and
+[sanitized machine evidence](../benchmarks/optimization/meta_selection/qms_sampler_helper_evidence.json)
+contain every seed. Delta RSI mean raw IS-minus-forward decay 0.9217 CMA versus
+1.8913 TPE; manual/helper CMA identical. Four unique forward periods repeated
+under three seeds are not twelve independent origins. Public MA helper avoids
+1,016 independent window draws versus mixed CMA, without a uniform equity win.
+Setup 1.2-2.6 ms once/run; observational timings and same-process RSS are not
+isolated speed/RSS superiority gates. No meta economic retune or promotion.
+
+**Evidence:** `.maturin/qms08/sampler-helper-v1/registration.json`, `summary.json`,
+successful/failed XML and logs, public raw receipts, ignored private raw receipts
+in `data/local/qms-real-review/sampler-helper-v1`, and fresh
+`package-v2/cp312/proof.json`. The first origin-check consumer failure remains
+failed, not overwritten. All six manual/helper studies preserve seed/RNG and
+candidate ordering. **Cleanup:** seven inactive exact paths removed; 740 hashes
+and canonical/native bytes unchanged, 1,697.207 MiB reclaimed. Scratch estimate
+variance is retained; future build budget corrected, no source/evidence deletion.
+
+**Commit/rollback:** planning `6e44a38`; implementation `6bc31b9`; follow-up proof/
+report commit follows this receipt. Revert only this optional helper/export and
+associated scoped additions if requested; no unrelated history rewrite.
+**Remaining/next approval:** no open in-scope helper correctness blocker. Schema
+assessment cannot infer arbitrary alpha smoothness/edge or provide conditional
+CMA covariance. Final integrated remote/public artifact qualification remains
+deferred; no push, merge/tag, workflow or PyPI release. Earlier E08 receipts
+remain historical after this new source addition. Owner review PENDING.
 
 ### QMS Planning-Only Verification - 2026-10-03
 

@@ -51,6 +51,13 @@ E08/PRE06 counts and artifacts above certify their original bytes, not this
 later helper/export addition. Final release qualification must build the source
 including the helper and use new exact inventories; do not relabel old seals.
 
+**Helper local closure (2026-10-07):** [QMS-SH01 report](QMS_SAMPLER_HELPER_REPORT.md)
+records 184 affected PASS, 21 registered studies/10,752 trial attempts, six
+exact helper/manual decisions/accounts and focused exact-source wheel/sdist
+consumers for all 261 Python/typing members. Native bytes are unchanged; no
+new native build or publication. This is local config/package qualification,
+not a substitute for final-source integrated remote/public release gates.
+
 ## Non-Publishing Qualification
 
 From the feature branch, with QuantBT's own tooling installed:
