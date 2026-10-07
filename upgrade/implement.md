@@ -498,6 +498,47 @@ strategy-owned costs and explicitly accepted engineering limits stay transparent
 incremental scratch ceiling 1 GiB plus 5 GiB safety. Retain samples/logs/artifacts,
 release workers/results and remove exact inactive reproducible scratch at exit.
 
+**Execution registration (2026-10-07; before profiling/patch):** owner starts
+PRE-E06-05 only, entry `d0cd95a`, branch `feat/meta-selection-samplers`. The owner
+explicitly approves disabled p50 +3% / p95 +5% before measurements. Reuse G01
+CPython 3.12/native 0.4.3; one OMP/BLAS/MKL/Numba thread and one worker at a time.
+Lane `.maturin/qms08/pre-e06-05`, at most 1 GiB incremental plus 5 GiB headroom.
+Entry filesystem reports 27 GiB available and 5,626,898 free inodes; capture exact
+bytes in the registered machine receipt. No new environment/native build unless
+the measured owning block actually needs one. No private alpha, economic study,
+push, workflow, merge, tag or publication.
+
+Use the unchanged QMS01 eight mode/schedule fixtures for disabled five-mode
+coverage; PRE02 thirteen domain/account fixtures, four admitted prepared scalar
+cells, and PRE03 five nested scalar cells. C05 conditional sampler/projection
+get their own same-policy fixture, not a legacy/new-method speedup comparison.
+Meta off/shadow/active use original reset/continuous semantics; on/shadow require
+at least 12 mature origins and actual fit/rank. Export synthetic history once,
+reuse immutable versions but clone history/account/strategy state for every run.
+Full retained trial/selection/observer/account outputs remain enabled. Warm seeds,
+trials (6 for QMS01, 8 for PRE02/03), seed 731, sampling order, panels, lambda 10,
+thresholds and all original configs remain fixed.
+
+First run instrumented public profiles/cProfile separately from timing. Register
+21 paired warm repetitions per admitted cell, with one first-call cold sample
+and fixed A/B alternating order; each cell runs in its own fresh worker. If an
+exact baseline implementation is used in a worker after patch, load only its
+reviewed QuantBT-owned block from entry Git bytes, never monkeypatch strategy,
+scorer, Optuna, financial or metric math. Bind baseline and optimized source hashes.
+No profiler is active in timing samples. Report paired distributions and noise;
+21 repetitions do not establish platform-wide tail latency. Short/noisy cells
+are INCONCLUSIVE rather than relaxing budgets. Aggregate additional identical
+calls if a registered fixture is below timer resolution, not fewer labels/trials.
+
+Profile planning/preparation, immutable witness/hash/serialization, main scores,
+post-seal observer, C01 auxiliary outer-IS, fit/rank/FFI, final account/report and
+residual separately. Instrumentation must delegate original calls and reconcile
+exclusive spans, never double-count inclusive nested timings. Preserve exact
+pool/RNG/witness/measurement/account and requested report parity; inspect all
+chronological outcomes and invalidation/close/retention. Final artifact proofs
+remain PRE-E06-06. Accepted non-beneficial blocks stay on their existing qualified
+implementation with explicit resource disposition, not a forced Rust rewrite.
+
 <a id="qms-pre-e06-06"></a>
 ### Phase PRE-E06-06 - Local Conformance, Exact Artifacts And E06 Entry Gate
 
