@@ -5,7 +5,8 @@
 **Status:** MET-01 COMPLETE_SPEC_ORACLE_LOCAL (phase approval 2026-10-07);
 MET01-T01..T08 PASS, 452 tests passed/no skips, 322 production hashes unchanged.
 Reporting definitions accepted through owner approval of MET-02 on 2026-10-07;
-MET-02 IN_PROGRESS, MET-03 NOT_STARTED. Historical receipts remain unchanged.
+MET-02 COMPLETE_ADDITIVE_LOCAL (567 tests, T01..T10 PASS), MET-03 NOT_STARTED.
+Historical receipts remain unchanged; MET-03 needs separate owner approval.
 Installed-artifact/public formatting gates belong to MET-03.
 Owner requests the [three-phase metrics program](#metrics-upgrade) below, with
 separate approval before each phase. Read the [MET-01 report](../docs/metrics/MET01_REPORT.md)
@@ -26075,8 +26076,8 @@ correctness are separate checks.
 
 | Order | Phase | Main result | Status / owner gate |
 |---|---|---|---|
-| 1 | [MET-01](#metrics-met-01) | Reporting contract, source inventory and independent expected-value fixtures | COMPLETE_SPEC_ORACLE_LOCAL; technical PASS, definitions review PENDING |
-| 2 | [MET-02](#metrics-met-02) | Additive typed reducers and honest raw-data capabilities | IN_PROGRESS; owner approved 2026-10-07, gates NOT_RUN |
+| 1 | [MET-01](#metrics-met-01) | Reporting contract, source inventory and independent expected-value fixtures | COMPLETE_SPEC_ORACLE_LOCAL; definitions accepted through MET-02 approval |
+| 2 | [MET-02](#metrics-met-02) | Additive typed reducers and honest raw-data capabilities | COMPLETE_ADDITIVE_LOCAL; 567 tests, T01..T10 PASS; owner phase review before MET-03 |
 | 3 | [MET-03](#metrics-met-03) | Public reporting/docs, same-contract parity, raw preservation and local artifact/performance proof | NOT_STARTED; MET-02 accepted and separate phase approval required |
 
 All test groups and cost/installed gates below are NOT_RUN at registration.
@@ -26266,7 +26267,8 @@ they do not amend the QMS learner, sampler or WFO objective methodology.
 ### Phase MET-01 - Reporting Contract, Independent Oracle And Baseline Lock
 
 **Status:** COMPLETE_SPEC_ORACLE_LOCAL; owner phase approval APPROVED (2026-10-07);
-MET01-T01..T08 PASS; reporting-definition acceptance PENDING.
+MET01-T01..T08 PASS; definitions accepted through owner MET-02 approval on
+2026-10-07. Historical MET-01 registration/completion receipts remain unchanged.
 **Goal:** make every metric's unit/input/baseline/time/validity explicit and
 freeze an independently testable reporting contract before changing outputs.
 **Entry:** owner approves MET-01; current source/branch/status and existing
@@ -26363,9 +26365,10 @@ is the remaining review gate; do not automatically start MET-02/03.
 <a id="metrics-met-02"></a>
 ### Phase MET-02 - Additive Account, Closed-Trade And Closed-Action Reducers
 
-**Status:** IN_PROGRESS; owner approved MET-02 on 2026-10-07, accepting the
-MET-01 reporting definitions for this additive implementation. MET02-T01..T10
-NOT_RUN; historical MET-01 approval/qualification receipts remain immutable.
+**Status:** COMPLETE_ADDITIVE_LOCAL; owner approved MET-02 on 2026-10-07,
+accepting the MET-01 definitions. MET02-T01..T10 PASS: 567 tests, no skips;
+historical approval/qualification receipts remain immutable. Owner phase review
+is required before separately approving MET-03.
 **Goal:** implement the accepted statistics from read-only authoritative outputs,
 retaining valid existing period metrics and truthful raw-data limitations.
 **Entry:** accepted MET-01 contract/oracle and owner approval for MET-02.
@@ -26472,6 +26475,31 @@ the same five-repeat, one-thread benchmark; these qualify cold ledger grouping
 cost, not execution speed. Preserve the earlier source-specific benchmark.
 Cleanup inventory additionally includes the completed exploratory scratch
 `/tmp/quantbt-met02-account`; review its contents and remove only this exact path.
+
+**Local Completion Receipt (2026-10-07):**
+[Detailed report](../docs/metrics/MET02_REPORT.md),
+[final source-bound PASS](../docs/metrics/evidence/met02/run-20261007T192855863510Z/receipt.json),
+[matched benchmark](../docs/metrics/evidence/met02/run-20261007T192855863510Z/benchmark.json)
+and [cleanup](../docs/maintenance/MET02_CLEANUP.md). Python/Numba V1 reducers
+match the independent oracle; all 325 protected files and existing extension
+bytes remain unchanged. Immutable input/cost/action/coverage contracts, explicit
+population sample counts, elapsed/censored DD, complete-roster net grouping,
+exact execution aggregates and byte/entry-bounded cache are implemented.
+Seeded public Mode 1/4 runs and mature meta off/shadow/active preserve actual
+proposals, fit predictions, RNG, decisions, account and legacy/scientific output.
+No second execution/matching engine or hot-trial reporting was added.
+
+Warm Numba account p50: 0.842 ms / 2k, 3.685 ms / 100k, 26.456 ms / 1M marks;
+closed 2k outcomes 8.083 ms, 2k legs/1k actions 11.602 ms. Sparse 32-outcome
+Python remains better (0.882 versus 1.071 ms). Snapshot, JIT, primary RSS and
+cache cost are disclosed separately; no whole-backtest speedup or latency/RSS
+gate is invented. Native V2 is not a Rust reporting V1 reducer and is not claimed
+as such. Missing engine financial attribution/IDs/FX/scope-risk-mark coverage
+returns explicit N/A, not guessed statistics. These are capability limits, not
+an unimplemented admitted reducer. Public report/chart/alias integration and
+installed-artifact qualification remain MET-03, not silently started here.
+Coherent commits: `1171991`, `55b27ba`, `0f005f6`; final docs/cleanup commit follows.
+No push, workflow, merge, native build, version/tag or publication.
 
 <a id="metrics-met-03"></a>
 ### Phase MET-03 - Public Reports, Documentation And Local Certification
