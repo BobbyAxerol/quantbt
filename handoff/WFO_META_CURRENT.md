@@ -78,12 +78,17 @@
   checks). PRE-E06-05 has 2,346 distinct scoped PASS and 30 registered N/A cases,
   with exact source/log/artifact binding and completed cleanup. Its 76-cell
   matched matrix passes disabled p50 +3% / p95 +5% budgets in 25/32 cells;
-  seven remain NOT_MET, so cost disposition is OPEN and owner review is pending.
+  seven remain measured NOT_MET. The owner accepts these source-bound exceptions
+  on 2026-10-07 (Asia/Saigon), closing PRE05 as
+  **COMPLETE_LOCAL_OWNER_ACCEPTED_COST_EXCEPTION**. Read the
+  [separate disposition](../benchmarks/optimization/meta_selection/qms_pre_e06_05_owner_acceptance.json);
+  original budgets/receipt are not rewritten, and no future gate inherits it.
   Full paired profiles show no changed-block calls in the missed cells, but
-  do not waive latency gates. Read the
+  do not themselves waive budgets or certify tail latency. Read the
   [current performance report](../docs/meta_selection/PRE_E06_05_REPORT.md).
-  PRE-E06-06 remains planned: first resolve cost disposition, then obtain its
-  own phase start. No fresh final-source installed/remote/public claim here.
+  PRE-E06-06 remains planned and needs its own phase start, followed by E06/E07
+  accepted-scope handoff, then E08 remote/release gates last when authorized.
+  No fresh final-source installed/remote/public claim here.
 - Repair performance: same registered unit study 549.001 to 291.542 s (1.883x),
   peak RSS +7.480 MiB. One shared-VPS observation, not universal performance.
   [Cleanup](../docs/maintenance/QMS_G01_CLEANUP_2026-10-06.md) reclaimed 219.656 MiB

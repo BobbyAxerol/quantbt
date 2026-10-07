@@ -3,12 +3,13 @@
 <a id="qms-pre-e06-action-plan"></a>
 ## QMS Pre-E06 Sequential Debt Closure - Owner Planning Request 2026-10-06
 
-**Status:** PRE_E06_05_LOCAL_PARITY_PASS_COST_DISPOSITION_OPEN. Owner approved PRE-E06-02 on
+**Status:** PRE_E06_05_COMPLETE_LOCAL_OWNER_ACCEPTED_COST_EXCEPTION. Owner approved PRE-E06-02 on
 2026-10-06 (Asia/Saigon): active/matured no-leakage, raw measurement and original
 account conformance only. PRE-E06-01/02 are complete in their recorded scope;
 PRE-E06-03 is complete for the approved nested scalar cohort; PRE-E06-04 completes
 approved C05 runtime/continuation locally. PRE05 implementation/software is
-qualified locally, but its latency disposition is OPEN; 06 remains planned.
+qualified locally; on 2026-10-07 (Asia/Saigon) the owner accepts the seven measured
+latency exceptions and closes its cost gate. PRE06 remains planned, not started.
 [PRE02 report](../docs/meta_selection/PRE_E06_02_REPORT.md):
 13 routes, 39 active/matured decisions, 623 distinct scoped PASS; 27 scalar-scorer
 cells are explicitly not applicable. No economic/default or artifact promotion.
@@ -33,8 +34,10 @@ IS anchors qualified. Final installed artifacts remain PRE06; no economic claim.
 3,192 paired-arm warm executions, 2,346 distinct scoped PASS and 30 registered
 N/A cases. Canonical portable dispatch improves without changing logical work,
 RNG, raw measurements, decisions or accounting. Disabled latency budgets pass
-25/32 cells; seven remain NOT_MET despite zero changed-block calls in paired
-profiles. Cost disposition needs owner review; no automatic PRE06 advancement.
+25/32 cells; seven remain measured NOT_MET despite zero changed-block calls in
+paired profiles. The [separate owner disposition](../benchmarks/optimization/meta_selection/qms_pre_e06_05_owner_acceptance.json)
+accepts exactly these source-bound exceptions; no measured result or original
+budget is rewritten, and no automatic PRE06 advancement is authorized.
 
 **Current truth and precedence:** the [execution amendment](#qms-required-execution-routes)
 already implemented bounded E06/E07 intent/session, callback and command routes,
@@ -87,7 +90,7 @@ official economic promotion to any route.
 | 2 | [PRE-E06-02](#qms-pre-e06-02) | Active/matured causal and measurement conformance on existing admitted routes | COMPLETE_LOCAL_SOURCE_GATE; no new-mode/economic promotion |
 | 3 | [PRE-E06-03](#qms-pre-e06-03) | Approved C01 nested scalar runtime activation, raw outer-IS/forward parity | COMPLETE_LOCAL_SOURCE_GATE; final installed proof PRE06 |
 | 4 | [PRE-E06-04](#qms-pre-e06-04) | Approved C05 policies, actual RNG and owned continuation qualification | COMPLETE_LOCAL_SOURCE_GATE; final installed proof PRE06 |
-| 5 | [PRE-E06-05](#qms-pre-e06-05) | Matched profiling and safe optimization; unchanged scientific/decision/account contracts | LOCAL_PARITY_PASS; COST_DISPOSITION_OPEN |
+| 5 | [PRE-E06-05](#qms-pre-e06-05) | Matched profiling and safe optimization; unchanged scientific/decision/account contracts | COMPLETE_LOCAL; OWNER_ACCEPTED_COST_EXCEPTION |
 | 6 | [PRE-E06-06](#qms-pre-e06-06) | Final local regression, exact installed artifacts, docs/privacy/cleanup receipt | PLANNED_NOT_STARTED |
 | Next | [E06](#qms-e06) resumed qualification | Owner approves entry using the final local handoff | NOT_ENTERED_BY_THIS_PLAN |
 
@@ -606,6 +609,8 @@ alone. No main matrix sample was concurrent with profiling. Only the isolated
 diagnostics/block artifact is primary; no selective cell or seed reruns.
 
 **Execution outcome (2026-10-07): LOCAL_PARITY_PASS_COST_DISPOSITION_OPEN.**
+This is the sealed measurement-time disposition; the later owner acceptance
+below closes the current engineering gate without editing that receipt.
 Read the [source-bound receipt](../benchmarks/optimization/meta_selection/qms_pre_e06_05_closure.json),
 [full report](../docs/meta_selection/PRE_E06_05_REPORT.md),
 [generated cost/profile/memory tables](../benchmarks/optimization/meta_selection/qms_pre_e06_05_cost.md)
@@ -646,7 +651,33 @@ failed logs remain intact; only the newly generated inactive Matplotlib font
 cache is removed. Protected hashes match. No push/workflow/merge/tag/publication,
 new private-alpha study, or PRE06 execution. The cost exit gate stays OPEN until
 the owner accepts a documented disposition or approves a full stable-CPU rerun;
-do not hide this required decision in E06.
+do not hide this required decision in E06. This historical condition is now
+satisfied by the explicit amendment below.
+
+**Owner disposition (2026-10-07, Asia/Saigon): COMPLETE_LOCAL_OWNER_ACCEPTED_COST_EXCEPTION.**
+The owner instructs the agent to accept a small engineering allowance, close
+PRE05 and report the remaining phases. The [acceptance receipt](../benchmarks/optimization/meta_selection/qms_pre_e06_05_owner_acceptance.json)
+binds the exact original closure/cost/source/native/guide hashes and all seven
+measured exceptions. This is retrospective acceptance of those identified
+latency observations, not a preregistered new threshold or a scientific waiver.
+
+- Keep the original +3% p50 / +5% p95 budgets and 25 PASS / seven NOT_MET
+  classifications. The largest exceptional p50 is +3.36%; the largest p95 is
+  +23.50%, explicitly retained rather than described as universally negligible.
+- Close the phase engineering cost disposition as OWNER_ACCEPTED_EXCEPTION;
+  statistical non-inferiority and platform-wide latency remain uncertified.
+  Other source, workloads or later phases cannot inherit this exception.
+- Correctness/no-leakage, full pools/labels/RNG/measurements/accounting and all
+  existing numerical tolerances remain unchanged and mandatory. No new
+  optimization, estimator, empirical promotion or artifact qualification occurs.
+- PRE06 remains the next individually approved phase; E06/E07 accepted-scope
+  handoff follows, then E08 integrated/remote/release gates last. Existing
+  bounded E06/E07 implementations are not work to rewrite.
+- Verification is docs/receipt/hash-only: reuse existing tooling, at most 1 MiB
+  incremental logs plus 5 GiB safety, no financial benchmark/build/dependency
+  installation. Retain a fresh docs XML/log, check original hashes, and record
+  zero deletion when no disposable scratch is created. No push, CI, merge,
+  tag, publication or automatic next-phase start.
 
 <a id="qms-pre-e06-06"></a>
 ### Phase PRE-E06-06 - Local Conformance, Exact Artifacts And E06 Entry Gate

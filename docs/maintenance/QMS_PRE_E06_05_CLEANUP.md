@@ -4,7 +4,10 @@ Read the [registered plan](../../upgrade/implement.md#qms-pre-e06-05),
 [phase report](../meta_selection/PRE_E06_05_REPORT.md) and
 [cleanup rules](../BUILD_TEST_CLEANUP.md).
 This operational receipt is not cost acceptance, artifact promotion or economic
-certification. The cost gate remains OPEN.
+certification. At the original cleanup receipt the cost gate remained OPEN;
+the [later owner disposition](../../benchmarks/optimization/meta_selection/qms_pre_e06_05_owner_acceptance.json)
+now closes the engineering gate by scoped exception, without editing the
+historical cleanup or measurement JSON.
 
 ## Budget And Actual Work
 
@@ -59,3 +62,18 @@ Native extension SHA remains
 Reviewed runtime remains only the exact portable-dispatch amendment; accounting,
 metrics, Ridge, sampler/RNG, guide, original traces and scientific receipts are
 unchanged. PRE-E06-06, remote CI, merge/tag/publication require separate approval.
+
+## Owner Acceptance Follow-Up
+
+The 2026-10-07 (Asia/Saigon) cost-disposition update is docs/receipt-only. Fourteen
+fresh docs checks PASS; exact original evidence/source/native/guide checks and
+all 2,931 protected hashes still match. The separate acceptance JSON binds the
+new `.maturin/qms08/pre-e06-05/owner-acceptance-docs.xml` by hash; the original
+closure, measurement and cleanup JSON remain unchanged.
+
+Existing tooling is reused; no financial rerun, build, dependency installation
+or new environment. Ten small docs-test files/fixtures are retained (40,960
+allocated bytes, below the registered 1 MiB follow-up ceiling). Available space
+after the tests is 26,515,222,528 bytes and free inodes 5,601,176. No disposable
+build scratch exists, so this follow-up deletes nothing; no storage saving is
+claimed. Original logs, artifacts and private research remain protected.

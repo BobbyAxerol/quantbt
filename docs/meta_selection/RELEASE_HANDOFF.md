@@ -18,8 +18,13 @@ the new public pair or imply public availability.
 Current action is [PRE-E06 local closure](../../upgrade/implement.md#qms-pre-e06-action-plan),
 not a publishing run. Bounded execution routes have their own
 [local artifact receipt](EXECUTION_WFO_REPORT.md); old remote `6901a66` proves
-only its recorded bytes. Missing active/matured qualification, C01/C05 runtime
-and final integrated artifacts are tracked in [the baseline](PRE_E06_BASELINE.md).
+only its recorded bytes. Active/matured source qualification and the approved
+nested scalar C01/conditional C05 runtime now pass PRE02/03/04. PRE05 closes
+locally with [owner-accepted measured latency exceptions](PRE_E06_05_REPORT.md#owner-accepted-cost-disposition),
+not rewritten budgets or an economic claim. Final-source installed artifacts
+remain PRE06; E06/E07 accepted-scope handoff and E08 follow individually.
+The [current plan](../../upgrade/implement.md#qms-pre-e06-action-plan) takes
+precedence over historical baseline statuses.
 Remote/public steps below wait for final scope and separate owner approval.
 
 ## Non-Publishing Qualification
@@ -129,14 +134,18 @@ needed. Force Python/Numba through the existing backend controls, not replay of
 native accounting. If a published artifact is wrong, stop downstream publication
 and prepare a **new** version; never rewrite existing PyPI bytes or release tags.
 
-QMS is currently Mode 4 / `per_fold_causal`. C02/C03 locally qualify original-pass
+The original QMS method is Mode 4 / `per_fold_causal`; PRE-E06-03 additionally
+qualifies approved nested Mode 1 on five scalar targets, not all domains/modes.
+C02/C03 locally qualify original-pass
 W3 process witness transport/deadlines and four-recipe W3/fixed-batch scheduling;
 continuous carry, multi-symbol and public meta batching remain unsupported.
 C04 locally qualifies a separate [owned exact continuation session](EXACT_CONTINUATION.md),
-not automatic public WFO/financial state resume. Other mode/schedule activation,
-conditional Sobol and admissible mixed-space centroids remain separately
-reviewed work in [QMS-C01..C05](../../upgrade/implement.md#qms-capability-gap-roadmap---planning_only).
-C05 reference geometry tests do not activate conditional Sobol or mixed centroids.
+not automatic public WFO/financial state resume. PRE-E06-04 locally qualifies
+explicit conditional numeric Sobol and feasible evaluated-support projection
+with exact owned continuation. Final-source installed proof remains PRE06;
+this is not arbitrary mixed-space centroid or extra mode/schedule activation.
+Broader capabilities stay separately reviewed in
+[QMS-C01..C05](../../upgrade/implement.md#qms-capability-gap-roadmap---planning_only).
 The repaired candidate remote matrix passes; public-index and final manylinux
 publication artifacts still need separate proof. Do not reuse pre-repair native
 bytes, pre-C02 remote receipts or private local artifacts as public release evidence.

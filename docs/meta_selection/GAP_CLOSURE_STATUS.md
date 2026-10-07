@@ -34,11 +34,14 @@ conformance and PRE02-A01 history amendment. Read the
 execution; PRE-E06-04 qualifies C05 locally. PRE-E06-05 implementation/software
 is qualified locally: 2,346 distinct scoped PASS, 30 registered N/A cases and
 76 matched cells. Read its [report](PRE_E06_05_REPORT.md).
-**PRE05 cost disposition is OPEN:** 25/32 disabled cells meet the unchanged
+**PRE05 is COMPLETE_LOCAL_OWNER_ACCEPTED_COST_EXCEPTION:** 25/32 disabled cells meet the unchanged
 +3% p50 / +5% p95 budgets; seven are NOT_MET. Both profiles show zero changed-
 block calls in the missed cells, but statistical non-inferiority is not
-certified and no budget is waived. Owner disposition or an approved full
-stable-CPU rerun is required before advancing. PRE-E06-06 still needs its
+certified. On 2026-10-07 (Asia/Saigon), the owner accepts these exact measured
+exceptions; the [separate source-bound receipt](../../benchmarks/optimization/meta_selection/qms_pre_e06_05_owner_acceptance.json)
+closes the engineering gate without rewriting budgets, raw results or the
+original OPEN receipt. No correctness/scientific tolerance is waived, and no
+future source/workload inherits this allowance. PRE-E06-06 still needs its
 individual start. No broader activation, alpha study, CI/CD or publication
 is implied.
 PRE02's source gate is now PASS: 39 actual matured fit/rank decisions across
@@ -153,3 +156,18 @@ carry and hold-through-expiry cash settlement remain distinct capabilities.
 Synthetic conformance is not real-market promotion. E08 integrated remote/public
 handoff remains deferred. Cleanup remains mandatory after tests;
 preserve private alpha, data, logs and scientific evidence.
+
+## Remaining Approved-Plan Sequence
+
+1. **PRE-E06-06:** final source-exact local wheel/sdist and installed consumers,
+   integrated regression, docs/privacy and cleanup; issue E06 entry handoff.
+2. **E06:** finish intrabar intent/session accepted-scope qualification and
+   owner handoff using the already implemented adapter. No new simulator.
+3. **E07:** finish callback, numeric reactive and command-route accepted-scope
+   qualification/handoff. Their account/scheduler contracts stay distinct.
+4. **E08:** integrated final matrix/docs/artifacts, then separately approved
+   remote qualification and release/public proof last for pair 1.1.2/0.4.3.
+
+Each still requires its individual start. The E04 negative economic result,
+E05 full delivery cash-settlement/data admission and separate capabilities above
+remain honest scope decisions, not defects closed by accepting PRE05 latency.

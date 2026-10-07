@@ -4,8 +4,12 @@
 
 Measurement and the scoped runtime patch are complete locally on
 `feat/meta-selection-samplers`, entry `d0cd95a`. Source software qualification
-passes 2,346 distinct scoped checks; the cost exit gate is OPEN, not an accepted
-full phase completion receipt. No release,
+passes 2,346 distinct scoped checks. The owner closes the engineering cost gate
+on 2026-10-07 (Asia/Saigon) as **OWNER_ACCEPTED_COST_EXCEPTION** for exactly the
+seven measured misses. This is not a claim that all original latency budgets
+passed. The sealed original receipt retains its OPEN measurement-time status.
+Read the [separate acceptance](../../benchmarks/optimization/meta_selection/qms_pre_e06_05_owner_acceptance.json).
+No release,
 workflow, push, economic study or new route/method activation is authorized.
 
 Read [the phase and registered budgets](../../upgrade/implement.md#qms-pre-e06-05),
@@ -164,7 +168,26 @@ The changed block did not execute there; this is diagnostic evidence, not a
 budget waiver. The measured point budgets remain NOT_MET and statistical
 non-inferiority remains uncertified. Owner disposition is required before the
 phase can satisfy its cost exit gate; no favorable-cell rerun or automatic
-PRE-E06-06 start is allowed.
+PRE-E06-06 start is allowed. The following owner decision now satisfies that
+engineering disposition, without changing the measurement classification.
+
+### Owner-Accepted Cost Disposition
+
+After reviewing the complete report, the owner explicitly authorizes closing
+PRE05 with an engineering allowance. The separate receipt binds the original
+closure/cost/source/native/guide bytes and all seven exact exceptional rows.
+The phase is **COMPLETE_LOCAL_OWNER_ACCEPTED_COST_EXCEPTION**. Original budgets
+stay +3% p50 / +5% p95, with 25 PASS and seven NOT_MET in immutable evidence.
+The largest exceptional p50 is +3.36%; the largest p95 is +23.50%. These are
+accepted observations, not a newly preregistered threshold or universally
+negligible tails. Zero changed-block calls support the diagnosis, not a measured
+PASS. Statistical non-inferiority remains uncertified.
+
+Acceptance applies only to this exact measured source/workload set; later
+source changes, workloads or phases cannot inherit it. No correctness,
+no-leakage, RNG, account, model or scientific tolerance is waived. No additional
+benchmark, alpha study, build or runtime change is made. PRE-E06-06 still needs
+its own start, followed by accepted-scope E06/E07 handoff and E08 last.
 
 ### Components, Native Resolution And Memory
 
@@ -272,13 +295,14 @@ or task-exclusive storage saving. All workers have exited and evidence remains.
 |---|---|
 | Implementation | COMPLETE locally |
 | Technical | PASS source-scoped parity/regression/cleanup |
-| Performance | MEASURED; seven disabled budgets NOT_MET; overall gate NOT_PROMOTED |
+| Performance | MEASURED; seven original budgets NOT_MET; engineering gate CLOSED_OWNER_ACCEPTED_EXCEPTION |
 | Empirical | NOT_ASSESSED; unchanged R/Q/decay in matched work |
-| Owner review | PENDING cost disposition |
+| Owner review | APPROVED source-bound cost exceptions, 2026-10-07 Asia/Saigon |
 | Installed/remote/public | Separate, not certified by source receipts |
 
 Implementation and measured speed are distinct from owner cost acceptance.
-Seven disabled point-budget misses keep cost disposition OPEN.
+Seven disabled point-budget misses remain visible; the separate approved
+exception closes the current engineering disposition, not a statistical gate.
 No new economic study was run: exact matched decisions/measurements preserve
 the original R/Q and decay, rather than demonstrating a new decay improvement.
 Final-source installed wheel/sdist proof remains PRE-E06-06, with its own owner
