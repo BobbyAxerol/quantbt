@@ -1,0 +1,210 @@
+{
+  "economic_claim": false,
+  "financial_calls": 0,
+  "p95_claim": false,
+  "repetitions": 3,
+  "rows": [
+    {
+      "attempts": 128,
+      "median": {
+        "checkpoint_encode_ms": 22.32221799204126,
+        "peak_rss_mib": 213.484375,
+        "prepare_ms": 13.893976982217282,
+        "proposal_tell_ms": 1129.6331050107256,
+        "restore_ms": 141.88712602481246
+      },
+      "policy": "legacy_v1",
+      "samples": [
+        {
+          "attempts": 128,
+          "checkpoint_bytes": 69343,
+          "checkpoint_encode_ms": 22.89801900042221,
+          "exact_resume": true,
+          "financial_calls": 0,
+          "peak_rss_mib": 213.7421875,
+          "policy": "legacy_v1",
+          "prepare_ms": 13.893976982217282,
+          "proposal_tell_ms": 1108.1416900269687,
+          "restore_ms": 156.0518490150571
+        },
+        {
+          "attempts": 128,
+          "checkpoint_bytes": 69343,
+          "checkpoint_encode_ms": 20.760411978699267,
+          "exact_resume": true,
+          "financial_calls": 0,
+          "peak_rss_mib": 212.98046875,
+          "policy": "legacy_v1",
+          "prepare_ms": 14.849547005724162,
+          "proposal_tell_ms": 1129.6331050107256,
+          "restore_ms": 141.18439401499927
+        },
+        {
+          "attempts": 128,
+          "checkpoint_bytes": 69343,
+          "checkpoint_encode_ms": 22.32221799204126,
+          "exact_resume": true,
+          "financial_calls": 0,
+          "peak_rss_mib": 213.484375,
+          "policy": "legacy_v1",
+          "prepare_ms": 13.655474002007395,
+          "proposal_tell_ms": 1202.5458400021307,
+          "restore_ms": 141.88712602481246
+        }
+      ]
+    },
+    {
+      "attempts": 128,
+      "median": {
+        "checkpoint_encode_ms": 31.89336502691731,
+        "peak_rss_mib": 214.0390625,
+        "prepare_ms": 889.8015159647912,
+        "proposal_tell_ms": 181.2503520050086,
+        "restore_ms": 141.59359299810603
+      },
+      "policy": "conditional_numeric_latent_v1",
+      "samples": [
+        {
+          "attempts": 128,
+          "checkpoint_bytes": 93811,
+          "checkpoint_encode_ms": 31.89336502691731,
+          "exact_resume": true,
+          "financial_calls": 0,
+          "peak_rss_mib": 214.0390625,
+          "policy": "conditional_numeric_latent_v1",
+          "prepare_ms": 876.4159279526211,
+          "proposal_tell_ms": 181.2503520050086,
+          "restore_ms": 137.66910700360313
+        },
+        {
+          "attempts": 128,
+          "checkpoint_bytes": 93811,
+          "checkpoint_encode_ms": 32.883587991818786,
+          "exact_resume": true,
+          "financial_calls": 0,
+          "peak_rss_mib": 213.95703125,
+          "policy": "conditional_numeric_latent_v1",
+          "prepare_ms": 889.8015159647912,
+          "proposal_tell_ms": 179.21805096557364,
+          "restore_ms": 141.89412398263812
+        },
+        {
+          "attempts": 128,
+          "checkpoint_bytes": 93811,
+          "checkpoint_encode_ms": 30.60818201629445,
+          "exact_resume": true,
+          "financial_calls": 0,
+          "peak_rss_mib": 214.5234375,
+          "policy": "conditional_numeric_latent_v1",
+          "prepare_ms": 967.8347180015408,
+          "proposal_tell_ms": 190.18220802536234,
+          "restore_ms": 141.59359299810603
+        }
+      ]
+    },
+    {
+      "attempts": 600,
+      "median": {
+        "checkpoint_encode_ms": 57.00191599316895,
+        "peak_rss_mib": 220.76171875,
+        "prepare_ms": 13.542663014959544,
+        "proposal_tell_ms": 1916.7714409995824,
+        "restore_ms": 638.7178700533696
+      },
+      "policy": "legacy_v1",
+      "samples": [
+        {
+          "attempts": 600,
+          "checkpoint_bytes": 317580,
+          "checkpoint_encode_ms": 54.868068953510374,
+          "exact_resume": true,
+          "financial_calls": 0,
+          "peak_rss_mib": 220.76171875,
+          "policy": "legacy_v1",
+          "prepare_ms": 13.432323990855366,
+          "proposal_tell_ms": 1861.6451990092173,
+          "restore_ms": 638.7178700533696
+        },
+        {
+          "attempts": 600,
+          "checkpoint_bytes": 317580,
+          "checkpoint_encode_ms": 63.8495140010491,
+          "exact_resume": true,
+          "financial_calls": 0,
+          "peak_rss_mib": 220.48828125,
+          "policy": "legacy_v1",
+          "prepare_ms": 16.61033002892509,
+          "proposal_tell_ms": 2113.025595957879,
+          "restore_ms": 637.0801079901867
+        },
+        {
+          "attempts": 600,
+          "checkpoint_bytes": 317580,
+          "checkpoint_encode_ms": 57.00191599316895,
+          "exact_resume": true,
+          "financial_calls": 0,
+          "peak_rss_mib": 220.83984375,
+          "policy": "legacy_v1",
+          "prepare_ms": 13.542663014959544,
+          "proposal_tell_ms": 1916.7714409995824,
+          "restore_ms": 639.6863340050913
+        }
+      ]
+    },
+    {
+      "attempts": 600,
+      "median": {
+        "checkpoint_encode_ms": 168.45821298193187,
+        "peak_rss_mib": 225.5,
+        "prepare_ms": 956.2140430207364,
+        "proposal_tell_ms": 862.5029820250347,
+        "restore_ms": 573.2072539976798
+      },
+      "policy": "conditional_numeric_latent_v1",
+      "samples": [
+        {
+          "attempts": 600,
+          "checkpoint_bytes": 431811,
+          "checkpoint_encode_ms": 211.20508998865262,
+          "exact_resume": true,
+          "financial_calls": 0,
+          "peak_rss_mib": 225.5,
+          "policy": "conditional_numeric_latent_v1",
+          "prepare_ms": 956.2140430207364,
+          "proposal_tell_ms": 921.7952929902822,
+          "restore_ms": 573.2072539976798
+        },
+        {
+          "attempts": 600,
+          "checkpoint_bytes": 431811,
+          "checkpoint_encode_ms": 168.45821298193187,
+          "exact_resume": true,
+          "financial_calls": 0,
+          "peak_rss_mib": 225.64453125,
+          "policy": "conditional_numeric_latent_v1",
+          "prepare_ms": 920.5436620395631,
+          "proposal_tell_ms": 862.5029820250347,
+          "restore_ms": 542.0960010378622
+        },
+        {
+          "attempts": 600,
+          "checkpoint_bytes": 431811,
+          "checkpoint_encode_ms": 165.87262303801253,
+          "exact_resume": true,
+          "financial_calls": 0,
+          "peak_rss_mib": 225.4453125,
+          "policy": "conditional_numeric_latent_v1",
+          "prepare_ms": 1038.7498989584856,
+          "proposal_tell_ms": 854.5672459877096,
+          "restore_ms": 630.4972479701973
+        }
+      ]
+    }
+  ],
+  "same_proposals_across_policies": false,
+  "schema": "qms-pre04-policy-cost-v1",
+  "scope": "proposal_and_owned_checkpoint_only",
+  "seed": 731,
+  "threads": 1,
+  "whole_wfo_speed_claim": false
+}

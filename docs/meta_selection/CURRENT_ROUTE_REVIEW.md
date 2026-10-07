@@ -15,7 +15,9 @@ in [the sequential unified plan](../../upgrade/implement.md#qms-pre-e06-action-p
 PRE-E06-03 now implements C01 only for five scalar targets on Mode 1 /
 `per_fold_causal` with genuine inner validation. Read the
 [nested call/contract](NESTED_MODE1.md) and [execution report](PRE_E06_03_REPORT.md).
-C05 is still pending PRE-E06-04. The original review
+C05 now has locally qualified opt-in runtime policies under
+[PRE-E06-04](CONDITIONAL_POLICIES.md); final installed proof remains PRE-E06-06.
+The original review
 documents and receipts describe their earlier spec-only work; preserve them.
 The [PRE-E06 source-bound inventory](PRE_E06_BASELINE.md) separates actual
 discovery/preflight, original account/metric witnesses, retained tests and
@@ -80,7 +82,7 @@ W3 has a different strategy protocol and segmented account contract.
 | Options / Nautilus validation meta | Explicit domain evaluation/WFO adapter; standalone engine availability is not meta support |
 | W3 carry, shared multi-symbol, public meta batch, Mode 2 bootstrap | Separately approved financial/scheduler/label semantics and runtime implementation |
 | Meta outside Mode 4 causal and five nested scalar Mode 1 targets | Global/decay and nested execution/portfolio/package/W3 remain unapproved |
-| Conditional Sobol / mixed support representative | C05 approved local implementation/continuation/installed gates still pending |
+| Conditional Sobol / mixed support representative | Local explicit policies/continuation qualified by PRE-E06-04; final installed/remote/public and unadmitted routes remain separate |
 
 ## What The Real Tests Establish
 

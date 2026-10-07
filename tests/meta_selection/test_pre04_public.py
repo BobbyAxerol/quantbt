@@ -113,7 +113,6 @@ def test_w3_projection_process_shadow_and_original_accounting():
 
 
 def test_batch_projection_rejects_before_any_strategy(monkeypatch):
-    from examples.wfo_reactive_samplers import Factory
     def fail(*args, **kwargs):
         pytest.fail("unsupported representative reached strategy")
     # Preparation may precede policy validation; financial strategy must not.
@@ -122,3 +121,64 @@ def test_batch_projection_rejects_before_any_strategy(monkeypatch):
     monkeypatch.setattr(Prepared, "build_candidate_batch", fail)
     with pytest.raises(ValueError, match="original sequential IS witnesses"):
         execute(config=w3_config(representative=True), scheduler="throughput_batch_v1")
+
+
+@pytest.mark.parametrize("mode,schedule", [
+    ("mode_1_decay", "global"), ("mode_1_decay", "per_fold_decay"),
+    ("mode_1_decay", "per_fold_causal"), ("mode_2_sbb", "global"),
+    ("mode_3_flat_minima", "global"), ("mode_4_is_only_robust", "global"),
+    ("mode_4_is_only_robust", "per_fold_causal"), ("mode_5_full_robust", "global")])
+def test_conditional_sampler_shared_eight_mode_schedule_routes(mode, schedule):
+    from tools.qms01_baseline import endpoint as old_endpoint, market as old_market
+    old = old_endpoint(mode, schedule)
+    c = replace(old.config.walkforward_config, sampler_config=SAMPLER)
+    bt = QuantBTEndpoint(replace(old.config, walkforward_config=c))
+    ranges = {"window": (3, 31, 2), "on": [True, False],
+        "extra": {"kind": "float", "low": .001, "high": 1., "log": True,
+                  "active_if": {"on": [True]}}}
+    result = bt.backtest(data=old_market(), param_ranges=ranges)
+    studies = result.metadata["walk_forward"]["sampler_studies"]
+    assert studies
+    for s in studies:
+        assert s["attempts"] == 6
+        assert s["latent_stream"]["next_qmc_index"] == 5
+        assert s["latent_stream"]["dimensions"] == ["window", "extra"]
+
+
+@pytest.mark.parametrize("target", ["signal_notional", "notional", "unit", "pct_equity"])
+def test_new_policies_prepared_rust_and_original_witness_parity(target):
+    from tests.meta_selection.pre_e06_02_support import account_equal
+    original = endpoint(target)
+    config = original.config
+    wf = replace(config.walkforward_config, metadata={**config.walkforward_config.metadata,
+                                                    "native_prepared_wfo": "require"})
+    prepared = QuantBTEndpoint(replace(config, walkforward_config=wf, target_runtime="rust"))
+    a = original.backtest(data=market(520), param_ranges=PARAM_RANGES)
+    b = prepared.backtest(data=market(520), param_ranges=PARAM_RANGES)
+    if target == "pct_equity":
+        # Legacy schema has no cost columns; do not manufacture those fields.
+        for field in ("equity", "returns", "positions"):
+            np.testing.assert_array_equal(getattr(a, field), getattr(b, field))
+        assert not hasattr(a, "fees") and hasattr(b, "fees")
+    else:
+        account_equal(a, b)
+    x, y = (r.metadata["walk_forward"] for r in (a, b))
+    assert x["params_by_fold"] == y["params_by_fold"]
+    for sx, sy in zip(x["sampler_studies"], y["sampler_studies"], strict=True):
+        assert [r["effective_params"] for r in sx["rows"]] == [r["effective_params"] for r in sy["rows"]]
+        assert sx["latent_stream"] == sy["latent_stream"]
+    observation = y["best_trial"]["selection_metadata"]["representative_observation"]
+    assert observation["verification"] == "original_native_score"
+
+
+@pytest.mark.parametrize("mode,schedule,metric", [("mode_5_full_robust", "global", "full_plateau_robust"),
+    ("mode_4_is_only_robust", "global", "is_only_robust")])
+def test_w3_projection_cannot_inherit_scalar_full_sample_admission(mode, schedule, metric, monkeypatch):
+    from examples.wfo_reactive_samplers import Prepared
+    def fail(*args, **kwargs):
+        pytest.fail("unadmitted projection reached financial strategy")
+    monkeypatch.setattr(Prepared, "build_strategy", fail)
+    cfg = replace(w3_config(representative=True), optimization_mode=mode,
+                  optimization_schedule=schedule, candidate_selection_metric=metric, sampler_config=None)
+    with pytest.raises(ValueError, match="Mode 4/per_fold_causal"):
+        execute(config=cfg)

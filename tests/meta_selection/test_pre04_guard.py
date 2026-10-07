@@ -1,7 +1,5 @@
 """New exact source amendment must not weaken historical seals."""
 
-import json
-
 import pytest
 
 from tools import qms_pre04_source_guard as guard

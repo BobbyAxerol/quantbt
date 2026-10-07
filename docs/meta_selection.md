@@ -59,6 +59,7 @@ No release/push is authorized.
 - [C01 historical methodology review; scope retained](meta_selection/ADDITIONAL_METHODS_REVIEW.md)
 - [Nested Mode 1 configuration, clocks, metadata and costs](meta_selection/NESTED_MODE1.md)
 - [PRE-E06-03 nested source qualification](meta_selection/PRE_E06_03_REPORT.md)
+- [PRE-E06-04 conditional Sobol and support projection](meta_selection/CONDITIONAL_POLICIES.md)
 - [C01 actual route tests, findings and activation decisions](meta_selection/QMSC01_REPORT.md)
 - [QMS-02 technical report and tests](meta_selection/QMS02_REPORT.md)
 - [QMS-05 public endpoint certification](meta_selection/QMS05_REPORT.md)

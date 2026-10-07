@@ -4,14 +4,13 @@ from dataclasses import replace
 from types import SimpleNamespace
 
 import numpy as np
-import pandas as pd
 import pytest
 
 from quantbt.optimization.meta_selection.common import digest, wire
 from quantbt.optimization.meta_selection.records import MetricObservation, OutcomeStatus
 from quantbt.optimization.parameter_space import NormalizedSearchSpace
 from quantbt.optimization.representatives import EvaluatedSupport, POLICY, validate_scope
-from quantbt.walkforward import WalkForwardConfig, WalkForwardTrialRecord
+from quantbt.walkforward import WalkForwardTrialRecord
 from tools.qms_c05_representative import BINDINGS, EvaluatedPoint, representative
 
 

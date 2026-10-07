@@ -3,7 +3,6 @@
 from dataclasses import replace
 import json
 import os
-from pathlib import Path
 import subprocess
 import sys
 
@@ -206,7 +205,8 @@ def test_fresh_process_continuation(tmp_path):
     journal = tmp_path/"journal.json"
     journal.write_text(text)
     output = tmp_path/"resumed.json"
-    script = """from tests.meta_selection.test_pre04_latent import *
+    script = """from pathlib import Path
+from tests.meta_selection.test_pre04_latent import *
 s=ExactStudySession.loads(Path(sys.argv[1]).read_text(), config=continuation_config(), binding=BINDING, expected_digest=sys.argv[2])
 advance(s,21)
 Path(sys.argv[3]).write_text(json.dumps(s.witness(),sort_keys=True))
@@ -235,3 +235,33 @@ def test_decimal_adjusted_endpoint_stays_in_optuna_distribution():
         _, effective = b.suggest(t)
         assert .1 <= effective["s"] <= .7
         st.tell(t, effective["s"])
+
+
+def test_actual_atomic_persisted_new_policy_continuation(tmp_path):
+    from quantbt.optimization.continuation.storage import write_checkpoint, read_checkpoint
+    c = continuation_config()
+    session = ExactStudySession(c, binding=BINDING)
+    advance(session, 19)
+    text, sha = session.dumps()
+    path = tmp_path/"owned.json"
+    write_checkpoint(path, text)
+    resumed = ExactStudySession.loads(read_checkpoint(path), config=c, binding=BINDING, expected_digest=sha)
+    advance(session, 21)
+    advance(resumed, 21)
+    assert session.dumps() == resumed.dumps()
+    text2, sha2 = resumed.dumps()
+    with pytest.raises(ContinuationError):
+        write_checkpoint(path, text2)
+    write_checkpoint(path, text2, previous_digest=sha)
+    assert read_checkpoint(path) == text2
+    with pytest.raises(ContinuationError):
+        write_checkpoint(path, text, previous_digest=sha)
+    assert read_checkpoint(path) == text2
+
+
+@pytest.mark.parametrize("seed", [None, True, -1, 2**32])
+def test_explicit_latent_seed_guard(seed):
+    b = WfoSamplerStudy(cfg(), RANGES, seed=seed, budget=10, cutoff="2024-01-01T00:00:00Z",
+                        strategy_identity="pre04", stage="is_search")
+    with pytest.raises(ValueError, match="uint32"):
+        b.sampler()

@@ -21,7 +21,11 @@ def prepare_sampler_studies(runtime, engine, folds, *, params, param_ranges, can
     if config.flat_selector == "feasible_support_projection_v1":
         if candidate_matrix is not None or runtime.runtime_config.optimizer_schedule != "certified_sequential_v1":
             raise ValueError("SAMPLER_ROUTE_UNSUPPORTED: support projection requires original sequential IS witnesses")
+        if (config.optimization_mode != "mode_4_is_only_robust"
+                or config.optimization_schedule != "per_fold_causal"):
+            raise ValueError("SAMPLER_ROUTE_UNSUPPORTED: W3 support projection requires Mode 4/per_fold_causal")
     explicit = (config.sampler_config is not None or bool(config.sampler_warm_start)
+                or config.flat_selector == "feasible_support_projection_v1"
                 or config.parameter_constraints is not None or config.result_constraints is not None)
     if candidate_matrix is not None and not explicit:
         return

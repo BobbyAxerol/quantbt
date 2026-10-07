@@ -79,10 +79,10 @@ same three scoring settings above. Run
 example (`basket` and `stat_pair` are also available). Frozen linear bounded
 software is not delivery-futures, dynamic hedge or empirical certification.
 
-Conditional Sobol and mixed/constrained representatives are under
-[C05 methodology review](CONDITIONAL_GEOMETRY_REVIEW.md), not available public
-capabilities. Keep using qualified sampler geometries and `flat_selector="medoid"`
-where required; the review does not enable new config values or relax guards.
+PRE-E06-04 implements approved [conditional numeric Sobol and support projection](CONDITIONAL_POLICIES.md)
+as separate opt-ins on the feature branch. Their matrix is narrower than generic
+meta coverage; no new meta mode/domain is inferred. Old Sobol and ordinary
+centroid guards remain. Final installed qualification is PRE-E06-06; unpublished.
 
 ## Minimal Call
 

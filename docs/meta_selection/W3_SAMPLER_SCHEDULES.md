@@ -118,5 +118,11 @@ not imply equal decisions across distinct sampler pools or arbitrary batches.
 No persisted exact RNG checkpoint, conditional Sobol, categorical/conditional/
 constrained centroid or extra meta mode is introduced by C03.
 
+Later PRE-E06-04 separately qualifies the explicit
+[conditional numeric Sobol policy](CONDITIONAL_POLICIES.md) on those existing
+sequential/process and global R3B schedules. Support projection only admits
+Mode 4/per_fold_causal sequential/process own-witness windows; R3B/fixed-matrix
+projection remains rejected. Owned C04 continuation is not automatic W3 resume.
+
 See [C03 report](QMSC03_REPORT.md) for measured costs, test/artifact references,
 software qualification and remaining remote/public gates.

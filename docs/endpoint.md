@@ -2808,6 +2808,11 @@ and the [complete runnable example](../examples/wfo_samplers.py). This addition
 is not yet published in core 1.1.1; it does not enable meta-selection, change
 the endpoint signature, objectives or financial execution contract.
 
+Later feature-branch PRE-E06-04 adds opt-in `SamplerConfig.sobol_policy` and
+`flat_selector="feasible_support_projection_v1"` through the same configuration.
+Read [exact versioned geometry, route limits and continuation](meta_selection/CONDITIONAL_POLICIES.md).
+Old defaults/guards remain; installed-final-source proof stays PRE-E06-06.
+
 Feature-branch QMS-03 adds an internal, opt-in original-result observer and
 causal history foundation, **not** a public meta-selection parameter. Normal
 endpoint calls retain their existing search, selection, financial execution

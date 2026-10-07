@@ -66,8 +66,9 @@ reset-flat/single-symbol; R3B qualification is not public meta-batch activation.
 [C04](QMSC04_REPORT.md) qualifies an opt-in owned exact study journal and fresh-
 process resume, not automatic public fold/financial-account resume.
 [C05](QMSC05_REPORT.md) retains its historical specification/reference tests.
-Reviewed conditional Sobol/finite-support implementation has local approval,
-but actual runtime/continuation qualification remains pending PRE-E06-04.
+Approved conditional Sobol/finite-support runtime and owned continuation now
+have [local PRE-E06-04 qualification](PRE_E06_04_REPORT.md), with explicit scope.
+Final-source installed artifacts remain PRE-E06-06; no public promotion here.
 
 E01 wires the real installed transport/sampler/continuation consumers into
 candidate, exact-release and public proof commands. Each gate uses the shared

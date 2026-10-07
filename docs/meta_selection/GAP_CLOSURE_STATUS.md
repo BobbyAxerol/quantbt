@@ -9,7 +9,8 @@ for this version will be chosen by the owner from the
 [current route/evidence review](CURRENT_ROUTE_REVIEW.md), before opening more routes.
 C01/C05 have separate local spec-implementation approval. PRE-E06-03 now implements
 nested Mode 1 on five scalar targets; [its contract](NESTED_MODE1.md) and
-[source report](PRE_E06_03_REPORT.md) own that scope. C05 runtime is still pending;
+[source report](PRE_E06_03_REPORT.md) own that scope. C05 approved opt-in runtime
+is locally qualified under [PRE-E06-04](CONDITIONAL_POLICIES.md);
 historical spec-only reports remain intact.
 
 Owner request on 2026-10-06 authorizes the bounded E03-G01 legacy-metric
@@ -30,7 +31,8 @@ frozen measurement/account/privacy rules and registered missing coverage.
 PRE-E06-01 is complete; the owner also authorized PRE-E06-02's active/matured
 conformance and PRE02-A01 history amendment. Read the
 [separate execution report](PRE_E06_02_REPORT.md). PRE-E06-03 has its own approved
-execution; PRE-E06-04..06 still need their individual starts. No broader activation, alpha study, CI/CD or publication
+execution; PRE-E06-04 qualifies C05 locally, while 05/06 still need individual
+starts. No broader activation, alpha study, CI/CD or publication
 is implied.
 PRE02's source gate is now PASS: 39 actual matured fit/rank decisions across
 13 routes, original measurement/stitched accounting parity and 623 distinct
@@ -128,7 +130,7 @@ authorized here; follow [release handoff](RELEASE_HANDOFF.md) after approval.
 | Capability | Current boundary | Required next contract |
 |---|---|---|
 | C01 extra meta modes/schedules | Nested scalar Mode 1 runtime implemented under PRE-E06-03 | Final-source installed proof PRE-E06-06; other methodologies/domains remain unapproved |
-| C05 conditional Sobol/mixed representatives | Reference/spec; local implementation approved, runtime pending | PRE-E06-04: frozen layout, actual category RNG, finite support and owned continuation |
+| C05 conditional Sobol/mixed representatives | Approved explicit runtime qualified locally in PRE-E06-04 | Final-source wheel/sdist PRE-E06-06; unadmitted representative routes remain fail-closed |
 | W3 continuous carry | Existing reset-flat route only | Orders/protection/state and parameter effect across fold boundaries |
 | W3 shared multi-symbol | No certified financial carry runtime | Shared account, calendars, instruments and admission/margin semantics |
 | Public meta batch | Not activated by sampler qualification | Batch seal/maturity/selection and worker ownership |

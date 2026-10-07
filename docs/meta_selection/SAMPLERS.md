@@ -58,7 +58,12 @@ The example uses synthetic OHLC and is not economic validation.
 | omitted, `tpe`, `tpe_legacy` | `TPESampler` | Legacy defaults; default startup is 10 in pinned Optuna 4.8.0 |
 | `tpe_multivariate_group` | `TPESampler(multivariate=True, group=True)` | Numeric, categorical and explicitly conditional parameters |
 | `cmaes` | `CmaEsSampler`, cmaes 0.12.0 | Single objective with static variable numeric dimensions; categorical/dynamic geometry rejected by default |
-| `sobol` | `QMCSampler(qmc_type="sobol", scramble=True)` | Static numeric relative space; categorical dimensions sampled independently; conditional ranges rejected |
+| `sobol`, default `sobol_policy="legacy_v1"` | `QMCSampler(qmc_type="sobol", scramble=True)` | Static numeric relative space; categorical dimensions sampled independently; conditional ranges rejected |
+
+The same Sobol recipe has the explicit PRE-E06-04
+`sobol_policy="conditional_numeric_latent_v1"` opt-in for frozen numeric
+conditional coordinates and independent active categories. This is not a fifth
+recipe or a default change; see [its admission matrix](CONDITIONAL_POLICIES.md).
 
 Optuna remains pinned at 4.8.x, with local evidence on 4.8.0. `cmaes==0.12.0`
 is included in the `optimization` and `all` extras, not core-only imports.
@@ -139,11 +144,15 @@ anchor from averaged branch values. Meta descriptors remain QMS-03 scope.
 For medoids, a noninvertible mapped diagnostic centroid has
 `centroid_params=None`; it is not advertised as an executable parameter vector.
 
-The [C05 conditional geometry review](CONDITIONAL_GEOMETRY_REVIEW.md) specifies
-proposed fixed numeric latent coordinates and feasible-support representatives.
-It is **spec/tests only**: conditional Sobol and mixed/constrained centroid guards
-above remain active. The review helpers are not installed sampler/selector APIs.
-New methodology activation needs separate owner approval and runtime gates.
+The [C05 review](CONDITIONAL_GEOMETRY_REVIEW.md) remains a historical independent
+specification. PRE-E06-04 implements its separately approved opt-ins:
+`SamplerConfig(name="sobol", sobol_policy="conditional_numeric_latent_v1")`
+and `flat_selector="feasible_support_projection_v1"`. Read the
+[runtime scope/continuation contract](CONDITIONAL_POLICIES.md) and
+[runnable example](../../examples/wfo_conditional_policies.py).
+Legacy Sobol and ordinary mixed/constrained centroid guards remain active.
+The new representative selects own-witness IS support on admitted routes;
+no arbitrary mixed-space centroid solver is claimed.
 
 ## Constraints
 

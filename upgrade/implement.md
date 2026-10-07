@@ -3,10 +3,11 @@
 <a id="qms-pre-e06-action-plan"></a>
 ## QMS Pre-E06 Sequential Debt Closure - Owner Planning Request 2026-10-06
 
-**Status:** PRE_E06_03_COMPLETE_LOCAL_SOURCE_GATE. Owner approved PRE-E06-02 on
+**Status:** PRE_E06_04_COMPLETE_LOCAL_APPROVED_SOURCE_GATE. Owner approved PRE-E06-02 on
 2026-10-06 (Asia/Saigon): active/matured no-leakage, raw measurement and original
 account conformance only. PRE-E06-01/02 are complete in their recorded scope;
-PRE-E06-03 is complete for the approved nested scalar cohort; 04..06 remain planned.
+PRE-E06-03 is complete for the approved nested scalar cohort; PRE-E06-04 completes
+approved C05 runtime/continuation locally; 05/06 remain planned.
 [PRE02 report](../docs/meta_selection/PRE_E06_02_REPORT.md):
 13 routes, 39 active/matured decisions, 623 distinct scoped PASS; 27 scalar-scorer
 cells are explicitly not applicable. No economic/default or artifact promotion.
@@ -20,6 +21,12 @@ Mode 1/per_fold_causal on five scalar targets, 15 actual matured fits/ranks,
 582 distinct scoped PASS and three ladder scalar-prepared N/A cells. Original
 inner-decay anchor, full outer-IS/real-forward measurements, unchanged Mode 4
 identity and final accounting are locked. Final installed artifacts remain PRE06.
+
+[PRE04 report](../docs/meta_selection/PRE_E06_04_REPORT.md): explicit conditional
+numeric Sobol and feasible evaluated-support projection, 104 new policy checks,
+590 distinct legacy-regression checks and seven docs/example/gate checks PASS.
+Old defaults/accounting/Ridge unchanged; exact owned continuation and original
+IS anchors qualified. Final installed artifacts remain PRE06; no economic claim.
 
 **Current truth and precedence:** the [execution amendment](#qms-required-execution-routes)
 already implemented bounded E06/E07 intent/session, callback and command routes,
@@ -71,7 +78,7 @@ official economic promotion to any route.
 | 1 | [PRE-E06-01](#qms-pre-e06-01) | One source-bound current ledger, test inventory and scope/privacy contract | COMPLETE_LOCAL_INVENTORY_GATE; no activation |
 | 2 | [PRE-E06-02](#qms-pre-e06-02) | Active/matured causal and measurement conformance on existing admitted routes | COMPLETE_LOCAL_SOURCE_GATE; no new-mode/economic promotion |
 | 3 | [PRE-E06-03](#qms-pre-e06-03) | Approved C01 nested scalar runtime activation, raw outer-IS/forward parity | COMPLETE_LOCAL_SOURCE_GATE; final installed proof PRE06 |
-| 4 | [PRE-E06-04](#qms-pre-e06-04) | Approved C05 policies, actual RNG and owned continuation qualification | PLANNED_NOT_STARTED |
+| 4 | [PRE-E06-04](#qms-pre-e06-04) | Approved C05 policies, actual RNG and owned continuation qualification | COMPLETE_LOCAL_SOURCE_GATE; final installed proof PRE06 |
 | 5 | [PRE-E06-05](#qms-pre-e06-05) | Matched profiling and safe optimization; unchanged scientific/decision/account contracts | PLANNED_NOT_STARTED |
 | 6 | [PRE-E06-06](#qms-pre-e06-06) | Final local regression, exact installed artifacts, docs/privacy/cleanup receipt | PLANNED_NOT_STARTED |
 | Next | [E06](#qms-e06) resumed qualification | Owner approves entry using the final local handoff | NOT_ENTERED_BY_THIS_PLAN |
@@ -423,6 +430,24 @@ permutation/ties, public off/shadow accounting and fresh-process C04 journal rep
 Source amendments must preserve exact old receipts/guide and fail closed on any
 unreviewed bytes. Fresh final-source installed proof stays PRE-E06-06. Register
 timing as software overhead only; no economic/decay or speed superiority claim.
+
+**Execution outcome (2026-10-07): COMPLETE_LOCAL_APPROVED_SCOPE.** Implementation
+`efe4359`; [contract/call/matrix](../docs/meta_selection/CONDITIONAL_POLICIES.md),
+[report](../docs/meta_selection/PRE_E06_04_REPORT.md),
+[source-bound gate](../benchmarks/optimization/meta_selection/qms_pre_e06_04_closure.json),
+[cost](../benchmarks/optimization/meta_selection/qms_pre_e06_04_cost.json) and
+[cleanup](../docs/maintenance/QMS_PRE_E06_04_CLEANUP.md).
+701 distinct scoped checks PASS (104 new policies, 590 regression, seven docs/
+example/gate). The 12 initial old-native-fixture failures have exact passing
+reruns on qualified 0.4.3; retain both receipts. No historical seal, accounting,
+Ridge, default sampler/medoid, endpoint signature or scientific guide changed.
+New QMC/category prefixes, conditional masks, process/batch asks, own-original
+anchors, prepared parity and fresh-process/atomic C04 continuation PASS.
+Representative adds zero financial calls. Cube endpoint arithmetic matches the
+declared Optuna decimal lattice without relaxed bounds. Cost is proposal/journal
+only, not whole WFO/economic superiority; PRE05 owns full profiling. PRE06 owns
+fresh final-source wheel/sdist. No push/CI/tag/merge/publication or new study.
+Unadmitted projection modes/domains/R3B/fixed replay remain fail-closed by design.
 
 <a id="qms-pre-e06-05"></a>
 ### Phase PRE-E06-05 - Matched Cost Profiling And Safe Shared Optimization
@@ -794,7 +819,8 @@ The latest local instruction defers any new push/workflow until scope is closed.
 Scientific acceptance, endpoint release admission and merge/tag/publication
 remain separate owner decisions. C01/C05 specs now have local implementation
 approval in the amendment above. PRE-E06-03 completes the approved C01 nested
-scalar runtime locally; C05 implementation remains pending PRE-E06-04.
+scalar runtime locally; PRE-E06-04 now completes approved C05 opt-in policies and
+owned continuation locally. Final-source installed proof remains PRE-E06-06.
 Historical receipts are preserved unchanged.
 
 **Current capability work:** the owner authorized [QMS-C01](#qms-c01---additional-meta-modes-and-schedules)
@@ -821,13 +847,13 @@ continuation, no automatic endpoint/fold resume. **916 scoped checks PASS**
 (114 C04-specific), fresh wheel/sdist four-recipe process consumers PASS.
 Read [the C04 contract](../docs/meta_selection/EXACT_CONTINUATION.md) and
 [final report](../docs/meta_selection/QMSC04_REPORT.md).
-QMS-C05 is **SPEC_AND_TESTS_COMPLETE_RUNTIME_NOT_ACTIVATED**: **366 scoped checks
-PASS** (139 C05-specific). The [geometry proposal](../docs/meta_selection/CONDITIONAL_GEOMETRY_REVIEW.md)
-and [C05 report](../docs/meta_selection/QMSC05_REPORT.md) retain conditional-Sobol/
-mixed-centroid public guards and all production bytes. Owner approval of the new
-math received subsequent local implementation approval in the amendment above;
-runtime activation is not implemented. No new meta mode, public meta batch
-or publication is authorized by C03/C04/C05.
+QMS-C05's historical **366 scoped PASS** (139 C05-specific) specification stage
+remains sealed in the [review](../docs/meta_selection/CONDITIONAL_GEOMETRY_REVIEW.md)
+and [C05 report](../docs/meta_selection/QMSC05_REPORT.md). Subsequent approved
+PRE-E06-04 now implements explicit conditional-Sobol and evaluated-support
+policies with owned continuation; [current scope](../docs/meta_selection/CONDITIONAL_POLICIES.md).
+Old Sobol and ordinary mixed-centroid guards remain. Final installed proof is
+PRE06; no new meta mode, public meta batch or publication is authorized.
 
 **New owner-requested planning (2026-10-05):**
 [QMS-E01 through QMS-E08: route-wide WFO/meta integration and debt closure](#qms-endpoint-meta-extension).
@@ -23519,9 +23545,10 @@ future QMS-C01..C05 implementation was started.
 <a id="qms-capability-gap-roadmap---planning_only"></a>
 ### QMS Capability Gap Roadmap - C01/C05 SPEC REVIEW; C02-C04 LOCAL
 
-**Current disposition:** C01-D01 is CLOSED_LOCAL in E01. C01 nested scalar
-Mode 1 and C05 reviewed geometry have subsequent local implementation approval,
-but runtime is pending PRE-E06-03/04. C02-C04 are complete in their recorded
+**Current disposition:** C01-D01 is CLOSED_LOCAL in E01. PRE-E06-03 completes
+approved C01 nested scalar Mode 1 runtime; PRE-E06-04 completes approved C05
+opt-in policies/continuation locally. Final-source installed proof is PRE06.
+C02-C04 are complete in their recorded
 bounded scope. The timeline, phase-era status and completion records below
 are historical; they do not override the current ledger or amend sealed receipts.
 
@@ -24236,7 +24263,7 @@ post-liquidation compatibility is CLOSED_LOCAL_CORRECTNESS, not economic gain.
 | E-G09 | W3 continuous carry, multi-symbol shared account and public meta batching remain unavailable | C02 financial/scheduler extensions need explicit approval; E07 must preserve current reset-flat/sequential scope or stop at that boundary |
 | E-G10 | W3 Mode 2 lacks a certified causal return-path bootstrap contract | Separate method/evaluator work; do not substitute static return proxies for reactive execution |
 | E-G11 | C04 exact continuation is an owned journal utility, not automatic WFO/account/strategy/model recovery; restore cost scales with history | Explicit capability/performance limit; checkpoint integration requires its own lifecycle plan, not a guard removal |
-| E-G12 | C05 conditional Sobol/mixed representatives are review/reference/tests only | Reviewed local implementation approved; PRE-E06-04 owns actual RNG/continuation/runtime qualification; no activation yet |
+| E-G12 | C05 historical review/reference stage remains sealed | CLOSED_LOCAL_PRE_E06_04 for approved opt-in runtime/RNG/continuation; final installed proof PRE06; other projection routes unadmitted |
 | E-G13 | Real ETH Delta RSI decay evidence exists, but forward-Q interval includes zero and it is not pristine BTC/live certification | Preserve actual R/Q decomposition; registered scientific replacement remains NOT_AUTHORIZED |
 | E-G14 | Domain-wide real-alpha evidence is absent: scalar ETH results do not certify W3/grid, intrabar or portfolio/package | E03-E07 each own an endpoint-specific paired study and promotion decision |
 | E03-G01 | Historical prepared-unit objective mismatch after liquidation | CLOSED_LOCAL_CORRECTNESS: exact versioned legacy sampling policy, fresh artifacts, 28-fold registered trial/panel/label/params/account parity PASS; original negative economics retained; remote/public separate |

@@ -5,6 +5,13 @@ QMS-C04 adds an **opt-in owned session**, not automatic resume for
 Existing endpoint arguments, schedules, search, selection and accounting stay
 unchanged. Use the same public sampler config and normalized parameter schema.
 
+PRE-E06-04 also qualifies `SamplerConfig(name="sobol",
+sobol_policy="conditional_numeric_latent_v1")` through this same session.
+Whole-point QMC state, the independent category stream, warm prefix and active
+masks are reconstructed and checked in the final witness. Read
+[the policy/version contract](CONDITIONAL_POLICIES.md). Old-source checkpoints
+are not silently migrated; final-source installed proof is PRE-E06-06.
+
 ## What Is Exact
 
 The checkpoint records every owned ask/suggest, intermediate report, pruning

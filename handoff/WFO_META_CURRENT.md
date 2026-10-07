@@ -106,7 +106,7 @@ change. See [E01 evidence and current gate](../docs/meta_selection/QMSE01_REPORT
 | C02 transport | Safe Linux process, original-pass witnesses and native cooperative deadlines qualified |
 | C03 samplers | Four recipes on sequential/safe-process W3 and native-off-meta R3B qualified |
 | C04 continuation | Owned exact journal, four recipes and fresh-process resume qualified; not automatic WFO/account resume |
-| C05 geometry | Reviewed implementation approved; conditional Sobol/finite-support runtime pending PRE-E06-04 |
+| C05 geometry | Explicit conditional Sobol/support projection and owned continuation qualified locally by PRE-E06-04; final installed artifacts PRE-E06-06 |
 | Carry/multi-symbol/public meta batch | Unsupported; contracts/specs do not activate runtime |
 
 The repaired candidate remote gate passes above; public/final publication
