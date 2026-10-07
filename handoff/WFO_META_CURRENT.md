@@ -75,10 +75,15 @@
   not certify economic gain or newly installed final artifacts. PRE-E06-03 now
   completes the approved nested scalar cohort: 15 actual fits, 582 distinct
   scoped PASS and three N/A skips. PRE-E06-04 is complete locally (701 scoped
-  checks); PRE-E06-05 is now executing its registered matched matrix with
-  owner-approved disabled p50 +3% / p95 +5% budgets. Read the
+  checks). PRE-E06-05 has 2,346 distinct scoped PASS and 30 registered N/A cases,
+  with exact source/log/artifact binding and completed cleanup. Its 76-cell
+  matched matrix passes disabled p50 +3% / p95 +5% budgets in 25/32 cells;
+  seven remain NOT_MET, so cost disposition is OPEN and owner review is pending.
+  Full paired profiles show no changed-block calls in the missed cells, but
+  do not waive latency gates. Read the
   [current performance report](../docs/meta_selection/PRE_E06_05_REPORT.md).
-  PRE-E06-06 remains planned and needs its own phase start.
+  PRE-E06-06 remains planned: first resolve cost disposition, then obtain its
+  own phase start. No fresh final-source installed/remote/public claim here.
 - Repair performance: same registered unit study 549.001 to 291.542 s (1.883x),
   peak RSS +7.480 MiB. One shared-VPS observation, not universal performance.
   [Cleanup](../docs/maintenance/QMS_G01_CLEANUP_2026-10-06.md) reclaimed 219.656 MiB

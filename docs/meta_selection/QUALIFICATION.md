@@ -70,6 +70,17 @@ Approved conditional Sobol/finite-support runtime and owned continuation now
 have [local PRE-E06-04 qualification](PRE_E06_04_REPORT.md), with explicit scope.
 Final-source installed artifacts remain PRE-E06-06; no public promotion here.
 
+PRE-E06-05's [source report](PRE_E06_05_REPORT.md) and
+[receipt](../../benchmarks/optimization/meta_selection/qms_pre_e06_05_closure.json)
+qualify exact portable dispatch, chronological decisions and original accounting
+locally (2,346 distinct scoped PASS; 30 registered N/A cells are not PASS).
+Matched synthetic cost evidence is separate from installed/economic evidence:
+25/32 disabled cells meet the owner-approved budgets, seven are NOT_MET and
+cost disposition remains OPEN. Zero changed-block calls in their profiles do
+not certify latency or waive budgets. Existing `.venv` validates plotting only;
+the qualified G01 0.4.3 consumer validates numerical/WFO work. Neither is a new
+source-exact core wheel/sdist proof. No release or next-phase approval is implied.
+
 E01 wires the real installed transport/sampler/continuation consumers into
 candidate, exact-release and public proof commands. Each gate uses the shared
 mandatory validators and retained command/source/example/log hashes. Missing

@@ -3,11 +3,12 @@
 <a id="qms-pre-e06-action-plan"></a>
 ## QMS Pre-E06 Sequential Debt Closure - Owner Planning Request 2026-10-06
 
-**Status:** PRE_E06_05_IN_PROGRESS_LOCAL. Owner approved PRE-E06-02 on
+**Status:** PRE_E06_05_LOCAL_PARITY_PASS_COST_DISPOSITION_OPEN. Owner approved PRE-E06-02 on
 2026-10-06 (Asia/Saigon): active/matured no-leakage, raw measurement and original
 account conformance only. PRE-E06-01/02 are complete in their recorded scope;
 PRE-E06-03 is complete for the approved nested scalar cohort; PRE-E06-04 completes
-approved C05 runtime/continuation locally; 05 is in progress and 06 remains planned.
+approved C05 runtime/continuation locally. PRE05 implementation/software is
+qualified locally, but its latency disposition is OPEN; 06 remains planned.
 [PRE02 report](../docs/meta_selection/PRE_E06_02_REPORT.md):
 13 routes, 39 active/matured decisions, 623 distinct scoped PASS; 27 scalar-scorer
 cells are explicitly not applicable. No economic/default or artifact promotion.
@@ -27,6 +28,13 @@ numeric Sobol and feasible evaluated-support projection, 104 new policy checks,
 590 distinct legacy-regression checks and seven docs/example/gate checks PASS.
 Old defaults/accounting/Ridge unchanged; exact owned continuation and original
 IS anchors qualified. Final installed artifacts remain PRE06; no economic claim.
+
+[PRE05 report](../docs/meta_selection/PRE_E06_05_REPORT.md): 76 matched cells,
+3,192 paired-arm warm executions, 2,346 distinct scoped PASS and 30 registered
+N/A cases. Canonical portable dispatch improves without changing logical work,
+RNG, raw measurements, decisions or accounting. Disabled latency budgets pass
+25/32 cells; seven remain NOT_MET despite zero changed-block calls in paired
+profiles. Cost disposition needs owner review; no automatic PRE06 advancement.
 
 **Current truth and precedence:** the [execution amendment](#qms-required-execution-routes)
 already implemented bounded E06/E07 intent/session, callback and command routes,
@@ -79,7 +87,7 @@ official economic promotion to any route.
 | 2 | [PRE-E06-02](#qms-pre-e06-02) | Active/matured causal and measurement conformance on existing admitted routes | COMPLETE_LOCAL_SOURCE_GATE; no new-mode/economic promotion |
 | 3 | [PRE-E06-03](#qms-pre-e06-03) | Approved C01 nested scalar runtime activation, raw outer-IS/forward parity | COMPLETE_LOCAL_SOURCE_GATE; final installed proof PRE06 |
 | 4 | [PRE-E06-04](#qms-pre-e06-04) | Approved C05 policies, actual RNG and owned continuation qualification | COMPLETE_LOCAL_SOURCE_GATE; final installed proof PRE06 |
-| 5 | [PRE-E06-05](#qms-pre-e06-05) | Matched profiling and safe optimization; unchanged scientific/decision/account contracts | IN_PROGRESS_LOCAL_MATCHED_GATE |
+| 5 | [PRE-E06-05](#qms-pre-e06-05) | Matched profiling and safe optimization; unchanged scientific/decision/account contracts | LOCAL_PARITY_PASS; COST_DISPOSITION_OPEN |
 | 6 | [PRE-E06-06](#qms-pre-e06-06) | Final local regression, exact installed artifacts, docs/privacy/cleanup receipt | PLANNED_NOT_STARTED |
 | Next | [E06](#qms-e06) resumed qualification | Owner approves entry using the final local handoff | NOT_ENTERED_BY_THIS_PLAN |
 
@@ -596,6 +604,49 @@ not infer a latency win from them. After those workers exit, rerun the entire
 same registered profile set under `isolated-*`, then the same 21x50 block test
 alone. No main matrix sample was concurrent with profiling. Only the isolated
 diagnostics/block artifact is primary; no selective cell or seed reruns.
+
+**Execution outcome (2026-10-07): LOCAL_PARITY_PASS_COST_DISPOSITION_OPEN.**
+Read the [source-bound receipt](../benchmarks/optimization/meta_selection/qms_pre_e06_05_closure.json),
+[full report](../docs/meta_selection/PRE_E06_05_REPORT.md),
+[generated cost/profile/memory tables](../benchmarks/optimization/meta_selection/qms_pre_e06_05_cost.md)
+and [cleanup](../docs/maintenance/QMS_PRE_E06_05_CLEANUP.md).
+Implementation COMPLETE, technical PASS, empirical NOT_ASSESSED, owner PENDING
+cost disposition; performance measured, not promoted as a complete latency gate.
+
+Only `common.py::wire` changes runtime: exact built-in dispatch with every
+original generic path retained. Source `0c46c3d` and the v2 exact hash seal bind
+this amendment. No accounting/metric/Ridge/sampler/endpoint/default/native change.
+76 cells x21 paired warm repetitions plus 152 warmups preserve full logical
+decisions, original accounts/reports and availability predicates. New tests
+include 12 chronological folds each for Mode 4 and nested Mode 1. Actual
+require uses qualified native 0.4.3, float64/no-fast-math, observable copies/
+FFI/threads and no silent fallback; constructor/history preparation is separately
+charged, especially on W3's prepared public backtest surface.
+
+2,346 distinct scoped checks PASS, including 77 new phase checks, fresh coverage
+of all predecessor 701 identities and nine external sampler/WFO test modules.
+The full meta shard retains four guard/docs failures with separately passing
+same-ID reruns; the external shard retains two stale assertion failures plus a
+missing-Matplotlib environment failure. Current additive capability columns and
+the already-approved G01 legacy-zero-base cache identity are now tested exactly;
+account/trial/RNG comparisons are unchanged. Existing `.venv` qualifies plotting
+alone; the G01 consumer qualifies numerical/WFO work. Thirty original-account
+scalar-scorer N/A cells are not PASS, and private full-study replay is not rerun.
+
+Primary block-only median drops 926.42 to 724.85 ms (-21.76% for 50 wire calls).
+Matched active p50 improves 2.68% ordinary pct-equity, 1.80% intrabar, 3.47% W3,
+3.02% prepared pct-equity and 3.68% nested pct-equity; command-tape is essentially
+unchanged (+0.06%). Disabled p50 +3% / p95 +5% budgets remain exactly as approved:
+25 PASS, seven NOT_MET. Full paired profiles show zero `wire` calls in those
+seven; this is causal diagnostic evidence, not a waiver or certified tail bound.
+No R/Q/decay improvement or RSS reduction is claimed from this same-work patch.
+
+Cache/dependency/tooling environments, exact artifacts, history, samples and
+failed logs remain intact; only the newly generated inactive Matplotlib font
+cache is removed. Protected hashes match. No push/workflow/merge/tag/publication,
+new private-alpha study, or PRE06 execution. The cost exit gate stays OPEN until
+the owner accepts a documented disposition or approves a full stable-CPU rerun;
+do not hide this required decision in E06.
 
 <a id="qms-pre-e06-06"></a>
 ### Phase PRE-E06-06 - Local Conformance, Exact Artifacts And E06 Entry Gate

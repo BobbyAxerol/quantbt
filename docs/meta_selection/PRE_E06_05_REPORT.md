@@ -3,8 +3,9 @@
 ## Scope And Status
 
 Measurement and the scoped runtime patch are complete locally on
-`feat/meta-selection-samplers`, entry `d0cd95a`. Full regression is still running;
-the cost exit gate is OPEN, not an accepted completion receipt. No release,
+`feat/meta-selection-samplers`, entry `d0cd95a`. Source software qualification
+passes 2,346 distinct scoped checks; the cost exit gate is OPEN, not an accepted
+full phase completion receipt. No release,
 workflow, push, economic study or new route/method activation is authorized.
 
 Read [the phase and registered budgets](../../upgrade/implement.md#qms-pre-e06-05),
@@ -207,14 +208,77 @@ registered scalar-scorer N/A cases are separate from PASS; their routes still
 run through their original financial accounts. Private full-study replay is
 not rerun: financial source is unchanged and no new alpha study is authorized.
 
-Final regression counts and cleanup hashes will be recorded after workers exit.
+Read the [source-bound receipt](../../benchmarks/optimization/meta_selection/qms_pre_e06_05_closure.json).
+2,346 distinct scoped checks PASS, including 77 new phase checks and fresh
+coverage of all 701 predecessor identities. Exactly 30 registered N/A cells
+are excluded from PASS. The broad meta shard has 2,165 passing cases and four
+guard/docs failures: the C05 predecessor guard lacked exact PRE05 normalization,
+and current handoff wording omitted three required scope/lineage statements.
+Each failure has a separately passing same-ID rerun; old XML is not edited.
+
+Nine external sampler/WFO modules additionally expose two stale expectations:
+the discovery table's additive meta columns and G01's already-approved
+legacy-zero-base cache identity. Both tests now assert the current contract,
+including unactivated-mode discovery and fresh-account/no-cross-run cache
+ownership. Trial/params/equity comparisons still pass. Their first failed XML
+is retained; the final numerical rerun passes all 162 applicable cases.
+
+The plotting case initially lacked Matplotlib in the G01 consumer. It passes
+separately in the existing `.venv` (CPython 3.12.13, NumPy 2.2.6, Matplotlib
+3.10.9, Agg backend), with the same source and no dependency installation.
+This is a plotting-only proof, not a substitute native/meta provider. The
+existing `tight_layout` warning remains nonfinancial and outside this patch;
+no chart-layout certification or rendering change is claimed.
+
+The gate binds passing reruns, original failures, all raw samples, registration,
+eighteen histories, thirty primary paired profiles/pstats, block cost, current
+runtime/verification sources, guide and native bytes. Failure identities cannot
+repair themselves, missing reruns fail, and unexpected skips are never waived.
 All exploratory failures and current reruns remain separate immutable files.
+
+## Reproduction And Resources
+
+Use the current G01 consumer with `PYTHONPATH=src:.` and OMP/OpenBLAS/MKL/Numba
+threads fixed to one. QMS06 historical tests also bind `QMS06_NATIVE_EXTENSION`
+to that exact qualified provider and `QMS06_NATIVE_VERSION=0.4.3`; do not silently
+load the archived dev2 fixture. The closure contains exact JUnit paths/hashes.
+The main commands are:
+
+```bash
+python -m tools.qms_pre05_benchmark register
+python -m tools.qms_pre05_benchmark matrix --label matched-v3
+python -m tools.qms_pre05_profile_matrix --label isolated
+python -m tools.qms_pre05_portable_cost --label isolated
+pytest -q tests/meta_selection --ignore=tests/meta_selection/test_g01_study_replay.py
+```
+
+Evidence writers reject overwrites. These commands describe the registered
+run; do not run them over sealed receipts. Registration predates the patch and
+records entry bytes/threads/repeats/budgets. Interrupted attempts use separate
+logs and only resume uncompleted cells, not retime selected successful cells.
+For a new full study, register a fresh lane before observing outcomes.
+
+[Cleanup](../maintenance/QMS_PRE_E06_05_CLEANUP.md) passes: 2,931 protected
+file hashes agree before/after. Retained lane occupies 254,722,048 allocated
+bytes before the cleanup JSON itself, below the 1 GiB ceiling; available disk
+is 28,017,037,312 bytes, above 5 GiB safety. No environment/native build was
+created. The only deletion is the inactive generated font cache (45,056
+allocated bytes); the observed filesystem gain is 49,152 bytes, not a universal
+or task-exclusive storage saving. All workers have exited and evidence remains.
 
 ## Remaining Gate And Decisions
 
+| Dimension | Current disposition |
+|---|---|
+| Implementation | COMPLETE locally |
+| Technical | PASS source-scoped parity/regression/cleanup |
+| Performance | MEASURED; seven disabled budgets NOT_MET; overall gate NOT_PROMOTED |
+| Empirical | NOT_ASSESSED; unchanged R/Q/decay in matched work |
+| Owner review | PENDING cost disposition |
+| Installed/remote/public | Separate, not certified by source receipts |
+
 Implementation and measured speed are distinct from owner cost acceptance.
-Full affected regression, source-bound receipt, documentation and cleanup are
-being finalized. Seven disabled point-budget misses keep cost disposition OPEN.
+Seven disabled point-budget misses keep cost disposition OPEN.
 No new economic study was run: exact matched decisions/measurements preserve
 the original R/Q and decay, rather than demonstrating a new decay improvement.
 Final-source installed wheel/sdist proof remains PRE-E06-06, with its own owner
