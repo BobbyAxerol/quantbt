@@ -49,6 +49,10 @@ from importlib import import_module
 
 
 _LAZY_EXPORTS = {
+    "ReportingRequest": (".metrics.reporting.request", "ReportingRequest"),
+    "ReportingContractV1": (".metrics.report_contracts", "ReportingContractV1"),
+    "ReportingCoverageV1": (".metrics.report_contracts", "ReportingCoverageV1"),
+    "ReportingCache": (".metrics.reporting.cache", "ReportingCache"),
     **{
         name: (".optimization", name)
         for name in (
@@ -711,6 +715,7 @@ __version__ = "1.1.2"
 __author__  = "quantbt"
 
 __all__ = [
+    "ReportingRequest", "ReportingContractV1", "ReportingCoverageV1", "ReportingCache",
     # engines
     "BacktestEngine",
     "BacktestEngineV2",

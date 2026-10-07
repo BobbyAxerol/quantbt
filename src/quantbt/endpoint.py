@@ -2522,7 +2522,7 @@ class QuantBTEndpoint:
             _print_order_logs(result, mode=order_log_mode, limit=order_log_limit)
         return result
 
-    def full_report(self, trading_days: int = 365, scope: str = "auto") -> Dict:
+    def full_report(self, trading_days: int = 365, scope: str = "auto", *, reporting=None) -> Dict:
         """
         Return the full QuantBT metrics dictionary for the latest result.
 
@@ -2541,25 +2541,36 @@ class QuantBTEndpoint:
         RuntimeError
             If no backtest has been run yet.
         """
+        if reporting is not None:
+            from .metrics.reporting.public import reporting_metadata
+            return reporting_metadata(self._require_result(), reporting, scope=scope)
         from .metrics import full_report as _full_report
 
         return _full_report(self._result_for_report_scope(scope), trading_days=trading_days)
 
-    def show_metrics(self, trading_days: int = 365, scope: str = "auto") -> Dict:
+    def show_metrics(self, trading_days: int = 365, scope: str = "auto", *, reporting=None) -> Dict:
         """
         Print key metrics and return the full metrics dictionary.
 
         This intentionally mirrors the convenience style of legacy
         `BacktestEngine.analyze()` without forcing a plot.
         """
+        if reporting is not None:
+            from .metrics.reporting.public import format_reporting_report
+            rpt = self.full_report(scope=scope, reporting=reporting)
+            print(format_reporting_report(rpt))
+            return rpt
         rpt = self.full_report(trading_days=trading_days, scope=scope)
         print(format_metrics_report(rpt))
         return rpt
 
-    def quick_plot(self, theme: str = "dark", figsize: tuple = (14, 6), scope: str = "auto"):
+    def quick_plot(self, theme: str = "dark", figsize: tuple = (14, 6), scope: str = "auto", *, reporting=None):
         """
         Plot cumulative return and drawdown for the latest result.
         """
+        if reporting is not None:
+            from .metrics.reporting.public import plot_completed_report
+            return plot_completed_report(self._require_result(), reporting, scope=scope, theme=theme, figsize=figsize)
         from .viz import quick_plot as _quick_plot
 
         return _quick_plot(self._require_result(), theme=theme, figsize=figsize, scope=scope)

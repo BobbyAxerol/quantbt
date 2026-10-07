@@ -581,6 +581,17 @@ All time indexes are normalized to UTC and aligned to the run index.
 
 ## Helper Methods
 
+Report-only additions are opt-in: `bt.full_report(reporting=request)`,
+`bt.show_metrics(reporting=request)` and `bt.quick_plot(reporting=request)`
+accept a lazy-exported `ReportingRequest` with a `ReportingContractV1`. The
+same keywords are available on completed result helpers. Without the keyword,
+the legacy output, automatic scope and scientific/WFO behavior below stay
+unchanged. New output separates account-period, recorded execution,
+closed-trade and closed-action populations; absent ledger attribution is N/A,
+not a guessed zero count. Exact scoped baseline/currency/frequency and episode
+clock are declared in the request. Read [Reporting V1](metrics/PUBLIC_REPORTING.md)
+for a complete example, validity policies, raw-coverage matrix and migration.
+
 ```python
 result = bt.backtest(...)
 result = bt.simulate(...)

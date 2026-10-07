@@ -1,10 +1,10 @@
 # Reporting Contract V1
 
-**MET-01:** proposed definitions, independently tested; owner acceptance pending.
-This document does not activate new production metrics. The internal
-[schema](../../src/quantbt/metrics/report_contracts.py) is not imported by an
-endpoint, scorer or native adapter. Read the [phase guide](../../upgrade/implement.md#metrics-met-01)
-and [inventory](INVENTORY.md) before MET-02.
+Definitions accepted through MET-02 approval; reducers completed in MET-02.
+MET-03 adds opt-in cold report methods under separate owner approval. The
+[schema](../../src/quantbt/metrics/report_contracts.py) never changes a scorer
+or native execution contract. Read [public usage](PUBLIC_REPORTING.md), the
+[phase guide](../../upgrade/implement.md#metrics-met-03) and [inventory](INVENTORY.md).
 
 ## Identity And Boundary
 
@@ -16,8 +16,8 @@ hash. All nested policy/coverage objects are immutable; JSON round trips
 preserve every field and reject unknown/version-mismatched fields.
 
 No constructor/backtest/result shape or existing key/default is changed here.
-MET-02 may implement additive read-only reducers after acceptance; MET-03 may
-integrate opt-in reporting after its separate approval. Neither may change an
+MET-02 implements additive read-only reducers; MET-03 integrates opt-in
+reporting. Neither may change an
 optimizer's scientific contract just by replacing a report dictionary.
 
 ## Baseline And Samples

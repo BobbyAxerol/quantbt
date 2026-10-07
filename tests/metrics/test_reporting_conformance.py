@@ -25,6 +25,7 @@ from quantbt.optimization.meta_selection.observer import canonical_metric_contra
 
 from .test_account_reducers import coverage, observations, policy, reduce_account
 from .test_ledger_reducers import ledger, ledger_coverage, ledger_policy, rows_from_fixture
+from .source_guard import assert_protected
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -237,7 +238,7 @@ def test_met02_t09_t10_seeded_public_wfo_proposals_objective_selection_account_u
 def test_met02_t08_t10_protected_sources_privacy_no_hot_consumer_or_oracle_import():
     baseline = json.loads((ROOT / "docs/metrics/evidence/met02/baseline.json").read_text())
     for path, value in baseline["protected_sources"].items():
-        assert hashlib.sha256((ROOT / path).read_bytes()).hexdigest() == value, path
+        assert_protected(path, value)
     forbidden = {"quantstats", "matplotlib", "_quantbt_native", "nautilus_trader"}
     for path in (ROOT / "src/quantbt/metrics/reporting").glob("*.py"):
         text = path.read_text()

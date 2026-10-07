@@ -5,9 +5,9 @@
 **Status:** MET-01 COMPLETE_SPEC_ORACLE_LOCAL (phase approval 2026-10-07);
 MET01-T01..T08 PASS, 452 tests passed/no skips, 322 production hashes unchanged.
 Reporting definitions accepted through owner approval of MET-02 on 2026-10-07;
-MET-02 COMPLETE_ADDITIVE_LOCAL (567 tests, T01..T10 PASS), MET-03 NOT_STARTED.
-Historical receipts remain unchanged; MET-03 needs separate owner approval.
-Installed-artifact/public formatting gates belong to MET-03.
+MET-02 COMPLETE_ADDITIVE_LOCAL (567 tests, T01..T10 PASS), MET-03 IN_PROGRESS_LOCAL
+under separate owner approval 2026-10-07. Historical receipts remain unchanged.
+Installed-artifact/public formatting gates are being certified in MET-03.
 Owner requests the [three-phase metrics program](#metrics-upgrade) below, with
 separate approval before each phase. Read the [MET-01 report](../docs/metrics/MET01_REPORT.md)
 and [reporting definitions](../docs/metrics/REPORTING_CONTRACT_V1.md) for review.
@@ -26078,7 +26078,7 @@ correctness are separate checks.
 |---|---|---|---|
 | 1 | [MET-01](#metrics-met-01) | Reporting contract, source inventory and independent expected-value fixtures | COMPLETE_SPEC_ORACLE_LOCAL; definitions accepted through MET-02 approval |
 | 2 | [MET-02](#metrics-met-02) | Additive typed reducers and honest raw-data capabilities | COMPLETE_ADDITIVE_LOCAL; 567 tests, T01..T10 PASS; owner phase review before MET-03 |
-| 3 | [MET-03](#metrics-met-03) | Public reporting/docs, same-contract parity, raw preservation and local artifact/performance proof | NOT_STARTED; MET-02 accepted and separate phase approval required |
+| 3 | [MET-03](#metrics-met-03) | Public reporting/docs, same-contract parity, raw preservation and local artifact/performance proof | IN_PROGRESS_LOCAL; owner approval 2026-10-07; MET-02 accepted |
 
 All test groups and cost/installed gates below are NOT_RUN at registration.
 The following detailed guides are normative for this owner-requested program;
@@ -26504,7 +26504,8 @@ No push, workflow, merge, native build, version/tag or publication.
 <a id="metrics-met-03"></a>
 ### Phase MET-03 - Public Reports, Documentation And Local Certification
 
-**Status:** NOT_STARTED; owner phase approval PENDING; MET03-T01..T10 NOT_RUN.
+**Status:** IN_PROGRESS_LOCAL; owner phase approval APPROVED (2026-10-07);
+MET-02 accepted through this approval; MET03-T01..T10 NOT_RUN at registration.
 **Goal:** expose the accepted metrics clearly and certify mathematical,
 compatibility, financial-preservation and reporting-cost behavior on exact source.
 **Entry:** MET-02 accepted and separate owner approval. Freeze requested public
@@ -26577,6 +26578,34 @@ from numerical drift. Do not claim every optional metric/financial domain is
 certified or that report completion closes remote/public release qualification.
 **Commit Boundary:** integration/docs, then matched parity/performance evidence,
 then local artifact/cleanup/final handoff. Preserve phase receipts independently.
+
+**MET-03 Local Execution Registration - 2026-10-07:**
+- Add keyword-only `reporting=ReportingRequest(...)` to existing report/display/
+  plot helpers; omission preserves legacy dictionaries, text and WFO scoring.
+  Explicit contracts own the exact scope/baseline/frequency. No automatic
+  OOS slicing or financial replay under the new contract. New outputs are
+  namespaced groups, never aliases replacing the scientific metric dictionary.
+- Frozen request plus explicit recorded ledger/execution observations; missing
+  paths, incomplete outcome attribution and score profiles disclose unavailable
+  coverage. Bounded cache is caller-owned and explicitly cleared/closed.
+- Admit only cold report/display/plot methods in `endpoint.py`, `core/types.py`
+  and `core/results.py`, plus lazy exports in `__init__.py`. Preserve all other
+  production source bytes or AST exactly against the immutable MET-01/02
+  baseline; do not rewrite historical manifests or expected mathematical fixtures.
+- Benchmark one warmup, five measured repetitions, one thread, fresh workers;
+  2k/100k/1M account observations, sparse 32/high-churn 2k outcomes and 2k
+  opposite-side legs/1k actions. Separate compatibility, preparation/reduction,
+  grouping/sorting, serialization/formatting, requested episode plot and cache
+  hits. Python/Numba paths only; Rust reporting V1 is not implemented and native
+  metric V2 is not an interchangeable reducer. No universal 1-10 ms gate or
+  post-result speed threshold is invented; costs are reported for owner review.
+- Resource cap: 3 GiB disposable/retained disk, 20k inodes, 2 GiB worker RSS,
+  reserve 5 GiB free. Fresh `/tmp/quantbt-met03-*` scratch only; retain hashed
+  logs/evidence and exact core wheel/sdist under the MET-03 lane. Reuse a sealed
+  unchanged 0.4.3 native wheel and offline dependency cache, no Rust rebuild.
+  Clean only this registration's build staging, venvs, pytest/JIT/plot scratch.
+- Qualification is local CPython 3.12 only. No push, CI, merge, tag, version
+  change or publication. Owner final acceptance remains separate.
 
 ### Metrics Completion, Evidence And Owner Review Rules
 

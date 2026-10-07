@@ -26,6 +26,9 @@ def account_from_completed(result, contract, *, result_identity, profile="comple
         frame = result.to_pandas(index=index)
         equity = frame["equity"]
         profile = result.profile
+    elif hasattr(result, "accounting"):
+        import pandas as pd
+        equity = pd.Series(result.accounting.equity, index=result.accounting.datetime_index)
     else:
         equity = getattr(result, "equity", None)
         if equity is None:

@@ -18,6 +18,7 @@ from quantbt.optimization.meta_selection.observer import canonical_metric_contra
 
 from .test_contract import contract
 from .reference_oracle import drawdown_episodes
+from .source_guard import ADMITTED, assert_protected
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -26,7 +27,7 @@ BASELINE = json.loads((ROOT / "docs/metrics/evidence/met01/baseline.json").read_
 
 @pytest.mark.parametrize("path", sorted(BASELINE["protected_sources"]))
 def test_t01_t08_every_existing_production_byte_is_unchanged(path):
-    assert hashlib.sha256((ROOT / path).read_bytes()).hexdigest() == BASELINE["protected_sources"][path]
+    assert_protected(path, BASELINE["protected_sources"][path])
 
 
 @pytest.mark.parametrize("cls,required", [
@@ -42,7 +43,7 @@ def test_t01_existing_raw_shapes_record_capability_not_assumed_completeness(cls,
 
 def test_t01_t08_new_schema_has_no_production_consumer_or_heavy_import():
     for path in (ROOT / "src/quantbt").rglob("*.py"):
-        if path.name == "report_contracts.py" or path.is_relative_to(ROOT / "src/quantbt/metrics/reporting"):
+        if path.name == "report_contracts.py" or path.is_relative_to(ROOT / "src/quantbt/metrics/reporting") or path.relative_to(ROOT).as_posix() in ADMITTED:
             continue
         assert "report_contracts" not in path.read_text(), str(path)
     tree = ast.parse((ROOT / "src/quantbt/metrics/report_contracts.py").read_text())
