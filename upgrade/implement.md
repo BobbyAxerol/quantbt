@@ -3,13 +3,14 @@
 <a id="qms-pre-e06-action-plan"></a>
 ## QMS Pre-E06 Sequential Debt Closure - Owner Planning Request 2026-10-06
 
-**Status:** PRE_E06_05_COMPLETE_LOCAL_OWNER_ACCEPTED_COST_EXCEPTION. Owner approved PRE-E06-02 on
+**Status:** PRE_E06_06_RUNNING_LOCAL_ARTIFACT_QUALIFICATION. Owner approved PRE-E06-02 on
 2026-10-06 (Asia/Saigon): active/matured no-leakage, raw measurement and original
 account conformance only. PRE-E06-01/02 are complete in their recorded scope;
 PRE-E06-03 is complete for the approved nested scalar cohort; PRE-E06-04 completes
 approved C05 runtime/continuation locally. PRE05 implementation/software is
 qualified locally; on 2026-10-07 (Asia/Saigon) the owner accepts the seven measured
-latency exceptions and closes its cost gate. PRE06 remains planned, not started.
+latency exceptions and closes its cost gate. The owner now starts PRE06 only:
+source-exact local artifacts, installed consumers, regression, privacy and cleanup.
 [PRE02 report](../docs/meta_selection/PRE_E06_02_REPORT.md):
 13 routes, 39 active/matured decisions, 623 distinct scoped PASS; 27 scalar-scorer
 cells are explicitly not applicable. No economic/default or artifact promotion.
@@ -91,7 +92,7 @@ official economic promotion to any route.
 | 3 | [PRE-E06-03](#qms-pre-e06-03) | Approved C01 nested scalar runtime activation, raw outer-IS/forward parity | COMPLETE_LOCAL_SOURCE_GATE; final installed proof PRE06 |
 | 4 | [PRE-E06-04](#qms-pre-e06-04) | Approved C05 policies, actual RNG and owned continuation qualification | COMPLETE_LOCAL_SOURCE_GATE; final installed proof PRE06 |
 | 5 | [PRE-E06-05](#qms-pre-e06-05) | Matched profiling and safe optimization; unchanged scientific/decision/account contracts | COMPLETE_LOCAL; OWNER_ACCEPTED_COST_EXCEPTION |
-| 6 | [PRE-E06-06](#qms-pre-e06-06) | Final local regression, exact installed artifacts, docs/privacy/cleanup receipt | PLANNED_NOT_STARTED |
+| 6 | [PRE-E06-06](#qms-pre-e06-06) | Final local regression, exact installed artifacts, docs/privacy/cleanup receipt | RUNNING_LOCAL; no remote/public qualification |
 | Next | [E06](#qms-e06) resumed qualification | Owner approves entry using the final local handoff | NOT_ENTERED_BY_THIS_PLAN |
 
 Do not combine stages to hide a failing earlier gate. C01/C05 specs have prior
@@ -724,6 +725,61 @@ as separate scopes, not falsely closed and not hidden mandatory E06 prerequisite
 **Resources/cleanup:** estimate before entry; ceiling 2 GiB local artifact/test
 scratch plus 5 GiB safety, with any native build budget reviewed separately.
 No remote workflow, push, merge, tag, upload or public-index proof in this phase.
+
+**Execution registration (2026-10-07, Asia/Saigon; before build/tests):**
+owner starts PRE06 only from clean `d1d1b4394e388b9336cf57af9b5dccb65338ae78`
+on `feat/meta-selection-samplers`. PRE01..04 source gates and the separate
+PRE05 owner cost exception are prerequisites; preserve their exact receipts.
+No numerical, financial, sampler, Ridge, endpoint, policy or default change.
+
+1. Use `.maturin/qms08/pre-e06-06` and a fresh `package-v1` lane. Register source,
+   guide, predecessor evidence, required consumers/test modules and byte budgets
+   before results. Entry available bytes 26,508,767,232; free inodes 5,601,168.
+   Conservative incremental ceiling 2 GiB plus 5 GiB safety; one numeric thread.
+2. Stage tracked allowlisted files through `qms08_package.stage_source` with
+   `release_pair=True`; build fresh canonical core 1.1.2 wheel/sdist once.
+   Current tooling lacks setuptools: create one small offline build environment
+   with the declared build requirements, not a new dependency environment per
+   test or timing sample. Wheel and sdist get independent isolated consumers.
+3. Reuse the exact retained G01 native 0.4.3 wheel only after its sealed wheel
+   hash, extension hash, every tracked Rust source byte, default-feature build
+   lineage and installed capabilities verify. Its local cp312 manylinux_2_34
+   artifact is not a new manylinux2014 or CPython 3.11/3.13 release certificate.
+   Native/source drift stops reuse; no automatic unbudgeted native rebuild.
+4. Each fresh installed consumer first proves complete source inventory and
+   site-packages module origins under `-I`, then runs the existing mandatory
+   scalar/W3/C02/C03/C04 consumers, G01 liquidation and E03/E04/E05/execution
+   proofs. Public synthetic test/example helpers may supply fixtures only;
+   all financial/selector/model/sampler imports must remain installed modules.
+5. Reuse the exact eighteen frozen PRE05 public synthetic histories, not private
+   alpha/data or a new economic experiment. Run all 76 registered workload cells
+   once per artifact, comparing complete logical work/account/decision/report
+   hashes to the sealed PRE05 corpus. Enabled rows must actually fit/rank at
+   >=12 mature origins, including 13 Mode 4 domains, four prepared scalar and
+   five approved nested Mode 1 targets. This is installed parity, not a fresh
+   latency benchmark; original physical-clock validation remains mandatory.
+6. Run fresh full affected meta regression excluding only the registered private
+   full-study replay, plus external sampler/WFO/W3, original metrics/accounting,
+   intrabar and native-event lifecycle cases. Exactly registered scalar-scorer
+   N/A cases stay distinct from PASS; unexpected native-capability skips fail.
+   Headless plotting may use the existing viz environment separately, never
+   substitute it for the installed numeric/native consumer.
+7. Add focused independent negatives for missing/wrong source origins, source/
+   artifact/history drift, missing required consumers/cells, fake cold fallback,
+   changed budget exceptions, unexpected skips and unsafe cleanup paths. Bind
+   current runtime and qualification-source bytes in the final gate, not status
+   words alone. Preserve all interrupted/failing receipts and separately pass
+   exact reruns; never overwrite a sealed lane.
+8. Retain stage source, exact core/native artifacts, logs/JSON/XML, public fixture
+   source references and all historical/private evidence. Only this phase's
+   `package-v1/build-env`, `wheel-consumer`, `sdist-consumer` and `stage/build`
+   may be removed after controlled workers exit and hashes verify. Keep G01,
+   `.venv` and offline caches; report exact observed free-space changes and which
+   consumers need reinstall. Final status requires `READY_FOR_E06_LOCAL`, not
+   automatic E06/E07 entry or economic/default/public promotion.
+
+**Progress:** registered; build, installed conformance and final regression
+NOT_RUN. Read the [live phase report](../docs/meta_selection/PRE_E06_06_REPORT.md).
 
 ### Deferred Scope And Resume Order
 
