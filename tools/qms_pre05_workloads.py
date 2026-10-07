@@ -389,7 +389,9 @@ def semantic(result, cell, context):
     value = dict(
         accounts=arrays,
         trials=stable(safe(trials)),
-        params=wf["params_by_fold"],
+        params=result.params_by_fold
+        if cell.route == "reactive_reset"
+        else wf["params_by_fold"],
         sampler=stable(wf.get("sampler_studies", [])),
         records=rows,
         models=models,
@@ -397,5 +399,25 @@ def semantic(result, cell, context):
         revisions=revisions,
         observer_attempts=meta.get("observer_attempts", 0),
     )
+    if cell.route == "reactive_reset":
+        assert wf["fold_account_policy"] == "reset_flat"
+        assert not wf["continuous_equity_available"] and result.oos_output is None
+        value["reactive_contract"] = dict(
+            fold_table=audit_value(result.fold_table),
+            candidate_table=stable(safe(result.candidate_table)),
+            best_trial=stable(safe(result.best_trial)),
+            fold_accounts=[
+                dict(
+                    fold_id=f.fold_id,
+                    params=dict(f.params),
+                    score_metrics=dict(f.score_metrics),
+                    task=audit_value(f.task),
+                    strategy_state_fingerprint=audit_value(
+                        f.strategy_state_fingerprint
+                    ),
+                )
+                for f in result.fold_results
+            ],
+        )
     value = safe(value)
     return digest(value), value

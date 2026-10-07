@@ -65,7 +65,8 @@
 - E01/E02/E04 do not themselves authorize push, merge, retag, release or deployment.
   Earlier feature-only CI permission and remote 6901a66 receipts are historical,
   not certification of later execution-route bytes. The latest scope is local
-  PRE-E06-03 nested scalar local runtime, after PRE-E06-02 active/matured
+  PRE-E06-05 matched local cost/parity work, after PRE-E06-03 nested scalar and
+  PRE-E06-04 conditional runtime, following PRE-E06-02 active/matured
   conformance and approved history amendment; no push/workflow or merge/tag/publication.
 - [PRE-E06 current baseline](../docs/meta_selection/PRE_E06_BASELINE.md): source-bound
   route/method/backend/test inventory and metric/account/privacy lock. PRE-E06-02
@@ -73,8 +74,11 @@
   16 non-anchor applications; 27 scalar-scorer N/A cells are not PASS. This does
   not certify economic gain or newly installed final artifacts. PRE-E06-03 now
   completes the approved nested scalar cohort: 15 actual fits, 582 distinct
-  scoped PASS and three N/A skips; 04 through 06 remain planned and each
-  requires its own phase start.
+  scoped PASS and three N/A skips. PRE-E06-04 is complete locally (701 scoped
+  checks); PRE-E06-05 is now executing its registered matched matrix with
+  owner-approved disabled p50 +3% / p95 +5% budgets. Read the
+  [current performance report](../docs/meta_selection/PRE_E06_05_REPORT.md).
+  PRE-E06-06 remains planned and needs its own phase start.
 - Repair performance: same registered unit study 549.001 to 291.542 s (1.883x),
   peak RSS +7.480 MiB. One shared-VPS observation, not universal performance.
   [Cleanup](../docs/maintenance/QMS_G01_CLEANUP_2026-10-06.md) reclaimed 219.656 MiB

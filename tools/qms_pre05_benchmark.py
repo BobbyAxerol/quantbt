@@ -142,6 +142,7 @@ def main():
     p.add_argument("--label", default="before")
     p.add_argument("--warm", action="store_true")
     p.add_argument("--reference", action="store_true")
+    p.add_argument("--attempt", type=int, default=0)
     args = p.parse_args()
     optuna.logging.set_verbosity(optuna.logging.WARNING)
     lane = args.lane.resolve()
@@ -191,7 +192,8 @@ def main():
             completed = subprocess.run(
                 command, cwd=ROOT, capture_output=True, text=True
             )
-            log = lane / "logs" / (args.label + "-" + cell.identity + ".log")
+            suffix = "" if args.attempt == 0 else f".attempt-{args.attempt}"
+            log = lane / "logs" / (args.label + "-" + cell.identity + suffix + ".log")
             log.parent.mkdir(parents=True, exist_ok=True)
             with log.open("x") as f:
                 f.write(completed.stdout + completed.stderr)

@@ -558,6 +558,30 @@ The final exact source seal is `qms_pre_e06_05_reviewed_source_v2.json`; the
 prototype seal remains historical. New negative type tests and chronological
 tests must pass before measuring this final source; no numeric/math change.
 
+**Final profiling registration:** after the uninstrumented matrix, collect paired
+warm cProfile/stage profiles on the registered legacy Mode 4 causal off cell,
+domain pct_equity off/active, intrabar active, callback event_driven active,
+reactive_reset active, portfolio active and nested pct_equity active. Use the
+same frozen histories/configs and balanced entry/current controls. These spans
+are instrumented diagnostics, not additional latency samples. Record actual
+model N/d/origins/P and numerical FFI/copy/thread telemetry. Also profile both
+arms of every disabled point-budget miss, selected mechanically from the full
+matrix; diagnose whether the changed block executes there. These do not replace
+failed timing samples or relax their disposition. No profile runs or
+heavy regression run concurrently with timing. A separate portable-block check
+uses the exact frozen public pct_equity revisions, 21 alternating pairs of 50
+wire calls, with serialization parity and no financial calls. Its result is
+block-only, never a full-WFO speedup or disabled-tail certificate.
+
+**W3 harness correction:** `matched-v3` completed the first 44 ordinary cells
+then stopped before a reactive cell receipt: W3 exposes `params_by_fold` on its
+typed result, not ordinary `metadata["walk_forward"]`. Preserve the failed log.
+Correct only this untimed semantic-read branch and additionally compare W3 fold/
+candidate tables, final task/state/params/metrics and reset-flat contract. Resume
+all uncompleted cells with the same label/21 pairs and separate attempt logs;
+ordinary completed samples, source runtime, history, timing/retention/budgets
+remain unchanged. No failure is converted to a latency PASS.
+
 <a id="qms-pre-e06-06"></a>
 ### Phase PRE-E06-06 - Local Conformance, Exact Artifacts And E06 Entry Gate
 

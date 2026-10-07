@@ -74,6 +74,13 @@ def summarize(path, cell):
         cold_arm=value["rows"][0]["arm"],
         cold_comparison_certified=False,
         worker_peak_rss_mib=value["process_peak_rss_mib"],
+        warm_retained_rss_median_mib={
+            arm: float(
+                np.median([r["after"]["rss_mib"] for r in warm if r["arm"] == arm])
+            )
+            for arm in ("reference", "optimized")
+        },
+        independent_arm_peak_rss_certified=False,
         rss_first_mib=rss[0],
         rss_last_mib=rss[-1],
         rss_delta_mib=rss[-1] - rss[0],

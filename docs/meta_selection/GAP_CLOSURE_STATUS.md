@@ -31,8 +31,10 @@ frozen measurement/account/privacy rules and registered missing coverage.
 PRE-E06-01 is complete; the owner also authorized PRE-E06-02's active/matured
 conformance and PRE02-A01 history amendment. Read the
 [separate execution report](PRE_E06_02_REPORT.md). PRE-E06-03 has its own approved
-execution; PRE-E06-04 qualifies C05 locally, while 05/06 still need individual
-starts. No broader activation, alpha study, CI/CD or publication
+execution; PRE-E06-04 qualifies C05 locally. PRE-E06-05 is now executing the
+owner-approved 76-cell matched-cost matrix; read its
+[in-progress report](PRE_E06_05_REPORT.md). PRE-E06-06 still needs its individual
+start. No broader activation, alpha study, CI/CD or publication
 is implied.
 PRE02's source gate is now PASS: 39 actual matured fit/rank decisions across
 13 routes, original measurement/stitched accounting parity and 623 distinct
