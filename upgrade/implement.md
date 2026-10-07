@@ -1,5 +1,23 @@
 # QuantBT Upgrade Implementation Plan
 
+## Current QMS-E07 Local Execution - Owner Approval 2026-10-07
+
+**Status:** IN_PROGRESS_LOCAL. E06 is accepted in its recorded bounded software
+scope. Owner now authorizes E07 callback, command-tape and numeric W3 qualification,
+including complete endpoint audit data. Read the preregistered
+[E07 qualification](../docs/meta_selection/QMSE07_QUALIFICATION.md) and
+[phase guide links](#qms-e07) before execution.
+
+The only planned runtime addition is opt-in `meta_selection.observed_revisions`,
+exposing original current-run sealed forward observations/panels/labels without
+financial replay or archive duplication. Rebuild exact core artifacts for this
+addition; retain the unchanged native artifact. Qualify five protocol/backend
+cases and 30 matched cells, actual mature fit/rank, no-leakage, accounting,
+lifecycle, installed proof, privacy and cleanup. No new financial engine,
+optimizer, scientific methodology or account/schedule activation. E08, CI/CD,
+push, merge/tag/publication and economic/default promotion are not authorized.
+Historical receipts/source guards retain their original identities.
+
 <a id="qms-pre-e06-action-plan"></a>
 ## QMS Pre-E06 Sequential Debt Closure - Owner Planning Request 2026-10-06
 
@@ -20,7 +38,8 @@ full-work cells and mature intent-only/session x Numba/Rust qualification.
 Read [registration](../docs/meta_selection/QMSE06_QUALIFICATION.md),
 [E06 report](../docs/meta_selection/QMSE06_REPORT.md) and
 [cleanup](../docs/maintenance/QMS_E06_CLEANUP.md). Real-market empirical/default
-promotion, remote/public gates and E07/E08 execution stay deferred.
+promotion and remote/public gates stay deferred. E07 has separate local approval
+under the current registration above; E08 execution remains deferred.
 [PRE02 report](../docs/meta_selection/PRE_E06_02_REPORT.md):
 13 routes, 39 active/matured decisions, 623 distinct scoped PASS; 27 scalar-scorer
 cells are explicitly not applicable. No economic/default or artifact promotion.
@@ -25399,7 +25418,12 @@ docs; keep kernel accounting changes separate from performance-only work.
 <a id="qms-e07"></a>
 #### QMS-E07 - Event-Driven, Reactive And Command WFO Meta Qualification
 
-**Status:** LOCAL_BOUNDED_SOFTWARE_IMPLEMENTED for generic callbacks and command
+**Current execution:** IN_PROGRESS_LOCAL under owner approval 2026-10-07;
+[registration and exact tests/budget](../docs/meta_selection/QMSE07_QUALIFICATION.md)
+own the accepted synthetic software scope and additive endpoint output.
+The broader original real-alpha gate below remains historical, not a requirement
+to disclose a private alpha or retune until gain. No economic/default promotion.
+**Prior status:** LOCAL_BOUNDED_SOFTWARE_IMPLEMENTED for generic callbacks and command
 tapes under the [owner execution amendment](#qms-required-execution-routes).
 Synthetic conformance is qualified separately from real-alpha economic promotion.
 Numeric W3 carry/batch/multi-symbol capabilities are not activated by this route.
