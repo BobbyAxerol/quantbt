@@ -1,0 +1,152 @@
+{
+  "baseline_sha256": "6e67a5657e61cab5804e08e677bf888e631002113a5164d7a07a773e828dfedf",
+  "cleanup": {
+    "budget_bytes": 268435456,
+    "free_byte_change": -86016,
+    "free_bytes_after": 25756839936,
+    "free_bytes_before": 25756925952,
+    "free_inodes_after": 5592250,
+    "free_inodes_before": 5592254,
+    "log_hashes_preserved": true,
+    "protected_preserved": true,
+    "retained_run_bytes": 71260,
+    "scratch_path": "/tmp/quantbt-met02-ignnj9hw",
+    "scratch_removed": true
+  },
+  "groups": {
+    "MET02-T01": {
+      "failed": 0,
+      "passed": 384,
+      "skipped": 0
+    },
+    "MET02-T02": {
+      "failed": 0,
+      "passed": 40,
+      "skipped": 0
+    },
+    "MET02-T03": {
+      "failed": 0,
+      "passed": 16,
+      "skipped": 0
+    },
+    "MET02-T04": {
+      "failed": 0,
+      "passed": 13,
+      "skipped": 0
+    },
+    "MET02-T05": {
+      "failed": 0,
+      "passed": 6,
+      "skipped": 0
+    },
+    "MET02-T06": {
+      "failed": 0,
+      "passed": 6,
+      "skipped": 0
+    },
+    "MET02-T07": {
+      "failed": 0,
+      "passed": 13,
+      "skipped": 0
+    },
+    "MET02-T08": {
+      "failed": 0,
+      "passed": 332,
+      "skipped": 0
+    },
+    "MET02-T09": {
+      "failed": 0,
+      "passed": 0,
+      "skipped": 0
+    },
+    "MET02-T10": {
+      "failed": 0,
+      "passed": 2,
+      "skipped": 0
+    }
+  },
+  "inputs": {
+    "src/quantbt/metrics/reporting/__init__.py": "e64dbf1f4e9fa4f0083bccc6a3c95c13bcf1fe0c5977d9c4733a0deffea62e65",
+    "src/quantbt/metrics/reporting/account.py": "4911f427e4221be8c7e002414d442bfb189b4e62ce174dd6e8bbe2c1420d7736",
+    "src/quantbt/metrics/reporting/adapters.py": "6cf371b25685280ff807de14a996491216f48ac1660389b514918c0abd1de3e5",
+    "src/quantbt/metrics/reporting/drawdown.py": "49fda6649d2c6877a4b32feca669d7be5bd06f4207b2848386eb07205f0dc6a9",
+    "src/quantbt/metrics/reporting/execution.py": "08d90d02893b6e91482ac486615c61c9e2731f6c309d85da12e6dde0add59e2c",
+    "src/quantbt/metrics/reporting/inputs.py": "8a869ca0c60f26b76907353b9fa8f62a183c22f291dc963870f336c13a207b9a",
+    "src/quantbt/metrics/reporting/ledger.py": "bb98ce7822dad7c10a202669b5cc8b7c1f1ff67878176b51678ecfe2fe30c72c",
+    "src/quantbt/metrics/reporting/ledger_inputs.py": "5492ef0563ef409a245e50487d9464c10b3632c949b8ab645b71d846faadee7f",
+    "src/quantbt/metrics/reporting/results.py": "8ae5de32cd37d468d02b22db7c579e2729e3c68b3f1b756ba7e65be44dba5c53",
+    "tests/metrics/__init__.py": "e72ca5c6b5167dabb2efe949b3170d2f9f01d73172348635fef18224061100b6",
+    "tests/metrics/fixtures/manual.json": "c52f548a2fa697a266c3692d5a4f154a0a0bb285fdacd5d5890edb37a3c91b16",
+    "tests/metrics/reference_oracle.py": "52991bc5ab4693f032bf010dcfa69ecc13012d3c10ec76a1ad91a43006490ffd",
+    "tests/metrics/test_account_oracle.py": "9650ca2e48d84a95e9426987d8188a682956cfcf99bed9c54f0936ff7d21a553",
+    "tests/metrics/test_account_reducers.py": "39d6ef65908c5cbf0721facee82596cc4f4ddfd4b37f4b1c956ae95e0acf8af2",
+    "tests/metrics/test_boundaries.py": "9dae3c139034fdf94aab218b2901dc141e38d98fc6a6255ba167ce8a5efd995b",
+    "tests/metrics/test_comparisons.py": "844de2b16554328245e3172290094797b2a3c0fa70933609ff4de3c554f8d2dc",
+    "tests/metrics/test_contract.py": "6e7040ead76a3b6dcd62966c4b5e308002568ef3d2d05b3237a0187fbc9d2907",
+    "tests/metrics/test_ledger_oracle.py": "391b72a338375a0c2801c3ab3fa7cb8c18dfb9be977b305203fa0a944a81b5bd",
+    "tests/metrics/test_ledger_reducers.py": "28113e975b2121e652f960a7c5a4fed57e2dd4961a53d1af743431a175501535",
+    "tools/metrics/capture_met01_baseline.py": "056459b6a52f71cacad13f92588c83ae23b4a6da5185f48b716d58c9040b81b3",
+    "tools/metrics/run_met01_qualification.py": "5afd52a46653283f80e7eb04be7ff5cbb215587b22880e2576485431f90f9a96",
+    "tools/metrics/run_met02_qualification.py": "bbe8a2e420eb9e5d3f1a0c3cbf9d42076f01f377f992633026436d60f77cb8a8"
+  },
+  "phase": "MET-02",
+  "protected_files": 325,
+  "protected_unchanged": true,
+  "public_integration": "MET-03 NOT_STARTED",
+  "runtime": {
+    "native_build": false,
+    "native_reporting_v1": "NOT_IMPLEMENTED; V2 is not V1",
+    "package_source": "src/quantbt",
+    "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+    "thread_budget": 1,
+    "versions": {
+      "numba": "0.65.1",
+      "numpy": "2.2.6",
+      "pandas": "2.3.3",
+      "pytest": "9.1.1",
+      "quantbt-engine": "1.1.1",
+      "quantbt-native": "0.4.2",
+      "quantstats": "0.0.81"
+    }
+  },
+  "source_commit": "1171991cd41a07e0c00960849f5e31f155e4b0e8",
+  "stage": "ledger",
+  "steps": [
+    {
+      "command": [
+        "/root/bobby/pool_alpha/quantbt/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "tests/metrics/test_account_reducers.py",
+        "tests/metrics/test_boundaries.py",
+        "tests/metrics/test_ledger_reducers.py",
+        "--basetemp=/tmp/quantbt-met02-ignnj9hw/pytest",
+        "--junitxml=/root/bobby/pool_alpha/quantbt/docs/metrics/evidence/met02/run-20261007T190614286754Z/pytest.xml"
+      ],
+      "exit_code": 0,
+      "log": "docs/metrics/evidence/met02/run-20261007T190614286754Z/step-1.log",
+      "seconds": 11.225179863977246,
+      "sha256": "e59fbb1a1e46d6f305e1d51477fdeacd1edbd95d13878abb4f7f5c418afe3627"
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0,
+      "log": "docs/metrics/evidence/met02/run-20261007T190614286754Z/step-2.log",
+      "seconds": 0.009387678990606219,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "technical_gate": "PASS",
+  "test_counts": {
+    "failed": 0,
+    "passed": 421,
+    "skipped": 0
+  }
+}

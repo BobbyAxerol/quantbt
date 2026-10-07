@@ -1,0 +1,55 @@
+........................................................................ [ 17%]
+........................................................................ [ 34%]
+........................................................................ [ 51%]
+........................................................................ [ 68%]
+........................................................................ [ 85%]
+......................................................F.....F            [100%]
+=================================== FAILURES ===================================
+_ test_met02_t05_t07_missing_roster_id_obligation_matching_currency_costs_scope _
+
+    def test_met02_t05_t07_missing_roster_id_obligation_matching_currency_costs_scope():
+        rows = rows_from_fixture()
+        cases = [ledger(rows, rosters=False), ledger([replace(rows[0], action_id=None)] + rows[1:]),
+                 replace(ledger(rows), rosters=(ActionRoster(action_id="A", outcome_ids=["missing"],
+                         shared_net_adjustment=0., allocation_witness="recorded"),))]
+        for obs in cases:
+            assert reduce_ledger(obs, ledger_policy("closed_action")).metric("closed_action.closed_count").status == "unavailable"
+        foreign = ledger([replace(rows[0], currency="BTC")])
+        assert "conversion" in reduce_ledger(foreign, ledger_policy()).metric("closed_trade.net_pnl").reason
+        with pytest.raises(ValueError, match="matching"):
+            reduce_ledger(ledger(rows), replace(ledger_policy(), matching="recorded_lot"))
+        missing_costs = replace(rows[0], net_pnl=None, gross_pnl=120.)
+        assert reduce_ledger(ledger([missing_costs]), ledger_policy()).metric("closed_trade.net_pnl").status == "unavailable"
+        scoped = reduce_ledger(ledger(rows), ledger_policy(start=15, scope="scoped"))
+        assert scoped.metric("closed_trade.net_pnl").value == -30
+>       attributed = reduce_ledger(ledger(rows), ledger_policy(start=15, scope="scoped", ledger_scope="in_scope_attribution"))
+                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/metrics/test_ledger_reducers.py:151: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+unit = 'closed_trade', start = 15, end = 30
+kwargs = {'scope': 'scoped', 'ledger_scope': 'in_scope_attribution'}
+
+    def ledger_policy(unit="closed_trade", start=0, end=30, **kwargs):
+>       return replace(policy([start, end]), unit=unit, matching="position_episode",
+                       grouping="authoritative_action_id" if unit == "closed_action" else "none",
+                       ledger_scope="closed_in_scope_lifetime", **kwargs)
+E       TypeError: dataclasses.replace() got multiple values for keyword argument 'ledger_scope'
+
+tests/metrics/test_ledger_reducers.py:26: TypeError
+________ test_met02_t07_identity_duplicates_invalid_records_fail_closed ________
+
+    def test_met02_t07_identity_duplicates_invalid_records_fail_closed():
+        rows = rows_from_fixture()
+>       with pytest.raises(ValueError, match="duplicate"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'duplicate'
+E         Actual message: 'nonempty unique authoritative action roster required'
+
+tests/metrics/test_ledger_reducers.py:234: AssertionError
+=========================== short test summary info ============================
+FAILED tests/metrics/test_ledger_reducers.py::test_met02_t05_t07_missing_roster_id_obligation_matching_currency_costs_scope
+FAILED tests/metrics/test_ledger_reducers.py::test_met02_t07_identity_duplicates_invalid_records_fail_closed
+2 failed, 419 passed in 11.75s

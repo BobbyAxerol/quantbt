@@ -26456,6 +26456,14 @@ assumed 1-10 ms guarantee or owner-approved latency gate. Test bounded seeded
 public WFO before/after reporting for exact proposals, objective, selection and
 account paths. MET-03 formatting/API activation needs separate approval.
 
+**Incremental Receipts:** account/DD lane PASS (394 tests, no skips),
+`1171991`; ledger lane PASS (421 tests, no skips),
+`docs/metrics/evidence/met02/run-20261007T190614286754Z/receipt.json`.
+The first ledger run retained two fixture-construction FAILs (duplicate override
+keyword and validation firing at roster construction before the duplicate-outcome
+assertion); test fixtures repaired, no mathematical waiver. Full cache/numeric,
+WFO sentinel and measurement gate remains pending until final receipt.
+
 <a id="metrics-met-03"></a>
 ### Phase MET-03 - Public Reports, Documentation And Local Certification
 
