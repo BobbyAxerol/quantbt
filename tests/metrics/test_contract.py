@@ -35,8 +35,16 @@ def test_t07_immutable_complete_round_trip():
     assert copy == policy and copy.identity == policy.identity
     with pytest.raises(FrozenInstanceError):
         policy.scope = "full"
-    with pytest.raises(TypeError):
+    with pytest.raises(ValueError):
         ReportingContractV1.from_metadata({**policy.to_metadata(), "unknown_policy": "drop"})
+
+
+@pytest.mark.parametrize("field", ["version", "sortino_denominator", "cost_basis", "partial_periods", "recovery_relative_tolerance"])
+def test_t07_partial_metadata_cannot_fall_back_to_defaults(field):
+    metadata = contract().to_metadata()
+    del metadata[field]
+    with pytest.raises(ValueError, match="preserve"):
+        ReportingContractV1.from_metadata(metadata)
 
 
 @pytest.mark.parametrize("name,value", [

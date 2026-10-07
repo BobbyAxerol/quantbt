@@ -1,0 +1,103 @@
+........................................................................ [ 16%]
+........................................................................ [ 32%]
+........................................................................ [ 48%]
+........................................................................ [ 64%]
+........................................................................ [ 80%]
+...F.................................................................... [ 96%]
+...............                                                          [100%]
+=================================== FAILURES ===================================
+________ test_t08_optional_dependency_absence_and_no_simulation_import _________
+
+    def test_t08_optional_dependency_absence_and_no_simulation_import():
+        script = '''
+    import importlib.abc, runpy, sys
+    class Block(importlib.abc.MetaPathFinder):
+        def find_spec(self, fullname, path=None, target=None):
+            if fullname.split('.')[0] in {'quantstats', 'matplotlib', 'quantbt_native', 'nautilus_trader'}:
+                raise AssertionError(fullname)
+    sys.meta_path.insert(0, Block())
+    from quantbt.metrics.report_contracts import ReportingContractV1
+    assert not any(name.startswith('quantbt.backends') for name in sys.modules)
+    '''
+>       subprocess.run([sys.executable, "-c", script], cwd=ROOT, check=True, capture_output=True, text=True)
+
+tests/metrics/test_boundaries.py:65: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+input = None, capture_output = True, timeout = None, check = True
+popenargs = (['/root/bobby/pool_alpha/quantbt/.venv/bin/python', '-c', "\nimport importlib.abc, runpy, sys\nclass Block(importlib....contracts import ReportingContractV1\nassert not any(name.startswith('quantbt.backends') for name in sys.modules)\n"],)
+kwargs = {'cwd': PosixPath('/root/bobby/pool_alpha/quantbt'), 'text': True, 'stdout': -1, 'stderr': -1}
+
+    def run(*popenargs,
+            input=None, capture_output=False, timeout=None, check=False, **kwargs):
+        """Run command with arguments and return a CompletedProcess instance.
+    
+        The returned instance will have attributes args, returncode, stdout and
+        stderr. By default, stdout and stderr are not captured, and those attributes
+        will be None. Pass stdout=PIPE and/or stderr=PIPE in order to capture them,
+        or pass capture_output=True to capture both.
+    
+        If check is True and the exit code was non-zero, it raises a
+        CalledProcessError. The CalledProcessError object will have the return code
+        in the returncode attribute, and output & stderr attributes if those streams
+        were captured.
+    
+        If timeout (seconds) is given and the process takes too long,
+         a TimeoutExpired exception will be raised.
+    
+        There is an optional argument "input", allowing you to
+        pass bytes or a string to the subprocess's stdin.  If you use this argument
+        you may not also use the Popen constructor's "stdin" argument, as
+        it will be used internally.
+    
+        By default, all communication is in bytes, and therefore any "input" should
+        be bytes, and the stdout and stderr will be bytes. If in text mode, any
+        "input" should be a string, and stdout and stderr will be strings decoded
+        according to locale encoding, or by "encoding" if set. Text mode is
+        triggered by setting any of text, encoding, errors or universal_newlines.
+    
+        The other arguments are the same as for the Popen constructor.
+        """
+        if input is not None:
+            if kwargs.get('stdin') is not None:
+                raise ValueError('stdin and input arguments may not both be used.')
+            kwargs['stdin'] = PIPE
+    
+        if capture_output:
+            if kwargs.get('stdout') is not None or kwargs.get('stderr') is not None:
+                raise ValueError('stdout and stderr arguments may not be used '
+                                 'with capture_output.')
+            kwargs['stdout'] = PIPE
+            kwargs['stderr'] = PIPE
+    
+        with Popen(*popenargs, **kwargs) as process:
+            try:
+                stdout, stderr = process.communicate(input, timeout=timeout)
+            except TimeoutExpired as exc:
+                process.kill()
+                if _mswindows:
+                    # Windows accumulates the output in a single blocking
+                    # read() call run on child threads, with the timeout
+                    # being done in a join() on those threads.  communicate()
+                    # _after_ kill() is required to collect that and add it
+                    # to the exception.
+                    exc.stdout, exc.stderr = process.communicate()
+                else:
+                    # POSIX _communicate already populated the output so
+                    # far into the TimeoutExpired exception.
+                    process.wait()
+                raise
+            except:  # Including KeyboardInterrupt, communicate handled that.
+                process.kill()
+                # We don't call process.wait() as .__exit__ does that for us.
+                raise
+            retcode = process.poll()
+            if check and retcode:
+>               raise CalledProcessError(retcode, process.args,
+                                         output=stdout, stderr=stderr)
+E               subprocess.CalledProcessError: Command '['/root/bobby/pool_alpha/quantbt/.venv/bin/python', '-c', "\nimport importlib.abc, runpy, sys\nclass Block(importlib.abc.MetaPathFinder):\n    def find_spec(self, fullname, path=None, target=None):\n        if fullname.split('.')[0] in {'quantstats', 'matplotlib', 'quantbt_native', 'nautilus_trader'}:\n            raise AssertionError(fullname)\nsys.meta_path.insert(0, Block())\nfrom quantbt.metrics.report_contracts import ReportingContractV1\nassert not any(name.startswith('quantbt.backends') for name in sys.modules)\n"]' returned non-zero exit status 1.
+
+/usr/lib/python3.12/subprocess.py:571: CalledProcessError
+=========================== short test summary info ============================
+FAILED tests/metrics/test_boundaries.py::test_t08_optional_dependency_absence_and_no_simulation_import
+1 failed, 446 passed in 7.63s

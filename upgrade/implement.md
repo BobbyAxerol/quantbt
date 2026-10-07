@@ -2,11 +2,13 @@
 
 ## Current Post-Simulation Metrics Upgrade - Owner Planning Request 2026-10-07
 
-**Status:** MET-01 RUNNING (owner approval 2026-10-07); MET-02/MET-03 NOT_STARTED.
-MET-01 contract/oracle tests NOT_RUN; performance and installed-artifact gates
-belong to later separately approved phases.
+**Status:** MET-01 COMPLETE_SPEC_ORACLE_LOCAL (phase approval 2026-10-07);
+MET01-T01..T08 PASS, 452 tests passed/no skips, 322 production hashes unchanged.
+Reporting-definition acceptance remains PENDING; MET-02/MET-03 NOT_STARTED.
+Performance and installed-artifact gates belong to later approved phases.
 Owner requests the [three-phase metrics program](#metrics-upgrade) below, with
-separate approval before each phase. This registration does not start a phase.
+separate approval before each phase. Read the [MET-01 report](../docs/metrics/MET01_REPORT.md)
+and [reporting definitions](../docs/metrics/REPORTING_CONTRACT_V1.md) for review.
 
 Scope is a versioned reporting contract, independent mathematical oracles,
 additive account-return/closed-trade/closed-action statistics and source-exact
@@ -26072,7 +26074,7 @@ correctness are separate checks.
 
 | Order | Phase | Main result | Status / owner gate |
 |---|---|---|---|
-| 1 | [MET-01](#metrics-met-01) | Reviewed reporting contract, source inventory and independent expected-value fixtures | RUNNING; phase approval APPROVED, definitions review PENDING |
+| 1 | [MET-01](#metrics-met-01) | Reporting contract, source inventory and independent expected-value fixtures | COMPLETE_SPEC_ORACLE_LOCAL; technical PASS, definitions review PENDING |
 | 2 | [MET-02](#metrics-met-02) | Additive typed reducers and honest raw-data capabilities | NOT_STARTED; MET-01 accepted and separate phase approval required |
 | 3 | [MET-03](#metrics-met-03) | Public reporting/docs, same-contract parity, raw preservation and local artifact/performance proof | NOT_STARTED; MET-02 accepted and separate phase approval required |
 
@@ -26262,8 +26264,8 @@ they do not amend the QMS learner, sampler or WFO objective methodology.
 <a id="metrics-met-01"></a>
 ### Phase MET-01 - Reporting Contract, Independent Oracle And Baseline Lock
 
-**Status:** RUNNING; owner phase approval APPROVED (2026-10-07);
-MET01-T01..T08 NOT_RUN; reporting-definition acceptance PENDING.
+**Status:** COMPLETE_SPEC_ORACLE_LOCAL; owner phase approval APPROVED (2026-10-07);
+MET01-T01..T08 PASS; reporting-definition acceptance PENDING.
 **Goal:** make every metric's unit/input/baseline/time/validity explicit and
 freeze an independently testable reporting contract before changing outputs.
 **Entry:** owner approves MET-01; current source/branch/status and existing
@@ -26336,6 +26338,26 @@ logs and JUnit results in `docs/metrics/evidence/met01/`. Incremental disk budge
 pytest/matplotlib caches under `/tmp/quantbt-met01-*` are eligible scratch;
 no historical cache/environment/evidence removal. Source/raw preservation and
 cleanup receipt are required before local closure. MET-02 remains unapproved.
+
+**Local Completion Receipt (2026-10-07):**
+[Report](../docs/metrics/MET01_REPORT.md), [V1 specification](../docs/metrics/REPORTING_CONTRACT_V1.md),
+[inventory/dictionary](../docs/metrics/INVENTORY.md),
+[source-bound PASS](../docs/metrics/evidence/met01/run-20261007T183109306830Z/receipt.json)
+and [cleanup](../docs/maintenance/MET01_CLEANUP.md). Eight registered technical
+groups PASS: 452 distinct tests (322 source hashes plus 130 functional/schema/
+comparison/boundary/regression), no skips. QuantStats 0.0.81 comparison bytes
+are pinned; expected differences stay explicit. All 322 existing production
+sources/packaging members remain unchanged. New frozen schema has no public
+export or production consumer; numerical reference code lives only in tests.
+Raw objects, legacy report and canonical QMS scientific identity remain exact.
+Retained intermediate FAILs document an incorrect historical import assumption
+and a misplaced test-oracle payoff field, both repaired without gate waivers.
+Native source/artifacts are not rebuilt/executed; `.venv`'s installed 1.1.1/
+0.4.2 is not misrepresented as source-final 1.1.2/0.4.3 qualification.
+No performance/economic/release claim. Missing exact raw attribution/IDs/FX/
+calendar/risk coverage is explicit unavailable dependency, not hidden zero or
+permission for financial expansion. Owner definition/compatibility acceptance
+is the remaining review gate; do not automatically start MET-02/03.
 
 <a id="metrics-met-02"></a>
 ### Phase MET-02 - Additive Account, Closed-Trade And Closed-Action Reducers

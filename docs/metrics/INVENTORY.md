@@ -30,9 +30,19 @@ inventory, not renewed certification of every execution route. The new
 | [plots.py](../../src/quantbt/viz/plots.py), [portfolio_audit.py](../../src/quantbt/reporting/portfolio_audit.py), [arbitrage_audit.py](../../src/quantbt/reporting/arbitrage_audit.py) | Display strings vs numeric units; audited cost/PnL reconciliation does not imply closed-action classification |
 | [nautilus_bundle.py](../../src/quantbt/reporting/nautilus_bundle.py) | Optional external QS daily report with explicit frequency/periods; not financial oracle |
 
-Baseline includes a machine-discovered metric-reference census, not only the
-manual table: metric/full-report/score/drawdown references are registered per
-tracked source file. Tests verify unchanged producer/consumer source hashes.
+Qualification includes a machine-discovered metric-reference census, not only
+the manual table: metric/full-report/score/drawdown references are registered
+per tracked source file. Tests verify unchanged producer/consumer source hashes.
+The source census is retained with each receipt, alongside the immutable
+baseline. Legacy WFO signal scoring also has its own nonzero-entry/
+quantity-change count and absolute quantity turnover, unlike the endpoint
+scorer's `num_trades` proxy; these contracts are not merged here.
+
+Existing `quantbt.metrics` import reaches backend modules through
+`performance -> core.types -> core.__init__`. MET-01 does not refactor that
+historical import graph. Its schema body is standard-library-only; the normal
+import adds no backend modules beyond the pre-existing graph and works without
+QuantStats/matplotlib/native extension/Nautilus. Imports are not execution.
 
 ## Existing Metric Dictionary / Migration Proposal
 

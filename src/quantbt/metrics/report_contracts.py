@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, fields
 import hashlib
 import json
 import math
@@ -23,6 +23,15 @@ def _finite(name, value, *, positive=False, nonnegative=False):
 def _integer(name, value, *, nonnegative=False):
     if type(value) is not int or (nonnegative and value < 0):
         raise ValueError(f"{name} must be an integer")
+
+
+def _full_metadata(cls, metadata):
+    if not isinstance(metadata, dict):
+        raise ValueError("metadata must be a full JSON object")
+    expected = {f.name for f in fields(cls)}
+    if set(metadata) != expected:
+        raise ValueError("metadata must preserve every contract field and reject unknown fields")
+    return metadata
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -113,8 +122,7 @@ class ReportingContractV1:
 
     @classmethod
     def from_metadata(cls, metadata):
-        # Constructor rejects unknown fields; no lossy/default-only recreation.
-        return cls(**metadata)
+        return cls(**_full_metadata(cls, metadata))
 
     @property
     def identity(self):
@@ -141,7 +149,7 @@ class ReportingCoverageV1:
             _integer(name, getattr(self, name), nonnegative=True)
         if self.ledger == "complete" and (self.dropped_rows or self.reason is not None):
             raise ValueError("complete ledger cannot have dropped rows or a missing-data reason")
-        if self.ledger != "complete" and not self.reason:
+        if self.ledger != "complete" and (not isinstance(self.reason, str) or not self.reason.strip()):
             raise ValueError("incomplete coverage needs a reason")
         if self.ledger == "truncated" and not self.dropped_rows:
             raise ValueError("truncated coverage must disclose dropped rows")
@@ -161,11 +169,11 @@ class ReportingMetricV1:
     reason: str | None = None
 
     def __post_init__(self):
-        if not self.metric_id.startswith("reporting."):
+        if not isinstance(self.metric_id, str) or not self.metric_id.startswith("reporting."):
             raise ValueError("new metrics require a separate reporting namespace")
-        if len(self.contract_identity) != 64 or any(c not in "0123456789abcdef" for c in self.contract_identity):
+        if not isinstance(self.contract_identity, str) or len(self.contract_identity) != 64 or any(c not in "0123456789abcdef" for c in self.contract_identity):
             raise ValueError("contract identity must be SHA256")
-        if not self.unit or not isinstance(self.coverage, ReportingCoverageV1):
+        if not isinstance(self.unit, str) or not self.unit.strip() or not isinstance(self.coverage, ReportingCoverageV1):
             raise ValueError("unit and typed coverage are required")
         _integer("sample_count", self.sample_count, nonnegative=True)
         _choice("status", self.status, {"valid", "no_loss", "undefined", "unavailable", "insufficient", "invalid"})
@@ -173,7 +181,7 @@ class ReportingMetricV1:
             _finite("value", self.value)
             if self.reason is not None:
                 raise ValueError("valid metric cannot have an undefined reason")
-        elif self.value is not None or not self.reason:
+        elif self.value is not None or not isinstance(self.reason, str) or not self.reason.strip():
             raise ValueError("non-finite/unavailable metrics use null plus an explicit reason")
 
     def to_metadata(self):
@@ -181,6 +189,6 @@ class ReportingMetricV1:
 
     @classmethod
     def from_metadata(cls, metadata):
-        data = dict(metadata)
-        data["coverage"] = ReportingCoverageV1(**data["coverage"])
+        data = dict(_full_metadata(cls, metadata))
+        data["coverage"] = ReportingCoverageV1(**_full_metadata(ReportingCoverageV1, data["coverage"]))
         return cls(**data)
