@@ -8,6 +8,8 @@ on:
     paths:
       - "src/quantbt/optimization/**"
       - "src/quantbt/walkforward.py"
+      - "src/quantbt/wfo_execution.py"
+      - "src/quantbt/core/intrabar*.py"
       - "src/quantbt/endpoint.py"
       - "src/quantbt/backends/reactive_wfo*.py"
       - "src/quantbt/backends/native_wfo*.py"
@@ -20,6 +22,10 @@ on:
       - "tools/qms_local*"
       - "tools/qms_installed_w3.py"
       - "tools/qms_installed_consumers.py"
+      - "tools/qms_installed_execution.py"
+      - "tools/qms_e06*"
+      - "tools/qms_e07*"
+      - "tools/qms_e08*"
       - "tools/qms_c0*"
       - "tools/qms_e01*"
       - "tools/qms_e02*"
@@ -32,6 +38,9 @@ on:
       - "examples/wfo_meta_scalar.py"
       - "examples/wfo_meta_portfolio.py"
       - "examples/wfo_meta_package.py"
+      - "examples/wfo_meta_execution.py"
+      - "examples/wfo_meta_reactive_grid.py"
+      - "examples/intrabar_bracket_diagnostic.py"
       - "examples/optimization_exact_continuation.py"
       - "tools/qms_release*"
       - "tools/verify_public_native_consumer.py"
@@ -55,6 +64,11 @@ jobs:
   installed-candidate:
     name: ${{ matrix.runner }} / CPython ${{ matrix.python }}
     runs-on: ${{ matrix.runner }}
+    env:
+      OPENBLAS_NUM_THREADS: "1"
+      MKL_NUM_THREADS: "1"
+      OMP_NUM_THREADS: "1"
+      NUMBA_NUM_THREADS: "1"
     strategy:
       fail-fast: false
       matrix:
@@ -114,6 +128,11 @@ jobs:
         run: |
           lane="$(python -c 'import sys; print("cp" + "".join(map(str, sys.version_info[:2])) )')"
           .venv/bin/python -m tools.qms_g01_installed --lane "$PWD/.maturin/qms08/qualified/$lane"
+      - name: Prove installed intrabar sessions, generic v2/v3, commands and W3 with mature meta
+        shell: bash
+        run: |
+          lane="$(python -c 'import sys; print("cp" + "".join(map(str, sys.version_info[:2])) )')"
+          .venv/bin/python -m tools.qms_installed_execution --lane "$PWD/.maturin/qms08/qualified/$lane"
       - name: Retain installed consumer and build receipts
         if: always()
         uses: actions/upload-artifact@v4
@@ -129,6 +148,8 @@ jobs:
             .maturin/qms08/qualified/cp*/installed-portfolio-proof.json
             .maturin/qms08/qualified/cp*/installed-package-proof.json
             .maturin/qms08/qualified/cp*/installed-g01-proof.json
+            .maturin/qms08/qualified/cp*/installed-execution-proof.json
+            .maturin/qms08/qualified/cp*/installed-execution-proof/*
             .maturin/qms08/qualified/cp*/*.log
             .maturin/qms08/qualified/cp*/installed-w3-proof/**/*.log
             .maturin/qms08/qualified/cp*/installed-scalar-proof/*.log

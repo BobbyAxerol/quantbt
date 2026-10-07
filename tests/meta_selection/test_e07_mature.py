@@ -139,14 +139,9 @@ def test_e07_current_multifold_account_rebuild(mature):
     e07.rebuild(historical)
 
 
-@pytest.mark.parametrize("case", e07.CASES)
-def test_e07_unavailable_history_and_future_models_are_rejected(case):
-    from tools.qms_e07_contract import LANE
-    from tools.qms_pre05_workloads import load_history
-    history = load_history(LANE / "history" / ("-".join(case)+".json"))
-    # First numeric inspection initializes Numba's thread-pool telemetry.
-    e07.run(case, history=shared.clone_history(history))
-    active = e07.run(case, history=shared.clone_history(history))
+def test_e07_unavailable_history_and_future_models_are_rejected(mature):
+    case, historical, active = mature
+    history = historical.context.history
     from tests.meta_selection.test_pre_e06_02_conformance import altered_labels
     from quantbt.optimization.meta_selection.artifacts import dumps_model, loads_model
     from quantbt.optimization.meta_selection.common import MetaRecordError

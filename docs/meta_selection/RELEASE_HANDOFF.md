@@ -15,7 +15,7 @@ Read the [qualification boundary](QUALIFICATION.md),
 Private `1.1.1+qms08 / 0.4.3.dev4` seals remain historical; they cannot certify
 the new public pair or imply public availability.
 
-Current action is [PRE-E06 local closure](../../upgrade/implement.md#qms-pre-e06-action-plan),
+Current action is [E08 integrated qualification](../../upgrade/implement.md#qms-e08),
 not a publishing run. Bounded execution routes have their own
 [local artifact receipt](EXECUTION_WFO_REPORT.md); old remote `6901a66` proves
 only its recorded bytes. Active/matured source qualification and the approved
@@ -23,10 +23,16 @@ nested scalar C01/conditional C05 runtime now pass PRE02/03/04. PRE05 closes
 locally with [owner-accepted measured latency exceptions](PRE_E06_05_REPORT.md#owner-accepted-cost-disposition),
 not rewritten budgets or an economic claim. Final-source local installed artifacts
 now PASS [PRE06](PRE_E06_06_REPORT.md): 152 exact cells, 88 actual matured fits,
-2,551 distinct affected PASS and completed privacy/cleanup. E06/E07 accepted-scope
-handoff and E08 follow individually. These Linux CPython 3.12 artifacts are not
+2,551 distinct affected PASS and completed privacy/cleanup. Accepted-scope
+[E06](QMSE06_REPORT.md) and [E07](QMSE07_REPORT.md) subsequently completed local
+source/installed measurement, accounting and mature no-leakage proofs. E07 has
+342 distinct source tests and 150 separately labelled workload cells; these are
+historical source-bound receipts, not evidence for later changed bytes.
+E08 adds the bracket sizing incident, mature generic v3 coverage, actual clock
+and thread telemetry, and portable installed execution proofs in CI.
+These Linux CPython 3.12 artifacts are not
 the final manylinux2014 release or current-source remote/public certificate.
-The [current plan](../../upgrade/implement.md#qms-pre-e06-action-plan) takes
+The [current plan](../../upgrade/implement.md#qms-e08) takes
 precedence over historical baseline statuses.
 Remote/public steps below wait for final scope and separate owner approval.
 
@@ -38,6 +44,8 @@ From the feature branch, with QuantBT's own tooling installed:
 .venv/bin/python -m tools.qms08_package --release-pair \
   --output "$PWD/.maturin/qms08/release-1.1.2-v1"
 .venv/bin/python -m tools.qms_installed_w3 \
+  --lane "$PWD/.maturin/qms08/release-1.1.2-v1/cp312"
+.venv/bin/python -m tools.qms_installed_execution \
   --lane "$PWD/.maturin/qms08/release-1.1.2-v1/cp312"
 ```
 
@@ -81,17 +89,25 @@ bytes must qualify the explicit legacy zero-base policy, complete source/loaded
 native hashes and current installed/remote proofs. The original assessment and
 negative economics remain sealed; local correctness is not publication approval.
 
-`.github/workflows/qms-candidate.yml` runs mandatory W3/scalar/portfolio/package
-and repaired liquidation wheel/sdist proofs for Ubuntu 22.04/24.04
+`.github/workflows/qms-candidate.yml` runs mandatory W3/scalar/portfolio/package,
+repaired liquidation and specialized E06/E07/E08 execution wheel/sdist proofs
+for Ubuntu 22.04/24.04
 x CPython 3.11/3.12/3.13 on the pushed feature SHA. Permissions are contents-read
-only. Require **six actual successes**, archive JSON/log receipts and record
+only. The execution proof covers mature intrabar intent/session (Numba/Rust),
+generic v2/v3 callbacks (Python/Rust), command tapes and reset-flat numeric W3.
+It verifies every installed canonical module and the runner's actual extension
+against wheel/sdist hashes; public synthetic fixtures are not shipped alpha code.
+All fresh workers set BLAS/OpenMP/Numba limits explicitly to one, then inspect
+actual pools and reject mismatches. Thread-pool capacity is not measured active
+thread utilization. Require **six actual successes**, archive JSON/log/XML
+receipts and record
 the run URL/SHA. Local PASS is not remote or manylinux portability proof.
 The retention follow-up includes the exact allowlisted wheel/sdist in the
 seven-day bundles; earlier source-bound bundles contain proofs/logs only.
 Download final qualification bundles before expiry when long-term remote-byte
 archiving is needed; never treat a digest as an independently downloaded payload.
 
-Completed repaired remote gate: **six successes** on source `6901a66`,
+Historical repaired remote gate: **six successes** on source `6901a66`,
 [run 37447291412](https://github.com/BobbyAxerol/quantbt/actions/runs/37447291412).
 All eleven mandatory steps per row passed, including installed G01/W3 and
 scalar/portfolio/package consumers. See the
@@ -149,7 +165,8 @@ with exact owned continuation. Final-source local installed proof passes PRE06;
 this is not arbitrary mixed-space centroid or extra mode/schedule activation.
 Broader capabilities stay separately reviewed in
 [QMS-C01..C05](../../upgrade/implement.md#qms-capability-gap-roadmap---planning_only).
-The repaired candidate remote matrix passes; public-index and final manylinux
+The old repaired candidate remote matrix passed only its recorded source;
+current-source remote, public-index and final manylinux
 publication artifacts still need separate proof. Do not reuse pre-repair native
 bytes, pre-C02 remote receipts or private local artifacts as public release evidence.
 The scientific study/protocol requires a separate owner decision before any

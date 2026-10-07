@@ -1,8 +1,23 @@
 # WFO Meta Current Handoff
 
-## Latest E07 Execution
+## Latest E08 Execution
 
-Owner authorizes local QMS-E07 only (2026-10-07 UTC). Read the
+Owner authorizes local E08 gap closure and the bracket incident investigation
+(2026-10-07 UTC). The [current plan](../upgrade/implement.md#qms-e08) and
+[release handoff](../docs/meta_selection/RELEASE_HANDOFF.md) take precedence.
+The reported bracket call reproduces zero fills through fixed-notional
+multiplier/margin semantics, not lost next-open intents. A corrected public
+[diagnostic](../examples/intrabar_bracket_diagnostic.py) and 27 incident tests
+pass; mature generic v3 model/chronology/account tests pass on Python and Rust.
+Actual clock metadata and requested/observed thread telemetry are corrected
+without execution, estimator or RNG changes. Integrated source and new exact
+artifact qualification are in progress. CI now has a portable installed
+intrabar/session, event v2/v3, command-tape and W3 proof step; wiring is not
+remote PASS. No merge, tag or publication is authorized.
+
+## Historical E07 Execution
+
+At the E07 seal the owner authorized local QMS-E07 only. Read the
 [current event qualification report](../docs/meta_selection/QMSE07_REPORT.md)
 and [registered scope](../docs/meta_selection/QMSE07_QUALIFICATION.md).
 Callback Python/Rust, command-tape Python/Rust and numeric W3 Rust now have
@@ -18,8 +33,8 @@ The only runtime amendment is three exact opt-in output insertions returning
 original current-run `observed_revisions`, with no extra financial replay,
 changed scientific math, optimizer/RNG or financial/native bytes.
 Generic accounts remain continuous; W3 remains single-symbol reset-flat.
-Meta stays off by default. E08, remote/public qualification, push, merge,
-tag and publication are not authorized. Earlier statements below retain
+Meta stays off by default. At that seal E08, remote/public qualification, push,
+merge, tag and publication were not authorized. Earlier statements below retain
 their historical source/phase scope, not the current E07 artifact identity.
 
 ## Historical Milestones
