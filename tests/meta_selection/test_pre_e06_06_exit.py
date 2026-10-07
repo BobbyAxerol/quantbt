@@ -42,3 +42,58 @@ def test_installed_gate_rejects_status_only(tmp_path, monkeypatch):
 def test_privacy_gate_current_public_patch():
     result = gate.privacy()
     assert result["private_alpha_access"] is False and result["publication"] is False
+
+
+def collection_fixture(tmp_path, monkeypatch):
+    monkeypatch.setattr(gate, "ROOT", tmp_path)
+    monkeypatch.setattr(gate, "LANE", tmp_path)
+    monkeypatch.setattr(gate, "ACCOUNT", ("test_phase59_linear_accounting_fill_replay",))
+    failure_paths = [tmp_path / n for n in ("account-regression.xml", "account-regression-v2.xml")]
+    for path in failure_paths:
+        tree = ET.Element("testsuite")
+        case = ET.SubElement(tree, "testcase", classname="", name="tests.test_phase59_linear_accounting_fill_replay")
+        ET.SubElement(case, "error", message="collection failure").text = (
+            "ModuleNotFoundError: No module named 'hypothesis'")
+        ET.ElementTree(tree).write(path)
+    account = tmp_path / "account-regression-v3.xml"
+    tree = ET.Element("testsuite")
+    ET.SubElement(tree, "testcase", classname="tests.test_phase59_linear_accounting_fill_replay", name="property")
+    ET.ElementTree(tree).write(account)
+    (tmp_path / "test-dependency-reuse.json").write_text(json.dumps(dict(
+        versions={"hypothesis": "6.164.0", "sortedcontainers": "2.4.0"},
+        changed_numeric_dependencies=False, record_verified_sha256={"fixture": "verified"})))
+    return failure_paths, account
+
+
+def test_collection_disposition_requires_separate_account_pass(tmp_path, monkeypatch):
+    failures, account = collection_fixture(tmp_path, monkeypatch)
+    result = gate.collection_disposition(failures, account)
+    assert result["counted_as_pass"] is False and result["account_cases"] == 1
+
+
+@pytest.mark.parametrize("mutation", ["missing_attempt", "financial_failure", "wrong_dependency", "extra_case",
+                                      "missing_module", "unverified_correction", "failed_rerun"])
+def test_collection_disposition_cannot_waive_execution(tmp_path, monkeypatch, mutation):
+    failures, account = collection_fixture(tmp_path, monkeypatch)
+    if mutation == "missing_attempt":
+        failures.pop()
+    elif mutation == "missing_module":
+        monkeypatch.setattr(gate, "ACCOUNT", ("test_phase59_linear_accounting_fill_replay", "required_module"))
+    elif mutation == "unverified_correction":
+        path = tmp_path / "test-dependency-reuse.json"
+        data = json.loads(path.read_text())
+        data["changed_numeric_dependencies"] = True
+        path.write_text(json.dumps(data))
+    else:
+        path = account if mutation == "failed_rerun" else failures[0]
+        tree = ET.parse(path)
+        case = next(tree.iter("testcase"))
+        if mutation in ("financial_failure", "failed_rerun"):
+            ET.SubElement(case, "failure", message="accounting mismatch")
+        elif mutation == "wrong_dependency":
+            case.find("error").text = "ModuleNotFoundError: No module named 'required_financial_module'"
+        elif mutation == "extra_case":
+            ET.SubElement(tree.getroot(), "testcase", classname="financial.runtime", name="executed")
+        tree.write(path)
+    with pytest.raises(ValueError):
+        gate.collection_disposition(failures, account)

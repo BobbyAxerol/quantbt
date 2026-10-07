@@ -15,6 +15,39 @@ from tools.qms_pre06_contract import (
 from tools.qms_pre05_qualification import REGISTERED_NA, passed_cases
 from tools.qms_pre_e06_inventory import check_public_text
 from tools.qms_release_consumers import validate_consumers
+from tools.qms_pre06_regression import ACCOUNT
+
+
+def collection_disposition(paths, account_xml):
+    """Only the recorded missing test dependency, never a financial failure."""
+    if {p.name for p in paths} != {"account-regression.xml", "account-regression-v2.xml"} or len(paths) != 2:
+        raise ValueError("unexpected collection attempts")
+    passed = passed_cases(account_xml)
+    modules = {name for name, _ in passed}
+    if modules != {"tests." + n.replace("/", ".") for n in ACCOUNT}:
+        raise ValueError("all original account modules must separately pass")
+    for path in paths:
+        cases = list(ET.parse(path).iter("testcase"))
+        if len(cases) != 1:
+            raise ValueError("collection attempt contains executed/extra cases")
+        case = cases[0]
+        error = case.find("error")
+        if (case.get("classname") != "" or case.get("name") != "tests.test_phase59_linear_accounting_fill_replay"
+                or error is None or error.get("message") != "collection failure"
+                or "ModuleNotFoundError: No module named 'hypothesis'" not in (error.text or "")
+                or any(case.find(k) is not None for k in ("failure", "skipped"))):
+            raise ValueError("not the registered missing Hypothesis collection error")
+    dependency = json.loads((LANE / "test-dependency-reuse.json").read_text())
+    if (dependency["versions"]["hypothesis"] != "6.164.0"
+            or dependency["versions"]["sortedcontainers"] != "2.4.0"
+            or dependency["changed_numeric_dependencies"] is not False
+            or not dependency["record_verified_sha256"]):
+        raise ValueError("test-dependency correction not verified")
+    return dict(status="RESOLVED_TEST_ENV_COLLECTION_ONLY", counted_as_pass=False,
+                collection_junit_sha256={str(p.relative_to(ROOT)): file_hash(p) for p in paths},
+                separately_passing_account_junit_sha256=file_hash(account_xml),
+                account_modules=len(modules), account_cases=len(passed),
+                test_dependency_receipt_sha256=file_hash(LANE / "test-dependency-reuse.json"))
 
 
 def regression(xmls, *, failed_xmls=()):
@@ -155,6 +188,12 @@ def main(args):
     xmls = [LANE / name for name in args.junit]
     failures = [LANE / name for name in args.failed_junit]
     regression_result, installed_result = regression(xmls, failed_xmls=failures), installed()
+    collections = [LANE / name for name in args.collection_junit]
+    if collections:
+        account_xml = LANE / args.account_junit
+        if account_xml not in xmls:
+            raise ValueError("account rerun must be in the required passing regression")
+        regression_result["collection_disposition"] = collection_disposition(collections, account_xml)
     privacy_result = privacy()
     cleanup_result = cleanup()
     changed_tools = subprocess.check_output(["git", "diff", "--name-only", ENTRY, "--", "tools", "tests"],
@@ -174,4 +213,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--junit", nargs="+", required=True, help="retained passing XML names within the phase lane")
     parser.add_argument("--failed-junit", nargs="*", default=[])
+    parser.add_argument("--collection-junit", nargs="*", default=[])
+    parser.add_argument("--account-junit", default="account-regression-v3.xml")
     main(parser.parse_args())
