@@ -9,11 +9,14 @@ def _utc_index(index, *, naive_timezone=None):
     import pandas as pd
     if not isinstance(index, pd.DatetimeIndex):
         raise ValueError("explicit DatetimeIndex required; range indices are not execution clocks")
+    if index.hasnans:
+        raise ValueError("missing NaT timestamp is not an execution clock")
     if index.tz is None:
         if naive_timezone != "UTC":
             raise ValueError("naive timestamps require explicit naive_timezone='UTC'")
         index = index.tz_localize("UTC")
-    return index.tz_convert("UTC")
+    # asi8 follows the index resolution; the reporting contract always uses ns.
+    return index.tz_convert("UTC").as_unit("ns")
 
 
 def account_from_completed(result, contract, *, result_identity, profile="completed",

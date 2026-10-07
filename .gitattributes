@@ -1,2 +1,3 @@
 # Preserve the raw failed pytest traceback rather than rewriting its receipt.
 docs/metrics/evidence/met03/exploratory-retained/second.xml whitespace=-blank-at-eol
+docs/metrics/evidence/met03/review-repro-20261007.xml whitespace=-blank-at-eol

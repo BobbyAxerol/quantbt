@@ -179,17 +179,34 @@ def reduce_ledger(observations, contract, *, backend="python", retain_population
         builder.add(prefix + "open_at_observation_end_count", open_count if open_observed else None,
                     unit="count", count=len(observations.records), status=None if open_observed else "unavailable",
                     reason=None if open_observed else "matched observation-end roster witness missing")
-        for name, field in (("open_realized_net_pnl", "net_pnl"), ("open_unrealized_pnl", "open_unrealized_pnl")):
-            available = (not open_rows or observations.valuation_time_ns == contract.scope_end_ns) and contract.scope == "full" and all(getattr(row, field) is not None for row in open_rows)
-            builder.add(prefix + name, sum(getattr(row, field) for row in open_rows) if available else None,
-                        unit=contract.currency, count=len(open_rows), status=None if available else "unavailable",
-                        reason=None if available else "scoped boundary/open-position valuation missing")
+        open_realized = open_unrealized = None
+        open_adjustment = 0.
+        if open_observed and contract.scope == "full":
+            realized_rows = open_rows
+            if contract.unit == "closed_action":
+                # An unfinished action retains realized PnL from its closed legs.
+                open_ids = {row.action_id for row in open_rows}
+                realized_rows = [row for row in observations.records if row.action_id in open_ids]
+                open_adjustment = sum(roster.shared_net_adjustment for roster in observations.rosters
+                                      if roster.action_id in open_ids)
+            try:
+                open_realized = sum(recorded_net(row, contract.slippage_basis) for row in realized_rows) + open_adjustment
+            except LookupError:
+                pass
+            if all(row.open_unrealized_pnl is not None for row in open_rows):
+                open_unrealized = sum(row.open_unrealized_pnl for row in open_rows)
+        for name, value in (("open_realized_net_pnl", open_realized), ("open_unrealized_pnl", open_unrealized)):
+            builder.add(prefix + name, value, unit=contract.currency, count=open_count,
+                        status=None if value is not None else "unavailable",
+                        reason=None if value is not None else "matched scope-end valuation and complete recorded allocation required")
         symbol_pnl = {}
         for row in selected_rows:
             symbol_pnl[row.symbol] = symbol_pnl.get(row.symbol, 0.) + recorded_net(row, contract.slippage_basis)
         if retain_population:
             metadata["closed_population_ids"] = [[row.trade_id for row in item[3]] for item in population]
         metadata.update(population_detail_retained=retain_population,
+                        open_realized_basis="open outcomes, or all members of unfinished actions, plus recorded shared adjustment once",
+                        open_shared_net_adjustment=open_adjustment,
                         symbol_closed_pnl=symbol_pnl, shared_net_adjustment=adjustments,
                         leg_net_sum=sum(symbol_pnl.values()), population_net_sum=float(values.sum()),
                         reconciliation_basis="selected closed-population lifetime only; not scope account return",

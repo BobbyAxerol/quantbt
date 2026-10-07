@@ -26636,6 +26636,32 @@ then local artifact/cleanup/final handoff. Preserve phase receipts independently
   capabilities, not claimed implementations. Remote/public qualification and
   final owner acceptance remain separate. No push/workflow/merge/tag/upload.
 
+**MET-03 Owner Recheck Registration - 2026-10-07:**
+- Owner requests another local audit before acceptance. Preserve the completed
+  MET-01/02/03 receipts; this pass is a new claim on the current source, not a
+  relabeling of earlier evidence. No push, CI, merge, tag or publication.
+- Review G01..G05, all reporting reducers/adapters, opt-in public methods,
+  missing-data and clock policies, source guards and installed consumers.
+  Register independent regressions for second/millisecond/microsecond indices,
+  missing timestamps, partial action closure, matched observation-end open PnL
+  and fractional holding-bar formatting before executing them.
+- Reproduce suspected defects before correction. Only read-only reporting,
+  tests, docs and local proof tooling may change. Keep financial kernels,
+  scientific metrics, accepted definitions, objective/selection and RNG exact.
+  An execution/accounting defect requires separate approval, not repair here.
+- Exit: independently computed expected values, Python/Numba parity, full
+  metrics/scientific/raw-preservation regression and exact-source wheel/sdist
+  consumers pass; verify historical receipt/artifact hashes and disclose any
+  remaining capability, performance-review or remote/public gate separately.
+- Budget remains 3 GiB / 20k concurrent inodes / 2 GiB worker RSS, one thread,
+  5 GiB free reserve. Exact disposable repro path:
+  `/tmp/quantbt-met03-review-repro`; fresh source/build consumers use the
+  existing owned `/tmp/quantbt-met03-*` qualification lanes, offline cache and
+  unchanged native 0.4.3 wheel. Retain new failures/logs and exact artifacts,
+  clean only these inactive scratch paths after preserving evidence. Existing
+  benchmark receipts remain historical; changed-source timings must be new.
+- Current state: REVIEW_IN_PROGRESS; owner acceptance PENDING.
+
 ### Metrics Completion, Evidence And Owner Review Rules
 
 Each phase records planned/implemented/software-qualified/performance-qualified/

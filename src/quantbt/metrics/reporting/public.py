@@ -106,7 +106,7 @@ def format_metric_value(value, unit, currency):
         return f"{value * 100:.3f}%"
     if unit == currency:
         return f"{value:,.4f} {currency}"
-    if unit in {"count", "bars"}:
+    if unit == "count":
         return f"{value:,.0f}"
     return f"{value:,.6g} {unit}"
 

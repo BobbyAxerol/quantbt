@@ -20,6 +20,8 @@ def frozen_array(values, dtype, *, integer=False):
     if integer and original.size and original.dtype.kind == "u" and int(original.max()) > np.iinfo(np.int64).max:
         raise ValueError("UTC nanoseconds exceed signed int64 range")
     array = np.ascontiguousarray(original, dtype=dtype)
+    if integer and np.any(array == np.iinfo(np.int64).min):
+        raise ValueError("missing NaT timestamp is not a UTC nanosecond observation")
     if dtype == np.float64 and not np.isfinite(array).all():
         raise ValueError("finite observations required; invalid rows cannot be dropped")
     # Bytes-backed snapshots cannot be made writable again, unlike setflags(False).

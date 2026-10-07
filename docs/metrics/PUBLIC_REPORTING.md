@@ -39,6 +39,8 @@ return/partial-period witness, equity metrics remain available but period metric
 are N/A. Producer-supplied explicit returns can be reduced through the typed
 `AccountObservations` API; the convenience equity adapter cannot invent that
 witness. Naive DatetimeIndex requires `naive_timezone="UTC"` explicitly.
+Second/millisecond/microsecond indices normalize to UTC nanoseconds without
+changing the completed result. Missing `NaT` clocks fail closed.
 
 The full baseline is the starting equity at the declared instant, before initial
 costs. For a middle/OOS slice, declare `scope="scoped"`, **scope-entry equity**
@@ -70,6 +72,15 @@ Contracts must share the account scope/baseline/currency, and coverage identitie
 must refer to the same completed result. Use `trades_from_completed()` only when
 you can explicitly witness completeness, cost basis and close event sequences.
 `result.trades=[]` does not prove a complete empty ledger.
+
+Open-population PnL needs a complete roster valued exactly at the report end,
+even if all retained outcomes look closed. Without that witness it is N/A,
+not a certified zero. For an unfinished action, `open_realized_net_pnl`
+includes the realized PnL of **all its members**, including closed legs, plus
+its recorded shared adjustment once. `open_unrealized_pnl` includes only
+still-open legs. These controls never change closed-action win/loss counts;
+trade-level and action-level PnL must not be summed together. Average holding
+bars retain fractional values in formatted reports.
 
 `ExecutionObservations` accepts exact recorded aggregate counters/costs and
 retained fee/funding/exposure/margin paths. `execution_from_native()` reads V2
