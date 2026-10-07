@@ -55,6 +55,14 @@ or metadata flags alone are insufficient. Future OHLCV/funding, unavailable
 labels, late corrections, history order and pool order must not alter an earlier
 decision. Original statuses and raw sample rules are preserved.
 
+Additional intent-only/session families are qualified independently for explicit
+Numba and Rust financial execution, using the same registered tape/range/budget
+and fresh own-family shadow histories (2020-04 through 2022-05), not cross-domain
+history transfer. Each must fit/rank at the unchanged May cutoff, keep shadow
+RNG/search/account parity, reject future-data influence and match the original
+account with witness reuse on/off. Repeat these 16 focused checks inside both
+installed artifacts; no empirical recipe selection is made from their outcomes.
+
 Freeze the existing PRE02 public daily synthetic intrabar tape, window range
 `(3, 9, 2)`, 90D IS, monthly split, **8 trials**, **seed 731**, Ridge lambda **10**,
 one current May 2022 fold with cutoff **2022-04-30**, and sealed PRE05 intrabar
