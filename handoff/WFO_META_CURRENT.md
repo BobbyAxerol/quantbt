@@ -11,9 +11,18 @@ multiplier/margin semantics, not lost next-open intents. A corrected public
 pass; mature generic v3 model/chronology/account tests pass on Python and Rust.
 Actual clock metadata and requested/observed thread telemetry are corrected
 without execution, estimator or RNG changes. Integrated source and new exact
-artifact qualification are in progress. CI now has a portable installed
+artifact qualification are COMPLETE_LOCAL_SOFTWARE_QUALIFIED_OPT_IN: 2,797
+distinct affected source PASS, 30 registered comparator N/A, 298 exact installed
+test reruns and 16 integrated consumer executions. The full regression's
+obsolete PRE06 privacy failure is retained with an actual, independently
+verified scoped repair; no failed receipt is rewritten as PASS. Read the
+[final E08 report](../docs/meta_selection/QMSE08_REPORT.md) and
+[closure](../benchmarks/optimization/meta_selection/qms_e08_closure.json).
+[Cleanup](../docs/maintenance/QMS_E08_CLEANUP.md) preserves 410 hashes and
+observes +1,155.875 MiB free space. CI now has a portable installed
 intrabar/session, event v2/v3, command-tape and W3 proof step; wiring is not
-remote PASS. No merge, tag or publication is authorized.
+remote PASS. Latest authorization is local only: no push, CI dispatch, merge,
+tag, publication or economic/default promotion. Remote/public steps wait.
 
 ## Historical E07 Execution
 

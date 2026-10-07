@@ -109,3 +109,7 @@ build/consumer removals, 941 protected hashes unchanged and 1,151.35 MiB observe
 free-space improvement. Exact artifacts, staged source, histories, passing and
 failed evidence, tooling and offline dependencies remain; cleaned consumers
 require a fresh isolated installation before rerun.
+The [E08 receipt](maintenance/QMS_E08_CLEANUP.md) records four exact inactive
+build/consumer removals, 410 protected hashes unchanged and 1,155.875 MiB
+actual free-space improvement. Exact final artifacts, histories and successful/
+failed evidence remain; no broad cache or historical-lane deletion occurred.

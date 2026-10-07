@@ -2,12 +2,15 @@
 
 ## Current QMS-E08 Local Integration - Owner Approval 2026-10-07
 
-**Status:** LOCAL_INTEGRATED_QUALIFICATION_IN_PROGRESS. Owner approved bracket
+**Status:** COMPLETE_LOCAL_SOFTWARE_QUALIFIED_OPT_IN. Owner approved bracket
 incident investigation and E08 local gap closure, then explicitly deferred
 CI/release. The [E08 report](../docs/meta_selection/QMSE08_REPORT.md) and
 [registered execution addendum](#qms-e08) govern this run. Exact new core
-wheel/sdist execution consumers already pass 298 rerun tests; remaining local
-integrated regression/consumer/cleanup gates are not yet declared complete.
+wheel/sdist execution consumers pass 298 rerun tests, plus 16 actual integrated
+consumers. Source gate has 2,797 distinct PASS and 30 registered comparator N/A;
+the historical privacy-scope failure and actual repair remain separately sealed.
+[Cleanup](../docs/maintenance/QMS_E08_CLEANUP.md) preserves 410 hashes and
+recovers 1,155.875 MiB. All registered local integrated gates are complete.
 Remote/public qualification, push, merge/tag and publication are not authorized.
 Meta stays opt-in; no financial arithmetic, scientific/RNG or native changes.
 
@@ -1212,11 +1215,13 @@ qualification/owner promotion remains open. E05 is **SOFTWARE_AND_INSTALLED_COMP
 Read the [E05 report](../docs/meta_selection/QMSE05_REPORT.md). No package
 economic promotion is implied; repaired candidate remote proofs pass separately,
 while final publication artifacts and public consumers remain pending.
-E06/E07 bounded adapters are **IMPLEMENTED_LOCAL_QUALIFICATION_INCOMPLETE**:
-the [execution amendment](#qms-required-execution-routes) records intent/session,
-generic callback, commands and pre-expiry delivery roll, 153 scoped checks and
-exact local artifacts. Active/matured route coverage and owner handoff remain
-PRE-E06/E06/E07 work. E08 is **DEFERRED_NOT_AUTHORIZED**. E03-G01's bounded
+E06/E07 bounded adapters are **COMPLETE_LOCAL_SOFTWARE_QUALIFIED_OPT_IN**:
+their source-exact reports record mature intent/session, generic callback,
+command and W3 measurement/no-leakage/accounting gates. E08 completes current
+local integrated qualification (2,797 distinct source PASS, 298 installed test
+reruns, 16 consumers) and separately adds generic v3 mature coverage and the
+bracket diagnostic. Remote/public qualification is **DEFERRED_BY_OWNER**.
+E03-G01's bounded
 compatibility repair is complete locally; E04 formal locked evaluation and E05
 real delivery-domain/data admission need separate decisions. New CI/CD and feature
 push are deferred by the latest owner instruction; no release, merge, tag or
@@ -24716,7 +24721,7 @@ routes are not silently disabled while new domain coverage is assessed.
 | E05 | Bounded basket/arbitrage package WFO meta | Owner authorized; E04 dependency explicit | Software/installed PASS; empirical/owner PENDING |
 | E06 | Intrabar intent/session WFO, then meta qualification | PRE-E06 local handoff and accepted owner scope | COMPLETE_LOCAL_SOFTWARE_QUALIFIED_OPT_IN; real-market/default/public promotion separate |
 | E07 | Event-driven/reactive/order accepted synthetic qualification | E06 accepted scope; C02/C01 where expanded | COMPLETE_LOCAL_SOFTWARE_QUALIFIED_OPT_IN; expanded account/economic/public gates separate |
-| E08 | Domain matrix, installed/remote evidence and owner handoff | Approved preceding gate dispositions | AUTHORIZED_LOCAL_IN_PROGRESS; remote/public DEFERRED_BY_OWNER |
+| E08 | Domain matrix, installed/remote evidence and owner handoff | Approved preceding gate dispositions | COMPLETE_LOCAL_SOFTWARE_QUALIFIED_OPT_IN; remote/public DEFERRED_BY_OWNER |
 
 Proceed one phase and one route cell at a time. Owner approval is required
 before starting and before widening certified support. A blocked required gate
@@ -25514,8 +25519,9 @@ at a time, no monolithic rewrite of the native-event runtime.
 <a id="qms-e08"></a>
 #### QMS-E08 - Domain-Wide Conformance, Exact Artifacts And Owner Handoff
 
-**Status:** AUTHORIZED_LOCAL_IN_PROGRESS (2026-10-07 owner request); local
-integrated gates NOT_RUN, current-source remote NOT_RUN, public PENDING_PUBLICATION.
+**Status:** COMPLETE_LOCAL_SOFTWARE_QUALIFIED_OPT_IN (2026-10-07); registered local
+integrated gates PASS, current-source remote DEFERRED_BY_OWNER_LOCAL_ONLY,
+public PENDING_OWNER_APPROVED_PUBLICATION.
 Owner authorized the bracket incident investigation and the listed E08 gap
 closures; no merge, tag, publication or scientific retuning is authorized.
 **Goal:** certify the exact integrated route matrix, without overstating empirical
@@ -25560,7 +25566,8 @@ professional public docs and release review instructions.
 **Exit Gate:** technical/installed/remote gates PASS for claimed cells; every new
 official route has its required real-alpha evidence and owner promotion approval.
 Public proof remains PENDING_PUBLICATION until separately authorized and executed.
-**Debt Disposition:** C01/C05 activation, automatic full-WFO checkpoint recovery,
+**Debt Disposition:** approved nested scalar C01 and conditional C05 runtimes
+are locally qualified, not general mode/domain activation. Automatic full-WFO checkpoint recovery,
 W3 bootstrap/carry/batch/multi-symbol and future options/Nautilus routes remain
 explicitly separate unless approved/implemented. No required E-phase gap is hidden
 by declaring an optional exclusion without owner approval.
@@ -25650,6 +25657,28 @@ its passing cases count only with unchanged runtime/source guard identity.
 Reject unexpected failures/skips, missing repair cases, changed manifests or
 self-attested counts. WFO/account/plot shards must independently pass. This
 does not authorize another study, CI run or publication.
+
+**Completion Receipt (2026-10-07):**
+[report](../docs/meta_selection/QMSE08_REPORT.md) and
+[tracked closure](../benchmarks/optimization/meta_selection/qms_e08_closure.json)
+bind exact reviewed runtime, guide, wheel/sdist/native, registrations and raw
+logs/XML. Full meta v1 retains 2,458 PASS, 30 N/A and one old privacy-allowlist
+failure; actual complete verification rerun passes 73 cases. Independent XML
+reconciliation yields 2,474 distinct meta PASS; WFO 162, accounting 160 and plot
+one yield **2,797 distinct affected source PASS**. No financial failure is waived.
+Exact wheel/sdist execute 65 intrabar + 84 event tests each (**298 rerun PASS**,
+zero skip), plus eight original integrated consumers each (**16 executions**).
+Mature v3 generic models actually use 24 eligible origins; raw IS/forward
+measurement, future mutation, RNG, applied params and independent account gates
+PASS on Python/Rust. Original oracle/Numba/Rust bracket sizing/lifecycle parity
+and synthetic correction PASS; unavailable private portal runs are not claimed
+fixed. Runtime changes are limited to actual clock and observed thread metadata;
+financial/native/scientific bytes are unchanged. CI proof wiring is prepared but
+not run or pushed. [Cleanup](../docs/maintenance/QMS_E08_CLEANUP.md) deletes only
+four registered inactive scratch paths, protects 410 hashes and observes
++1,155.875 MiB free space. Final remote/public qualification, real settlement/
+provider/data and separately reviewed capabilities remain explicit; negative
+economics and combined fit_select observability are not rewritten as PASS.
 
 #### Future Options/Nautilus And New Endpoint Entry Gate
 

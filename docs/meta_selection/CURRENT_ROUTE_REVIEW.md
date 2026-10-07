@@ -22,7 +22,12 @@ QMS-E07 now completes accepted callback/command/numeric W3 qualification:
 raw measurement, pool/labels/RNG, selected params, no-leakage and independent
 account rebuilds pass. Core artifacts are fresh/source-exact; native bytes
 are unchanged. Current-run observed revisions are returned by the endpoint.
-No default/economic/public promotion; E08 remains not started.
+No default/economic/public promotion. [E08](QMSE08_REPORT.md) completes separate
+local approval: 2,797 distinct source PASS, 30 registered comparator N/A, 298
+exact wheel/sdist execution reruns and 16 integrated consumers PASS. Historical
+privacy failure and its exact scoped repair are retained, not hidden.
+[Cleanup](../maintenance/QMS_E08_CLEANUP.md) preserves 410 hashes and reclaims
+1,155.875 MiB. CI/release are owner-deferred; no branch push.
 
 C01 nested Mode 1 and C05 conditional sampling/support projection now have
 separate **local implementation approval**. Their activation plan is recorded
@@ -76,8 +81,10 @@ installed artifacts, synthetic R/Q dispositions, performance and exact limits.
 Counts belong to their own historical scopes; do not sum overlapping suites.
 The [E07 installed/current-source receipt](../../benchmarks/optimization/meta_selection/qms_e07_closure.json)
 and [endpoint output recipe](EXECUTION_WFO.md#inspect-the-actual-meta-run)
-own the later event proof. Generic mature histories use default v2-close;
-numeric W3 uses v3-next-open. Separate v2/v3 lifecycle tests check unequal
+own that historical event proof. E07 generic mature histories use default
+v2-close; E08 separately certifies actual mature generic v3 fit/rank/no-leakage
+and account measurements on Python/Rust. Numeric W3 uses v3-next-open.
+Separate v2/v3 lifecycle tests check unequal
 open/close prices, fees and exact timestamps; no automatic clock substitution.
 
 Current-source PRE-E06-02 adds actual default-maturity fit/rank/application on

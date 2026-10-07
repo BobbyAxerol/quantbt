@@ -186,14 +186,20 @@ in that scope; its original real-market economic gate is not relabeled PASS.
 
 1. **E07:** COMPLETE_LOCAL_SOFTWARE_QUALIFIED_OPT_IN under its current
    [report](QMSE07_REPORT.md); account/scheduler contracts stay distinct.
-2. **E08:** still NOT_STARTED; integrated final matrix/docs/artifacts, then separately approved
-   remote qualification and release/public proof last for pair 1.1.2/0.4.3.
+2. **E08:** COMPLETE_LOCAL_SOFTWARE_QUALIFIED_OPT_IN under the
+   [current report](QMSE08_REPORT.md): 2,797 distinct affected source PASS,
+   30 registered N/A comparators, 298 exact installed test reruns and 16
+   actual integrated consumer executions. One obsolete privacy-scope guard
+   was repaired with actual reruns; failed receipts remain unchanged.
+   [Cleanup](../maintenance/QMS_E08_CLEANUP.md) preserves 410 hashes and
+   observes +1,155.875 MiB free space. Remote qualification and release/public
+   proof stay owner-deferred for pair 1.1.2/0.4.3; no push/workflow run.
 
-E08 still requires its individual start. E07 retains original diagnostics limits:
-the legacy `callback_boundary` description is not the declared execution clock;
-fit/select timing is combined, and observed Numba pool telemetry is not proof
-of a one-thread budget. Read the report rather than infer timing/ownership from
-those descriptive fields. No financial clock or thread policy was changed.
+E08 corrects the stale `callback_boundary` label from the actual v2/v3 execution
+contract and reports requested/observed pools explicitly. Fresh qualification
+workers set/check a one-thread pool budget; capacity is not active utilization.
+Historical E07 diagnostics retain their recorded limits. Fit/select timing is
+still combined. No financial clock or caller thread policy was changed.
 The E04 negative economic result,
 E05 full delivery cash-settlement/data admission and separate capabilities above
 remain honest scope decisions, not defects closed by accepting PRE05 latency.

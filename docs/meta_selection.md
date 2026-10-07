@@ -45,6 +45,10 @@ measurement, without financial replay. Use the
 [inspection recipe](meta_selection/EXECUTION_WFO.md#inspect-the-actual-meta-run)
 and [public fill-feedback grid](../examples/wfo_meta_reactive_grid.py);
 the generic continuous account and W3 reset-flat account are not interchangeable.
+The [E08 integrated local report](meta_selection/QMSE08_REPORT.md) adds mature
+generic v3 clock coverage, exact wheel/sdist execution consumers, requested/
+observed thread checks and a [zero-fill bracket sizing diagnostic](fast_intrabar.md#fixed-notional-units-and-zero-fill-diagnostics).
+Current-source remote and public proof remain deferred by owner, not PASS.
 E04's bounded portfolio shared-account research opt-in has its own
 [contract](meta_selection/DOMAIN_ADAPTER_CONTRACT.md#e04-portfolio-amendment),
 [example](../examples/wfo_meta_portfolio.py) and [local report](meta_selection/QMSE04_REPORT.md).

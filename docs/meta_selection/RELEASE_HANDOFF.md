@@ -3,8 +3,10 @@
 ## Authorization And Scope
 
 Owner-approved pair: `quantbt-engine==1.1.2 / quantbt-native==0.4.3`.
-Preparation and feature-branch qualification only; **no merge, tag or upload**
-has been authorized in this scope. Meta selection remains opt-in. The default
+Latest owner instruction is **local only; CI/release later**. No branch push,
+workflow dispatch, merge, tag or upload is authorized now. Preparation and
+historical feature-branch qualification are not current remote approval.
+Meta selection remains opt-in. The default
 native build includes existing `qms-numeric-v1` and original-pass prepared
 metric witnesses without candidate-only build flags. Financial arithmetic,
 native ABI, endpoints and scientific protocol are unchanged.
@@ -15,8 +17,13 @@ Read the [qualification boundary](QUALIFICATION.md),
 Private `1.1.1+qms08 / 0.4.3.dev4` seals remain historical; they cannot certify
 the new public pair or imply public availability.
 
-Current action is [E08 integrated qualification](../../upgrade/implement.md#qms-e08),
-not a publishing run. Bounded execution routes have their own
+Current [E08 integrated qualification](QMSE08_REPORT.md) is complete locally,
+not a publishing run: 2,797 distinct affected source PASS, 30 registered
+comparator N/A, 298 exact installed execution reruns and 16 integrated consumers
+PASS. Its [closure](../../benchmarks/optimization/meta_selection/qms_e08_closure.json)
+retains the historical privacy failure plus actual narrow rerun and source/
+artifact identities. [Cleanup](../maintenance/QMS_E08_CLEANUP.md) protects
+410 hashes and reclaims 1,155.875 MiB. Bounded execution routes have their own
 [local artifact receipt](EXECUTION_WFO_REPORT.md); old remote `6901a66` proves
 only its recorded bytes. Active/matured source qualification and the approved
 nested scalar C01/conditional C05 runtime now pass PRE02/03/04. PRE05 closes
