@@ -13,6 +13,36 @@ from .space import build_grid_search_space, search_space_info
 WFO_RECIPES = {"tpe", "tpe_legacy", "tpe_multivariate_group", "cmaes", "sobol"}
 
 
+def validate_sampler_geometry(cfg, search_space, *, objective_count=1, constraints_func=None):
+    """Shared geometry preflight, without constructing a sampler or drawing RNG."""
+    from .parameter_space import NormalizedSearchSpace
+
+    if cfg.name not in {"cmaes", "sobol"}:
+        return
+    specs = NormalizedSearchSpace(search_space).specs
+    if cfg.name == "cmaes":
+        info = search_space_info(search_space)
+        if objective_count != 1:
+            raise ValueError("SAMPLER_SPACE_UNSUPPORTED: CMA-ES requires one objective")
+        if constraints_func is not None:
+            raise ValueError("CmaEsSampler does not support formal constraints")
+        if (info.has_categorical or any(s.active_if for s in specs)) and cfg.mixed_space_policy != "explicit_independent":
+            raise ValueError("CMA-ES requires a numeric continuous/int search space; categorical params are not supported")
+        if info.has_dynamic_float is False and not info.variable_names:
+            raise ValueError("CMA-ES requires at least one variable numeric parameter")
+        if not any(s.variable and not s.choices and not s.active_if for s in specs):
+            raise ValueError("SAMPLER_SPACE_UNSUPPORTED: CMA-ES requires a static numeric dimension")
+        if cfg.mixed_space_policy == "explicit_independent" and cfg.kwargs.get("warn_independent_sampling", True) is False:
+            raise ValueError("explicit_independent must not suppress independent-sampling warnings")
+    else:
+        if constraints_func is not None:
+            raise ValueError("SAMPLER_CONSTRAINT_POLICY_REQUIRED: Sobol requires post_filter")
+        if cfg.sobol_policy == "legacy_v1" and any(s.active_if for s in specs):
+            raise ValueError("SAMPLER_SPACE_UNSUPPORTED: Sobol V1 requires a fixed relative space; conditional ranges are unsupported")
+        if not any(s.variable and not s.choices for s in specs):
+            raise ValueError("SAMPLER_SPACE_UNSUPPORTED: Sobol requires a numeric dimension")
+
+
 def resolved_sampler_kwargs(cfg: SamplerConfig, seed: Optional[int]) -> tuple[str, dict]:
     name, kwargs = cfg.name, dict(cfg.kwargs)
     if name == "tpe_legacy":
@@ -81,21 +111,8 @@ def build_sampler(
         return optuna.samplers.GridSampler(grid, **payload)
 
     if name == "cmaes":
-        info = search_space_info(search_space)
-        from .parameter_space import NormalizedSearchSpace
-        specs = NormalizedSearchSpace(search_space).specs
-        if objective_count != 1:
-            raise ValueError("SAMPLER_SPACE_UNSUPPORTED: CMA-ES requires one objective")
-        if constraints_func is not None:
-            raise ValueError("CmaEsSampler does not support formal constraints")
-        if (info.has_categorical or any(spec.active_if for spec in specs)) and cfg.mixed_space_policy != "explicit_independent":
-            raise ValueError("CMA-ES requires a numeric continuous/int search space; categorical params are not supported")
-        if info.has_dynamic_float is False and not info.variable_names:
-            raise ValueError("CMA-ES requires at least one variable numeric parameter")
-        if not any(spec.variable and not spec.choices and not spec.active_if for spec in specs):
-            raise ValueError("SAMPLER_SPACE_UNSUPPORTED: CMA-ES requires a static numeric dimension")
-        if cfg.mixed_space_policy == "explicit_independent" and kwargs.get("warn_independent_sampling", True) is False:
-            raise ValueError("explicit_independent must not suppress independent-sampling warnings")
+        validate_sampler_geometry(cfg, search_space, objective_count=objective_count,
+                                  constraints_func=constraints_func)
         if importlib.util.find_spec("cmaes") is None:
             raise ImportError("CMA-ES requires cmaes==0.12.0; install quantbt-engine[optimization]")
         payload = {**kwargs}
@@ -104,8 +121,6 @@ def build_sampler(
         return optuna.samplers.CmaEsSampler(**payload)
 
     if name == "sobol":
-        from .parameter_space import NormalizedSearchSpace
-        specs = NormalizedSearchSpace(search_space).specs
         if constraints_func is not None:
             raise ValueError("SAMPLER_CONSTRAINT_POLICY_REQUIRED: Sobol requires post_filter")
         if cfg.sobol_policy == "conditional_numeric_latent_v1":
@@ -115,10 +130,7 @@ def build_sampler(
             if "seed" in cfg.kwargs and cfg.kwargs["seed"] != seed:
                 raise ValueError("latent Sobol seed must match the resolved study seed")
             return ConditionalNumericSobol(search_space, seed=seed)
-        if any(spec.active_if for spec in specs):
-            raise ValueError("SAMPLER_SPACE_UNSUPPORTED: Sobol V1 requires a fixed relative space; conditional ranges are unsupported")
-        if not any(spec.variable and not spec.choices for spec in specs):
-            raise ValueError("SAMPLER_SPACE_UNSUPPORTED: Sobol requires a numeric dimension")
+        validate_sampler_geometry(cfg, search_space, objective_count=objective_count)
         return optuna.samplers.QMCSampler(**kwargs)
 
     if name == "nsgaii":

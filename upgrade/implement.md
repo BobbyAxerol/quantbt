@@ -1,6 +1,15 @@
 # QuantBT Upgrade Implementation Plan
 
-## Current QMS-E08 Local Integration - Owner Approval 2026-10-07
+## Current QMS-SH01 Optional Sampler Helper - Owner Approval 2026-10-07
+
+**Status:** IMPLEMENTING_LOCAL. Owner additionally approved the optional
+[sampler-space helper](#qms-sh01), customization and registered pct-equity
+diagnostics. No helper requirement for meta/WFO, category ordinal encoding,
+learned auto-sampler or financial/methodology rewrite. Current E08 source/artifact
+seals below remain historical after this separately approved source addition.
+CI/release, push, merge/tag and publication are still deferred by owner.
+
+## Historical QMS-E08 Local Integration - Owner Approval 2026-10-07
 
 **Status:** COMPLETE_LOCAL_SOFTWARE_QUALIFIED_OPT_IN. Owner approved bracket
 incident investigation and E08 local gap closure, then explicitly deferred

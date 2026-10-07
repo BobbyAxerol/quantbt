@@ -35,6 +35,7 @@ from .optimizer import OptunaOptimizer
 from .multiseed import MultiSeedOptimization
 from .result import ObjectiveResult, OptimizationResult, OptimizationTrialRecord
 from .samplers import build_sampler
+from .sampler_space import SamplerSpaceAssessment, SamplerSpacePlan, prepare_sampler_space
 from .parameter_space import NormalizedSearchSpace, ParameterSpec
 from .space import (
     SearchSpaceInfo,
@@ -70,6 +71,8 @@ __all__ = [
     "ReportMetricObjective",
     "RobustSelectionConfig",
     "SamplerConfig",
+    "SamplerSpaceAssessment",
+    "SamplerSpacePlan",
     "NormalizedSearchSpace",
     "ParameterSpec",
     "SearchSpaceInfo",
@@ -88,6 +91,7 @@ __all__ = [
     "metric_from_result",
     "metrics_from_result",
     "min_trades_constraint",
+    "prepare_sampler_space",
     "search_space_info",
     "set_trial_constraints",
     "stable_params_key",

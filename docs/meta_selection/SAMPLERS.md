@@ -10,6 +10,11 @@ modify objectives or create a new endpoint. Optional meta is now integrated by
 QMS-05 through [a separate policy/history binding](INTEGRATION.md); sampler-only
 still does no meta work.
 
+An [optional sampler-space helper](SAMPLER_SPACE_HELPER.md) assesses declared
+geometry and supports explicit caller overrides. It neither enables meta nor
+replaces ordinary helper-free sampler config. It never ordinal-encodes labels
+or selects a sampler from OOS outcomes.
+
 Read the [unified phase](../../upgrade/implement.md#qms-02),
 [detailed specification sections 3-4](../../upgrade/QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s4),
 [source map](SOURCE_AND_SEAM_MAP.md), and [causal schedule guide](../walkforward_causal.md).

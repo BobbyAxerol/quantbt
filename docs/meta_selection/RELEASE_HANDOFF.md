@@ -43,6 +43,14 @@ The [current plan](../../upgrade/implement.md#qms-e08) takes
 precedence over historical baseline statuses.
 Remote/public steps below wait for final scope and separate owner approval.
 
+The owner subsequently approved an optional
+[sampler-space helper](SAMPLER_SPACE_HELPER.md) and bounded matched diagnostics,
+tracked in [QMS-SH01](../../upgrade/implement.md#qms-sh01). It is not required for
+meta/WFO and does not change financial/native arithmetic or sampler defaults.
+E08/PRE06 counts and artifacts above certify their original bytes, not this
+later helper/export addition. Final release qualification must build the source
+including the helper and use new exact inventories; do not relabel old seals.
+
 ## Non-Publishing Qualification
 
 From the feature branch, with QuantBT's own tooling installed:
