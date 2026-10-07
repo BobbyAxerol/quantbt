@@ -153,7 +153,7 @@ class PublicMetaRuntime:
             digest(anchor_policy),
             digest(
                 {
-                    "sampler": asdict(c.sampler_config)
+                    "sampler": c.sampler_config.metadata()
                     if c.sampler_config
                     else "legacy_tpe",
                     "seed_policy": "existing_fold_seed_v1",

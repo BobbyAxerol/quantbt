@@ -72,6 +72,7 @@ class SamplerConfig:
     kwargs: dict[str, Any] = field(default_factory=dict)
     constraint_mode: str = "sampler"
     mixed_space_policy: str = "reject"
+    sobol_policy: str = "legacy_v1"
 
     def __post_init__(self) -> None:
         name = str(self.name).lower().strip()
@@ -87,3 +88,16 @@ class SamplerConfig:
         if mixed not in {"reject", "explicit_independent"}:
             raise ValueError("mixed_space_policy must be reject or explicit_independent")
         object.__setattr__(self, "mixed_space_policy", mixed)
+        policy = str(self.sobol_policy).lower().strip()
+        if policy not in {"legacy_v1", "conditional_numeric_latent_v1"}:
+            raise ValueError("unsupported sobol_policy")
+        if policy != "legacy_v1" and name != "sobol":
+            raise ValueError("conditional_numeric_latent_v1 requires the sobol recipe")
+        object.__setattr__(self, "sobol_policy", policy)
+
+    def metadata(self):
+        payload = dict(name=self.name, kwargs=dict(self.kwargs),
+                       constraint_mode=self.constraint_mode, mixed_space_policy=self.mixed_space_policy)
+        if self.sobol_policy != "legacy_v1":
+            payload["sobol_policy"] = self.sobol_policy
+        return payload

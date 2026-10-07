@@ -25,12 +25,13 @@ def verify():
     verify_e01()
     names = subprocess.check_output(["git", "diff", "--name-only", ENTRY, "--", "src", "rust"],
                                     cwd=ROOT, text=True).splitlines()
-    names = [name for name in names if name != E01_NAME and name not in E02_ALLOW]
+    names = [name for name in names if name != E01_NAME and (name not in E02_ALLOW or name in ALLOW)]
     validate_changes(names)
     hashes = {}
     for name in names:
         reviewed = subprocess.check_output(["git", "show", f"{REVIEWED}:{name}"], cwd=ROOT)
-        if (ROOT / name).read_bytes() != reviewed:
+        from tools.qms_pre04_source_guard import without_pre04
+        if without_pre04((ROOT / name).read_bytes(), name) != reviewed:
             raise AssertionError(f"C04 unreviewed continuation bytes: {name}")
         hashes[name] = sha256(reviewed).hexdigest()
     if set(names) != ALLOW:

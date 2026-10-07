@@ -34,6 +34,8 @@ def without_intrabar_window_funding(source):
 
 def verify():
     from tools.qms_pre03_source_guard import ALLOW as later_allow, verify as later_verify
+    from tools.qms_pre04_source_guard import ALLOW as pre04_allow
+    later_allow = later_allow | pre04_allow
     names = subprocess.check_output(["git", "diff", "--name-only", ENTRY, "--", "src", "rust"],
                                     cwd=ROOT, text=True).splitlines()
     names += subprocess.check_output(["git", "ls-files", "--others", "--exclude-standard", "--", "src", "rust"],

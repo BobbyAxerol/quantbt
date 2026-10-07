@@ -789,8 +789,8 @@ class WalkForwardConfig:
         if self.flat_min_samples <= 0:
             raise ValueError("flat_min_samples must be > 0")
         selector = self.flat_selector.lower().strip()
-        if selector not in {"medoid", "centroid"}:
-            raise ValueError("flat_selector must be medoid or centroid")
+        if selector not in {"medoid", "centroid", "feasible_support_projection_v1"}:
+            raise ValueError("flat_selector must be medoid, centroid or feasible_support_projection_v1")
         object.__setattr__(self, "flat_selector", selector)
         if not 0.0 <= self.plateau_quantile <= 1.0:
             raise ValueError("plateau_quantile must be in [0, 1]")
@@ -1108,6 +1108,7 @@ class WalkForwardEngine:
             self._sampler_studies = []
             self._sampler_bridges = None
             sampler_requested = (self.config.sampler_config is not None or self.config.sampler_warm_start
+                or self.config.flat_selector == "feasible_support_projection_v1"
                 or self.config.parameter_constraints is not None or self.config.result_constraints is not None
                 or any(isinstance(spec, Mapping) for spec in (param_ranges or {}).values()))
             if sampler_requested:
@@ -1787,6 +1788,7 @@ class WalkForwardEngine:
         study_identifier = int(study_id)
         bridge = (getattr(self, "_sampler_bridges", None) or {}).get(study_identifier)
         if bridge is None and (self.config.sampler_config is not None or self.config.sampler_warm_start
+            or self.config.flat_selector == "feasible_support_projection_v1"
             or self.config.parameter_constraints is not None or self.config.result_constraints is not None
             or any(isinstance(spec, Mapping) for spec in param_ranges.values())):
             from .optimization.wfo_study import prepare_wfo_studies
@@ -2099,7 +2101,7 @@ class WalkForwardEngine:
             fallback=mean_is,
         )
         temporal_stats["is_subperiod_count"] = temporal_stats["temporal_count"]
-        return WalkForwardTrialRecord(
+        record = WalkForwardTrialRecord(
             trial_id=int(trial_id),
             params=dict(params),
             objective=mean_is,
@@ -2115,6 +2117,10 @@ class WalkForwardEngine:
                 **temporal_stats,
             },
         )
+        if self.config.flat_selector == "feasible_support_projection_v1":
+            from .optimization.representatives import bind_is_record
+            record = bind_is_record(self, data, folds, record, execution_seed, study_id)
+        return record
 
     def _summarize_is_subperiod_metrics(
         self,
@@ -4099,11 +4105,18 @@ def select_is_plateau_robust_record(
     completed = [record for record in records if not record.pruned and np.isfinite(record.objective)]
     if not completed:
         raise ValueError("is_plateau_robust selection received no completed trials")
+    projection = None
+    if config.flat_selector == "feasible_support_projection_v1":
+        from .optimization.representatives import EvaluatedSupport
+        projection = EvaluatedSupport(completed, param_ranges)
     ranked = sorted(completed, key=lambda record: record.objective, reverse=True)
     top_n = _candidate_count(len(ranked), config)
     top = ranked[:top_n]
     matrix, names = _param_matrix(top, param_ranges)
     if matrix.shape[0] == 1 or matrix.shape[1] == 0:
+        if projection is not None:
+            return projection.select([top[0]], details=dict(selected_by="is_plateau_robust",
+                objective_mode=config.optimization_mode, reason="insufficient_cluster_points"))
         return _with_selection_metadata(
             top[0],
             {
@@ -4123,6 +4136,9 @@ def select_is_plateau_robust_record(
     )
     cluster_ids = sorted(label for label in set(labels.tolist()) if label >= 0)
     if not cluster_ids:
+        if projection is not None:
+            return projection.select([top[0]], details=dict(selected_by="is_plateau_robust",
+                objective_mode=config.optimization_mode, reason="no_dense_train_plateau"))
         return _with_selection_metadata(
             top[0],
             {
@@ -4165,7 +4181,10 @@ def select_is_plateau_robust_record(
                 "cluster_best_objective": float(np.max(values)),
             }
     assert best_cluster is not None and best_cluster_stats is not None
-
+    if projection is not None:
+        return projection.select([top[i] for i in best_cluster], details={**best_cluster_stats,
+            "selected_by": "is_plateau_robust", "objective_mode": config.optimization_mode,
+            "cluster_size": len(best_cluster), "cluster_method": cluster_method})
     centroid = np.mean(matrix[best_cluster], axis=0)
     distances = np.sqrt(((matrix[best_cluster] - centroid) ** 2).sum(axis=1))
     selected_idx = int(best_cluster[int(np.argmin(distances))])
@@ -4237,12 +4256,20 @@ def select_is_only_robust_record(
     completed = [record for record in records if not record.pruned and np.isfinite(record.objective)]
     if not completed:
         raise ValueError("is_only_robust selection received no completed trials")
+    projection = None
+    if config.flat_selector == "feasible_support_projection_v1":
+        from .optimization.representatives import EvaluatedSupport
+        projection = EvaluatedSupport(completed, param_ranges)
     ranked = sorted(completed, key=lambda record: record.objective, reverse=True)
     top_n = _candidate_count(len(ranked), config)
     top = ranked[:top_n]
     matrix, names = _param_matrix(top, param_ranges)
     if matrix.shape[0] == 1 or matrix.shape[1] == 0:
         selected = _best_temporal_record(top)
+        if projection is not None:
+            return projection.select([selected], details=dict(selected_by="is_only_robust",
+                objective_mode=config.optimization_mode, reason="insufficient_cluster_points",
+                candidate_selection_complete=True))
         return _with_selection_metadata(
             selected,
             {
@@ -4265,6 +4292,10 @@ def select_is_only_robust_record(
     cluster_ids = sorted(label for label in set(labels.tolist()) if label >= 0)
     if not cluster_ids:
         selected = _best_temporal_record(top)
+        if projection is not None:
+            return projection.select([selected], details=dict(selected_by="is_only_robust",
+                objective_mode=config.optimization_mode, reason="no_dense_train_plateau",
+                candidate_selection_complete=True))
         return _with_selection_metadata(
             selected,
             {
@@ -4341,7 +4372,10 @@ def select_is_only_robust_record(
                 "complexity_penalty": complexity_penalty,
             }
     assert best_cluster is not None and best_cluster_stats is not None
-
+    if projection is not None:
+        return projection.select([top[i] for i in best_cluster], details={**best_cluster_stats,
+            "selected_by": "is_only_robust", "objective_mode": config.optimization_mode,
+            "cluster_size": len(best_cluster), "cluster_method": cluster_method})
     centroid = np.mean(matrix[best_cluster], axis=0)
     distances = np.sqrt(((matrix[best_cluster] - centroid) ** 2).sum(axis=1))
     selected_idx = int(best_cluster[int(np.argmin(distances))])
@@ -5650,7 +5684,7 @@ def _config_hash(config: WalkForwardConfig) -> str:
     }
     if config.sampler_config is not None or config.sampler_warm_start or config.parameter_constraints or config.result_constraints:
         payload["sampler_policy"] = {
-            "config": None if config.sampler_config is None else asdict(config.sampler_config),
+            "config": None if config.sampler_config is None else config.sampler_config.metadata(),
             "warm_start": config.sampler_warm_start,
             "parameter_constraints": None if config.parameter_constraints is None else strategy_fingerprint(config.parameter_constraints),
             "result_constraints": None if config.result_constraints is None else strategy_fingerprint(config.result_constraints),

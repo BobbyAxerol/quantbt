@@ -108,6 +108,13 @@ def build_sampler(
         specs = NormalizedSearchSpace(search_space).specs
         if constraints_func is not None:
             raise ValueError("SAMPLER_CONSTRAINT_POLICY_REQUIRED: Sobol requires post_filter")
+        if cfg.sobol_policy == "conditional_numeric_latent_v1":
+            from .conditional_sobol import ConditionalNumericSobol
+            if set(cfg.kwargs) - {"seed"}:
+                raise ValueError("SAMPLER_SPACE_UNSUPPORTED: latent Sobol stream settings are fixed by policy")
+            if "seed" in cfg.kwargs and cfg.kwargs["seed"] != seed:
+                raise ValueError("latent Sobol seed must match the resolved study seed")
+            return ConditionalNumericSobol(search_space, seed=seed)
         if any(spec.active_if for spec in specs):
             raise ValueError("SAMPLER_SPACE_UNSUPPORTED: Sobol V1 requires a fixed relative space; conditional ranges are unsupported")
         if not any(spec.variable and not spec.choices for spec in specs):

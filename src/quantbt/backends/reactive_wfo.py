@@ -411,7 +411,8 @@ class ReactivePreparedWfoRuntimeV1(ReactiveWfoBatchSelectionMixinV1):
             raise RuntimeError("reactive WFO runtime is closed")
         self._check_canceled()
         engine = _ReactiveSelectionEngine(runtime=self, config=self.config)
-        self._meta_boundary = engine.scorer if self.config.meta_selection is not None else None
+        self._meta_boundary = engine.scorer if (self.config.meta_selection is not None
+            or self.config.flat_selector == "feasible_support_projection_v1") else None
         self._meta_runtime = None
         if self.config.meta_selection is not None:
             from ..optimization.meta_selection.reactive import ReactiveMetaRuntime

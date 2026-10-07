@@ -163,12 +163,15 @@ class ExactStudySession:
                                             for k, v in trial.distributions.items()},
                              intermediate=list(trial.intermediate_values.items())))
         observed = self._bridge.observed
-        return clone(dict(rows=rows, seen=sorted(self._seen), attempts=self._attempts,
+        witness = dict(rows=rows, seen=sorted(self._seen), attempts=self._attempts,
                           stopped=self._stopped, early=None if self._early is None else dict(
                               best=self._early._best, stale=self._early._stale,
                               completed=self._early._completed),
                           events=observed.events, independent=dict(observed.independent),
-                          relative=observed.relative, relative_spaces=observed.relative_spaces))
+                          relative=observed.relative, relative_spaces=observed.relative_spaces)
+        if self.config.sampler_config.sobol_policy != "legacy_v1":
+            witness["latent_stream"] = observed.delegate.state_witness()
+        return clone(witness)
 
     def dumps(self):
         self._check()

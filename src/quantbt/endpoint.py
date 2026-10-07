@@ -3807,7 +3807,7 @@ class QuantBTEndpoint:
                 market_highs=highs,
                 market_lows=lows,
                 market_datetime_index=datetime_index,
-                meta_metric_support=meta_enabled,
+                meta_metric_support=meta_enabled or wf_config.flat_selector == "feasible_support_projection_v1",
             )
             if wf_config.scoring_backend == "endpoint" or native_proxy_scorer_required
             else None

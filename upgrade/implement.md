@@ -392,6 +392,38 @@ constrained optimization, distributed checkpointing or all future mixed geometri
 reuse caches/tooling and retain RNG/journal/negative-test receipts. Review any
 required native build budget before building; do not rebuild for a Python policy alone.
 
+**Execution registration (2026-10-07, Asia/Saigon; before edits/tests):** entry
+`ba61e63`, branch `feat/meta-selection-samplers`. Owner starts PRE-E06-04 only.
+Reuse the G01 CPython 3.12 consumer/native 0.4.3 with source-first imports and
+one numeric thread. Available bytes 28,349,165,568; used inodes 926,424/6,553,600.
+Lane `.maturin/qms08/pre-e06-04`; 512 MiB incremental ceiling, 5 GiB headroom.
+No new build/environment, private alpha, push, workflow, tag or publication.
+
+Expose `SamplerConfig(sobol_policy="conditional_numeric_latent_v1")` only on
+the existing Sobol recipe. Pin Optuna 4.8.0/SciPy runtime; QMC seed is the resolved
+uint32 seed, independent startup uses that seed, and the separate active-category
+stream uses `seed XOR 0x9E3779B9`. Freeze numeric schema before ask; allocate/charge
+whole points in ask order even when every numeric child is inactive. Warm-prefix
+attempts consume neither QMC nor startup. No retries, padding or extra evaluations.
+Legacy Sobol, seed=None and other recipes keep their old behavior.
+
+Expose `flat_selector="feasible_support_projection_v1"`, retaining original
+cluster construction/scoring. Require own original current-IS result bindings;
+initial full-window support is scalar Mode 4/per_fold_causal and Mode 5/full-IS,
+plus sequential/process W3 Mode 4/per_fold_causal. Reject multi-window/proxy and
+unwitnessed R3B/fixed-matrix representative requests before ask. The new Sobol
+policy itself also uses the existing applicable sequential/process/R3B study
+surfaces; frozen replay never becomes an adaptive sampler. These limits follow
+the approved exact-current-IS witness contract, not a new account engine.
+
+Test actual category/startup/QMC prefixes against the independent C05 references,
+all terminal dispositions, warm seeds, batch ask ordering, all-inactive branches,
+constraints/effective duplicates, own-witness corruption/future rejection, geometry
+permutation/ties, public off/shadow accounting and fresh-process C04 journal replay.
+Source amendments must preserve exact old receipts/guide and fail closed on any
+unreviewed bytes. Fresh final-source installed proof stays PRE-E06-06. Register
+timing as software overhead only; no economic/decay or speed superiority claim.
+
 <a id="qms-pre-e06-05"></a>
 ### Phase PRE-E06-05 - Matched Cost Profiling And Safe Shared Optimization
 

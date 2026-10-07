@@ -86,6 +86,7 @@ def runtime_identity():
     base = Path(__file__).resolve().parents[1]
     files = ["config.py", "wfo_study.py", "samplers.py", "parameter_space.py",
              "space.py", "constraints.py", "callbacks.py"]
+    files += ["conditional_sobol.py"]
     files += ["continuation/" + p.name for p in sorted((base / "continuation").glob("*.py"))]
     return dict(versions=versions, python=list(sys.version_info[:3]),
                 implementation=platform.python_implementation(), system=platform.system(),
@@ -152,9 +153,12 @@ class ContinuationConfig:
         if bridge.cutoff is None or str(bridge.cutoff) == "NaT":
             raise ContinuationError("cutoff must be a valid explicit timestamp")
         bridge.validate_warm_start(self.warm_start)
-        return dict(sampler=dict(name=self.sampler_config.name, kwargs=clone(self.sampler_config.kwargs),
+        sampler = dict(name=self.sampler_config.name, kwargs=clone(self.sampler_config.kwargs),
                                  constraint_mode=self.sampler_config.constraint_mode,
-                                 mixed_space_policy=self.sampler_config.mixed_space_policy),
+                                 mixed_space_policy=self.sampler_config.mixed_space_policy)
+        if self.sampler_config.sobol_policy != "legacy_v1":
+            sampler["sobol_policy"] = self.sampler_config.sobol_policy
+        return dict(sampler=sampler,
                     ranges=[[name, spec] for name, spec in bridge.ranges.items()],
                     space_identity=bridge.space.identity, seed=self.seed, budget=self.budget,
                     cutoff=bridge.cutoff.isoformat(), strategy_identity=self.strategy_identity,

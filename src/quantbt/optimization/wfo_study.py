@@ -206,6 +206,12 @@ class WfoSamplerStudy:
             ),
         )
         trial.set_user_attr("qms_source", trial.user_attrs.get("qms_source", "sampled"))
+        if self.config.sobol_policy == "conditional_numeric_latent_v1":
+            row = dict(self.observed.delegate.records[trial.number])
+            row["active_mask"] = {s.name: s.name in effective for s in self.space.specs}
+            trial.set_user_attr("qms_latent", row)
+            requested = {**row["decoded_numeric"], **requested}
+            trial.set_user_attr("qms_requested", requested)
         trial.set_user_attr("qms_proposal_seconds", time.perf_counter() - start)
         return requested, effective
 
@@ -242,7 +248,7 @@ class WfoSamplerStudy:
             }
             for t in trials
         ]
-        return {
+        result = {
             "schema": "quantbt-wfo-sampler-study-v1",
             "recipe": self.config.name,
             "sampler_class": type(self.observed.delegate).__name__,
@@ -313,6 +319,17 @@ class WfoSamplerStudy:
             "rows": rows,
             "resume": "owned_in_process_study_only",
         }
+        if self.config.sobol_policy != "legacy_v1":
+            result["sobol_policy"] = self.config.sobol_policy
+            result["latent_stream"] = self.observed.delegate.state_witness()
+            result["qmc_sequence_position"] = result["latent_stream"]["next_qmc_index"]
+            result["qmc_dimension_order"] = list(self.observed.delegate.layout.names)
+            result["joint_numeric_candidates"] = list(self.observed.delegate.layout.names)
+            result["kwargs"] = dict(seed=self.seed, category_seed=self.observed.delegate.category_seed,
+                                    bits=30, scramble=True, optimization=None)
+            for row, trial in zip(rows, trials, strict=True):
+                row["latent"] = trial.user_attrs.get("qms_latent")
+        return result
 
 
 def prepare_wfo_studies(config, ranges, groups, *, strategy_identity, derive_seed):
@@ -325,6 +342,8 @@ def prepare_wfo_studies(config, ranges, groups, *, strategy_identity, derive_see
             else derive_seed(config.random_seed, study_id)
         )
         try:
+            from .representatives import validate_scope
+            validate_scope(config, folds)
             bridge = WfoSamplerStudy(
                 config.sampler_config or SamplerConfig(),
                 ranges or {},

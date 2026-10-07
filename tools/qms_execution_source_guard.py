@@ -16,7 +16,8 @@ ALLOW = frozenset({"src/quantbt/endpoint.py", "src/quantbt/walkforward.py", "src
 SEALED_ALLOW = ALLOW
 ALLOW = ALLOW | {"src/quantbt/optimization/meta_selection/domains/base.py"}
 from tools.qms_pre03_source_guard import ALLOW as PRE03_ALLOW
-REVIEWED_SCOPE = ALLOW | PRE03_ALLOW
+from tools.qms_pre04_source_guard import ALLOW as PRE04_ALLOW
+REVIEWED_SCOPE = ALLOW | PRE03_ALLOW | PRE04_ALLOW
 
 
 def without_execution_routes(source, name):

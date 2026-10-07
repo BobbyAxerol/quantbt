@@ -207,7 +207,7 @@ class _ReactiveSelectionEngine(WalkForwardEngine):
         super().__init__(strategy=_reactive_marker_strategy,
                          config=replace(config, meta_selection=None), scorer=_reactive_unused_scorer)
         self.config = config
-        if config.meta_selection is not None:
+        if config.meta_selection is not None or config.flat_selector == "feasible_support_projection_v1":
             from ..optimization.meta_selection.reactive import ReactiveMetricBoundary
 
             self.scorer = ReactiveMetricBoundary(runtime)
@@ -385,7 +385,6 @@ class _ReactiveSelectionEngine(WalkForwardEngine):
         # fields are accepted so WalkForwardEngine can retain one provenance
         # signature across static and reactive schedules; they do not enable
         # static terminal-score reuse for reactive callbacks.
-        del execution_seed, study_id
         fold_metrics: list[dict[str, object]] = []
         is_scores: list[float] = []
         score_tasks: list[tuple[ReactiveWfoScoreMarkerV1, pd.DatetimeIndex, WalkForwardFold, Dict[str, Any], str]] = []
@@ -485,7 +484,7 @@ class _ReactiveSelectionEngine(WalkForwardEngine):
             fallback=mean_is,
         )
         temporal_stats["is_subperiod_count"] = temporal_stats["temporal_count"]
-        return WalkForwardTrialRecord(
+        record = WalkForwardTrialRecord(
             trial_id=int(trial_id),
             params=dict(params),
             objective=mean_is,
@@ -502,6 +501,10 @@ class _ReactiveSelectionEngine(WalkForwardEngine):
                 **temporal_stats,
             },
         )
+        if self.config.flat_selector == "feasible_support_projection_v1":
+            from ..optimization.representatives import bind_is_record
+            record = bind_is_record(self, data, folds, record, execution_seed, study_id)
+        return record
 
 
 def _reactive_marker_strategy(*_args, **_kwargs):  # pragma: no cover - never executed directly

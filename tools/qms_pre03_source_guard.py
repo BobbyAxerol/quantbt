@@ -21,6 +21,8 @@ def baseline(name):
 
 
 def without_pre03(source, name):
+    from tools.qms_pre04_source_guard import without_pre04
+    source = without_pre04(source, name)
     if name not in ALLOW:
         return source
     before = baseline(name)
@@ -34,12 +36,14 @@ def without_pre03(source, name):
 
 
 def verify():
+    from tools.qms_pre04_source_guard import ALLOW as later_allow, verify as later_verify
     names = set(subprocess.check_output(["git", "diff", "--name-only", ENTRY, "--", "src", "rust"],
                                       cwd=ROOT, text=True).splitlines())
     names.update(subprocess.check_output(["git", "ls-files", "--others", "--exclude-standard", "--", "src", "rust"],
                                         cwd=ROOT, text=True).splitlines())
-    if names != ALLOW:
-        raise AssertionError(f"unreviewed PRE03 runtime scope: {sorted(names ^ ALLOW)}")
+    if names != ALLOW | later_allow:
+        raise AssertionError(f"unreviewed PRE03 runtime scope: {sorted(names ^ (ALLOW | later_allow))}")
+    later_verify()
     for name in names:
         without_pre03((ROOT/name).read_bytes(), name)
     return dict(baseline=ENTRY, cohort="nested_anchor_outer_IS_real_forward_v1",
