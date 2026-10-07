@@ -44,10 +44,12 @@ def file_hash(path):
 
 def passed_cases(path, *, admitted_na=frozenset()):
     cases = {}
+    seen = set()
     for case in ET.parse(path).iter("testcase"):
         key = (case.get("classname"), case.get("name"))
-        if not all(key) or key in cases:
+        if not all(key) or key in seen:
             raise ValueError("duplicate/missing JUnit identity")
+        seen.add(key)
         skipped = case.find("skipped")
         if (
             key in admitted_na
@@ -90,12 +92,63 @@ def cost_disposition(cost):
     )
 
 
+def artifact_inventory(lane, cost):
+    from tools.qms_pre05_profile_matrix import registered_profile_cells
+
+    cost_path = ROOT / "benchmarks/optimization/meta_selection/qms_pre_e06_05_cost.json"
+    if json.loads(cost_path.read_text()) != cost:
+        raise ValueError("published cost table differs from complete raw samples")
+    registration = json.loads((lane / "registration.json").read_text())
+    if (
+        registration["entry"] != ENTRY
+        or registration["warm_repeats"] != 21
+        or registration["numeric_threads"] != 1
+        or registration["disabled_budget"]
+        != dict(owner_approved=True, p50_pct=3, p95_pct=5)
+        or [c["id"] for c in registration["cells"]] != [r["cell"] for r in cost["rows"]]
+    ):
+        raise ValueError("cost registration changed or incomplete")
+    expected = {
+        str((lane / "profiles" / f"isolated-{arm}-{c.identity}.json").relative_to(ROOT))
+        for c in registered_profile_cells(cost)
+        for arm in ("reference", "optimized")
+    }
+    profiles = json.loads((lane / "isolated-profiles.json").read_text())
+    if len(profiles) != len(expected) or set(profiles) != expected:
+        raise ValueError("primary paired profile inventory incomplete or duplicated")
+    block = lane / "portable-block-cost-isolated.json"
+    value = json.loads(block.read_text())
+    if (
+        value["run_context"] != "isolated"
+        or value["warm_pairs"] != 21
+        or value["calls_per_arm_sample"] != 50
+        or value["financial_calls"] != 0
+        or not value["exact_portable_parity"]
+        or value["full_wfo_speed_claim"]
+        or value["history_sha256"] != file_hash(lane / "history/domain-pct_equity.json")
+    ):
+        raise ValueError("primary block cost contract changed")
+    paths = [
+        cost_path,
+        cost_path.with_suffix(".md"),
+        lane / "registration.json",
+        lane / "isolated-profiles.json",
+        lane / "profile-summary.json",
+        block,
+    ]
+    paths.extend(ROOT / name for name in profiles)
+    paths.extend((ROOT / name).with_suffix(".pstats") for name in profiles)
+    paths.extend(sorted((lane / "history").glob("*.json")))
+    return {str(p.relative_to(ROOT)): file_hash(p) for p in paths}
+
+
 def build(lane, native, shards, *, label="matched-v3"):
     source = verify()
     if file_hash(ROOT / GUIDE) != GUIDE_SHA:
         raise ValueError("scientific guide changed")
     cost = collect(lane, label)
     disposition = cost_disposition(cost)
+    artifacts = artifact_inventory(lane, cost)
     union = set()
     actual_na = set()
     for shard in shards:
@@ -128,7 +181,8 @@ def build(lane, native, shards, *, label="matched-v3"):
         ("guard", 4),
         ("analysis", 5),
         ("chronological", 2),
-        ("receipt", 9),
+        ("receipt", 10),
+        ("evidence", 5),
         ("w3", 3),
         ("conditional", 2),
     ):
@@ -189,6 +243,7 @@ def build(lane, native, shards, *, label="matched-v3"):
         native_provider_sha256=file_hash(native),
         guide_sha256=GUIDE_SHA,
         samples_sha256={r["cell"]: r["sample_sha256"] for r in cost["rows"]},
+        primary_artifacts_sha256=artifacts,
         registered_cells=76,
         paired_warm_executions=76 * 21 * 2,
         warmups=76 * 2,
@@ -245,6 +300,7 @@ def main():
     protected = [ROOT / n for n in receipt["runtime_source_sha256"]]
     protected += [ROOT / n for n in receipt["verification_source_sha256"]]
     protected += [ROOT / n for n in receipt["historical_preserved_sha256"]]
+    protected += [ROOT / n for n in receipt["primary_artifacts_sha256"]]
     protected += [ROOT / GUIDE, MANIFEST, args.native.resolve(), closure]
     cleanup = cleanup_snapshot(lane, protected)
     write_once(lane / "cleanup.json", cleanup)

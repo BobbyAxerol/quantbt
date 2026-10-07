@@ -10,13 +10,7 @@ from tools.qms_pre05_benchmark import write_once
 from tools.qms_pre05_analysis import collect
 
 
-def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--label", choices=("final", "isolated"), default="final")
-    prefix = parser.parse_args().label
-    lane = ROOT / ".maturin/qms08/pre-e06-05"
-    if not (lane / "matched-v3-matrix.json").exists():
-        raise ValueError("complete uninstrumented matrix before profile diagnostics")
+def registered_profile_cells(cost):
     selected = [
         Cell("legacy", "signal_notional"),
         Cell("domain", "pct_equity"),
@@ -28,11 +22,18 @@ def main():
         Cell("nested", "pct_equity", "active", optimization="mode_1_decay"),
     ]
     missed = {
-        r["cell"]
-        for r in collect(lane, "matched-v3")["rows"]
-        if r["disabled_point_budget"] == "NOT_MET"
+        r["cell"] for r in cost["rows"] if r["disabled_point_budget"] == "NOT_MET"
     }
     selected.extend(c for c in cells() if c.identity in missed and c not in selected)
+    return selected
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--label", choices=("final", "isolated"), default="final")
+    prefix = parser.parse_args().label
+    lane = ROOT / ".maturin/qms08/pre-e06-05"
+    selected = registered_profile_cells(collect(lane, "matched-v3"))
     outputs = []
     for cell in selected:
         index = cells().index(cell)

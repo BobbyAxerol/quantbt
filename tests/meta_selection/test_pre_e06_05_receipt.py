@@ -79,3 +79,17 @@ def test_registered_na_is_not_a_passing_software_case(tmp_path, reason):
         assert set(passed_cases(path, admitted_na=REGISTERED_NA)) == {
             ("software", "applicable")
         }
+
+
+def test_duplicate_na_identity_rejected(tmp_path):
+    from xml.etree.ElementTree import Element, SubElement, ElementTree
+
+    cls, name = sorted(REGISTERED_NA)[0]
+    root = Element("testsuite")
+    for _ in range(2):
+        case = SubElement(root, "testcase", classname=cls, name=name)
+        SubElement(case, "skipped", message=NA_REASON)
+    path = tmp_path / "duplicates.xml"
+    ElementTree(root).write(path)
+    with pytest.raises(ValueError, match="duplicate"):
+        passed_cases(path, admitted_na=REGISTERED_NA)
