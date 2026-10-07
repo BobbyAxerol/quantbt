@@ -25786,6 +25786,92 @@ and every owner phase review PENDING. Recording this plan or committing the
 unchanged guide does not manufacture a baseline measurement, implementation
 result, scientific finding or permission to advance a phase.
 
+<a id="qms-sh01"></a>
+### QMS-SH01 - Optional Sampler-Space Helper And Matched Pct-Equity Evidence
+
+**Authorization/Status (2026-10-07):** owner approved a local optional helper,
+caller overrides/customization and a Delta RSI/additional-alpha comparison.
+Implementation NOT_STARTED; tests and comparisons NOT_RUN. No push, workflow,
+merge, tag or publication is authorized. Earlier E08 receipts stay historical;
+the helper/export addition needs its own source/package evidence.
+
+**Goal:** make the existing sampler bridge easier to use without requiring the
+helper for WFO or meta, inventing ordinal categories, changing an alpha or
+silently changing sampler/objective/account defaults. Compatibility assessment
+uses the declared parameter schema, never OOS outcomes or strategy execution.
+It cannot establish whether an arbitrary alpha objective is smooth or profitable.
+
+**Detailed Guide:** reuse [public sampler/meta independence, section 3](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s3),
+[geometry, compatibility and caller policies, section 4](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s4),
+[same-work versus algorithm comparisons, section 10](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s10),
+[honest reporting, section 12](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s12),
+and [bounded empirical scope, section 14](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s14).
+The immutable guide is not edited. Original mathematical/meta admission rules
+and financial ownership remain unchanged.
+
+**To Do:**
+1. Add a focused `optimization.sampler_space` helper over `NormalizedSearchSpace`,
+   `SamplerConfig` and the existing factory, not a second optimizer/financial
+   evaluator. Report static numeric, categorical, conditional and fixed blocks.
+2. Preserve ranges by default. Explicit caller numeric declarations may convert
+   regular integer enumerations to exactly the same integer lattice; reject
+   irregular support, booleans and string labels rather than invent bounds or
+   ordinal codes. Existing numeric/log/step schemas retain their semantics.
+   Explicit schema overrides cover custom numeric/conditional declarations.
+3. Support caller fixed parameters, schema/condition overrides and sampler
+   config override. Default incompatible requests raise; an explicit recommend
+   policy may choose the existing compatible TPE baseline with a recorded reason.
+   Mixed independent CMA and conditional Sobol keep their existing explicit
+   policies. No learned auto-sampler, covariance transfer or dummy evaluations.
+4. Return reusable ranges/config, assessment/provenance and effective-parameter
+   validation. Never mutate caller objects, draw RNG, inspect data, create trials,
+   fit meta, or change supplied meta settings. Helper-free endpoints stay valid.
+5. Test helper/manual exact proposal/objective/selection/account parity, failed
+   configuration before simulation, arbitrary label order, fixed/conditional
+   behavior, customization, serialization and caller/global RNG preservation.
+6. Run a registered diagnostic through public `pct_equity` WFO: unchanged private
+   Delta RSI on the existing sealed ETHUSDT 1h tape and an additional public
+   moving-average alpha on a fixed synthetic tape. Do not copy private source,
+   market or winning params into Git, docs, examples or artifacts.
+7. Separate exact helper/manual parity from different-sampler outcomes. Compare
+   only CMA-ES and legacy TPE, with meta off, original Mode 4/per_fold_causal
+   selection and identical financial config/trial budget. Record IS/forward,
+   decay, equity, trial states, runtime and RSS; no claim that compatibility
+   proves superior search. Retain all seeds, including negative outcomes.
+8. Document the API/example, scope and measurements. Run focused sampler/meta
+   regressions and a lightweight exact-source core wheel consumer when feasible;
+   no Rust rebuild for a Python config-only change. Commit verified changes.
+
+**Registered Comparison:** freeze before reading outcomes: Delta RSI uses the
+existing registration/alpha/market hashes; quarterly 2022 folds, rolling 365D
+IS, seeds 731/732/733, 128 attempts/fold, no early stopping or warm start.
+Run direct numeric CMA and helper-equivalent CMA for exact parity, and TPE for
+an algorithm comparison. Declare the eight existing numeric roles explicitly
+only in a separate integer-enumeration support-preservation check. The public
+alpha uses a deterministic 2020-2022 daily synthetic tape, quarterly 2022,
+365D IS, the same seeds and 128 attempts/fold. All selected candidates are
+evaluated on their actual forward windows and final stitched account; no
+sampler/seed/range selection after outcomes. Four evaluation folds are a bounded
+diagnostic, not the guide's twelve-fold economic promotion study or a promise
+of live edge. A benchmark registration/source manifest is sealed before runs.
+
+**Tests/Exit Gate:** SH-T01 schema/type/support/override checks; T02 no mutation,
+data access or RNG draws; T03 shared-factory compatibility; T04 helper/manual
+public WFO proposals, selected params and account exact parity; T05 opt-in meta
+settings unchanged and existing no-helper tests pass; T06 all registered seeds
+retained with valid raw metrics/account replay; T07 docs/import/package/privacy
+and cleanup. Technical completion requires these software gates, not a forced
+positive objective/OOS result. Any missing capability is explicit, not silently
+encoded or called qualified. No external scientific estimator is changed.
+
+**Resources/Cleanup:** entry about 25 GiB free, 85% free inodes. Reuse the current
+tooling environment and sealed private inputs. Budget <= 1 GiB incremental
+scratch plus >= 5 GiB safety headroom. Retain registrations, successful/failed
+logs/XML, results and exact core/native artifacts. Only this phase's inactive
+build/consumer scratch may be removed after process/source/hash checks; no
+global cache, historical lane, alpha or evidence deletion. Final source changes
+invalidate only affected current-source release inventory, never old receipts.
+
 ### QMS Planning-Only Verification - 2026-10-03
 
 - Verified eight phase sections, each containing status, goal, entry, linked
