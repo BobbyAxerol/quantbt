@@ -1,6 +1,7 @@
 """Fixed paired instrumented diagnostics, run only after unprofiled timing."""
 
 import json
+import argparse
 import subprocess
 import sys
 
@@ -10,6 +11,9 @@ from tools.qms_pre05_analysis import collect
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--label", choices=("final", "isolated"), default="final")
+    prefix = parser.parse_args().label
     lane = ROOT / ".maturin/qms08/pre-e06-05"
     if not (lane / "matched-v3-matrix.json").exists():
         raise ValueError("complete uninstrumented matrix before profile diagnostics")
@@ -33,7 +37,7 @@ def main():
     for cell in selected:
         index = cells().index(cell)
         for reference in (True, False):
-            label = "final-reference" if reference else "final-optimized"
+            label = prefix + ("-reference" if reference else "-optimized")
             path = lane / "profiles" / (label + "-" + cell.identity + ".json")
             if path.exists():
                 outputs.append(str(path.relative_to(ROOT)))
@@ -71,7 +75,7 @@ def main():
                 ),
                 flush=True,
             )
-    write_once(lane / "final-profiles.json", outputs)
+    write_once(lane / (prefix + "-profiles.json"), outputs)
 
 
 if __name__ == "__main__":

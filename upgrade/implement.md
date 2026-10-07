@@ -590,6 +590,13 @@ sample. Verify both actual conditional routes under both controls, then resume
 the remaining two cells with separate attempt logs. Candidate/RNG/account and
 all non-clock sampler fields remain exact; existing samples are not rewritten.
 
+**Profile/block isolation correction:** the first block-only timing was launched
+while instrumented profiles still ran. Preserve both sets as exploratory; do
+not infer a latency win from them. After those workers exit, rerun the entire
+same registered profile set under `isolated-*`, then the same 21x50 block test
+alone. No main matrix sample was concurrent with profiling. Only the isolated
+diagnostics/block artifact is primary; no selective cell or seed reruns.
+
 <a id="qms-pre-e06-06"></a>
 ### Phase PRE-E06-06 - Local Conformance, Exact Artifacts And E06 Entry Gate
 

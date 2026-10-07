@@ -68,7 +68,7 @@ def main():
         "|---|---:|---:|---|",
     ]
     profiles = []
-    for name in json.loads((lane / "final-profiles.json").read_text()):
+    for name in json.loads((lane / "isolated-profiles.json").read_text()):
         path = ROOT / name
         value = json.loads(path.read_text())
         stats = pstats.Stats(str(path.with_suffix(".pstats")))

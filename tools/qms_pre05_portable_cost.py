@@ -2,6 +2,7 @@
 
 from hashlib import sha256
 import json
+import argparse
 from statistics import median
 from time import perf_counter
 
@@ -12,6 +13,9 @@ from tools.qms_pre05_benchmark import write_once
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--label", choices=("original", "isolated"), default="original")
+    label = parser.parse_args().label
     lane = ROOT / ".maturin/qms08/pre-e06-05"
     history_path = lane / "history/domain-pct_equity.json"
     payload = tuple(load_history(history_path)._revisions.values())
@@ -53,8 +57,10 @@ def main():
         median_change_pct=(seconds["optimized"] / seconds["reference"] - 1) * 100,
         exact_portable_parity=True,
         full_wfo_speed_claim=False,
+        run_context=label,
     )
-    write_once(lane / "portable-block-cost.json", result)
+    suffix = "-isolated" if label == "isolated" else ""
+    write_once(lane / ("portable-block-cost" + suffix + ".json"), result)
     print(json.dumps({k: v for k, v in result.items() if k != "rows"}, sort_keys=True))
 
 
