@@ -2,8 +2,9 @@
 
 ## Current Post-Simulation Metrics Upgrade - Owner Planning Request 2026-10-07
 
-**Status:** PLAN_REGISTERED_ONLY; MET-01/MET-02/MET-03 NOT_STARTED;
-all implementation, regression, performance and installed-artifact gates NOT_RUN.
+**Status:** MET-01 RUNNING (owner approval 2026-10-07); MET-02/MET-03 NOT_STARTED.
+MET-01 contract/oracle tests NOT_RUN; performance and installed-artifact gates
+belong to later separately approved phases.
 Owner requests the [three-phase metrics program](#metrics-upgrade) below, with
 separate approval before each phase. This registration does not start a phase.
 
@@ -26071,7 +26072,7 @@ correctness are separate checks.
 
 | Order | Phase | Main result | Status / owner gate |
 |---|---|---|---|
-| 1 | [MET-01](#metrics-met-01) | Reviewed reporting contract, source inventory and independent expected-value fixtures | NOT_STARTED; phase approval PENDING |
+| 1 | [MET-01](#metrics-met-01) | Reviewed reporting contract, source inventory and independent expected-value fixtures | RUNNING; phase approval APPROVED, definitions review PENDING |
 | 2 | [MET-02](#metrics-met-02) | Additive typed reducers and honest raw-data capabilities | NOT_STARTED; MET-01 accepted and separate phase approval required |
 | 3 | [MET-03](#metrics-met-03) | Public reporting/docs, same-contract parity, raw preservation and local artifact/performance proof | NOT_STARTED; MET-02 accepted and separate phase approval required |
 
@@ -26261,7 +26262,8 @@ they do not amend the QMS learner, sampler or WFO objective methodology.
 <a id="metrics-met-01"></a>
 ### Phase MET-01 - Reporting Contract, Independent Oracle And Baseline Lock
 
-**Status:** NOT_STARTED; owner phase approval PENDING; MET01-T01..T08 NOT_RUN.
+**Status:** RUNNING; owner phase approval APPROVED (2026-10-07);
+MET01-T01..T08 NOT_RUN; reporting-definition acceptance PENDING.
 **Goal:** make every metric's unit/input/baseline/time/validity explicit and
 freeze an independently testable reporting contract before changing outputs.
 **Entry:** owner approves MET-01; current source/branch/status and existing
@@ -26319,6 +26321,21 @@ reducers. Missing engine data, new matching/account behavior or scientific-score
 migration is an explicit separate dependency, not a silent MET-01 activation.
 **Commit Boundary:** source inventory/spec, then oracle/tests and docs receipt;
 never include unrelated engine or methodology edits.
+
+**Execution Registration (2026-10-07):** approved source parent `dc8edd8`,
+branch `feat/meta-selection-samplers`, initially clean. Reuse `.venv` with
+CPython 3.12 and pinned QuantStats 0.0.81; no native rebuild, dependency install,
+simulation rerun or remote action. New internal schema has no endpoint/root
+export and no production consumer; reference reductions live only in tests.
+Before tests record SHA256 for every existing tracked `src/quantbt`, mirror,
+Rust source and packaging member. Register eight focused gates plus unchanged
+legacy intraday/scope and array parity regressions. Retain baseline, command
+logs and JUnit results in `docs/metrics/evidence/met01/`. Incremental disk budget
+64 MiB and at most 512 new inodes; available disk approximately 24 GiB and
+5.59 million inodes, with 5 GiB safety headroom. Only phase-owned temporary
+pytest/matplotlib caches under `/tmp/quantbt-met01-*` are eligible scratch;
+no historical cache/environment/evidence removal. Source/raw preservation and
+cleanup receipt are required before local closure. MET-02 remains unapproved.
 
 <a id="metrics-met-02"></a>
 ### Phase MET-02 - Additive Account, Closed-Trade And Closed-Action Reducers
