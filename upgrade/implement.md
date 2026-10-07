@@ -25503,7 +25503,10 @@ at a time, no monolithic rewrite of the native-event runtime.
 <a id="qms-e08"></a>
 #### QMS-E08 - Domain-Wide Conformance, Exact Artifacts And Owner Handoff
 
-**Status:** PLANNED_NOT_AUTHORIZED_FOR_EXECUTION; local/remote/public gates NOT_RUN.
+**Status:** AUTHORIZED_LOCAL_IN_PROGRESS (2026-10-07 owner request); local
+integrated gates NOT_RUN, current-source remote NOT_RUN, public PENDING_PUBLICATION.
+Owner authorized the bracket incident investigation and the listed E08 gap
+closures; no merge, tag, publication or scientific retuning is authorized.
 **Goal:** certify the exact integrated route matrix, without overstating empirical
 coverage or publishing unapproved features.
 **Entry:** E01-E07 have accepted gates or explicit owner-approved scope narrowing;
@@ -25552,6 +25555,66 @@ explicitly separate unless approved/implemented. No required E-phase gap is hidd
 by declaring an optional exclusion without owner approval.
 **Commit Boundary:** integrated tests/receipts/docs first; release/version changes
 only after separate approval, never speculative tag movement or publication.
+
+##### E08 Execution Addendum - Bracket Incident And Final Qualification
+
+**Entry/Rules:** read this phase, guide sections
+[8.1-8.7](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s8),
+[12](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s12),
+[13-15](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s13),
+[execution ownership](../docs/architecture/execution-plan.md), ADR-RP-002/005
+and [cleanup](../docs/BUILD_TEST_CLEANUP.md). Preserve prior E06/E07 receipts;
+new source needs new artifacts, not rewritten historical source seals.
+
+**Goal/To-Do (ordered, coherent commits):**
+
+1. Reproduce the owner's exact `entry_size=2000`, `fixed_notional` bracket
+   declaration on a public synthetic alpha and BTC/ETH/SOL-like OHLC prices.
+   Check signal versus effective-bar stamping, multiplier versus currency
+   units, technical exit/reversal, margin rejection, constraints, SL/TP,
+   first/last bars, and reference/Numba/Rust parity. Compare callback and
+   command execution without claiming different SL/TP paths must have equal
+   equity. Keep external portal/alpha source read-only; if its adapter is
+   absent, provide a tested minimal adapter correction, not a claimed fix of
+   unavailable source. Do not silently redefine legacy entry-size semantics.
+2. Derive WFO callback/command timing metadata from the actual financial
+   result/contract, not a hardcoded next-open label. Add generic v3 mature
+   fit/rank, future-mutation, raw measurement and independent-account tests
+   for both financial backends and all off/shadow/active states. Keep W3's
+   reset-flat contract distinct from continuous callback/command accounts.
+3. Reconcile requested and observed BLAS/OpenMP/Numba pools. Observe existing
+   pools without mutating caller runtime settings; explicitly set all thread
+   environment controls in fresh qualification workers and fail on mismatch.
+   Do not turn the combined fit_select timer into a correctness blocker.
+4. Add portable installed E06 intrabar/session and E07 callback/commands/W3
+   proofs. Bind all loaded canonical modules and native extension to exact
+   per-run wheel/sdist bytes, not local CPython 3.12 paths or old source seals.
+   Exercise mature history, accounting, clocks and rejected contracts. Wire
+   these proofs, paths and retained outputs into the six-row candidate CI.
+5. Run affected QMS/C01-C05/domain/continuation regression on final source;
+   prepare exact 1.1.2/0.4.3 wheel/sdist pair and integrated local consumer
+   receipts. Update current handoff, support/measurement docs and limitations.
+   No economic retune, estimator/tolerance change or activation of unadmitted
+   W3 carry/batch/multi-symbol, cash settlement, options or Nautilus routes.
+
+**Registered Tests/Exit:** E08-B01 synthetic incident and timing/sizing/account
+matrix; B02 lifecycle/cost/constraint/report parity; T01-T02 current support,
+sampler/continuation/domain regression; T03 exact installed intrabar/session,
+generic v2/v3, commands and W3 proofs with matured model actually used;
+T05 docs/workflow/privacy/source identity; T06 correct clock and observed thread
+telemetry. Remote T04 remains NOT_RUN until an authorized feature-branch push
+and actual six-row receipts; public proof remains PENDING_PUBLICATION. No
+universal decay improvement is a software admission prerequisite.
+
+**Resource/Cleanup Plan:** entry filesystem has about 25 GiB free and 85% free
+inodes; retain current 579 MiB tooling consumer and offline dependency cache.
+Use a fresh ignored `.maturin/qms08/e08-qualification-v1` evidence lane, at most
+3 GiB incremental scratch plus 5 GiB safety headroom. Reuse unchanged native
+artifact when Rust source does not change. Run builds/tests sequentially;
+retain exact artifacts, histories, logs/XML and receipts. Only the new inactive
+wheel/sdist/build consumer directories are eligible for cleanup after protected
+hash verification. Never delete old receipt lanes, private data or Rust target
+trees wholesale. Report actual freed bytes and reinstallation requirements.
 
 #### Future Options/Nautilus And New Endpoint Entry Gate
 
