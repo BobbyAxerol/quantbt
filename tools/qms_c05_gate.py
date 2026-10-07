@@ -42,7 +42,9 @@ def source_lock():
     verify_e01()
     changed = subprocess.check_output(["git", "diff", "--name-only", ENTRY, "--", *PROTECTED], cwd=ROOT, text=True).splitlines()
     untracked = subprocess.check_output(["git", "ls-files", "--others", "--exclude-standard", "--", *PROTECTED], cwd=ROOT, text=True).splitlines()
-    require_no_production_changes([name for name in [*changed, *untracked]
+    from tools.qms_pre05_source_guard import prior_names
+    names = prior_names([*changed, *untracked], ENTRY)
+    require_no_production_changes([name for name in names
                                   if name != E01_NAME and name not in E02_ALLOW and name not in E03_ALLOW])
     if file_hash(ROOT / GUIDE) != GUIDE_SHA:
         raise ValueError("C05 detailed guide changed")

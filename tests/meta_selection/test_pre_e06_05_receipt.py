@@ -93,3 +93,32 @@ def test_duplicate_na_identity_rejected(tmp_path):
     ElementTree(root).write(path)
     with pytest.raises(ValueError, match="duplicate"):
         passed_cases(path, admitted_na=REGISTERED_NA)
+
+
+@pytest.mark.parametrize("child", ("failure", "error"))
+def test_repaired_failure_not_counted_as_pass_in_old_shard(tmp_path, child):
+    path = tmp_path / "failed.xml"
+    path.write_text(
+        f'<testsuite><testcase classname="x" name="y"><{child}/></testcase>'
+        '<testcase classname="x" name="z"/></testsuite>'
+    )
+    assert set(passed_cases(path, repaired_by={("x", "y")})) == {("x", "z")}
+
+
+@pytest.mark.parametrize("child", ("failure", "error"))
+def test_failure_without_exact_passing_rerun_rejected(tmp_path, child):
+    path = tmp_path / "failed.xml"
+    path.write_text(
+        f'<testsuite><testcase classname="x" name="y"><{child}/></testcase></testsuite>'
+    )
+    with pytest.raises(ValueError, match="without skips"):
+        passed_cases(path, repaired_by={("different", "test")})
+
+
+def test_unexpected_skip_never_repaired_as_failure(tmp_path):
+    path = tmp_path / "skip.xml"
+    path.write_text(
+        '<testsuite><testcase classname="x" name="y"><skipped/></testcase></testsuite>'
+    )
+    with pytest.raises(ValueError, match="without skips"):
+        passed_cases(path, repaired_by={("x", "y")})

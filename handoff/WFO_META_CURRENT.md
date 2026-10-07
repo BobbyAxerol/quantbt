@@ -113,6 +113,11 @@ change. See [E01 evidence and current gate](../docs/meta_selection/QMSE01_REPORT
 | C05 geometry | Explicit conditional Sobol/support projection and owned continuation qualified locally by PRE-E06-04; final installed artifacts PRE-E06-06 |
 | Carry/multi-symbol/public meta batch | Unsupported; contracts/specs do not activate runtime |
 
+Broader C01 modes/schedules/execution-domain cohorts and unadmitted C05 policies
+remain **NOT_ACTIVATED**. This does not undo the separately approved nested
+scalar and conditional-policy local activations above; their final-source
+installed proof is still PRE-E06-06.
+
 The repaired candidate remote gate passes above; public/final publication
 artifacts still need new source/artifact qualification and separate approval. Existing historical
 seals and market numbers below retain their original scope and bytes.

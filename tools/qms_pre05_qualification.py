@@ -42,7 +42,7 @@ def file_hash(path):
     return sha256(path.read_bytes()).hexdigest()
 
 
-def passed_cases(path, *, admitted_na=frozenset()):
+def passed_cases(path, *, admitted_na=frozenset(), repaired_by=frozenset()):
     cases = {}
     seen = set()
     for case in ET.parse(path).iter("testcase"):
@@ -57,6 +57,12 @@ def passed_cases(path, *, admitted_na=frozenset()):
             and skipped.get("message") == NA_REASON
             and case.find("failure") is None
             and case.find("error") is None
+        ):
+            continue
+        if (
+            key in repaired_by
+            and skipped is None
+            and any(case.find(k) is not None for k in ("failure", "error"))
         ):
             continue
         if any(case.find(k) is not None for k in ("failure", "error", "skipped")):
@@ -142,7 +148,7 @@ def artifact_inventory(lane, cost):
     return {str(p.relative_to(ROOT)): file_hash(p) for p in paths}
 
 
-def build(lane, native, shards, *, label="matched-v3"):
+def build(lane, native, shards, *, failed_shards=(), label="matched-v3"):
     source = verify()
     if file_hash(ROOT / GUIDE) != GUIDE_SHA:
         raise ValueError("scientific guide changed")
@@ -153,6 +159,24 @@ def build(lane, native, shards, *, label="matched-v3"):
     actual_na = set()
     for shard in shards:
         union.update(passed_cases(shard, admitted_na=REGISTERED_NA))
+        actual_na.update(
+            (c.get("classname"), c.get("name"))
+            for c in ET.parse(shard).iter("testcase")
+            if c.find("skipped") is not None
+        )
+    repairs = {}
+    for shard in failed_shards:
+        # Only separately passing reruns can resolve a failed identity. It is
+        # never counted as PASS from the failed shard or repaired by itself.
+        keys = {
+            (c.get("classname"), c.get("name"))
+            for c in ET.parse(shard).iter("testcase")
+            if any(c.find(k) is not None for k in ("failure", "error"))
+        }
+        if not keys or not keys <= union:
+            raise ValueError("failed shard has no complete separately passing reruns")
+        repairs[str(shard.relative_to(ROOT))] = sorted(keys)
+        union.update(passed_cases(shard, admitted_na=REGISTERED_NA, repaired_by=union))
         actual_na.update(
             (c.get("classname"), c.get("name"))
             for c in ET.parse(shard).iter("testcase")
@@ -181,7 +205,7 @@ def build(lane, native, shards, *, label="matched-v3"):
         ("guard", 4),
         ("analysis", 5),
         ("chronological", 2),
-        ("receipt", 10),
+        ("receipt", 15),
         ("evidence", 5),
         ("w3", 3),
         ("conditional", 2),
@@ -211,6 +235,28 @@ def build(lane, native, shards, *, label="matched-v3"):
     names = subprocess.check_output(
         ["git", "ls-files", "--", "src", "rust"], cwd=ROOT, text=True
     ).splitlines()
+    verification_names = set(
+        subprocess.check_output(
+            ["git", "diff", "--name-only", ENTRY, "--", "tools", "tests"],
+            cwd=ROOT,
+            text=True,
+        ).splitlines()
+    )
+    verification_names.update(
+        subprocess.check_output(
+            [
+                "git",
+                "ls-files",
+                "--others",
+                "--exclude-standard",
+                "--",
+                "tools",
+                "tests",
+            ],
+            cwd=ROOT,
+            text=True,
+        ).splitlines()
+    )
     if (
         file_hash(native)
         != "e338a0f1549395211dc42332ed15eb43c0bb92f71728ca3181b0268f56a57aba"
@@ -228,15 +274,13 @@ def build(lane, native, shards, *, label="matched-v3"):
         registered_not_applicable_skip_ids=sorted(actual_na),
         private_full_study_replay="NOT_REEXECUTED_UNCHANGED_FINANCIAL_SOURCE",
         junit_sha256={str(p.relative_to(ROOT)): file_hash(p) for p in shards},
+        failed_junit_sha256={
+            str(p.relative_to(ROOT)): file_hash(p) for p in failed_shards
+        },
+        failed_identities_separately_rerun=repairs,
         runtime_source_sha256={n: file_hash(ROOT / n) for n in sorted(names)},
         verification_source_sha256={
-            str(p.relative_to(ROOT)): file_hash(p)
-            for p in sorted(
-                (
-                    *(ROOT / "tools").glob("qms_pre05*.py"),
-                    *(ROOT / "tests/meta_selection").glob("test_pre_e06_05*.py"),
-                )
-            )
+            n: file_hash(ROOT / n) for n in sorted(verification_names)
         },
         reviewed_source_manifest_sha256=file_hash(MANIFEST),
         historical_preserved_sha256=retained,
@@ -290,9 +334,15 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--native", type=Path, required=True)
     parser.add_argument("--shard", type=Path, action="append", required=True)
+    parser.add_argument("--failed-shard", type=Path, action="append", default=[])
     args = parser.parse_args()
     lane = ROOT / ".maturin/qms08/pre-e06-05"
-    receipt = build(lane, args.native.resolve(), [p.resolve() for p in args.shard])
+    receipt = build(
+        lane,
+        args.native.resolve(),
+        [p.resolve() for p in args.shard],
+        failed_shards=[p.resolve() for p in args.failed_shard],
+    )
     closure = (
         ROOT / "benchmarks/optimization/meta_selection/qms_pre_e06_05_closure.json"
     )
