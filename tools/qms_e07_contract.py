@@ -29,6 +29,8 @@ def source_guard():
     hashes = {}
     for name in names:
         actual = (ROOT / name).read_bytes()
+        from tools.qms_e08_source_guard import without_e08
+        reviewed = without_e08(actual, name)
         old = subprocess.check_output(["git", "show", f"{ENTRY}:{name}"], cwd=ROOT)
         hashes[name] = sha256(actual).hexdigest()
         if name == RUNTIME:
@@ -36,7 +38,7 @@ def source_guard():
                 if old.count(anchor) != 1:
                     raise ValueError("ambiguous E07 output amendment")
                 old = old.replace(anchor, anchor+insertion, 1)
-        if actual != old:
+        if reviewed != old:
             raise ValueError(f"unapproved E07 runtime/build change: {name}")
     return hashes
 
@@ -66,9 +68,14 @@ def register():
     return value
 
 
-def check_registration():
+def check_registration(*, historical=False):
     value = json.loads((LANE / "registration.json").read_text())
-    if value["runtime_sha256"] != source_guard() or value["guide_sha256"] != file_hash(ROOT / GUIDE):
+    actual = source_guard()
+    if historical:
+        from tools.qms_e08_source_guard import ENTRY as E07_COMPLETE, baseline
+        actual = {name: sha256(baseline(name, E07_COMPLETE)).hexdigest()
+                  for name in value["runtime_sha256"]}
+    if value["runtime_sha256"] != actual or value["guide_sha256"] != file_hash(ROOT / GUIDE):
         raise ValueError("E07 source/guide seal drift")
     for name, expected in value["protected_sha256"].items():
         if file_hash(ROOT / name) != expected:

@@ -1,0 +1,7 @@
+{
+  "baseline": "0da632e",
+  "source_sha256": {
+    "src/quantbt/optimization/meta_selection/telemetry.py": "abf5021ec17e1dfce06bb8298fb03bced05bece095e74f647ffdc5b213fa2b60",
+    "src/quantbt/wfo_execution.py": "5df31a8e270afb7f0f82855f15df325c84132631d77eeef82cf3541b961ca1f2"
+  }
+}

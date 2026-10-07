@@ -73,10 +73,12 @@ def test_e07_public_patch_rejects_private_material(private, monkeypatch):
 
 
 def test_e07_closure_bound_to_registered_source_and_native():
-    registered = closure.check_registration()
+    registered = closure.check_registration(historical=True)
     assert len(registered["runtime_sha256"]) == 322
     assert closure.artifacts(registered)["wheel"]["modules"] == 260
     assert registered["native"]["extension_sha256"] == EXTENSION_SHA
+    with pytest.raises(ValueError, match="source/guide seal drift"):
+        closure.check_registration()
 
 
 def test_e07_public_grid_example_fits_mature_history_without_private_inputs():

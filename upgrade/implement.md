@@ -25616,6 +25616,16 @@ wheel/sdist/build consumer directories are eligible for cleanup after protected
 hash verification. Never delete old receipt lanes, private data or Rust target
 trees wholesale. Report actual freed bytes and reinstallation requirements.
 
+**Validation Addendum (2026-10-07):** owner explicitly limited this run to
+local work; no branch push or CI dispatch, merge, tag or publication. Remote
+qualification is DEFERRED_BY_OWNER, not PASS. Local regression exposed stale
+historical source guards that do not recognize the exact E07 output/E08 timing
+and telemetry amendments. Add versioned byte-exact normalization and mutation
+tests, preserving every historical receipt. Historical artifact checks must
+explicitly validate their historical Git/source identity; they must still reject
+being used as current-source certification. Do not exempt whole runtime files,
+change accounting or alter the detailed scientific guide to pass old guards.
+
 #### Future Options/Nautilus And New Endpoint Entry Gate
 
 Options, Nautilus or another future domain may join the same public WFO/meta

@@ -18,6 +18,8 @@ def baseline(name):
 
 
 def without_pre05(source, name):
+    from tools.qms_e08_source_guard import without_e07_e08
+    source = without_e07_e08(source, name)
     if name not in ALLOW:
         return source
     before = baseline(name)
@@ -36,10 +38,12 @@ def without_pre05(source, name):
 def prior_names(names, entry):
     """Remove only an exact amendment absent from the historical scope."""
     result = set(names)
-    for name in result & ALLOW:
+    from tools.qms_e08_source_guard import ALLOW as E08_ALLOW, RUNTIME
+    for name in result & (ALLOW | E08_ALLOW | {RUNTIME}):
         normalized = without_pre05((ROOT / name).read_bytes(), name)
-        old = subprocess.check_output(["git", "show", f"{entry}:{name}"], cwd=ROOT)
-        if normalized == old:
+        old = subprocess.run(["git", "show", f"{entry}:{name}"], cwd=ROOT,
+                             capture_output=True, check=False)
+        if old.returncode == 0 and normalized == old.stdout:
             result.remove(name)
     return result
 
@@ -59,6 +63,7 @@ def verify():
             text=True,
         ).splitlines()
     )
+    names = prior_names(names - ALLOW, ENTRY) | (names & ALLOW)
     if names != ALLOW:
         raise AssertionError(f"unreviewed PRE05 runtime scope: {sorted(names ^ ALLOW)}")
     for name in names:
