@@ -4,6 +4,23 @@ Local source and installed-artifact qualification completed on 2026-10-07.
 No services, environments from other phases, data, alpha files, Git objects or
 global caches were removed. No Rust build occurred.
 
+## Owner Recheck
+
+The [latest recheck](../metrics/MET03_RECHECK_REPORT.md) has fresh source/artifact
+receipts; the original completion below remains historical, not rewritten.
+Removed only `/tmp/quantbt-met03-b85co6gr` (source),
+`/tmp/quantbt-met03-ovyrob6y` (build/sequential installed consumers), and
+`/tmp/quantbt-met03-review-repro` (empty test directories after retained XML).
+Peak concurrent files/bytes were 14,886 / 694,093,140, below 20k / 3 GiB.
+The final installed cleanup recovered 13,033,472 actual filesystem bytes;
+the 1,373,271,846 apparent lifetime bytes are not an actual reclamation claim.
+Final repro-directory removal recovered 20,480 bytes. Logs, passing/failing
+receipts, offline dependencies, primary tooling and old/new artifacts remain.
+New artifacts: `.maturin/met03/run-20261007T204118067245Z/dist/`.
+The [new closure](../metrics/evidence/met03/review-closure.json) verifies all
+previous evidence/artifact hashes and current source/native identity; all
+consumer environments require fresh installation to rerun.
+
 ## Reviewed Scratch
 
 - Source qualification `/tmp/quantbt-met03-u9uyuf_8`: isolated dependency/native

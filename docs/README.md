@@ -24,7 +24,7 @@ to verify the pair and [Endpoint contract](endpoint.md) to select a route.
 | Inspect the exact Rust-auto route, evidence, fallbacks, and rollback controls | [Public Rust Promotion](native/public_rust_promotion.md) |
 | Choose the right backend | [Backend selection](backend_selection.md) |
 | Call QuantBT from notebooks/services | [Endpoint contract](endpoint.md) |
-| Report account periods, executed trades/actions and observed drawdown episodes without changing WFO scores | [Reporting V1](metrics/PUBLIC_REPORTING.md), [metric dictionary](metrics/REPORTING_CONTRACT_V1.md), [local certification](metrics/MET03_REPORT.md) |
+| Report account periods, executed trades/actions and observed drawdown episodes without changing WFO scores | [Reporting V1](metrics/PUBLIC_REPORTING.md), [metric dictionary](metrics/REPORTING_CONTRACT_V1.md), [local certification](metrics/MET03_REPORT.md), [latest owner recheck](metrics/MET03_RECHECK_REPORT.md) |
 | Choose the correct execution timing contract | [Execution contracts](execution_contracts.md) |
 | Migrate SL/TP/trailing alphas to the fast intrabar route | [Fast intrabar](fast_intrabar.md) |
 | Run the explicit Rust bounded intrabar authority and inspect its trace contract | [Fast intrabar](fast_intrabar.md#explicit-rust-intrabar-authority) |

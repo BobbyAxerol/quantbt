@@ -1,0 +1,1 @@
+{"status": "PASS", "modules": 275, "core": "1.1.2", "native": "0.4.3", "package_origin": "/tmp/quantbt-met03-ovyrob6y/wheel/lib/python3.12/site-packages/quantbt", "outside_checkout": true, "extension_sha256": "e338a0f1549395211dc42332ed15eb43c0bb92f71728ca3181b0268f56a57aba", "matplotlib_optional": true, "review_edge_cases": "PASS", "publication": false}

@@ -1,5 +1,10 @@
 # MET-03 Local Certification
 
+**Latest source:** the [owner recheck](MET03_RECHECK_REPORT.md) closes five
+additional reporting edge defects with 667 tests and fresh installed artifacts.
+The results/hashes below remain the original MET-03 qualification, not proof
+for the subsequently changed source.
+
 **COMPLETE_LOCAL.** MET03-T01..T10 PASS for the admitted coverage. Owner final
 review remains pending. No push, workflow, merge, tag, version change or upload.
 

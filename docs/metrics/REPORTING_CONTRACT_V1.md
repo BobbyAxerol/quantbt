@@ -58,21 +58,25 @@ declared otherwise. RF, MAR and Omega threshold are **per-period simple rates**.
 Annual RF must first be converted using an explicit convention outside this
 schema; it is not silently divided by 365.
 
-| Metric ID suffix (`reporting.account.*`) | Definition / undefined policy |
+The table uses the exact implemented suffix after `reporting.`. Sortino has
+one `period.sortino` ID; its all/negative-observation convention is carried in
+the contract, not separate aliases.
+
+| Metric ID suffix (`reporting.*`) | Definition / undefined policy |
 |---|---|
-| `total_return` | `E_end / E_baseline - 1`; no external flows |
-| `cagr_elapsed` | `expm1(log(E_end/E_baseline) / elapsed_years)`, years = exact elapsed UTC days / declared year days (proposed 365.25); less than declared minimum days (proposed 1) is insufficient, not Total Return |
-| `cagr_period_count` | growth raised to `annual_periods / actual_return_count` minus 1; separately labeled, QS-comparable only with the identical boundary returns |
-| `sharpe` | mean `(r-RF)` / sample SD `(r-RF, ddof)` times sqrt(annual periods); insufficient N or zero SD is undefined |
-| `sortino_all` | mean `(r-MAR)` / sqrt(sum(min(r-MAR,0)^2) / N), annualized; no downside + positive excess is `no_loss`, zero/negative numerator with zero denominator is undefined |
-| `sortino_conditional` | same numerator, denominator N_negative; explicitly selected convention, not legacy's nonzero-MAR numerator bug |
-| `omega` | sum positive `(r-threshold)` / absolute sum negative `(r-threshold)`; no losses and positive gains is `no_loss`, all zero is undefined |
-| `period_profit_factor` | same ratio at zero threshold; not closed-trade PF |
-| `period_avg_win/loss` | conditional mean positive/negative r; absent bucket unavailable |
-| `period_win_rate` | N_positive / N including zeros; QS excludes zeros, so that comparison must be named `nonzero_period_win_rate` |
-| `period_mean_arithmetic/geometric` | mean r / compounded growth^(1/N)-1; geometric unavailable for any r <= -1 |
-| `calmar` | declared CAGR / max observed DD; undefined for zero DD or unavailable CAGR |
-| `ulcer_index` | sqrt(mean(D^2)) across all observed equity marks, fraction units |
+| `account.total_return` | `E_end / E_baseline - 1`; no external flows |
+| `account.cagr_elapsed` | `expm1(log(E_end/E_baseline) / elapsed_years)`, years = exact elapsed UTC days / declared year days (proposed 365.25); less than declared minimum days (proposed 1) is insufficient, not Total Return |
+| `period.cagr_period_count` | growth raised to `annual_periods / actual_return_count` minus 1; separately labeled, QS-comparable only with the identical boundary returns |
+| `period.sharpe` | mean `(r-RF)` / sample SD `(r-RF, ddof)` times sqrt(annual periods); insufficient N or zero SD is undefined |
+| `period.sortino` (`all_observations`) | mean `(r-MAR)` / sqrt(sum(min(r-MAR,0)^2) / N), annualized; no downside + positive excess is `no_loss`, zero/negative numerator with zero denominator is undefined |
+| `period.sortino` (`negative_observations`) | same numerator, denominator N_negative; explicitly selected convention, not legacy's nonzero-MAR numerator bug |
+| `period.omega` | sum positive `(r-threshold)` / absolute sum negative `(r-threshold)`; no losses and positive gains is `no_loss`, all zero is undefined |
+| `period.profit_factor` | same ratio at zero threshold; not closed-trade PF |
+| `period.avg_win` / `period.avg_loss` | conditional mean positive/negative r; absent bucket unavailable |
+| `period.win_rate` / `period.nonzero_win_rate` | N_positive / N including zeros; QS-comparable nonzero variant excludes zeros |
+| `period.mean_arithmetic` / `period.mean_geometric` | mean r / compounded growth^(1/N)-1; geometric unavailable for any r <= -1 |
+| `account.calmar` | declared CAGR / max observed DD; undefined for zero DD or unavailable CAGR |
+| `drawdown.ulcer_index` | sqrt(mean(D^2)) across all observed equity marks, fraction units |
 
 No exponent clamp or manufactured finite ratio. Overflow is an explicit
 invalid/non-finite result, not silent clipping. Short-sample policies and
@@ -122,7 +126,7 @@ chain unrelated roll packages into one campaign.
 For complete closed outcomes `x_i` in one currency, G=sum positive x,
 L=absolute sum negative x, N=closed_count:
 
-| Metric (`reporting.trade.*` / `reporting.action.*`) | Definition |
+| Metric (`reporting.closed_trade.*` / `reporting.closed_action.*`) | Definition |
 |---|---|
 | `closed_count/win_count/loss_count/breakeven_count` | closed population only; win/loss compare explicit currency tolerance (proposed 0); breakeven remains in N |
 | `win_rate` | win_count/N, including breakeven |

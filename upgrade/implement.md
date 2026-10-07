@@ -6,9 +6,12 @@
 MET01-T01..T08 PASS, 452 tests passed/no skips, 322 production hashes unchanged.
 Reporting definitions accepted through owner approval of MET-02 on 2026-10-07;
 MET-02 COMPLETE_ADDITIVE_LOCAL (567 tests, T01..T10 PASS), MET-03 COMPLETE_LOCAL
-(598 source tests, T01..T10 PASS; exact wheel/sdist consumers PASS). Separate
+(667 source tests after owner recheck, T01..T10 PASS; new exact wheel/sdist
+consumers and edge-case proof PASS). Separate
 phase approval 2026-10-07; final owner review remains PENDING. Historical
-receipts remain unchanged. No CI/push/merge/tag/version change or publication.
+receipts remain unchanged. Owner recheck closed five reporting edge defects;
+read the [recheck report](../docs/metrics/MET03_RECHECK_REPORT.md).
+No CI/push/merge/tag/version change or publication.
 Owner requests the [three-phase metrics program](#metrics-upgrade) below, with
 separate approval before each phase. Read the [MET-01 report](../docs/metrics/MET01_REPORT.md)
 and [reporting definitions](../docs/metrics/REPORTING_CONTRACT_V1.md) for review.
@@ -26079,7 +26082,7 @@ correctness are separate checks.
 |---|---|---|---|
 | 1 | [MET-01](#metrics-met-01) | Reporting contract, source inventory and independent expected-value fixtures | COMPLETE_SPEC_ORACLE_LOCAL; definitions accepted through MET-02 approval |
 | 2 | [MET-02](#metrics-met-02) | Additive typed reducers and honest raw-data capabilities | COMPLETE_ADDITIVE_LOCAL; 567 tests, T01..T10 PASS; accepted through MET-03 approval |
-| 3 | [MET-03](#metrics-met-03) | Public reporting/docs, same-contract parity, raw preservation and local artifact/performance proof | COMPLETE_LOCAL; 598 tests, exact wheel/sdist and T01..T10 PASS; final owner review PENDING |
+| 3 | [MET-03](#metrics-met-03) | Public reporting/docs, same-contract parity, raw preservation and local artifact/performance proof | COMPLETE_LOCAL; owner recheck 667 tests, new exact wheel/sdist and T01..T10 PASS; final owner review PENDING |
 
 All test groups and cost/installed gates below are NOT_RUN at registration.
 The following detailed guides are normative for this owner-requested program;
@@ -26506,7 +26509,8 @@ No push, workflow, merge, native build, version/tag or publication.
 ### Phase MET-03 - Public Reports, Documentation And Local Certification
 
 **Status:** COMPLETE_LOCAL; owner phase approval APPROVED (2026-10-07);
-MET-02 accepted through this approval; MET03-T01..T10 PASS. Final owner
+MET-02 accepted through this approval; MET03-T01..T10 PASS, including the new
+667-test owner recheck and exact-source artifact proof. Final owner
 review PENDING; preserve all historical registration and completion receipts.
 **Goal:** expose the accepted metrics clearly and certify mathematical,
 compatibility, financial-preservation and reporting-cost behavior on exact source.
@@ -26660,7 +26664,29 @@ then local artifact/cleanup/final handoff. Preserve phase receipts independently
   unchanged native 0.4.3 wheel. Retain new failures/logs and exact artifacts,
   clean only these inactive scratch paths after preserving evidence. Existing
   benchmark receipts remain historical; changed-source timings must be new.
-- Current state: REVIEW_IN_PROGRESS; owner acceptance PENDING.
+- Current state: COMPLETE_LOCAL; owner acceptance PENDING.
+
+**MET-03 Owner Recheck Completion - 2026-10-07:**
+- Reproduced 20 failures / five passes before fixes; five defect classes were
+  timestamp-resolution normalization, missing-time rejection, unfinished-action
+  realized PnL, false open-PnL zero without matched valuation, and fractional
+  holding-bar formatting. Preserve the original failed XML and old receipts.
+- All fixes are reporting-only. New independent cases: 69 PASS. Full source:
+  667 PASS, zero failures/skips; Python/Numba, oracle, scope/lifecycle raw fields,
+  mature meta/WFO scientific/RNG and all 325 protected-source checks pass.
+- New local wheel/sdist consumers pass outside checkout, all 275 modules exact,
+  native 0.4.3 reused unchanged, and installed clock/open-action cases PASS.
+  Twelve new benchmark cells are retained with timing noise and owner cost
+  review explicit; no latency threshold or speedup claim is manufactured.
+- Correct the live metric dictionary's namespace labels to actual IDs; no
+  mathematical definition or scientific alias changes. Read the
+  [recheck report](../docs/metrics/MET03_RECHECK_REPORT.md) and
+  [new closure](../docs/metrics/evidence/met03/review-closure.json).
+- Fresh source/build consumers and the exact owned repro scratch are cleaned;
+  source, primary tooling, offline dependencies, old/new artifacts and passing/
+  failing evidence remain. No open reproduced in-scope correctness blocker;
+  explicit raw-coverage/capability limits and remote/public gates are separate.
+  No push, CI, merge, tag, version change or publication.
 
 ### Metrics Completion, Evidence And Owner Review Rules
 
