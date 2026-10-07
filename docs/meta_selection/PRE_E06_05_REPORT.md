@@ -2,9 +2,10 @@
 
 ## Scope And Status
 
-Local execution in progress on `feat/meta-selection-samplers`, entry `d0cd95a`.
-This report is not yet an exit receipt. No release, workflow, push, economic
-study or new route/method activation is authorized by this phase.
+Measurement and the scoped runtime patch are complete locally on
+`feat/meta-selection-samplers`, entry `d0cd95a`. Full regression is still running;
+the cost exit gate is OPEN, not an accepted completion receipt. No release,
+workflow, push, economic study or new route/method activation is authorized.
 
 Read [the phase and registered budgets](../../upgrade/implement.md#qms-pre-e06-05),
 [guide section 8](../../upgrade/QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s8),
@@ -115,9 +116,106 @@ pass reader parity after excluding that one physical diagnostic from logical
 identity; it remains in per-sample raw telemetry and full-call latency. Failed
 expected/actual JSON and logs remain retained; completed samples are unchanged.
 
-## Remaining Gate
+The first block-only timing overlapped the first post-matrix profile workers.
+Both sets remain exploratory. The entire registered paired profile set was
+repeated under `isolated-*`, followed by the same 21x50 block measurement after
+the profiler exited. Only these later artifacts are primary; main-matrix timing
+did not overlap the profiler or heavy financial/regression work. This is a
+shared VPS, not a dedicated-machine or platform-wide latency experiment.
 
-Final timing/retention disposition, full affected regression, source-bound
-receipt, documentation checks and cleanup still need execution/closure.
+## Measured Costs
+
+Read the [generated tables](../../benchmarks/optimization/meta_selection/qms_pre_e06_05_cost.md)
+and [complete 76-cell aggregate](../../benchmarks/optimization/meta_selection/qms_pre_e06_05_cost.json).
+Tables come from the retained raw samples, not manually selected medians.
+All 3,192 warm executions and 152 warmups pass full semantic comparison.
+
+The block-only portable check reduces its 50-call median from 926.42 to 724.85
+ms (21.76%). It uses 26 actual frozen synthetic history revisions, with zero
+financial calls. It is not an end-to-end WFO or private-alpha speed claim.
+The source change is small relative to the legitimate scoring/observer work.
+
+Matched active public-call p50 decreases 2.68% for ordinary pct-equity, 1.80%
+for intrabar, 3.47% for W3 reset-flat, 2.06% for portfolio, 2.39% for delivery
+roll, 3.02% for prepared pct-equity and 3.68% for nested pct-equity. Callback
+event-driven decreases 0.33%; command-tape changes +0.06%, effectively unchanged
+in this sample. The generated table includes every domain, prepared and nested
+row, including off/shadow/on and original label/auxiliary-evaluation counts.
+No superiority confidence interval or broad real-WFO speed guarantee is claimed.
+
+Meta on/off is a different-work cost comparison. For example, ordinary
+pct-equity p50 is 102.54 ms off versus 219.83 ms active; intrabar is 188.79
+versus 334.32 ms. W3 prepared backtest is 72.32 versus 292.97 ms. Labels,
+archives, fit/rank and requested panels are additional work, not unexplained
+financial-engine slowdown. Nested Mode 1 also retains and charges the three
+additional raw outer-IS evaluations in these fixtures.
+
+### Disabled Latency Gate
+
+25/32 disabled cells meet the registered point budgets. Seven are NOT_MET:
+legacy Mode 1 per-fold decay and nested causal, legacy Mode 3/4 global, ordinary
+unit, W3 reset-flat and nested pct-equity. The generated table gives every p50/
+p95 pair and dispersion remains in the JSON. Six misses are p95-only; nested
+pct-equity p50 is +3.36%, against the unchanged +3% threshold.
+
+Both isolated full cProfiles show zero `wire` calls in all seven missed cells.
+The changed block did not execute there; this is diagnostic evidence, not a
+budget waiver. The measured point budgets remain NOT_MET and statistical
+non-inferiority remains uncertified. Owner disposition is required before the
+phase can satisfy its cost exit gate; no favorable-cell rerun or automatic
+PRE-E06-06 start is allowed.
+
+### Components, Native Resolution And Memory
+
+Thirty primary instrumented profiles cover the eight registered representative
+cells plus both arms of all seven disabled misses. They preserve exclusive and
+inclusive preparation/witness, scoring, selection, observer, fit/rank, outer-IS,
+account/report and unattributed spans. Exclusive spans plus residual reconcile
+the instrumented call; adding inclusive nested spans would double-count work.
+Zero hook coverage in a legacy report span is not proof of zero report cost.
+
+The pct-equity active fixture records N=37, d=3, 15 origins, P=3. Its existing
+Rust require path resolves transform/Gram-solve/rank to Rust, with NumPy
+historical scaling/diagnostics and Python-schema/NumPy parameter encoding.
+Telemetry records four numeric FFI calls, three qualification calls, 3,254
+owned-input copy bytes, native 0.4.3/API 0.4, float64, fast-math false and no
+fallback. All observed numeric pools are one-thread and report no thread
+mismatch. Per-cell telemetry is retained; these figures are not universal.
+
+Worker peaks are 220.41-306.29 MiB, including cold imports, both controls and
+the measurement harness. The largest first-to-last retained drift is 19.08
+MiB. Per-arm warm retained medians are reported, but independent arm peaks
+are not certified. This patch does not establish an RSS reduction or zero
+growth; chronological tests enforce bounded witness-cache retention and
+independent candidate/account lifetimes, not a fabricated memory win.
+
+## Source, Regression And Receipt
+
+The final portable dispatch implementation is `0c46c3d`, sealed by
+`qms_pre_e06_05_reviewed_source_v2.json`. Tooling corrections, primary matrix/
+profiles and source-bound verifier are separately committed. Only this reviewed
+runtime file differs from entry; Rust, accounting, metrics, Ridge, samplers,
+endpoint signatures/configuration/defaults and scientific guide are unchanged.
+The existing qualified native extension remains SHA
+`e338a0f1549395211dc42332ed15eb43c0bb92f71728ca3181b0268f56a57aba`.
+
+Scoped qualification requires fresh passing identities from the predecessor's
+701-case gate plus all new semantic/type/clock/reader/receipt tests. Duplicate
+JUnit identities, missing raw samples, changed budgets, incomplete paired
+profiles and changed source/native/guide bytes fail the verifier. Exactly 30
+registered scalar-scorer N/A cases are separate from PASS; their routes still
+run through their original financial accounts. Private full-study replay is
+not rerun: financial source is unchanged and no new alpha study is authorized.
+
+Final regression counts and cleanup hashes will be recorded after workers exit.
+All exploratory failures and current reruns remain separate immutable files.
+
+## Remaining Gate And Decisions
+
+Implementation and measured speed are distinct from owner cost acceptance.
+Full affected regression, source-bound receipt, documentation and cleanup are
+being finalized. Seven disabled point-budget misses keep cost disposition OPEN.
+No new economic study was run: exact matched decisions/measurements preserve
+the original R/Q and decay, rather than demonstrating a new decay improvement.
 Final-source installed wheel/sdist proof remains PRE-E06-06, with its own owner
 approval. Economic/default and remote/public qualification remain separate.
