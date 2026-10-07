@@ -1,0 +1,4609 @@
+{
+  "cells": [
+    {
+      "backend": "python",
+      "cache_accounted_bytes": 11704,
+      "cache_hit_p50_ms": 0.04918599734082818,
+      "cache_released": true,
+      "contract_identity": "f5fcf8faaf059bcd0270a63bafd7450151b90829ac5ff0032de42e5dd205e456",
+      "first_call_including_jit_ms": 6.881881970912218,
+      "input_identity": "d9006d9effd12e6249fb48e113cf96f3ca9f127ce2e6a367e7034d11c41fba45",
+      "kind": "account",
+      "observations": 2000,
+      "observations_per_second": 298186.5327522389,
+      "output": {
+        "contract_identity": "f5fcf8faaf059bcd0270a63bafd7450151b90829ac5ff0032de42e5dd205e456",
+        "input_identity": "d9006d9effd12e6249fb48e113cf96f3ca9f127ce2e6a367e7034d11c41fba45",
+        "metrics": [
+          {
+            "contract_identity": "f5fcf8faaf059bcd0270a63bafd7450151b90829ac5ff0032de42e5dd205e456",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.account.total_return",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.011966033412728283
+          },
+          {
+            "contract_identity": "f5fcf8faaf059bcd0270a63bafd7450151b90829ac5ff0032de42e5dd205e456",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.account.final_equity",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "USDT",
+            "value": 101.19660334127283
+          },
+          {
+            "contract_identity": "f5fcf8faaf059bcd0270a63bafd7450151b90829ac5ff0032de42e5dd205e456",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.account.elapsed_days",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "elapsed_days",
+            "value": 1.3881944444444445
+          },
+          {
+            "contract_identity": "f5fcf8faaf059bcd0270a63bafd7450151b90829ac5ff0032de42e5dd205e456",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.account.cagr_elapsed",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 21.867430769788143
+          },
+          {
+            "contract_identity": "f5fcf8faaf059bcd0270a63bafd7450151b90829ac5ff0032de42e5dd205e456",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.drawdown.max_depth",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.019704477505518403
+          },
+          {
+            "contract_identity": "f5fcf8faaf059bcd0270a63bafd7450151b90829ac5ff0032de42e5dd205e456",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.drawdown.mean_underwater_depth",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.010136373556732298
+          },
+          {
+            "contract_identity": "f5fcf8faaf059bcd0270a63bafd7450151b90829ac5ff0032de42e5dd205e456",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.drawdown.mean_episode_depth",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.017899782333918514
+          },
+          {
+            "contract_identity": "f5fcf8faaf059bcd0270a63bafd7450151b90829ac5ff0032de42e5dd205e456",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.drawdown.mean_recovered_duration_ns",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "nanoseconds",
+            "value": 11346000000000.0
+          },
+          {
+            "contract_identity": "f5fcf8faaf059bcd0270a63bafd7450151b90829ac5ff0032de42e5dd205e456",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.drawdown.longest_recovered_duration_ns",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "nanoseconds",
+            "value": 11400000000000.0
+          },
+          {
+            "contract_identity": "f5fcf8faaf059bcd0270a63bafd7450151b90829ac5ff0032de42e5dd205e456",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.drawdown.current_open_duration_ns",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "nanoseconds",
+            "value": 120000000000.0
+          },
+          {
+            "contract_identity": "f5fcf8faaf059bcd0270a63bafd7450151b90829ac5ff0032de42e5dd205e456",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.drawdown.ulcer_index",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.011878228598607299
+          },
+          {
+            "contract_identity": "f5fcf8faaf059bcd0270a63bafd7450151b90829ac5ff0032de42e5dd205e456",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.drawdown.longest_duration_ns",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "nanoseconds",
+            "value": 11400000000000.0
+          },
+          {
+            "contract_identity": "f5fcf8faaf059bcd0270a63bafd7450151b90829ac5ff0032de42e5dd205e456",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.drawdown.episode_count",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "count",
+            "value": 11.0
+          },
+          {
+            "contract_identity": "f5fcf8faaf059bcd0270a63bafd7450151b90829ac5ff0032de42e5dd205e456",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.count",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "count",
+            "value": 2000.0
+          },
+          {
+            "contract_identity": "f5fcf8faaf059bcd0270a63bafd7450151b90829ac5ff0032de42e5dd205e456",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.mean_arithmetic",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 5.973420267875451e-06
+          },
+          {
+            "contract_identity": "f5fcf8faaf059bcd0270a63bafd7450151b90829ac5ff0032de42e5dd205e456",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.mean_geometric",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 5.94752092672397e-06
+          },
+          {
+            "contract_identity": "f5fcf8faaf059bcd0270a63bafd7450151b90829ac5ff0032de42e5dd205e456",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.sharpe",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 19.029675047512242
+          },
+          {
+            "contract_identity": "f5fcf8faaf059bcd0270a63bafd7450151b90829ac5ff0032de42e5dd205e456",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.sortino",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 27.354866608479597
+          },
+          {
+            "contract_identity": "f5fcf8faaf059bcd0270a63bafd7450151b90829ac5ff0032de42e5dd205e456",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.omega",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 1.0600838319537744
+          },
+          {
+            "contract_identity": "f5fcf8faaf059bcd0270a63bafd7450151b90829ac5ff0032de42e5dd205e456",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.profit_factor",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 1.0600838319537744
+          },
+          {
+            "contract_identity": "f5fcf8faaf059bcd0270a63bafd7450151b90829ac5ff0032de42e5dd205e456",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.avg_win",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.0002056419860353729
+          },
+          {
+            "contract_identity": "f5fcf8faaf059bcd0270a63bafd7450151b90829ac5ff0032de42e5dd205e456",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.avg_loss",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": -0.0002041439375261872
+          },
+          {
+            "contract_identity": "f5fcf8faaf059bcd0270a63bafd7450151b90829ac5ff0032de42e5dd205e456",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.win_rate",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.5125
+          },
+          {
+            "contract_identity": "f5fcf8faaf059bcd0270a63bafd7450151b90829ac5ff0032de42e5dd205e456",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.nonzero_win_rate",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.5127563781890946
+          },
+          {
+            "contract_identity": "f5fcf8faaf059bcd0270a63bafd7450151b90829ac5ff0032de42e5dd205e456",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.cagr_period_count",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 21.83167449857991
+          },
+          {
+            "contract_identity": "f5fcf8faaf059bcd0270a63bafd7450151b90829ac5ff0032de42e5dd205e456",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.account.calmar",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 1109.7696330016356
+          }
+        ],
+        "provenance": {
+          "account_path_complete": true,
+          "backend": "python",
+          "baseline_source": "caller-declared authoritative scope-entry valuation",
+          "contract": {
+            "annual_periods": 525960.0,
+            "baseline_equity": 100.0,
+            "baseline_time_ns": 0,
+            "breakeven_currency_tolerance": 0.0,
+            "cagr_basis": "elapsed_calendar",
+            "calendar": "UTC",
+            "calendar_year_days": 365.25,
+            "cashflows": "none",
+            "cost_basis": "authoritative_net",
+            "currency": "USDT",
+            "disjoint_scope": "reject",
+            "equity_clock": "bar_close",
+            "grouping": "none",
+            "ledger_scope": "none",
+            "mar_per_period": 0.0,
+            "matching": "none",
+            "min_cagr_days": 1.0,
+            "missing_periods": "observed_only",
+            "omega_threshold_per_period": 0.0,
+            "partial_periods": "include_disclosed",
+            "recovery_relative_tolerance": 0.0,
+            "risk_free_per_period": 0.0,
+            "sampling": "observed_bar",
+            "scope": "full",
+            "scope_end_ns": 119940000000000,
+            "slippage_basis": "included_in_fill_price",
+            "sortino_denominator": "all_observations",
+            "unit": "account_period",
+            "variance_ddof": 1,
+            "version": "quantbt.reporting.v1"
+          },
+          "deepest_episode_index": 0,
+          "drawdown_clock": "bar_close",
+          "episode_detail_retained": false,
+          "longest_episode_index": 6,
+          "native_v1_reducer": "NOT_IMPLEMENTED; native_metric_v2 has a different scientific contract",
+          "observed_periods": 2000,
+          "partial_periods": 0,
+          "retained_periods": 2000,
+          "return_witness": "explicit synthetic full minute marks; first mark includes baseline return",
+          "unseen_extrema_certified": false
+        }
+      },
+      "output_policy": "scalar metrics; no episode/population details retained",
+      "p50_ms": 6.707211025059223,
+      "p95_ms": 7.623531622812152,
+      "parity": true,
+      "peak_includes_other_backend_parity": true,
+      "prepare_ms": 1.2688700226135552,
+      "repeats": 5,
+      "rss_bytes": {
+        "after_import": 163819520,
+        "after_measurement": 266735616,
+        "after_primary_warmup": 163819520,
+        "prepared": 163819520,
+        "process_peak": 266735616
+      },
+      "samples_seconds": [
+        0.006746581988409162,
+        0.006707211025059223,
+        0.0078427690314129,
+        0.006448787986300886,
+        0.006533118954394013
+      ],
+      "thread_env": {
+        "NUMBA_NUM_THREADS": "1",
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1"
+      }
+    },
+    {
+      "backend": "numba",
+      "cache_accounted_bytes": 11702,
+      "cache_hit_p50_ms": 0.04740996519103646,
+      "cache_released": true,
+      "contract_identity": "f5fcf8faaf059bcd0270a63bafd7450151b90829ac5ff0032de42e5dd205e456",
+      "first_call_including_jit_ms": 4997.245814010967,
+      "input_identity": "d9006d9effd12e6249fb48e113cf96f3ca9f127ce2e6a367e7034d11c41fba45",
+      "kind": "account",
+      "observations": 2000,
+      "observations_per_second": 3177563.8579137246,
+      "output": {
+        "contract_identity": "f5fcf8faaf059bcd0270a63bafd7450151b90829ac5ff0032de42e5dd205e456",
+        "input_identity": "d9006d9effd12e6249fb48e113cf96f3ca9f127ce2e6a367e7034d11c41fba45",
+        "metrics": [
+          {
+            "contract_identity": "f5fcf8faaf059bcd0270a63bafd7450151b90829ac5ff0032de42e5dd205e456",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.account.total_return",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.011966033412728283
+          },
+          {
+            "contract_identity": "f5fcf8faaf059bcd0270a63bafd7450151b90829ac5ff0032de42e5dd205e456",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.account.final_equity",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "USDT",
+            "value": 101.19660334127283
+          },
+          {
+            "contract_identity": "f5fcf8faaf059bcd0270a63bafd7450151b90829ac5ff0032de42e5dd205e456",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.account.elapsed_days",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "elapsed_days",
+            "value": 1.3881944444444445
+          },
+          {
+            "contract_identity": "f5fcf8faaf059bcd0270a63bafd7450151b90829ac5ff0032de42e5dd205e456",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.account.cagr_elapsed",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 21.867430769788143
+          },
+          {
+            "contract_identity": "f5fcf8faaf059bcd0270a63bafd7450151b90829ac5ff0032de42e5dd205e456",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.drawdown.max_depth",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.019704477505518403
+          },
+          {
+            "contract_identity": "f5fcf8faaf059bcd0270a63bafd7450151b90829ac5ff0032de42e5dd205e456",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.drawdown.mean_underwater_depth",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.010136373556732298
+          },
+          {
+            "contract_identity": "f5fcf8faaf059bcd0270a63bafd7450151b90829ac5ff0032de42e5dd205e456",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.drawdown.mean_episode_depth",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.017899782333918514
+          },
+          {
+            "contract_identity": "f5fcf8faaf059bcd0270a63bafd7450151b90829ac5ff0032de42e5dd205e456",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.drawdown.mean_recovered_duration_ns",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "nanoseconds",
+            "value": 11346000000000.0
+          },
+          {
+            "contract_identity": "f5fcf8faaf059bcd0270a63bafd7450151b90829ac5ff0032de42e5dd205e456",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.drawdown.longest_recovered_duration_ns",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "nanoseconds",
+            "value": 11400000000000.0
+          },
+          {
+            "contract_identity": "f5fcf8faaf059bcd0270a63bafd7450151b90829ac5ff0032de42e5dd205e456",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.drawdown.current_open_duration_ns",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "nanoseconds",
+            "value": 120000000000.0
+          },
+          {
+            "contract_identity": "f5fcf8faaf059bcd0270a63bafd7450151b90829ac5ff0032de42e5dd205e456",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.drawdown.ulcer_index",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.011878228598607299
+          },
+          {
+            "contract_identity": "f5fcf8faaf059bcd0270a63bafd7450151b90829ac5ff0032de42e5dd205e456",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.drawdown.longest_duration_ns",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "nanoseconds",
+            "value": 11400000000000.0
+          },
+          {
+            "contract_identity": "f5fcf8faaf059bcd0270a63bafd7450151b90829ac5ff0032de42e5dd205e456",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.drawdown.episode_count",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "count",
+            "value": 11.0
+          },
+          {
+            "contract_identity": "f5fcf8faaf059bcd0270a63bafd7450151b90829ac5ff0032de42e5dd205e456",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.count",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "count",
+            "value": 2000.0
+          },
+          {
+            "contract_identity": "f5fcf8faaf059bcd0270a63bafd7450151b90829ac5ff0032de42e5dd205e456",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.mean_arithmetic",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 5.973420267875451e-06
+          },
+          {
+            "contract_identity": "f5fcf8faaf059bcd0270a63bafd7450151b90829ac5ff0032de42e5dd205e456",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.mean_geometric",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 5.94752092672397e-06
+          },
+          {
+            "contract_identity": "f5fcf8faaf059bcd0270a63bafd7450151b90829ac5ff0032de42e5dd205e456",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.sharpe",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 19.029675047512242
+          },
+          {
+            "contract_identity": "f5fcf8faaf059bcd0270a63bafd7450151b90829ac5ff0032de42e5dd205e456",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.sortino",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 27.354866608479597
+          },
+          {
+            "contract_identity": "f5fcf8faaf059bcd0270a63bafd7450151b90829ac5ff0032de42e5dd205e456",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.omega",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 1.0600838319537744
+          },
+          {
+            "contract_identity": "f5fcf8faaf059bcd0270a63bafd7450151b90829ac5ff0032de42e5dd205e456",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.profit_factor",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 1.0600838319537744
+          },
+          {
+            "contract_identity": "f5fcf8faaf059bcd0270a63bafd7450151b90829ac5ff0032de42e5dd205e456",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.avg_win",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.0002056419860353729
+          },
+          {
+            "contract_identity": "f5fcf8faaf059bcd0270a63bafd7450151b90829ac5ff0032de42e5dd205e456",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.avg_loss",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": -0.0002041439375261872
+          },
+          {
+            "contract_identity": "f5fcf8faaf059bcd0270a63bafd7450151b90829ac5ff0032de42e5dd205e456",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.win_rate",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.5125
+          },
+          {
+            "contract_identity": "f5fcf8faaf059bcd0270a63bafd7450151b90829ac5ff0032de42e5dd205e456",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.nonzero_win_rate",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.5127563781890946
+          },
+          {
+            "contract_identity": "f5fcf8faaf059bcd0270a63bafd7450151b90829ac5ff0032de42e5dd205e456",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.cagr_period_count",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 21.83167449857991
+          },
+          {
+            "contract_identity": "f5fcf8faaf059bcd0270a63bafd7450151b90829ac5ff0032de42e5dd205e456",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.account.calmar",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 1109.7696330016356
+          }
+        ],
+        "provenance": {
+          "account_path_complete": true,
+          "backend": "numba",
+          "baseline_source": "caller-declared authoritative scope-entry valuation",
+          "contract": {
+            "annual_periods": 525960.0,
+            "baseline_equity": 100.0,
+            "baseline_time_ns": 0,
+            "breakeven_currency_tolerance": 0.0,
+            "cagr_basis": "elapsed_calendar",
+            "calendar": "UTC",
+            "calendar_year_days": 365.25,
+            "cashflows": "none",
+            "cost_basis": "authoritative_net",
+            "currency": "USDT",
+            "disjoint_scope": "reject",
+            "equity_clock": "bar_close",
+            "grouping": "none",
+            "ledger_scope": "none",
+            "mar_per_period": 0.0,
+            "matching": "none",
+            "min_cagr_days": 1.0,
+            "missing_periods": "observed_only",
+            "omega_threshold_per_period": 0.0,
+            "partial_periods": "include_disclosed",
+            "recovery_relative_tolerance": 0.0,
+            "risk_free_per_period": 0.0,
+            "sampling": "observed_bar",
+            "scope": "full",
+            "scope_end_ns": 119940000000000,
+            "slippage_basis": "included_in_fill_price",
+            "sortino_denominator": "all_observations",
+            "unit": "account_period",
+            "variance_ddof": 1,
+            "version": "quantbt.reporting.v1"
+          },
+          "deepest_episode_index": 0,
+          "drawdown_clock": "bar_close",
+          "episode_detail_retained": false,
+          "longest_episode_index": 6,
+          "native_v1_reducer": "NOT_IMPLEMENTED; native_metric_v2 has a different scientific contract",
+          "observed_periods": 2000,
+          "partial_periods": 0,
+          "retained_periods": 2000,
+          "return_witness": "explicit synthetic full minute marks; first mark includes baseline return",
+          "unseen_extrema_certified": false
+        }
+      },
+      "output_policy": "scalar metrics; no episode/population details retained",
+      "p50_ms": 0.6294129998423159,
+      "p95_ms": 0.9005559957586229,
+      "parity": true,
+      "peak_includes_other_backend_parity": true,
+      "prepare_ms": 4.309636016841978,
+      "repeats": 5,
+      "rss_bytes": {
+        "after_import": 162959360,
+        "after_measurement": 265371648,
+        "after_primary_warmup": 265371648,
+        "prepared": 162959360,
+        "process_peak": 265371648
+      },
+      "samples_seconds": [
+        0.0009409909835085273,
+        0.0006294129998423159,
+        0.0006140070036053658,
+        0.0005973879597149789,
+        0.0007388160447590053
+      ],
+      "thread_env": {
+        "NUMBA_NUM_THREADS": "1",
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1"
+      }
+    },
+    {
+      "backend": "python",
+      "cache_accounted_bytes": 11709,
+      "cache_hit_p50_ms": 0.05781004438176751,
+      "cache_released": true,
+      "contract_identity": "31b91381d45b16816753a15f6c1abe3c4ed25122d0f376ada5a224372ad04060",
+      "first_call_including_jit_ms": 306.5643790178001,
+      "input_identity": "e59b535138d5f231ddc7801b616a5c7fa818af80daee1273fc8cb50c72afa731",
+      "kind": "account",
+      "observations": 100000,
+      "observations_per_second": 320989.0179970173,
+      "output": {
+        "contract_identity": "31b91381d45b16816753a15f6c1abe3c4ed25122d0f376ada5a224372ad04060",
+        "input_identity": "e59b535138d5f231ddc7801b616a5c7fa818af80daee1273fc8cb50c72afa731",
+        "metrics": [
+          {
+            "contract_identity": "31b91381d45b16816753a15f6c1abe3c4ed25122d0f376ada5a224372ad04060",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.account.total_return",
+            "reason": null,
+            "sample_count": 100000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.10598267216990331
+          },
+          {
+            "contract_identity": "31b91381d45b16816753a15f6c1abe3c4ed25122d0f376ada5a224372ad04060",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.account.final_equity",
+            "reason": null,
+            "sample_count": 100000,
+            "status": "valid",
+            "unit": "USDT",
+            "value": 110.59826721699034
+          },
+          {
+            "contract_identity": "31b91381d45b16816753a15f6c1abe3c4ed25122d0f376ada5a224372ad04060",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.account.elapsed_days",
+            "reason": null,
+            "sample_count": 100000,
+            "status": "valid",
+            "unit": "elapsed_days",
+            "value": 69.44375
+          },
+          {
+            "contract_identity": "31b91381d45b16816753a15f6c1abe3c4ed25122d0f376ada5a224372ad04060",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.account.cagr_elapsed",
+            "reason": null,
+            "sample_count": 100000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.698638563489779
+          },
+          {
+            "contract_identity": "31b91381d45b16816753a15f6c1abe3c4ed25122d0f376ada5a224372ad04060",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.drawdown.max_depth",
+            "reason": null,
+            "sample_count": 100000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.019704477505518403
+          },
+          {
+            "contract_identity": "31b91381d45b16816753a15f6c1abe3c4ed25122d0f376ada5a224372ad04060",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.drawdown.mean_underwater_depth",
+            "reason": null,
+            "sample_count": 100000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.009680501335687316
+          },
+          {
+            "contract_identity": "31b91381d45b16816753a15f6c1abe3c4ed25122d0f376ada5a224372ad04060",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.drawdown.mean_episode_depth",
+            "reason": null,
+            "sample_count": 100000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.01876124078711895
+          },
+          {
+            "contract_identity": "31b91381d45b16816753a15f6c1abe3c4ed25122d0f376ada5a224372ad04060",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.drawdown.mean_recovered_duration_ns",
+            "reason": null,
+            "sample_count": 100000,
+            "status": "valid",
+            "unit": "nanoseconds",
+            "value": 11348654970760.234
+          },
+          {
+            "contract_identity": "31b91381d45b16816753a15f6c1abe3c4ed25122d0f376ada5a224372ad04060",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.drawdown.longest_recovered_duration_ns",
+            "reason": null,
+            "sample_count": 100000,
+            "status": "valid",
+            "unit": "nanoseconds",
+            "value": 11400000000000.0
+          },
+          {
+            "contract_identity": "31b91381d45b16816753a15f6c1abe3c4ed25122d0f376ada5a224372ad04060",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.drawdown.current_open_duration_ns",
+            "reason": null,
+            "sample_count": 100000,
+            "status": "valid",
+            "unit": "nanoseconds",
+            "value": 1740000000000.0
+          },
+          {
+            "contract_identity": "31b91381d45b16816753a15f6c1abe3c4ed25122d0f376ada5a224372ad04060",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.drawdown.ulcer_index",
+            "reason": null,
+            "sample_count": 100000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.011488359841836009
+          },
+          {
+            "contract_identity": "31b91381d45b16816753a15f6c1abe3c4ed25122d0f376ada5a224372ad04060",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.drawdown.longest_duration_ns",
+            "reason": null,
+            "sample_count": 100000,
+            "status": "valid",
+            "unit": "nanoseconds",
+            "value": 11400000000000.0
+          },
+          {
+            "contract_identity": "31b91381d45b16816753a15f6c1abe3c4ed25122d0f376ada5a224372ad04060",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.drawdown.episode_count",
+            "reason": null,
+            "sample_count": 100000,
+            "status": "valid",
+            "unit": "count",
+            "value": 514.0
+          },
+          {
+            "contract_identity": "31b91381d45b16816753a15f6c1abe3c4ed25122d0f376ada5a224372ad04060",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.count",
+            "reason": null,
+            "sample_count": 100000,
+            "status": "valid",
+            "unit": "count",
+            "value": 100000.0
+          },
+          {
+            "contract_identity": "31b91381d45b16816753a15f6c1abe3c4ed25122d0f376ada5a224372ad04060",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.mean_arithmetic",
+            "reason": null,
+            "sample_count": 100000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 1.030988500081304e-06
+          },
+          {
+            "contract_identity": "31b91381d45b16816753a15f6c1abe3c4ed25122d0f376ada5a224372ad04060",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.mean_geometric",
+            "reason": null,
+            "sample_count": 100000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 1.007342865985496e-06
+          },
+          {
+            "contract_identity": "31b91381d45b16816753a15f6c1abe3c4ed25122d0f376ada5a224372ad04060",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.sharpe",
+            "reason": null,
+            "sample_count": 100000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 3.4382489119690116
+          },
+          {
+            "contract_identity": "31b91381d45b16816753a15f6c1abe3c4ed25122d0f376ada5a224372ad04060",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.sortino",
+            "reason": null,
+            "sample_count": 100000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 4.883111557189121
+          },
+          {
+            "contract_identity": "31b91381d45b16816753a15f6c1abe3c4ed25122d0f376ada5a224372ad04060",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.omega",
+            "reason": null,
+            "sample_count": 100000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 1.010591729777329
+          },
+          {
+            "contract_identity": "31b91381d45b16816753a15f6c1abe3c4ed25122d0f376ada5a224372ad04060",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.profit_factor",
+            "reason": null,
+            "sample_count": 100000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 1.010591729777329
+          },
+          {
+            "contract_identity": "31b91381d45b16816753a15f6c1abe3c4ed25122d0f376ada5a224372ad04060",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.avg_win",
+            "reason": null,
+            "sample_count": 100000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.00019631987423837435
+          },
+          {
+            "contract_identity": "31b91381d45b16816753a15f6c1abe3c4ed25122d0f376ada5a224372ad04060",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.avg_loss",
+            "reason": null,
+            "sample_count": 100000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": -0.0001950994365520338
+          },
+          {
+            "contract_identity": "31b91381d45b16816753a15f6c1abe3c4ed25122d0f376ada5a224372ad04060",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.win_rate",
+            "reason": null,
+            "sample_count": 100000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.50107
+          },
+          {
+            "contract_identity": "31b91381d45b16816753a15f6c1abe3c4ed25122d0f376ada5a224372ad04060",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.nonzero_win_rate",
+            "reason": null,
+            "sample_count": 100000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.5010750107501075
+          },
+          {
+            "contract_identity": "31b91381d45b16816753a15f6c1abe3c4ed25122d0f376ada5a224372ad04060",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.cagr_period_count",
+            "reason": null,
+            "sample_count": 100000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.6986295636665072
+          },
+          {
+            "contract_identity": "31b91381d45b16816753a15f6c1abe3c4ed25122d0f376ada5a224372ad04060",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.account.calmar",
+            "reason": null,
+            "sample_count": 100000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 35.45582790988086
+          }
+        ],
+        "provenance": {
+          "account_path_complete": true,
+          "backend": "python",
+          "baseline_source": "caller-declared authoritative scope-entry valuation",
+          "contract": {
+            "annual_periods": 525960.0,
+            "baseline_equity": 100.0,
+            "baseline_time_ns": 0,
+            "breakeven_currency_tolerance": 0.0,
+            "cagr_basis": "elapsed_calendar",
+            "calendar": "UTC",
+            "calendar_year_days": 365.25,
+            "cashflows": "none",
+            "cost_basis": "authoritative_net",
+            "currency": "USDT",
+            "disjoint_scope": "reject",
+            "equity_clock": "bar_close",
+            "grouping": "none",
+            "ledger_scope": "none",
+            "mar_per_period": 0.0,
+            "matching": "none",
+            "min_cagr_days": 1.0,
+            "missing_periods": "observed_only",
+            "omega_threshold_per_period": 0.0,
+            "partial_periods": "include_disclosed",
+            "recovery_relative_tolerance": 0.0,
+            "risk_free_per_period": 0.0,
+            "sampling": "observed_bar",
+            "scope": "full",
+            "scope_end_ns": 5999940000000000,
+            "slippage_basis": "included_in_fill_price",
+            "sortino_denominator": "all_observations",
+            "unit": "account_period",
+            "variance_ddof": 1,
+            "version": "quantbt.reporting.v1"
+          },
+          "deepest_episode_index": 0,
+          "drawdown_clock": "bar_close",
+          "episode_detail_retained": false,
+          "longest_episode_index": 6,
+          "native_v1_reducer": "NOT_IMPLEMENTED; native_metric_v2 has a different scientific contract",
+          "observed_periods": 100000,
+          "partial_periods": 0,
+          "retained_periods": 100000,
+          "return_witness": "explicit synthetic full minute marks; first mark includes baseline return",
+          "unseen_extrema_certified": false
+        }
+      },
+      "output_policy": "scalar metrics; no episode/population details retained",
+      "p50_ms": 311.5371380117722,
+      "p95_ms": 339.3084873794578,
+      "parity": true,
+      "peak_includes_other_backend_parity": true,
+      "prepare_ms": 28.130948019679636,
+      "repeats": 5,
+      "rss_bytes": {
+        "after_import": 163250176,
+        "after_measurement": 270000128,
+        "after_primary_warmup": 174325760,
+        "prepared": 174325760,
+        "process_peak": 270000128
+      },
+      "samples_seconds": [
+        0.30534852005075663,
+        0.30029347696108744,
+        0.3115371380117722,
+        0.34576521697454154,
+        0.31348156899912283
+      ],
+      "thread_env": {
+        "NUMBA_NUM_THREADS": "1",
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1"
+      }
+    },
+    {
+      "backend": "numba",
+      "cache_accounted_bytes": 11707,
+      "cache_hit_p50_ms": 0.04466000245884061,
+      "cache_released": true,
+      "contract_identity": "31b91381d45b16816753a15f6c1abe3c4ed25122d0f376ada5a224372ad04060",
+      "first_call_including_jit_ms": 6300.933164020535,
+      "input_identity": "e59b535138d5f231ddc7801b616a5c7fa818af80daee1273fc8cb50c72afa731",
+      "kind": "account",
+      "observations": 100000,
+      "observations_per_second": 24824669.644060224,
+      "output": {
+        "contract_identity": "31b91381d45b16816753a15f6c1abe3c4ed25122d0f376ada5a224372ad04060",
+        "input_identity": "e59b535138d5f231ddc7801b616a5c7fa818af80daee1273fc8cb50c72afa731",
+        "metrics": [
+          {
+            "contract_identity": "31b91381d45b16816753a15f6c1abe3c4ed25122d0f376ada5a224372ad04060",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.account.total_return",
+            "reason": null,
+            "sample_count": 100000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.10598267216990331
+          },
+          {
+            "contract_identity": "31b91381d45b16816753a15f6c1abe3c4ed25122d0f376ada5a224372ad04060",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.account.final_equity",
+            "reason": null,
+            "sample_count": 100000,
+            "status": "valid",
+            "unit": "USDT",
+            "value": 110.59826721699034
+          },
+          {
+            "contract_identity": "31b91381d45b16816753a15f6c1abe3c4ed25122d0f376ada5a224372ad04060",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.account.elapsed_days",
+            "reason": null,
+            "sample_count": 100000,
+            "status": "valid",
+            "unit": "elapsed_days",
+            "value": 69.44375
+          },
+          {
+            "contract_identity": "31b91381d45b16816753a15f6c1abe3c4ed25122d0f376ada5a224372ad04060",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.account.cagr_elapsed",
+            "reason": null,
+            "sample_count": 100000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.698638563489779
+          },
+          {
+            "contract_identity": "31b91381d45b16816753a15f6c1abe3c4ed25122d0f376ada5a224372ad04060",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.drawdown.max_depth",
+            "reason": null,
+            "sample_count": 100000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.019704477505518403
+          },
+          {
+            "contract_identity": "31b91381d45b16816753a15f6c1abe3c4ed25122d0f376ada5a224372ad04060",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.drawdown.mean_underwater_depth",
+            "reason": null,
+            "sample_count": 100000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.009680501335687316
+          },
+          {
+            "contract_identity": "31b91381d45b16816753a15f6c1abe3c4ed25122d0f376ada5a224372ad04060",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.drawdown.mean_episode_depth",
+            "reason": null,
+            "sample_count": 100000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.01876124078711895
+          },
+          {
+            "contract_identity": "31b91381d45b16816753a15f6c1abe3c4ed25122d0f376ada5a224372ad04060",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.drawdown.mean_recovered_duration_ns",
+            "reason": null,
+            "sample_count": 100000,
+            "status": "valid",
+            "unit": "nanoseconds",
+            "value": 11348654970760.234
+          },
+          {
+            "contract_identity": "31b91381d45b16816753a15f6c1abe3c4ed25122d0f376ada5a224372ad04060",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.drawdown.longest_recovered_duration_ns",
+            "reason": null,
+            "sample_count": 100000,
+            "status": "valid",
+            "unit": "nanoseconds",
+            "value": 11400000000000.0
+          },
+          {
+            "contract_identity": "31b91381d45b16816753a15f6c1abe3c4ed25122d0f376ada5a224372ad04060",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.drawdown.current_open_duration_ns",
+            "reason": null,
+            "sample_count": 100000,
+            "status": "valid",
+            "unit": "nanoseconds",
+            "value": 1740000000000.0
+          },
+          {
+            "contract_identity": "31b91381d45b16816753a15f6c1abe3c4ed25122d0f376ada5a224372ad04060",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.drawdown.ulcer_index",
+            "reason": null,
+            "sample_count": 100000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.011488359841836009
+          },
+          {
+            "contract_identity": "31b91381d45b16816753a15f6c1abe3c4ed25122d0f376ada5a224372ad04060",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.drawdown.longest_duration_ns",
+            "reason": null,
+            "sample_count": 100000,
+            "status": "valid",
+            "unit": "nanoseconds",
+            "value": 11400000000000.0
+          },
+          {
+            "contract_identity": "31b91381d45b16816753a15f6c1abe3c4ed25122d0f376ada5a224372ad04060",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.drawdown.episode_count",
+            "reason": null,
+            "sample_count": 100000,
+            "status": "valid",
+            "unit": "count",
+            "value": 514.0
+          },
+          {
+            "contract_identity": "31b91381d45b16816753a15f6c1abe3c4ed25122d0f376ada5a224372ad04060",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.count",
+            "reason": null,
+            "sample_count": 100000,
+            "status": "valid",
+            "unit": "count",
+            "value": 100000.0
+          },
+          {
+            "contract_identity": "31b91381d45b16816753a15f6c1abe3c4ed25122d0f376ada5a224372ad04060",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.mean_arithmetic",
+            "reason": null,
+            "sample_count": 100000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 1.030988500081304e-06
+          },
+          {
+            "contract_identity": "31b91381d45b16816753a15f6c1abe3c4ed25122d0f376ada5a224372ad04060",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.mean_geometric",
+            "reason": null,
+            "sample_count": 100000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 1.007342865985496e-06
+          },
+          {
+            "contract_identity": "31b91381d45b16816753a15f6c1abe3c4ed25122d0f376ada5a224372ad04060",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.sharpe",
+            "reason": null,
+            "sample_count": 100000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 3.4382489119690116
+          },
+          {
+            "contract_identity": "31b91381d45b16816753a15f6c1abe3c4ed25122d0f376ada5a224372ad04060",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.sortino",
+            "reason": null,
+            "sample_count": 100000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 4.883111557189121
+          },
+          {
+            "contract_identity": "31b91381d45b16816753a15f6c1abe3c4ed25122d0f376ada5a224372ad04060",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.omega",
+            "reason": null,
+            "sample_count": 100000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 1.010591729777329
+          },
+          {
+            "contract_identity": "31b91381d45b16816753a15f6c1abe3c4ed25122d0f376ada5a224372ad04060",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.profit_factor",
+            "reason": null,
+            "sample_count": 100000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 1.010591729777329
+          },
+          {
+            "contract_identity": "31b91381d45b16816753a15f6c1abe3c4ed25122d0f376ada5a224372ad04060",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.avg_win",
+            "reason": null,
+            "sample_count": 100000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.00019631987423837435
+          },
+          {
+            "contract_identity": "31b91381d45b16816753a15f6c1abe3c4ed25122d0f376ada5a224372ad04060",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.avg_loss",
+            "reason": null,
+            "sample_count": 100000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": -0.0001950994365520338
+          },
+          {
+            "contract_identity": "31b91381d45b16816753a15f6c1abe3c4ed25122d0f376ada5a224372ad04060",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.win_rate",
+            "reason": null,
+            "sample_count": 100000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.50107
+          },
+          {
+            "contract_identity": "31b91381d45b16816753a15f6c1abe3c4ed25122d0f376ada5a224372ad04060",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.nonzero_win_rate",
+            "reason": null,
+            "sample_count": 100000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.5010750107501075
+          },
+          {
+            "contract_identity": "31b91381d45b16816753a15f6c1abe3c4ed25122d0f376ada5a224372ad04060",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.cagr_period_count",
+            "reason": null,
+            "sample_count": 100000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.6986295636665072
+          },
+          {
+            "contract_identity": "31b91381d45b16816753a15f6c1abe3c4ed25122d0f376ada5a224372ad04060",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.account.calmar",
+            "reason": null,
+            "sample_count": 100000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 35.45582790988086
+          }
+        ],
+        "provenance": {
+          "account_path_complete": true,
+          "backend": "numba",
+          "baseline_source": "caller-declared authoritative scope-entry valuation",
+          "contract": {
+            "annual_periods": 525960.0,
+            "baseline_equity": 100.0,
+            "baseline_time_ns": 0,
+            "breakeven_currency_tolerance": 0.0,
+            "cagr_basis": "elapsed_calendar",
+            "calendar": "UTC",
+            "calendar_year_days": 365.25,
+            "cashflows": "none",
+            "cost_basis": "authoritative_net",
+            "currency": "USDT",
+            "disjoint_scope": "reject",
+            "equity_clock": "bar_close",
+            "grouping": "none",
+            "ledger_scope": "none",
+            "mar_per_period": 0.0,
+            "matching": "none",
+            "min_cagr_days": 1.0,
+            "missing_periods": "observed_only",
+            "omega_threshold_per_period": 0.0,
+            "partial_periods": "include_disclosed",
+            "recovery_relative_tolerance": 0.0,
+            "risk_free_per_period": 0.0,
+            "sampling": "observed_bar",
+            "scope": "full",
+            "scope_end_ns": 5999940000000000,
+            "slippage_basis": "included_in_fill_price",
+            "sortino_denominator": "all_observations",
+            "unit": "account_period",
+            "variance_ddof": 1,
+            "version": "quantbt.reporting.v1"
+          },
+          "deepest_episode_index": 0,
+          "drawdown_clock": "bar_close",
+          "episode_detail_retained": false,
+          "longest_episode_index": 6,
+          "native_v1_reducer": "NOT_IMPLEMENTED; native_metric_v2 has a different scientific contract",
+          "observed_periods": 100000,
+          "partial_periods": 0,
+          "retained_periods": 100000,
+          "return_witness": "explicit synthetic full minute marks; first mark includes baseline return",
+          "unseen_extrema_certified": false
+        }
+      },
+      "output_policy": "scalar metrics; no episode/population details retained",
+      "p50_ms": 4.028250987175852,
+      "p95_ms": 6.387422780971974,
+      "parity": true,
+      "peak_includes_other_backend_parity": true,
+      "prepare_ms": 68.72836797265336,
+      "repeats": 5,
+      "rss_bytes": {
+        "after_import": 163389440,
+        "after_measurement": 269955072,
+        "after_primary_warmup": 269955072,
+        "prepared": 174628864,
+        "process_peak": 269955072
+      },
+      "samples_seconds": [
+        0.005004197999369353,
+        0.003639415022917092,
+        0.0036155590205453336,
+        0.004028250987175852,
+        0.006733228976372629
+      ],
+      "thread_env": {
+        "NUMBA_NUM_THREADS": "1",
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1"
+      }
+    },
+    {
+      "backend": "python",
+      "cache_accounted_bytes": 11712,
+      "cache_hit_p50_ms": 0.06733799818903208,
+      "cache_released": true,
+      "contract_identity": "ce464b264c6f5cbe4ea874463b7dce3b6255944057e852511566b57ae3c1786e",
+      "first_call_including_jit_ms": 4778.718810994178,
+      "input_identity": "2da7f69f46f7df3f501181102ac4b85a6e6920d8c7ad79eaf0a65bda15bc249e",
+      "kind": "account",
+      "observations": 1000000,
+      "observations_per_second": 214182.60109242666,
+      "output": {
+        "contract_identity": "ce464b264c6f5cbe4ea874463b7dce3b6255944057e852511566b57ae3c1786e",
+        "input_identity": "2da7f69f46f7df3f501181102ac4b85a6e6920d8c7ad79eaf0a65bda15bc249e",
+        "metrics": [
+          {
+            "contract_identity": "ce464b264c6f5cbe4ea874463b7dce3b6255944057e852511566b57ae3c1786e",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.account.total_return",
+            "reason": null,
+            "sample_count": 1000000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 1.0015812327827147
+          },
+          {
+            "contract_identity": "ce464b264c6f5cbe4ea874463b7dce3b6255944057e852511566b57ae3c1786e",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.account.final_equity",
+            "reason": null,
+            "sample_count": 1000000,
+            "status": "valid",
+            "unit": "USDT",
+            "value": 200.15812327827146
+          },
+          {
+            "contract_identity": "ce464b264c6f5cbe4ea874463b7dce3b6255944057e852511566b57ae3c1786e",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.account.elapsed_days",
+            "reason": null,
+            "sample_count": 1000000,
+            "status": "valid",
+            "unit": "elapsed_days",
+            "value": 694.44375
+          },
+          {
+            "contract_identity": "ce464b264c6f5cbe4ea874463b7dce3b6255944057e852511566b57ae3c1786e",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.account.cagr_elapsed",
+            "reason": null,
+            "sample_count": 1000000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.4404905630710198
+          },
+          {
+            "contract_identity": "ce464b264c6f5cbe4ea874463b7dce3b6255944057e852511566b57ae3c1786e",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.drawdown.max_depth",
+            "reason": null,
+            "sample_count": 1000000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.019704477505518403
+          },
+          {
+            "contract_identity": "ce464b264c6f5cbe4ea874463b7dce3b6255944057e852511566b57ae3c1786e",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.drawdown.mean_underwater_depth",
+            "reason": null,
+            "sample_count": 1000000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.007058310305484523
+          },
+          {
+            "contract_identity": "ce464b264c6f5cbe4ea874463b7dce3b6255944057e852511566b57ae3c1786e",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.drawdown.mean_episode_depth",
+            "reason": null,
+            "sample_count": 1000000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.013696638946702417
+          },
+          {
+            "contract_identity": "ce464b264c6f5cbe4ea874463b7dce3b6255944057e852511566b57ae3c1786e",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.drawdown.mean_recovered_duration_ns",
+            "reason": null,
+            "sample_count": 1000000,
+            "status": "valid",
+            "unit": "nanoseconds",
+            "value": 11348439509059.03
+          },
+          {
+            "contract_identity": "ce464b264c6f5cbe4ea874463b7dce3b6255944057e852511566b57ae3c1786e",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.drawdown.longest_recovered_duration_ns",
+            "reason": null,
+            "sample_count": 1000000,
+            "status": "valid",
+            "unit": "nanoseconds",
+            "value": 11400000000000.0
+          },
+          {
+            "contract_identity": "ce464b264c6f5cbe4ea874463b7dce3b6255944057e852511566b57ae3c1786e",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.drawdown.current_open_duration_ns",
+            "reason": null,
+            "sample_count": 1000000,
+            "status": "valid",
+            "unit": "nanoseconds",
+            "value": 9060000000000.0
+          },
+          {
+            "contract_identity": "ce464b264c6f5cbe4ea874463b7dce3b6255944057e852511566b57ae3c1786e",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.drawdown.ulcer_index",
+            "reason": null,
+            "sample_count": 1000000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.008540237121207698
+          },
+          {
+            "contract_identity": "ce464b264c6f5cbe4ea874463b7dce3b6255944057e852511566b57ae3c1786e",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.drawdown.longest_duration_ns",
+            "reason": null,
+            "sample_count": 1000000,
+            "status": "valid",
+            "unit": "nanoseconds",
+            "value": 11400000000000.0
+          },
+          {
+            "contract_identity": "ce464b264c6f5cbe4ea874463b7dce3b6255944057e852511566b57ae3c1786e",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.drawdown.episode_count",
+            "reason": null,
+            "sample_count": 1000000,
+            "status": "valid",
+            "unit": "count",
+            "value": 5134.0
+          },
+          {
+            "contract_identity": "ce464b264c6f5cbe4ea874463b7dce3b6255944057e852511566b57ae3c1786e",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.count",
+            "reason": null,
+            "sample_count": 1000000,
+            "status": "valid",
+            "unit": "count",
+            "value": 1000000.0
+          },
+          {
+            "contract_identity": "ce464b264c6f5cbe4ea874463b7dce3b6255944057e852511566b57ae3c1786e",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.mean_arithmetic",
+            "reason": null,
+            "sample_count": 1000000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 7.069444854992951e-07
+          },
+          {
+            "contract_identity": "ce464b264c6f5cbe4ea874463b7dce3b6255944057e852511566b57ae3c1786e",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.mean_geometric",
+            "reason": null,
+            "sample_count": 1000000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 6.939377253534623e-07
+          },
+          {
+            "contract_identity": "ce464b264c6f5cbe4ea874463b7dce3b6255944057e852511566b57ae3c1786e",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.sharpe",
+            "reason": null,
+            "sample_count": 1000000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 3.1787890624028896
+          },
+          {
+            "contract_identity": "ce464b264c6f5cbe4ea874463b7dce3b6255944057e852511566b57ae3c1786e",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.sortino",
+            "reason": null,
+            "sample_count": 1000000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 4.513773158953245
+          },
+          {
+            "contract_identity": "ce464b264c6f5cbe4ea874463b7dce3b6255944057e852511566b57ae3c1786e",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.omega",
+            "reason": null,
+            "sample_count": 1000000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 1.0099825583511164
+          },
+          {
+            "contract_identity": "ce464b264c6f5cbe4ea874463b7dce3b6255944057e852511566b57ae3c1786e",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.profit_factor",
+            "reason": null,
+            "sample_count": 1000000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 1.0099825583511164
+          },
+          {
+            "contract_identity": "ce464b264c6f5cbe4ea874463b7dce3b6255944057e852511566b57ae3c1786e",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.avg_win",
+            "reason": null,
+            "sample_count": 1000000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.00014276742851904002
+          },
+          {
+            "contract_identity": "ce464b264c6f5cbe4ea874463b7dce3b6255944057e852511566b57ae3c1786e",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.avg_loss",
+            "reason": null,
+            "sample_count": 1000000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": -0.00014191692904115741
+          },
+          {
+            "contract_identity": "ce464b264c6f5cbe4ea874463b7dce3b6255944057e852511566b57ae3c1786e",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.win_rate",
+            "reason": null,
+            "sample_count": 1000000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.500989
+          },
+          {
+            "contract_identity": "ce464b264c6f5cbe4ea874463b7dce3b6255944057e852511566b57ae3c1786e",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.nonzero_win_rate",
+            "reason": null,
+            "sample_count": 1000000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.500989500989501
+          },
+          {
+            "contract_identity": "ce464b264c6f5cbe4ea874463b7dce3b6255944057e852511566b57ae3c1786e",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.cagr_period_count",
+            "reason": null,
+            "sample_count": 1000000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.4404900373154999
+          },
+          {
+            "contract_identity": "ce464b264c6f5cbe4ea874463b7dce3b6255944057e852511566b57ae3c1786e",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.account.calmar",
+            "reason": null,
+            "sample_count": 1000000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 22.354846148427775
+          }
+        ],
+        "provenance": {
+          "account_path_complete": true,
+          "backend": "python",
+          "baseline_source": "caller-declared authoritative scope-entry valuation",
+          "contract": {
+            "annual_periods": 525960.0,
+            "baseline_equity": 100.0,
+            "baseline_time_ns": 0,
+            "breakeven_currency_tolerance": 0.0,
+            "cagr_basis": "elapsed_calendar",
+            "calendar": "UTC",
+            "calendar_year_days": 365.25,
+            "cashflows": "none",
+            "cost_basis": "authoritative_net",
+            "currency": "USDT",
+            "disjoint_scope": "reject",
+            "equity_clock": "bar_close",
+            "grouping": "none",
+            "ledger_scope": "none",
+            "mar_per_period": 0.0,
+            "matching": "none",
+            "min_cagr_days": 1.0,
+            "missing_periods": "observed_only",
+            "omega_threshold_per_period": 0.0,
+            "partial_periods": "include_disclosed",
+            "recovery_relative_tolerance": 0.0,
+            "risk_free_per_period": 0.0,
+            "sampling": "observed_bar",
+            "scope": "full",
+            "scope_end_ns": 59999940000000000,
+            "slippage_basis": "included_in_fill_price",
+            "sortino_denominator": "all_observations",
+            "unit": "account_period",
+            "variance_ddof": 1,
+            "version": "quantbt.reporting.v1"
+          },
+          "deepest_episode_index": 0,
+          "drawdown_clock": "bar_close",
+          "episode_detail_retained": false,
+          "longest_episode_index": 6,
+          "native_v1_reducer": "NOT_IMPLEMENTED; native_metric_v2 has a different scientific contract",
+          "observed_periods": 1000000,
+          "partial_periods": 0,
+          "retained_periods": 1000000,
+          "return_witness": "explicit synthetic full minute marks; first mark includes baseline return",
+          "unseen_extrema_certified": false
+        }
+      },
+      "output_policy": "scalar metrics; no episode/population details retained",
+      "p50_ms": 4668.913323956076,
+      "p95_ms": 4961.969076213427,
+      "parity": true,
+      "peak_includes_other_backend_parity": true,
+      "prepare_ms": 304.9687879974954,
+      "repeats": 5,
+      "rss_bytes": {
+        "after_import": 162672640,
+        "after_measurement": 313774080,
+        "after_primary_warmup": 245702656,
+        "prepared": 245702656,
+        "process_peak": 313774080
+      },
+      "samples_seconds": [
+        4.979573181015439,
+        3.488605702004861,
+        4.4918643169803545,
+        4.668913323956076,
+        4.891552657005377
+      ],
+      "thread_env": {
+        "NUMBA_NUM_THREADS": "1",
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1"
+      }
+    },
+    {
+      "backend": "numba",
+      "cache_accounted_bytes": 11710,
+      "cache_hit_p50_ms": 0.06371404742822051,
+      "cache_released": true,
+      "contract_identity": "ce464b264c6f5cbe4ea874463b7dce3b6255944057e852511566b57ae3c1786e",
+      "first_call_including_jit_ms": 6189.1908519901335,
+      "input_identity": "2da7f69f46f7df3f501181102ac4b85a6e6920d8c7ad79eaf0a65bda15bc249e",
+      "kind": "account",
+      "observations": 1000000,
+      "observations_per_second": 33230996.270997334,
+      "output": {
+        "contract_identity": "ce464b264c6f5cbe4ea874463b7dce3b6255944057e852511566b57ae3c1786e",
+        "input_identity": "2da7f69f46f7df3f501181102ac4b85a6e6920d8c7ad79eaf0a65bda15bc249e",
+        "metrics": [
+          {
+            "contract_identity": "ce464b264c6f5cbe4ea874463b7dce3b6255944057e852511566b57ae3c1786e",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.account.total_return",
+            "reason": null,
+            "sample_count": 1000000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 1.0015812327827147
+          },
+          {
+            "contract_identity": "ce464b264c6f5cbe4ea874463b7dce3b6255944057e852511566b57ae3c1786e",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.account.final_equity",
+            "reason": null,
+            "sample_count": 1000000,
+            "status": "valid",
+            "unit": "USDT",
+            "value": 200.15812327827146
+          },
+          {
+            "contract_identity": "ce464b264c6f5cbe4ea874463b7dce3b6255944057e852511566b57ae3c1786e",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.account.elapsed_days",
+            "reason": null,
+            "sample_count": 1000000,
+            "status": "valid",
+            "unit": "elapsed_days",
+            "value": 694.44375
+          },
+          {
+            "contract_identity": "ce464b264c6f5cbe4ea874463b7dce3b6255944057e852511566b57ae3c1786e",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.account.cagr_elapsed",
+            "reason": null,
+            "sample_count": 1000000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.4404905630710198
+          },
+          {
+            "contract_identity": "ce464b264c6f5cbe4ea874463b7dce3b6255944057e852511566b57ae3c1786e",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.drawdown.max_depth",
+            "reason": null,
+            "sample_count": 1000000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.019704477505518403
+          },
+          {
+            "contract_identity": "ce464b264c6f5cbe4ea874463b7dce3b6255944057e852511566b57ae3c1786e",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.drawdown.mean_underwater_depth",
+            "reason": null,
+            "sample_count": 1000000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.007058310305484523
+          },
+          {
+            "contract_identity": "ce464b264c6f5cbe4ea874463b7dce3b6255944057e852511566b57ae3c1786e",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.drawdown.mean_episode_depth",
+            "reason": null,
+            "sample_count": 1000000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.013696638946702417
+          },
+          {
+            "contract_identity": "ce464b264c6f5cbe4ea874463b7dce3b6255944057e852511566b57ae3c1786e",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.drawdown.mean_recovered_duration_ns",
+            "reason": null,
+            "sample_count": 1000000,
+            "status": "valid",
+            "unit": "nanoseconds",
+            "value": 11348439509059.03
+          },
+          {
+            "contract_identity": "ce464b264c6f5cbe4ea874463b7dce3b6255944057e852511566b57ae3c1786e",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.drawdown.longest_recovered_duration_ns",
+            "reason": null,
+            "sample_count": 1000000,
+            "status": "valid",
+            "unit": "nanoseconds",
+            "value": 11400000000000.0
+          },
+          {
+            "contract_identity": "ce464b264c6f5cbe4ea874463b7dce3b6255944057e852511566b57ae3c1786e",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.drawdown.current_open_duration_ns",
+            "reason": null,
+            "sample_count": 1000000,
+            "status": "valid",
+            "unit": "nanoseconds",
+            "value": 9060000000000.0
+          },
+          {
+            "contract_identity": "ce464b264c6f5cbe4ea874463b7dce3b6255944057e852511566b57ae3c1786e",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.drawdown.ulcer_index",
+            "reason": null,
+            "sample_count": 1000000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.008540237121207698
+          },
+          {
+            "contract_identity": "ce464b264c6f5cbe4ea874463b7dce3b6255944057e852511566b57ae3c1786e",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.drawdown.longest_duration_ns",
+            "reason": null,
+            "sample_count": 1000000,
+            "status": "valid",
+            "unit": "nanoseconds",
+            "value": 11400000000000.0
+          },
+          {
+            "contract_identity": "ce464b264c6f5cbe4ea874463b7dce3b6255944057e852511566b57ae3c1786e",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.drawdown.episode_count",
+            "reason": null,
+            "sample_count": 1000000,
+            "status": "valid",
+            "unit": "count",
+            "value": 5134.0
+          },
+          {
+            "contract_identity": "ce464b264c6f5cbe4ea874463b7dce3b6255944057e852511566b57ae3c1786e",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.count",
+            "reason": null,
+            "sample_count": 1000000,
+            "status": "valid",
+            "unit": "count",
+            "value": 1000000.0
+          },
+          {
+            "contract_identity": "ce464b264c6f5cbe4ea874463b7dce3b6255944057e852511566b57ae3c1786e",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.mean_arithmetic",
+            "reason": null,
+            "sample_count": 1000000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 7.069444854992951e-07
+          },
+          {
+            "contract_identity": "ce464b264c6f5cbe4ea874463b7dce3b6255944057e852511566b57ae3c1786e",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.mean_geometric",
+            "reason": null,
+            "sample_count": 1000000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 6.939377253534623e-07
+          },
+          {
+            "contract_identity": "ce464b264c6f5cbe4ea874463b7dce3b6255944057e852511566b57ae3c1786e",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.sharpe",
+            "reason": null,
+            "sample_count": 1000000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 3.1787890624028896
+          },
+          {
+            "contract_identity": "ce464b264c6f5cbe4ea874463b7dce3b6255944057e852511566b57ae3c1786e",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.sortino",
+            "reason": null,
+            "sample_count": 1000000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 4.513773158953245
+          },
+          {
+            "contract_identity": "ce464b264c6f5cbe4ea874463b7dce3b6255944057e852511566b57ae3c1786e",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.omega",
+            "reason": null,
+            "sample_count": 1000000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 1.0099825583511164
+          },
+          {
+            "contract_identity": "ce464b264c6f5cbe4ea874463b7dce3b6255944057e852511566b57ae3c1786e",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.profit_factor",
+            "reason": null,
+            "sample_count": 1000000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 1.0099825583511164
+          },
+          {
+            "contract_identity": "ce464b264c6f5cbe4ea874463b7dce3b6255944057e852511566b57ae3c1786e",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.avg_win",
+            "reason": null,
+            "sample_count": 1000000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.00014276742851904002
+          },
+          {
+            "contract_identity": "ce464b264c6f5cbe4ea874463b7dce3b6255944057e852511566b57ae3c1786e",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.avg_loss",
+            "reason": null,
+            "sample_count": 1000000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": -0.00014191692904115741
+          },
+          {
+            "contract_identity": "ce464b264c6f5cbe4ea874463b7dce3b6255944057e852511566b57ae3c1786e",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.win_rate",
+            "reason": null,
+            "sample_count": 1000000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.500989
+          },
+          {
+            "contract_identity": "ce464b264c6f5cbe4ea874463b7dce3b6255944057e852511566b57ae3c1786e",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.nonzero_win_rate",
+            "reason": null,
+            "sample_count": 1000000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.500989500989501
+          },
+          {
+            "contract_identity": "ce464b264c6f5cbe4ea874463b7dce3b6255944057e852511566b57ae3c1786e",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.period.cagr_period_count",
+            "reason": null,
+            "sample_count": 1000000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.4404900373154999
+          },
+          {
+            "contract_identity": "ce464b264c6f5cbe4ea874463b7dce3b6255944057e852511566b57ae3c1786e",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "omitted",
+              "producer": "synthetic-recorded",
+              "profile": "compact",
+              "reason": "no ledger retained for account benchmark",
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 0
+            },
+            "metric_id": "reporting.account.calmar",
+            "reason": null,
+            "sample_count": 1000000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 22.354846148427775
+          }
+        ],
+        "provenance": {
+          "account_path_complete": true,
+          "backend": "numba",
+          "baseline_source": "caller-declared authoritative scope-entry valuation",
+          "contract": {
+            "annual_periods": 525960.0,
+            "baseline_equity": 100.0,
+            "baseline_time_ns": 0,
+            "breakeven_currency_tolerance": 0.0,
+            "cagr_basis": "elapsed_calendar",
+            "calendar": "UTC",
+            "calendar_year_days": 365.25,
+            "cashflows": "none",
+            "cost_basis": "authoritative_net",
+            "currency": "USDT",
+            "disjoint_scope": "reject",
+            "equity_clock": "bar_close",
+            "grouping": "none",
+            "ledger_scope": "none",
+            "mar_per_period": 0.0,
+            "matching": "none",
+            "min_cagr_days": 1.0,
+            "missing_periods": "observed_only",
+            "omega_threshold_per_period": 0.0,
+            "partial_periods": "include_disclosed",
+            "recovery_relative_tolerance": 0.0,
+            "risk_free_per_period": 0.0,
+            "sampling": "observed_bar",
+            "scope": "full",
+            "scope_end_ns": 59999940000000000,
+            "slippage_basis": "included_in_fill_price",
+            "sortino_denominator": "all_observations",
+            "unit": "account_period",
+            "variance_ddof": 1,
+            "version": "quantbt.reporting.v1"
+          },
+          "deepest_episode_index": 0,
+          "drawdown_clock": "bar_close",
+          "episode_detail_retained": false,
+          "longest_episode_index": 6,
+          "native_v1_reducer": "NOT_IMPLEMENTED; native_metric_v2 has a different scientific contract",
+          "observed_periods": 1000000,
+          "partial_periods": 0,
+          "retained_periods": 1000000,
+          "return_witness": "explicit synthetic full minute marks; first mark includes baseline return",
+          "unseen_extrema_certified": false
+        }
+      },
+      "output_policy": "scalar metrics; no episode/population details retained",
+      "p50_ms": 30.09238699451089,
+      "p95_ms": 37.02443002257496,
+      "parity": true,
+      "peak_includes_other_backend_parity": true,
+      "prepare_ms": 422.76576202129945,
+      "repeats": 5,
+      "rss_bytes": {
+        "after_import": 162992128,
+        "after_measurement": 313389056,
+        "after_primary_warmup": 312832000,
+        "prepared": 245878784,
+        "process_peak": 313389056
+      },
+      "samples_seconds": [
+        0.029146688000764698,
+        0.03009238699451089,
+        0.038177309033926576,
+        0.0324129139771685,
+        0.029991416027769446
+      ],
+      "thread_env": {
+        "NUMBA_NUM_THREADS": "1",
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1"
+      }
+    },
+    {
+      "backend": "python",
+      "cache_accounted_bytes": 12915,
+      "cache_hit_p50_ms": 0.05847896682098508,
+      "cache_released": true,
+      "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+      "first_call_including_jit_ms": 9.387792029883713,
+      "input_identity": "13ac2ea49d9daf569c1ea3a578abd8c8559856b792012929f1a8ac759c3967b2",
+      "kind": "ledger",
+      "observations": 2000,
+      "observations_per_second": 216421.92170461654,
+      "output": {
+        "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+        "input_identity": "13ac2ea49d9daf569c1ea3a578abd8c8559856b792012929f1a8ac759c3967b2",
+        "metrics": [
+          {
+            "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "complete",
+              "producer": "synthetic-recorded",
+              "profile": "audit",
+              "reason": null,
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 2000
+            },
+            "metric_id": "reporting.closed_trade.closed_count",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "count",
+            "value": 2000.0
+          },
+          {
+            "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "complete",
+              "producer": "synthetic-recorded",
+              "profile": "audit",
+              "reason": null,
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 2000
+            },
+            "metric_id": "reporting.closed_trade.win_count",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "count",
+            "value": 856.0
+          },
+          {
+            "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "complete",
+              "producer": "synthetic-recorded",
+              "profile": "audit",
+              "reason": null,
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 2000
+            },
+            "metric_id": "reporting.closed_trade.loss_count",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "count",
+            "value": 858.0
+          },
+          {
+            "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "complete",
+              "producer": "synthetic-recorded",
+              "profile": "audit",
+              "reason": null,
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 2000
+            },
+            "metric_id": "reporting.closed_trade.breakeven_count",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "count",
+            "value": 286.0
+          },
+          {
+            "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "complete",
+              "producer": "synthetic-recorded",
+              "profile": "audit",
+              "reason": null,
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 2000
+            },
+            "metric_id": "reporting.closed_trade.net_pnl",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "USDT",
+            "value": -5.0
+          },
+          {
+            "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "complete",
+              "producer": "synthetic-recorded",
+              "profile": "audit",
+              "reason": null,
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 2000
+            },
+            "metric_id": "reporting.closed_trade.win_rate",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.428
+          },
+          {
+            "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "complete",
+              "producer": "synthetic-recorded",
+              "profile": "audit",
+              "reason": null,
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 2000
+            },
+            "metric_id": "reporting.closed_trade.avg_profit",
+            "reason": null,
+            "sample_count": 856,
+            "status": "valid",
+            "unit": "USDT",
+            "value": 1.9988317757009346
+          },
+          {
+            "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "complete",
+              "producer": "synthetic-recorded",
+              "profile": "audit",
+              "reason": null,
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 2000
+            },
+            "metric_id": "reporting.closed_trade.avg_loss",
+            "reason": null,
+            "sample_count": 858,
+            "status": "valid",
+            "unit": "USDT",
+            "value": -2.0
+          },
+          {
+            "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "complete",
+              "producer": "synthetic-recorded",
+              "profile": "audit",
+              "reason": null,
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 2000
+            },
+            "metric_id": "reporting.closed_trade.avg_pnl",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "USDT",
+            "value": -0.0025
+          },
+          {
+            "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "complete",
+              "producer": "synthetic-recorded",
+              "profile": "audit",
+              "reason": null,
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 2000
+            },
+            "metric_id": "reporting.closed_trade.expected_payoff",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "USDT",
+            "value": -0.0025
+          },
+          {
+            "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "complete",
+              "producer": "synthetic-recorded",
+              "profile": "audit",
+              "reason": null,
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 2000
+            },
+            "metric_id": "reporting.closed_trade.profit_factor",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.997086247086247
+          },
+          {
+            "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "complete",
+              "producer": "synthetic-recorded",
+              "profile": "audit",
+              "reason": null,
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 2000
+            },
+            "metric_id": "reporting.closed_trade.payoff_ratio",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.9994158878504673
+          },
+          {
+            "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "complete",
+              "producer": "synthetic-recorded",
+              "profile": "audit",
+              "reason": null,
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 2000
+            },
+            "metric_id": "reporting.closed_trade.largest_win",
+            "reason": null,
+            "sample_count": 856,
+            "status": "valid",
+            "unit": "USDT",
+            "value": 3.0
+          },
+          {
+            "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "complete",
+              "producer": "synthetic-recorded",
+              "profile": "audit",
+              "reason": null,
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 2000
+            },
+            "metric_id": "reporting.closed_trade.largest_loss",
+            "reason": null,
+            "sample_count": 858,
+            "status": "valid",
+            "unit": "USDT",
+            "value": -3.0
+          },
+          {
+            "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "complete",
+              "producer": "synthetic-recorded",
+              "profile": "audit",
+              "reason": null,
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 2000
+            },
+            "metric_id": "reporting.closed_trade.median_pnl",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "USDT",
+            "value": 0.0
+          },
+          {
+            "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "complete",
+              "producer": "synthetic-recorded",
+              "profile": "audit",
+              "reason": null,
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 2000
+            },
+            "metric_id": "reporting.closed_trade.top_profit_concentration",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.0017533606078316774
+          },
+          {
+            "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "complete",
+              "producer": "synthetic-recorded",
+              "profile": "audit",
+              "reason": null,
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 2000
+            },
+            "metric_id": "reporting.closed_trade.max_win_streak",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "count",
+            "value": 3.0
+          },
+          {
+            "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "complete",
+              "producer": "synthetic-recorded",
+              "profile": "audit",
+              "reason": null,
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 2000
+            },
+            "metric_id": "reporting.closed_trade.max_loss_streak",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "count",
+            "value": 3.0
+          },
+          {
+            "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "complete",
+              "producer": "synthetic-recorded",
+              "profile": "audit",
+              "reason": null,
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 2000
+            },
+            "metric_id": "reporting.closed_trade.mean_holding_days",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "elapsed_days",
+            "value": 0.0006940972222222223
+          },
+          {
+            "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "complete",
+              "producer": "synthetic-recorded",
+              "profile": "audit",
+              "reason": null,
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 2000
+            },
+            "metric_id": "reporting.closed_trade.mean_holding_bars",
+            "reason": "recorded per-population marks/risk/denominator coverage required",
+            "sample_count": 2000,
+            "status": "unavailable",
+            "unit": "ratio",
+            "value": null
+          },
+          {
+            "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "complete",
+              "producer": "synthetic-recorded",
+              "profile": "audit",
+              "reason": null,
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 2000
+            },
+            "metric_id": "reporting.closed_trade.mean_return",
+            "reason": "recorded per-population marks/risk/denominator coverage required",
+            "sample_count": 2000,
+            "status": "unavailable",
+            "unit": "ratio",
+            "value": null
+          },
+          {
+            "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "complete",
+              "producer": "synthetic-recorded",
+              "profile": "audit",
+              "reason": null,
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 2000
+            },
+            "metric_id": "reporting.closed_trade.mean_r_multiple",
+            "reason": "recorded per-population marks/risk/denominator coverage required",
+            "sample_count": 2000,
+            "status": "unavailable",
+            "unit": "ratio",
+            "value": null
+          },
+          {
+            "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "complete",
+              "producer": "synthetic-recorded",
+              "profile": "audit",
+              "reason": null,
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 2000
+            },
+            "metric_id": "reporting.closed_trade.mean_mfe_net_pnl",
+            "reason": "recorded per-population marks/risk/denominator coverage required",
+            "sample_count": 2000,
+            "status": "unavailable",
+            "unit": "ratio",
+            "value": null
+          },
+          {
+            "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "complete",
+              "producer": "synthetic-recorded",
+              "profile": "audit",
+              "reason": null,
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 2000
+            },
+            "metric_id": "reporting.closed_trade.mean_mae_net_pnl",
+            "reason": "recorded per-population marks/risk/denominator coverage required",
+            "sample_count": 2000,
+            "status": "unavailable",
+            "unit": "ratio",
+            "value": null
+          },
+          {
+            "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "complete",
+              "producer": "synthetic-recorded",
+              "profile": "audit",
+              "reason": null,
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 2000
+            },
+            "metric_id": "reporting.closed_trade.allocated_fee",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "USDT",
+            "value": 200.0
+          },
+          {
+            "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "complete",
+              "producer": "synthetic-recorded",
+              "profile": "audit",
+              "reason": null,
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 2000
+            },
+            "metric_id": "reporting.closed_trade.allocated_funding_cost",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "USDT",
+            "value": 0.0
+          },
+          {
+            "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "complete",
+              "producer": "synthetic-recorded",
+              "profile": "audit",
+              "reason": null,
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 2000
+            },
+            "metric_id": "reporting.closed_trade.allocated_slippage_cost",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "USDT",
+            "value": 0.0
+          },
+          {
+            "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "complete",
+              "producer": "synthetic-recorded",
+              "profile": "audit",
+              "reason": null,
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 2000
+            },
+            "metric_id": "reporting.closed_trade.open_realized_net_pnl",
+            "reason": null,
+            "sample_count": 0,
+            "status": "valid",
+            "unit": "USDT",
+            "value": 0.0
+          },
+          {
+            "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "complete",
+              "producer": "synthetic-recorded",
+              "profile": "audit",
+              "reason": null,
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 2000
+            },
+            "metric_id": "reporting.closed_trade.open_unrealized_pnl",
+            "reason": null,
+            "sample_count": 0,
+            "status": "valid",
+            "unit": "USDT",
+            "value": 0.0
+          }
+        ],
+        "provenance": {
+          "action_roster_count": 0,
+          "backend": "numpy/python",
+          "close_order": "timestamp_ns then recorded unique close sequence",
+          "contract": {
+            "annual_periods": 525960.0,
+            "baseline_equity": 100.0,
+            "baseline_time_ns": 0,
+            "breakeven_currency_tolerance": 0.0,
+            "cagr_basis": "elapsed_calendar",
+            "calendar": "UTC",
+            "calendar_year_days": 365.25,
+            "cashflows": "none",
+            "cost_basis": "authoritative_net",
+            "currency": "USDT",
+            "disjoint_scope": "reject",
+            "equity_clock": "bar_close",
+            "grouping": "none",
+            "ledger_scope": "closed_in_scope_lifetime",
+            "mar_per_period": 0.0,
+            "matching": "position_episode",
+            "min_cagr_days": 1.0,
+            "missing_periods": "observed_only",
+            "omega_threshold_per_period": 0.0,
+            "partial_periods": "include_disclosed",
+            "recovery_relative_tolerance": 0.0,
+            "risk_free_per_period": 0.0,
+            "sampling": "observed_bar",
+            "scope": "full",
+            "scope_end_ns": 119940000000000,
+            "slippage_basis": "included_in_fill_price",
+            "sortino_denominator": "all_observations",
+            "unit": "closed_trade",
+            "variance_ddof": 1,
+            "version": "quantbt.reporting.v1"
+          },
+          "costs": "authoritative net; embedded slippage never subtracted twice",
+          "executed_matching": "position_episode",
+          "leg_net_sum": -5.0,
+          "population_complete": true,
+          "population_detail_retained": false,
+          "population_net_sum": -5.0,
+          "population_reason_counts": {},
+          "raw_records": 2000,
+          "reconciliation_basis": "selected closed-population lifetime only; not scope account return",
+          "shared_net_adjustment": 0.0,
+          "symbol_closed_pnl": {
+            "A": -3.0,
+            "B": -2.0
+          }
+        }
+      },
+      "output_policy": "scalar metrics; no episode/population details retained",
+      "p50_ms": 9.241208026651293,
+      "p95_ms": 9.673963556997478,
+      "parity": true,
+      "peak_includes_other_backend_parity": true,
+      "prepare_ms": 57.15790600515902,
+      "repeats": 5,
+      "rss_bytes": {
+        "after_import": 163139584,
+        "after_measurement": 229564416,
+        "after_primary_warmup": 165097472,
+        "prepared": 165097472,
+        "process_peak": 229564416
+      },
+      "samples_seconds": [
+        0.008239585033152252,
+        0.009241208026651293,
+        0.009647081955336034,
+        0.009120528993662447,
+        0.009680683957412839
+      ],
+      "thread_env": {
+        "NUMBA_NUM_THREADS": "1",
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1"
+      }
+    },
+    {
+      "backend": "numba",
+      "cache_accounted_bytes": 12913,
+      "cache_hit_p50_ms": 0.048173998948186636,
+      "cache_released": true,
+      "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+      "first_call_including_jit_ms": 774.344700970687,
+      "input_identity": "13ac2ea49d9daf569c1ea3a578abd8c8559856b792012929f1a8ac759c3967b2",
+      "kind": "ledger",
+      "observations": 2000,
+      "observations_per_second": 232024.91377703525,
+      "output": {
+        "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+        "input_identity": "13ac2ea49d9daf569c1ea3a578abd8c8559856b792012929f1a8ac759c3967b2",
+        "metrics": [
+          {
+            "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "complete",
+              "producer": "synthetic-recorded",
+              "profile": "audit",
+              "reason": null,
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 2000
+            },
+            "metric_id": "reporting.closed_trade.closed_count",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "count",
+            "value": 2000.0
+          },
+          {
+            "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "complete",
+              "producer": "synthetic-recorded",
+              "profile": "audit",
+              "reason": null,
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 2000
+            },
+            "metric_id": "reporting.closed_trade.win_count",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "count",
+            "value": 856.0
+          },
+          {
+            "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "complete",
+              "producer": "synthetic-recorded",
+              "profile": "audit",
+              "reason": null,
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 2000
+            },
+            "metric_id": "reporting.closed_trade.loss_count",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "count",
+            "value": 858.0
+          },
+          {
+            "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "complete",
+              "producer": "synthetic-recorded",
+              "profile": "audit",
+              "reason": null,
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 2000
+            },
+            "metric_id": "reporting.closed_trade.breakeven_count",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "count",
+            "value": 286.0
+          },
+          {
+            "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "complete",
+              "producer": "synthetic-recorded",
+              "profile": "audit",
+              "reason": null,
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 2000
+            },
+            "metric_id": "reporting.closed_trade.net_pnl",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "USDT",
+            "value": -5.0
+          },
+          {
+            "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "complete",
+              "producer": "synthetic-recorded",
+              "profile": "audit",
+              "reason": null,
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 2000
+            },
+            "metric_id": "reporting.closed_trade.win_rate",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.428
+          },
+          {
+            "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "complete",
+              "producer": "synthetic-recorded",
+              "profile": "audit",
+              "reason": null,
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 2000
+            },
+            "metric_id": "reporting.closed_trade.avg_profit",
+            "reason": null,
+            "sample_count": 856,
+            "status": "valid",
+            "unit": "USDT",
+            "value": 1.9988317757009346
+          },
+          {
+            "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "complete",
+              "producer": "synthetic-recorded",
+              "profile": "audit",
+              "reason": null,
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 2000
+            },
+            "metric_id": "reporting.closed_trade.avg_loss",
+            "reason": null,
+            "sample_count": 858,
+            "status": "valid",
+            "unit": "USDT",
+            "value": -2.0
+          },
+          {
+            "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "complete",
+              "producer": "synthetic-recorded",
+              "profile": "audit",
+              "reason": null,
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 2000
+            },
+            "metric_id": "reporting.closed_trade.avg_pnl",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "USDT",
+            "value": -0.0025
+          },
+          {
+            "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "complete",
+              "producer": "synthetic-recorded",
+              "profile": "audit",
+              "reason": null,
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 2000
+            },
+            "metric_id": "reporting.closed_trade.expected_payoff",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "USDT",
+            "value": -0.0025
+          },
+          {
+            "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "complete",
+              "producer": "synthetic-recorded",
+              "profile": "audit",
+              "reason": null,
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 2000
+            },
+            "metric_id": "reporting.closed_trade.profit_factor",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.997086247086247
+          },
+          {
+            "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "complete",
+              "producer": "synthetic-recorded",
+              "profile": "audit",
+              "reason": null,
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 2000
+            },
+            "metric_id": "reporting.closed_trade.payoff_ratio",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.9994158878504673
+          },
+          {
+            "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "complete",
+              "producer": "synthetic-recorded",
+              "profile": "audit",
+              "reason": null,
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 2000
+            },
+            "metric_id": "reporting.closed_trade.largest_win",
+            "reason": null,
+            "sample_count": 856,
+            "status": "valid",
+            "unit": "USDT",
+            "value": 3.0
+          },
+          {
+            "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "complete",
+              "producer": "synthetic-recorded",
+              "profile": "audit",
+              "reason": null,
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 2000
+            },
+            "metric_id": "reporting.closed_trade.largest_loss",
+            "reason": null,
+            "sample_count": 858,
+            "status": "valid",
+            "unit": "USDT",
+            "value": -3.0
+          },
+          {
+            "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "complete",
+              "producer": "synthetic-recorded",
+              "profile": "audit",
+              "reason": null,
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 2000
+            },
+            "metric_id": "reporting.closed_trade.median_pnl",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "USDT",
+            "value": 0.0
+          },
+          {
+            "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "complete",
+              "producer": "synthetic-recorded",
+              "profile": "audit",
+              "reason": null,
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 2000
+            },
+            "metric_id": "reporting.closed_trade.top_profit_concentration",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "ratio",
+            "value": 0.0017533606078316774
+          },
+          {
+            "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "complete",
+              "producer": "synthetic-recorded",
+              "profile": "audit",
+              "reason": null,
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 2000
+            },
+            "metric_id": "reporting.closed_trade.max_win_streak",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "count",
+            "value": 3.0
+          },
+          {
+            "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "complete",
+              "producer": "synthetic-recorded",
+              "profile": "audit",
+              "reason": null,
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 2000
+            },
+            "metric_id": "reporting.closed_trade.max_loss_streak",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "count",
+            "value": 3.0
+          },
+          {
+            "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "complete",
+              "producer": "synthetic-recorded",
+              "profile": "audit",
+              "reason": null,
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 2000
+            },
+            "metric_id": "reporting.closed_trade.mean_holding_days",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "elapsed_days",
+            "value": 0.0006940972222222223
+          },
+          {
+            "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "complete",
+              "producer": "synthetic-recorded",
+              "profile": "audit",
+              "reason": null,
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 2000
+            },
+            "metric_id": "reporting.closed_trade.mean_holding_bars",
+            "reason": "recorded per-population marks/risk/denominator coverage required",
+            "sample_count": 2000,
+            "status": "unavailable",
+            "unit": "ratio",
+            "value": null
+          },
+          {
+            "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "complete",
+              "producer": "synthetic-recorded",
+              "profile": "audit",
+              "reason": null,
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 2000
+            },
+            "metric_id": "reporting.closed_trade.mean_return",
+            "reason": "recorded per-population marks/risk/denominator coverage required",
+            "sample_count": 2000,
+            "status": "unavailable",
+            "unit": "ratio",
+            "value": null
+          },
+          {
+            "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "complete",
+              "producer": "synthetic-recorded",
+              "profile": "audit",
+              "reason": null,
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 2000
+            },
+            "metric_id": "reporting.closed_trade.mean_r_multiple",
+            "reason": "recorded per-population marks/risk/denominator coverage required",
+            "sample_count": 2000,
+            "status": "unavailable",
+            "unit": "ratio",
+            "value": null
+          },
+          {
+            "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "complete",
+              "producer": "synthetic-recorded",
+              "profile": "audit",
+              "reason": null,
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 2000
+            },
+            "metric_id": "reporting.closed_trade.mean_mfe_net_pnl",
+            "reason": "recorded per-population marks/risk/denominator coverage required",
+            "sample_count": 2000,
+            "status": "unavailable",
+            "unit": "ratio",
+            "value": null
+          },
+          {
+            "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "complete",
+              "producer": "synthetic-recorded",
+              "profile": "audit",
+              "reason": null,
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 2000
+            },
+            "metric_id": "reporting.closed_trade.mean_mae_net_pnl",
+            "reason": "recorded per-population marks/risk/denominator coverage required",
+            "sample_count": 2000,
+            "status": "unavailable",
+            "unit": "ratio",
+            "value": null
+          },
+          {
+            "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "complete",
+              "producer": "synthetic-recorded",
+              "profile": "audit",
+              "reason": null,
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 2000
+            },
+            "metric_id": "reporting.closed_trade.allocated_fee",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "USDT",
+            "value": 200.0
+          },
+          {
+            "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "complete",
+              "producer": "synthetic-recorded",
+              "profile": "audit",
+              "reason": null,
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 2000
+            },
+            "metric_id": "reporting.closed_trade.allocated_funding_cost",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "USDT",
+            "value": 0.0
+          },
+          {
+            "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "complete",
+              "producer": "synthetic-recorded",
+              "profile": "audit",
+              "reason": null,
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 2000
+            },
+            "metric_id": "reporting.closed_trade.allocated_slippage_cost",
+            "reason": null,
+            "sample_count": 2000,
+            "status": "valid",
+            "unit": "USDT",
+            "value": 0.0
+          },
+          {
+            "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "complete",
+              "producer": "synthetic-recorded",
+              "profile": "audit",
+              "reason": null,
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 2000
+            },
+            "metric_id": "reporting.closed_trade.open_realized_net_pnl",
+            "reason": null,
+            "sample_count": 0,
+            "status": "valid",
+            "unit": "USDT",
+            "value": 0.0
+          },
+          {
+            "contract_identity": "2e2a75b435a0f211cd39fc7e98fba6d4a3216ccdef317cdbef9df3f7be361139",
+            "coverage": {
+              "dropped_rows": 0,
+              "ledger": "complete",
+              "producer": "synthetic-recorded",
+              "profile": "audit",
+              "reason": null,
+              "result_identity": "public-matched-benchmark",
+              "retained_rows": 2000
+            },
+            "metric_id": "reporting.closed_trade.open_unrealized_pnl",
+            "reason": null,
+            "sample_count": 0,
+            "status": "valid",
+            "unit": "USDT",
+            "value": 0.0
+          }
+        ],
+        "provenance": {
+          "action_roster_count": 0,
+          "backend": "numpy/numba",
+          "close_order": "timestamp_ns then recorded unique close sequence",
+          "contract": {
+            "annual_periods": 525960.0,
+            "baseline_equity": 100.0,
+            "baseline_time_ns": 0,
+            "breakeven_currency_tolerance": 0.0,
+            "cagr_basis": "elapsed_calendar",
+            "calendar": "UTC",
+            "calendar_year_days": 365.25,
+            "cashflows": "none",
+            "cost_basis": "authoritative_net",
+            "currency": "USDT",
+            "disjoint_scope": "reject",
+            "equity_clock": "bar_close",
+            "grouping": "none",
+            "ledger_scope": "closed_in_scope_lifetime",
+            "mar_per_period": 0.0,
+            "matching": "position_episode",
+            "min_cagr_days": 1.0,
+            "missing_periods": "observed_only",
+            "omega_threshold_per_period": 0.0,
+            "partial_periods": "include_disclosed",
+            "recovery_relative_tolerance": 0.0,
+            "risk_free_per_period": 0.0,
+            "sampling": "observed_bar",
+            "scope": "full",
+            "scope_end_ns": 119940000000000,
+            "slippage_basis": "included_in_fill_price",
+            "sortino_denominator": "all_observations",
+            "unit": "closed_trade",
+            "variance_ddof": 1,
+            "version": "quantbt.reporting.v1"
+          },
+          "costs": "authoritative net; embedded slippage never subtracted twice",
+          "executed_matching": "position_episode",
+          "leg_net_sum": -5.0,
+          "population_complete": true,
+          "population_detail_retained": false,
+          "population_net_sum": -5.0,
+          "population_reason_counts": {},
+          "raw_records": 2000,
+          "reconciliation_basis": "selected closed-population lifetime only; not scope account return",
+          "shared_net_adjustment": 0.0,
+          "symbol_closed_pnl": {
+            "A": -3.0,
+            "B": -2.0
+          }
+        }
+      },
+      "output_policy": "scalar metrics; no episode/population details retained",
+      "p50_ms": 8.619764004833996,
+      "p95_ms": 9.425128623843193,
+      "parity": true,
+      "peak_includes_other_backend_parity": true,
+      "prepare_ms": 65.80385100096464,
+      "repeats": 5,
+      "rss_bytes": {
+        "after_import": 163422208,
+        "after_measurement": 229736448,
+        "after_primary_warmup": 229736448,
+        "prepared": 165318656,
+        "process_peak": 229736448
+      },
+      "samples_seconds": [
+        0.009436155029106885,
+        0.008619764004833996,
+        0.009381023002788424,
+        0.008193334972020239,
+        0.008582173963077366
+      ],
+      "thread_env": {
+        "NUMBA_NUM_THREADS": "1",
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1"
+      }
+    }
+  ],
+  "engine_changes": false,
+  "latency_acceptance_gate": "not registered; informational cost measurement only",
+  "measurement_scope": "cold post-simulation reducer on pre-snapshotted buffers; prepare/JIT/RSS disclosed separately",
+  "phase": "MET-02",
+  "protocol": "registered before measurement; one warmup/five repeats, fresh worker per cell",
+  "source_hashes": {
+    "src/quantbt/metrics/reporting/__init__.py": "e64dbf1f4e9fa4f0083bccc6a3c95c13bcf1fe0c5977d9c4733a0deffea62e65",
+    "src/quantbt/metrics/reporting/account.py": "6f55aeda704f5c2a1c74abc1794a0852ac8a4353d48c32da7905537032ced3a9",
+    "src/quantbt/metrics/reporting/adapters.py": "6cf371b25685280ff807de14a996491216f48ac1660389b514918c0abd1de3e5",
+    "src/quantbt/metrics/reporting/cache.py": "fe9c77838f4c716d55a13d9e747430635c86db56977cbcfc89cae21311290bb1",
+    "src/quantbt/metrics/reporting/drawdown.py": "49fda6649d2c6877a4b32feca669d7be5bd06f4207b2848386eb07205f0dc6a9",
+    "src/quantbt/metrics/reporting/execution.py": "08d90d02893b6e91482ac486615c61c9e2731f6c309d85da12e6dde0add59e2c",
+    "src/quantbt/metrics/reporting/inputs.py": "af9f288d812f26f789070f685b0cb8a88af32f23ea8a7470fe6abf6d639b8bf1",
+    "src/quantbt/metrics/reporting/ledger.py": "8e0463587f2f8192371927946ab6941c6b72cae3807a819e94a1aa9717e54290",
+    "src/quantbt/metrics/reporting/ledger_inputs.py": "5492ef0563ef409a245e50487d9464c10b3632c949b8ab645b71d846faadee7f",
+    "src/quantbt/metrics/reporting/results.py": "7aa17b4eb8fccb9a5f3b8e100e035f1bbbd7ffb64ba781e03c26074009b92d42"
+  }
+}

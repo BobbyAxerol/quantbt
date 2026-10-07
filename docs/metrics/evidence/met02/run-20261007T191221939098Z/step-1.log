@@ -1,0 +1,266 @@
+........................................................................ [ 12%]
+........................................................................ [ 25%]
+........................................................................ [ 38%]
+........................................................................ [ 51%]
+........................................................................ [ 64%]
+........................................................................ [ 77%]
+........................................................................ [ 89%]
+.......................................F...FFF...........                [100%]
+=================================== FAILURES ===================================
+_ test_met02_t02_t10_completed_account_adapter_scope_baseline_and_no_mutation __
+
+    def test_met02_t02_t10_completed_account_adapter_scope_baseline_and_no_mutation():
+        index = pd.date_range("2025-01-01", periods=4, freq="D", tz="UTC")
+        result = BacktestResultV2(equity=pd.Series([100., 120., 125., 132.], index=index),
+            returns=pd.Series([0., .2, 1/24, 7/125], index=index),
+            positions=pd.DataFrame({"ETH": [0., 1., 1., 0.]}, index=index),
+            closes=pd.DataFrame({"ETH": [100., 120., 125., 132.]}, index=index),
+            symbols=["ETH"], initial_capital=100.)
+        raw = {name: getattr(result, name).copy(deep=True) for name in ("equity", "returns", "positions", "closes")}
+>       legacy = result.full_report(scope="full")
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/metrics/test_reporting_conformance.py:81: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/quantbt/core/results.py:71: in full_report
+    return full_report(scoped_result(self, scope=scope), trading_days=trading_days)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/quantbt/metrics/performance.py:531: in full_report
+    positions = result.positions[[f"Position_{sym}" for sym in result.symbols]].to_numpy(dtype=np.float64)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.12/site-packages/pandas/core/frame.py:4119: in __getitem__
+    indexer = self.columns._get_indexer_strict(key, "columns")[1]
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.12/site-packages/pandas/core/indexes/base.py:6212: in _get_indexer_strict
+    self._raise_if_missing(keyarr, indexer, axis_name)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = Index(['ETH'], dtype='object')
+key = Index(['Position_ETH'], dtype='object'), indexer = array([-1])
+axis_name = 'columns'
+
+    def _raise_if_missing(self, key, indexer, axis_name: str_t) -> None:
+        """
+        Check that indexer can be used to return a result.
+    
+        e.g. at least one element was found,
+        unless the list of keys was actually empty.
+    
+        Parameters
+        ----------
+        key : list-like
+            Targeted labels (only used to show correct error message).
+        indexer: array-like of booleans
+            Indices corresponding to the key,
+            (with -1 indicating not found).
+        axis_name : str
+    
+        Raises
+        ------
+        KeyError
+            If at least one key was requested but none was found.
+        """
+        if len(key) == 0:
+            return
+    
+        # Count missing values
+        missing_mask = indexer < 0
+        nmissing = missing_mask.sum()
+    
+        if nmissing:
+            if nmissing == len(indexer):
+>               raise KeyError(f"None of [{key}] are in the [{axis_name}]")
+E               KeyError: "None of [Index(['Position_ETH'], dtype='object')] are in the [columns]"
+
+.venv/lib/python3.12/site-packages/pandas/core/indexes/base.py:6261: KeyError
+_ test_met02_t09_t10_seeded_public_wfo_proposals_objective_selection_account_unchanged[mode_1_decay-per_fold_decay] _
+
+mode = 'mode_1_decay', schedule = 'per_fold_decay'
+
+    @pytest.mark.parametrize("mode,schedule", [("mode_1_decay", "per_fold_decay"), ("mode_4_is_only_robust", "per_fold_causal")])
+    def test_met02_t09_t10_seeded_public_wfo_proposals_objective_selection_account_unchanged(mode, schedule):
+        index = pd.date_range("2020-01-01", "2021-06-30", freq="D", tz="UTC")
+        phase = np.arange(len(index), dtype=float)
+        close = 100. + .05 * phase + 3. * np.sin(phase / 11.)
+        data = pd.DataFrame({"open": close, "high": close + 1., "low": close - 1., "close": close, "volume": 1000.}, index=index)
+        def strategy(data, params, train_index, test_index, fold):
+            history = data.loc[:test_index[-1], "close"]
+            side = np.sign(history.diff(int(params["window"]))).fillna(0.)
+            return side.reindex(test_index)
+        def run():
+            endpoint = QuantBTEndpoint.walk_forward(strategy_class=strategy,
+                split_mode="2021-01-01", split_frequency="quarterly", window_mode="rolling", train_window="180D",
+                target_mode="pct_equity", optimization_mode=mode, optimization_schedule=schedule,
+                optimization_config=dict(scoring_backend="endpoint", is_subperiods=1, flat_min_samples=1,
+                    flat_eps=1., top_is_fraction=1., candidate_selection_metric="robust_decay" if mode == "mode_1_decay" else "is_only_robust"),
+                optuna_trials=3, random_seed=731, initial_capital=20_000., leverage=1., fee_rate=.0005)
+            return endpoint.backtest(data=data, param_ranges={"window": (3, 9, 2)})
+        scientific = canonical_metric_contract()
+        before = run()
+        old_report = before.full_report(scope="full")
+        rng_python, rng_numpy = random.getstate(), np.random.get_state()
+        contract = replace(policy([int(before.equity.index[0].value), int(before.equity.index[-1].value)], before.initial_capital), sampling="observed_bar")
+        obs = account_from_completed(before, contract, result_identity="seeded-wfo", partial_mask=[False] * len(before.equity),
+                                     return_witness="completed stitched-account daily bars")
+        with ReportingCache() as cache:
+            cache.reduce("account", obs, contract, backend="numba", retain_episodes=True)
+            cache.reduce("account", obs, contract, backend="numba", retain_episodes=True)
+        assert random.getstate() == rng_python
+        after_state = np.random.get_state()
+        assert after_state[0] == rng_numpy[0] and np.array_equal(after_state[1], rng_numpy[1]) and after_state[2:] == rng_numpy[2:]
+        assert canonical_metric_contract() == scientific and before.full_report(scope="full") == old_report
+        after = run()
+        for name in ("equity", "returns", "fees", "funding"):
+>           pd.testing.assert_series_equal(getattr(before, name), getattr(after, name), check_exact=True)
+                                           ^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: 'BacktestResult' object has no attribute 'fees'
+
+tests/metrics/test_reporting_conformance.py:170: AttributeError
+----------------------------- Captured stderr call -----------------------------
+[I 2026-10-07 19:12:36,760] A new study created in memory with name: no-name-d0e959a8-64e4-4cab-b6c4-7959c4acadfe
+[I 2026-10-07 19:12:38,209] Trial 0 finished with value: 0.0 and parameters: {'window': 5}. Best is trial 0 with value: 0.0.
+[I 2026-10-07 19:12:38,220] Trial 1 finished with value: 0.0 and parameters: {'window': 9}. Best is trial 0 with value: 0.0.
+[I 2026-10-07 19:12:38,230] Trial 2 finished with value: 0.0 and parameters: {'window': 3}. Best is trial 0 with value: 0.0.
+[I 2026-10-07 19:12:38,296] A new study created in memory with name: no-name-02e9dd60-0a95-4e8f-b1f2-8dff8298b44b
+[I 2026-10-07 19:12:38,307] Trial 0 finished with value: 0.0 and parameters: {'window': 9}. Best is trial 0 with value: 0.0.
+[I 2026-10-07 19:12:38,319] Trial 1 finished with value: 0.0 and parameters: {'window': 3}. Best is trial 0 with value: 0.0.
+[I 2026-10-07 19:12:38,320] Trial 2 pruned. duplicate parameter set
+[I 2026-10-07 19:12:38,410] A new study created in memory with name: no-name-d1ebae72-1f98-428e-b120-f00d9f0cce68
+[I 2026-10-07 19:12:38,422] Trial 0 finished with value: 0.0 and parameters: {'window': 5}. Best is trial 0 with value: 0.0.
+[I 2026-10-07 19:12:38,433] Trial 1 finished with value: 0.0 and parameters: {'window': 9}. Best is trial 0 with value: 0.0.
+[I 2026-10-07 19:12:38,443] Trial 2 finished with value: 0.0 and parameters: {'window': 3}. Best is trial 0 with value: 0.0.
+[I 2026-10-07 19:12:38,504] A new study created in memory with name: no-name-80c4f306-8506-4750-aaf5-1f8dcd3f27df
+[I 2026-10-07 19:12:38,514] Trial 0 finished with value: 0.0 and parameters: {'window': 9}. Best is trial 0 with value: 0.0.
+[I 2026-10-07 19:12:38,524] Trial 1 finished with value: 0.0 and parameters: {'window': 3}. Best is trial 0 with value: 0.0.
+[I 2026-10-07 19:12:38,525] Trial 2 pruned. duplicate parameter set
+_ test_met02_t09_t10_seeded_public_wfo_proposals_objective_selection_account_unchanged[mode_4_is_only_robust-per_fold_causal] _
+
+mode = 'mode_4_is_only_robust', schedule = 'per_fold_causal'
+
+    @pytest.mark.parametrize("mode,schedule", [("mode_1_decay", "per_fold_decay"), ("mode_4_is_only_robust", "per_fold_causal")])
+    def test_met02_t09_t10_seeded_public_wfo_proposals_objective_selection_account_unchanged(mode, schedule):
+        index = pd.date_range("2020-01-01", "2021-06-30", freq="D", tz="UTC")
+        phase = np.arange(len(index), dtype=float)
+        close = 100. + .05 * phase + 3. * np.sin(phase / 11.)
+        data = pd.DataFrame({"open": close, "high": close + 1., "low": close - 1., "close": close, "volume": 1000.}, index=index)
+        def strategy(data, params, train_index, test_index, fold):
+            history = data.loc[:test_index[-1], "close"]
+            side = np.sign(history.diff(int(params["window"]))).fillna(0.)
+            return side.reindex(test_index)
+        def run():
+            endpoint = QuantBTEndpoint.walk_forward(strategy_class=strategy,
+                split_mode="2021-01-01", split_frequency="quarterly", window_mode="rolling", train_window="180D",
+                target_mode="pct_equity", optimization_mode=mode, optimization_schedule=schedule,
+                optimization_config=dict(scoring_backend="endpoint", is_subperiods=1, flat_min_samples=1,
+                    flat_eps=1., top_is_fraction=1., candidate_selection_metric="robust_decay" if mode == "mode_1_decay" else "is_only_robust"),
+                optuna_trials=3, random_seed=731, initial_capital=20_000., leverage=1., fee_rate=.0005)
+            return endpoint.backtest(data=data, param_ranges={"window": (3, 9, 2)})
+        scientific = canonical_metric_contract()
+        before = run()
+        old_report = before.full_report(scope="full")
+        rng_python, rng_numpy = random.getstate(), np.random.get_state()
+        contract = replace(policy([int(before.equity.index[0].value), int(before.equity.index[-1].value)], before.initial_capital), sampling="observed_bar")
+        obs = account_from_completed(before, contract, result_identity="seeded-wfo", partial_mask=[False] * len(before.equity),
+                                     return_witness="completed stitched-account daily bars")
+        with ReportingCache() as cache:
+            cache.reduce("account", obs, contract, backend="numba", retain_episodes=True)
+            cache.reduce("account", obs, contract, backend="numba", retain_episodes=True)
+        assert random.getstate() == rng_python
+        after_state = np.random.get_state()
+        assert after_state[0] == rng_numpy[0] and np.array_equal(after_state[1], rng_numpy[1]) and after_state[2:] == rng_numpy[2:]
+        assert canonical_metric_contract() == scientific and before.full_report(scope="full") == old_report
+        after = run()
+        for name in ("equity", "returns", "fees", "funding"):
+>           pd.testing.assert_series_equal(getattr(before, name), getattr(after, name), check_exact=True)
+                                           ^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: 'BacktestResult' object has no attribute 'fees'
+
+tests/metrics/test_reporting_conformance.py:170: AttributeError
+----------------------------- Captured stderr call -----------------------------
+[I 2026-10-07 19:12:38,617] A new study created in memory with name: no-name-99b27779-80ca-4723-b5f2-b3f6aeff0146
+[I 2026-10-07 19:12:38,638] Trial 0 finished with value: 0.0 and parameters: {'window': 5}. Best is trial 0 with value: 0.0.
+[I 2026-10-07 19:12:38,657] Trial 1 finished with value: 0.0 and parameters: {'window': 9}. Best is trial 0 with value: 0.0.
+[I 2026-10-07 19:12:38,694] Trial 2 finished with value: 0.0 and parameters: {'window': 3}. Best is trial 0 with value: 0.0.
+[I 2026-10-07 19:12:39,202] A new study created in memory with name: no-name-c564ca92-5732-4aec-9fdd-faad03556531
+[I 2026-10-07 19:12:39,224] Trial 0 finished with value: 0.0 and parameters: {'window': 9}. Best is trial 0 with value: 0.0.
+[I 2026-10-07 19:12:39,245] Trial 1 finished with value: 0.0 and parameters: {'window': 3}. Best is trial 0 with value: 0.0.
+[I 2026-10-07 19:12:39,246] Trial 2 pruned. duplicate parameter set
+[I 2026-10-07 19:12:39,300] A new study created in memory with name: no-name-17bb77f6-b6d8-4ffb-884f-60e3f403f373
+[I 2026-10-07 19:12:39,319] Trial 0 finished with value: 0.0 and parameters: {'window': 5}. Best is trial 0 with value: 0.0.
+[I 2026-10-07 19:12:39,337] Trial 1 finished with value: 0.0 and parameters: {'window': 9}. Best is trial 0 with value: 0.0.
+[I 2026-10-07 19:12:39,356] Trial 2 finished with value: 0.0 and parameters: {'window': 3}. Best is trial 0 with value: 0.0.
+[I 2026-10-07 19:12:39,369] A new study created in memory with name: no-name-5cac759e-8c6e-451c-b23d-76298973c8c1
+[I 2026-10-07 19:12:39,387] Trial 0 finished with value: 0.0 and parameters: {'window': 9}. Best is trial 0 with value: 0.0.
+[I 2026-10-07 19:12:39,409] Trial 1 finished with value: 0.0 and parameters: {'window': 3}. Best is trial 0 with value: 0.0.
+[I 2026-10-07 19:12:39,410] Trial 2 pruned. duplicate parameter set
+------------------------------ Captured log call -------------------------------
+INFO     optuna.storages._in_memory:_in_memory.py:87 A new study created in memory with name: no-name-99b27779-80ca-4723-b5f2-b3f6aeff0146
+INFO     optuna.study.study:study.py:1161 Trial 0 finished with value: 0.0 and parameters: {'window': 5}. Best is trial 0 with value: 0.0.
+INFO     optuna.study.study:study.py:1161 Trial 1 finished with value: 0.0 and parameters: {'window': 9}. Best is trial 0 with value: 0.0.
+INFO     optuna.study.study:study.py:1161 Trial 2 finished with value: 0.0 and parameters: {'window': 3}. Best is trial 0 with value: 0.0.
+INFO     optuna.storages._in_memory:_in_memory.py:87 A new study created in memory with name: no-name-c564ca92-5732-4aec-9fdd-faad03556531
+INFO     optuna.study.study:study.py:1161 Trial 0 finished with value: 0.0 and parameters: {'window': 9}. Best is trial 0 with value: 0.0.
+INFO     optuna.study.study:study.py:1161 Trial 1 finished with value: 0.0 and parameters: {'window': 3}. Best is trial 0 with value: 0.0.
+INFO     optuna.study._optimize:_optimize.py:236 Trial 2 pruned. duplicate parameter set
+INFO     optuna.storages._in_memory:_in_memory.py:87 A new study created in memory with name: no-name-17bb77f6-b6d8-4ffb-884f-60e3f403f373
+INFO     optuna.study.study:study.py:1161 Trial 0 finished with value: 0.0 and parameters: {'window': 5}. Best is trial 0 with value: 0.0.
+INFO     optuna.study.study:study.py:1161 Trial 1 finished with value: 0.0 and parameters: {'window': 9}. Best is trial 0 with value: 0.0.
+INFO     optuna.study.study:study.py:1161 Trial 2 finished with value: 0.0 and parameters: {'window': 3}. Best is trial 0 with value: 0.0.
+INFO     optuna.storages._in_memory:_in_memory.py:87 A new study created in memory with name: no-name-5cac759e-8c6e-451c-b23d-76298973c8c1
+INFO     optuna.study.study:study.py:1161 Trial 0 finished with value: 0.0 and parameters: {'window': 9}. Best is trial 0 with value: 0.0.
+INFO     optuna.study.study:study.py:1161 Trial 1 finished with value: 0.0 and parameters: {'window': 3}. Best is trial 0 with value: 0.0.
+INFO     optuna.study._optimize:_optimize.py:236 Trial 2 pruned. duplicate parameter set
+_ test_met02_t08_t10_protected_sources_privacy_no_hot_consumer_or_oracle_import _
+
+    def test_met02_t08_t10_protected_sources_privacy_no_hot_consumer_or_oracle_import():
+        baseline = json.loads((ROOT / "docs/metrics/evidence/met02/baseline.json").read_text())
+        for path, value in baseline["protected_sources"].items():
+            assert hashlib.sha256((ROOT / path).read_bytes()).hexdigest() == value, path
+        forbidden = {"quantstats", "matplotlib", "_quantbt_native", "nautilus_trader"}
+        for path in (ROOT / "src/quantbt/metrics/reporting").glob("*.py"):
+            text = path.read_text()
+            assert all(token not in text for token in ("/root/", "alphas_storage", "reference_oracle", "QuantBTEndpoint", "BacktestEngine"))
+            tree = ast.parse(text)
+            modules = {node.module.split(".")[0] for node in tree.body if isinstance(node, ast.ImportFrom) and node.module}
+            modules |= {name.name.split(".")[0] for node in tree.body if isinstance(node, ast.Import) for name in node.names}
+            assert not modules & (forbidden | {"numba", "pandas"})
+        script = '''
+    import importlib.abc, sys
+    class Block(importlib.abc.MetaPathFinder):
+        def find_spec(self, fullname, path=None, target=None):
+            if fullname.split('.')[0] in {'quantstats', 'matplotlib', '_quantbt_native', 'nautilus_trader', 'numba'}:
+                raise AssertionError(fullname)
+    sys.meta_path.insert(0, Block())
+    import quantbt.metrics
+    before = {n for n in sys.modules if n.startswith('quantbt.backends')}
+    from quantbt.metrics.reporting.cache import ReportingCache
+    assert {n for n in sys.modules if n.startswith('quantbt.backends')} == before
+    '''
+        completed = subprocess.run([sys.executable, "-c", script], cwd=ROOT, capture_output=True, text=True)
+>       assert completed.returncode == 0, completed.stdout + completed.stderr
+E       AssertionError: Traceback (most recent call last):
+E           File "<string>", line 8, in <module>
+E           File "/root/bobby/pool_alpha/quantbt/src/quantbt/__init__.py", line 175, in <module>
+E             from .backtester import BacktestEngine
+E           File "/root/bobby/pool_alpha/quantbt/src/quantbt/backtester.py", line 57, in <module>
+E             from .core.engine      import _engine_units, _engine_pct_equity, _engine_dca_ladder
+E           File "/root/bobby/pool_alpha/quantbt/src/quantbt/core/__init__.py", line 1, in <module>
+E             from .engine       import _engine_units, _engine_pct_equity, _engine_dca_ladder, _engine_portfolio
+E           File "/root/bobby/pool_alpha/quantbt/src/quantbt/core/engine.py", line 24, in <module>
+E             from numba import njit
+E           File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+E           File "<frozen importlib._bootstrap>", line 1322, in _find_and_load_unlocked
+E           File "<frozen importlib._bootstrap>", line 1262, in _find_spec
+E           File "<string>", line 6, in find_spec
+E         AssertionError: numba
+E         
+E       assert 1 == 0
+E        +  where 1 = CompletedProcess(args=['/root/bobby/pool_alpha/quantbt/.venv/bin/python', '-c', "\nimport importlib.abc, sys\nclass Bl...en importlib._bootstrap>", line 1262, in _find_spec\n  File "<string>", line 6, in find_spec\nAssertionError: numba\n').returncode
+
+tests/metrics/test_reporting_conformance.py:204: AssertionError
+=========================== short test summary info ============================
+FAILED tests/metrics/test_reporting_conformance.py::test_met02_t02_t10_completed_account_adapter_scope_baseline_and_no_mutation
+FAILED tests/metrics/test_reporting_conformance.py::test_met02_t09_t10_seeded_public_wfo_proposals_objective_selection_account_unchanged[mode_1_decay-per_fold_decay]
+FAILED tests/metrics/test_reporting_conformance.py::test_met02_t09_t10_seeded_public_wfo_proposals_objective_selection_account_unchanged[mode_4_is_only_robust-per_fold_causal]
+FAILED tests/metrics/test_reporting_conformance.py::test_met02_t08_t10_protected_sources_privacy_no_hot_consumer_or_oracle_import
+4 failed, 557 passed in 21.42s

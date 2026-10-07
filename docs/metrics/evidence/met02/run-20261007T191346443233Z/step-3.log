@@ -1,0 +1,8 @@
+{"kind": "account", "observations": 2000, "backend": "python", "p50_ms": 6.707211025059223, "p95_ms": 7.623531622812152, "parity": true}
+{"kind": "account", "observations": 2000, "backend": "numba", "p50_ms": 0.6294129998423159, "p95_ms": 0.9005559957586229, "parity": true}
+{"kind": "account", "observations": 100000, "backend": "python", "p50_ms": 311.5371380117722, "p95_ms": 339.3084873794578, "parity": true}
+{"kind": "account", "observations": 100000, "backend": "numba", "p50_ms": 4.028250987175852, "p95_ms": 6.387422780971974, "parity": true}
+{"kind": "account", "observations": 1000000, "backend": "python", "p50_ms": 4668.913323956076, "p95_ms": 4961.969076213427, "parity": true}
+{"kind": "account", "observations": 1000000, "backend": "numba", "p50_ms": 30.09238699451089, "p95_ms": 37.02443002257496, "parity": true}
+{"kind": "ledger", "observations": 2000, "backend": "python", "p50_ms": 9.241208026651293, "p95_ms": 9.673963556997478, "parity": true}
+{"kind": "ledger", "observations": 2000, "backend": "numba", "p50_ms": 8.619764004833996, "p95_ms": 9.425128623843193, "parity": true}

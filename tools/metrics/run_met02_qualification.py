@@ -92,6 +92,19 @@ def main():
             if result.returncode:
                 break
     unchanged = all(digest(ROOT / p) == value for p, value in baseline["protected_sources"].items())
+    exploratory = Path("/tmp/quantbt-met02-account")
+    exploratory_cleanup = dict(path=str(exploratory), existed=exploratory.exists(), removed=False,
+                               reviewed_files=[], scratch_bytes=0)
+    if exploratory.exists():
+        if exploratory.is_symlink() or exploratory.resolve() != exploratory:
+            raise RuntimeError("refuse cleanup of redirected exploratory scratch")
+        inventory = [p for p in exploratory.rglob("*") if p.is_file()]
+        if any(p.is_symlink() for p in exploratory.rglob("*")):
+            raise RuntimeError("refuse exploratory scratch containing symlinks")
+        exploratory_cleanup.update(reviewed_files=[str(p.relative_to(exploratory)) for p in inventory],
+                                   scratch_bytes=sum(p.stat().st_size for p in inventory))
+        shutil.rmtree(exploratory)
+        exploratory_cleanup["removed"] = not exploratory.exists()
     groups = {f"MET02-T{i:02}": dict(passed=0, failed=0, skipped=0) for i in range(1, 11)}
     counts = dict(passed=0, failed=0, skipped=0)
     if (run / "pytest.xml").exists():
@@ -112,7 +125,11 @@ def main():
         for path in (ROOT / directory).rglob("*"):
             if path.is_file() and "__pycache__" not in path.parts:
                 inputs[path.relative_to(ROOT).as_posix()] = digest(path)
+    for name in ("tests/meta_selection/test_qms05_public.py", "tools/qms01_baseline.py"):
+        inputs[name] = digest(ROOT / name)
     versions = {name: metadata.version(name) for name in ("numpy", "pandas", "numba", "pytest", "quantstats", "quantbt-engine", "quantbt-native")}
+    native = metadata.distribution("quantbt-native")
+    native_files = {str(p): digest(Path(native.locate_file(p))) for p in native.files if str(p).endswith(".so")}
     after = shutil.disk_usage(ROOT)
     receipt = dict(phase="MET-02", stage=args.stage, technical_gate="PASS" if passed else "FAIL",
         source_commit=subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT).decode().strip(),
@@ -120,9 +137,10 @@ def main():
         protected_files=len(baseline["protected_sources"]), protected_unchanged=unchanged,
         inputs=inputs, steps=steps, runtime=dict(python=sys.version, versions=versions,
             package_source="src/quantbt", native_reporting_v1="NOT_IMPLEMENTED; V2 is not V1",
-            native_build=False, thread_budget=1), public_integration="MET-03 NOT_STARTED",
+            native_build=False, native_extension_files=native_files, thread_budget=1), public_integration="MET-03 NOT_STARTED",
         cleanup=dict(scratch_path=temporary, scratch_removed=not Path(temporary).exists(),
             retained_run_bytes=retained, log_hashes_preserved=all(digest(ROOT / s["log"]) == s["sha256"] for s in steps),
+            exploratory_scratch=exploratory_cleanup,
             free_bytes_before=before.free, free_bytes_after=after.free,
             free_byte_change=after.free - before.free, free_inodes_before=inode_before,
             free_inodes_after=os.statvfs(ROOT).f_favail, budget_bytes=BUDGET, protected_preserved=unchanged))

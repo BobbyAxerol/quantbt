@@ -12,7 +12,7 @@ from .results import MetricBuilder, ReportingResult
 CORE_KEYS = ("closed_count", "win_count", "loss_count", "breakeven_count", "win_rate", "net_pnl",
              "avg_profit", "avg_loss", "avg_pnl", "expected_payoff", "profit_factor", "payoff_ratio",
              "largest_win", "largest_loss", "median_pnl", "top_profit_concentration", "max_win_streak", "max_loss_streak")
-EXTRA_KEYS = ("mean_holding_days", "mean_holding_bars", "mean_return", "mean_r_multiple",
+EXTRA_KEYS = ("open_at_observation_end_count", "mean_holding_days", "mean_holding_bars", "mean_return", "mean_r_multiple",
               "mean_mfe_net_pnl", "mean_mae_net_pnl", "allocated_fee", "allocated_funding_cost",
               "allocated_slippage_cost", "open_realized_net_pnl", "open_unrealized_pnl")
 
@@ -80,7 +80,7 @@ def _statistics(builder, prefix, values, tolerance, backend):
     builder.add(prefix + "max_loss_streak", best_loss, unit="count", count=n)
 
 
-def reduce_ledger(observations, contract, *, backend="python"):
+def reduce_ledger(observations, contract, *, backend="python", retain_population=False):
     if backend not in {"python", "numba"}:
         raise NotImplementedError("only Python/Numba reporting V1 reducers are certified")
     if contract.unit not in {"closed_trade", "closed_action"}:
@@ -174,6 +174,11 @@ def reduce_ledger(observations, contract, *, backend="python"):
                         unit=contract.currency, count=len(selected_rows), status=None if available else "unavailable",
                         reason=None if available else "recorded cost allocation missing")
         open_rows = [row for row in observations.records if row.closed_at_ns is None]
+        open_observed = observations.valuation_time_ns == contract.scope_end_ns
+        open_count = len(open_rows) if contract.unit == "closed_trade" else len({row.action_id for row in open_rows})
+        builder.add(prefix + "open_at_observation_end_count", open_count if open_observed else None,
+                    unit="count", count=len(observations.records), status=None if open_observed else "unavailable",
+                    reason=None if open_observed else "matched observation-end roster witness missing")
         for name, field in (("open_realized_net_pnl", "net_pnl"), ("open_unrealized_pnl", "open_unrealized_pnl")):
             available = (not open_rows or observations.valuation_time_ns == contract.scope_end_ns) and contract.scope == "full" and all(getattr(row, field) is not None for row in open_rows)
             builder.add(prefix + name, sum(getattr(row, field) for row in open_rows) if available else None,
@@ -182,7 +187,9 @@ def reduce_ledger(observations, contract, *, backend="python"):
         symbol_pnl = {}
         for row in selected_rows:
             symbol_pnl[row.symbol] = symbol_pnl.get(row.symbol, 0.) + recorded_net(row, contract.slippage_basis)
-        metadata.update(closed_population_ids=[[row.trade_id for row in item[3]] for item in population],
+        if retain_population:
+            metadata["closed_population_ids"] = [[row.trade_id for row in item[3]] for item in population]
+        metadata.update(population_detail_retained=retain_population,
                         symbol_closed_pnl=symbol_pnl, shared_net_adjustment=adjustments,
                         leg_net_sum=sum(symbol_pnl.values()), population_net_sum=float(values.sum()),
                         reconciliation_basis="selected closed-population lifetime only; not scope account return",

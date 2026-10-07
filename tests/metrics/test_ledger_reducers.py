@@ -51,7 +51,7 @@ def ledger(rows, *, rosters=True, coverage=None):
             if row.action_id:
                 grouped.setdefault(row.action_id, []).append(row.trade_id)
     return LedgerObservations(records=rows, matching="position_episode",
-        coverage=coverage or ledger_coverage(len(rows)), valuation_time_ns=30,
+        coverage=coverage or ledger_coverage(len(rows)), valuation_time_ns=max(30, max((r.closed_at_ns or 0 for r in rows), default=0)),
         rosters=tuple(ActionRoster(action_id=name, outcome_ids=ids, shared_net_adjustment=0.,
                                    allocation_witness="all action costs allocated in leg net outcomes") for name, ids in grouped.items()))
 
@@ -84,7 +84,7 @@ def test_met02_t04_t05_partial_close_reversal_and_asynchronous_actions():
     assert report.metric("closed_action.closed_count").value == 3
     assert report.metric("closed_action.net_pnl").value == 70
     rows[1] = replace(rows[1], action_id="A", closed_at_ns=25)
-    report = reduce_ledger(ledger(rows), ledger_policy("closed_action"))
+    report = reduce_ledger(ledger(rows), ledger_policy("closed_action"), retain_population=True)
     assert json.loads(report.provenance_json)["closed_population_ids"] == [["B-short"], ["A-long", "A-short"], ["C-long"]]
 
 
@@ -161,8 +161,9 @@ def test_met02_t05_t07_open_values_need_scope_timestamp_and_not_closed_pnl():
     report = reduce_ledger(obs, ledger_policy())
     assert report.metric("closed_trade.open_realized_net_pnl").value == 20
     assert report.metric("closed_trade.open_unrealized_pnl").value == 999
+    assert report.metric("closed_trade.open_at_observation_end_count").value == 1
     assert report.metric("closed_trade.net_pnl").value == -10
-    assert reduce_ledger(replace(obs, valuation_time_ns=29), ledger_policy()).metric("closed_trade.open_unrealized_pnl").status == "unavailable"
+    assert reduce_ledger(replace(obs, valuation_time_ns=31), ledger_policy()).metric("closed_trade.open_unrealized_pnl").status == "unavailable"
 
 
 def test_met02_t05_action_shared_cost_reconciliation_and_scoped_async_closure():

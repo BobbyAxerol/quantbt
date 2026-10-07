@@ -49,7 +49,8 @@ def _period_scan(values, annual, ddof, rf, mar, omega, conditional):
         gain / loss if loss else np.inf if gain else np.nan,
         gain / wins if wins else np.nan, -loss / losses if losses else np.nan,
         wins / n if n else np.nan, wins / (wins + losses) if wins + losses else np.nan,
-        np.expm1(log_growth * annual / n) if geometric_valid and n else np.nan))
+        np.expm1(log_growth * annual / n) if geometric_valid and n else np.nan,
+        float(wins), float(losses)))
 
 
 @lru_cache(maxsize=1)
@@ -82,7 +83,17 @@ def reduce_account(observations, contract, *, backend="python", retain_episodes=
                "longest_recovered_duration_ns", "current_open_duration_ns", "ulcer_index", "longest_duration_ns", "episode_count")
     for name, value in zip(dd_keys, summary):
         unit = "nanoseconds" if name.endswith("_ns") else "count" if name == "episode_count" else "ratio"
-        builder.add("drawdown." + name, float(value) if np.isfinite(value) else None, unit=unit, count=n)
+        counts = {"mean_underwater_depth": summary[15], "mean_episode_depth": summary[8],
+                  "mean_recovered_duration_ns": summary[9], "longest_recovered_duration_ns": summary[9],
+                  "current_open_duration_ns": int(summary[8] > summary[9]), "longest_duration_ns": summary[8],
+                  "episode_count": summary[8]}
+        builder.add("drawdown." + name, float(value) if np.isfinite(value) else None, unit=unit, count=int(counts.get(name, n)))
+    for name, value, unit in (("deepest_duration_ns", summary[12], "nanoseconds"),
+                               ("mean_all_episode_duration_ns", summary[13], "nanoseconds"),
+                               ("last_observed_depth", summary[14], "ratio"),
+                               ("recovered_episode_count", summary[9], "count")):
+        builder.add("drawdown." + name, float(value) if np.isfinite(value) else None, unit=unit,
+                    count=1 if name == "last_observed_depth" else int(summary[8]))
     r = observations.returns
     retained = 0
     period_cagr = None
@@ -94,20 +105,24 @@ def reduce_account(observations, contract, *, backend="python", retain_episodes=
         retained = len(values)
         if not retained:
             for name in PERIOD_KEYS:
-                builder.add("period." + name, status="insufficient", reason="no retained observed periods")
+                if name == "count":
+                    builder.add("period.count", 0., unit="count")
+                else:
+                    builder.add("period." + name, status="insufficient", reason="no retained observed periods")
         else:
             kernel = _period_scan if backend == "python" else _compiled_period()
             stats = kernel(values, contract.annual_periods, contract.variance_ddof,
                            contract.risk_free_per_period, contract.mar_per_period,
                            contract.omega_threshold_per_period,
                            contract.sortino_denominator == "negative_observations")
-            period_cagr = float(stats[-1]) if np.isfinite(stats[-1]) else None
+            period_cagr = float(stats[11]) if np.isfinite(stats[11]) else None
             for name, value in zip(PERIOD_KEYS, stats):
+                samples = int(stats[12]) if name == "avg_win" else int(stats[13]) if name == "avg_loss" else int(stats[12] + stats[13]) if name == "nonzero_win_rate" else retained
                 if np.isposinf(value) and name in {"profit_factor", "omega", "sortino"}:
-                    builder.add("period." + name, count=retained, status="no_loss", reason="zero loss/downside denominator")
+                    builder.add("period." + name, count=samples, status="no_loss", reason="zero loss/downside denominator")
                 else:
                     builder.add("period." + name, float(value) if np.isfinite(value) else None,
-                                unit="count" if name == "count" else "ratio", count=retained,
+                                unit="count" if name == "count" else "ratio", count=samples,
                                 status="invalid" if np.isinf(value) else None,
                                 reason="numeric overflow" if np.isinf(value) else None)
     cagr_for_calmar = cagr if contract.cagr_basis == "elapsed_calendar" else period_cagr
@@ -119,8 +134,25 @@ def reduce_account(observations, contract, *, backend="python", retain_episodes=
                     observed_periods=len(r.values) if r is not None else 0, retained_periods=retained,
                     drawdown_clock=contract.equity_clock, unseen_extrema_certified=False,
                     deepest_episode_index=int(summary[10]), longest_episode_index=int(summary[11]),
-                    episode_detail_retained=retain_episodes, account_path_complete=True,
+                    episode_detail_retained=retain_episodes,
+                    observation_population="all supplied marks; engine retention completeness is not inferred",
+                    recovered_duration_mean_excludes_open=True, all_episode_duration_mean_includes_censored=True,
                     native_v1_reducer="NOT_IMPLEMENTED; native_metric_v2 has a different scientific contract")
     return ReportingResult(contract_identity=builder.contract_identity, input_identity=observations.identity,
                            metrics=tuple(builder.metrics), episodes=episodes,
                            provenance_json=json.dumps(metadata, sort_keys=True, allow_nan=False))
+
+
+def reduce_independent_segments(segments, *, backend="python", retain_episodes=False):
+    """Keep separately executed scopes separate; do not invent continuous equity."""
+    results, previous_end = [], None
+    for observations, contract in segments:
+        if contract.disjoint_scope != "independent_segments":
+            raise ValueError("independent segment reporting must be explicitly declared")
+        if previous_end is not None and contract.baseline_time_ns <= previous_end:
+            raise ValueError("segments must be ordered and non-overlapping")
+        results.append(reduce_account(observations, contract, backend=backend, retain_episodes=retain_episodes))
+        previous_end = contract.scope_end_ns
+    if not results:
+        raise ValueError("nonempty independently valued segments required")
+    return tuple(results)

@@ -17,6 +17,8 @@ def frozen_array(values, dtype, *, integer=False):
         raise ValueError("one-dimensional observations required")
     if integer and original.size and original.dtype.kind not in "iu":
         raise ValueError("UTC nanoseconds require integers, not rounded timestamps")
+    if integer and original.size and original.dtype.kind == "u" and int(original.max()) > np.iinfo(np.int64).max:
+        raise ValueError("UTC nanoseconds exceed signed int64 range")
     array = np.ascontiguousarray(original, dtype=dtype)
     if dtype == np.float64 and not np.isfinite(array).all():
         raise ValueError("finite observations required; invalid rows cannot be dropped")
@@ -94,6 +96,9 @@ class AccountObservations:
             raise ValueError("account reducer requires account_period contract")
         if self.times_ns[0] < contract.baseline_time_ns or self.times_ns[-1] != contract.scope_end_ns:
             raise ValueError("path must end at declared scope end and start at/after baseline")
+        bounds = np.iinfo(np.int64)
+        if not bounds.min <= contract.baseline_time_ns <= bounds.max or contract.scope_end_ns - contract.baseline_time_ns > bounds.max:
+            raise ValueError("observation duration exceeds signed int64 nanoseconds")
         if self.returns is not None:
             if self.returns.sampling != contract.sampling:
                 raise ValueError("return sampling does not match reporting contract")

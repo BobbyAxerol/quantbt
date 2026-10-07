@@ -26464,6 +26464,15 @@ keyword and validation firing at roster construction before the duplicate-outcom
 assertion); test fixtures repaired, no mathematical waiver. Full cache/numeric,
 WFO sentinel and measurement gate remains pending until final receipt.
 
+**Final Conformance Extension (registered before its measurements):**
+Include the existing public QMS synthetic mature-history fixture for WFO
+off/shadow/active reporting preservation (including actual fitted predictions).
+Add sparse 32-outcome, churn 2,000-outcome and 2,000-leg/1,000-action cells to
+the same five-repeat, one-thread benchmark; these qualify cold ledger grouping
+cost, not execution speed. Preserve the earlier source-specific benchmark.
+Cleanup inventory additionally includes the completed exploratory scratch
+`/tmp/quantbt-met02-account`; review its contents and remove only this exact path.
+
 <a id="metrics-met-03"></a>
 ### Phase MET-03 - Public Reports, Documentation And Local Certification
 

@@ -109,6 +109,10 @@ class LedgerObservations:
             raise ValueError("duplicate action roster")
         if self.valuation_time_ns is not None and type(self.valuation_time_ns) is not int:
             raise ValueError("integer valuation timestamp required")
+        if self.valuation_time_ns is not None and any(
+            (row.opened_at_ns is not None and row.opened_at_ns > self.valuation_time_ns) or
+            (row.closed_at_ns is not None and row.closed_at_ns > self.valuation_time_ns) for row in self.records):
+            raise ValueError("recorded outcome beyond declared valuation observation")
         object.__setattr__(self, "identity", identity(dict(records=[asdict(r) for r in self.records],
                            rosters=[asdict(r) for r in self.rosters], matching=self.matching,
                            coverage=asdict(self.coverage), valuation_time_ns=self.valuation_time_ns)))

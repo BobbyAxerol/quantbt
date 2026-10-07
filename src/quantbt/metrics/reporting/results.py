@@ -1,7 +1,8 @@
 """Small reporting results; optional episode buffers are serialized only on demand."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, fields, is_dataclass
 import math
+import sys
 
 from ..report_contracts import ReportingMetricV1
 
@@ -20,8 +21,21 @@ class ReportingResult:
 
     @property
     def retained_bytes(self):
-        return len(self.provenance_json.encode("utf-8")) + len(self.metrics) * 1024 + (
-            self.episodes.retained_bytes if self.episodes is not None else 0)
+        seen = set()
+        def size(value):
+            if id(value) in seen:
+                return 0
+            seen.add(id(value))
+            total = sys.getsizeof(value)
+            if is_dataclass(value):
+                total += sys.getsizeof(value.__dict__) if hasattr(value, "__dict__") else 0
+                return total + sum(size(getattr(value, f.name)) for f in fields(value))
+            if isinstance(value, (tuple, list)):
+                return total + sum(size(item) for item in value)
+            if hasattr(value, "nbytes"):
+                return total + int(value.nbytes)
+            return total
+        return size(self)
 
     def to_metadata(self):
         import json

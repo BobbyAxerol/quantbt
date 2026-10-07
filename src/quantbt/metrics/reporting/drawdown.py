@@ -44,7 +44,8 @@ def _scan(times, equity, baseline, start, tolerance, detail):
     marks, days, last_day = 0, 0, 0
     count, recovered_count, positive_count = 0, 0, 0
     max_depth, sum_positive, sum_squared, sum_episode, sum_recovered = 0., 0., 0., 0., 0.
-    longest, longest_recovered, current = 0, 0, 0
+    longest, longest_recovered, current, deepest_duration = 0, 0, 0, 0
+    sum_durations = 0.
     deepest_index, longest_index = -1, -1
     deepest_depth = -1.
     for i in range(n):
@@ -78,8 +79,10 @@ def _scan(times, equity, baseline, start, tolerance, detail):
                                    marks, days, last // DAY_NS - first // DAY_NS + 1, int(recovered))
                 numbers[count] = (ep_peak, trough, ep_depth)
             sum_episode += ep_depth
+            sum_durations += elapsed
             if ep_depth > deepest_depth:
                 deepest_depth, deepest_index = ep_depth, count
+                deepest_duration = elapsed
             if longest_index < 0 or elapsed > longest:
                 longest, longest_index = elapsed, count
             if recovered:
@@ -97,7 +100,8 @@ def _scan(times, equity, baseline, start, tolerance, detail):
                         sum_recovered / recovered_count if recovered_count else np.nan,
                         float(longest_recovered), float(current), math.sqrt(sum_squared / n),
                         float(longest), float(count), float(recovered_count),
-                        float(deepest_index), float(longest_index)))
+                        float(deepest_index), float(longest_index), float(deepest_duration),
+                        sum_durations / count if count else np.nan, depth, float(positive_count)))
     return summary, integers[:count if detail else 0], numbers[:count if detail else 0]
 
 

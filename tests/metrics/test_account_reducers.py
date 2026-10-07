@@ -108,6 +108,10 @@ def test_met02_t03_deepest_longest_gap_tie_and_tolerance(backend):
     assert report.episodes.to_rows() == expected["episodes"]
     meta = json.loads(report.provenance_json)
     assert meta["deepest_episode_index"] == 0 and meta["longest_episode_index"] == 1
+    assert report.metric("drawdown.deepest_duration_ns").value == 2 * DAY_NS
+    assert report.metric("drawdown.mean_all_episode_duration_ns").value == pytest.approx(8 * DAY_NS / 3)
+    assert report.metric("drawdown.recovered_episode_count").value == 2
+    assert report.metric("drawdown.last_observed_depth").value == pytest.approx(.05)
     near = observations([0, DAY_NS], [100., 99.999999999])
     tolerant = reduce_account(near, replace(policy([0, DAY_NS]), recovery_relative_tolerance=1e-10),
                               backend=backend, retain_episodes=True)
@@ -164,6 +168,29 @@ def test_met02_t08_t10_snapshot_immutable_identity_and_no_eager_numba():
     assert observations([0, DAY_NS, 2 * DAY_NS], marks).identity != signature
     with pytest.raises(NotImplementedError, match="V2"):
         reduce_account(obs, policy([0, DAY_NS, 2 * DAY_NS]), backend="rust")
+
+
+def test_met02_t02_excluded_empty_periods_and_nanosecond_range_guards():
+    obs = observations([0, DAY_NS], [100., 110.], [0., .1], [True, True])
+    report = reduce_account(obs, replace(policy([0, DAY_NS]), partial_periods="exclude_disclosed"))
+    assert report.metric("period.count").value == 0
+    assert report.metric("period.sharpe").status == "insufficient"
+    with pytest.raises(ValueError, match="int64"):
+        observations(np.array([2**63], dtype=np.uint64), [100.])
+    with pytest.raises(ValueError, match="duration"):
+        reduce_account(observations([-2**62, 2**62], [100., 110.]), policy([-2**62, 2**62]))
+
+
+def test_met02_t01_observation_counts_match_each_reduced_population():
+    times = list(range(4))
+    report = reduce_account(observations(times, [100., 90., 95., 100.], [.01, .02, -.01, 0.]), policy(times))
+    assert report.metric("period.avg_win").sample_count == 2
+    assert report.metric("period.avg_loss").sample_count == 1
+    assert report.metric("period.nonzero_win_rate").sample_count == 3
+    assert report.metric("period.sharpe").sample_count == 4
+    assert report.metric("drawdown.mean_episode_depth").sample_count == 1
+    assert report.metric("drawdown.mean_underwater_depth").sample_count == 2
+    assert report.metric("drawdown.mean_recovered_duration_ns").sample_count == 1
 
 
 @pytest.mark.parametrize("seed", range(5))
