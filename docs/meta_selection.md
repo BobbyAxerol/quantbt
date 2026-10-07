@@ -38,6 +38,13 @@ Bounded package software is qualified under E05. Intrabar intent/session local
 software qualification now completes [E06](meta_selection/QMSE06_REPORT.md),
 including mature meta and exact installed artifacts, without changing defaults
 or claiming persistent decay improvement.
+The [E07 event qualification](meta_selection/QMSE07_REPORT.md) separately covers
+generic callbacks, actual command tapes and numeric W3. Endpoint metadata now
+exposes original current-run observed revisions/panels/labels for independent
+measurement, without financial replay. Use the
+[inspection recipe](meta_selection/EXECUTION_WFO.md#inspect-the-actual-meta-run)
+and [public fill-feedback grid](../examples/wfo_meta_reactive_grid.py);
+the generic continuous account and W3 reset-flat account are not interchangeable.
 E04's bounded portfolio shared-account research opt-in has its own
 [contract](meta_selection/DOMAIN_ADAPTER_CONTRACT.md#e04-portfolio-amendment),
 [example](../examples/wfo_meta_portfolio.py) and [local report](meta_selection/QMSE04_REPORT.md).

@@ -52,6 +52,16 @@ The owner subsequently approved E06 separately. Its
 PASS, 32 installed rerun PASS, four actual mature financial families, original
 measurement/continuous-account parity and exact local artifacts. It introduces
 no runtime/default change; economic/public promotion remains separate.
+E07 now completes its separately approved local callback, command and numeric
+W3 scope. Its [report](QMSE07_REPORT.md) and
+[closure receipt](../../benchmarks/optimization/meta_selection/qms_e07_closure.json)
+record 342 distinct source PASS, 72 installed rerun PASS and 150 complete-work
+cells, with 24 mature origins per enabled cell and independent accounting
+difference zero. New opt-in `observed_revisions` exposes exact original current-
+run panels/outcomes/labels; only three shared-runtime lines changed, Rust bytes
+unchanged. Generic final accounts stay continuous; W3 stays reset-flat.
+[Cleanup](../maintenance/QMS_E07_CLEANUP.md) recovers 1,151.35 MiB while preserving
+941 file hashes. No private alpha, economic/default promotion or remote/public run.
 PRE02's source gate is now PASS: 39 actual matured fit/rank decisions across
 13 routes, original measurement/stitched accounting parity and 623 distinct
 scoped tests. This closes that local coverage gap, not E04 economic promotion,
@@ -174,11 +184,16 @@ E06 accepted local software qualification is now complete under its
 [separate report](QMSE06_REPORT.md). No open correctness/installed-source gap
 in that scope; its original real-market economic gate is not relabeled PASS.
 
-1. **E07:** finish callback, numeric reactive and command-route accepted-scope
-   qualification/handoff. Their account/scheduler contracts stay distinct.
-2. **E08:** integrated final matrix/docs/artifacts, then separately approved
+1. **E07:** COMPLETE_LOCAL_SOFTWARE_QUALIFIED_OPT_IN under its current
+   [report](QMSE07_REPORT.md); account/scheduler contracts stay distinct.
+2. **E08:** still NOT_STARTED; integrated final matrix/docs/artifacts, then separately approved
    remote qualification and release/public proof last for pair 1.1.2/0.4.3.
 
-Each still requires its individual start. The E04 negative economic result,
+E08 still requires its individual start. E07 retains original diagnostics limits:
+the legacy `callback_boundary` description is not the declared execution clock;
+fit/select timing is combined, and observed Numba pool telemetry is not proof
+of a one-thread budget. Read the report rather than infer timing/ownership from
+those descriptive fields. No financial clock or thread policy was changed.
+The E04 negative economic result,
 E05 full delivery cash-settlement/data admission and separate capabilities above
 remain honest scope decisions, not defects closed by accepting PRE05 latency.

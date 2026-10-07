@@ -14,6 +14,26 @@ The locally qualified [C03 sampler/scheduler matrix](meta_selection/W3_SAMPLER_S
 adds the four shared recipes to W3 and versioned opt-in R3B; it does not expand
 meta methodology, change accounts or authorize publication.
 
+[QMS-E07](meta_selection/QMSE07_REPORT.md) adds mature numeric fill-feedback-grid
+qualification independently from generic event callbacks and explicit command
+tapes. A complete public synthetic example needs no private alpha or downloader:
+
+```bash
+python -m examples.wfo_meta_reactive_grid --mode shadow --worker inprocess
+python -m examples.wfo_meta_reactive_grid --mode active --worker process
+```
+
+For optional meta, inspect `result.metadata["meta_selection"]`: records, full
+candidate tasks, models, snapshots and immutable current-run `observed_revisions`
+contain actual selected params, original raw IS/forward observations, labels and
+availability clocks. See the
+[measurement recipe](meta_selection/EXECUTION_WFO.md#inspect-the-actual-meta-run).
+These observations are published after selection, not inputs to retune that
+same fold. Meta off adds no sidecar. `fold_results` remain separate reset-flat
+accounts; generic callback/command continuous carry is not inherited by W3.
+This is local opt-in software qualification, not a public/default promotion
+or a claim that meta necessarily reduces decay on every alpha.
+
 `QuantBTEndpoint.prepare_reactive_walk_forward(...)` is QuantBT's explicit walk-forward route for stateful event-driven strategies. It does not turn a strategy into a `pos_weight` series. Rust owns the prepared market clock, orders, fills, fees, funding, margin, liquidation, and scalar account score; Python owns only the declared strategy decision boundary.
 
 Use ordinary `QuantBTEndpoint.walk_forward(...)` when a strategy can honestly return a causal target or signal series. Use W3 when strategy state, open orders, fills, sparse wakes, or block invalidation affect later commands.

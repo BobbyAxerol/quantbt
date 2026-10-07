@@ -2901,8 +2901,26 @@ Intrabar accepted local software qualification is now complete in
 [QMS-E06](meta_selection/QMSE06_REPORT.md): mature intent-only/session x explicit
 Numba/Rust, original measurements, no-leakage controls, carried protection/
 session/account parity and exact installed wheel/sdist proof. Public signatures
-and financial defaults are unchanged. Real-market economic promotion, E07/E08
+and financial defaults are unchanged. Real-market economic promotion, E08
 qualification and publication remain separate gates.
+
+Accepted local event qualification now completes
+[QMS-E07](meta_selection/QMSE07_REPORT.md): generic callback/command Python/Rust
+and numeric W3 have actual mature fit/rank, no-leakage, original measurement,
+account/lifecycle and source-exact installed proof. Generic final accounts
+continue across folds; W3 stays segmented reset-flat. The financial endpoint's
+declared clock is authoritative; an effective command timestamp is not a
+callback observation timestamp. No new engine, optimizer or default promotion.
+
+The optional sidecar additionally returns original **current-run**
+`observed_revisions`: candidate panels, raw forward observations, typed statuses,
+labels and availability clocks, alongside existing tasks/models/snapshots/
+records and actual applied parameters. For generic WFO use
+`result.metadata["walk_forward"]["meta_selection"]`; for prepared W3 use
+`result.metadata["meta_selection"]`. Meta off adds no sidecar. See the
+[inspection/measurement recipe](meta_selection/EXECUTION_WFO.md#inspect-the-actual-meta-run).
+Returning these immutable references does not replay execution or copy all
+archive history; exports are caller-controlled and may reveal an alpha.
 
 QMS-C04 adds a separate [owned persisted sampler journal](meta_selection/EXACT_CONTINUATION.md)
 through `quantbt.optimization.continuation`; it adds no endpoint argument or

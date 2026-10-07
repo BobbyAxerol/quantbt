@@ -104,3 +104,8 @@ The [E06 receipt](maintenance/QMS_E06_CLEANUP.md) records two new inactive
 consumer removals, 93 protected hashes unchanged and 1,135.17 MiB observed
 free-space improvement. Exact artifacts, logs, frozen histories and current
 tooling remain; E06 consumers require fresh installation before any rerun.
+The [E07 receipt](maintenance/QMS_E07_CLEANUP.md) records four exact inactive
+build/consumer removals, 941 protected hashes unchanged and 1,151.35 MiB observed
+free-space improvement. Exact artifacts, staged source, histories, passing and
+failed evidence, tooling and offline dependencies remain; cleaned consumers
+require a fresh isolated installation before rerun.

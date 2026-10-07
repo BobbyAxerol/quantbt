@@ -1,5 +1,29 @@
 # WFO Meta Current Handoff
 
+## Latest E07 Execution
+
+Owner authorizes local QMS-E07 only (2026-10-07 UTC). Read the
+[current event qualification report](../docs/meta_selection/QMSE07_REPORT.md)
+and [registered scope](../docs/meta_selection/QMSE07_QUALIFICATION.md).
+Callback Python/Rust, command-tape Python/Rust and numeric W3 Rust now have
+150 source/wheel/sdist mature/off workload cells and 72 installed output/
+lifecycle reruns PASS, alongside 342 distinct scoped source tests and
+24 actual mature origins per enabled cell. Independent accounting diff is zero.
+The [closure receipt](../benchmarks/optimization/meta_selection/qms_e07_closure.json)
+seals exact artifacts and current verification code;
+[cleanup](../docs/maintenance/QMS_E07_CLEANUP.md) preserves 941 protected hashes
+and observes +1,151.35 MiB free space. Current status is
+**COMPLETE_LOCAL_SOFTWARE_QUALIFIED_OPT_IN**, no unexpected skips.
+The only runtime amendment is three exact opt-in output insertions returning
+original current-run `observed_revisions`, with no extra financial replay,
+changed scientific math, optimizer/RNG or financial/native bytes.
+Generic accounts remain continuous; W3 remains single-symbol reset-flat.
+Meta stays off by default. E08, remote/public qualification, push, merge,
+tag and publication are not authorized. Earlier statements below retain
+their historical source/phase scope, not the current E07 artifact identity.
+
+## Historical Milestones
+
 - Branch: `feat/meta-selection-samplers`; QMS-08 entry `559b4d1`.
 - Published baseline: core 1.1.1 / native 0.4.2; historical receipts unchanged.
 - Approved preparation: core 1.1.2 / native 0.4.3, default compiled QMS,

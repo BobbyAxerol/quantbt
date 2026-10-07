@@ -1,19 +1,24 @@
 # QuantBT Upgrade Implementation Plan
 
-## Current QMS-E07 Local Execution - Owner Approval 2026-10-07
+## Current QMS-E07 Local Closure - Owner Approval 2026-10-07
 
-**Status:** IN_PROGRESS_LOCAL. E06 is accepted in its recorded bounded software
-scope. Owner now authorizes E07 callback, command-tape and numeric W3 qualification,
-including complete endpoint audit data. Read the preregistered
+**Status:** COMPLETE_LOCAL_SOFTWARE_QUALIFIED_OPT_IN. E06 and E07 are accepted
+in their recorded bounded local software scope. E07 callback, command-tape and
+numeric W3 qualification includes complete endpoint audit data. Read the
+[source-bound closure/report](../docs/meta_selection/QMSE07_REPORT.md), preregistered
 [E07 qualification](../docs/meta_selection/QMSE07_QUALIFICATION.md) and
 [phase guide links](#qms-e07) before execution.
 
-The only planned runtime addition is opt-in `meta_selection.observed_revisions`,
+The only runtime addition is opt-in `meta_selection.observed_revisions`,
 exposing original current-run sealed forward observations/panels/labels without
-financial replay or archive duplication. Rebuild exact core artifacts for this
-addition; retain the unchanged native artifact. Qualify five protocol/backend
-cases and 30 matched cells, actual mature fit/rank, no-leakage, accounting,
-lifecycle, installed proof, privacy and cleanup. No new financial engine,
+financial replay or archive duplication. Fresh exact core wheel/sdist include
+all 260 canonical modules; the unchanged native artifact is retained. Five
+protocol/backend cases, 30 matched cells x three source repeats and 30 cells
+per installed artifact PASS: 150 workload executions, 24 actual mature origins
+per enabled cell, exact original measurements/applied params/account rebuilds,
+342 distinct source tests and 72 installed rerun tests, no unexpected skips.
+[Cleanup](../docs/maintenance/QMS_E07_CLEANUP.md) preserves 941 protected hashes
+and recovers 1,151.35 MiB. No new financial engine,
 optimizer, scientific methodology or account/schedule activation. E08, CI/CD,
 push, merge/tag/publication and economic/default promotion are not authorized.
 Historical receipts/source guards retain their original identities.
@@ -39,7 +44,7 @@ Read [registration](../docs/meta_selection/QMSE06_QUALIFICATION.md),
 [E06 report](../docs/meta_selection/QMSE06_REPORT.md) and
 [cleanup](../docs/maintenance/QMS_E06_CLEANUP.md). Real-market empirical/default
 promotion and remote/public gates stay deferred. E07 has separate local approval
-under the current registration above; E08 execution remains deferred.
+and completes its current registered scope; E08 execution remains deferred.
 [PRE02 report](../docs/meta_selection/PRE_E06_02_REPORT.md):
 13 routes, 39 active/matured decisions, 623 distinct scoped PASS; 27 scalar-scorer
 cells are explicitly not applicable. No economic/default or artifact promotion.
@@ -125,6 +130,7 @@ official economic promotion to any route.
 | 5 | [PRE-E06-05](#qms-pre-e06-05) | Matched profiling and safe optimization; unchanged scientific/decision/account contracts | COMPLETE_LOCAL; OWNER_ACCEPTED_COST_EXCEPTION |
 | 6 | [PRE-E06-06](#qms-pre-e06-06) | Final local regression, exact installed artifacts, docs/privacy/cleanup receipt | READY_FOR_E06_LOCAL; no remote/public qualification |
 | Next | [E06](#qms-e06) resumed qualification | Accepted bounded intent/session contract, mature meta, original measurement/account and installed proof | COMPLETE_LOCAL_SOFTWARE_QUALIFIED_OPT_IN; no economic/default/public promotion |
+| Next | [E07](#qms-e07) accepted qualification | Mature callback/command continuous-account and numeric W3 reset-flat conformance, endpoint outcomes, exact artifacts/cleanup | COMPLETE_LOCAL_SOFTWARE_QUALIFIED_OPT_IN; no economic/default/public promotion |
 
 Do not combine stages to hide a failing earlier gate. C01/C05 specs have prior
 local implementation approval; their execution chunks here still get an explicit
@@ -24566,14 +24572,14 @@ post-liquidation compatibility is CLOSED_LOCAL_CORRECTNESS, not economic gain.
 | E-G04 | Anchor verification gap | CLOSED_LOCAL E01: current docs/full unified plan fragment checks and independent negatives PASS; explicit legacy roadmap anchor preserved |
 | E-G05 | Historical stored remote PASS was pre-C02 source 0970d55 | CLOSED_REPAIRED_CANDIDATE_REMOTE: six rows and eleven required steps PASS on 6901a66; final publication/manylinux/public bytes need separate gates |
 | E-G06 | Former scalar-specific observer could not safely extend other domains | CLOSED_LOCAL_ARCHITECTURE E02: typed registry/adapters and scalar/W3 parity PASS; new domain evaluators/studies remain E03-E07, no guard relaxation |
-| E-G07 | Intrabar/session, callback, commands and pre-expiry delivery adapters implemented locally; active/matured source conformance PASS in PRE-E06-02 | E06/E07 accepted-scope handoff and PRE-E06-06 final artifacts remain separate; options/Nautilus are not enabled |
+| E-G07 | Intrabar/session, callback, commands and pre-expiry delivery adapters implemented locally; active/matured source conformance PASS | E06 and E07 accepted local scope/source-exact installed handoffs COMPLETE; final integrated/remote/public artifacts E08, options/Nautilus not enabled |
 | E-G08 | C01 broader modes/schedules remain unactivated | PRE-E06-03 completes approved nested scalar Mode 1 local runtime; installed-current proof PRE06; global/decay/SBB/full-sample and nested execution domains remain closed |
 | E-G09 | W3 continuous carry, multi-symbol shared account and public meta batching remain unavailable | C02 financial/scheduler extensions need explicit approval; E07 must preserve current reset-flat/sequential scope or stop at that boundary |
 | E-G10 | W3 Mode 2 lacks a certified causal return-path bootstrap contract | Separate method/evaluator work; do not substitute static return proxies for reactive execution |
 | E-G11 | C04 exact continuation is an owned journal utility, not automatic WFO/account/strategy/model recovery; restore cost scales with history | Explicit capability/performance limit; checkpoint integration requires its own lifecycle plan, not a guard removal |
 | E-G12 | C05 historical review/reference stage remains sealed | CLOSED_LOCAL_PRE_E06_04 for approved opt-in runtime/RNG/continuation; final installed proof PRE06; other projection routes unadmitted |
 | E-G13 | Real ETH Delta RSI decay evidence exists, but forward-Q interval includes zero and it is not pristine BTC/live certification | Preserve actual R/Q decomposition; registered scientific replacement remains NOT_AUTHORIZED |
-| E-G14 | Domain-wide real-alpha evidence is absent: scalar ETH results do not certify W3/grid, intrabar or portfolio/package | E03-E07 each own an endpoint-specific paired study and promotion decision |
+| E-G14 | Domain-wide real-alpha economic promotion is absent: scalar ETH results do not certify every route's forward edge | E03-E05 original empirical outcomes retained; E06/E07 have owner-approved local synthetic software gates, not a private-alpha prerequisite or economic promotion |
 | E03-G01 | Historical prepared-unit objective mismatch after liquidation | CLOSED_LOCAL_CORRECTNESS: exact versioned legacy sampling policy, fresh artifacts, 28-fold registered trial/panel/label/params/account parity PASS; original negative economics retained; remote/public separate |
 
 #### Route Inventory And Coverage Target
@@ -24589,9 +24595,9 @@ An OOS output route alone is not a native-scored meta capability. Ordinary
 | Scalar notional/unit and structural dca_ladder | E03 bounded software research opt-ins; original accounting retained | Eight original real pairs: 0/8 economic gates pass; E03-G01 prepared-unit repair and full replay PASS locally; no empirical/default promotion |
 | Portfolio/multi-symbol target matrix | E04 bounded Mode 4 causal meta software and installed opt-in PASS | Real shared-account diagnostic finished; forward-Q threshold FAIL; formal/locked promotion pending |
 | Basket/bounded arbitrage package | E05 original-account bounded non-expiring software/installed opt-in PASS | Real quarterly expiry/roll contract and sufficient data remain unqualified; no empirical promotion |
-| Intrabar bracket/session, Numba/Rust | Explicit typed WFO intent/session adapter; PRE-E06-02 active/matured source coverage PASS | E06 accepted-scope qualification and final installed artifacts; no economic promotion |
-| Event-driven numeric strategy/W3 R1/R2/R3 | Meta is Mode 4 causal/sequential/single-symbol/reset-flat | E07 real reactive alpha qualification; keep existing lifecycle/protocol |
-| Generic event callback or explicit orders/commands | Explicit typed/factory WFO adapters; PRE-E06-02 active/matured source coverage PASS | E07 accepted-scope qualification and final installed artifacts; no universal auto-adapter |
+| Intrabar bracket/session, Numba/Rust | Explicit typed WFO intent/session adapter; mature source/installed coverage PASS | E06 accepted local software scope COMPLETE; no economic promotion |
+| Event-driven numeric strategy/W3 R1/R2/R3 | Meta is Mode 4 causal/sequential/single-symbol/reset-flat | E07 accepted public synthetic numeric-grid local gate COMPLETE; no blanket sparse/block/carry economic claim |
+| Generic event callback or explicit orders/commands | Explicit typed/factory WFO adapters; mature original measurement/account/installed coverage PASS | E07 accepted local software scope COMPLETE; no universal auto-adapter |
 | Quarterly delivery pre-expiry flatten/roll | Explicit lifecycle, exact priced calendar and original orders adapter implemented/tested | Hold-through-expiry cash settlement, provider and real venue/data remain separately unqualified |
 | W3 R3B/batch, carry or multi-symbol | Native/meta scheduling and account permissions differ | Dependency E-G09/C01; no automatic promotion from route-wide API consistency |
 | Options or Nautilus validation WFO | Standalone engines, no complete WFO/meta adapter | Future route admission contract; no implicit options engine or venue rewrite in E01-E08 |
@@ -24697,8 +24703,8 @@ routes are not silently disabled while new domain coverage is assessed.
 | E03 | Scalar aliases/structural ladder and native-event signal coverage | E02 | SOFTWARE_AND_INSTALLED_COMPLETE_NOT_PROMOTED; E03-G01 CLOSED_LOCAL; original studies 0/8 economic gates pass |
 | E04 | Portfolio/shared-account WFO meta | Independently owner authorized | Software/installed PASS; real diagnostic finished, R/Q gate FAIL; owner PENDING |
 | E05 | Bounded basket/arbitrage package WFO meta | Owner authorized; E04 dependency explicit | Software/installed PASS; empirical/owner PENDING |
-| E06 | Intrabar intent/session WFO, then meta qualification | PRE-E06 local handoff and owner scope decision | BOUNDED_ADAPTER_AND_LOCAL_ARTIFACTS_COMPLETE; active/matured/owner qualification incomplete |
-| E07 | Event-driven/reactive/order adapters and real-alpha qualification | E06 accepted scope; C02/C01 where expanded | BOUNDED_ADAPTER_AND_LOCAL_ARTIFACTS_COMPLETE; expanded account/economic gates separate |
+| E06 | Intrabar intent/session WFO, then meta qualification | PRE-E06 local handoff and accepted owner scope | COMPLETE_LOCAL_SOFTWARE_QUALIFIED_OPT_IN; real-market/default/public promotion separate |
+| E07 | Event-driven/reactive/order accepted synthetic qualification | E06 accepted scope; C02/C01 where expanded | COMPLETE_LOCAL_SOFTWARE_QUALIFIED_OPT_IN; expanded account/economic/public gates separate |
 | E08 | Domain matrix, installed/remote evidence and owner handoff | Approved preceding gate dispositions | DEFERRED_NOT_AUTHORIZED; final-source remote/public NOT_RUN |
 
 Proceed one phase and one route cell at a time. Owner approval is required
@@ -25418,7 +25424,7 @@ docs; keep kernel accounting changes separate from performance-only work.
 <a id="qms-e07"></a>
 #### QMS-E07 - Event-Driven, Reactive And Command WFO Meta Qualification
 
-**Current execution:** IN_PROGRESS_LOCAL under owner approval 2026-10-07;
+**Current execution:** COMPLETE_LOCAL_SOFTWARE_QUALIFIED_OPT_IN under owner approval 2026-10-07;
 [registration and exact tests/budget](../docs/meta_selection/QMSE07_QUALIFICATION.md)
 own the accepted synthetic software scope and additive endpoint output.
 The broader original real-alpha gate below remains historical, not a requirement
@@ -25427,10 +25433,23 @@ to disclose a private alpha or retune until gain. No economic/default promotion.
 tapes under the [owner execution amendment](#qms-required-execution-routes).
 Synthetic conformance is qualified separately from real-alpha economic promotion.
 Numeric W3 carry/batch/multi-symbol capabilities are not activated by this route.
-**Current receipt:** [execution report](../docs/meta_selection/EXECUTION_WFO_REPORT.md)
-and [usage](../docs/meta_selection/EXECUTION_WFO.md). The original broader real-
-market entry/gate below remains historical scope, not a forged PASS.
-**Goal:** make existing supported event WFO use the same optional meta layer and
+**Current receipt:** [E07 report](../docs/meta_selection/QMSE07_REPORT.md),
+[source-bound closure](../benchmarks/optimization/meta_selection/qms_e07_closure.json),
+[cleanup](../docs/maintenance/QMS_E07_CLEANUP.md) and
+[usage](../docs/meta_selection/EXECUTION_WFO.md). Five protocol/backend cases
+PASS: 342 distinct source checks, 72 installed reruns, 150 complete-work cells,
+24 actual mature origins per enabled cell and independent accounting diff zero.
+Three exact shared-runtime insertions expose original current-run observed
+panels/outcomes/labels, without changing search, RNG, accounting or Rust bytes.
+Generic histories retain legacy v2-close; numeric W3 uses v3-next-open.
+Eight additional cross-fold clock/quantity cases independently assert timestamps,
+prices, fees, reduce-only clipping and margin rejection for both generic clocks.
+Generic final accounts remain continuous; W3 remains reset-flat. Cost and original
+audit/oracle/boundary telemetry are reported, not hidden. The registered cleanup
+preserves 941 protected hashes and observes +1,151.35 MiB available space.
+The original broader real-market entry/gate below remains historical scope,
+not a forged economic PASS. No default, release or E08 execution is implied.
+**Original Goal:** make existing supported event WFO use the same optional meta layer and
 certify it on a real reactive/order alpha, not scalar RSI results.
 **Entry:** E06 accepted; owner approves actual grid/MRS/order alpha, factory and
 execution/account policy. Expanded carry/batch/multi-symbol requires E-G09/C01

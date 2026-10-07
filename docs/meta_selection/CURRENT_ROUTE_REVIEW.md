@@ -16,6 +16,14 @@ QMS-E06 now completes accepted local intrabar qualification:
 own-history mature intent-only/session x Numba/Rust and exact accounting.
 This is software-qualified opt-in, not real-market/default/public promotion.
 
+QMS-E07 now completes accepted callback/command/numeric W3 qualification:
+[report](QMSE07_REPORT.md), 342 distinct source PASS, 72 installed rerun PASS,
+150 full-work cells and 24 actual mature origins per enabled cell. Original
+raw measurement, pool/labels/RNG, selected params, no-leakage and independent
+account rebuilds pass. Core artifacts are fresh/source-exact; native bytes
+are unchanged. Current-run observed revisions are returned by the endpoint.
+No default/economic/public promotion; E08 remains not started.
+
 C01 nested Mode 1 and C05 conditional sampling/support projection now have
 separate **local implementation approval**. Their activation plan is recorded
 in [the sequential unified plan](../../upgrade/implement.md#qms-pre-e06-action-plan).
@@ -53,10 +61,10 @@ cohort. All other rows remain Mode 4-only; no blanket method/domain activation.
 | `basket` | Original native_event frozen best-effort basket | E05 original account/witness tests and wheel/sdist; real-alpha economic study not executed |
 | `arbitrage` | Original native_event bounded linear non-expiring basis/statistical pair, frozen hedge | E05 original account/witness tests and wheel/sdist; quarterly uses the separate `delivery_arbitrage` row, not this contract |
 | `intrabar` | Explicit original intrabar intent/session endpoint; continuous final execution | E06 source/installed qualification, mature intent-only/session x Numba/Rust, original measurements, no-leakage, account/protection/quota parity; no real-market promotion |
-| `event_driven` | Generic callback factory and original event account, not numeric W3 | Local callback/fill-feedback, pool/labels, shadow and active rebuild tests; synthetic qualification |
-| `order_commands` | Explicit original command tape; pending orders continue across folds | Local typed tape/cancel/account tests and synthetic qualification |
+| `event_driven` | Generic callback factory and original continuous event account, not numeric W3 | E07 own-history mature fit/rank, raw measurement, leakage/RNG/applied-params/account tests, Python/Rust exact installed proof and independent lifecycle/clock checks |
+| `order_commands` | Explicit original command tape; orders/accounts continue across folds | E07 actual typed tape, mature meta, leakage/pool/measurement/independent account and installed Python/Rust proofs; effective tape timestamp is not callback emission time |
 | `delivery_arbitrage` | Explicit multi-leg orders plus `pre_expiry_flatten_v1`; new-leg roll commands | Independent v2/v3 fill/fee/expiry checks and synthetic qualification; no cash settlement or real venue admission |
-| Prepared W3 reactive WFO | Separate prepared numeric route; Mode 4 causal, sequential, one symbol, reset-flat, inprocess or safe Linux fork/COW | QMS-06/C02/C03 original witnesses, active applied selection, process/deadline/sampler tests and wheel/sdist; domain-specific real grid/MRS economic study not executed |
+| Prepared W3 reactive WFO | Separate prepared numeric route; Mode 4 causal, sequential, one symbol, reset-flat, inprocess or safe Linux fork/COW | E07 own-history mature fill-feedback numeric grid, original measurements, reference/Rust, no-leakage and clean-process off/shadow/active plus exact artifacts; existing C02/C03 transport/sampler gates retained; real grid/MRS economic promotion not assessed |
 
 Evidence links: [E03 historical assessment](QMSE03_REPORT.md),
 [G01 current correctness closure](QMSE03_G01_CLOSURE.md),
@@ -66,6 +74,11 @@ and [C03 sampler/scheduler qualification](QMSC03_REPORT.md).
 The new [execution-route report](EXECUTION_WFO_REPORT.md) records source/tests,
 installed artifacts, synthetic R/Q dispositions, performance and exact limits.
 Counts belong to their own historical scopes; do not sum overlapping suites.
+The [E07 installed/current-source receipt](../../benchmarks/optimization/meta_selection/qms_e07_closure.json)
+and [endpoint output recipe](EXECUTION_WFO.md#inspect-the-actual-meta-run)
+own the later event proof. Generic mature histories use default v2-close;
+numeric W3 uses v3-next-open. Separate v2/v3 lifecycle tests check unequal
+open/close prices, fees and exact timestamps; no automatic clock substitution.
 
 Current-source PRE-E06-02 adds actual default-maturity fit/rank/application on
 all thirteen rows at three registered cutoffs, including numeric W3 reset-flat.
@@ -153,3 +166,6 @@ owner-approved execution amendment did implement/test four routes, build fresh
 core artifacts and remove its own inactive scratch. Read the current
 [execution closeout/report](EXECUTION_WFO_REPORT.md); it supersedes availability
 claims, never rewrites historical receipts or upgrades their economic outcome.
+E07's later exact qualification/cleanup is recorded under its own
+[report](QMSE07_REPORT.md) and [cleanup](../maintenance/QMS_E07_CLEANUP.md),
+not inherited from that historical execution artifact.
