@@ -1,6 +1,7 @@
 """Source-bound local exit gate and reviewed phase-only cleanup."""
 
 import argparse
+from hashlib import sha256
 import json
 import os
 import shutil
@@ -76,7 +77,8 @@ def regression(xmls, *, failed_xmls=()):
     if not required <= cases:
         raise ValueError(f"previous passing regression cases not rerun: {sorted(required-cases)}")
     return dict(distinct_pass=len(cases), registered_na=len(actual_na),
-                cases=sorted(cases), repaired_failures=repaired,
+                case_identity_sha256=sha256(json.dumps(sorted(cases), separators=(",", ":")).encode()).hexdigest(),
+                repaired_failures=repaired,
                 junit_sha256={str(p.relative_to(ROOT)): file_hash(p) for p in xmls},
                 failed_junit_sha256={str(p.relative_to(ROOT)): file_hash(p) for p in failed_xmls})
 
@@ -155,6 +157,15 @@ def privacy():
 
 def cleanup():
     excluded = [cleanup_path(n) for n in CLEANABLE]
+    retained = LANE / "cleanup.json"
+    if retained.exists():
+        receipt = json.loads(retained.read_text())
+        if (receipt["source"] != prerequisites() or receipt["runtime_source_unchanged"] is not True
+                or set(receipt["deleted"]) != {str(p.relative_to(ROOT)) for p in excluded}
+                or any(p.exists() for p in excluded)):
+            raise ValueError("retained cleanup source/path drift")
+        checked_hashes(receipt["protected_sha256"])
+        return receipt
     protected = {str(p.relative_to(ROOT)): file_hash(p) for p in LANE.rglob("*")
                  if p.is_file() and not any(p.is_relative_to(s) for s in excluded)}
     # The builder/regression processes have returned before this finalizer.
@@ -205,6 +216,10 @@ def main(args):
                    owner_cost_acceptance_sha256=file_hash(OWNER), economic_promotion=False,
                    remote="DEFERRED_E08_OWNER_APPROVAL", publication=False,
                    next_phase_started=False, free_bytes_after=cleanup_result["free_bytes_after"])
+    detailed = LANE / "exit-detailed-v1.json"
+    if detailed.exists():
+        receipt["retained_detailed_exit_sha256"] = file_hash(detailed)
+    check_public_text(json.dumps(receipt, sort_keys=True))
     write_once(ROOT / "benchmarks/optimization/meta_selection/qms_pre_e06_06_closure.json", receipt)
     print(json.dumps({k: receipt[k] for k in ("phase", "status", "publication", "next_phase_started")}))
 

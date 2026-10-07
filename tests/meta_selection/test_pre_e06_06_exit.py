@@ -97,3 +97,40 @@ def test_collection_disposition_cannot_waive_execution(tmp_path, monkeypatch, mu
         tree.write(path)
     with pytest.raises(ValueError):
         gate.collection_disposition(failures, account)
+
+
+def test_public_regression_retains_digest_not_parameterized_payload(tmp_path, monkeypatch):
+    monkeypatch.setattr(gate, "ROOT", tmp_path)
+    monkeypatch.setattr(gate, "REGISTERED_NA", frozenset())
+    prior = tmp_path / "prior.json"
+    prior.write_text(json.dumps({"junit_sha256": {}}))
+    monkeypatch.setattr(gate, "PRE05", prior)
+    result = gate.regression([xml(tmp_path)])
+    assert result["distinct_pass"] == 1 and len(result["case_identity_sha256"]) == 64
+    assert "cases" not in result
+
+
+@pytest.mark.parametrize("mutation", ["none", "protected_drift", "new_environment"])
+def test_reused_cleanup_requires_exact_protected_hashes_and_absent_scratch(tmp_path, monkeypatch, mutation):
+    monkeypatch.setattr(gate, "ROOT", tmp_path)
+    monkeypatch.setattr(gate, "LANE", tmp_path)
+    monkeypatch.setattr(gate, "CLEANABLE", ("scratch",))
+    monkeypatch.setattr(gate, "cleanup_path", lambda n: tmp_path/n)
+    monkeypatch.setattr(gate, "prerequisites", lambda: {"source": "sealed"})
+    protected = tmp_path / "artifact"
+    protected.write_text("sealed")
+    receipt = dict(source={"source": "sealed"}, runtime_source_unchanged=True,
+                   deleted=["scratch"], protected_sha256={"artifact": gate.file_hash(protected)})
+    (tmp_path/"cleanup.json").write_text(json.dumps(receipt))
+    monkeypatch.setattr(gate, "checked_hashes", lambda values: [
+        (_ for _ in ()).throw(ValueError("protected drift")) for n, expected in values.items()
+        if gate.file_hash(tmp_path/n) != expected])
+    if mutation == "protected_drift":
+        protected.write_text("modified")
+    elif mutation == "new_environment":
+        (tmp_path/"scratch").mkdir()
+    if mutation == "none":
+        assert gate.cleanup() == receipt
+    else:
+        with pytest.raises(ValueError):
+            gate.cleanup()
