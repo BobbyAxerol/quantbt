@@ -4,8 +4,9 @@
 
 **Status:** MET-01 COMPLETE_SPEC_ORACLE_LOCAL (phase approval 2026-10-07);
 MET01-T01..T08 PASS, 452 tests passed/no skips, 322 production hashes unchanged.
-Reporting-definition acceptance remains PENDING; MET-02/MET-03 NOT_STARTED.
-Performance and installed-artifact gates belong to later approved phases.
+Reporting definitions accepted through owner approval of MET-02 on 2026-10-07;
+MET-02 IN_PROGRESS, MET-03 NOT_STARTED. Historical receipts remain unchanged.
+Installed-artifact/public formatting gates belong to MET-03.
 Owner requests the [three-phase metrics program](#metrics-upgrade) below, with
 separate approval before each phase. Read the [MET-01 report](../docs/metrics/MET01_REPORT.md)
 and [reporting definitions](../docs/metrics/REPORTING_CONTRACT_V1.md) for review.
@@ -26075,7 +26076,7 @@ correctness are separate checks.
 | Order | Phase | Main result | Status / owner gate |
 |---|---|---|---|
 | 1 | [MET-01](#metrics-met-01) | Reporting contract, source inventory and independent expected-value fixtures | COMPLETE_SPEC_ORACLE_LOCAL; technical PASS, definitions review PENDING |
-| 2 | [MET-02](#metrics-met-02) | Additive typed reducers and honest raw-data capabilities | NOT_STARTED; MET-01 accepted and separate phase approval required |
+| 2 | [MET-02](#metrics-met-02) | Additive typed reducers and honest raw-data capabilities | IN_PROGRESS; owner approved 2026-10-07, gates NOT_RUN |
 | 3 | [MET-03](#metrics-met-03) | Public reporting/docs, same-contract parity, raw preservation and local artifact/performance proof | NOT_STARTED; MET-02 accepted and separate phase approval required |
 
 All test groups and cost/installed gates below are NOT_RUN at registration.
@@ -26362,7 +26363,9 @@ is the remaining review gate; do not automatically start MET-02/03.
 <a id="metrics-met-02"></a>
 ### Phase MET-02 - Additive Account, Closed-Trade And Closed-Action Reducers
 
-**Status:** NOT_STARTED; owner phase approval PENDING; MET02-T01..T10 NOT_RUN.
+**Status:** IN_PROGRESS; owner approved MET-02 on 2026-10-07, accepting the
+MET-01 reporting definitions for this additive implementation. MET02-T01..T10
+NOT_RUN; historical MET-01 approval/qualification receipts remain immutable.
 **Goal:** implement the accepted statistics from read-only authoritative outputs,
 retaining valid existing period metrics and truthful raw-data limitations.
 **Entry:** accepted MET-01 contract/oracle and owner approval for MET-02.
@@ -26426,6 +26429,32 @@ reducer or unbounded cache. A missing financial raw-data capability must stop
 that capability's claim and be separately approved, not patched inside core.
 **Commit Boundary:** account/DD reducers, then supported trade/action reducers,
 then numeric/cache conformance and source receipt, each with its focused tests.
+
+**Registered Local Execution Protocol (2026-10-07):**
+No execution/scientific/default endpoint changes, native build, public report
+integration, remote action or release. Focused `metrics/reporting/` modules consume
+immutable reporting snapshots and already-attributed closed outcomes, not fills
+replayed through a second accounting engine. Python and lazy Numba reducers must
+match the MET-01 independent oracle; Rust MetricContractV2 is a different contract
+and is NOT an admitted V1 reporting reducer. Missing authoritative action roster,
+cost allocation, FX, excursion marks or risk denominator is an explicit N/A.
+Scope entry equity/time, return frequency and partial-period coverage are explicit;
+no original-capital scoped return, filled missing days or invented previous bar.
+Cache is on-demand and bounded by both entries and retained bytes, never attached
+to trials. Protect all MET-01 baseline files and its frozen schema.
+
+Preflight: approximately 24 GiB available and 5.59 million free inodes. Incremental
+budget 256 MiB / 1024 inodes, with 5 GiB safety headroom; no wheel/native rebuild.
+Qualification uses isolated `/tmp/quantbt-met02-*` scratch, headless plotting,
+Python bytecode disabled and one BLAS/OMP/Numba thread. Preserve source hashes,
+failed and passed logs/JUnit/receipts; remove only this phase's exact temporary
+paths, not environments, native artifacts or historical caches/evidence.
+Before measuring: warm up each admitted numeric backend once, measure five runs
+on matched 2k/100k/1M observed marks and report p50/p95, bars/s and process peak
+RSS with contract/output parity. Measure ledger and cache costs separately; no
+assumed 1-10 ms guarantee or owner-approved latency gate. Test bounded seeded
+public WFO before/after reporting for exact proposals, objective, selection and
+account paths. MET-03 formatting/API activation needs separate approval.
 
 <a id="metrics-met-03"></a>
 ### Phase MET-03 - Public Reports, Documentation And Local Certification
