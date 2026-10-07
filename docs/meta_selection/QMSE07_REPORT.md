@@ -146,6 +146,13 @@ verification follows the captured wall/CPU/peak RSS/resident/PSS measurement.
 The historical 26-fold runs check multi-fold behavior; their unregistered wall
 times are not presented as matched long-horizon benchmarks.
 
+The frozen synthetic tape is daily UTC, 2020-01-01 through 2022-05-31 (882
+bars). Generic final execution retains that original full calendar, including
+flat/no-command prefix bars; the current numeric W3 final account is only its
+31-bar May segment. IS/forward windows, search budget and own compatible histories
+are matched within each route's off/shadow/active arms. Different financial
+account/protocol scopes are not an apples-to-apples callback-versus-W3 speedup.
+
 Only descriptive medians are valid with three repeats. Process peak RSS includes
 imports, history and warmup; resident/PSS after the call is a separate measure.
 Five additional ownership/stage diagnostics are not included in warm medians.
