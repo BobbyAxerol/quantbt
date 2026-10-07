@@ -67,12 +67,16 @@ def independent(value, task, candidate, *, forward=False):
     if value.route != "reactive_reset":
         return shared.independent(value, task, candidate, forward=forward)
     a, b = (task.forward_start, task.forward_end) if forward else (task.is_start, task.is_end)
-    prepared = value.endpoint.endpoint.prepare_native_event_strategy(data=value.data, symbols=["X"])
     start = value.data.index.get_loc(a)
     marker = SimpleNamespace(start_bar=start, end_bar=value.data.index.get_loc(b)+1,
                              seed=task.resolved_fold_seed)
+    return segment(value, marker, candidate.effective_params)
+
+
+def segment(value, marker, params):
+    prepared = value.endpoint.endpoint.prepare_native_event_strategy(data=value.data, symbols=["X"])
     try:
-        return prepared.run_window(FillFeedbackGrid(task=marker, window=candidate.effective_params["window"]),
+        return prepared.run_window(FillFeedbackGrid(task=marker, window=params["window"]),
             start_bar=marker.start_bar, end_bar=marker.end_bar, report_level="audit")
     finally:
         prepared.backend.clear_prepared_caches()
@@ -82,9 +86,8 @@ def rebuild(value):
     if value.route != "reactive_reset":
         shared.account_equal(value.result, shared.rebuild_final(value))
         return
-    for fold, task, record in zip(value.result.fold_results, value.meta["tasks"], value.meta["records"], strict=True):
-        chosen = next(c for c in task.candidates if c.evaluation_id == record["selected_evaluation_id"])
-        shared.account_equal(fold.result, independent(value, task, chosen, forward=True))
+    for fold in value.result.fold_results:
+        shared.account_equal(fold.result, segment(value, fold.task, fold.params))
 
 
 def output(value):

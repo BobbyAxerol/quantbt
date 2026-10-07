@@ -83,10 +83,11 @@ def verify(value, cell):
     accounts = [f.result for f in value.result.fold_results] if value.route == "reactive_reset" else [value.result]
     row["final_equity"] = [float(a.equity.iloc[-1]) for a in accounts]
     from quantbt.optimization.meta_selection.common import digest
+    params = value.result.params_by_fold if value.route == "reactive_reset" else e07.output(value)["params_by_fold"]
     row["account_pool_sha256"] = digest(dict(
         accounts=[{k: sha256(getattr(a, k).to_numpy(dtype="<f8").tobytes()).hexdigest()
             for k in ("equity", "returns", "positions", "fees", "funding", "margin")} for a in accounts],
-        params=value.result.params_by_fold if value.route == "reactive_reset" else e07.output(value)["params_by_fold"],
+        params=sorted(params.items()),
         pools=[[(c.effective_params, c.objective, c.observation) for c in t.candidates] for t in meta.get("tasks", ())]))
     row["financial_observability"] = []
     for account in accounts:
