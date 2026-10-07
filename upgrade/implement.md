@@ -14,6 +14,17 @@ recovers 1,155.875 MiB. All registered local integrated gates are complete.
 Remote/public qualification, push, merge/tag and publication are not authorized.
 Meta stays opt-in; no financial arithmetic, scientific/RNG or native changes.
 
+**Owner clarification (2026-10-07, Asia/Saigon):** existing scoped meta decay-
+reduction evidence remains valid; read the [actual Delta RSI comparison](../docs/meta_selection/LOCAL_DEBT_CLOSURE_REPORT.md).
+No additional per-endpoint/strategy economic demonstration is requested now.
+Unmeasured or inconclusive endpoint/strategy evidence is not a finding that
+there is no edge there. Keep decay reduction, forward-Q and account performance
+distinct, preserve all positive/negative receipts, and do not extrapolate one
+study into a universal guarantee. Support-scope review, new remote qualification,
+release builds, merge/tag/publication and public proof remain deferred by owner.
+This pass corrects documentation labels only; no runtime or scientific changes,
+new build/test environments, scratch cleanup or deployment are required.
+
 ## Historical QMS-E07 Local Closure - Owner Approval 2026-10-07
 
 **Status:** COMPLETE_LOCAL_SOFTWARE_QUALIFIED_OPT_IN. E06 and E07 are accepted
@@ -23893,6 +23904,12 @@ continuation approval; their tested scope is recorded below, not inferred from
 the original planning authorization. C05 subsequently received a phase request;
 the existing spec-before-activation rule was retained. Its independent local
 review/tests are complete, but new mathematical/runtime activation is not inferred.
+**Current authorization reconciliation:** the owner subsequently approved the
+bounded C01/C05 implementations. [PRE-E06-03](#qms-pre-e06-03) completes nested
+scalar Mode 1; [PRE-E06-04](#qms-pre-e06-04) completes explicit conditional Sobol,
+finite-support representatives and owned continuation. PRE-E06-06/E08 certify
+the approved local installed scope. This does not activate other methods/domains
+or authorize remote/release work. Original spec-only receipts below remain historical.
 Reuse existing typed planning/preparation/evaluation/history/selection/native/
 result contracts; no new account engine, endpoint or sampler factory. Baseline
 off/shadow/RNG/account parity and explicit unsupported errors remain required.
@@ -23901,8 +23918,11 @@ off/shadow/RNG/account parity and explicit unsupported errors remain required.
 
 **Historical review status:** SPEC_AND_TESTS_COMPLETE_WITH_RECORDED_METADATA_GAP;
 activation NOT_AUTHORIZED; baseline `b5563de`.
-**Current status:** SPEC_COMPLETE_GAP_C01_D01_CLOSED; approved nested scalar
-implementation pending PRE-E06-03, no additional meta runtime activated.
+**Current status:** COMPLETE_LOCAL_APPROVED_COHORT; C01-D01 metadata gap CLOSED.
+Approved nested Mode 1 / per_fold_causal runtime is complete for five scalar
+targets under [PRE-E06-03](#qms-pre-e06-03). Local installed qualification is
+complete under PRE-E06-06/E08; broader mode/schedule/domain activation remains
+separate and current-source remote/public qualification is owner-deferred.
 The owner requested this phase on 2026-10-05 and explicitly answered
 "Chot spec va tests; duyet activation rieng". Its review-before-enable rule
 remains mandatory. This is not approval to open unsupported combinations or
@@ -23919,9 +23939,14 @@ full-sample selection causal. Owner selects the actual proposed semantics first.
 **Tests/exit:** native meta-off compatibility, exact full pools/anchors/raw
 validity, declared data roles, OOS/future mutation, RNG/selection lineage and
 same-pass accounting; written revised scope and supported matrix before enabling.
-**Activation not started:** all currently unsupported combinations remain
+**Historical spec-review activation boundary:** activation was not started in
+the original C01 review. The approved nested runtime is now complete as stated
+above; all remaining unsupported combinations remain
 preflight errors. The separate [versioned amendment](../docs/meta_selection/ADDITIONAL_METHODS_REVIEW.md)
 classifies proposals; it is not a runtime capability registry.
+
+The following assessment/test/completion text describes that original spec
+scope. Its receipts are preserved, not rewritten as current activation records.
 
 **Execution scope and methodology review:**
 
@@ -24439,12 +24464,23 @@ Historical receipts are unchanged. No push, merge, tag, upload or release ran.
 
 #### QMS-C05 - Conditional Sobol And Admissible Mixed-Space Representatives
 
-**Status:** SPEC_AND_TESTS_COMPLETE_RUNTIME_NOT_ACTIVATED; baseline `681cb00`.
-**Authorization:** the owner requested C05 on 2026-10-05 (Asia/Saigon).
+**Historical review status:** SPEC_AND_TESTS_COMPLETE_RUNTIME_NOT_ACTIVATED;
+baseline `681cb00`.
+**Current status:** COMPLETE_LOCAL_APPROVED_POLICIES. Approved opt-in conditional
+Sobol, admissible evaluated-support representatives and exact owned continuation
+are implemented under [PRE-E06-04](#qms-pre-e06-04), with PRE-E06-06/E08 local
+installed qualification complete. Legacy defaults are unchanged; arbitrary
+mixed-space policies, automatic financial recovery and remote/public activation
+are not implied. Current-source remote/release work remains owner-deferred.
+**Historical authorization:** the owner requested C05 on 2026-10-05 (Asia/Saigon).
 The existing review-before-activation rule still applies. A scope clarification
 has been sent; absent separate approval, this pass implements review documents,
 isolated executable specifications and independent tests only. No production
 sampler/selector, Ridge/scientific method, account path or public config changes.
+
+The following goals/tests/exit/completion describe the historical spec-only
+review. Later approved runtime completion is recorded above and in PRE-E06-04;
+do not read the original pending-approval receipt as a current missing implementation.
 
 **Goal:** design valid conditional sampling/representatives before activation.
 **Guide:** [4](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s4),
