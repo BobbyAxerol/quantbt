@@ -2811,7 +2811,8 @@ the endpoint signature, objectives or financial execution contract.
 Later feature-branch PRE-E06-04 adds opt-in `SamplerConfig.sobol_policy` and
 `flat_selector="feasible_support_projection_v1"` through the same configuration.
 Read [exact versioned geometry, route limits and continuation](meta_selection/CONDITIONAL_POLICIES.md).
-Old defaults/guards remain; installed-final-source proof stays PRE-E06-06.
+Old defaults/guards remain; installed-final-source proof is tracked in
+[PRE-E06-06](meta_selection/PRE_E06_06_REPORT.md), independently of publication.
 
 Feature-branch QMS-03 adds an internal, opt-in original-result observer and
 causal history foundation, **not** a public meta-selection parameter. Normal
@@ -2908,6 +2909,11 @@ runtime binding. Core/native `1.1.1/0.4.2` are not overwritten. Private QMS
 candidate success does not enable meta by default or certify arbitrary reactive
 W3 process/batch/deadline contracts. W3 keeps segmented reset-flat accounts,
 and `meta_history` is an additive typed `.backtest(...)` argument.
+For the current prepared local 1.1.2/0.4.3 pair, the exact artifact gate is
+[PRE-E06-06](meta_selection/PRE_E06_06_REPORT.md). It exercises existing routes
+without adding an endpoint or changing execution, objective, fee or estimator
+contracts. C02/C03's sequential safe-process and cooperative-deadline scope is
+distinct from unsupported public meta batches, carry and shared multi-symbol.
 
 Performance compatibility: `optimization_config={"use_numba": True}` also
 accelerates stationary bootstrap index construction using the same NumPy RNG

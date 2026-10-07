@@ -1006,6 +1006,15 @@ W0/W1/W2 without changing timing/selection mathematics, and exports a complete
 new witness; fallback and require failure remain explicit. Reactive/reset-flat
 W3 meta has a separate local sequential adapter with original native windows,
 same-pass objectives and reset-flat accounting; it never manufactures a stitched
-continuous account. Process/batch meta is not certified. See the
+continuous account. C02/C03 additionally qualify the existing sequential meta
+lane over safe Linux fork/COW transport and cooperative deadlines; this is not
+public meta-batch, continuous-carry or shared multi-symbol activation. See the
 [W3 contract](meta_selection/INTEGRATION.md#w3-sequential-meta).
 This is not yet a published 1.1.1 feature.
+
+Final-source local wheel/sdist qualification is tracked by
+[PRE-E06-06](meta_selection/PRE_E06_06_REPORT.md). Its installed scope, source
+hashes and cleanup are separate from remote/public and economic acceptance.
+The [conditional sampler contract](meta_selection/CONDITIONAL_POLICIES.md)
+does not broaden the meta mode/domain matrix. Methods, accounts and default
+selection behavior remain unchanged by package qualification.

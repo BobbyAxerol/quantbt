@@ -826,6 +826,15 @@ counterfactual scores are not stitched equities. Read
 [config, clocks, scopes and public metadata](../docs/meta_selection/INTEGRATION.md).
 This feature-branch addition is not yet in published core 1.1.1.
 
+For current local scope, use the [route review](../docs/meta_selection/CURRENT_ROUTE_REVIEW.md),
+not this historical QMS-05 paragraph alone. Later approved adapters include
+original shared portfolio/package accounts and typed intrabar/callback/command/
+pre-expiry-delivery windows. Nested scalar Mode 1 has its own
+[inner-validation contract](../docs/meta_selection/NESTED_MODE1.md), without
+replacing the formulas above. Final-source installed qualification is tracked
+in [PRE-E06-06](../docs/meta_selection/PRE_E06_06_REPORT.md); this does not certify
+economic improvement or activate unsupported methodology/domain combinations.
+
 QMS-06 preserves this mathematics through existing prepared scalar W0/W1/W2
 routes using original native sample/variance/first-mark evidence, not a replay
 or placeholder-volatility inference. Same-close timing, fresh diagnostic accounts
