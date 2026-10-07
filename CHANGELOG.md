@@ -6,6 +6,12 @@ All notable changes to `quantbt-engine` are documented here.
 
 ### Prepared 1.1.2 / Native 0.4.3
 
+- Added opt-in `reporting=ReportingRequest(...)` on completed endpoint/result
+  reports and quick plots. Account-period, execution, closed-trade/action and
+  drawdown episode output has explicit baseline, frequency, currency, coverage
+  and unavailable policies. Legacy reports, scientific/WFO scores and raw
+  execution/accounting remain unchanged. Read [Reporting V1](docs/metrics/PUBLIC_REPORTING.md).
+
 - Added opt-in Mode 4 / per-fold causal meta selection and a shared sampler
   bridge for legacy TPE, grouped multivariate TPE, CMA-ES and fixed-space Sobol.
 - Qualified causal history, ridge artifacts, reference/prepared selection

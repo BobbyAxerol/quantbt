@@ -74,6 +74,40 @@ platforms, backend controls, and troubleshooting.
 
 ## Quick Start
 
+## Optional Reporting V1
+
+Completed endpoint/result `full_report()`, `show_metrics()` and `quick_plot()`
+accept `reporting=ReportingRequest(...)` for explicit account-period, execution,
+closed-trade/action and drawdown-episode reporting. Existing calls, scientific
+WFO/meta metrics and raw execution/accounting are unchanged. Missing outcome
+attribution is N/A with a reason, not a guessed trade count. Read the
+[reporting guide](docs/metrics/PUBLIC_REPORTING.md) and runnable
+[synthetic example](examples/reporting_metrics_v1.py).
+
+Measured local CPython 3.12 reporting cost, one thread, one warmup/five samples:
+the opt-in workload includes immutable snapshot/hash, reduction, episode detail
+and grouped dictionary adaptation; it does not time strategy/execution.
+
+| Account observations | Python full report p50 / p95 | Explicit Numba p50 / p95 | Numba observations/s | Worker peak RSS Python / Numba |
+|---:|---:|---:|---:|---:|
+| 2,000 | 8.816 / 9.143 ms | 2.420 / 3.551 ms | 0.83M | 201.02 / 304.46 MiB |
+| 100,000 | 440.436 / 657.913 ms | 43.827 / 70.266 ms | 2.28M | 172.15 / 270.11 MiB |
+| 1,000,000 | 3.460 / 3.931 s | 326.657 / 351.821 ms | 3.06M | 331.34 / 423.95 MiB |
+
+These are **new report definitions and requested extra work**, not comparable
+to the shorter legacy scientific metric set as a speedup. Text formatting was
+0.05-0.10 ms; immutable snapshot/hash alone was about 0.88/29.49/283.62 ms.
+First-call Numba account compilation/reduction took 5.54-5.77 s and is not in
+the warm table. Python remains the reporting default; small ledgers may be
+faster without compilation. Peak RSS includes the import/JIT floor, and the
+2k row also draws the optional plot, so rows are not memory-scaling forecasts.
+Public cache hits still rehash mutable input and adapt output. Full matched
+legacy/new timings, coverage, caveats and local artifact receipts are in the
+[MET-03 certification report](docs/metrics/MET03_REPORT.md). No universal
+1-10 ms promise or Rust Reporting V1 reducer is claimed.
+
+## Quick Start
+
 ```python
 from quantbt import QuantBTEndpoint
 
