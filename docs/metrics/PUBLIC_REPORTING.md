@@ -152,6 +152,16 @@ is not retained by the reduction cache. No output detail or validity test is
 omitted to obtain the measured gain. Request preparation, reducer, warm full
 report and cache-hit costs are measured separately, including request+report.
 
+Typed account/return/execution snapshots and retained episode buffers preserve
+readonly byte storage through `copy`, `deepcopy` and pickle round trips. Copy
+reconstruction gives each snapshot its own ndarray shape/dtype header. Unpickling
+revalidates through the constructors and recomputes derived input identities,
+including historical dataclass state, rather than trusting a saved hash.
+To change an observation, construct a new snapshot (for example with
+`dataclasses.replace`); its content identity changes and the cache misses.
+Never unpickle untrusted input: this storage guarantee does not make Python
+pickle a safe interchange format. Reports' JSON metadata is the portable format.
+
 Migration is opt-in. Keep scientific/WFO calls without `reporting=`. Don't replace
 their objective/selection dictionary with the grouped report. Full runnable public
 synthetic example: [reporting_metrics_v1.py](../../examples/reporting_metrics_v1.py).

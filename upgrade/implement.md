@@ -26830,6 +26830,25 @@ preserve tooling, source, all old/new evidence, artifacts and cached dependencie
 matched/installed evidence; final docs/cleanup/handoff. No unrelated refactor,
 new financial/scientific methodology, backend default or release-pair change.
 
+**Execution notes, not completion receipts:** the initial helper venv command
+omitted `UV_CACHE_DIR` and failed against the sandbox-readonly default cache;
+retry with the registered offline cache succeeded without changing primary
+tooling. The first repro XML also includes a fixture sampling mismatch; a
+separate corrected pre-fix repro retains 33 failures/7 passes. Snapshot/header
+reconstruction then passes 98 focused cases. Scalar-access experiments retain
+two overflow failures; keeping NumPy scalar power semantics closes both.
+Full affected source subsequently passes 785 cases with no fail/skip.
+
+The focused environment and fresh source consumer briefly overlapped at
+24,805 files, above the aggregate registered 20k inode budget despite each
+individual lane being below it. This resource miss is preserved, not labelled
+PASS or silently exempted. The inactive focused environment is removed before
+paired benchmarking, with 12,359 files inventoried, hashes preserved and
+7,036,928 actual bytes recovered. Thereafter one source/build consumer lifetime
+runs at a time. See the [focused cleanup receipt](../docs/metrics/evidence/met03/copy-review-focused-cleanup.json).
+No financial, scientific or parity tolerance is waived by this operational
+disposition; final owner review includes this transient resource variance.
+
 ### Metrics Completion, Evidence And Owner Review Rules
 
 Each phase records planned/implemented/software-qualified/performance-qualified/

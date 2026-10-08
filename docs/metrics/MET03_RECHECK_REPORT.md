@@ -1,8 +1,9 @@
 # MET-03 Owner Recheck
 
-This is the preserved correctness recheck. The later
-[reporting performance follow-up](MET03_PERFORMANCE_REPORT.md) has new measured
-costs and source-exact qualification; these historical receipts remain unchanged.
+This is the preserved correctness recheck. The latest
+[copy/cost closure](MET03_COPY_COST_REPORT.md) follows the historical
+[reporting performance pass](MET03_PERFORMANCE_REPORT.md). These recheck
+receipts remain unchanged and certify only their recorded source.
 
 **COMPLETE_LOCAL.** Owner requested an additional audit on 2026-10-07.
 Source fixes commit `3e6ae7d`, starting parent `ffdda97`; no financial/scientific

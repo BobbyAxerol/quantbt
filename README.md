@@ -88,30 +88,35 @@ and grouped dictionary adaptation; it does not time strategy/execution.
 
 | Account observations | Python full report p50 / p95 | Explicit Numba p50 / p95 | Numba observations/s | Worker peak RSS Python / Numba |
 |---:|---:|---:|---:|---:|
-| 2,000 | 9.139 / 9.546 ms | 1.809 / 1.952 ms | 1.11M | 201.29 / 305.27 MiB |
-| 100,000 | 316.497 / 320.122 ms | 21.869 / 23.207 ms | 4.57M | 169.46 / 265.55 MiB |
-| 1,000,000 | 3.168 / 3.309 s | 177.952 / 243.112 ms | 5.62M | 286.44 / 373.51 MiB |
+| 2,000 | 6.435 / 6.828 ms | 1.728 / 1.826 ms | 1.16M | 202.11 / 300.85 MiB |
+| 100,000 | 206.818 / 225.768 ms | 21.284 / 22.589 ms | 4.70M | 168.77 / 266.43 MiB |
+| 1,000,000 | 2.111 / 2.165 s | 183.730 / 186.878 ms | 5.44M | 286.52 / 373.12 MiB |
 
 These are **new report definitions and requested extra work**, not comparable
 to the shorter legacy scientific metric set as a speedup. Text formatting was
-0.05-0.10 ms in the original qualification; direct snapshot/hash with a raw tuple
-mask is about 0.80/20.46/194.22 ms in this follow-up. Public requests prepare that
-mask once; request preparation is measured separately, not advertised as free.
-First-call Numba account compilation/reduction took 5.84-6.13 s and is not in
+0.05-0.10 ms in the original qualification. Public requests prepare the immutable
+mask once; request preparation, snapshot/hash and serialization are measured
+separately, not advertised as free.
+First-call Numba account compilation/reduction took 5.30-5.80 s and is not in
 the warm table. Python remains the reporting default; small ledgers may be
 faster without compilation. Peak RSS includes the import/JIT floor, and the
 2k row also draws the optional plot, so rows are not memory-scaling forecasts.
 Public cache hits still rehash mutable input and adapt output. Full matched
 legacy/new timings, coverage, caveats and local artifact receipts are in the
-[reporting performance follow-up](docs/metrics/MET03_PERFORMANCE_REPORT.md), with
-historical evidence in the [MET-03 report](docs/metrics/MET03_REPORT.md). No universal
+[copy/cost qualification](docs/metrics/MET03_COPY_COST_REPORT.md), with
+historical evidence in the [performance follow-up](docs/metrics/MET03_PERFORMANCE_REPORT.md)
+and [MET-03 report](docs/metrics/MET03_REPORT.md). No universal
 1-10 ms promise or Rust Reporting V1 reducer is claimed.
 
-Same-host matched 1M reporting comparison against the prior source:
-Numba full report **315.899 -> 182.206 ms**, peak RSS **428.70 -> 371.25 MiB**,
-with exact report/input hashes. Including request setup: **362.418 -> 227.065 ms**.
-Python/ledger and p95 results are not uniformly better; retained comparison
-tables include worse cells. This is a reporting gain, not a WFO execution claim.
+Alternating same-process comparisons, two warmups/30 samples, exact full-output
+hashes: against immediate parent `dc12427`, Python 2k account reporting is
+**8.270 -> 6.335 ms**, 1M is **3.165 -> 2.081 s**, and 2k closed trades are
+**15.491 -> 11.592 ms**. Against historical `24ad469`, Numba 1M is
+**319.356 -> 164.557 ms**. This paired cold-adapter/reducer comparison is
+separate from the full public/fresh-worker table above. Numba p95 and small
+cells are not uniformly better; all measurements remain visible. Copy/deepcopy
+and trusted pickle round trips retain validated readonly snapshots and rederive
+identities; cache correctness does not depend on trusting serialized hashes.
 
 ## Quick Start
 

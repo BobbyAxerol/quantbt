@@ -1,5 +1,11 @@
 # Reporting Performance Follow-Up
 
+**Historical qualification:** these measurements and artifacts describe the
+2026-10-07 source. The later [copy/cost closure](MET03_COPY_COST_REPORT.md)
+fixes snapshot round trips and supplies new controlled comparisons, source
+regression and exact artifacts. All receipts/tables below remain historical,
+not evidence for subsequently changed bytes.
+
 Owner-authorized reporting-only optimization on 2026-10-07. Baseline `24ad469`;
 the [registered scope](../../upgrade/implement.md#metrics-met-03), G01..G05 and
 [public reporting contract](PUBLIC_REPORTING.md) apply. No endpoint/default,

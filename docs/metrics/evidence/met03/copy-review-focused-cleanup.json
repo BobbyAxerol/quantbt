@@ -1,0 +1,25 @@
+{
+  "apparent_bytes": 645358595,
+  "concurrent_focused_and_source_files": 24805,
+  "disposition": "focused environment retired before matched benchmarking; preserve transient overlap, do not relabel resource budget",
+  "files": 12359,
+  "free_bytes_after": 26485891072,
+  "free_bytes_before": 26478854144,
+  "inventory_sha256": "e3efdb28d58993ce7202cbbc445b9d959b519ebe89d43dd7e89780d268517cdb",
+  "path": "/tmp/quantbt-met03-copy-review",
+  "primary_and_offline_cache_preserved": true,
+  "protected_hashes": "PASS",
+  "protected_sha256": {
+    "docs/metrics/evidence/met03/copy-review-fixed.xml": "7da8cd8cc93ed3578a346b535af9257a0cc5ab7db2011be30bc4daa7bbe73e0a",
+    "docs/metrics/evidence/met03/copy-review-metrics-final.xml": "b60842ef3685cf12b087b5f2284bab6699266573961c56dd2efb2fd740ad6471",
+    "docs/metrics/evidence/met03/copy-review-metrics.xml": "33649af26cf8d34a309c0d9288893f81d53ba846439db137efacc3ec224c40e8",
+    "docs/metrics/evidence/met03/copy-review-repro.xml": "58c9691e200dd6665ae40dfb20854b2fbc6e314f799a2f5cc912608bf319385a",
+    "docs/metrics/evidence/met03/copy-review-roundtrip-regression.xml": "7a66afc5b74dd97fd0ea81903c9f65d9518b6272c2c57667d7e4b48f6039c78e",
+    "docs/metrics/evidence/met03/copy-review-scalar-repro.xml": "123117902c52f22a68ea7cf6e35f68e8dac85bcbe6ec8812b719dd67914b960c",
+    "docs/metrics/evidence/met03/copy-review-valid-repro.xml": "3a8c6f794aeb75a9ae3db54149016bef2f5484731de8e9b42fc0651aa0468512"
+  },
+  "registered_inode_budget": 20000,
+  "scratch_removed": true,
+  "source_consumer_preserved": "/tmp/quantbt-met03-3nju893t",
+  "transient_inode_budget_exceeded": true
+}

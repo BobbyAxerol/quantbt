@@ -15,6 +15,11 @@ All notable changes to `quantbt-engine` are documented here.
   bytes-owned snapshots, a prepared boolean mask and one report/plot snapshot.
   Cache hits still rehash mutable completed input; formulas, exact identities,
   requested episode detail, legacy reports and financial/WFO metrics are unchanged.
+- Fixed immutable reporting snapshot reconstruction after copy/deepcopy and
+  pickle, including nested execution paths and drawdown episodes. Constructors
+  revalidate storage and recompute hashes; changed observations cannot reuse a
+  saved identity. Python reporting scans use zero-copy native scalar access
+  with preserved numerical overflow policies and exact differential coverage.
 
 - Added opt-in Mode 4 / per-fold causal meta selection and a shared sampler
   bridge for legacy TPE, grouped multivariate TPE, CMA-ES and fixed-space Sobol.

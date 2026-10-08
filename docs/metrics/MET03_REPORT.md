@@ -1,7 +1,8 @@
 # MET-03 Local Certification
 
-**Latest source:** read the [performance follow-up](MET03_PERFORMANCE_REPORT.md)
-for snapshot optimization and new costs/artifacts. The
+**Latest source:** read the [copy/cost closure](MET03_COPY_COST_REPORT.md)
+for round-trip cache correctness, costs and new artifacts. The historical
+[performance follow-up](MET03_PERFORMANCE_REPORT.md) and
 [owner recheck](MET03_RECHECK_REPORT.md) closes five
 additional reporting edge defects with 667 tests and fresh installed artifacts.
 The results/hashes below remain the original MET-03 qualification, not proof
