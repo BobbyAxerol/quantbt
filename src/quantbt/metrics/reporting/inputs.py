@@ -9,6 +9,7 @@ import json
 import numpy as np
 
 from ..report_contracts import ReportingContractV1, ReportingCoverageV1
+from .snapshots import SnapshotValue, immutable_storage
 
 
 def frozen_array(values, dtype, *, integer=False):
@@ -24,14 +25,7 @@ def frozen_array(values, dtype, *, integer=False):
         raise ValueError("missing NaT timestamp is not a UTC nanosecond observation")
     if dtype == np.float64 and not np.isfinite(array).all():
         raise ValueError("finite observations required; invalid rows cannot be dropped")
-    # Only a bytes owner is irreversible; readonly flags over mutable owners are not.
-    owner = array
-    while isinstance(owner, np.ndarray):
-        owner = owner.base
-    if isinstance(owner, bytes):
-        # Share immutable storage, not the caller's mutable shape/dtype header.
-        return array.view()
-    return np.frombuffer(array.tobytes(), dtype=dtype)
+    return immutable_storage(array)
 
 
 def identity(metadata, *arrays):
@@ -62,7 +56,7 @@ def validate_account_scope(times, contract):
 
 
 @dataclass(frozen=True, kw_only=True)
-class ReturnObservations:
+class ReturnObservations(SnapshotValue):
     values: np.ndarray
     end_times_ns: np.ndarray
     partial_mask: np.ndarray
@@ -89,7 +83,7 @@ class ReturnObservations:
 
 
 @dataclass(frozen=True, kw_only=True)
-class AccountObservations:
+class AccountObservations(SnapshotValue):
     times_ns: np.ndarray
     equity: np.ndarray
     coverage: ReportingCoverageV1

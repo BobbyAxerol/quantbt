@@ -9,6 +9,7 @@ import numpy as np
 from ..report_contracts import ReportingCoverageV1
 from .inputs import frozen_array, identity
 from .results import MetricBuilder, ReportingResult
+from .snapshots import SnapshotValue
 
 
 AGGREGATES = ("fill_count", "rejected_count", "canceled_count", "turnover", "total_fee", "total_funding")
@@ -16,7 +17,7 @@ PATHS = ("fees", "funding", "separate_slippage_cost", "gross_exposure_ratio", "i
 
 
 @dataclass(frozen=True, kw_only=True)
-class ExecutionObservations:
+class ExecutionObservations(SnapshotValue):
     coverage: ReportingCoverageV1
     currency: str
     scope_start_ns: int

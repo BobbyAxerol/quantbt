@@ -6,6 +6,8 @@ import math
 
 import numpy as np
 
+from .snapshots import SnapshotValue, immutable_storage
+
 
 DAY_NS = 86_400_000_000_000
 INT_COLUMNS = ("peak_time_ns", "first_underwater_time_ns", "last_underwater_time_ns",
@@ -15,9 +17,20 @@ FLOAT_COLUMNS = ("peak_equity", "trough_equity", "depth")
 
 
 @dataclass(frozen=True)
-class DrawdownEpisodes:
+class DrawdownEpisodes(SnapshotValue):
     integers: np.ndarray
     numbers: np.ndarray
+
+    def __post_init__(self):
+        integers = np.asarray(self.integers)
+        numbers = np.asarray(self.numbers)
+        if (integers.ndim != 2 or numbers.ndim != 2
+                or integers.shape != (len(numbers), len(INT_COLUMNS))
+                or numbers.shape[1] != len(FLOAT_COLUMNS)
+                or integers.dtype != np.int64 or numbers.dtype != np.float64):
+            raise ValueError("aligned typed drawdown episode matrices required")
+        object.__setattr__(self, "integers", immutable_storage(np.ascontiguousarray(integers)))
+        object.__setattr__(self, "numbers", immutable_storage(np.ascontiguousarray(numbers)))
 
     @property
     def retained_bytes(self):

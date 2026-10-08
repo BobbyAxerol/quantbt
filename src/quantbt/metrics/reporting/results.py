@@ -5,10 +5,11 @@ import math
 import sys
 
 from ..report_contracts import ReportingMetricV1
+from .snapshots import SnapshotValue
 
 
 @dataclass(frozen=True, kw_only=True)
-class ReportingResult:
+class ReportingResult(SnapshotValue):
     contract_identity: str
     input_identity: str
     metrics: tuple[ReportingMetricV1, ...]

@@ -3,3 +3,5 @@ docs/metrics/evidence/met03/exploratory-retained/second.xml whitespace=-blank-at
 docs/metrics/evidence/met03/review-repro-20261007.xml whitespace=-blank-at-eol
 docs/metrics/evidence/met03/performance-tooling-mismatch/pytest.xml whitespace=-blank-at-eol
 docs/metrics/evidence/met03/performance-tooling-mismatch/failure.log whitespace=-blank-at-eol
+docs/metrics/evidence/met03/copy-review-repro.xml whitespace=-blank-at-eol
+docs/metrics/evidence/met03/copy-review-valid-repro.xml whitespace=-blank-at-eol
