@@ -6,12 +6,16 @@
 MET01-T01..T08 PASS, 452 tests passed/no skips, 322 production hashes unchanged.
 Reporting definitions accepted through owner approval of MET-02 on 2026-10-07;
 MET-02 COMPLETE_ADDITIVE_LOCAL (567 tests, T01..T10 PASS), MET-03 COMPLETE_LOCAL
-(716 source tests after reporting performance follow-up, T01..T10 PASS; new exact wheel/sdist
+(785 source tests after copy/cost closure, T01..T10 PASS; new exact wheel/sdist
 consumers and edge-case proof PASS). Separate
 phase approval 2026-10-07; final owner review remains PENDING. Historical
 receipts remain unchanged. Owner recheck closed five reporting edge defects;
 read the [recheck report](../docs/metrics/MET03_RECHECK_REPORT.md) and latest
-[performance report](../docs/metrics/MET03_PERFORMANCE_REPORT.md).
+[copy/cost report](../docs/metrics/MET03_COPY_COST_REPORT.md),
+[source-bound closure](../docs/metrics/evidence/met03/copy-review-closure.json)
+and [release handoff](../docs/meta_selection/RELEASE_HANDOFF.md#reporting-local-closure).
+The transient 24,805/20k inode miss is recorded, resolved by owned cleanup and
+still part of owner review; performance is not universally non-regressing.
 No CI/push/merge/tag/version change or publication.
 Owner requests the [three-phase metrics program](#metrics-upgrade) below, with
 separate approval before each phase. Read the [MET-01 report](../docs/metrics/MET01_REPORT.md)
@@ -26083,7 +26087,7 @@ correctness are separate checks.
 |---|---|---|---|
 | 1 | [MET-01](#metrics-met-01) | Reporting contract, source inventory and independent expected-value fixtures | COMPLETE_SPEC_ORACLE_LOCAL; definitions accepted through MET-02 approval |
 | 2 | [MET-02](#metrics-met-02) | Additive typed reducers and honest raw-data capabilities | COMPLETE_ADDITIVE_LOCAL; 567 tests, T01..T10 PASS; accepted through MET-03 approval |
-| 3 | [MET-03](#metrics-met-03) | Public reporting/docs, same-contract parity, raw preservation and local artifact/performance proof | COMPLETE_LOCAL; reporting follow-up 716 tests, new exact wheel/sdist and T01..T10 PASS; final owner review PENDING |
+| 3 | [MET-03](#metrics-met-03) | Public reporting/docs, same-contract parity, raw preservation and local artifact/performance proof | COMPLETE_LOCAL; copy/cost follow-up 785 tests, 276 exact installed members, new wheel/sdist and T01..T10 PASS; final owner/resource review PENDING |
 
 All test groups and cost/installed gates below are NOT_RUN at registration.
 The following detailed guides are normative for this owner-requested program;
@@ -26511,7 +26515,7 @@ No push, workflow, merge, native build, version/tag or publication.
 
 **Status:** COMPLETE_LOCAL; owner phase approval APPROVED (2026-10-07);
 MET-02 accepted through this approval; MET03-T01..T10 PASS, including the new
-716-test reporting follow-up and exact-source artifact proof. Final owner
+785-test copy/cost follow-up and exact-source artifact proof. Final owner
 review PENDING; preserve all historical registration and completion receipts.
 **Goal:** expose the accepted metrics clearly and certify mathematical,
 compatibility, financial-preservation and reporting-cost behavior on exact source.
@@ -26763,8 +26767,11 @@ speed guarantee, new financial/scientific semantics or remote/public claim.
 <a id="metrics-met-03-copy-performance-closure"></a>
 ### MET-03 Copy, Cost And Release-Handoff Closure - 2026-10-08
 
-**Status:** IN_PROGRESS; owner authorized fixing the three review findings.
-All new test/artifact/performance gates are NOT_RUN at registration. Earlier
+**Status:** COMPLETE_LOCAL; owner authorized fixing the three review findings.
+At registration all new test/artifact/performance gates were NOT_RUN. Current
+785 affected tests, 276 exact installed members, COPY-T01..T06 and MET03-T01..T10
+are software/artifact-qualified; owner acceptance and resource disposition
+remain PENDING. Cost is measured, not a universal non-regression PASS. Earlier
 716-test receipts/artifacts remain sealed historical evidence, not certification
 of the changed source. Local only; no CI, push, merge, tag or publication.
 
@@ -26848,6 +26855,32 @@ paired benchmarking, with 12,359 files inventoried, hashes preserved and
 runs at a time. See the [focused cleanup receipt](../docs/metrics/evidence/met03/copy-review-focused-cleanup.json).
 No financial, scientific or parity tolerance is waived by this operational
 disposition; final owner review includes this transient resource variance.
+
+**Completion - 2026-10-08:** snapshot reconstruction is constructor-validated
+for account/nested returns, execution, result/episode buffers, copy/deepcopy
+and pickle protocols 0-5. Derived hashes are rederived, including old state;
+the stale +10%/-20% cache repro is closed. New snapshots invalidate correctly.
+Python memoryview scans and ledger scalar/holding reductions preserve complete
+output SHA and numeric semantics; extreme overflow repros are closed.
+
+785 source tests pass without failure/skip, with 325 raw/scientific protection
+guards unchanged. Two installed consumers outside checkout pass all 276 module
+hashes, native identity, round trips, cache/clock/action/public-plot cases and
+dependency checks. New wheel/sdist and all three older evidence/artifact seals
+are verified by the [closure](../docs/metrics/evidence/met03/copy-review-closure.json).
+Read the [current report](../docs/metrics/MET03_COPY_COST_REPORT.md),
+[handoff](../docs/meta_selection/RELEASE_HANDOFF.md#reporting-local-closure) and
+[cleanup](../docs/maintenance/MET03_CLEANUP.md). Source fixes: `a4e68e7` / `4fc0716`.
+
+The 24 paired cells use two warmups/30 alternating samples against `dc12427`
+and `24ad469`; full report/input/episode outputs are exact. Immediate-parent
+Python 2k/100k/1M account p50 gains are 1.31x/1.56x/1.52x; 2k trades 1.34x.
+Historical-baseline Numba 1M is 319.356 -> 164.557 ms (1.94x). Small Numba
+account medians and some p95 observations are worse and remain visible. No
+universal performance PASS, WFO gain, backend auto-switch or 1-10 ms promise.
+All owned source/build consumers and comparison scratch are removed; source,
+old/new receipts, exact artifacts, offline cache and primary tooling remain.
+No engine/scientific/RNG/ABI/version change, native rebuild, CI/push or publish.
 
 ### Metrics Completion, Evidence And Owner Review Rules
 

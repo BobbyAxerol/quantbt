@@ -58,6 +58,43 @@ consumers for all 261 Python/typing members. Native bytes are unchanged; no
 new native build or publication. This is local config/package qualification,
 not a substitute for final-source integrated remote/public release gates.
 
+## Reporting Local Closure
+
+**Current MET-03 reporting source (2026-10-08):** the
+[copy/cost report](../metrics/MET03_COPY_COST_REPORT.md),
+[source receipt](../metrics/evidence/met03/run-20261008T162715710901Z/receipt.json),
+[installed receipt](../metrics/evidence/met03/run-20261008T164803809338Z/receipt.json)
+and [closure](../metrics/evidence/met03/copy-review-closure.json) supersede earlier
+reporting receipts for current-source qualification, without changing their
+historical bytes. This closes the deepcopy/pickle writable-snapshot/stale-cache
+defect and adds controlled small-report/ledger performance evidence.
+
+785 affected source tests PASS, zero failures/skips; both outside-checkout
+wheel/sdist consumers verify all 276 current Python/typing members, readonly
+round trips, correct changed-input cache misses, public examples/plots and
+the unchanged native 0.4.3 extension. 325 execution/scientific source guards
+PASS. Reporting V1 stays opt-in; existing scientific/WFO/meta metrics, raw
+accounting, endpoint defaults, RNG and ABI are unchanged. Earlier E08/SH01
+counts remain source-bound history, not automatically rerun by this pass.
+
+Current retained core artifacts are in
+`.maturin/met03/run-20261008T164803809338Z/dist/`:
+
+| Artifact | SHA256 |
+|---|---|
+| Core wheel `1.1.2` | `055860bbf6402da5a3e14ee48c41d8b74acd894582841179aad3180500b7da35` |
+| Core sdist `1.1.2` | `13950cf904ca0397609b40a4c053d5792c1b2c5c95e762c6a75a1d4b8d5d912d` |
+| Reused native wheel `0.4.3` | `f5fe1ec4d9268752733ba2c7023cc0e2548215986a8cd73fb6fafb285422a3b6` |
+
+These are local Linux CPython 3.12 consumer proofs, not a new manylinux build,
+current-source remote matrix or public-index proof. The later owner-approved
+release must certify its final rebuilt payloads, not reuse unrelated historic
+digests. No push, CI, merge, tag or publication occurred. Performance is not
+uniform: all 24 paired cells, including worse small Numba/p95 observations,
+are retained. [Cleanup](../maintenance/MET03_CLEANUP.md) preserves artifacts and
+records the resolved transient inode-budget miss; owner final review remains
+PENDING rather than labelling that operational variance PASS.
+
 ## Non-Publishing Qualification
 
 From the feature branch, with QuantBT's own tooling installed:

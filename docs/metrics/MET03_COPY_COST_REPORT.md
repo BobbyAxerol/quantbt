@@ -143,9 +143,30 @@ cold-method AST bodies. Execution and scientific arithmetic are unchanged.
   [scalar overflow repro](evidence/met03/copy-review-scalar-repro.xml) and
   [full metrics-only rerun](evidence/met03/copy-review-metrics-final.xml).
 
-Exact-source wheel/sdist installed round-trip consumers are the next local
-gate; they must replace, not relabel, the historical 275-module receipt. The
-current source adds a focused snapshot module. Native 0.4.3 stays unchanged.
+Both exact-source wheel/sdist consumers **PASS outside checkout**, with pip
+dependency checks, all **276 module hashes**, public example/plot,
+timestamp/action/header/cache cases and copy/deepcopy/pickle protocols 0-5.
+The new focused snapshot module is included in both artifacts. Historical
+275-module receipts remain unchanged, not relabelled as this source's proof.
+
+Read the [installed receipt](evidence/met03/run-20261008T164803809338Z/receipt.json)
+and [sealed closure](evidence/met03/copy-review-closure.json), which verifies
+current core/native identities, all three historical evidence seals and their
+artifacts, 325 protected sources, privacy and cleanup. MET03-T01..T10 PASS.
+Owner final review remains PENDING, including the resource variance below.
+
+| Retained core artifact | SHA256 |
+|---|---|
+| `quantbt_engine-1.1.2-py3-none-any.whl` | `055860bbf6402da5a3e14ee48c41d8b74acd894582841179aad3180500b7da35` |
+| `quantbt_engine-1.1.2.tar.gz` | `13950cf904ca0397609b40a4c053d5792c1b2c5c95e762c6a75a1d4b8d5d912d` |
+
+Artifacts: `.maturin/met03/run-20261008T164803809338Z/dist/`.
+Unchanged native wheel SHA256:
+`f5fe1ec4d9268752733ba2c7023cc0e2548215986a8cd73fb6fafb285422a3b6`;
+actual loaded extension:
+`e338a0f1549395211dc42332ed15eb43c0bb92f71728ca3181b0268f56a57aba`.
+The [release handoff](../meta_selection/RELEASE_HANDOFF.md#reporting-local-closure)
+now links to these current reporting receipts, not a historical seal alone.
 
 ## Resource Disposition
 
@@ -159,8 +180,12 @@ relabelled budget PASS; owner final review includes that variance.
 The source lane's 12,446 files / 649,018,042 apparent bytes is within its own
 budget; its final cleanup recovered 10,874,880 actual bytes. Environments,
 paired archives and pytest/JIT/plot scratch have ended their owned lifetimes.
-Keep all old/new receipts, failing repros, exact artifacts and offline/tooling
-dependencies. Read [cleanup](../maintenance/MET03_CLEANUP.md).
+The sequential installed lane peaks at 14,890 files / 694,119,388 apparent
+bytes, within its own registered limits. Its final cleanup observes 13,045,760
+extra free bytes; the 1,373,311,981 apparent hard-linked lifetime bytes are
+not a physical reclamation claim. Keep all old/new receipts, failing repros,
+exact artifacts and offline/tooling dependencies. Read
+[cleanup](../maintenance/MET03_CLEANUP.md).
 
 No reproduced in-scope snapshot correctness defect is knowingly open. This
 does not prove every possible bug absent or exhaust all performance work.

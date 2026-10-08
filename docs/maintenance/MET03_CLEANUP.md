@@ -1,14 +1,47 @@
 # MET-03 Cleanup
 
-Local source and installed-artifact qualification completed on 2026-10-07.
+Local source and installed-artifact follow-up completed on 2026-10-08.
 No services, environments from other phases, data, alpha files, Git objects or
 global caches were removed. No Rust build occurred.
 
-## Reporting Performance Follow-Up
+## Copy/Cost Follow-Up
+
+Read the [current report](../metrics/MET03_COPY_COST_REPORT.md) and
+[sealed closure](../metrics/evidence/met03/copy-review-closure.json). Only these
+exact inactive, tool-owned lifetimes were removed:
+
+- `/tmp/quantbt-met03-copy-review`: focused test environment/pytest scratch,
+  12,359 files / 645,358,595 apparent bytes. All failed/fixed XML hashes were
+  preserved before removing it; actual free-space change +7,036,928 bytes.
+- `/tmp/quantbt-met03-3nju893t`: source consumer plus pytest/JIT/matplotlib
+  scratch and owned paired-comparison archives. 12,446 files / 649,018,042
+  apparent bytes; final cleanup free-space change +10,874,880 bytes.
+- `/tmp/quantbt-met03-9wnhffup`: build staging plus two sequential wheel/sdist
+  consumers and their plot/JIT scratch. Concurrent peak 14,890 files /
+  694,119,388 apparent bytes; final cleanup free-space change +13,045,760 bytes.
+  The full lifetime inventory has 28,605 entries / 1,373,311,981 apparent
+  hard-linked bytes: neither a concurrent-inode count nor recovered disk size.
+
+The focused/source environments briefly overlapped at 24,805 files, exceeding
+the registered aggregate 20k inode budget. This operational miss is retained in
+the [early cleanup receipt](../metrics/evidence/met03/copy-review-focused-cleanup.json),
+not labelled PASS. The inactive focused environment was retired before paired
+timing; source and installed gates subsequently used one lifetime at a time.
+Per-lane limits pass, but the aggregate miss still awaits owner disposition.
+No parity, financial or scientific tolerance is waived.
+
+All historical/current evidence, raw failed repros and exact artifacts remain.
+Current artifacts: `.maturin/met03/run-20261008T164803809338Z/dist/`.
+The reused native wheel, primary `.venv`, offline `/tmp/quantbt-uv-cache`, Git
+and all unrelated environments/data/Rust caches are preserved. Available bytes
+at final closure: 26,463,096,832 (24.65 GiB). Reinstall exact retained artifacts
+before rerunning cleaned consumers. Historical receipts below remain intact.
+
+## Historical Reporting Performance Follow-Up
 
 The [performance report](../metrics/MET03_PERFORMANCE_REPORT.md) and
 [sealed closure](../metrics/evidence/met03/performance-closure.json) cover the
-latest source. Removed exact new source consumers `/tmp/quantbt-met03-qa4nbm10`,
+2026-10-07 source. Removed exact new source consumers `/tmp/quantbt-met03-qa4nbm10`,
 `/tmp/quantbt-met03-kgdm0kvy`, `/tmp/quantbt-met03-o1dk4loe` and final build/
 sequential consumers `/tmp/quantbt-met03-srglr5h_`; their nested comparison
 scratch also completed its owned lifetime. Only owned focused pytest scratch
