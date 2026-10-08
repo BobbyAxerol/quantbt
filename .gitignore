@@ -96,5 +96,8 @@ upgrade/private/
 upgrade/local/
 upgrade/drafts/
 
+# Owner-supplied research strategies remain local; never stage or publish.
+/upgrade/alphas/
+
 # Local research sandbox is intentionally outside the public package.
 .local_arbitrage_sandboxes/
