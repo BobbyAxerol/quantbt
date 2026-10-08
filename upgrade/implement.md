@@ -26760,6 +26760,76 @@ offline cache remain. Package final cleanup recovered 13,037,568 actual bytes;
 apparent hard-linked lifetime size is not a reclamation claim. No language-wide
 speed guarantee, new financial/scientific semantics or remote/public claim.
 
+<a id="metrics-met-03-copy-performance-closure"></a>
+### MET-03 Copy, Cost And Release-Handoff Closure - 2026-10-08
+
+**Status:** IN_PROGRESS; owner authorized fixing the three review findings.
+All new test/artifact/performance gates are NOT_RUN at registration. Earlier
+716-test receipts/artifacts remain sealed historical evidence, not certification
+of the changed source. Local only; no CI, push, merge, tag or publication.
+
+**Goal:** prevent mutable deserialized reporting snapshots from reusing stale
+cache identities, address measured small-report/ledger cost, and connect the
+release handoff to the final exact reporting source/artifacts.
+**Detailed guide:** [G01 identity/validity](#metrics-guide-contract),
+[G02 observed episodes](#metrics-guide-drawdown),
+[G03 recorded populations](#metrics-guide-trades),
+[G04 immutable cold-path architecture](#metrics-guide-output),
+[G05 parity/measurement/cleanup](#metrics-guide-certification),
+[public contract](../docs/metrics/PUBLIC_REPORTING.md) and
+[cleanup runbook](../docs/BUILD_TEST_CLEANUP.md).
+
+**To do / ordered gates:**
+1. Preserve a failing copy/pickle repro before correction. Account/return and
+   execution snapshots and retained episode buffers must reconstruct through
+   validated immutable storage after shallow/deep copy and pickle round trips.
+   Recompute derived identities on reconstruction; do not trust a serialized
+   identity or weaken cache invalidation. Include nested request/cache cases.
+2. Profile Python account and recorded ledger hot paths. Optimize only shared
+   reporting scans/conversions/aggregation with exactly matching full output,
+   hashes and requested episode detail. Preserve numeric operation semantics,
+   undefined policies, legacy/scientific source and explicit reducer selection.
+3. Preregister two warmups/30 paired repetitions for controlled reporting cost
+   comparisons at 2k/100k/1M account marks and 32/2k trades/2k action legs.
+   Compare immutable parent `dc12427` and historical `24ad469` with the same
+   fixtures, thread budget and retained output; alternate measurement order,
+   disclose raw samples/p50/p95 and fresh-process peak RSS. Unchanged legacy
+   bodies need a same-process control, not a new scientific implementation.
+   Preserve previous worse observations. Do not invent a post-result latency
+   threshold or claim universal speed/RSS guarantees from these measurements.
+4. Run the affected metrics, independent oracle, Python/Numba, actual raw-route,
+   mature WFO/meta/RNG and protected-source regression. Build new exact local
+   wheel/sdist; run installed copy/cache/episode and public example consumers
+   outside checkout against unchanged certified native `0.4.3`.
+5. Update live plan, report, public docs, README and release handoff with new
+   source-bound receipts/hashes, capability limits and remaining release gates.
+   Preserve earlier documents' historical receipts and evidence bytes.
+
+**Tests:** COPY-T01 shallow/deep copy and pickle protocols, readonly ownership,
+header isolation, nested returns/execution/episodes; T02 stale-cache repro and
+independent fresh expected return, valid new-snapshot mutation invalidation;
+T03 full report/input SHA, Python/Numba and legacy/scientific/raw guards;
+T04 paired same-work timings, observed regressions/variance and RSS;
+T05 exact installed wheel/sdist proofs, native identity, privacy/docs links;
+T06 cleanup inventory, preserved old/new hashes and source-exact closure.
+**Exit:** correctness and artifact gates PASS, no reproduced in-scope snapshot
+defect knowingly open. Cost measurements and owner acceptance remain distinct;
+report any residual or inconclusive cost instead of relabeling it PASS.
+
+**Registered resource/cleanup budget:** <=3 GiB incremental disk, <=20k
+concurrent inodes, <=2 GiB worker RSS; one CPU/thread, >=5 GiB free reserve.
+Preflight: 26,503,405,568 available bytes / 5,603,444 free inodes. Owned exact
+root `/tmp/quantbt-met03-copy-review`; fresh qualification scratch uses the
+existing `/tmp/quantbt-met03-*` tool-owned lifetime and explicit inventories.
+Retain new evidence under `docs/metrics/evidence/met03/copy-review-*` or fresh
+`run-*` lanes and artifacts under `.maturin/met03/`. Reuse offline dependency
+cache `/tmp/quantbt-uv-cache` and unchanged native wheel, without Rust rebuild.
+Clean only this run's inactive venvs/staging/pytest/JIT/plot/benchmark scratch;
+preserve tooling, source, all old/new evidence, artifacts and cached dependencies.
+**Commit boundaries:** registered plan; verified snapshot/cost source and tests;
+matched/installed evidence; final docs/cleanup/handoff. No unrelated refactor,
+new financial/scientific methodology, backend default or release-pair change.
+
 ### Metrics Completion, Evidence And Owner Review Rules
 
 Each phase records planned/implemented/software-qualified/performance-qualified/
