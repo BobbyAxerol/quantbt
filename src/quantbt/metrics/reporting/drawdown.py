@@ -129,7 +129,10 @@ def scan_drawdown(observations, contract, *, backend="python", retain_episodes=F
     if backend not in {"python", "numba"}:
         raise NotImplementedError("only Python/Numba reporting V1 are certified; native V2 is not V1")
     kernel = _scan if backend == "python" else _compiled()
-    summary, integers, numbers = kernel(observations.times_ns, observations.equity,
+    times, marks = observations.times_ns, observations.equity
+    if backend == "python":
+        times, marks = memoryview(times), memoryview(marks)
+    summary, integers, numbers = kernel(times, marks,
         contract.baseline_equity, contract.baseline_time_ns, contract.recovery_relative_tolerance, retain_episodes)
     episodes = None
     if retain_episodes:

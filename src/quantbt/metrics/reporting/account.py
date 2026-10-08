@@ -32,7 +32,8 @@ def _period_scan(values, annual, ddof, rf, mar, omega, conditional):
             loss -= x
         if x < mar:
             negatives += 1
-            downside += (x - mar) ** 2
+            # Preserve NumPy scalar overflow/rounding for the zero-copy Python view.
+            downside += (np.float64(x) - mar) ** 2
         og += max(x - omega, 0.)
         ol += max(omega - x, 0.)
         if x <= -1:
@@ -111,7 +112,8 @@ def reduce_account(observations, contract, *, backend="python", retain_episodes=
                     builder.add("period." + name, status="insufficient", reason="no retained observed periods")
         else:
             kernel = _period_scan if backend == "python" else _compiled_period()
-            stats = kernel(values, contract.annual_periods, contract.variance_ddof,
+            scan_values = memoryview(values) if backend == "python" else values
+            stats = kernel(scan_values, contract.annual_periods, contract.variance_ddof,
                            contract.risk_free_per_period, contract.mar_per_period,
                            contract.omega_threshold_per_period,
                            contract.sortino_denominator == "negative_observations")

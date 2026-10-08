@@ -75,7 +75,8 @@ def _statistics(builder, prefix, values, tolerance, backend):
                                ("median_pnl", float(np.median(values)) if n else None, n)):
         builder.add(prefix + name, value, unit=currency, count=count)
     builder.add(prefix + "top_profit_concentration", float(wins.max()) / gain if len(wins) and gain else None, count=n)
-    best_win, best_loss = (_streaks if backend == "python" else _compiled_streaks())(values, tolerance)
+    scan_values = memoryview(values) if backend == "python" else values
+    best_win, best_loss = (_streaks if backend == "python" else _compiled_streaks())(scan_values, tolerance)
     builder.add(prefix + "max_win_streak", best_win, unit="count", count=n)
     builder.add(prefix + "max_loss_streak", best_loss, unit="count", count=n)
 
@@ -148,7 +149,11 @@ def reduce_ledger(observations, contract, *, backend="python", retain_population
         n = len(population)
         holdings = []
         for timestamp, sequence, value, members in population:
-            if all(row.opened_at_ns is not None for row in members):
+            if len(members) == 1:
+                opened = members[0].opened_at_ns
+                if opened is not None:
+                    holdings.append((timestamp - opened) / DAY_NS)
+            elif all(row.opened_at_ns is not None for row in members):
                 holdings.append((timestamp - min(row.opened_at_ns for row in members)) / DAY_NS)
         builder.add(prefix + "mean_holding_days", sum(holdings) / n if n and len(holdings) == n else None,
                     unit="elapsed_days", count=n, status=None if n and len(holdings) == n else "unavailable",

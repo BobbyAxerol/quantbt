@@ -50,6 +50,51 @@ def check_reporting_edges():
     return "PASS"
 
 
+def check_snapshot_roundtrips():
+    from copy import copy, deepcopy
+    from dataclasses import replace
+    import pickle
+    import numpy as np
+    from quantbt import ReportingContractV1, ReportingCoverageV1, ReportingCache
+    from quantbt.metrics.reporting.inputs import AccountObservations, ReturnObservations
+    from quantbt.metrics.reporting.account import reduce_account
+    from quantbt.metrics.reporting.execution import ExecutionObservations
+
+    coverage = ReportingCoverageV1(result_identity="installed-copy", producer="recorded synthetic marks",
+        profile="completed", ledger="unsupported", retained_rows=0, dropped_rows=0, reason="no outcome ledger")
+    returns = ReturnObservations(values=[0., -.1, 110/90-1], end_times_ns=np.array([0, 10, 20]),
+        partial_mask=np.array([False, False, False]), sampling="observed_bar", witness="complete recorded bars")
+    obs = AccountObservations(times_ns=np.array([0, 10, 20]), equity=[100., 90., 110.], coverage=coverage, returns=returns)
+    contract = ReportingContractV1(scope="full", unit="account_period", currency="USDT", baseline_equity=100.,
+        baseline_time_ns=0, scope_end_ns=20, sampling="observed_bar", annual_periods=8760., equity_clock="bar_close")
+    execution = ExecutionObservations(coverage=coverage, currency="USDT", scope_start_ns=0, scope_end_ns=20,
+        witness="recorded fee path", times_ns=obs.times_ns, paths=(("fees", np.array([1., 2., 3.])),))
+    report = reduce_account(obs, contract, retain_episodes=True)
+    clones = [copy, deepcopy] + [lambda value, p=p: pickle.loads(pickle.dumps(value, protocol=p))
+                              for p in range(pickle.HIGHEST_PROTOCOL + 1)]
+    for clone in clones:
+        restored, fees, reduced = clone(obs), clone(execution), clone(report)
+        assert restored.identity == obs.identity and fees.identity == execution.identity
+        assert reduced.to_metadata() == report.to_metadata()
+        for array in (restored.equity, restored.times_ns, restored.returns.values,
+                      restored.returns.end_times_ns, restored.returns.partial_mask, fees.times_ns,
+                      fees.paths[0][1], reduced.episodes.integers, reduced.episodes.numbers):
+            try:
+                array.setflags(write=True)
+            except ValueError:
+                pass
+            else:
+                raise AssertionError("copy/pickle restored a writable snapshot")
+        with ReportingCache() as cache:
+            initial = cache.reduce("account", obs, contract)
+            assert cache.reduce("account", restored, contract) is initial
+            changed = replace(restored, equity=[100., 90., 80.], returns=None)
+            assert changed.identity != restored.identity
+            assert abs(cache.reduce("account", changed, contract).metric("account.total_return").value + .2) < 1e-12
+            assert cache.misses == 2
+    return "PASS"
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("registration", type=Path)
@@ -83,6 +128,7 @@ def main():
     plt.close(fig)
     json.dumps(report, allow_nan=False)
     edge_cases = check_reporting_edges()
+    snapshot_roundtrips = check_snapshot_roundtrips()
     import numpy as np
     from quantbt.metrics.reporting.inputs import frozen_array
     mutable = np.array([1., 2., 3.])
@@ -107,7 +153,8 @@ def main():
         assert endpoint.full_report(reporting=cached) != first and cache.misses == 2
     print(json.dumps(dict(status="PASS", modules=len(actual), core="1.1.2", native="0.4.3",
         package_origin=str(root), outside_checkout=True, extension_sha256=registration["native_reuse"]["extension_sha256"],
-        matplotlib_optional=True, review_edge_cases=edge_cases, performance_ownership_cache="PASS", publication=False)))
+        matplotlib_optional=True, review_edge_cases=edge_cases, performance_ownership_cache="PASS",
+        snapshot_roundtrips=snapshot_roundtrips, publication=False)))
 
 
 if __name__ == "__main__":

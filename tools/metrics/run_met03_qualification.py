@@ -32,7 +32,10 @@ def main():
     parser.add_argument("--stage", choices=("source", "package"), required=True)
     parser.add_argument("--allow-download", action="store_true", help="Populate missing public dependency wheels; no package upload")
     parser.add_argument("--performance", action="store_true", help="Also compare completed reporting against owner recheck baseline")
+    parser.add_argument("--copy-review", action="store_true", help="Also run preregistered alternating copy/cost closure benchmarks")
     args = parser.parse_args()
+    if args.performance and args.copy_review:
+        parser.error("choose one distinct follow-up benchmark registration")
     before = shutil.disk_usage(ROOT).free
     inodes = os.statvfs(ROOT).f_favail
     if before < BUDGET+5*1024**3 or inodes < 20000:
@@ -46,6 +49,9 @@ def main():
     if args.performance:
         registration["performance_baseline"] = "24ad469"
         registration["matched_public_cells"] = 6
+    if args.copy_review:
+        registration["copy_review"] = dict(baselines=["dc12427", "24ad469"], warmups=2,
+            repeats=30, matched_cells=24, alternating_order=True, one_cpu=True)
     (lane/"registration.json").write_text(json.dumps(registration, indent=2, sort_keys=True)+"\n")
     steps, artifacts, scratch_inventory = [], {}, []
     peak_files, peak_bytes = 0, 0
@@ -85,6 +91,8 @@ def main():
                 run([python, "tools/metrics/benchmark_met03.py", "--output", lane/"benchmark.json"], source=True)
                 if args.performance:
                     run([python, "tools/metrics/benchmark_reporting_performance.py", "--output", lane/"performance.json"], source=True)
+                if args.copy_review:
+                    run([python, "tools/metrics/benchmark_copy_review.py", "--output", lane/"copy-review-paired.json"], source=True)
                 run([python, "-m", "examples.reporting_metrics_v1"], source=True)
             else:
                 build_env = scratch/"build-env"

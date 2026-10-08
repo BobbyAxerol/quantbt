@@ -5,3 +5,4 @@ docs/metrics/evidence/met03/performance-tooling-mismatch/pytest.xml whitespace=-
 docs/metrics/evidence/met03/performance-tooling-mismatch/failure.log whitespace=-blank-at-eol
 docs/metrics/evidence/met03/copy-review-repro.xml whitespace=-blank-at-eol
 docs/metrics/evidence/met03/copy-review-valid-repro.xml whitespace=-blank-at-eol
+docs/metrics/evidence/met03/copy-review-scalar-repro.xml whitespace=-blank-at-eol
