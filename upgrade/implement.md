@@ -28566,6 +28566,15 @@ extension analyses when inputs/contracts change. Never backdate a new recipe.
   The initial 1 GiB incremental/5 GiB reserve and 2 GiB/worker caps remain.
 - New calendar/account-view/gate independent fixtures: **16 PASS**. No economics
   result, diagnostic winner or whole-process superiority is certified yet.
+- Latest additive guards: **18 calendar/account-view/gate fixtures PASS** and
+  **1,164 related M5/MET tests PASS**, no failures/skips. Eight private read-only
+  analysis checks PASS with protected inputs unchanged. The first regression
+  invocation lacked optional Matplotlib and its two environment failures remain
+  retained; rerun used an existing dependency path, without install or build.
+- Read the [frozen historical diagnostic contract](../docs/mode5/HISTORICAL_DIAGNOSTIC_CONTRACT_V1.md).
+  Financial requests are running; these software checks do not certify their
+  economic outcomes. Secondary growth, partial-year views, held probes and
+  retrospective selectors cannot silently change primary eligibility/causal claims.
 
 <a id="mode5-m5-09"></a>
 ### Phase M5-09 - Diagnostic Dossier, Advisory Governance And Calibration Seal
