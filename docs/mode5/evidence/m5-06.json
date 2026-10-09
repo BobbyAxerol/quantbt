@@ -1,0 +1,220 @@
+{
+  "accounting_max_abs_diff": 0.0,
+  "actual_account_cells": 8,
+  "ci_push_publication": false,
+  "cleanup": {
+    "deleted": [
+      "/root/bobby/pool_alpha/quantbt/.maturin/mode5-m506/attempt-01"
+    ],
+    "free_bytes_after": 26262167552,
+    "free_bytes_before": 26256539648,
+    "observed_free_change_bytes": 5627904,
+    "protected_hashes_verified": 1055,
+    "receipts_unchanged": true,
+    "retained": [
+      "/root/bobby/pool_alpha/quantbt/upgrade/private/mode5_upgrade_v1/m5-06/attempt-01/provenance-review-02",
+      "/root/bobby/pool_alpha/quantbt/upgrade/local/mode5_upgrade_v1/m5-06/attempt-01"
+    ],
+    "retained_payload_bytes": 75101,
+    "retained_receipts_verified": 13,
+    "scratch_bytes": 4622529,
+    "source_unchanged": true,
+    "synthetic_symlinks_unlinked_not_followed": 34
+  },
+  "combined_cleanup_observed_free_bytes": 11386880,
+  "complete_utc_days_per_path": 91,
+  "current_source_hashes": 21,
+  "date": "2026-10-09",
+  "environment": {
+    "native_extension_sha256": "ae43be6e2187e57fcd6a8e8f59e0689172ca24ca5efed27651894c1e7ab1b56a",
+    "native_metadata": "0.4.3",
+    "observed_numba_threads": 1,
+    "source_core_version": "1.1.2",
+    "tooling_core_metadata": "1.1.1"
+  },
+  "evidence_hashes": {
+    "account_cell_registration.json": "d8762484f9b907b980b5cf027859205dd32abc8b59f5e594d47be85d89dfa3ec",
+    "cleanup_receipt.json": "81e8ab6bd3e2239c341baa0376cdd740a91e8473bba7d1f7aeba4d82c9a4b031",
+    "contracts-review-after.json": "044b7a2cf89a463a7feb89e555d688d0edc3beb12928d6081189280d24c1e08e",
+    "contracts-review-before.json": "1e7005c6a2fcb2e9a8dde11de91d68de72655d7602989487dbeedba61027953f",
+    "contracts-source-final.json": "d4f0ab9f452212efc24fb71d7ddc3b21b66358955780f2f7413cc07031286598",
+    "contracts-source-final.xml": "657739716b56bae736a792e3ff94897cdb35ce8e2785873979ac09341a3a8778",
+    "contracts-source-reviewed.json": "cf72b4bff5c991f9db284ae61644f99696ca06a82d2263a474230585681e6275",
+    "contracts-source-reviewed.xml": "46adf8fb80656e94bddb999174796aa5b44b0532df6e50b82c0c8eeebb959089",
+    "finalize-source-final.json": "ebff67c0917edac33178c5252004595f669bdcf7696eb0692ac4cedafa38b4e3",
+    "finalize-source-final/account_matrix.json": "5fa20d67ca1b30a956f041e8aa3c3f7b1c5bff9582c8a5440058fe5bf6a201ee",
+    "finalize-source-final/basin_catalog.json": "864933ab98e03cb258e619222fe90efaa932646608e527985051d183ce04c29f",
+    "finalize-source-final/cache_access.json": "35702e04b3f0e3a4be165e199e891dcf76a31ed22eb27ced27ce83dbc53b9612",
+    "finalize-source-final/coverage_report.json": "f698c846083b3d0937438108b98994f796ae0b91d70d192ce1b7ed9f470ddac6",
+    "finalize-source-final/neighbor_ledger.json": "dd4e22357193ecf256fba0c90b8db6061a1e02ed43bb898ff4db787719c82e0d",
+    "finalize-source-final/parameter_activity_matrix.json": "ea7918695dc538f77122ba7ffb958836fb57e584c254b11156a159298ef7ca73",
+    "finalize-source-final/report.json": "791bc951910230046b1aa2132dca423e38f8c85fceac6dbd169bfd7139b04b6a",
+    "finalize-source-final/report.md": "48bb42aed462ccde3ef1f45c0988ac96d8b7e33b35090fb920b27d5622252226",
+    "finalize-source-final/sensitivity_design.json": "8e4edf72e40eb69f45132f0ae148cc666b7349adab446916fcb1eba865d94394",
+    "finalize-source-final/sensitivity_results.json": "a6867ea04371b7c621c825d10e5a07ae403e8d305ee436f47cd94c16ec95d675",
+    "finalize-source-reviewed.json": "7b9abba6d5e45b7243693d96d448b0022cb6679917480bff5a5fbdb8f3a755ce",
+    "finalize-source-reviewed/account_matrix.json": "5fa20d67ca1b30a956f041e8aa3c3f7b1c5bff9582c8a5440058fe5bf6a201ee",
+    "finalize-source-reviewed/basin_catalog.json": "864933ab98e03cb258e619222fe90efaa932646608e527985051d183ce04c29f",
+    "finalize-source-reviewed/cache_access.json": "35702e04b3f0e3a4be165e199e891dcf76a31ed22eb27ced27ce83dbc53b9612",
+    "finalize-source-reviewed/coverage_report.json": "f698c846083b3d0937438108b98994f796ae0b91d70d192ce1b7ed9f470ddac6",
+    "finalize-source-reviewed/neighbor_ledger.json": "dd4e22357193ecf256fba0c90b8db6061a1e02ed43bb898ff4db787719c82e0d",
+    "finalize-source-reviewed/neighbor_metrics.json": "dd4e22357193ecf256fba0c90b8db6061a1e02ed43bb898ff4db787719c82e0d",
+    "finalize-source-reviewed/parameter_activity_matrix.json": "ea7918695dc538f77122ba7ffb958836fb57e584c254b11156a159298ef7ca73",
+    "finalize-source-reviewed/report.json": "3911064fa879b7fbbf8f997c1da5eb112cb6a9a941943191414638ee2e1f6ba2",
+    "finalize-source-reviewed/report.md": "eb2d09bc23f45f9f6aed05efc98e75b5b661f54d92c18e7e38a044cea361d3b9",
+    "finalize-source-reviewed/sensitivity_design.json": "8e4edf72e40eb69f45132f0ae148cc666b7349adab446916fcb1eba865d94394",
+    "finalize-source-reviewed/sensitivity_results.json": "a6867ea04371b7c621c825d10e5a07ae403e8d305ee436f47cd94c16ec95d675",
+    "market-hash-01/cell.json": "0407ebfb6ea6f55efe98806ae0ead28c134afa2efda8d59a35c2b52f3eb08fc8",
+    "market-hma-01.json": "9bdf10abe2da20fbce392297259e0c6c12edf56cb48d2f352c0e839630cd4f15",
+    "market-hma-02/cell.json": "cc9c6d87f97b1768302ee9b4b9cdf80f356499a14e7f9f7e27d0c5d3b76a0e47",
+    "market-rsi-size-01/cell.json": "ae3284a246cf706f407110aa20218276e4d99fe3d1610ada5a52f5adfca9d742",
+    "market-rsi-vol-down-01/cell.json": "072aed68608099869d657e21b22a8b8d7fe77d2953589b0a111be802b4cc6005",
+    "market-rsi-vol-up-01/cell.json": "43ea0de1515e40f8a732084d73683578cc7a16fc17270add87632c346c94fe22",
+    "market-rsi-window-01/cell.json": "cbdfd42c0f06127314e7dfbf5b907997ca0b8025ac76fc05688c8afc1c407024",
+    "market-sc-01/cell.json": "5ef0279dee8590dd4547ef1e8dfe62b688aab5f1f88e7b56fa7505db83101830",
+    "market-vwap-01/cell.json": "24576dc19c877fa7f9dd9c341c2cad9b725b1cf88e15a4ca855265fb8d97d330",
+    "mechanics-source-final.json": "317e90993f08682955bf42751716d0f0ee7ecb2b3eba2c57de81b553bf7eb915",
+    "mechanics-source-final/mechanics_report.json": "0163ecd670e40b2feecbd6eb53dc57defa4c54309dbc9f94207599fba41694a7",
+    "mechanics-source-reviewed.json": "8aab5c15466674bd815a26c9f0c1a739de69f60edcd3c3589136e50f2e3cd301",
+    "phase_source_snapshot.json": "3efb7e18dd27a52ae1384b9ac8c0620e24365934fd3e79e826cecab15f758589",
+    "provenance-review-02/cleanup_receipt.json": "bc78d9963a2d9fa65fcde54d81caf3d25ddb54fb85d1e85fa24985c279c9ff1b",
+    "provenance-review-02/host_process_review.json": "9ca48eb8b3ac84100ae34341ff2331a6317b9905a3c47059b01400a2db8b4760",
+    "provenance-review-02/phase_source_snapshot.json": "79d852fd382ded57ad9cedda40199aceadcd79e44979f78e9cd38515b5b90bb9",
+    "provenance-review-02/technical_closure.json": "b0f30bfb5c32b1bbeb7b119a6b09349af28d37901442dcf549c2538a2b11462c",
+    "registration.json": "1f470690f623ec1a59aa5795c4bba4e555d9efe15c9df621f896c866ab68391d",
+    "regression-source-final.json": "e42f91139b07657cea00f8801d1c1e1165eafac9aabda9ca742442ea1d69046a",
+    "regression-source-final.xml": "7b506dcdac8e8d34536e5e5e9e39a6654251b63719c318e220e018d91e68fff6",
+    "regression-source-reviewed.json": "e30b5f6152b94e481df3ac437383362df86c366f672136467cee60102585f85f",
+    "regression-source-reviewed.xml": "b6283d583f5822158b7e6001459c674f03d3a31430b2bbcd9732f9b117c6bae6",
+    "resource_registration.json": "a49d08b9c5c63cd2ac150220f04ec5ad93c1a7d662653429d939060186cc2fb2",
+    "technical_closure.json": "59315584a0a843d17ea94393d83320c4c6cf9b0082283d9e9a7851a20e2aff56"
+  },
+  "evidence_limits": [
+    {
+      "id": "M506-INPUT-01",
+      "next": "M5-08 pre-register a justified missing-probe tranche; formal adequate horizon in M5-11",
+      "scope": "global sensitivity and full-space/held financial robustness",
+      "status": "INSUFFICIENT_EVIDENCE_WITH_PLAN"
+    },
+    {
+      "id": "M506-INPUT-02",
+      "next": "keep explicit nulls unless an approved qualified producer exports richer original streams",
+      "scope": "separate legacy RSI fees/campaigns",
+      "status": "INSUFFICIENT_EVIDENCE_WITH_PLAN"
+    }
+  ],
+  "financial_source_unchanged": true,
+  "guide_acceptance_ids": [
+    "M5T-051",
+    "M5T-052",
+    "M5T-053",
+    "M5T-054",
+    "M5T-055",
+    "M5T-056",
+    "M5T-057",
+    "M5T-058",
+    "M5T-059",
+    "M5T-060"
+  ],
+  "implementation_source_sha": "36e9895ba9cb74d3e2a01c203842110663d867ac",
+  "imported_account_paths": 13,
+  "limitations": [
+    "no formal sensitivity indices/CI; independent structured market extension not registered",
+    "no independent temporal OOS, transfer, decay or selector benefit claim",
+    "unexecuted required full-space/held directions remain visibly INSUFFICIENT_COVERAGE",
+    "admitted offline event-feedback tape compiler is not native-IR/online Rust evidence"
+  ],
+  "neutrality": {
+    "market_evaluations": 0,
+    "raw": 640,
+    "status": "design coverage not full-space robustness",
+    "unique_effective": 626
+  },
+  "next_phase": "M5-07 separate approval",
+  "optimizer_trials": 0,
+  "performance": {
+    "benchmark": {
+      "effective_resolve": {
+        "max_ms": 0.2242550253868103,
+        "min_ms": 0.09727501310408115,
+        "p50_ms": 0.10289100464433432,
+        "p95_ms": 0.15399996191263196,
+        "repeats": 25
+      },
+      "matched_path_metrics": {
+        "max_ms": 2.3447719868272543,
+        "min_ms": 1.8432580400258303,
+        "p50_ms": 1.8912740051746368,
+        "p95_ms": 2.147845015861094,
+        "repeats": 25
+      },
+      "metrics_analysis_warm": {
+        "max_ms": 0.6180870113894343,
+        "min_ms": 0.4108379362151027,
+        "p50_ms": 0.44176599476486444,
+        "p95_ms": 0.5972271785140035,
+        "repeats": 25
+      },
+      "neighborhood": {
+        "max_ms": 10.925843962468207,
+        "min_ms": 7.2516839718446136,
+        "p50_ms": 7.523393025621772,
+        "p95_ms": 9.372671553865075,
+        "repeats": 25
+      }
+    },
+    "failed_attempt_receipts": {
+      "contracts-01": {
+        "exit_code": 1,
+        "wall_seconds": 17.88447262905538
+      },
+      "contracts-review-before": {
+        "exit_code": 1,
+        "wall_seconds": 4.537963435053825
+      },
+      "market-hma-01": {
+        "exit_code": 1,
+        "wall_seconds": 322.50870843499433
+      },
+      "mechanics-01": {
+        "exit_code": 1,
+        "wall_seconds": 4.183739077067003
+      }
+    },
+    "peak_account_rss_mib": 342.48828125,
+    "scope": "development-account probes and cold-path diagnostics, not financial kernel/WFO speedup",
+    "successful_execution_calls": 437,
+    "successful_market_wall_seconds": 632.4888142830459
+  },
+  "phase": "M5-06",
+  "private_alpha_source_unchanged": true,
+  "private_content_published": false,
+  "protected_hashes": 1055,
+  "provenance_revision": "actual .so witness corrected; all account/geometry matrices byte-identical",
+  "reanalysis_financial_calls": 0,
+  "release_artifact_certified": false,
+  "reused_cast_clones": 2,
+  "reused_qualified_baselines": 5,
+  "rsi_wrapper_direct_parity": "EXACT",
+  "schema": "quantbt.mode5_upgrade.technical_seal.v1",
+  "scientific": "DESCRIPTIVE_ONLY",
+  "scored_bars_per_path": 2184,
+  "status": "COMPLETE_LOCAL_GEOMETRY",
+  "technical": "TECHNICALLY_VALID",
+  "tests": {
+    "failed": 0,
+    "failed_before_controls_retained": true,
+    "new_passed": 46,
+    "related_regression_passed": 1072,
+    "skipped": 0
+  },
+  "unresolved_implementation_debt": [],
+  "work_packages": {
+    "M506.01": "IMPLEMENTED_VERIFIED",
+    "M506.02": "IMPLEMENTED_VERIFIED",
+    "M506.03": "IMPLEMENTED_VERIFIED",
+    "M506.04": "IMPLEMENTED_VERIFIED",
+    "M506.05": "IMPLEMENTED_VERIFIED",
+    "M506.06": "IMPLEMENTED_VERIFIED"
+  }
+}

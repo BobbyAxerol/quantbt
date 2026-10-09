@@ -1,6 +1,6 @@
 # QuantBT Upgrade Implementation Plan
 
-## Current Mode 5 Diagnostics-First Upgrade - M5-05 Local Environments 2026-10-09
+## Current Mode 5 Diagnostics-First Upgrade - M5-06 Local Geometry 2026-10-09
 
 **Status:** M5-01 COMPLETE_LOCAL_BASELINE / EXIT_PASS_OWNER_DISPOSITION; 76 tests PASS,
 M5T-001..010 exercised, 427 protected hashes unchanged. M5-02
@@ -33,13 +33,23 @@ and exact scratch cleanup PASS. Read the
 [M5-05 report](../docs/mode5/M5_05_ENVIRONMENT_REPORT.md),
 [environment contract](../docs/mode5/ENVIRONMENT_CONTRACT_V1.md) and
 [current-source seal](../docs/mode5/evidence/m5-05.json).
-Scientific DESCRIPTIVE_ONLY; M5-06..M5-12 NOT_STARTED / NOT_RUN.
+M5-06 COMPLETE_LOCAL_GEOMETRY / TECHNICALLY_VALID after separate approval:
+1,072 related source tests PASS/no fail/skip (46 new tests), M5T-051..060
+exercised. Five-alpha source mechanics, eight registered actual-account cells,
+five baseline imports and two effective cast-clone reuses PASS. Accounting
+maximum absolute difference zero; 1,055 protected hashes and current source
+verified, exact scratch cleanup PASS. Read the
+[M5-06 report](../docs/mode5/M5_06_GEOMETRY_REPORT.md),
+[geometry contract](../docs/mode5/GEOMETRY_CONTRACT_V1.md) and
+[source-bound seal](../docs/mode5/evidence/m5-06.json).
+Scientific DESCRIPTIVE_ONLY; M5-07..M5-12 NOT_STARTED / NOT_RUN. Neutral coverage
+and unexecuted held directions are not full-space or independent-OOS proof.
 Read the [M5-01 baseline report](../docs/mode5/M5_01_BASELINE_REPORT.md) and
 [reviewed-exit seal](../docs/mode5/evidence/m5-01-exit-review.json). The owner
 confirmed the detailed guide's reports came from the original ZIPs and accepts
 guide/hash-verified extracted inputs as baseline. Original ZIP files are not
 an M5-02 entry blocker; archive hashes are not claimed locally remeasured.
-No remaining registered M5-01..05 local exit blocker. M5-02 qualified local
+No remaining registered M5-01..06 local implementation exit blocker. M5-02 qualified local
 binding pilots and actual-engine synthetic tests, not methodology/default
 changes. Protection-dependent bindings are offline actual-feedback compilers,
 not new intrabar callbacks; RSI keeps its original legacy target-account scope.
@@ -27227,7 +27237,7 @@ Every phase below inherits this mandatory resource registration/cleanup exit.
 | [M5-03](#mode5-m5-03) | Metric/PSR/HAC/tail units and oracles | M5-02 streams | M5T-021..030 | COMPLETE_LOCAL_STATISTICS |
 | [M5-04](#mode5-m5-04) | Shared panel planning, reuse and evidence | M5-01..03 reviewed exits | M5T-031..040 | COMPLETE_LOCAL_REUSE |
 | [M5-05](#mode5-m5-05) | Dual environments and chronological rights | M5-04 reviewed exit | M5T-041..050 | COMPLETE_LOCAL_ENVIRONMENTS |
-| [M5-06](#mode5-m5-06) | Effective geometry and active probes | M5-03/04/05 reviewed exits | M5T-051..060 | NOT_STARTED |
+| [M5-06](#mode5-m5-06) | Effective geometry and active probes | M5-03/04/05 reviewed exits | M5T-051..060 | COMPLETE_LOCAL_GEOMETRY |
 | [M5-07](#mode5-m5-07) | Three objective families/four selectors | M5-03..06 reviewed exits | M5T-061..070 | NOT_STARTED |
 | [M5-08](#mode5-m5-08) | Five empirical batteries/five-alpha review | M5-07 and valid panels/routes | M5T-071..080 | NOT_STARTED |
 | [M5-09](#mode5-m5-09) | Dossier, advisory and sealed plan | M5-08 reviewed exit | M5T-081..090 | NOT_STARTED |
@@ -27976,7 +27986,8 @@ leakage report and resource/cleanup records.
 <a id="mode5-m5-06"></a>
 ### Phase M5-06 - Effective Geometry, Sensitivity And Active Local Probes
 
-**Status:** IN_PROGRESS; owner implementation approval 2026-10-09; gates NOT_RUN.
+**Status:** COMPLETE_LOCAL_GEOMETRY / TECHNICALLY_VALID; owner implementation
+approval 2026-10-09. Scientific DESCRIPTIVE_ONLY; M5-07/public activation unstarted.
 **Registered execution:** `m5-06/attempt-01`, protected original inputs and prior
 receipts, 256 MiB incremental disk / >=5 GiB reserve, one worker/numeric thread.
 Reuse qualified tooling and five admitted 91-day account baselines. Only bounded
@@ -28038,6 +28049,52 @@ and held-probe ledgers, basin catalog, uncertainty and resource/cleanup report.
    implementation; scoped market activity/report without private source exports.
 **Rollback:** qualified schema-only probes/full original schema remain available;
    no alteration of strategy originals or historical coordinates.
+
+**Local Receipt / Exit 2026-10-09:**
+- M506.01..06 IMPLEMENTED_VERIFIED; all M5T-051..060 exercised. **1,072 related
+  source regression PASS, zero fail/skip**, including **46 new tests**. Three
+  preexisting Optuna experimental warnings remain. Not an all-repository claim.
+- Six focused research modules reuse shared schema/cache/authorization and
+  canonical MET/M5-03 reducers. No `src`, `rust`, `contracts`, endpoint, original
+  alpha, account/clock, objective/selector, optimizer RNG or Mode 1..4 change.
+- Frozen scale/cast/conditional/manifold tests pass; neutral **640 raw / 626
+  unique effective feasible** proposals are design-only, not executed global
+  sensitivity. Schema/adjacent/category/joint probes, held roles, sparse/singular
+  covariance fallback, clipping/clone guards, medoid/centroid and basin controls
+  pass. Blind-axis drop1 and flat-negative quality rejection are non-vacuous.
+- Five source-mechanics checks and eight registered actual-account cells use
+  the same **2,184 bars / 91 complete UTC days**. All four event probes have fills
+  and campaigns; independent accounting diff **0**. RSI endpoint/direct-engine
+  equity/positions/returns parity exact. Adverse cells and unavailable richer
+  RSI ledger columns retained. No parameter auto-pruned.
+- Five qualified baseline paths and two cast clones reused. Shared owner imports
+  13 paths and performs **zero reanalysis financial executions**. Successful
+  probe work **632.49 s / 437 actual calls**, including existing offline feedback
+  compiler iterations; not 437 independent observations or online/native-IR proof.
+  Failed HMA harness postcheck **322.51 s** stays separate and retained.
+- Current 25-repeat p50/p95: effective resolve **0.103/0.154 ms**; neighborhood
+  **7.523/9.373 ms**; matched-path metrics **1.891/2.148 ms**; warm authorized
+  analysis **0.442/0.597 ms**. Peak account-process RSS **342.49 MiB**; no kernel,
+  WFO, language or RSS improvement claim. All timing attempts retained.
+- Final review retains fail-before/pass-after cases for inactive QMC dimensions
+  and decimal constant variance. A new provenance revision records actual native
+  `.so` hash rather than initializer; matrices remain byte-identical. Source core
+  1.1.2/tooling metadata 1.1.1/native 0.4.3 explicitly separated; no wheel claim.
+- Cleanup verifies **1,055 protected inputs / 21 current source-harness hashes**,
+  retains all evidence/source, removes only the exact inactive lane twice, and
+  observes **10.86 MiB** combined recovery. No rebuild/install, CI, push, merge,
+  tag, version change or publication.
+- No open scoped implementation blocker/debt. **M506-INPUT-01** remains explicit
+  missing global sensitivity/CI and full-space/held financial evidence; **M506-
+  INPUT-02** preserves absent separate RSI costs/campaigns. Missing evidence
+  blocks those claims, not technical geometry use. M5-08 must register any needed
+  missing tranche; M5-11 owns adequate-horizon formal economics. M5-07 needs
+  separate approval and must consume this contract, not duplicate formulas.
+- Read the [report](../docs/mode5/M5_06_GEOMETRY_REPORT.md),
+  [contract](../docs/mode5/GEOMETRY_CONTRACT_V1.md),
+  [current seal](../docs/mode5/evidence/m5-06.json) and
+  [cleanup receipt](../docs/maintenance/M5_06_CLEANUP.md). Private Appendix D
+  reports/matrices, source snapshots, commands and prior receipts stay append-only.
 
 <a id="mode5-m5-07"></a>
 ### Phase M5-07 - Versioned Objective Families, Four Selectors And Migration

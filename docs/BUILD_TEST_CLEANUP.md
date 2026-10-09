@@ -85,6 +85,12 @@ proof. Resume domain work only after disk and evidence checks are complete.
 
 ## Recorded Cleanup
 
+The [M5-06 receipt](maintenance/M5_06_CLEANUP.md) records two exact inactive
+scratch removals, 1,055 protected inputs and 21 current source/harness hashes
+verified, and 10.86 MiB combined observed filesystem recovery. Native binary
+provenance was corrected in a preserved new revision; account/geometry matrices
+remain byte-identical, with no additional alpha execution or environment removal.
+
 The [M5-05 receipt](maintenance/M5_05_CLEANUP.md) records two registered inactive
 scratch removals, 802 protected inputs, 79 prior receipts and 10 current-source
 hashes unchanged, and 11.44 MiB combined observed filesystem recovery. All
