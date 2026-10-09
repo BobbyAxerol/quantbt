@@ -28536,6 +28536,37 @@ verified financial/analysis chunks; final report, current status and cleanup.
 **Rollback:** retain M5-08 receipts and legacy routes; invalidate only affected
 extension analyses when inputs/contracts change. Never backdate a new recipe.
 
+**2026-10-09 Mechanical Pilot And Frozen Tranche Receipt:**
+- Inventory: ETHUSDT 1h has a complete finite hourly tape from 2020-01-01 through
+  2026-10-05; 2020 supplies preload. The unfinished provider day is excluded.
+- Five admitted bindings passed the mechanical differential pilot. Native audit
+  lifecycle fields are projected from the actual `order_report`, not simulated:
+  Python intent targets/parent/related-command identities differ from the native
+  related-target field; native amendments need unique registered command-ID
+  provenance. The original failed projection attempts remain retained. Same
+  command/fill/account paths and original financial tolerances are required.
+- Before inspecting pilot economics, freeze complete annual reset windows
+  2021 and 2025 for each alpha; SC/RSI anchors also cover 2022..2024 and separately
+  partial 2026. Continuous 2021..2026 accounts are requested only for SC/RSI.
+  Command-compiler continuous paths and the other command-alpha years are NOT_RUN
+  under this bounded tranche, not carried-account certifications or imputed zeros.
+- Register eight neutral raw proposals per schema, execute the first feasible
+  in raw order, retain every rejection/unexecuted row. Primary positive joint
+  radius 0.10 and independent held negative joint radius 0.075 are separate
+  roles. Only anchor/neutral candidates enter the two-year selector panel;
+  unexecuted full-schema directions keep SAM coverage insufficient. This is not
+  a 128-point standard landscape or unbiased source-anchor discovery.
+- Replay the eight existing two-seed/four-recipe RSI train choices on 2025
+  without a new sampler study or new Optuna observations. Existing short-scope
+  fee controls remain short-scope; no long fee-stress claim is added.
+- Exact private requests, hashes, secondary descriptive annualized-growth view,
+  formula preferences, support and stop rules are in `long_registration.json`
+  in the registered private lane. Up to 64 requested cells, two isolated
+  financial workers, one numeric thread each; 5,400 s/cell and 21,600 s wall cap.
+  The initial 1 GiB incremental/5 GiB reserve and 2 GiB/worker caps remain.
+- New calendar/account-view/gate independent fixtures: **16 PASS**. No economics
+  result, diagnostic winner or whole-process superiority is certified yet.
+
 <a id="mode5-m5-09"></a>
 ### Phase M5-09 - Diagnostic Dossier, Advisory Governance And Calibration Seal
 
