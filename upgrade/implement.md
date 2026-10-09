@@ -18,12 +18,12 @@ reanalysis PASS. All 765 protected hashes unchanged. Read the
 [seal](../docs/mode5/evidence/m5-03.json). Scientific status DESCRIPTIVE_ONLY;
 no objective/selector/financial source or installed extension changed.
 M5-04 COMPLETE_LOCAL_REUSE / TECHNICALLY_VALID after separate approval:
-980 source tests PASS/no fail/skip (46 new tests), M5T-031..040 exercised,
+981 source tests PASS/no fail/skip (47 new tests), M5T-031..040 exercised,
 authorized five-alpha retained-path reuse and 156 available historical
-comparison cells reconciled. All 669 protected hashes unchanged; exact scratch
+comparison cells reconciled. All 743 protected hashes unchanged; exact scratch
 cleanup PASS. Read the [M5-04 report](../docs/mode5/M5_04_REUSE_REPORT.md),
 [reuse contract](../docs/mode5/DIAGNOSTIC_REUSE_V1.md) and
-[seal](../docs/mode5/evidence/m5-04.json). Scientific DESCRIPTIVE_ONLY;
+[final seal](../docs/mode5/evidence/m5-04-final.json). Scientific DESCRIPTIVE_ONLY;
 M5-05..M5-12 NOT_STARTED / PENDING_PER_PHASE / NOT_RUN.
 Read the [M5-01 baseline report](../docs/mode5/M5_01_BASELINE_REPORT.md) and
 [reviewed-exit seal](../docs/mode5/evidence/m5-01-exit-review.json). The owner
@@ -27712,7 +27712,8 @@ access-log control: two callers must not enter the single-producer durable
 writer simultaneously. Reuse the same scope, tooling, 256 MiB disk budget,
 5 GiB reserve, fixed 2,000-bar/25-pair benchmark and all accounting/statistics
 contracts. Exact new scratch `.maturin/mode5-m504/attempt-02`; preserve attempt-01
-and all failures. Current-source closure awaits this test and final requalification.
+and all failures. The source-current exit is recorded in the final attempt-02
+completion receipt below; this paragraph retains the registered work boundary.
 **Goal:** execute each compatible financial task once while retaining every
    required diagnostic input, trial record and information-access boundary.
 **Entry:** M5-01..03 reviewed exits and separate phase approval.
@@ -27786,7 +27787,7 @@ decisions/access logs, recovery instructions and matched cold/warm cost report.
   processes before removing only this scratch. No environment installation,
   CI/push/merge/tag/version change or publication; M5-05 remains unstarted.
 
-**Local Completion Receipt (2026-10-09):**
+**Historical Local Completion Receipt - Attempt 01 (2026-10-09):**
 - M504.01..06 IMPLEMENTED_VERIFIED through shared contracts and research-only
   adapters; no new account engine/cache/sampler/FFI or change to production code.
   All ten M5T-031..040 IDs exercised; 46 phase tests plus source regression
@@ -27822,6 +27823,32 @@ decisions/access logs, recovery instructions and matched cold/warm cost report.
   cost streams; later targeted replay requires a registered scientific need,
   not inference from summaries or silent exclusion of unfavorable cells.
   M5-05..12 not started; no CI/push/merge/tag/version/build/publication.
+
+**Final Source Completion Receipt - Attempt 02 (2026-10-09):**
+- Final review reproduced a real concurrent access-log/chunk-publication race
+  in the research adapter, not financial execution. Serialize all logger calls
+  with the existing owner lock; two callers now produce eight durable rows,
+  one execution and three reuse hits without entering the single-producer
+  audit writer simultaneously. Failing-before/passing-after receipts retained.
+- Source-current **981 PASS, zero fail/skip**, including **47 M5-04 tests** and
+  all M5T-031..040. Reanalysis and all existing production/regression contracts
+  still pass; no source/alpha/metric/scientific/RNG changes outside this adapter.
+- Same registered 2,000-bar/25-pair benchmark: cold p50/p95
+  **1.462/1.910 ms**, warm **0.239/0.394 ms**, **6.11x** identical-query reuse.
+  All outputs match; private reruns/trials remain zero. Whole history reuse
+  plus benchmark **5.847 s**, same-process peak RSS **275.84 MiB**; resident
+  history/synthetic bytes remain **861,199 / 128,710**. No generalized speed/RSS
+  or economic claim is inferred from these short cells.
+- Exact attempt-02 scratch cleanup PASS, actual recovery **5.81 MiB**;
+  **743 protected**, including attempt-01 evidence, **48 retained** and
+  **12 current source/test hashes** unchanged. Combined observed cleanup gain
+  across the two exact lanes **12.19 MiB**; no environments/services removed.
+- Current [report](../docs/mode5/M5_04_REUSE_REPORT.md),
+  [final seal](../docs/mode5/evidence/m5-04-final.json) and
+  [cleanup](../docs/maintenance/M5_04_CLEANUP.md) supersede attempt-01 for
+  current-source qualification without rewriting it. No open implementation
+  blocker/debt in M5-04 scope; M504-EVIDENCE-01/02 remain explicit input limits.
+  M5-05 still requires separate approval; no CI/push/merge/tag/build/release.
 
 <a id="mode5-m5-05"></a>
 ### Phase M5-05 - Dual Environments, Calendar Attribution And Causal Rights

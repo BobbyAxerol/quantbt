@@ -55,6 +55,11 @@ state for each independent candidate. This adapter serializes cache misses in
 one owner; it does not introduce a worker pool, change adaptive ask/tell order,
 parallelize account time or claim arbitrary Python callbacks are Rust-owned.
 No alpha-feature cache is introduced without a complete feature identity.
+Access logging also takes the owner's lock before invoking its single-producer
+sink; concurrent callers cannot collide on durable chunk ordinals. Do not
+share one non-thread-safe sink across several independent owners.
+For caller-supplied commands/IR, include the complete tape/request fingerprint
+in execution lineage, not only a strategy name and displayed parameters.
 
 ## Evidence And Recovery
 

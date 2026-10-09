@@ -23,7 +23,7 @@ new pip-installed public diagnostics facade; integration has its own later gate.
 
 ## Verification
 
-**980 passed, zero failed/skipped**, including **46 M5-04 tests** and all ten
+**981 passed, zero failed/skipped**, including **47 M5-04 tests** and all ten
 guide acceptance IDs M5T-031..040. Shared audit/cache, metrics, prior Mode 5
 and privacy/release-surface regressions are included. Three known Optuna
 experimental warnings remain warnings, not missing cases.
@@ -40,7 +40,10 @@ instrument, clock, state, warmup, terminal and seed; holdout relabelling, immatu
 cutoffs, invalid objectives, missing streams, deepcopy/pickle immutability,
 Optuna COMPLETE/PRUNED/FAIL cardinality, duplicate/cancelled attempts, slow sinks,
 byte/chunk limits, fsync failure, missing/modified/extra audit chunks and absent
-completion markers. Failed earlier attempts remain in private append-only receipts.
+completion markers. The final concurrent durable-log control failed before
+serialization (duplicate chunk publication) and passes afterward: eight access
+rows, one execution and three reuse hits. Failed earlier attempts remain in
+private append-only receipts; attempt-01's seal is historical, not the final source.
 
 ## Matched Cost
 
@@ -50,16 +53,16 @@ matched pairs; identical input, preparation, contract and returned evidence.
 
 | Query | p50 | p95 | Financial Executions In 25 Measured Queries |
 |---|---:|---:|---:|
-| Prepared, no output cache | 1.513 ms | 1.656 ms | 25 |
-| Exact authorized cache | 0.236 ms | 0.326 ms | 0 |
+| Prepared, no output cache | 1.462 ms | 1.910 ms | 25 |
+| Exact authorized cache | 0.239 ms | 0.394 ms | 0 |
 
 One initial execution populated the warm cache before measurement. The p50
-ratio is **6.42x** for identical-query reuse, not a simulation-kernel upgrade or
+ratio is **6.11x** for identical-query reuse, not a simulation-kernel upgrade or
 a general WFO speedup. These short synthetic cells do not predict a full-alpha
 study's runtime. Retained synthetic payload/cache is **128,710 bytes**.
 
-The five-alpha history reanalysis/reuse proof takes **5.671 s**, with same-process
-peak RSS **275.30 MiB**, including imports/JIT/reducers and the synthetic
+The five-alpha history reanalysis/reuse proof takes **5.847 s**, with same-process
+peak RSS **275.84 MiB**, including imports/JIT/reducers and the synthetic
 benchmark. Its shared resident cache is **861,199 bytes**. No isolated RSS
 improvement is claimed; avoiding execution still requires retaining inputs.
 
@@ -83,7 +86,7 @@ an unregistered sweep. The reviewed 2024 pilot is not untouched validation.
 
 No open implementation blocker/debt within M5-04's registered scope. The
 [cleanup receipt](../maintenance/M5_04_CLEANUP.md) verifies source/evidence
-preservation; the [seal](evidence/m5-04.json) binds the private report, current
+preservation; the [final seal](evidence/m5-04-final.json) binds the private report, current
 test receipts and final closure. No build, dependency install, CI, push, merge,
 tag, version change or publication occurred. M5-05 requires separate approval.
 

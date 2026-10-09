@@ -85,9 +85,9 @@ proof. Resume domain work only after disk and evidence checks are complete.
 
 ## Recorded Cleanup
 
-The [M5-04 receipt](maintenance/M5_04_CLEANUP.md) records one inactive registered
-pytest/JIT scratch removal, 669 protected and 73 retained hashes unchanged,
-and 6.38 MiB observed filesystem recovery. No environment or artifact was removed.
+The [M5-04 receipt](maintenance/M5_04_CLEANUP.md) records two inactive registered
+pytest/JIT scratch removals, 669/743 protected and 73/48 retained hashes unchanged,
+and 6.38/5.81 MiB observed filesystem recovery. No environment or artifact was removed.
 
 The [MET-03 receipt](maintenance/MET03_CLEANUP.md) records source/installed
 reporting certification, sequential consumer removal, preserved exact artifacts
