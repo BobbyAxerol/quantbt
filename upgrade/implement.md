@@ -1,16 +1,23 @@
 # QuantBT Upgrade Implementation Plan
 
-## Current Mode 5 Diagnostics-First Upgrade - Owner Planning Request 2026-10-08
+## Current Mode 5 Diagnostics-First Upgrade - M5-01 Owner Approval 2026-10-09
 
-**Status:** PLANNING_ONLY; M5-01..M5-12 NOT_STARTED, implementation approval
-PENDING_PER_PHASE and all new technical/economic/artifact gates NOT_RUN.
-The owner authorizes the [twelve-phase program](#mode5-diagnostics-first-upgrade)
+**Status:** M5-01 TECHNICALLY_VALID_LOCAL / INPUT_EXIT_PENDING; 76 tests PASS,
+M5T-001..010 exercised, 427 protected hashes unchanged. M5-02..M5-12 NOT_STARTED;
+their implementation approval remains PENDING_PER_PHASE and gates NOT_RUN.
+Read the [M5-01 baseline report](../docs/mode5/M5_01_BASELINE_REPORT.md) and
+[source-bound seal](../docs/mode5/evidence/m5-01.json). Whole-phase exit needs the
+owner's disposition of two unavailable original ZIPs versus the verified
+extracted-member baseline. Do not call original archives certified or advance
+to M5-02 implicitly. No new market evaluation or financial/methodology change.
+The owner authorized the [twelve-phase program](#mode5-diagnostics-first-upgrade)
 and adds the [economic-support requirement](#mode5-economic-support): adequate
 IS/OOS duration and actual order/fill/closed-campaign support for each economic
 question, registered before outcomes are examined. Short binding pilots are
-not economic confirmation. No Mode 5 phase, new simulation, methodology
-activation, build, version change, CI/push/merge/tag or publication is approved
-by this planning request.
+not economic confirmation. M5-01 is separately approved for local inventory,
+isolation, registration and synthetic/source/privacy tests only. New simulation,
+methodology activation, build, version change, CI/push/merge/tag and publication
+remain unauthorized.
 
 The sole detailed implementation authority for this upgrade is
 [QUANTBT Mode 5 Upgrade V1](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md).
@@ -24,8 +31,9 @@ acceptance requirements before every approved phase. Four supplied private
 canonical alphas plus the existing private Delta/Gradient RSI form the five-
 alpha review roster; no strategy code, presets, trial parameter vectors or
 private evidence may be staged, pushed, shipped in wheels/sdists or published.
-Only local ignore protection is added now; artifact/privacy enforcement is a
-registered M5-01/M5-12 gate, not an already-issued package certificate.
+Git ignore protection, artifact path/content guards and synthetic core/native
+privacy canaries pass in M5-01; they do not certify a newly built distribution.
+Actual future artifact qualification remains an M5-12 gate.
 
 ## Historical Post-Simulation Metrics Upgrade - Owner Planning Request 2026-10-07
 
@@ -26941,10 +26949,12 @@ NOT_RUN. Only documentation structure/link verification is authorized now.
 <a id="mode5-diagnostics-first-upgrade"></a>
 ## Mode 5 Upgrade V1 - Diagnostics-First Twelve-Phase Program
 
-**Owner planning approval:** 2026-10-08. This approves recording the program,
-not starting M5-01 or any subsequent phase. Each phase needs separate owner
-approval, the recorded entry gate and a reviewed completion report before its
-dependent phase can start. All twelve phases remain NOT_STARTED / NOT_RUN.
+**Owner planning approval:** 2026-10-08; separate M5-01 implementation approval
+2026-10-09. Each phase needs separate owner approval, the recorded entry gate
+and a reviewed completion report before its dependent phase can start.
+M5-01 local technical checks pass, with whole-phase input disposition still
+pending. M5-02..M5-12 remain NOT_STARTED / NOT_RUN. Read the
+[M5-01 report](../docs/mode5/M5_01_BASELINE_REPORT.md) before further approval.
 
 **Authoritative detailed guide:**
 [QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md),
@@ -27169,7 +27179,7 @@ Every phase below inherits this mandatory resource registration/cleanup exit.
 
 | Phase | Main outcome | Entry dependency | Acceptance IDs | Current state |
 |---|---|---|---|---|
-| [M5-01](#mode5-m5-01) | Baseline, source/errata, isolation and study freeze | Separate approval; actual inputs/access | M5T-001..010 | NOT_STARTED |
+| [M5-01](#mode5-m5-01) | Baseline, source/errata, isolation and study freeze | Separate approval; actual inputs/access | M5T-001..010 | TECHNICALLY_VALID / INPUT_EXIT_PENDING |
 | [M5-02](#mode5-m5-02) | Actual five-alpha execution admission | M5-01 reviewed exit | M5T-011..020 | NOT_STARTED |
 | [M5-03](#mode5-m5-03) | Metric/PSR/HAC/tail units and oracles | M5-02 streams | M5T-021..030 | NOT_STARTED |
 | [M5-04](#mode5-m5-04) | Shared panel planning, reuse and evidence | M5-01..03 reviewed exits | M5T-031..040 | NOT_STARTED |
@@ -27190,7 +27200,10 @@ implementations; formal tuning begins only after M5-09's sealed dossier/plan.
 <a id="mode5-m5-01"></a>
 ### Phase M5-01 - Baseline, Errata, Isolation And Research Contract Freeze
 
-**Status:** NOT_STARTED; owner implementation approval PENDING; gates NOT_RUN.
+**Status:** TECHNICALLY_VALID_LOCAL; owner implementation approval 2026-10-09;
+M5T-001..010 and privacy/protected-source gates PASS. Whole-phase exit
+INPUT_EXIT_PENDING for original ZIP/extracted-member scope. Scientific status
+DESCRIPTIVE_ONLY; no market or installed-artifact qualification claimed.
 **Goal:** establish trustworthy source/evidence/data-role identity and freeze
 the research questions, privacy boundaries and support/compute contract.
 **Entry:** explicit M5-01 approval, approved source/workspace, access to supplied
@@ -27246,6 +27259,71 @@ consumer-blocking identity/permission gaps stop advancement.
 and privacy checks; reviewed source-bound report. Never stage private alphas.
 **Rollback:** discard only owned editable revisions; preserve original inputs,
 private data/evidence, existing QMS/MET source and historical receipts.
+
+**M5-01 execution registration - 2026-10-09:** branch
+`feat/mode5-diagnostics-first`, based on `bb0072a` on the current QMS/MET
+feature branch, not stale dev/main. Phase scope is source/artifact inventory,
+safe isolation, JSON reconciliation, study/data-rights registration, synthetic
+negative controls and packaging privacy. No market evaluations, economic
+kernel changes, release actions, native rebuild or dependency installation.
+Use the existing CPython 3.12 regression environment with source imports pinned
+to this checkout. Initial filesystem available: 26,807,390,208 bytes;
+5,602,024 free inodes. Incremental phase budget: 64 MiB, one process/thread,
+at least 5 GiB safety reserve; test/harness wall budget 10 minutes each.
+Retain immutable attempt outputs under ignored
+`upgrade/private/mode5_upgrade_v1/m5-01/`; editable copies under ignored
+`upgrade/local/mode5_upgrade_v1/m5-01/`. Only phase-owned pytest scratch under
+`.maturin/mode5/m5-01/` is disposable, after output/log/source hash checks.
+The three master JSON files were located in the read-only sibling lab export;
+all observed hashes match Appendix A. The supplied extracted members are not
+an invented re-creation/certificate of the unavailable original bundle ZIP.
+The existing main `.venv` has older distribution metadata; preserve it and
+record the discrepancy, without reinstalling it. Register scientific thresholds
+as proposals/unresolved until separately reviewed; market work stays locked.
+
+**M5-01 technical closure / input review receipt - 2026-10-09:**
+
+- Implementation commits `d3645c3`, `14dd9b8` on the new branch. Source baseline
+  `bb0072a`, actual imported core/native 1.1.2/0.4.3; source egg-info metadata
+  1.1.1 is recorded separately. Existing environments/locks are preserved.
+- All six work packages have implementations and evidence dispositions in
+  [the report](../docs/mode5/M5_01_BASELINE_REPORT.md); 15 shared symbols have
+  real tests and hashed AST consumer references. Proposed four selectors stay
+  unimplemented/fail-closed; no competing evaluator, kernel or metric formula.
+- Verified original extracted Spec/three JSON/four primary alpha/golden hashes;
+  all 24 supplied Python files AST parsed without alpha/bytecode import. Safe
+  editable copies retain helper layout without shared original inodes.
+- Baseline 80 records, T1 12 winners/60 stress records, T2 16 decisions/11 raw
+  per-alpha parameter vectors; 18 numeric errata plus four scope/source
+  corrections. Original evidence untouched; duplicate decisions not IID samples.
+- T1 reviewed 2024 slice is 43 scored elapsed days/eight warmup days; no bars
+  or full-year/untouched claim. Source identity alone does not certify financial
+  replay. Missing raw paths in the three searched historical lanes have a
+  retained-cache request and bounded future replay plan, not a global absence
+  assertion or fabricated PSR/tail moments.
+- Five alpha support/data-role records and EH-01..12 registered. Unknown
+  effect/support/mandate/seed/design choices remain explicit locked conditions
+  before future market work. Formal CalibrationPlan is still M5-09's job.
+- Latest source-bound attempt-04: 76 passed, zero failures/skips; each acceptance
+  ID has exercised tests. Failure/timeout, unsafe extraction, original hashes,
+  sampler independent fallback, metadata identity, reviewed roles, missing
+  inputs, support adequacy and exact-payload privacy negatives all pass.
+  Original failed standalone setup (20 passes/18 errors) remains recorded;
+  missing scratch parent repaired, not relabeled as a historical PASS.
+- Full harness 14.156 s; parent/child peak RSS 176.25/238.73 MiB separately;
+  427 protected hashes and 50 retained receipts/copies unchanged. Cleanup
+  removed only attempt-04 owned scratch (9,523 ordinary-file bytes, 21 synthetic
+  links unlinked); retained payload 677,818 bytes before final reports. Actual
+  free bytes changed -880,640, including retained outputs/concurrent activity.
+  Zero new market jobs/builds/dependency installs; no broad cache deletion.
+- Ruff, links/anchors, tracked secret scan, source-layout and diff checks PASS;
+  private code/params/receipts stay ignored, no private alpha staged. Public
+  [sanitized seal](../docs/mode5/evidence/m5-01.json) binds exact local receipts.
+- Remaining input exit: maintainer supplies exact BUNDLE/D4 ZIPs or explicitly
+  accepts narrower verified extracted members. No archive recreation/certificate.
+  Pending question is not owner consent. Do not advance or call the whole phase
+  COMPLETE until resolved; M5-02 still needs separate approval. No financial
+  implementation debt or unapproved M5-02 work; no CI/push/merge/tag/release.
 
 <a id="mode5-m5-02"></a>
 ### Phase M5-02 - Five-Alpha Economic Admission And Actual QuantBT Routes
