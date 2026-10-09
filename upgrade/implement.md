@@ -28063,7 +28063,8 @@ and held-probe ledgers, basin catalog, uncertainty and resource/cleanup report.
   covariance fallback, clipping/clone guards, medoid/centroid and basin controls
   pass. Blind-axis drop1 and flat-negative quality rejection are non-vacuous.
 - Five source-mechanics checks and eight registered actual-account cells use
-  the same **2,184 bars / 91 complete UTC days**. All four event probes have fills
+  the same **ETHUSDT 1h, 2,184 bars / 91 complete UTC days**; not historical BTC
+  cohort replay. All four event probes have fills
   and campaigns; independent accounting diff **0**. RSI endpoint/direct-engine
   equity/positions/returns parity exact. Adverse cells and unavailable richer
   RSI ledger columns retained. No parameter auto-pruned.

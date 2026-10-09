@@ -53,8 +53,9 @@ constant outputs. Both were corrected in the research layer. The original
 ## Five-Alpha Development Activity
 
 Reused **five sealed account baselines** and executed **eight preregistered
-candidate/account cells**, each on **2,184 hourly bars / 91 complete UTC days**.
-This is reviewed 2024 development with common preload, not untouched OOS.
+candidate/account cells**, each on **ETHUSDT 1h, 2,184 bars / 91 complete UTC
+days**. This is reviewed 2024 development with common preload, not untouched
+OOS or a replay/comparison of historical BTC bundle cohorts.
 
 | Binding | Observed Local Effect |
 |---|---|
