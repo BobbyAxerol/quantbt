@@ -85,6 +85,11 @@ proof. Resume domain work only after disk and evidence checks are complete.
 
 ## Recorded Cleanup
 
+The [M5-05 receipt](maintenance/M5_05_CLEANUP.md) records two registered inactive
+scratch removals, 802 protected inputs, 79 prior receipts and 10 current-source
+hashes unchanged, and 11.44 MiB combined observed filesystem recovery. All
+evidence, private sources/data, artifacts and current environments remain retained.
+
 The [M5-04 receipt](maintenance/M5_04_CLEANUP.md) records two inactive registered
 pytest/JIT scratch removals, 669/743 protected and 73/48 retained hashes unchanged,
 and 6.38/5.81 MiB observed filesystem recovery. No environment or artifact was removed.
