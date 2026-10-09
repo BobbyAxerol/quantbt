@@ -28575,6 +28575,18 @@ extension analyses when inputs/contracts change. Never backdate a new recipe.
   Financial requests are running; these software checks do not certify their
   economic outcomes. Secondary growth, partial-year views, held probes and
   retrospective selectors cannot silently change primary eligibility/causal claims.
+- Mechanical gap M5081-G01: one neutral conditional point drops an inactive
+  field from effective geometry, while the preserved source constructor still
+  requires that field explicitly for provenance. The original constructor
+  failure remains retained and is not an economic score. Register a deferred
+  same-effective-point retry that supplies only the mandatory inactive carrier
+  from the sealed source baseline; assert identical active digest and unchanged
+  branch, commands and actual-feedback decisions under an alternative legal
+  inactive carrier. Never use a module default, alter active values or replace
+  the neutral point. Run retries after the fixed batch, within its remaining
+  scheduling budget; retain both attempt identities and charge actual work.
+  No protected alpha, financial driver, production source or original receipt
+  may be changed. The final report must close this transport gap explicitly.
 
 <a id="mode5-m5-09"></a>
 ### Phase M5-09 - Diagnostic Dossier, Advisory Governance And Calibration Seal
