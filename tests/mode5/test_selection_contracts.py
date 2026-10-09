@@ -1,0 +1,86 @@
+from copy import deepcopy
+from dataclasses import FrozenInstanceError, replace
+import pickle
+
+import pytest
+
+from tools.mode5_diagnostics.access import AccessPolicy, AccessWitness
+from tools.mode5_selection.contracts import Channel, Formula, Panel
+from tools.mode5_statistics.contracts import MetricValue
+from tests.mode5.selection_fixtures import panel, plan
+
+
+@pytest.mark.parametrize("name,unit", [("PSR_EVIDENCE_V1", "dollars"),
+    ("ECONOMIC_UTILITY_V1", "probability"), ("LEGACY_SHARPE_UTILITY_REPLAY", "annual_ratio")])
+def test_channels_reject_mixed_units(name, unit):
+    with pytest.raises(ValueError):
+        Channel(name, "mode5.test", unit)
+
+
+@pytest.mark.parametrize("values", [(), (("mean", .1), ("mean", .2)), (("mean", float("nan")),),
+                                   (("mean", -.1),), (("extra", 1.),)])
+def test_coefficients_explicit_and_finite(values):
+    with pytest.raises(ValueError):
+        Formula("environment_floor_mean_v1", panel().channel, values)
+
+
+def test_stage_rejects_moving_reference_and_channel():
+    p = panel()
+    frozen = plan(p)
+    frozen.require(p)
+    new = panel(benchmark=[.7, .8])
+    with pytest.raises(ValueError, match="revision"):
+        frozen.require(new)
+    with pytest.raises(ValueError):
+        replace(p, reference=replace(p.reference, channel="raw_sharpe"))
+
+
+def test_metric_contract_and_roster_not_just_units():
+    p = panel()
+    c = p.candidates[0]
+    with pytest.raises(ValueError):
+        replace(p, candidates=(replace(c, metrics=(replace(c.metrics[0], metric_id="mode5.other"), c.metrics[1])),))
+    with pytest.raises(ValueError):
+        replace(p, candidates=(replace(c, metrics=c.metrics[:1], analyses=c.analyses[:1], witnesses=c.witnesses[:1]),))
+
+
+def test_holdout_future_and_immature_evidence_fail_closed():
+    p = panel()
+    for role, end, ready in [("holdout", 5, 5), ("synthetic", 11, 11), ("synthetic", 5, 11)]:
+        c = replace(p.candidates[0], witnesses=(AccessWitness("synthetic-panel", role, 0, end, ready),)*2)
+        with pytest.raises(PermissionError):
+            replace(p, candidates=(c,))
+    with pytest.raises(ValueError):
+        replace(p, access=AccessPolicy("held", ("holdout",), ("synthetic-panel",), 10, "independent_validation"))
+
+
+def test_immutable_pickle_and_list_inputs():
+    p = panel()
+    for copy in (deepcopy(p), pickle.loads(pickle.dumps(p))):
+        assert copy.identity == p.identity
+        with pytest.raises(FrozenInstanceError):
+            copy.revision = "mutable"
+        with pytest.raises(TypeError):
+            copy.reference.values[0] = 1.
+    coefficients = [["mean", .25]]
+    f = Formula("environment_floor_mean_v1", p.channel, coefficients)
+    before = f.identity
+    coefficients[0][1] = .9
+    assert f.identity == before
+
+
+def test_legacy_slot_is_not_current_public_selector():
+    p = panel()
+    with pytest.raises(ValueError):
+        plan(p, "legacy_spec_1_1_quantile", (("floor", 1.), ("tail", .5), ("dispersion", .2), ("alpha", .25)))
+    with pytest.raises(ValueError):
+        plan(p, selector="full_sam_basin")
+
+
+def test_unknown_results_preserved_but_probability_checked():
+    assert panel(((None, .2),)).candidates[0].metrics[0].status == "UNDEFINED"
+    probability = Channel("PSR_EVIDENCE_V1", "mode5.classical_psr_plugin_v1", "probability")
+    with pytest.raises(ValueError):
+        panel(((1.1, .2),), channel=probability)
+    with pytest.raises(ValueError):
+        panel(weights=[0., 1.])

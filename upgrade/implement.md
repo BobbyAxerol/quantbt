@@ -1,6 +1,6 @@
 # QuantBT Upgrade Implementation Plan
 
-## Current Mode 5 Diagnostics-First Upgrade - M5-06 Local Geometry 2026-10-09
+## Current Mode 5 Diagnostics-First Upgrade - M5-07 Objectives 2026-10-09
 
 **Status:** M5-01 COMPLETE_LOCAL_BASELINE / EXIT_PASS_OWNER_DISPOSITION; 76 tests PASS,
 M5T-001..010 exercised, 427 protected hashes unchanged. M5-02
@@ -42,7 +42,8 @@ verified, exact scratch cleanup PASS. Read the
 [M5-06 report](../docs/mode5/M5_06_GEOMETRY_REPORT.md),
 [geometry contract](../docs/mode5/GEOMETRY_CONTRACT_V1.md) and
 [source-bound seal](../docs/mode5/evidence/m5-06.json).
-Scientific DESCRIPTIVE_ONLY; M5-07..M5-12 NOT_STARTED / NOT_RUN. Neutral coverage
+Scientific DESCRIPTIVE_ONLY; M5-07 approved and IN_PROGRESS; M5-08..M5-12
+NOT_STARTED / NOT_RUN. Neutral coverage
 and unexecuted held directions are not full-space or independent-OOS proof.
 Read the [M5-01 baseline report](../docs/mode5/M5_01_BASELINE_REPORT.md) and
 [reviewed-exit seal](../docs/mode5/evidence/m5-01-exit-review.json). The owner
@@ -27238,7 +27239,7 @@ Every phase below inherits this mandatory resource registration/cleanup exit.
 | [M5-04](#mode5-m5-04) | Shared panel planning, reuse and evidence | M5-01..03 reviewed exits | M5T-031..040 | COMPLETE_LOCAL_REUSE |
 | [M5-05](#mode5-m5-05) | Dual environments and chronological rights | M5-04 reviewed exit | M5T-041..050 | COMPLETE_LOCAL_ENVIRONMENTS |
 | [M5-06](#mode5-m5-06) | Effective geometry and active probes | M5-03/04/05 reviewed exits | M5T-051..060 | COMPLETE_LOCAL_GEOMETRY |
-| [M5-07](#mode5-m5-07) | Three objective families/four selectors | M5-03..06 reviewed exits | M5T-061..070 | NOT_STARTED |
+| [M5-07](#mode5-m5-07) | Three objective families/four selectors | M5-03..06 reviewed exits | M5T-061..070 | IN_PROGRESS |
 | [M5-08](#mode5-m5-08) | Five empirical batteries/five-alpha review | M5-07 and valid panels/routes | M5T-071..080 | NOT_STARTED |
 | [M5-09](#mode5-m5-09) | Dossier, advisory and sealed plan | M5-08 reviewed exit | M5T-081..090 | NOT_STARTED |
 | [M5-10](#mode5-m5-10) | Public opt-in integration/runtime reuse | M5-09 plus current source map | M5T-091..100 | NOT_STARTED |
@@ -28100,7 +28101,18 @@ and held-probe ledgers, basin catalog, uncertainty and resource/cleanup report.
 <a id="mode5-m5-07"></a>
 ### Phase M5-07 - Versioned Objective Families, Four Selectors And Migration
 
-**Status:** NOT_STARTED; owner implementation approval PENDING; gates NOT_RUN.
+**Status:** IN_PROGRESS; separate owner approval 2026-10-09; gates NOT_RUN.
+**Registered execution:** `m5-07/attempt-01`; pure research reducers/selectors,
+   independent mathematical controls and scoped regression. Reuse existing
+   statistics tails/reference, geometry and role/cutoff contracts; canonicalize
+   shared local downside only. No financial/core source, endpoint defaults,
+   formal search, data download, alpha rerun, build/install or release changes.
+   One existing tooling environment/worker/numeric thread; 256 MiB incremental
+   disk budget plus 5 GiB reserve. Scratch only `.maturin/mode5-m507/attempt-01`;
+   retain private registration, source snapshots, all logs and failed receipts.
+   Benchmark 25 repeats on fixed synthetic panels, cold-path cost only; no
+   market-superiority or WFO/kernel-speedup claim. Host process review and exact
+   scratch cleanup with protected-input/current-source hash checks are exit gates.
 **Goal:** make all three objective families and four selector slots deterministic,
    mathematically named and unit-correct before recipe experiments use them.
 **Entry:** M5-03..06 reviewed exits and separate phase approval.
