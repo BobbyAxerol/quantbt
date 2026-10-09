@@ -35,6 +35,7 @@ def test_m5t_060_sparse_clipping_collisions_cannot_certify_flatness():
     assert n.covariance_status == "SCHEMA_ONLY_SPARSE_CLOUD" and n.coverage["clipped_rows"] > 0
     assert n.coverage["effective_center_collisions"] > 0
     assert n.coverage["collisions"] > 0 and any(r.status == "INFEASIBLE" for r in n.rows)
+    assert all(r.point.identity != center.identity for r in n.rows if r.status == "READY")
 
 
 def test_missing_runtime_probe_is_not_filtered_into_success():
@@ -115,3 +116,17 @@ def test_coupled_joint_moves_keep_invalid_ledger_rows():
     n = neighborhood(g, g.resolve(dict(min=4, max=5)), joint_groups=(("min", "max"),))
     assert any(r.status == "INFEASIBLE" for r in n.rows)
     assert any(r.direction.startswith("joint:") for r in n.rows)
+
+
+def test_unmoved_joint_group_and_single_effective_probe_are_insufficient():
+    g = EffectiveGeometry.from_ranges({"x": (1, 100), "y": (1, 100)})
+    center = g.resolve(dict(x=50, y=50))
+    n = active_neighbors(g, center, radius=.0001, minimum_radius=.00001, seed=1731,
+        role="selection_probe", joint_groups=(("x", "y"),))
+    assert n.coverage["uncovered_groups"] == ["x,y"]
+    out = local_summary(1., n, evaluate(n, lambda p: 1.), quality_floor=0., reference_scale=1., reference_id="fixed")
+    assert out["status"] == "INSUFFICIENT_COVERAGE"
+    single = EffectiveGeometry.from_ranges({"x": (1, 2)})
+    small = active_neighbors(single, single.resolve(dict(x=1)), radius=.05, minimum_radius=.01,
+        seed=1731, role="selection_probe")
+    assert small.coverage["unique_effective"] == 1 and small.coverage["status"] == "INSUFFICIENT_COVERAGE"

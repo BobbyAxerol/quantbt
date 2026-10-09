@@ -21,7 +21,7 @@ def local_summary(center_utility, neighborhood, evaluations, *, quality_floor, r
             failed.append(identity)
     worst = min([center_utility, *valid])
     downside = max(0., center_utility-worst)
-    complete = bool(expected) and not failed and not neighborhood.coverage["uncovered_axes"]
+    complete = bool(expected) and not failed and neighborhood.coverage["status"] == "OBSERVED_REQUIRED_RADII"
     quality = center_utility >= quality_floor
     status = "INSUFFICIENT_COVERAGE" if not complete else (
         "QUALITY_FAIL" if not quality else ("FRAGILE_CENTER" if worst < quality_floor else "OBSERVED_QUALITY_BASIN"))

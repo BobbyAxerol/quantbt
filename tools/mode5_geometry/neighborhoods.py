@@ -18,14 +18,17 @@ class Neighborhood:
 
 
 def active_neighbors(geometry, center, *, radius, seed, role, minimum_radius,
-                     joint_groups=(), cloud=(), rho=.2, tau=.001, minimum_cloud=5, cloud_radius=.25):
+                     joint_groups=(), cloud=(), rho=.2, tau=.001, minimum_cloud=5, cloud_radius=.25,
+                     minimum_distinct=2):
     if center.schema_id != geometry.identity:
         raise ValueError("center/schema mismatch")
     if (role not in {"selection_probe", "local_validation"} or type(seed) is not int or seed < 0 or
             not math.isfinite(radius) or not 0 < minimum_radius <= radius <= 1 or
-            not 0 <= rho <= 1 or not math.isfinite(tau) or tau < 0 or minimum_cloud < 2 or not 0 < cloud_radius <= 1):
+            not 0 <= rho <= 1 or not math.isfinite(tau) or tau < 0 or minimum_cloud < 2 or not 0 < cloud_radius <= 1 or
+            type(minimum_distinct) is not int or minimum_distinct < 1):
         raise ValueError("registered role, radius and covariance policies required")
     ledger = ProposalLedger(geometry, role=role)
+    ledger.reserve_center(center)
     params = center.params
     numeric = geometry.numeric_names(center)
     moved = {name: [] for name in center.active_names}
@@ -106,10 +109,20 @@ def active_neighbors(geometry, center, *, radius, seed, role, minimum_radius,
                         clipped |= not 0 <= z <= 1
                     propose(changes, f"covariance:{index}", clipped=clipped)
     coverage = ledger.coverage()
+    joint_radius = {}
+    for group in joint_groups:
+        key = ",".join(group)
+        joint_radius[key] = max((min(abs(geometry.coordinate(name, r.point.params[name])-
+            geometry.coordinate(name, params[name])) for name in group) for r in ledger.rows
+            if r.point and r.direction.startswith("joint:"+key+":")), default=0.)
     coverage.update(axis_max_radius={k: max(v, default=0.) for k, v in moved.items()},
         uncovered_axes=[k for k, v in moved.items() if max(v, default=0.) < minimum_radius],
         joint_groups=[list(g) for g in joint_groups],
+        joint_group_max_radius=joint_radius,
+        uncovered_groups=[key for key, value in joint_radius.items() if value < minimum_radius],
+        minimum_distinct=minimum_distinct,
         effective_center_collisions=sum(r.point is not None and r.point.identity == center.identity for r in ledger.rows),
         clipped_rows=sum(r.reason == "boundary_clipped" for r in ledger.rows))
-    coverage["status"] = "INSUFFICIENT_COVERAGE" if coverage["uncovered_axes"] else "OBSERVED_REQUIRED_RADII"
+    coverage["status"] = "INSUFFICIENT_COVERAGE" if (coverage["uncovered_axes"] or coverage["uncovered_groups"] or
+        coverage["unique_effective"] < minimum_distinct) else "OBSERVED_REQUIRED_RADII"
     return Neighborhood(ledger.rows, cov_status, coverage, seed, role)

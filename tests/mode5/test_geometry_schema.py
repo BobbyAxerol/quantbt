@@ -86,6 +86,13 @@ def test_neutral_coverage_preserves_invalid_coupled_rows():
     assert len(ledger.rows) == 32 and all(r.requested_json for r in ledger.rows)
 
 
+def test_impossible_branch_allocation_is_rejected_not_silently_ignored():
+    g = EffectiveGeometry.from_ranges({"on": [False, True],
+        "delay": {"kind": "integer", "low": 1, "high": 2, "active_if": {"on": True}}})
+    with pytest.raises(ValueError, match="inactive"):
+        neutral_coverage(g, branches=((dict(on=False, delay=1), 8),), seed=731)
+
+
 @pytest.mark.parametrize("transport", [copy.deepcopy, lambda obj: pickle.loads(pickle.dumps(obj))])
 def test_schema_transport_preserves_frozen_identity(transport):
     g = EffectiveGeometry.from_ranges({"x": (1., 10.)}, weights=(("x", 2.),))

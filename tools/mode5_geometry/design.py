@@ -34,6 +34,11 @@ class ProposalLedger:
     def rows(self):
         return tuple(self._rows)
 
+    def reserve_center(self, point):
+        if self._rows or point.schema_id != self.geometry.identity:
+            raise ValueError("center must be reserved before proposals")
+        self._seen[point.identity] = -1
+
     def add(self, params, *, direction, reason=None):
         requested = canonical(params)
         index = len(self._rows)
@@ -91,6 +96,8 @@ def neutral_coverage(geometry, *, branches, seed):
                 else:
                     value = geometry.decode(s.name, float(u))
                 params[s.name] = value
+            if any(name not in params or params[name] != value for name, value in fixed.items()):
+                raise ValueError("branch allocation contains an inactive/ignored override")
             ledger.add(params, direction=f"branch:{branch_index}")
     return ledger
 
