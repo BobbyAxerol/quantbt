@@ -1,6 +1,6 @@
 # QuantBT Upgrade Implementation Plan
 
-## Current Mode 5 Diagnostics-First Upgrade - M5-03 Local Statistics 2026-10-09
+## Current Mode 5 Diagnostics-First Upgrade - M5-04 Local Reuse 2026-10-09
 
 **Status:** M5-01 COMPLETE_LOCAL_BASELINE / EXIT_PASS_OWNER_DISPOSITION; 76 tests PASS,
 M5T-001..010 exercised, 427 protected hashes unchanged. M5-02
@@ -16,14 +16,21 @@ reanalysis PASS. All 765 protected hashes unchanged. Read the
 [M5-03 statistics report](../docs/mode5/M5_03_STATISTICS_REPORT.md),
 [dictionary](../docs/mode5/METRIC_CONTRACT_V1.md) and
 [seal](../docs/mode5/evidence/m5-03.json). Scientific status DESCRIPTIVE_ONLY;
-no objective/selector/financial source or installed extension changed. M5-04..M5-12
-NOT_STARTED / PENDING_PER_PHASE / NOT_RUN.
+no objective/selector/financial source or installed extension changed.
+M5-04 COMPLETE_LOCAL_REUSE / TECHNICALLY_VALID after separate approval:
+980 source tests PASS/no fail/skip (46 new tests), M5T-031..040 exercised,
+authorized five-alpha retained-path reuse and 156 available historical
+comparison cells reconciled. All 669 protected hashes unchanged; exact scratch
+cleanup PASS. Read the [M5-04 report](../docs/mode5/M5_04_REUSE_REPORT.md),
+[reuse contract](../docs/mode5/DIAGNOSTIC_REUSE_V1.md) and
+[seal](../docs/mode5/evidence/m5-04.json). Scientific DESCRIPTIVE_ONLY;
+M5-05..M5-12 NOT_STARTED / PENDING_PER_PHASE / NOT_RUN.
 Read the [M5-01 baseline report](../docs/mode5/M5_01_BASELINE_REPORT.md) and
 [reviewed-exit seal](../docs/mode5/evidence/m5-01-exit-review.json). The owner
 confirmed the detailed guide's reports came from the original ZIPs and accepts
 guide/hash-verified extracted inputs as baseline. Original ZIP files are not
 an M5-02 entry blocker; archive hashes are not claimed locally remeasured.
-No remaining registered M5-01..03 local exit blocker. M5-02 qualified local
+No remaining registered M5-01..04 local exit blocker. M5-02 qualified local
 binding pilots and actual-engine synthetic tests, not methodology/default
 changes. Protection-dependent bindings are offline actual-feedback compilers,
 not new intrabar callbacks; RSI keeps its original legacy target-account scope.
@@ -32,7 +39,7 @@ and adds the [economic-support requirement](#mode5-economic-support): adequate
 IS/OOS duration and actual order/fill/closed-campaign support for each economic
 question, registered before outcomes are examined. Short binding pilots are
 not economic confirmation. M5-01 scope stays historical. Simulation beyond
-M5-02 registration, methodology activation, rebuild/version change,
+approved phase registrations, methodology activation, rebuild/version change,
 CI/push/merge/tag and publication remain unauthorized.
 
 The sole detailed implementation authority for this upgrade is
@@ -26971,8 +26978,10 @@ and a reviewed completion report before its dependent phase can start.
 M5-01 local technical checks and reviewed exit pass after the owner's ZIP-guide
 clarification. M5-02 COMPLETE_LOCAL_ADMISSION after separate approval; its
 five registered bindings, source protection and focused tests pass. M5-03 is
-COMPLETE_LOCAL_STATISTICS / TECHNICALLY_VALID after separate approval; M5-04..12
-remain NOT_STARTED / NOT_RUN. Read the
+COMPLETE_LOCAL_STATISTICS / TECHNICALLY_VALID after separate approval; M5-04 is
+COMPLETE_LOCAL_REUSE / TECHNICALLY_VALID, with scope and evidence limits in the
+[M5-04 report](../docs/mode5/M5_04_REUSE_REPORT.md). M5-05..12 remain
+NOT_STARTED / NOT_RUN. Read the
 [M5-01 exit review](../docs/mode5/M5_01_EXIT_REVIEW.md) and
 [M5-02 admission report](../docs/mode5/M5_02_ADMISSION_REPORT.md) before further
 approval, plus the [M5-03 statistics report](../docs/mode5/M5_03_STATISTICS_REPORT.md).
@@ -27204,7 +27213,7 @@ Every phase below inherits this mandatory resource registration/cleanup exit.
 | [M5-01](#mode5-m5-01) | Baseline, source/errata, isolation and study freeze | Separate approval; actual inputs/access | M5T-001..010 | COMPLETE_LOCAL_BASELINE / EXIT_PASS_OWNER_DISPOSITION |
 | [M5-02](#mode5-m5-02) | Actual five-alpha execution admission | M5-01 reviewed exit | M5T-011..020 | COMPLETE_LOCAL_ADMISSION |
 | [M5-03](#mode5-m5-03) | Metric/PSR/HAC/tail units and oracles | M5-02 streams | M5T-021..030 | COMPLETE_LOCAL_STATISTICS |
-| [M5-04](#mode5-m5-04) | Shared panel planning, reuse and evidence | M5-01..03 reviewed exits | M5T-031..040 | NOT_STARTED |
+| [M5-04](#mode5-m5-04) | Shared panel planning, reuse and evidence | M5-01..03 reviewed exits | M5T-031..040 | COMPLETE_LOCAL_REUSE |
 | [M5-05](#mode5-m5-05) | Dual environments and chronological rights | M5-04 reviewed exit | M5T-041..050 | NOT_STARTED |
 | [M5-06](#mode5-m5-06) | Effective geometry and active probes | M5-03/04/05 reviewed exits | M5T-051..060 | NOT_STARTED |
 | [M5-07](#mode5-m5-07) | Three objective families/four selectors | M5-03..06 reviewed exits | M5T-061..070 | NOT_STARTED |
@@ -27529,7 +27538,8 @@ and private report/resource/cleanup receipts.
 
 **Status:** COMPLETE_LOCAL_STATISTICS / TECHNICALLY_VALID; separate owner
 implementation approval 2026-10-09; registered local gates PASS, owner review
-PENDING. Scientific DESCRIPTIVE_ONLY. No M5-04 or public activation authorized.
+PENDING. Scientific DESCRIPTIVE_ONLY. Subsequent M5-04 approval/closure is
+recorded below; no public activation authorized.
 **Goal:** produce statistics with correct inputs/units/support before selectors
    rank candidates; keep economic utility distinct from evidence probability.
 **Entry:** M5-02 qualified financial streams and separate phase approval.
@@ -27692,8 +27702,9 @@ reconciled supported panels, availability/moment-support report and resources.
 <a id="mode5-m5-04"></a>
 ### Phase M5-04 - Shared Diagnostic Planner, Cache Authorization And Evidence
 
-**Status:** IN_PROGRESS; owner implementation approval received 2026-10-09;
-   gates REGISTERED, not yet certified.
+**Status:** COMPLETE_LOCAL_REUSE / TECHNICALLY_VALID; owner implementation
+   approval 2026-10-09; registered local gates PASS, report review PENDING.
+   Scientific DESCRIPTIVE_ONLY; M5-05/public activation not authorized.
 **Goal:** execute each compatible financial task once while retaining every
    required diagnostic input, trial record and information-access boundary.
 **Entry:** M5-01..03 reviewed exits and separate phase approval.
@@ -27766,6 +27777,43 @@ decisions/access logs, recovery instructions and matched cold/warm cost report.
 - Validate protected hashes before/after tests and cleanup; review host
   processes before removing only this scratch. No environment installation,
   CI/push/merge/tag/version change or publication; M5-05 remains unstarted.
+
+**Local Completion Receipt (2026-10-09):**
+- M504.01..06 IMPLEMENTED_VERIFIED through shared contracts and research-only
+  adapters; no new account engine/cache/sampler/FFI or change to production code.
+  All ten M5T-031..040 IDs exercised; 46 phase tests plus source regression
+  **980 PASS, zero fail/skip**, three known Optuna experimental warnings.
+- Actual prepared Rust/Python/scalar parity covers equity, positions, fees,
+  turnover and margin. Fresh/cached buffers match exactly. Fee-change positive
+  control reexecutes and changes accounting. Cached holdout, early maturity,
+  validation rights used for selection, missing inputs and invalid sentinels
+  fail closed. Copy/pickle ownership, Optuna/all-status cardinality, bounded
+  slow sink, fsync failure, partial recovery and tampered chunks are exercised.
+- Retained five-alpha paths: 2,184 bars / 91 complete UTC days each; original
+  M5-03 measurements preserved. Imported 5, reduced 10, analysis hits 5, denied
+  early-cutoff reads 5, private-alpha executions 0, optimizer trials 0.
+  Historical comparison cells: baseline 80 + T1 60 + T2 16 = 156, not a
+  fabricated full adaptive 100-trial ledger. RSI campaign/cost exports remain
+  absent with explicit REPLAY_REQUIRED; required richer queries are blocked.
+- Matched synthetic 2,000-bar prepared order workload, 25 interleaved pairs:
+  cold p50/p95 **1.513/1.656 ms**, warm **0.236/0.326 ms**; p50 reuse ratio
+  **6.42x**. One initial warm execution; 25 measured identical cache queries
+  avoid 25 executions. Not a new kernel/general WFO or economic speedup claim.
+  Synthetic retention 128,710 bytes; history cache 861,199 bytes; whole history
+  proof plus benchmark 5.671 s, same-process peak RSS 275.30 MiB, not isolated
+  RSS improvement. No private strategy/sweep rerun or scientific change.
+- Cleanup PASS: only registered inactive scratch removed after host review;
+  669 protected, 73 retained and 12 phase source/test hashes unchanged.
+  Actual filesystem recovery 6.38 MiB; no artifacts, environments or services
+  removed. [Report](../docs/mode5/M5_04_REUSE_REPORT.md),
+  [contract](../docs/mode5/DIAGNOSTIC_REUSE_V1.md),
+  [seal](../docs/mode5/evidence/m5-04.json) and
+  [cleanup](../docs/maintenance/M5_04_CLEANUP.md).
+- No blocking implementation debt in registered M5-04 scope. Evidence limits
+  M504-EVIDENCE-01/02 retain missing historical adaptive paths and RSI campaign/
+  cost streams; later targeted replay requires a registered scientific need,
+  not inference from summaries or silent exclusion of unfavorable cells.
+  M5-05..12 not started; no CI/push/merge/tag/version/build/publication.
 
 <a id="mode5-m5-05"></a>
 ### Phase M5-05 - Dual Environments, Calendar Attribution And Causal Rights
