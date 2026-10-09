@@ -1,6 +1,6 @@
 # QuantBT Upgrade Implementation Plan
 
-## Current Mode 5 Diagnostics-First Upgrade - M5-08 Batteries 2026-10-09
+## Current Mode 5 Diagnostics-First Upgrade - M5-08.1 Extended Diagnostics
 
 **Status:** M5-01 COMPLETE_LOCAL_BASELINE / EXIT_PASS_OWNER_DISPOSITION; 76 tests PASS,
 M5T-001..010 exercised, 427 protected hashes unchanged. M5-02
@@ -61,6 +61,9 @@ family exclusion or long-term economics verdict. Read the
 [M5-08 report](../docs/mode5/M5_08_BATTERY_REPORT.md),
 [aggregate seal](../docs/mode5/evidence/m5-08.json) and
 [cleanup](../docs/maintenance/M5_08_CLEANUP.md).
+M5-08.1 is IN_PROGRESS after separate owner approval 2026-10-09; its
+[registered extension](#mode5-m5-08-1) precedes M5-09. Historical diagnostics,
+data availability, economic adequacy and technical validity remain separate.
 M5-09..M5-12 remain NOT_STARTED / NOT_RUN. Neutral coverage
 and unexecuted held directions are not full-space or independent-OOS proof.
 Read the [M5-01 baseline report](../docs/mode5/M5_01_BASELINE_REPORT.md) and
@@ -27029,6 +27032,8 @@ COMPLETE_LOCAL_OBJECTIVES / MATHEMATICAL_ONLY; read their
 [selection report](../docs/mode5/M5_07_SELECTION_REPORT.md). M5-08 is
 COMPLETE_LOCAL_TARGETED_DIAGNOSTICS / DESCRIPTIVE_ONLY under approved bounded
 scope; read the [battery report](../docs/mode5/M5_08_BATTERY_REPORT.md).
+M5-08.1 extended historical diagnostics is IN_PROGRESS under separate approval;
+the original M5-08 receipts and frozen decisions remain unchanged.
 M5-09..12 remain NOT_STARTED / NOT_RUN.
 Read the
 [M5-01 exit review](../docs/mode5/M5_01_EXIT_REVIEW.md) and
@@ -27267,6 +27272,7 @@ Every phase below inherits this mandatory resource registration/cleanup exit.
 | [M5-06](#mode5-m5-06) | Effective geometry and active probes | M5-03/04/05 reviewed exits | M5T-051..060 | COMPLETE_LOCAL_GEOMETRY |
 | [M5-07](#mode5-m5-07) | Three objective families/four selectors | M5-03..06 reviewed exits | M5T-061..070 | COMPLETE_LOCAL_OBJECTIVES |
 | [M5-08](#mode5-m5-08) | Five empirical batteries/five-alpha review | M5-07 and valid panels/routes | M5T-071..080 | COMPLETE_LOCAL_TARGETED_DIAGNOSTICS / DESCRIPTIVE_ONLY |
+| [M5-08.1](#mode5-m5-08-1) | Longer calendar, coverage and mechanism diagnostics | Reviewed M5-08; separate owner approval | M5T-071..080 plus extension contracts | IN_PROGRESS; economic gates NOT_RUN |
 | [M5-09](#mode5-m5-09) | Dossier, advisory and sealed plan | M5-08 reviewed exit | M5T-081..090 | NOT_STARTED |
 | [M5-10](#mode5-m5-10) | Public opt-in integration/runtime reuse | M5-09 plus current source map | M5T-091..100 | NOT_STARTED |
 | [M5-11](#mode5-m5-11) | Formal calibration and scoped economics | M5-10 plus authorized adequate data | M5T-101..110 | NOT_STARTED |
@@ -28420,6 +28426,115 @@ targeted probes/sampler ledgers, hypothesis outcomes, compute bill and cleanup.
   [cleanup receipt](../docs/maintenance/M5_08_CLEANUP.md). Private Appendix D
   JSON/Markdown and all unfavorable/failed outcomes remain in ignored lanes.
   No build, remote CI, push, merge, tag, public activation or release ran.
+
+<a id="mode5-m5-08-1"></a>
+### Phase M5-08.1 - Extended Historical Diagnostics, Geometry And Mechanism Attribution
+
+**Status:** IN_PROGRESS; separately approved 2026-10-09 after review of M5-08.
+Registration, actual execution, analysis, regression and cleanup must precede
+completion. M5-09..12 are not authorized by this extension.
+**Goal:** resolve why the short fixed panel cannot distinguish recipes, inspect
+longer fixed-parameter behavior and obtain information for a truthful M5-09
+dossier. Neither a positive result nor end-to-end superiority is an exit condition.
+**Entry:** source-bound M5-08 completion, unchanged five admitted alpha bindings,
+read-only data inventory and an append-only execution/analysis registration.
+**Detailed Guide:** [M5-08 work packages](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#phase-m5-08--five-empirical-batteries-và-targeted-verification-bốn-alpha),
+[4.4 execution/economics](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#443-economic-tests-cần-chạy-bằng-quantbt),
+[4.5 effective geometry/probes](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#45-trục-2--parameter-geometry-và-landscape),
+[4.6 environments](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#46-trục-3--dual-perspective-environments-và-chronology),
+[4.7 transfer/leave-out](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#47-trục-4--invariance-transfer-và-evidence-strength),
+[4.8 tails](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#48-trục-5--return-distributions-tail-risk-và-economics),
+[4.9 comparison levels](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#49-multi-hypothesis-empirical-battery-giữ-năm-chiều-làm-rõ-mỗi-phép-thử),
+[5.3 units/preferences](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#53-primary-utility-và-score-channels),
+[5.8 inference](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#58-statistical-inference-và-phép-kiểm-có-ý-nghĩa-kinh-tế-không),
+[7.2/7.3/7.5 reuse and targeted recovery](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#chapter-7),
+[M5T-071..080](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#m5-08--empirical-batteries-và-controlled-comparisons),
+[Appendix D](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#appendix-d),
+[privacy](#mode5-private-alpha-scope), [economic support](#mode5-economic-support)
+and [cleanup](../docs/BUILD_TEST_CLEANUP.md).
+
+**To-Do / Extension Work Packages:**
+1. M5081.01: inventory the existing ETHUSDT 1h data service, preferably its
+   read-only resampled hot path. Pin loader/snapshot identities, actual coverage,
+   missing/duplicate/nonfinite bars and complete UTC days. Seek 2020 preload and
+   scored 2021 through the last available complete 2026 day; never fabricate data
+   beyond provider coverage. Freeze exact intervals before viewing financial
+   outcomes. Already reviewed or unknown-history data is exploratory, not clean OOS.
+2. M5081.02: register separate continuous-account and annual-reset experiments.
+   Continuous views carry actual inventory/account state; reset annual runs do
+   not. Use equal complete-year panels where available; partial 2026 has its own
+   duration/units and is not silently pooled with complete years. Carry the
+   admitted terminal rules, costs, constraints and warm-up into each request.
+3. M5081.03: freeze outcome-independent neutral candidate rosters using the
+   shared effective schema/design. Retain source-selected centers as labelled
+   anchors, not independent discoveries. Register branch quotas, seed, exact
+   raw/unique counts, collisions/infeasibility and execution budget. A small
+   targeted panel is not full-schema coverage or a 128-point standard profile.
+   Any larger coverage tier requires a new preregistered resource decision.
+4. M5081.04: exercise longer actual accounts for all five bindings, independent
+   financial state per candidate/request. Run financial bindings unchanged;
+   supported Rust execution may be used only after matched actual command,
+   lifecycle, fill and accounting differential certification. Unsupported native
+   contracts remain explicit. Do not introduce a fill simulator or financial
+   engine patch to speed up the admission compiler.
+5. M5081.05: decompose eligibility into net return, drawdown, daily ES, support
+   and local coverage. Preserve the original primary mandate; horizon/weight
+   sensitivity is a separately frozen secondary analysis, not retrospective
+   relaxation. Daily ES versus period return requires explicit equal-horizon
+   interpretation. Show flat-negative, profitable-but-ineligible and sparse cases.
+6. M5081.06: compare canonical selectors on the same declared development panel;
+   inspect near-optimal sets, true kept-environment leave-out and held-direction
+   survival. Distinguish retrospective leave-out from causal forecasting.
+   Generate local schema and joint probes independently of sampler density;
+   missing directions remain uncovered. No held-result recycling into old plans.
+7. M5081.07: inspect per-alpha mechanisms: SC direction/campaign concentration;
+   HMA actual effective-length/clamp contexts; VWAP warm-up/HTF/amendments;
+   HASH closed/open campaigns, rungs and partial fills; RSI regime-dependent
+   parameter behavior. Reuse actual evidence first, then registered stress runs.
+   Exposure/regime partitions describe observations; any causal use has prefix
+   rights. Do not prune systematic knobs from zero sample effects alone.
+8. M5081.08: reuse the four-recipe/two-seed M5-08 sampler ledger as distinct
+   short-scope evidence; longer frozen-parameter replays, if registered, are
+   not new sampler studies. New sampler extensions have matched objective,
+   feasibility and work accounting. Forward paths never become Optuna observations.
+9. M5081.09: retain all favorable/adverse/missing/failed cells, reconstruct
+   B1..B5/EH dispositions, compute bill, public privacy-safe report and private
+   Appendix D tables. Leave independent whole-process economics to M5-11,
+   diagnostic dossier/plan sealing to M5-09, and public binding to M5-10.
+
+**Tests:** complete/leap/partial-year UTC calendars; preload exclusion; immutable
+data/role identity; continuous-view versus reset-account distinction; no-trade
+and liquidation/undefined metrics; annual versus daily units; cost not deducted
+twice; neutral-design reproducibility/collisions/constraints; held-probe exclusion;
+per-environment leave-out eligibility; near-optimal set nulls; finite-panel regret;
+actual source-normalized candidates; score/path/account/fees/fills/campaign parity;
+same-clock backend certification where exercised; temporal/role/cutoff mutation;
+failed-cell retention and privacy. Reuse applicable M5-01..08/MET regression.
+**Deliverables:** immutable registration, market availability manifest, candidate
+ledger, continuous/reset annual account matrices, eligibility/geometry/transfer/
+mechanism findings, explicit support/uncertainty, command/source/test receipts,
+private JSON/Markdown report, safe public seal and cleanup receipt.
+**Exit Gate:** all approved work has actual evidence or an explicit reviewed
+coverage disposition; in-scope correctness failures are resolved, not turned
+into economic scores. All five routes retain trace/accounting validity. The
+report distinguishes measured findings, hypotheses and unknowns. M5-09 may
+receive NO_CLEAR_WINNER; neither all-positive alphas nor universal edge is required.
+**Technical Debt / Gap Policy:** no new alpha/kernel/default changes, second
+optimizer, counterfeit clean holdout or hidden favorable window. Any data/
+financial/compute blocker receives an ID, affected inference, evidence and
+bounded recovery. No implicit authorization of M5-09/10/11, build, CI or release.
+**Resource And Cleanup Gate:** reuse the current tooling environment; register
+exact retained `upgrade/private/mode5_upgrade_v1/m5-08-1/attempt-01` and editable
+`upgrade/local/mode5_upgrade_v1/m5-08-1/attempt-01` lanes. Disposable scratch is
+only `.maturin/mode5-m5081/attempt-01`. Initial incremental cap 1 GiB plus
+5 GiB reserve, per-worker RSS 2 GiB. Pin pilot-based cell/time/worker budgets
+before bulk execution; no outcome-based resizing. Keep raw evidence and failed
+attempts, review host processes/FDs before exact scratch cleanup, verify hashes
+and actual reclaimed bytes. No dependency/wheel build is planned.
+**Commit Boundary:** this plan before implementation; registered contracts/tests;
+verified financial/analysis chunks; final report, current status and cleanup.
+**Rollback:** retain M5-08 receipts and legacy routes; invalidate only affected
+extension analyses when inputs/contracts change. Never backdate a new recipe.
 
 <a id="mode5-m5-09"></a>
 ### Phase M5-09 - Diagnostic Dossier, Advisory Governance And Calibration Seal
