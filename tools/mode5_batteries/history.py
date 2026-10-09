@@ -22,7 +22,10 @@ class YearView:
 
 def continuous_year_views(times_ns, equity, *, initial_capital):
     """Partition actual marks; retain the preceding mark, never reset inventory."""
-    times = np.asarray(times_ns, dtype=np.int64)
+    raw_times = np.asarray(times_ns)
+    if raw_times.dtype.kind not in "iu" or raw_times.dtype.itemsize > 8:
+        raise ValueError("exact integer nanosecond timestamps required")
+    times = np.asarray(raw_times, dtype=np.int64)
     marks = np.asarray(equity, dtype=np.float64)
     hour = 3_600_000_000_000
     if (times.ndim != 1 or len(times) == 0 or marks.shape != times.shape
@@ -55,8 +58,8 @@ def eligibility_breakdown(total_return, drawdown, daily_es, *, daily_count,
             or not 0 <= maximum_drawdown <= 1):
         raise ValueError("explicit support/risk contract required")
     defined = all(v is not None and math.isfinite(v) for v in (total_return, drawdown, daily_es))
-    if defined and not 0 <= drawdown <= 1:
-        raise ValueError("drawdown uses fractional depth in [0,1]")
+    if defined and drawdown < 0:
+        raise ValueError("drawdown uses positive fractional depth, not a signed loss")
     utility = total_return-drawdown-daily_es if defined else None
     return dict(net_return=total_return, drawdown_cost=drawdown, daily_tail_cost=daily_es,
         utility=utility, defined=defined, profitable=bool(defined and total_return > 0),

@@ -68,3 +68,15 @@ def test_inventory_reset_is_not_inferred_from_calendar_slicing():
     views = continuous_year_views(times,marks,initial_capital=100.)
     assert views[1].equity[-1]/views[1].baseline_equity-1 == pytest.approx(-.1)
     assert views[1].equity[-1]/100.-1 == pytest.approx(-.01)
+
+
+def test_float_timestamps_do_not_silently_round_into_a_valid_clock():
+    times = pd.date_range("2023-01-01", periods=24, freq="h", tz="UTC").asi8.astype(float)
+    with pytest.raises(ValueError, match="exact integer"):
+        continuous_year_views(times,np.full(24,100.),initial_capital=100.)
+
+
+def test_below_zero_account_is_not_clipped_to_one_hundred_percent_drawdown():
+    row = eligibility_breakdown(-1.2,1.2,.2,daily_count=365)
+    assert row["drawdown_cost"] == 1.2
+    assert not row["risk_pass"] and not row["quality_pass"]
