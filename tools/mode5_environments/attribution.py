@@ -85,7 +85,7 @@ def attribute_days(path, labels):
             exposed_bars=int(exposures[mask].sum()), observed_bars=int(counts[mask].sum()),
             conditional_compound=conditional, annualized_return=None,
             estimand="descriptive conditional actual-period contribution; not a deployable subset price path",
-            status="UNAVAILABLE_LABEL" if state == -1 else "NO_TRADE" if not exposures[mask].any() else "SUPPORTED"))
+            status="UNAVAILABLE_LABEL" if state == -1 else "NO_CLOSE_MARK_EXPOSURE" if not exposures[mask].any() else "SUPPORTED"))
     total = float(pnl.sum())
     whole = float(np.prod(1+returns)-1) if valid.all() else None
     return dict(execution_id=path.execution_id, mode=path.mode, rows=rows, money_pnl=total,

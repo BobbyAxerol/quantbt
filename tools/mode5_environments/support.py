@@ -52,8 +52,8 @@ def overlap_support(times_ns, views, *, family_weights, exposure, campaigns_per_
         episodes = int(np.sum(mask & np.r_[True,~mask[:-1]]))
         if not days:
             status = "MISSING" if np.any(raw == -1) else "EMPTY"
-        elif active == 0:
-            status = "NO_TRADE"
+        elif active == 0 and completed == 0:
+            status = "NO_OBSERVED_ACTIVITY"
         elif days < minimum_days or active < minimum_exposed_bars or completed < minimum_campaigns:
             status = "INSUFFICIENT_SUPPORT"
         else:

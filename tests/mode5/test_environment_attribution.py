@@ -76,7 +76,7 @@ def test_m5t_047_rare_no_trade_missing_and_adverse_cells_are_retained():
     report = overlap_support(dates,views,family_weights={"states":1.},exposure=np.array([1,1,1,0,0,0]),
         campaigns_per_day=np.array([0,1,1,0,0,0]),minimum_days=2,minimum_exposed_bars=2,minimum_campaigns=1)
     statuses = {r["view"]:r["status"] for r in report["rows"]}
-    assert statuses == {"rare":"INSUFFICIENT_SUPPORT","missing":"MISSING", "no-trade":"NO_TRADE",
+    assert statuses == {"rare":"INSUFFICIENT_SUPPORT","missing":"MISSING", "no-trade":"NO_OBSERVED_ACTIVITY",
                         "adverse":"SUPPORTED_DESCRIPTIVE"}
     assert report["rows"][1]["unavailable_days"] == 6
 
