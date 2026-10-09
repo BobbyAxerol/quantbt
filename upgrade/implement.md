@@ -28338,6 +28338,16 @@ targeted probes/sampler ledgers, hypothesis outcomes, compute bill and cleanup.
 - Verification may run one isolated single-thread test worker alongside the
   single financial worker; total numeric process/thread budget at most two.
   No parallel adaptive sampler tells, account timeline or carried state.
+- Technical recovery registered before identical-input retry: one HMA held-axis
+  cell exhausted the original 256-pass admission compiler cap. Its failed receipt
+  and 256 actual account calls / 559,104 visited bars remain retained. The new
+  cap is 512 passes within the unchanged 900-second timeout; the same compiler,
+  fixed-point conditions, source strategy, parameters, windows and accounting
+  are used. This extends convergence budget, not scientific search or tolerance.
+- Related regression: 1,234 tests PASS; focused battery checks after the explicit
+  per-environment leave-out eligibility fix: 40 PASS. Five-alpha read-only actual
+  ledger/campaign/exposure pilot PASS with zero additional financial calls.
+  Financial, sampler, stress and final analysis gates remain in progress.
 
 <a id="mode5-m5-09"></a>
 ### Phase M5-09 - Diagnostic Dossier, Advisory Governance And Calibration Seal
