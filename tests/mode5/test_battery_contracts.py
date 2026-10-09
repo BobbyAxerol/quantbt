@@ -132,3 +132,27 @@ def test_future_witness_cannot_enter_registered_hypothesis_even_with_matching_pa
     s=scope(panel())
     with pytest.raises(PermissionError):
         HypothesisLedger(s).register("EH-01",("r1",),AccessWitness("synthetic-panel","synthetic",0,5,20))
+
+
+def test_leave_out_rebuilds_gate_eligibility_without_the_held_environment():
+    p=panel(((.8,-.4),(.4,.5)))
+    p=replace(p,candidates=(replace(p.candidates[0],quality_pass=False),p.candidates[1]))
+    gates={"c0":((True,True,True),(True,False,True)),"c1":((True,True,True),(True,True,True))}
+    out=fixed_panel_leave_out(p,plan(p),environment_gates=gates)
+    assert out[1]["chosen_candidate"]=="c0"
+    assert out[1]["held_metric"]["value"]==-.4
+    changed=replace(p,candidates=(replace(p.candidates[0],metrics=(p.candidates[0].metrics[0],
+        replace(p.candidates[0].metrics[1],value=-100.))),p.candidates[1]))
+    assert fixed_panel_leave_out(changed,plan(changed),environment_gates=gates)[1]["chosen_candidate"]=="c0"
+    assert all(r["held_gate_information_excluded"] for r in out)
+    frozen=fixed_panel_leave_out(p,plan(p))
+    assert frozen[1]["chosen_candidate"]=="c1" and frozen[1]["eligibility_scope"]=="FULL_PANEL_FROZEN"
+
+
+@pytest.mark.parametrize("gates",[{}, {"c0":((True,True,True),)},
+    {"c0":((True,True,True),(True,1,True)),"c1":((True,True,True),(True,True,True)),
+     "c2":((True,True,True),(True,True,True))}])
+def test_leave_out_requires_a_complete_typed_environment_gate_roster(gates):
+    p=panel()
+    with pytest.raises(ValueError,match="gate|booleans"):
+        fixed_panel_leave_out(p,plan(p),environment_gates=gates)
