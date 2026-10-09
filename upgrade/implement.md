@@ -27692,7 +27692,8 @@ reconciled supported panels, availability/moment-support report and resources.
 <a id="mode5-m5-04"></a>
 ### Phase M5-04 - Shared Diagnostic Planner, Cache Authorization And Evidence
 
-**Status:** NOT_STARTED; owner implementation approval PENDING; gates NOT_RUN.
+**Status:** IN_PROGRESS; owner implementation approval received 2026-10-09;
+   gates REGISTERED, not yet certified.
 **Goal:** execute each compatible financial task once while retaining every
    required diagnostic input, trial record and information-access boundary.
 **Entry:** M5-01..03 reviewed exits and separate phase approval.
@@ -27742,6 +27743,29 @@ decisions/access logs, recovery instructions and matched cold/warm cost report.
    matched reuse/performance and private report with safe tracked summaries.
 **Rollback:** disable new planning/reuse optimization and use the qualified
    original evaluator; retained evidence stays readable and role-checked.
+
+**Execution Registration (2026-10-09):**
+- Research-only adapters in `tools/mode5_diagnostics`; no modifications to
+  `src`, `rust`, `contracts`, endpoints, original alphas, data or old receipts.
+  Reuse `RequiredComputationPlanV1`, `PreparedObjectCache`,
+  `ResearchAuditWriterV1`/columnar chunks and POSIX checkpoint publication.
+- Register M5T-031..040 before execution: contract invalidation, every-access
+  authorization including cached holdout, output completeness, all-status
+  cardinality, synchronous backpressure, interrupted flush and recovery.
+  Actual synthetic QuantBT execution supplies accounting witnesses; historical
+  baseline/T1/T2 and sealed five-alpha paths are read-only recovery inputs.
+- No economic sweep, sampler/selector activation, scientific changes or native
+  rebuild. Fixed candidate order; one process and one numeric thread. Compare
+  cold execution and exact reuse on identical inputs/outputs, separately from
+  historical-only reanalysis. Missing paths remain explicitly missing.
+- Budget 256 MiB incremental, minimum 5 GiB reserve; preflight observed 24 GiB
+  available and 5,581,468 free inodes. Exact disposable scratch:
+  `.maturin/mode5-m504/attempt-01`. Preserve receipts/harnesses in ignored
+  `upgrade/private/mode5_upgrade_v1/m5-04/attempt-01` and
+  `upgrade/local/mode5_upgrade_v1/m5-04/attempt-01`.
+- Validate protected hashes before/after tests and cleanup; review host
+  processes before removing only this scratch. No environment installation,
+  CI/push/merge/tag/version change or publication; M5-05 remains unstarted.
 
 <a id="mode5-m5-05"></a>
 ### Phase M5-05 - Dual Environments, Calendar Attribution And Causal Rights
