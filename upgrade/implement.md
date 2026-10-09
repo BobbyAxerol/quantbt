@@ -9,7 +9,8 @@ COMPLETE_LOCAL_ADMISSION under separate owner approval: 55 focused tests and
 actual bindings qualified, 435 protected hashes unchanged. Read the
 [M5-02 admission report](../docs/mode5/M5_02_ADMISSION_REPORT.md) and
 [source-bound seal](../docs/mode5/evidence/m5-02.json).
-M5-03..M5-12 NOT_STARTED / PENDING_PER_PHASE / NOT_RUN.
+M5-03 IN_PROGRESS under separate owner approval on 2026-10-09; M5-04..M5-12
+NOT_STARTED / PENDING_PER_PHASE / NOT_RUN.
 Read the [M5-01 baseline report](../docs/mode5/M5_01_BASELINE_REPORT.md) and
 [reviewed-exit seal](../docs/mode5/evidence/m5-01-exit-review.json). The owner
 confirmed the detailed guide's reports came from the original ZIPs and accepts
@@ -26962,8 +26963,8 @@ NOT_RUN. Only documentation structure/link verification is authorized now.
 and a reviewed completion report before its dependent phase can start.
 M5-01 local technical checks and reviewed exit pass after the owner's ZIP-guide
 clarification. M5-02 COMPLETE_LOCAL_ADMISSION after separate approval; its
-five registered bindings, source protection and focused tests pass. M5-03..12
-remain NOT_STARTED / NOT_RUN. Read the
+five registered bindings, source protection and focused tests pass. M5-03 is
+IN_PROGRESS after separate approval; M5-04..12 remain NOT_STARTED / NOT_RUN. Read the
 [M5-01 exit review](../docs/mode5/M5_01_EXIT_REVIEW.md) and
 [M5-02 admission report](../docs/mode5/M5_02_ADMISSION_REPORT.md) before further
 approval. Binding admission does not certify long-horizon economics.
@@ -27193,7 +27194,7 @@ Every phase below inherits this mandatory resource registration/cleanup exit.
 |---|---|---|---|---|
 | [M5-01](#mode5-m5-01) | Baseline, source/errata, isolation and study freeze | Separate approval; actual inputs/access | M5T-001..010 | COMPLETE_LOCAL_BASELINE / EXIT_PASS_OWNER_DISPOSITION |
 | [M5-02](#mode5-m5-02) | Actual five-alpha execution admission | M5-01 reviewed exit | M5T-011..020 | COMPLETE_LOCAL_ADMISSION |
-| [M5-03](#mode5-m5-03) | Metric/PSR/HAC/tail units and oracles | M5-02 streams | M5T-021..030 | NOT_STARTED |
+| [M5-03](#mode5-m5-03) | Metric/PSR/HAC/tail units and oracles | M5-02 streams | M5T-021..030 | IN_PROGRESS |
 | [M5-04](#mode5-m5-04) | Shared panel planning, reuse and evidence | M5-01..03 reviewed exits | M5T-031..040 | NOT_STARTED |
 | [M5-05](#mode5-m5-05) | Dual environments and chronological rights | M5-04 reviewed exit | M5T-041..050 | NOT_STARTED |
 | [M5-06](#mode5-m5-06) | Effective geometry and active probes | M5-03/04/05 reviewed exits | M5T-051..060 | NOT_STARTED |
@@ -27517,7 +27518,8 @@ and private report/resource/cleanup receipts.
 <a id="mode5-m5-03"></a>
 ### Phase M5-03 - Metric Units, PSR, Tail, Uncertainty And Independent Oracles
 
-**Status:** NOT_STARTED; owner implementation approval PENDING; gates NOT_RUN.
+**Status:** IN_PROGRESS; separate owner implementation approval 2026-10-09;
+gates NOT_RUN. No M5-04 or public methodology activation is authorized.
 **Goal:** produce statistics with correct inputs/units/support before selectors
    rank candidates; keep economic utility distinct from evidence probability.
 **Entry:** M5-02 qualified financial streams and separate phase approval.
@@ -27567,6 +27569,57 @@ reconciled supported panels, availability/moment-support report and resources.
    and reconciliation/report. No unrelated legacy reporting reducer migration.
 **Rollback:** explicit old contracts/replay versions remain selectable; new
    derived fields cannot rewrite historical results.
+
+**Execution registration - 2026-10-09, before numeric tests/reanalysis:**
+- Reuse the retained M5-02 exact paths, fill/campaign traces and final receipt;
+  no alpha imports, financial simulation, optimization or T1/T2 rerun. Reuse
+  existing ReportingContractV1/AccountObservations and account/ledger reducers.
+  New PSR/HAC/tail/uncertainty responsibilities live in focused public research
+  tooling modules, not a replacement src kernel, endpoint or metric cache.
+- Keep src/rust/contracts, alpha originals, guide, market, M5-01/02 receipts and
+  the superseded specification protected by pre/post hashes. New values are
+  opt-in canonical derived fields; legacy raw/scientific/penalized scores stay
+  separately labeled, never overwritten or fed back into current WFO selection.
+- Pin daily UTC observed account returns, simple net returns, declared scope-
+  entry equity/time, all zero-return days, explicit partial-period masks, 365
+  reporting periods/year and ddof=1 Sharpe. Standardized skew/ordinary kurtosis
+  use central population moments; excess conversion is explicit. Nonpositive
+  equity remains a valid adverse account path with unavailable affected returns,
+  not a dropped candidate. External cashflows require a qualified engine witness.
+- Classical PSR uses original-period SR/reference and return-observation N.
+  Separate Sharpe-HAC: population-variance influence function, centered IF,
+  Bartlett weights, lag products divided by N, no small-sample correction,
+  bandwidth 5, minimum 32 observations, two-sided normal 95% interval. Other
+  policies require explicit contracts, never an unrecorded ESS substitution.
+- Moment uncertainty uses circular time blocks (7 observations), 256 draws,
+  seed 731, 95% percentile intervals, bounded chunks; fixed-path diagnostic,
+  not resampling of the selector or IID independence certification. Retain
+  invalid resample counts and make incomplete intervals typed unavailable.
+- HAC calibration: 128 fixed seeds 0..127, N=512, Gaussian IID and AR(1) phi=.5
+  after 256 burn-in observations, zero true mean. Record empirical coverage and
+  SE calibration against empirical SR dispersion; prespecified diagnostic gates
+  are coverage >=.80 and variance ratio in [.65,1.35]. Analytical matrix and
+  matched-marginal ordering oracles remain mandatory; no threshold retuning.
+- Weighted lower utility tail consumes exact alpha mass/fractional atoms;
+  daily-loss ES uses upper loss tail. Median/MAD use the lower weighted median
+  at a tie. Zero-weight rows do not supply support; incomplete/nonfinite positive-
+  weight rows cannot be dropped. Regret retains all components and a frozen
+  common reference/channel ID, with explicit revision rather than moving bests.
+- Tooling interpreter `.maturin/qms08/release-regression-v1/bin/python`; one
+  process and one numeric thread, no environment install or Rust/wheel build.
+  Preflight ~24 GiB free / 5.58 million free inodes; <=128 MiB incremental disk
+  with >=5 GiB reserve. Exact scratch `.maturin/mode5-m503/jit/attempt-01`;
+  immutable private evidence `upgrade/private/mode5_upgrade_v1/m5-03/attempt-01`
+  and isolated oracle/harness copy `upgrade/local/mode5_upgrade_v1/m5-03/attempt-01`.
+  Preserve failures; cleanup only inactive registered scratch after hash checks.
+- Tests: M5T-021..030, complete Appendix C O01..O22 (including four O17 spans),
+  independent algebra/matrix/Fraction/manual expected values, Python/Numba parity,
+  MET reporting regression and five-alpha cached-path reconciliation. Reanalysis
+  is DESCRIPTIVE_ONLY; 91-day admission paths do not certify economic superiority
+  or long-horizon/tail robustness. Missing RSI campaigns/cost streams and summary-
+  only historical PSR inputs remain typed unavailable/replay-required.
+- No push/CI/merge/tag/release/version change. Commit verified contract/oracle,
+  opt-in tooling and source-bound report chunks; do not stage private alpha data.
 
 <a id="mode5-m5-04"></a>
 ### Phase M5-04 - Shared Diagnostic Planner, Cache Authorization And Evidence
