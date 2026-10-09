@@ -42,15 +42,24 @@ verified, exact scratch cleanup PASS. Read the
 [M5-06 report](../docs/mode5/M5_06_GEOMETRY_REPORT.md),
 [geometry contract](../docs/mode5/GEOMETRY_CONTRACT_V1.md) and
 [source-bound seal](../docs/mode5/evidence/m5-06.json).
-Scientific DESCRIPTIVE_ONLY; M5-07 approved and IN_PROGRESS; M5-08..M5-12
-NOT_STARTED / NOT_RUN. Neutral coverage
+M5-07 COMPLETE_LOCAL_OBJECTIVES / MATHEMATICAL_ONLY after separate approval:
+1,198 related source tests PASS/no fail/skip (65 new tests), M5T-061..070 and
+25/25 guide oracles exercised. All three objective families/four research slots
+qualified with explicit versions, rights, components and migration. Matched
+128x12 cold policy selectors improve 1.54-1.99x through immutable fingerprints;
+this is not WFO/kernel or market-performance promotion. Accounting/core source
+unchanged; 1,359 protected hashes and 21 current source hashes verified; cleanup
+PASS. Read the [M5-07 report](../docs/mode5/M5_07_SELECTION_REPORT.md),
+[contract](../docs/mode5/SELECTION_CONTRACT_V1.md) and
+[seal](../docs/mode5/evidence/m5-07.json). M5-08..M5-12 remain NOT_STARTED /
+NOT_RUN. Neutral coverage
 and unexecuted held directions are not full-space or independent-OOS proof.
 Read the [M5-01 baseline report](../docs/mode5/M5_01_BASELINE_REPORT.md) and
 [reviewed-exit seal](../docs/mode5/evidence/m5-01-exit-review.json). The owner
 confirmed the detailed guide's reports came from the original ZIPs and accepts
 guide/hash-verified extracted inputs as baseline. Original ZIP files are not
 an M5-02 entry blocker; archive hashes are not claimed locally remeasured.
-No remaining registered M5-01..06 local implementation exit blocker. M5-02 qualified local
+No remaining registered M5-01..07 local implementation exit blocker. M5-02 qualified local
 binding pilots and actual-engine synthetic tests, not methodology/default
 changes. Protection-dependent bindings are offline actual-feedback compilers,
 not new intrabar callbacks; RSI keeps its original legacy target-account scope.
@@ -27003,7 +27012,11 @@ COMPLETE_LOCAL_REUSE / TECHNICALLY_VALID, with scope and evidence limits in the
 [M5-04 report](../docs/mode5/M5_04_REUSE_REPORT.md). M5-05 is
 COMPLETE_LOCAL_ENVIRONMENTS / TECHNICALLY_VALID under separate approval; read
 the [M5-05 report](../docs/mode5/M5_05_ENVIRONMENT_REPORT.md) and
-[contract](../docs/mode5/ENVIRONMENT_CONTRACT_V1.md). M5-06..12 remain
+[contract](../docs/mode5/ENVIRONMENT_CONTRACT_V1.md). M5-06 is
+COMPLETE_LOCAL_GEOMETRY / TECHNICALLY_VALID and M5-07 is
+COMPLETE_LOCAL_OBJECTIVES / MATHEMATICAL_ONLY; read their
+[geometry report](../docs/mode5/M5_06_GEOMETRY_REPORT.md) and
+[selection report](../docs/mode5/M5_07_SELECTION_REPORT.md). M5-08..12 remain
 NOT_STARTED / NOT_RUN. Read the
 [M5-01 exit review](../docs/mode5/M5_01_EXIT_REVIEW.md) and
 [M5-02 admission report](../docs/mode5/M5_02_ADMISSION_REPORT.md) before further
@@ -27239,7 +27252,7 @@ Every phase below inherits this mandatory resource registration/cleanup exit.
 | [M5-04](#mode5-m5-04) | Shared panel planning, reuse and evidence | M5-01..03 reviewed exits | M5T-031..040 | COMPLETE_LOCAL_REUSE |
 | [M5-05](#mode5-m5-05) | Dual environments and chronological rights | M5-04 reviewed exit | M5T-041..050 | COMPLETE_LOCAL_ENVIRONMENTS |
 | [M5-06](#mode5-m5-06) | Effective geometry and active probes | M5-03/04/05 reviewed exits | M5T-051..060 | COMPLETE_LOCAL_GEOMETRY |
-| [M5-07](#mode5-m5-07) | Three objective families/four selectors | M5-03..06 reviewed exits | M5T-061..070 | IN_PROGRESS |
+| [M5-07](#mode5-m5-07) | Three objective families/four selectors | M5-03..06 reviewed exits | M5T-061..070 | COMPLETE_LOCAL_OBJECTIVES |
 | [M5-08](#mode5-m5-08) | Five empirical batteries/five-alpha review | M5-07 and valid panels/routes | M5T-071..080 | NOT_STARTED |
 | [M5-09](#mode5-m5-09) | Dossier, advisory and sealed plan | M5-08 reviewed exit | M5T-081..090 | NOT_STARTED |
 | [M5-10](#mode5-m5-10) | Public opt-in integration/runtime reuse | M5-09 plus current source map | M5T-091..100 | NOT_STARTED |
@@ -28101,11 +28114,12 @@ and held-probe ledgers, basin catalog, uncertainty and resource/cleanup report.
 <a id="mode5-m5-07"></a>
 ### Phase M5-07 - Versioned Objective Families, Four Selectors And Migration
 
-**Status:** IN_PROGRESS; separate owner approval 2026-10-09; gates NOT_RUN.
+**Status:** COMPLETE_LOCAL_OBJECTIVES / MATHEMATICAL_ONLY; separate owner
+approval 2026-10-09; registered local gates PASS, final owner review PENDING.
 **Registered execution:** `m5-07/attempt-01`; pure research reducers/selectors,
    independent mathematical controls and scoped regression. Reuse existing
    statistics tails/reference, geometry and role/cutoff contracts; canonicalize
-   shared local downside only. No financial/core source, endpoint defaults,
+   shared local downside and immutable reference fingerprints. No financial/core source, endpoint defaults,
    formal search, data download, alpha rerun, build/install or release changes.
    One existing tooling environment/worker/numeric thread; 256 MiB incremental
    disk budget plus 5 GiB reserve. Scratch only `.maturin/mode5-m507/attempt-01`;
@@ -28169,6 +28183,39 @@ legacy migration/replay cases, oracle/differential evidence and resource report.
    differential tests; migration/components report. Public activation is M5-10.
 **Rollback:** explicit legacy versions remain intact; new selectors can be
    disabled without modifying historical evidence or existing Mode 5 results.
+
+**Executed Exit / 2026-10-09:**
+- M507.01..06 complete locally; eight explicit formula versions, all three
+  families and four pure research slots have deterministic admissible decisions
+  or typed no-selection. No public slot/default activation before M5-10.
+- 65 new tests and 1,198 related regression tests PASS with no fail/skip;
+  M5T-061..070 and 25/25 guide mathematical checks exercised. Five existing
+  Optuna/plot warnings disclosed. This is a scoped suite, not full-repo pytest.
+- Independent scalar versus NumPy differential, immutable pickle/deepcopy,
+  complete-center/probe coverage, no future/holdout access, all-bad controls,
+  incumbent, advisory override and append-only stage migration PASS. Cached/
+  uncached decisions/component hashes match byte-for-byte on the final panel.
+- Final 128-candidate x12-environment panel, 25 repeats, seed 731, one thread:
+  DRO 186.600 -> 118.562 ms, SAM 226.199 -> 113.759 ms, Pareto 149.018 ->
+  78.829 ms, adaptive 188.433 -> 122.560 ms P50. Full audit/gates retained;
+  reductions 1.54-1.99x are cold research-policy costs, not financial/WFO speedups.
+  Unguarded scalar oracle remains faster; no blanket performance superiority.
+- Process peak RSS 218.17 -> 215.87 MiB is descriptive, not a plateau claim.
+  Core source 1.1.2/tooling metadata 1.1.1/native 0.4.3 separated; binary hash
+  verified, no wheel/build/extension promotion. Zero new financial simulations.
+- 1,359 protected /21 current-source hashes and 73 retained receipt hashes
+  verified. Host review and exact scratch cleanup PASS, observed +6.46 MiB;
+  all source, alpha/data, old receipts and failed controls retained. No push,
+  CI, merge, tag, version change or publication.
+- No scoped implementation debt/blocker. Incomplete historical winner-only
+  panels do not certify new PSR/local/Pareto decisions; M5-08/11 own adequate
+  registered market evidence and M5-09 owns formal dossier sealing. Technical
+  math completion is not five-alpha economic superiority or auto-deployment.
+- Read the [selection report](../docs/mode5/M5_07_SELECTION_REPORT.md),
+  [contract](../docs/mode5/SELECTION_CONTRACT_V1.md),
+  [source-bound seal](../docs/mode5/evidence/m5-07.json) and
+  [cleanup receipt](../docs/maintenance/M5_07_CLEANUP.md). Private Appendix D
+  report, exact commands, component tables, all failures and copies stay retained.
 
 <a id="mode5-m5-08"></a>
 ### Phase M5-08 - Five Empirical Batteries And Targeted Five-Alpha Verification

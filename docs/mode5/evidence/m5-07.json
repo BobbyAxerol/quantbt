@@ -1,0 +1,134 @@
+{
+  "schema": "mode5.m507.local_closure.v1",
+  "phase": "M5-07",
+  "date": "2026-10-09",
+  "status": "COMPLETE_LOCAL_OBJECTIVES",
+  "scientific_status": "MATHEMATICAL_ONLY",
+  "tested_source_head": "45f5a5a64d62b89c2e7e57557955df76c5eff81d",
+  "tests": {
+    "contracts-audit-final": {
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0,
+      "tests": 65
+    },
+    "regression-final": {
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0,
+      "tests": 1198
+    }
+  },
+  "guide_oracles": 25,
+  "requirements": [
+    "M5T-061",
+    "M5T-062",
+    "M5T-063",
+    "M5T-064",
+    "M5T-065",
+    "M5T-066",
+    "M5T-067",
+    "M5T-068",
+    "M5T-069",
+    "M5T-070"
+  ],
+  "core_financial_source_unchanged": true,
+  "protected_hashes": 1359,
+  "current_source_hashes": 21,
+  "performance": {
+    "benchmark_wall_seconds": 48.482091863057576,
+    "comparisons": {
+      "canonical_components": {
+        "after_p50_ms": 40.24000989738852,
+        "after_p95_ms": 42.752312938682735,
+        "before_p50_ms": 49.78003504220396,
+        "p50_ratio": 1.2370781013509287
+      },
+      "full_alpha_adaptive_invariant": {
+        "after_p50_ms": 122.56019096821547,
+        "after_p95_ms": 133.77184821292758,
+        "before_p50_ms": 188.43315506819636,
+        "p50_ratio": 1.5374743918036506
+      },
+      "full_dro_cvar": {
+        "after_p50_ms": 118.56188799720258,
+        "after_p95_ms": 129.79660963173956,
+        "before_p50_ms": 186.59971898887306,
+        "p50_ratio": 1.5738592067062547
+      },
+      "full_pareto_chebyshev": {
+        "after_p50_ms": 78.82928592152894,
+        "after_p95_ms": 81.16313181817532,
+        "before_p50_ms": 149.01767007540911,
+        "p50_ratio": 1.8903846246146339
+      },
+      "full_sam_basin": {
+        "after_p50_ms": 113.75889007467777,
+        "after_p95_ms": 124.83713261317462,
+        "before_p50_ms": 226.1991580016911,
+        "p50_ratio": 1.9884086233014509
+      },
+      "input_preparation": {
+        "after_p50_ms": 38.46898092888296,
+        "after_p95_ms": 40.003958996385336,
+        "before_p50_ms": 95.59175802860409,
+        "p50_ratio": 2.4849048693367566
+      },
+      "objective_with_gates": {
+        "after_p50_ms": 55.909484974108636,
+        "after_p95_ms": 62.21939779352397,
+        "before_p50_ms": 61.19517993647605,
+        "p50_ratio": 1.0945402191562879
+      },
+      "scalar_reference_components": {
+        "after_p50_ms": 5.691391066648066,
+        "after_p95_ms": 5.8491218369454145,
+        "before_p50_ms": 4.575217026285827,
+        "p50_ratio": 0.8038837909236121
+      }
+    },
+    "new_account_executions": 0,
+    "numba_threads": 1,
+    "peak_rss_cached_mib": 215.87109375,
+    "peak_rss_uncached_mib": 218.16796875,
+    "repeats": 25,
+    "scope": "prepared cold policy only; no WFO/kernel/per-trial performance promotion",
+    "seed": 731,
+    "shape": [
+      128,
+      12
+    ]
+  },
+  "cleanup": {
+    "deleted": [
+      "/root/bobby/pool_alpha/quantbt/.maturin/mode5-m507/attempt-01"
+    ],
+    "free_bytes_after": 26232778752,
+    "free_bytes_before": 26226008064,
+    "observed_free_change_bytes": 6770688,
+    "protected_hashes_verified": 1359,
+    "receipts_unchanged": true,
+    "retained": [
+      "/root/bobby/pool_alpha/quantbt/upgrade/private/mode5_upgrade_v1/m5-07/attempt-01",
+      "/root/bobby/pool_alpha/quantbt/upgrade/local/mode5_upgrade_v1/m5-07/attempt-01"
+    ],
+    "retained_payload_bytes": 9211070,
+    "retained_receipts_verified": 73,
+    "scratch_bytes": 4976447,
+    "source_unchanged": true,
+    "synthetic_symlinks_unlinked_not_followed": 68
+  },
+  "implementation_blockers": [],
+  "compiled_native_changed": false,
+  "public_activation": false,
+  "release_authorized": false,
+  "next_phase_authorized": false,
+  "receipt_sha256": "a2f072dd7f2a18651a029c86a28f26845afce1bd99365676fe676a73265cf1cf",
+  "snapshot_sha256": "595b1360d8ba9718ba96cb6fa4ea10602f880871c11e21cabf781076b0807f22",
+  "benchmark_sha256": {
+    "cached": "86fda27d47b1a5ebe8ef3ac623162f86363139689b42428aebebf25baf114c42",
+    "uncached": "c639a37a1b3baaa7c8e75c862a1424467120933d744e922472e72c2b03b253a0"
+  },
+  "failure_receipts_retained": true,
+  "interpretation": "Research policy/math qualification only; no five-alpha economic superiority or public endpoint activation."
+}

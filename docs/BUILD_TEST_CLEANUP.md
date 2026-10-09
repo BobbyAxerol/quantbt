@@ -85,6 +85,11 @@ proof. Resume domain work only after disk and evidence checks are complete.
 
 ## Recorded Cleanup
 
+The [M5-07 receipt](maintenance/M5_07_CLEANUP.md) verifies 1,359 protected and
+21 current source/harness hashes, retains all math/benchmark/failure evidence,
+and removes only the inactive registered scratch after host process/FD review.
+Actual filesystem recovery is 6.46 MiB; no environment or artifact is removed.
+
 The [M5-06 receipt](maintenance/M5_06_CLEANUP.md) records two exact inactive
 scratch removals, 1,055 protected inputs and 21 current source/harness hashes
 verified, and 10.86 MiB combined observed filesystem recovery. Native binary
