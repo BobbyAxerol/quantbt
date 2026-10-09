@@ -29,6 +29,8 @@ class FeatureTape:
                 or available.dtype.kind not in "iu" or flags.shape != times.shape or flags.dtype.kind not in "iu"
                 or not np.isin(flags, [0,1,2,3]).all() or np.any((flags == 0) & ~np.isfinite(raw))):
             raise ValueError("qualified feature/availability/quality tape required")
+        if np.any(available > np.iinfo(np.int64).max) or np.any(available == np.iinfo(np.int64).min):
+            raise ValueError("availability timestamp overflow or NaT sentinel")
         # 0=valid, 1=missing, 2=stale, 3=warmup. Masked values never become a normal state.
         raw = np.where(flags == 0, raw, 0.)
         return cls(provider_id, FrozenBuffer.from_array("times", times), FrozenBuffer.from_array("values", raw),
@@ -43,6 +45,9 @@ class FeatureTape:
                 or not np.isin(self.quality.array(), [0,1,2,3]).all()
                 or not np.isfinite(self.values.array()).all()):
             raise ValueError("invalid immutable feature tape")
+        if (np.any(self.available.array() > np.iinfo(np.int64).max)
+                or np.any(self.available.array() == np.iinfo(np.int64).min)):
+            raise ValueError("availability timestamp overflow or NaT sentinel")
 
 
 @dataclass(frozen=True)

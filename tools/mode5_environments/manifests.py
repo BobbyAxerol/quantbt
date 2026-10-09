@@ -21,7 +21,8 @@ def utc_ns(value):
 def calendar(values):
     array = np.asarray(values)
     if (array.dtype.kind not in "iu" or array.ndim != 1 or not len(array)
-            or np.any(array[1:] <= array[:-1]) or np.any(array > np.iinfo(np.int64).max)):
+            or np.any(array[1:] <= array[:-1]) or np.any(array > np.iinfo(np.int64).max)
+            or np.any(array == np.iinfo(np.int64).min)):
         raise ValueError("strictly ordered nonempty exact calendar required")
     return array.astype(np.int64, copy=False)
 
