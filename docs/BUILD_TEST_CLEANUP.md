@@ -122,3 +122,7 @@ The [sampler-helper receipt](maintenance/QMS_SAMPLER_HELPER_CLEANUP.md) records
 seven exact inactive build/consumer removals, 740 protected hashes unchanged
 and 1,697.207 MiB actual improvement. Failed and passing lanes remain sealed;
 the copy-mode disk-budget variance is explicit and future preflight corrected.
+The [M5-02 receipt](maintenance/M5_02_CLEANUP.md) records four registered inactive
+JIT scratch removals, 435 protected hashes and 232 retained evidence/copy hashes
+unchanged. The observed immediate free-space increase is 8.871 MiB; no private
+evidence, alpha/data source, shared environment or artifact was removed.

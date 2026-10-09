@@ -1,0 +1,219 @@
+{
+  "schema": "quantbt.mode5_admission.public_seal.v1",
+  "phase": "M5-02",
+  "owner_phase_approval": "2026-10-09",
+  "branch": "feat/mode5-diagnostics-first",
+  "whole_phase_exit": "COMPLETE_LOCAL_ADMISSION",
+  "owner_review": "PENDING",
+  "qualified_phase_commits": [
+    "7fd721c04c3236fd72d07a3a49254ccdcf621687",
+    "09810dbbe5dbc45c17f276332147e892fb545e8c"
+  ],
+  "guide_sha256": "661a2a3d83eed2b2592bfb98e3b4f8e3aa34bcd9740ec6b50c812f73753b99fe",
+  "registration_id": "3ed145fe060c5c5e89205f792b9b78cf682be2ce039111ddc97d52cb6d74267d",
+  "scientific_status": "BINDING_ONLY_NO_LONG_HORIZON_OR_SELECTOR_CLAIM",
+  "tests": {
+    "focused_passed": 55,
+    "public_synthetic_passed": 29,
+    "private_source_integration_passed": 26,
+    "privacy_package_canaries_passed": 13,
+    "failed": 0,
+    "skipped": 0
+  },
+  "work_packages": {
+    "M502.01": "PASS_REGISTERED_SCOPE",
+    "M502.02": "PASS_REGISTERED_SCOPE",
+    "M502.03": "PASS_REGISTERED_SCOPE",
+    "M502.04": "PASS_REGISTERED_SCOPE",
+    "M502.05": "PASS_REGISTERED_SCOPE",
+    "M502.06": "PASS_REGISTERED_SCOPE"
+  },
+  "acceptance": [
+    {
+      "id": "M5T-011",
+      "status": "PASS"
+    },
+    {
+      "id": "M5T-012",
+      "status": "PASS"
+    },
+    {
+      "id": "M5T-013",
+      "status": "PASS"
+    },
+    {
+      "id": "M5T-014",
+      "status": "PASS"
+    },
+    {
+      "id": "M5T-015",
+      "status": "PASS"
+    },
+    {
+      "id": "M5T-016",
+      "status": "PASS"
+    },
+    {
+      "id": "M5T-017",
+      "status": "PASS"
+    },
+    {
+      "id": "M5T-018",
+      "status": "PASS"
+    },
+    {
+      "id": "M5T-019",
+      "status": "PASS"
+    },
+    {
+      "id": "M5T-020",
+      "status": "PASS"
+    }
+  ],
+  "calendar": {
+    "symbol": "ETHUSDT",
+    "timeframe": "1h",
+    "scored_bars": 2184,
+    "preload_bars": 8760,
+    "data_role": "EXPLORATORY_REVIEWED_2024",
+    "historical_btc_cohorts_replayed": false
+  },
+  "actual_routes": [
+    {
+      "alpha": "A-SC",
+      "endpoint": "event_driven",
+      "backend_requested": "python",
+      "backend_resolved": "python",
+      "status": "ADMITTED_ON_REGISTERED_SCOPE",
+      "causal_prefix": "EXACT",
+      "future_suffix_mutation": "EXACT",
+      "binding_scope": "BAR_CLOSE_ACTUAL_CALLBACK"
+    },
+    {
+      "alpha": "A-HMA",
+      "endpoint": "event_driven(input_mode=orders)",
+      "backend_requested": "python",
+      "backend_resolved": "python",
+      "status": "ADMITTED_ON_REGISTERED_SCOPE",
+      "causal_prefix": "EXACT",
+      "future_suffix_mutation": "EXACT",
+      "binding_scope": "OFFLINE_STATIC_FULL_ACTUAL_FEEDBACK_COMPILER_NOT_ONLINE_CALLBACK"
+    },
+    {
+      "alpha": "A-VWAP",
+      "endpoint": "event_driven(input_mode=orders)",
+      "backend_requested": "python",
+      "backend_resolved": "python",
+      "status": "ADMITTED_ON_REGISTERED_SCOPE",
+      "causal_prefix": "EXACT",
+      "future_suffix_mutation": "EXACT",
+      "binding_scope": "OFFLINE_STATIC_FULL_ACTUAL_FEEDBACK_COMPILER_NOT_ONLINE_CALLBACK"
+    },
+    {
+      "alpha": "A-HASH",
+      "endpoint": "event_driven(input_mode=orders)",
+      "backend_requested": "python",
+      "backend_resolved": "python",
+      "status": "ADMITTED_ON_REGISTERED_SCOPE",
+      "causal_prefix": "EXACT",
+      "future_suffix_mutation": "EXACT",
+      "binding_scope": "OFFLINE_STATIC_FULL_ACTUAL_FEEDBACK_COMPILER_NOT_ONLINE_CALLBACK"
+    },
+    {
+      "alpha": "A-RSI",
+      "endpoint": "pct_equity",
+      "backend_requested": "legacy",
+      "backend_resolved": "legacy",
+      "status": "ADMITTED_EXISTING_TARGET_CONTRACT_ONLY",
+      "causal_prefix": "EXACT",
+      "future_suffix_mutation": "EXACT",
+      "binding_scope": "EXISTING_LEGACY_TARGET_ONLY"
+    }
+  ],
+  "full_static_feedback_hashes": [
+    {
+      "alpha": "A-HMA",
+      "full_result_hash": "e7743b92b0312e271ff039062c6548b2b75d10e3b5c0451be62da17fe34fbafa",
+      "compilation_hash": "b8e7d0a70413018d0d530d22594be35838e055664dc79c2b7e3ddb1e9bf095e9",
+      "prefix_result_hash": "8c7f035e7e10118a83de2962463e3ab0ac0e95b759fcb3f2191ea208220ccf46"
+    },
+    {
+      "alpha": "A-VWAP",
+      "full_result_hash": "25c68cd7c89f55fa9f27fa442ba34a9789e23b633791b3e5ad647f3617ff3e23",
+      "compilation_hash": "15468ae9e3db008b5a1b3e5a9ee470ec235cf50fab7c208f6d5bcca9893e4b66",
+      "prefix_result_hash": "2e83e0ea5d9fa7e19efdf985c7a3f77d47716610983b18b4693ec6f928f856a2"
+    },
+    {
+      "alpha": "A-HASH",
+      "full_result_hash": "de267399e800affa4feae6f97d52283ec31c591cee60227b499fb12b276cfcc0",
+      "compilation_hash": "c2748751bdb4d4ca98a755745c54eb966ca02d0ca23877a117ce3d235f45ae33",
+      "prefix_result_hash": "42d941fcfe3881d6c582c4c047b58c19751e0677f9947e789c2f6035fa7479bc"
+    }
+  ],
+  "runtime": {
+    "python": "3.12.13",
+    "loaded_source_core": "1.1.2",
+    "installed_core_distribution": "1.1.1",
+    "installed_native": "0.4.3",
+    "installed_extension_sha256": "ae43be6e2187e57fcd6a8e8f59e0689172ca24ca5efed27651894c1e7ab1b56a",
+    "numeric_thread_count": 1,
+    "certificate": "SOURCE_IMPORT_PROVENANCE_NOT_NEW_DISTRIBUTION_CERTIFICATION"
+  },
+  "cost": {
+    "pilot_wall_seconds": 560.961573528999,
+    "pilot_peak_rss_mib": 359.7890625,
+    "static_actual_runs": {
+      "A-HMA": 242,
+      "A-VWAP": 73,
+      "A-HASH": 115
+    },
+    "kind": "ACTUAL_ADMISSION_COMPILATION_COST_NOT_KERNEL_OR_RUST_SPEEDUP"
+  },
+  "cleanup": {
+    "status": "PASS",
+    "protected_hashes_verified": 435,
+    "retained_receipts_verified": 232,
+    "deleted_apparent_bytes": 8811732,
+    "observed_free_change_bytes": 9302016,
+    "free_bytes_immediately_after": 26357186560,
+    "retained_payload_bytes": 17458958
+  },
+  "private_receipt_sha256": {
+    "report.json": "4acc665fea9332173ae7d31f8bb19c333f9cef61a4a319d3f2196612973e94b5",
+    "registration.json": "857fd15f93166a77da5801c3aca01e6783e244d636bdd394e5282e08a2b9baa6",
+    "protected_final.json": "ac07e827ffdedc23a6767f09e17f674c14d342549372b9c34ce9bac090cf23f0",
+    "alpha_admission_matrix.json": "7907f13f3de496e4498445023b3cfba2af3262d4588c0aa799e9954c04bd8c2f",
+    "effective_schema_warmup_routes.json": "2357c021ae1bfdb9a51ef1b46c0eae1e8ecdd5ca7e617ab19d60a56e356eaf67",
+    "harness-final/input-manifest.json": "da438be430bd6e88382e6b585a5c55e114b6f0f1632d8c81fcf075682f8ac1f9",
+    "contracts-final-04.json": "ff6624299ffd7027aecb5adf33c221efea373cfaeb67b7cc15a3882dbf08d144",
+    "contracts-final-04.xml": "0de04b40d6ee4693d0e70c261990b89fe6257b64689b9d9de9b54747aa9542b7",
+    "privacy-package-01.json": "dfb2f7ea83529b5bac8c67bf31370e46c429b1442b65594398d103e938e724a5",
+    "privacy-package-01.xml": "62577d9855bff79f827c9b2d9f013b5a463a1a8d22ec5b4d7f6a9b0bf711d0fe",
+    "pilot-corrected-01.json": "6e73212139587b32c54f8b851bb8f525946e60fcb5e8a086cda2a515fb640a50",
+    "pilot-corrected-01/pilot.json": "bd4a0bca4972cf405da8efb4c145ba88d107ea08dae92452e6d554fc1ffbd9f9",
+    "qualification-final-02.json": "08ac5cf9f7737e05ed3274d4979b0889418b880c2bfdb15a957da7d8fde94cac",
+    "qualification-final-02/qualification.json": "0a246d48816df361a24f7b5d269aaff95da3522d5cf0beae95f03eb2e6cffc77",
+    "finish-02.json": "4711e403507c5034e9e8de0ab73924170a61210d93685d243650a8aa903380f5",
+    "cleanup_summary.json": "f7168d0b6c3959ba1f315aa2c49d8981dfdcf40743b5e2a7266673743a66f868"
+  },
+  "cleanup_receipt_sha256": {
+    "attempt-01/cleanup_receipt.json": "4daaa44ec83a2808671cfd9f96f3d2513fe7b214a694797394599bc4c2be6bce",
+    "attempt-02/cleanup_receipt.json": "eeeb581bbe30edf83697dde4664674a6edd4fabd533db4d30d7808f42c4a6f54",
+    "attempt-03/cleanup_receipt.json": "9c2b72bada8a5e254b46ccdf5a91e42cb032d25caffbe96a357a10c3d7a5e6dd",
+    "attempt-04/cleanup_receipt.json": "d2510d498b10f80e18d4100c13864f4e35986d3e8ebbdffd878974a44ff80f09"
+  },
+  "protected_snapshot_digest": "26f85f0eaddf97165679d5d3a4da35e911af90726cfc3c00e3fb10bfe80c7598",
+  "protected_hashes_unchanged": 435,
+  "financial_sources_changed": false,
+  "alpha_originals_changed": false,
+  "private_alpha_code_params_or_economic_values_in_this_seal": false,
+  "new_financial_engine": false,
+  "online_intrabar_callback_added": false,
+  "legacy_rsi_fill_or_cost_streams_fabricated": false,
+  "unresolved_technical_debt_in_registered_scope": [],
+  "optimizer_trials": 0,
+  "new_artifact_builds": 0,
+  "remote_or_public_qualification": "NOT_RUN_NOT_AUTHORIZED",
+  "next_phase_started": false,
+  "publish_push_release_authorized": false
+}

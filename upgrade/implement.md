@@ -1,25 +1,31 @@
 # QuantBT Upgrade Implementation Plan
 
-## Current Mode 5 Diagnostics-First Upgrade - M5-01 Owner Approval 2026-10-09
+## Current Mode 5 Diagnostics-First Upgrade - M5-02 Local Admission 2026-10-09
 
 **Status:** M5-01 COMPLETE_LOCAL_BASELINE / EXIT_PASS_OWNER_DISPOSITION; 76 tests PASS,
-M5T-001..010 exercised, 427 protected hashes unchanged. M5-02..M5-12 NOT_STARTED;
-their implementation approval remains PENDING_PER_PHASE and gates NOT_RUN.
+M5T-001..010 exercised, 427 protected hashes unchanged. M5-02
+COMPLETE_LOCAL_ADMISSION under separate owner approval: 55 focused tests and
+13 source privacy/package canaries PASS, M5T-011..020 exercised, five registered
+actual bindings qualified, 435 protected hashes unchanged. Read the
+[M5-02 admission report](../docs/mode5/M5_02_ADMISSION_REPORT.md) and
+[source-bound seal](../docs/mode5/evidence/m5-02.json).
+M5-03..M5-12 NOT_STARTED / PENDING_PER_PHASE / NOT_RUN.
 Read the [M5-01 baseline report](../docs/mode5/M5_01_BASELINE_REPORT.md) and
 [reviewed-exit seal](../docs/mode5/evidence/m5-01-exit-review.json). The owner
 confirmed the detailed guide's reports came from the original ZIPs and accepts
 guide/hash-verified extracted inputs as baseline. Original ZIP files are not
 an M5-02 entry blocker; archive hashes are not claimed locally remeasured.
-No remaining M5-01 exit blocker. Do not advance to M5-02 implicitly; it requires
-separate phase approval. No new market or financial/methodology change.
+No remaining M5-01 or registered M5-02 exit blocker. M5-02 qualified local
+binding pilots and actual-engine synthetic tests, not methodology/default
+changes. Protection-dependent bindings are offline actual-feedback compilers,
+not new intrabar callbacks; RSI keeps its original legacy target-account scope.
 The owner authorized the [twelve-phase program](#mode5-diagnostics-first-upgrade)
 and adds the [economic-support requirement](#mode5-economic-support): adequate
 IS/OOS duration and actual order/fill/closed-campaign support for each economic
 question, registered before outcomes are examined. Short binding pilots are
-not economic confirmation. M5-01 is separately approved for local inventory,
-isolation, registration and synthetic/source/privacy tests only. New simulation,
-methodology activation, build, version change, CI/push/merge/tag and publication
-remain unauthorized.
+not economic confirmation. M5-01 scope stays historical. Simulation beyond
+M5-02 registration, methodology activation, rebuild/version change,
+CI/push/merge/tag and publication remain unauthorized.
 
 The sole detailed implementation authority for this upgrade is
 [QUANTBT Mode 5 Upgrade V1](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md).
@@ -26955,8 +26961,12 @@ NOT_RUN. Only documentation structure/link verification is authorized now.
 2026-10-09. Each phase needs separate owner approval, the recorded entry gate
 and a reviewed completion report before its dependent phase can start.
 M5-01 local technical checks and reviewed exit pass after the owner's ZIP-guide
-clarification. M5-02..M5-12 remain NOT_STARTED / NOT_RUN. Read the
-[M5-01 exit review](../docs/mode5/M5_01_EXIT_REVIEW.md) before further approval.
+clarification. M5-02 COMPLETE_LOCAL_ADMISSION after separate approval; its
+five registered bindings, source protection and focused tests pass. M5-03..12
+remain NOT_STARTED / NOT_RUN. Read the
+[M5-01 exit review](../docs/mode5/M5_01_EXIT_REVIEW.md) and
+[M5-02 admission report](../docs/mode5/M5_02_ADMISSION_REPORT.md) before further
+approval. Binding admission does not certify long-horizon economics.
 
 **Authoritative detailed guide:**
 [QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md),
@@ -27182,7 +27192,7 @@ Every phase below inherits this mandatory resource registration/cleanup exit.
 | Phase | Main outcome | Entry dependency | Acceptance IDs | Current state |
 |---|---|---|---|---|
 | [M5-01](#mode5-m5-01) | Baseline, source/errata, isolation and study freeze | Separate approval; actual inputs/access | M5T-001..010 | COMPLETE_LOCAL_BASELINE / EXIT_PASS_OWNER_DISPOSITION |
-| [M5-02](#mode5-m5-02) | Actual five-alpha execution admission | M5-01 reviewed exit | M5T-011..020 | NOT_STARTED |
+| [M5-02](#mode5-m5-02) | Actual five-alpha execution admission | M5-01 reviewed exit | M5T-011..020 | COMPLETE_LOCAL_ADMISSION |
 | [M5-03](#mode5-m5-03) | Metric/PSR/HAC/tail units and oracles | M5-02 streams | M5T-021..030 | NOT_STARTED |
 | [M5-04](#mode5-m5-04) | Shared panel planning, reuse and evidence | M5-01..03 reviewed exits | M5T-031..040 | NOT_STARTED |
 | [M5-05](#mode5-m5-05) | Dual environments and chronological rights | M5-04 reviewed exit | M5T-041..050 | NOT_STARTED |
@@ -27352,7 +27362,8 @@ before the owner's ZIP-guide clarification:**
 <a id="mode5-m5-02"></a>
 ### Phase M5-02 - Five-Alpha Economic Admission And Actual QuantBT Routes
 
-**Status:** IN_PROGRESS; owner implementation approval 2026-10-09; gates NOT_RUN.
+**Status:** COMPLETE_LOCAL_ADMISSION; owner implementation approval 2026-10-09;
+M502.01..06 and M5T-011..020 PASS on the registered scope. Owner review PENDING.
 **Goal:** measure the actual strategies under qualified execution/accounting,
 not a fast approximation or a strategy name used as an economics certificate.
 **Entry:** M5-01 reviewed exit, registered contracts and separate phase approval.
@@ -27464,6 +27475,44 @@ and private report/resource/cleanup receipts.
   not a second pre-rounded inventory request. Preserve genuine venue residuals
   and flat-only cooldown. Register corrected pilots before results; retain
   earlier paths and report repair-induced changes separately from methodology.
+
+**Completion receipt - 2026-10-09:**
+- [Admission report](../docs/mode5/M5_02_ADMISSION_REPORT.md),
+  [sanitized seal](../docs/mode5/evidence/m5-02.json) and
+  [cleanup receipt](../docs/maintenance/M5_02_CLEANUP.md) bind the final source
+  and private append-only evidence. All six work packages and all ten acceptance
+  requirements have executed checks; no unexecuted alpha is counted admitted.
+- Final focused suite: 55 PASS (29 public synthetic + 26 private source/binding
+  checks), 0 FAIL/SKIP. Source privacy/package synthetic canaries: 13 PASS.
+  Runtime routes and immutable private source/schema/readiness inventory are
+  retained; originals, src/rust/contracts, market, guide, prior receipts and
+  installed native bytes remain unchanged across 435 protected hashes.
+- Common registered ETHUSDT 1h calendar: 2,184 scored bars / 91 days, 8,760
+  causal preload bars; fresh scored accounts and no hidden terminal flatten.
+  This is EXPLORATORY_REVIEWED_2024 binding admission, not replay/comparison of
+  historical BTC cohorts or sufficient support for later economic promotion.
+- SC uses actual public callback feedback. HMA/VWAP/HASH use the existing
+  static lifecycle with bounded full actual-feedback compilation, exact
+  decisions/commands and repeated full fill/order/terminal/account replay.
+  Actual HASH rungs and VWAP amendments are exercised, not replaced. RSI retains
+  exact wrapper/direct legacy pct_equity parity; missing fill/cost streams are
+  unavailable rather than reconstructed and certified as engine output.
+- Independent event ledger equity reconciliation has maximum difference 0;
+  inventory, fees, turnover, campaign allocation, margin and zero-funding paths
+  reconcile. All five pass prefix/future-suffix mutation checks. Cycles,
+  nondeterministic replay, unsupported feedback and zero-fill witnesses reject.
+- Corrected five-row pilot: 560.962 s / 359.789 MiB peak RSS, with 242/73/115
+  actual static runs for the three protected bindings. These are real offline
+  compilation costs, not a kernel/Rust speedup or online callback certificate.
+  Keep those costs in M5-04/08 budgets; non-convergence remains fail-closed.
+- Earlier callback blockers, insufficient-fill VWAP candidate and transport
+  fixture failures remain immutable. Duplicate lot rounding was repaired only
+  in the new lab binding and requalified; outcome changes are not labeled
+  methodology improvements. No unresolved technical debt in admitted scope.
+- Exact inactive JIT scratch from four attempts is cleaned, protected and
+  retained evidence hashes verified. No shared environment/artifact/data
+  deletion, rebuild/version change, CI/push/merge/tag/release or M5-03 execution.
+  Separate owner approval remains required for every subsequent phase.
 
 <a id="mode5-m5-03"></a>
 ### Phase M5-03 - Metric Units, PSR, Tail, Uncertainty And Independent Oracles
