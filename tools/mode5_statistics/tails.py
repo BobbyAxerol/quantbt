@@ -91,6 +91,19 @@ def weighted_mad(values, *, weights=None, unit="utility"):
         median.value, median.status, median.reason, (("median", center.value),))
 
 
+def local_downside(center, neighbors, *, unit="utility"):
+    """Canonical finite-probe downside; missing data must be handled by admission."""
+    values = vector(neighbors)
+    if not math.isfinite(center) or not len(values) or not np.isfinite(values).all():
+        return MetricValue("mode5.local_downside_v1", unit, len(values), status="INVALID",
+                           reason="complete finite center and nonempty probe panel required")
+    downside = max(0., center - min(center, float(values.min())))
+    if not math.isfinite(downside):
+        return MetricValue("mode5.local_downside_v1", unit, len(values), status="INVALID", reason="downside overflow")
+    return MetricValue("mode5.local_downside_v1", unit, len(values), downside,
+                       components=(("scope", "finite_evaluated_probes_only"),))
+
+
 @dataclass(frozen=True)
 class FrozenReference:
     reference_id: str

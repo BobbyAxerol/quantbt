@@ -2,6 +2,7 @@
 
 from dataclasses import asdict, dataclass
 import math
+from types import MappingProxyType
 
 from tools.mode5_diagnostics.access import AccessPolicy, AccessWitness
 from tools.mode5_diagnostics.identity import AnalysisKey, SelectionKey, canonical, digest
@@ -113,7 +114,7 @@ class Panel:
         return digest(asdict(self))
 
 
-FORMULAS = {
+FORMULAS = MappingProxyType({
     "environment_floor_mean_v1": ("environment", ("mean",)),
     "legacy_floor_mean_regret_v1": ("environment", ("mean",)),
     "legacy_spec_1_1_quantile": ("environment", ("floor", "tail", "dispersion", "alpha")),
@@ -122,7 +123,7 @@ FORMULAS = {
     "local_downside_v1": ("local", ("gamma",)),
     "unified_same_channel_v1": ("unified", ("floor", "mean", "dispersion", "fragility")),
     "pareto_chebyshev_v1": ("pareto", ("rho",)),
-}
+})
 
 
 @dataclass(frozen=True)
@@ -224,6 +225,9 @@ class SelectionPlan:
     minimum_improvement: float
     incumbent_id: str | None = None
     tie_break: str = "candidate_id_lexicographic_v1"
+    local_reference_id: str | None = None
+    local_reference_scale: float | None = None
+    pareto_preference_identity: str | None = None
 
     def __post_init__(self):
         for name in ("plan_id", "context_id", "stage_id", "reference_identity"):
@@ -240,6 +244,17 @@ class SelectionPlan:
             raise ValueError("unsupported tie policy")
         if self.incumbent_id is not None:
             nonempty(self.incumbent_id)
+        if FORMULAS[self.formula.version][0] in {"local", "unified"}:
+            nonempty(self.local_reference_id)
+            if (self.local_reference_scale is None or not math.isfinite(self.local_reference_scale)
+                    or self.local_reference_scale <= 0):
+                raise ValueError("frozen positive local scale must be declared in the plan")
+        elif self.local_reference_id is not None or self.local_reference_scale is not None:
+            raise ValueError("local scale only belongs to local/unified formulas")
+        if FORMULAS[self.formula.version][0] == "pareto":
+            nonempty(self.pareto_preference_identity)
+        elif self.pareto_preference_identity is not None:
+            raise ValueError("Pareto preferences only belong to the vector family")
 
     @property
     def identity(self):
@@ -270,7 +285,8 @@ class Decision:
 def decision(panel, plan, metadata, *, local_refs=(), preference_ref="none"):
     key = SelectionKey(analyses=tuple(a.identity for c in panel.candidates for a in c.analyses),
         candidate_universe=panel.identity,
-        objective_selector_preferences=digest((plan.formula.identity, local_refs, preference_ref)),
+        objective_selector_preferences=digest((plan.formula.identity, local_refs, preference_ref,
+                                               metadata.get("advisory"))),
         diagnostic_calibration_plan=plan.identity, access_scope=panel.access.identity)
     return Decision(canonical(dict(schema="mode5.selection_decision.v1", selection_key=key.identity,
         panel_identity=panel.identity, plan_identity=plan.identity, formula_version=plan.formula.version,

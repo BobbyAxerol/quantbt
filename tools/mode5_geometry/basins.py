@@ -4,6 +4,8 @@ import math
 
 import numpy as np
 
+from tools.mode5_statistics.tails import local_downside
+
 
 def local_summary(center_utility, neighborhood, evaluations, *, quality_floor, reference_scale, reference_id):
     if (not all(math.isfinite(v) for v in (center_utility, quality_floor, reference_scale)) or
@@ -20,7 +22,10 @@ def local_summary(center_utility, neighborhood, evaluations, *, quality_floor, r
         else:
             failed.append(identity)
     worst = min([center_utility, *valid])
-    downside = max(0., center_utility-worst)
+    reduced = local_downside(center_utility, valid) if valid else None
+    if reduced is not None and reduced.status != "VALID":
+        raise ValueError(reduced.reason)
+    downside = reduced.value if reduced else 0.
     complete = bool(expected) and not failed and neighborhood.coverage["status"] == "OBSERVED_REQUIRED_RADII"
     quality = center_utility >= quality_floor
     status = "INSUFFICIENT_COVERAGE" if not complete else (
