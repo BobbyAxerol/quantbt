@@ -50,6 +50,23 @@ def test_m5t_057_constant_output_is_undefined_not_zero_sensitivity():
     assert out["status"] == "UNDEFINED_CONSTANT_OUTPUT" and out["sensitivity_indices"] is None
 
 
+@pytest.mark.parametrize("value", [.1, .3, .7])
+def test_constant_decimal_output_cannot_gain_variance_from_mean_roundoff(value):
+    layout = saltelli_layout(256, 2)
+    out = validate_saltelli_outputs(layout, structured_inputs(256, 2), np.full(layout.rows, value),
+        method="saltelli_pick_freeze_v1", independent_axes=True)
+    assert out["status"] == "UNDEFINED_CONSTANT_OUTPUT" and out["output_variance"] == 0.
+
+
+def test_nonconstant_cross_outputs_with_zero_base_variance_stay_undefined():
+    layout = saltelli_layout(8, 2)
+    outputs = np.zeros(layout.rows)
+    outputs[1] = 1.
+    out = validate_saltelli_outputs(layout, structured_inputs(8, 2), outputs,
+        method="saltelli_pick_freeze_v1", independent_axes=True)
+    assert out["status"] == "UNDEFINED_ZERO_BASE_VARIANCE" and out["sensitivity_indices"] is None
+
+
 def test_invalid_and_coupled_rows_cannot_be_filtered_into_saltelli():
     layout = saltelli_layout(8, 2)
     x = structured_inputs(8, 2)

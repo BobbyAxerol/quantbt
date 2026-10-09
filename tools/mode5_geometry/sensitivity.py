@@ -25,8 +25,14 @@ def validate_saltelli_outputs(layout, inputs, outputs, *, method, independent_ax
             reverse[:, j] = block[:, 0, j]
             if not np.array_equal(block[:, 1+layout.dimensions+j], reverse):
                 raise ValueError("reverse cross matrix mismatch")
-    variance = float(np.var(np.r_[y[::stride], y[stride-1::stride]]))
-    return dict(status="UNDEFINED_CONSTANT_OUTPUT" if variance == 0 else "STRUCTURED_DESIGN_VALID",
+    constant = bool(np.all(y == y[0]))
+    base = np.r_[y[::stride], y[stride-1::stride]]
+    variance = 0. if constant else float(np.var(base-base[0]))
+    if not np.isfinite(variance):
+        raise ValueError("base output variance is not numerically finite")
+    status = "UNDEFINED_CONSTANT_OUTPUT" if constant else (
+        "UNDEFINED_ZERO_BASE_VARIANCE" if variance == 0 else "STRUCTURED_DESIGN_VALID")
+    return dict(status=status,
         base_n=layout.base_n, input_rows=layout.rows, execution_cells=layout.execution_cells,
         output_variance=variance, sensitivity_indices=None,
         interpretation="design admission only; a separately registered SALib analysis is required for global indices/CI")

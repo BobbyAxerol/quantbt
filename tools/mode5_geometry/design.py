@@ -78,23 +78,33 @@ def neutral_coverage(geometry, *, branches, seed):
             if spec is None:
                 raise ValueError("unknown fixed branch axis")
             spec.validate(value)
-        cube = qmc.Sobol(len(geometry.specs), scramble=True, seed=(seed+branch_index) % 2**32,
-            optimization=None).random_base2(int(math.log2(count)))
+        inactive = set(dict(geometry.inactive))
+        known = {s.name: s.value if s.fixed else (s.choices[0] if s.choices else s.low)
+            for s in geometry.specs if not s.variable and s.name not in inactive}
+        known.update(fixed)
+        blocked = set(inactive)
+        for s in geometry.specs:
+            if any(parent in blocked or parent in known and known[parent] not in choices
+                   for parent, choices in s.active_if):
+                blocked.add(s.name)
+        dimensions = [s.name for s in geometry.specs if s.variable and s.name not in fixed and s.name not in blocked]
+        cube = (qmc.Sobol(len(dimensions), scramble=True, seed=(seed+branch_index) % 2**32,
+            optimization=None).random_base2(int(math.log2(count))) if dimensions else np.empty((count, 0)))
         for sample in cube:
-            params = {}
-            for s, u in zip(geometry.specs, sample):
+            params, coordinates = {}, dict(zip(dimensions, sample))
+            for s in geometry.specs:
                 if s.name in dict(geometry.inactive) or not s.active(params):
                     continue
                 if s.name in fixed:
                     value = fixed[s.name]
                 elif s.fixed:
                     value = s.value
-                elif s.choices:
-                    value = s.choices[min(len(s.choices)-1, int(u*len(s.choices)))]
                 elif not s.variable:
-                    value = s.low
+                    value = s.choices[0] if s.choices else s.low
+                elif s.choices:
+                    value = s.choices[min(len(s.choices)-1, int(coordinates[s.name]*len(s.choices)))]
                 else:
-                    value = geometry.decode(s.name, float(u))
+                    value = geometry.decode(s.name, float(coordinates[s.name]))
                 params[s.name] = value
             if any(name not in params or params[name] != value for name, value in fixed.items()):
                 raise ValueError("branch allocation contains an inactive/ignored override")

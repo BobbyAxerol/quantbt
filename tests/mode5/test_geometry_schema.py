@@ -86,6 +86,30 @@ def test_neutral_coverage_preserves_invalid_coupled_rows():
     assert len(ledger.rows) == 32 and all(r.requested_json for r in ledger.rows)
 
 
+def test_fixed_inactive_axes_do_not_consume_neutral_cube_dimensions():
+    base = EffectiveGeometry.from_ranges({"x": (0., 10.)})
+    extended = EffectiveGeometry.from_ranges({"fixed": 7, "ignored": (0., 100.), "x": (0., 10.)},
+        inactive=(("ignored", "source proven inactive"),))
+    args = dict(branches=(({}, 16),), seed=731)
+    a, b = neutral_coverage(base, **args), neutral_coverage(extended, **args)
+    assert [r.point.params["x"] for r in a.rows] == [r.point.params["x"] for r in b.rows]
+
+
+def test_frozen_disabled_child_does_not_consume_neutral_cube_dimensions():
+    base = EffectiveGeometry.from_ranges({"enabled": False, "x": (0., 10.)})
+    extended = EffectiveGeometry.from_ranges({"enabled": False,
+        "delay": {"kind": "integer", "low": 1, "high": 9, "active_if": {"enabled": True}}, "x": (0., 10.)})
+    args = dict(branches=(({}, 16),), seed=731)
+    a, b = neutral_coverage(base, **args), neutral_coverage(extended, **args)
+    assert [r.point.params["x"] for r in a.rows] == [r.point.params["x"] for r in b.rows]
+
+
+def test_all_fixed_neutral_design_retains_requested_collisions():
+    g = EffectiveGeometry.from_ranges({"x": 1})
+    ledger = neutral_coverage(g, branches=(({}, 8),), seed=731)
+    assert ledger.coverage()["unique_effective"] == 1 and ledger.coverage()["collisions"] == 7
+
+
 def test_impossible_branch_allocation_is_rejected_not_silently_ignored():
     g = EffectiveGeometry.from_ranges({"on": [False, True],
         "delay": {"kind": "integer", "low": 1, "high": 2, "active_if": {"on": True}}})
