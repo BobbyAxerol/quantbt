@@ -126,3 +126,7 @@ The [M5-02 receipt](maintenance/M5_02_CLEANUP.md) records four registered inacti
 JIT scratch removals, 435 protected hashes and 232 retained evidence/copy hashes
 unchanged. The observed immediate free-space increase is 8.871 MiB; no private
 evidence, alpha/data source, shared environment or artifact was removed.
+The [M5-03 receipt](maintenance/M5_03_CLEANUP.md) records one registered inactive
+pytest/Numba/Matplotlib scratch removal, 765 protected and 52 retained hashes
+unchanged, and 5.574 MiB immediate improvement. Both reused environments,
+successful/failed receipts, private reanalysis and prior inputs remain retained.

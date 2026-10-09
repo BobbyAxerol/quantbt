@@ -90,3 +90,31 @@ Summary-only Sharpe/DD/fill counts cannot supply moments, serial structure,
 campaigns or actual returns. A failed simulation is not a numerical summary
 eligible for ranking. Reanalysis retains source hashes, raw records and all
 unavailable components; it does not manufacture richer engine output.
+
+## Reuse And Opt-In Invocation
+
+| Responsibility | Existing authority / new addition |
+|---|---|
+| Equity scope, daily closes, partial masks, immutable snapshots | `quantbt.metrics.reporting.inputs` |
+| Account return, CAGR, positive MDD, return-step PF | Existing `reduce_account`; unchanged MET contract |
+| Recorded net campaign PnL, costs and open/closed censoring | Existing `ledger_inputs` / `ledger.reduce_ledger` |
+| Original-frequency PSR, HAC, exact mass tails, moment intervals | Opt-in `tools.mode5_statistics`; no execution or ranking |
+| Campaign construction | Retained M5-02 independently reconciled position episodes; no new fill matcher |
+| Legacy scientific Sharpe and penalized scores | Original records; never inferred from a canonical daily report |
+
+From a research checkout, the caller supplies a qualified return series:
+
+```python
+from tools.mode5_statistics import classical_psr, moments, lower_tail
+
+observed = moments(daily_net_returns)  # Numba by default; backend="python" available
+psr = classical_psr(observed, reference_period=0.0)
+tail = lower_tail(environment_utilities, 0.25, weights=environment_weights)
+
+# Cold-path accounting adapters require explicit MET observations and policy.
+from tools.mode5_statistics.analysis import analyze_account, analyze_campaigns
+```
+
+These research helpers are not a new installed QuantBT endpoint or automatic
+Mode 5 recipe. Diagnostics never feed back into a live study in M5-03. The
+[phase report](M5_03_STATISTICS_REPORT.md) records exact policy and validation.

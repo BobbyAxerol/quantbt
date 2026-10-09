@@ -1,6 +1,6 @@
 # QuantBT Upgrade Implementation Plan
 
-## Current Mode 5 Diagnostics-First Upgrade - M5-02 Local Admission 2026-10-09
+## Current Mode 5 Diagnostics-First Upgrade - M5-03 Local Statistics 2026-10-09
 
 **Status:** M5-01 COMPLETE_LOCAL_BASELINE / EXIT_PASS_OWNER_DISPOSITION; 76 tests PASS,
 M5T-001..010 exercised, 427 protected hashes unchanged. M5-02
@@ -9,14 +9,21 @@ COMPLETE_LOCAL_ADMISSION under separate owner approval: 55 focused tests and
 actual bindings qualified, 435 protected hashes unchanged. Read the
 [M5-02 admission report](../docs/mode5/M5_02_ADMISSION_REPORT.md) and
 [source-bound seal](../docs/mode5/evidence/m5-02.json).
-M5-03 IN_PROGRESS under separate owner approval on 2026-10-09; M5-04..M5-12
+M5-03 COMPLETE_LOCAL_STATISTICS / TECHNICALLY_VALID under separate owner
+approval on 2026-10-09: 883 source tests PASS/no fail/skip (52 new tests included),
+25/25 guide math checks, frozen HAC calibration and five-alpha retained-path
+reanalysis PASS. All 765 protected hashes unchanged. Read the
+[M5-03 statistics report](../docs/mode5/M5_03_STATISTICS_REPORT.md),
+[dictionary](../docs/mode5/METRIC_CONTRACT_V1.md) and
+[seal](../docs/mode5/evidence/m5-03.json). Scientific status DESCRIPTIVE_ONLY;
+no objective/selector/financial source or installed extension changed. M5-04..M5-12
 NOT_STARTED / PENDING_PER_PHASE / NOT_RUN.
 Read the [M5-01 baseline report](../docs/mode5/M5_01_BASELINE_REPORT.md) and
 [reviewed-exit seal](../docs/mode5/evidence/m5-01-exit-review.json). The owner
 confirmed the detailed guide's reports came from the original ZIPs and accepts
 guide/hash-verified extracted inputs as baseline. Original ZIP files are not
 an M5-02 entry blocker; archive hashes are not claimed locally remeasured.
-No remaining M5-01 or registered M5-02 exit blocker. M5-02 qualified local
+No remaining registered M5-01..03 local exit blocker. M5-02 qualified local
 binding pilots and actual-engine synthetic tests, not methodology/default
 changes. Protection-dependent bindings are offline actual-feedback compilers,
 not new intrabar callbacks; RSI keeps its original legacy target-account scope.
@@ -26964,10 +26971,12 @@ and a reviewed completion report before its dependent phase can start.
 M5-01 local technical checks and reviewed exit pass after the owner's ZIP-guide
 clarification. M5-02 COMPLETE_LOCAL_ADMISSION after separate approval; its
 five registered bindings, source protection and focused tests pass. M5-03 is
-IN_PROGRESS after separate approval; M5-04..12 remain NOT_STARTED / NOT_RUN. Read the
+COMPLETE_LOCAL_STATISTICS / TECHNICALLY_VALID after separate approval; M5-04..12
+remain NOT_STARTED / NOT_RUN. Read the
 [M5-01 exit review](../docs/mode5/M5_01_EXIT_REVIEW.md) and
 [M5-02 admission report](../docs/mode5/M5_02_ADMISSION_REPORT.md) before further
-approval. Binding admission does not certify long-horizon economics.
+approval, plus the [M5-03 statistics report](../docs/mode5/M5_03_STATISTICS_REPORT.md).
+Binding admission and cached statistics do not certify long-horizon economics.
 
 **Authoritative detailed guide:**
 [QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md),
@@ -27194,7 +27203,7 @@ Every phase below inherits this mandatory resource registration/cleanup exit.
 |---|---|---|---|---|
 | [M5-01](#mode5-m5-01) | Baseline, source/errata, isolation and study freeze | Separate approval; actual inputs/access | M5T-001..010 | COMPLETE_LOCAL_BASELINE / EXIT_PASS_OWNER_DISPOSITION |
 | [M5-02](#mode5-m5-02) | Actual five-alpha execution admission | M5-01 reviewed exit | M5T-011..020 | COMPLETE_LOCAL_ADMISSION |
-| [M5-03](#mode5-m5-03) | Metric/PSR/HAC/tail units and oracles | M5-02 streams | M5T-021..030 | IN_PROGRESS |
+| [M5-03](#mode5-m5-03) | Metric/PSR/HAC/tail units and oracles | M5-02 streams | M5T-021..030 | COMPLETE_LOCAL_STATISTICS |
 | [M5-04](#mode5-m5-04) | Shared panel planning, reuse and evidence | M5-01..03 reviewed exits | M5T-031..040 | NOT_STARTED |
 | [M5-05](#mode5-m5-05) | Dual environments and chronological rights | M5-04 reviewed exit | M5T-041..050 | NOT_STARTED |
 | [M5-06](#mode5-m5-06) | Effective geometry and active probes | M5-03/04/05 reviewed exits | M5T-051..060 | NOT_STARTED |
@@ -27518,8 +27527,9 @@ and private report/resource/cleanup receipts.
 <a id="mode5-m5-03"></a>
 ### Phase M5-03 - Metric Units, PSR, Tail, Uncertainty And Independent Oracles
 
-**Status:** IN_PROGRESS; separate owner implementation approval 2026-10-09;
-gates NOT_RUN. No M5-04 or public methodology activation is authorized.
+**Status:** COMPLETE_LOCAL_STATISTICS / TECHNICALLY_VALID; separate owner
+implementation approval 2026-10-09; registered local gates PASS, owner review
+PENDING. Scientific DESCRIPTIVE_ONLY. No M5-04 or public activation authorized.
 **Goal:** produce statistics with correct inputs/units/support before selectors
    rank candidates; keep economic utility distinct from evidence probability.
 **Entry:** M5-02 qualified financial streams and separate phase approval.
@@ -27620,6 +27630,64 @@ reconciled supported panels, availability/moment-support report and resources.
   only historical PSR inputs remain typed unavailable/replay-required.
 - No push/CI/merge/tag/release/version change. Commit verified contract/oracle,
   opt-in tooling and source-bound report chunks; do not stage private alpha data.
+
+**Validation registration addendum - before follow-up regression:**
+- Preserve `regression-01`: 875 PASS, 2 missing-matplotlib failures and six
+  missing-QuantStats skips in the retained numeric tooling environment. These
+  are not passing tests or waived reporting requirements.
+- Use the already installed repository `.venv` for the complete follow-up
+  source reporting suite, including plots and pinned QuantStats 0.0.81. Record
+  interpreter/dependency/native origins before and after; source comes from
+  `src`. Do not install, upgrade, alter or delete either environment. Its older
+  native extension is not used as a new native or artifact certificate.
+- Keep this additional run sequential, one thread, the same owned scratch and
+  all 765 protected hashes. Benchmarks and five-alpha numerical reanalysis use
+  the originally registered tooling environment, not mixed dependency timing.
+- The zero-simulation registration means zero **private alpha/market** reruns;
+  the registered public synthetic actual-engine goldens do execute, as required
+  for M5T-024/026/027. Preserve this clarification alongside original receipts.
+- Preserve `regression-02`: 882 PASS, one W3 pair guard rejects the primary
+  environment's native 0.4.2 against source 1.1.2. Do not disable that guard or
+  mutate either environment. For complete regression, import numeric/core/native
+  modules first from the original tooling pair; append the existing primary
+  site-packages only as a missing optional plotting/QuantStats dependency source.
+  Check exact loaded origins/versions and hashes before/after. Matplotlib writes
+  only in the registered scratch via MPLCONFIGDIR; Agg is explicit. No dependency
+  installation or native substitution. Benchmarks retain the original lane.
+
+**Completion - 2026-10-09:**
+- M503.01..06 and M5T-021..030 implemented/verified in opt-in research tooling.
+  MET immutable account/ledger contracts reused; no new simulator/cache/selector.
+  Raw/account, closed campaigns and events remain separate. PSR/HAC/tails and
+  fixed-path block intervals expose units, support, assumptions and null reasons.
+- Final affected regression 883 PASS/no fail/skip, including 52 new cases,
+  existing MET/plots, pinned QuantStats, baseline and privacy/package canaries.
+  Complete guide 25/25 math probes and independent Decimal/Fraction/matrix
+  references PASS. Earlier harness/fixture/dependency/pair failures preserved.
+- HAC registered null coverage: IID .9609375 / variance ratio .9829856;
+  AR1 .9140625 / .7503466. Prespecified diagnostic gates PASS; AR1 undercoverage
+  remains visible, not a universal 95% or market calibration claim.
+- Five retained 2,184-bar / 91-day account paths reanalyzed without private
+  alpha/market simulations or optimizer trials. Annual Sharpe agrees with MET
+  within 3.553e-15; four campaign account/fee reconciliations within 3.275e-11 /
+  1.422e-14 USDT. Private numeric panels and all source/support records retained.
+- RSI campaign/cost additions UNAVAILABLE on original legacy output. Summary-
+  only Baseline/T1/T2 richer metrics REPLAY_REQUIRED; no invented moments or
+  silent replay. These approved availability dispositions are not completed
+  economic hypotheses; later work needs a registered scientific question.
+- Moments benchmark, 1M matched outputs: Numba p50/p95 21.435/21.741 ms;
+  NumPy reference p50 200.946 ms, Python 1,613.723 ms. Cold first moment call
+  686.342 ms, benchmark peak RSS 188.5 MiB. Not a WFO/native execution gain.
+  Five-row reanalysis 5.537 s / 271.977 MiB; warm account single observations
+  13.743-14.792 ms including uncertainty, cold first account 4.596 s.
+- All 765 protected hashes unchanged. Host-reviewed cleanup removes only
+  registered M5-03 scratch, preserving 52 evidence/harness hashes; immediate
+  free-space improvement 5.574 MiB. No install/build/environment deletion.
+  Read [cleanup](../docs/maintenance/M5_03_CLEANUP.md) and
+  [source-bound seal](../docs/mode5/evidence/m5-03.json).
+- No in-scope correctness blocker/debt; PSR is not selection-adjusted evidence,
+  91-day paths do not certify long-horizon economics, missing historical paths
+  remain explicit. M5-04 not started. No CI/push/merge/tag/version/publication.
 
 <a id="mode5-m5-04"></a>
 ### Phase M5-04 - Shared Diagnostic Planner, Cache Authorization And Evidence
