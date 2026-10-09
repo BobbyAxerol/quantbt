@@ -1,5 +1,6 @@
 """Dossier authority is advisory until separate whole-procedure qualification."""
 from dataclasses import asdict, dataclass
+from functools import cached_property
 
 from tools.mode5_diagnostics.access import AccessWitness
 from tools.mode5_diagnostics.identity import digest
@@ -34,7 +35,7 @@ class AdvisoryDossier:
         if not isinstance(self.witness, AccessWitness):
             raise TypeError("dossier readiness/access witness required")
 
-    @property
+    @cached_property
     def identity(self):
         return digest(asdict(self))
 

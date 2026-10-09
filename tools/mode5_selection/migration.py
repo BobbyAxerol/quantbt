@@ -1,5 +1,6 @@
 """Append-only objective versions; reanalysis never rewrites old study observations."""
 from dataclasses import asdict, dataclass
+from functools import cached_property
 import math
 
 from tools.mode5_diagnostics.identity import digest
@@ -30,7 +31,7 @@ class StageLedger:
         if len({o.candidate_id for o in self.observations}) != len(self.observations):
             raise ValueError("observations are append-only; no duplicate/update")
 
-    @property
+    @cached_property
     def identity(self):
         return digest(asdict(self))
 

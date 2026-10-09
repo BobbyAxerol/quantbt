@@ -1,6 +1,7 @@
 """Immutable research inputs; financial evidence and permissions stay external."""
 
 from dataclasses import asdict, dataclass
+from functools import cached_property
 import math
 from types import MappingProxyType
 
@@ -28,13 +29,16 @@ class Channel:
             raise ValueError("channel and unit are incompatible")
         nonempty(self.metric_contract)
 
-    @property
+    @cached_property
     def identity(self):
         return digest(asdict(self))
 
     def require(self, metric):
         if not isinstance(metric, MetricValue) or metric.unit != self.unit or metric.metric_id != self.metric_contract:
             raise ValueError("same metric contract/channel/unit required")
+        if any(not isinstance(key, str) or (value is not None and not isinstance(value, (str, int, float)))
+               for key, value in metric.components):
+            raise ValueError("metric components must be immutable scalar metadata")
         if self.name == "PSR_EVIDENCE_V1" and metric.value is not None and not 0 <= metric.value <= 1:
             raise ValueError("evidence probability outside [0,1]")
 
@@ -113,7 +117,7 @@ class Panel:
                 if analysis.normalization_reference != self.reference.identity:
                     raise ValueError("analysis reference differs from frozen panel")
 
-    @property
+    @cached_property
     def identity(self):
         return digest(asdict(self))
 
@@ -156,7 +160,7 @@ class Formula:
     def params(self):
         return dict(self.coefficients)
 
-    @property
+    @cached_property
     def identity(self):
         return digest({"registry": "mode5.formulas.v1", **asdict(self)})
 
@@ -215,7 +219,7 @@ class LocalEvidence:
                                           "SCHEMA_PLUS_REGULARIZED_COVARIANCE"}:
             raise ValueError("schema floor cannot be replaced by covariance-only probes")
 
-    @property
+    @cached_property
     def identity(self):
         return digest(asdict(self))
 
@@ -234,10 +238,12 @@ class SelectionPlan:
     local_reference_id: str | None = None
     local_reference_scale: float | None = None
     pareto_preference_identity: str | None = None
+    access_identity: str | None = None
 
     def __post_init__(self):
         for name in ("plan_id", "context_id", "stage_id", "reference_identity"):
             nonempty(getattr(self, name))
+        nonempty(self.access_identity)
         allowed = {"full_dro_cvar": {"environment", "unified"}, "full_sam_basin": {"local"},
                    "full_pareto_chebyshev": {"pareto"}, "full_alpha_adaptive_invariant":
                    {"environment", "unified", "local", "pareto"}}
@@ -262,13 +268,13 @@ class SelectionPlan:
         elif self.pareto_preference_identity is not None:
             raise ValueError("Pareto preferences only belong to the vector family")
 
-    @property
+    @cached_property
     def identity(self):
         return digest(asdict(self))
 
     def require(self, panel):
         if (panel.context_id != self.context_id or panel.channel != self.formula.channel
-                or panel.reference.identity != self.reference_identity):
+                or panel.reference.identity != self.reference_identity or panel.access.identity != self.access_identity):
             raise ValueError("frozen plan context/channel/reference mismatch; create a revision")
         if self.incumbent_id is not None and self.incumbent_id not in {c.candidate_id for c in panel.candidates}:
             raise ValueError("incumbent must receive the same actual panel evaluation")
@@ -283,7 +289,7 @@ class Decision:
         import json
         return json.loads(self.metadata_json)
 
-    @property
+    @cached_property
     def identity(self):
         return digest(self.metadata)
 
@@ -297,6 +303,14 @@ def decision(panel, plan, metadata, *, local_refs=(), preference_ref="none"):
     return Decision(canonical(dict(schema="mode5.selection_decision.v1", selection_key=key.identity,
         panel_identity=panel.identity, plan_identity=plan.identity, formula_version=plan.formula.version,
         formula_identity=plan.formula.identity, reference_identity=panel.reference.identity,
+        formula_coefficients=plan.formula.coefficients, reference=asdict(panel.reference),
+        access_policy_identity=panel.access.identity, access_cutoff_ns=panel.access.cutoff_ns,
+        evidence_refs=tuple(dict(candidate_id=c.candidate_id, analysis_ids=tuple(a.identity for a in c.analyses),
+            witness_ids=tuple(w.identity for w in c.witnesses), gate_ref=c.gate_ref,
+            environment_values=tuple(m.value for m in c.metrics),
+            environment_statuses=tuple(m.status for m in c.metrics),
+            environment_null_reasons=tuple(m.reason for m in c.metrics),
+            environment_sample_counts=tuple(m.sample_count for m in c.metrics)) for c in panel.candidates),
         channel=asdict(panel.channel), stage_id=plan.stage_id, requested_selector=plan.requested_selector,
         candidate_generation=panel.generation, generation_evidence=panel.generation_evidence,
         tie_break=plan.tie_break, edge_claim="NOT_ASSESSED", deployment_authorized=False, **metadata)))

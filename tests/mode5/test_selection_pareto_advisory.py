@@ -190,3 +190,46 @@ def test_decision_pickle_components_and_source_inputs_immutable():
         assert copy.identity == d.identity
         copy.metadata["chosen_candidate"] = "fake"
         assert copy.identity == d.identity
+
+
+def test_fingerprint_reuse_all_slots_byte_identical_to_uncached_reference(monkeypatch):
+    from tools.mode5_selection.contracts import Channel, Decision, Formula, LocalEvidence, Panel, SelectionPlan
+    from tools.mode5_selection.migration import StageLedger
+    from tools.mode5_statistics.tails import FrozenReference
+    from tests.mode5.test_selection_objectives import local
+    p = panel()
+    q = plan(p)
+    ls = tuple(local(p, c, (.1, .2)) for c in p.candidates)
+    lp = local_plan(p)
+    pp = preference(p)
+    pq = pareto_plan(p, pp)
+    aq = replace(q, requested_selector="full_alpha_adaptive_invariant")
+    record = dossier(p, aq)
+    functions = (lambda: select(p, q), lambda: select(p, lp, local_evidence=ls),
+        lambda: select(p, pq, pareto_preference=pp), lambda: select(p, aq, dossier=record,
+            researcher_choice="full_dro_cvar", override_reason="fixed comparison"))
+    before = tuple((f().metadata_json, f().identity) for f in functions)
+    with monkeypatch.context() as patch:
+        for cls in (Channel, Decision, Formula, LocalEvidence, Panel, SelectionPlan,
+                    StageLedger, AdvisoryDossier, ParetoPreference, FrozenReference):
+            patch.setattr(cls, "identity", property(cls.__dict__["identity"].func))
+        after = tuple((f().metadata_json, f().identity) for f in functions)
+    assert before == after
+
+
+@pytest.mark.parametrize("resolved", ["full_sam_basin", "full_pareto_chebyshev"])
+def test_adaptive_resolves_other_explicit_qualified_slots(resolved):
+    from tests.mode5.test_selection_objectives import local
+    p = panel()
+    pref = preference(p)
+    ls = tuple(local(p, c, (.1, .2)) for c in p.candidates)
+    q = local_plan(p) if resolved == "full_sam_basin" else pareto_plan(p, pref)
+    aq = replace(q, requested_selector="full_alpha_adaptive_invariant")
+    record = dossier(p, aq, recipes=[(resolved, q.formula.identity)])
+    kwargs = dict(local_evidence=ls) if resolved == "full_sam_basin" else dict(pareto_preference=pref)
+    a = select(p, q, **kwargs).metadata
+    b = select(p, aq, dossier=record, researcher_choice=resolved, override_reason="predeclared choice", **kwargs).metadata
+    assert a["chosen_candidate"] == b["chosen_candidate"]
+    assert a["plan_identity"] != b["plan_identity"]
+    for x, y in zip(a["component_rows"], b["component_rows"], strict=True):
+        assert {k: v for k, v in x.items() if k != "plan_identity"} == {k: v for k, v in y.items() if k != "plan_identity"}

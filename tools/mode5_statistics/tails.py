@@ -1,6 +1,7 @@
 """Exact discrete mass tails and immutable finite-panel reference components."""
 
 from dataclasses import dataclass
+from functools import cached_property
 import math
 
 import numpy as np
@@ -124,7 +125,7 @@ class FrozenReference:
             raise ValueError("reference values must cover the exact environment roster")
         _distribution(self.values, self.weights)
 
-    @property
+    @cached_property
     def identity(self):
         return canonical_digest(dict(reference_id=self.reference_id, environment_ids=self.environment_ids,
             values=self.values, weights=self.weights, channel=self.channel, revision=self.revision,

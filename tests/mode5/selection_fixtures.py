@@ -27,4 +27,4 @@ def panel(rows=((.1, .2), (.2, .1)), *, channel=None, weights=None, benchmark=No
 def plan(p, version="environment_floor_mean_v1", coefficients=(("mean", .25),),
          selector="full_dro_cvar", **kwargs):
     return SelectionPlan("synthetic-plan", p.context_id, "stage-1", Formula(version, p.channel, coefficients),
-                         p.reference.identity, selector, 0., **kwargs)
+                         p.reference.identity, selector, 0., access_identity=p.access.identity, **kwargs)

@@ -1,5 +1,6 @@
 """Finite-panel Pareto and fixed-preference compromise, not an evolutionary search."""
 from dataclasses import asdict, dataclass
+from functools import cached_property
 import math
 
 import numpy as np
@@ -34,7 +35,7 @@ class ParetoPreference:
         if self.extrapolation not in {"allow_and_report_v1", "reject_v1"} or self.zero_range != "non_discriminative_v1":
             raise ValueError("explicit extrapolation/zero-range policy required")
 
-    @property
+    @cached_property
     def identity(self):
         return digest({"schema": "mode5.pareto_preferences.v1", **asdict(self)})
 

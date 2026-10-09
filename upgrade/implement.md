@@ -28113,6 +28113,11 @@ and held-probe ledgers, basin catalog, uncertainty and resource/cleanup report.
    Benchmark 25 repeats on fixed synthetic panels, cold-path cost only; no
    market-superiority or WFO/kernel-speedup claim. Host process review and exact
    scratch cleanup with protected-input/current-source hash checks are exit gates.
+   Measured in-phase micro-optimization: reuse fingerprints only on immutable
+   typed snapshots/reference records; no new cache service or skipped access
+   checks. Cached/uncached runs use the same frozen contract and must match
+   all decision bytes/hashes. The selection plan explicitly binds access scope,
+   and mutable nested metric components are rejected before fingerprint reuse.
 **Goal:** make all three objective families and four selector slots deterministic,
    mathematically named and unit-correct before recipe experiments use them.
 **Entry:** M5-03..06 reviewed exits and separate phase approval.

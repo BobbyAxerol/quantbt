@@ -104,3 +104,47 @@ def test_registry_is_versioned_and_caller_mutation_cannot_change_rules():
     assert formula_registry() == before
     with pytest.raises(TypeError):
         FORMULAS["other"] = ("local", ())
+
+
+def test_fingerprint_reuse_survives_copy_but_replace_invalidates():
+    p = panel()
+    q = plan(p)
+    before = p.identity, q.identity, q.formula.identity, p.reference.identity
+    for obj in (p, q, q.formula, p.reference):
+        assert "identity" in obj.__dict__
+        for copy in (deepcopy(obj), pickle.loads(pickle.dumps(obj))):
+            assert copy.identity == obj.identity
+    assert replace(p, revision="new").identity != before[0]
+    assert replace(q, stage_id="new-stage").identity != before[1]
+    assert replace(q.formula, coefficients=(("mean", .5),)).identity != before[2]
+    assert replace(p.reference, values=(.9, .9)).identity != before[3]
+
+
+def test_plan_permission_cannot_be_rebound_to_later_cutoff():
+    p = panel()
+    q = plan(p)
+    future = replace(p, access=replace(p.access, cutoff_ns=20))
+    with pytest.raises(ValueError, match="frozen"):
+        q.require(future)
+    assert plan(future).identity != q.identity
+
+
+def test_mutable_metric_components_rejected_before_fingerprint_reuse():
+    p = panel()
+    c = p.candidates[0]
+    injected = replace(c.metrics[0], components=(("mutable", {"value": 1}),))
+    with pytest.raises(ValueError, match="immutable scalar"):
+        replace(p, candidates=(replace(c, metrics=(injected, c.metrics[1])),))
+
+
+def test_decision_exposes_reference_units_inputs_and_null_reasons():
+    from tools.mode5_selection import select
+    p = panel(((None, .2), (.1, .2)))
+    d = select(p, plan(p)).metadata
+    assert d["reference"]["environment_ids"] == ["e0", "e1"]
+    assert d["formula_coefficients"] == [["mean", .25]]
+    assert d["evidence_refs"][0]["environment_values"] == [None, .2]
+    assert d["evidence_refs"][0]["environment_null_reasons"][0] == "missing environment"
+    assert d["evidence_refs"][0]["environment_sample_counts"] == [100, 100]
+    assert d["channel"]["unit"] == "decimal_return"
+    assert d["access_cutoff_ns"] == 10
