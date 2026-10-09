@@ -247,3 +247,19 @@ def test_never_selected_centroid_without_actual_evaluation():
     p = panel(((.1, .1), (.9, .9)))
     p = replace(p, candidates=(p.candidates[0], replace(p.candidates[1], evaluated=False, representative_kind="centroid")))
     assert select(p, plan(p)).metadata["chosen_candidate"] == "c0"
+
+
+def test_large_finite_weight_scaling_preserves_tail_and_components():
+    coefficients = (("floor", 1.), ("tail", .5), ("dispersion", .2), ("alpha", .25))
+    a = panel(((.1, .2),), weights=[1., 1.])
+    b = panel(((.1, .2),), weights=[1e308, 1e308])
+    x = evaluate(a, plan(a, "environment_lower_tail_v2", coefficients))[0]
+    y = evaluate(b, plan(b, "environment_lower_tail_v2", coefficients))[0]
+    assert y["eligible"] and x["score"] == y["score"]
+    assert x["components"] == y["components"]
+
+
+def test_signed_drawdown_cannot_enter_new_economic_utility():
+    values = [MetricValue("mode5.test", "decimal_return", 100, v) for v in (.12, -.1, .02)]
+    with pytest.raises(ValueError, match="positive magnitude"):
+        economic_utility(*values, dd_weight=.5, tail_weight=2., preference_id="dev-v1")

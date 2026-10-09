@@ -17,6 +17,8 @@ def economic_utility(net_return, drawdown, daily_loss_es, *, dd_weight, tail_wei
     if any(m.status != "VALID" for m in metrics):
         return MetricValue("mode5.utility.net_v1", "decimal_return", net_return.sample_count,
                            status="UNDEFINED", reason="economic input unavailable")
+    if drawdown.value < 0:
+        raise ValueError("canonical drawdown is a positive magnitude, not signed legacy drawdown")
     value = net_return.value-dd_weight*drawdown.value-tail_weight*daily_loss_es.value
     if not math.isfinite(value):
         return MetricValue("mode5.utility.net_v1", "decimal_return", net_return.sample_count,
@@ -124,8 +126,9 @@ def evaluate(panel, plan, *, local_evidence=()):
                         tail = tail_result.value
                         parts["tail_definition"] = "lower_environment_utility_tail"
                     parts["tail"] = tail
-                    minimum_mass = math.fsum(w for x, w in zip(values, panel.reference.weights, strict=True)
-                                             if x == parts["floor"])/math.fsum(panel.reference.weights)
+                    relative_weights = np.asarray(panel.reference.weights)/max(panel.reference.weights)
+                    minimum_mass = math.fsum(w for x, w in zip(values, relative_weights, strict=True)
+                                             if x == parts["floor"])/math.fsum(relative_weights)
                     parts["floor_tail_redundancy"] = version == "environment_lower_tail_v2" and p["alpha"] <= minimum_mass
                     score = p["floor"]*parts["floor"]+p["tail"]*tail-p["dispersion"]*parts["mad"]-c.activity_penalty
                 elif probes is not None:
