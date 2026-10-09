@@ -27352,7 +27352,7 @@ before the owner's ZIP-guide clarification:**
 <a id="mode5-m5-02"></a>
 ### Phase M5-02 - Five-Alpha Economic Admission And Actual QuantBT Routes
 
-**Status:** NOT_STARTED; owner implementation approval PENDING; gates NOT_RUN.
+**Status:** IN_PROGRESS; owner implementation approval 2026-10-09; gates NOT_RUN.
 **Goal:** measure the actual strategies under qualified execution/accounting,
 not a fast approximation or a strategy name used as an economics certificate.
 **Entry:** M5-01 reviewed exit, registered contracts and separate phase approval.
@@ -27406,6 +27406,31 @@ and private report/resource/cleanup receipts.
    synthetic tests separately; admission report with privacy-safe tracked output.
 **Rollback:** disable the new binding version; originals and existing core stay
    intact. Repairs remain distinguishable from methodology improvements.
+
+**Execution registration - 2026-10-09, before tests:**
+- Branch `feat/mode5-diagnostics-first`; M5-01 owner-reviewed exit accepted.
+  Do not reopen the missing-original-ZIP disposition or alter sealed receipts.
+- Reuse `.maturin/qms08/release-regression-v1/bin/python`, source core 1.1.2
+  and installed native 0.4.3. No rebuild, dependency upgrade, release or push.
+- Filesystem preflight: approximately 25 GiB free, 5.60 million free inodes;
+  incremental budget <=256 MiB with >=5 GiB reserve. Single-thread numeric
+  libraries. Scratch only `.maturin/mode5-m502/jit`; retain all input copies,
+  registrations, failed/passing logs and receipts under ignored
+  `upgrade/local/mode5_upgrade_v1/m5-02` and
+  `upgrade/private/mode5_upgrade_v1/m5-02`. Cleanup must verify original hashes.
+- Cache-first ETHUSDT 1h development binding pilot, fixed calendar shared by
+  candidates and sufficient causal preload for HTF readiness. One prespecified
+  configuration per alpha; no optimizer, seed/range search or profitability
+  gate. A no-fill pilot cannot certify exercised execution. Register exact
+  dates, parameters and data hashes privately before computing results.
+- Default core/alpha originals remain protected. Existing generic callbacks
+  observe fills at bar close, not inside matching. Same-bar actual-fill-based
+  protection requires an explicitly approved shared hook or a blocked route;
+  no guessed fills, hidden one-bar delay, one-TP ladder or close/open proxy.
+  A separate owner question requests approval for that opt-in boundary repair.
+- Public changes contain only general contracts, synthetic fixtures and safe
+  reports. Private strategy logic/parameters never enter Git/package artifacts.
+  M5-03 and later phases remain unstarted.
 
 <a id="mode5-m5-03"></a>
 ### Phase M5-03 - Metric Units, PSR, Tail, Uncertainty And Independent Oracles
