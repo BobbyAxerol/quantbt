@@ -28,6 +28,8 @@ Five qualified forward baselines are reused by exact identity. Actual fills,
 campaigns and fees are reconciled where the admitted route supplies them.
 The legacy scalar route has no separate accepted-fill/campaign/cost ledger;
 unavailable fields stay unavailable, not inferred from signal transitions.
+The scalar and event routes retain their admitted fee/sizing contracts. Comparisons
+are matched within an alpha, not a cross-alpha ranking under identical economics.
 
 ## Registered Work
 
