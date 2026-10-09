@@ -1,6 +1,6 @@
 # QuantBT Upgrade Implementation Plan
 
-## Current Mode 5 Diagnostics-First Upgrade - M5-07 Objectives 2026-10-09
+## Current Mode 5 Diagnostics-First Upgrade - M5-08 Batteries 2026-10-09
 
 **Status:** M5-01 COMPLETE_LOCAL_BASELINE / EXIT_PASS_OWNER_DISPOSITION; 76 tests PASS,
 M5T-001..010 exercised, 427 protected hashes unchanged. M5-02
@@ -51,8 +51,9 @@ this is not WFO/kernel or market-performance promotion. Accounting/core source
 unchanged; 1,359 protected hashes and 21 current source hashes verified; cleanup
 PASS. Read the [M5-07 report](../docs/mode5/M5_07_SELECTION_REPORT.md),
 [contract](../docs/mode5/SELECTION_CONTRACT_V1.md) and
-[seal](../docs/mode5/evidence/m5-07.json). M5-08..M5-12 remain NOT_STARTED /
-NOT_RUN. Neutral coverage
+[seal](../docs/mode5/evidence/m5-07.json). M5-08 is IN_PROGRESS under separate
+owner implementation approval; its preregistered diagnostic scope is below.
+M5-09..M5-12 remain NOT_STARTED / NOT_RUN. Neutral coverage
 and unexecuted held directions are not full-space or independent-OOS proof.
 Read the [M5-01 baseline report](../docs/mode5/M5_01_BASELINE_REPORT.md) and
 [reviewed-exit seal](../docs/mode5/evidence/m5-01-exit-review.json). The owner
@@ -28220,7 +28221,8 @@ legacy migration/replay cases, oracle/differential evidence and resource report.
 <a id="mode5-m5-08"></a>
 ### Phase M5-08 - Five Empirical Batteries And Targeted Five-Alpha Verification
 
-**Status:** NOT_STARTED; owner implementation approval PENDING; gates NOT_RUN.
+**Status:** IN_PROGRESS; separate owner implementation approval 2026-10-09;
+technical/economic gates NOT_RUN. No formal calibration or public activation.
 **Goal:** obtain measured evidence capable of supporting or rejecting research
    hypotheses, without brute-force reruns or strategy-family winner rules.
 **Entry:** M5-07 reviewed exit, qualified panels/routes, support/budget roster
@@ -28274,6 +28276,60 @@ targeted probes/sampler ledgers, hypothesis outcomes, compute bill and cleanup.
    reduction chunks; private hypothesis reports and reviewed safe public summary.
 **Rollback:** do not promote failing recipes; preserve negative results and
    previous implementations while correcting actual technical defects separately.
+
+**Registered M5-08 execution tranche - 2026-10-09:**
+
+- Read the linked work packages, 4.9, Chapter 7, M5T-071..080, Appendix D,
+  economic-support/privacy rules and cleanup runbook before execution. Reuse
+  M5-02 actual bindings, M5-03 statistics, M5-04 evidence/rights, M5-05 calendar,
+  M5-06 geometry and M5-07 canonical selectors. No financial/source alpha patch.
+- Two predeclared ETHUSDT 1h development intervals: 2023-10-01 inclusive to
+  2023-12-31 exclusive, and 2024-01-01 inclusive to 2024-04-01 exclusive;
+  91 complete UTC days / 2,184 bars each, with at least one year preload.
+  The omitted 2023-12-31 day is a disclosed calendar gap between independent
+  reset accounts, not continuous carry or a fabricated stitched return.
+  Historical BTC bundle evidence and new ETH diagnostics stay distinct.
+- All five private alphas: baseline plus two signed selection directions and
+  two distinct held directions selected by effective schema before results.
+  Common candidate/environment panels feed selector-only and fixed-panel
+  leave-out comparisons. Sparse covariance keeps the registered schema floor;
+  unexecuted dimensions stay uncovered. Retain all failed/clipped/duplicate rows.
+- HMA: replay the original QMC/T1 winner and first two distinct T2 configurations
+  in source order, each with signed local probes on the same two intervals.
+  These are post-selected diagnostics, not unbiased sampler samples.
+- Sampler-only extension on RSI: existing TPE legacy, multivariate/group TPE,
+  scrambled Sobol and CMA-ES factory; seeds 731/1731, eight proposals per recipe,
+  two static active numeric axes, same train objective and forward replay of
+  every proposed candidate. Record startup/fallback/duplicates and actual work;
+  proposal budget is not an assertion of equal unique work or aligned RNG.
+- At most 128 new cells for the four supplied alphas; at most 160 RSI cells
+  including the sampler extension. Cache exact authorized cells first; no
+  replacement seeds/windows or blanket Baseline/T1/T2 sweeps. An actual cell
+  may need multiple unchanged feedback-account passes; count all visited bars.
+- Risk match uses a preregistered 0.5% target daily train volatility, scale cap
+  one, and actual forward resimulation with the frozen train scale. Double-fee
+  stresses use actual account execution, not edits to historical fills.
+- Technical mechanics support reports actual fills/campaigns and preserves valid
+  no-trade outcomes. Broad temporal confirmation additionally requires at least
+  four origins, 365 train / 180 forward days per origin, 50 closed campaigns
+  and 100 actual fills where those ledgers exist; no short tranche may certify
+  that claim. Missing RSI legacy fill/cost ledgers remain unavailable, not inferred
+  from signal transitions. Fixed-path uncertainty: seven-day circular blocks,
+  256 draws, seed 731, 95%; two sampler seeds are not universal superiority.
+- Positive/null/all-bad worlds run through actual QuantBT; common-cohort/target,
+  name permutation, reference/role/maturity and post-result revision tests
+  cannot be replaced by test-count claims. End-to-end auto-advisory remains
+  unqualified pending M5-09/11; all B1..B5/EH-01..10 statuses must be explicit.
+- Reuse the existing controlled tooling environment; one worker and one numeric
+  thread. New retained/local lanes: `upgrade/private/mode5_upgrade_v1/m5-08/attempt-01`
+  and `upgrade/local/mode5_upgrade_v1/m5-08/attempt-01`; exact disposable scratch
+  `.maturin/mode5-m508/attempt-01`. Incremental disk cap 512 MiB plus 5 GiB reserve,
+  RSS cap 2 GiB; 15-minute per-cell scheduling timeout, with failures retained.
+  Register source/native hashes and all cells before execution; preserve prior
+  receipts and perform host process/FD review before exact scratch cleanup.
+- Owner disposition requested for diagnostic-only scientific insufficiency;
+  implementation proceeds locally, but inadequate economics cannot be relabelled
+  PASS. No M5-09, build, CI, push, merge, tag, version or release action authorized.
 
 <a id="mode5-m5-09"></a>
 ### Phase M5-09 - Diagnostic Dossier, Advisory Governance And Calibration Seal
