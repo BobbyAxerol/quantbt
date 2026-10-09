@@ -27017,8 +27017,9 @@ the [M5-05 report](../docs/mode5/M5_05_ENVIRONMENT_REPORT.md) and
 COMPLETE_LOCAL_GEOMETRY / TECHNICALLY_VALID and M5-07 is
 COMPLETE_LOCAL_OBJECTIVES / MATHEMATICAL_ONLY; read their
 [geometry report](../docs/mode5/M5_06_GEOMETRY_REPORT.md) and
-[selection report](../docs/mode5/M5_07_SELECTION_REPORT.md). M5-08..12 remain
-NOT_STARTED / NOT_RUN. Read the
+[selection report](../docs/mode5/M5_07_SELECTION_REPORT.md). M5-08 is IN_PROGRESS
+under approved targeted-diagnostic scope; M5-09..12 remain NOT_STARTED / NOT_RUN.
+Read the
 [M5-01 exit review](../docs/mode5/M5_01_EXIT_REVIEW.md) and
 [M5-02 admission report](../docs/mode5/M5_02_ADMISSION_REPORT.md) before further
 approval, plus the [M5-03 statistics report](../docs/mode5/M5_03_STATISTICS_REPORT.md).
@@ -27254,7 +27255,7 @@ Every phase below inherits this mandatory resource registration/cleanup exit.
 | [M5-05](#mode5-m5-05) | Dual environments and chronological rights | M5-04 reviewed exit | M5T-041..050 | COMPLETE_LOCAL_ENVIRONMENTS |
 | [M5-06](#mode5-m5-06) | Effective geometry and active probes | M5-03/04/05 reviewed exits | M5T-051..060 | COMPLETE_LOCAL_GEOMETRY |
 | [M5-07](#mode5-m5-07) | Three objective families/four selectors | M5-03..06 reviewed exits | M5T-061..070 | COMPLETE_LOCAL_OBJECTIVES |
-| [M5-08](#mode5-m5-08) | Five empirical batteries/five-alpha review | M5-07 and valid panels/routes | M5T-071..080 | NOT_STARTED |
+| [M5-08](#mode5-m5-08) | Five empirical batteries/five-alpha review | M5-07 and valid panels/routes | M5T-071..080 | IN_PROGRESS |
 | [M5-09](#mode5-m5-09) | Dossier, advisory and sealed plan | M5-08 reviewed exit | M5T-081..090 | NOT_STARTED |
 | [M5-10](#mode5-m5-10) | Public opt-in integration/runtime reuse | M5-09 plus current source map | M5T-091..100 | NOT_STARTED |
 | [M5-11](#mode5-m5-11) | Formal calibration and scoped economics | M5-10 plus authorized adequate data | M5T-101..110 | NOT_STARTED |
@@ -28348,6 +28349,15 @@ targeted probes/sampler ledgers, hypothesis outcomes, compute bill and cleanup.
   per-environment leave-out eligibility fix: 40 PASS. Five-alpha read-only actual
   ledger/campaign/exposure pilot PASS with zero additional financial calls.
   Financial, sampler, stress and final analysis gates remain in progress.
+- Latest additive verification: 44 focused battery tests PASS, including actual
+  shared-factory proposal/RNG parity for all four recipes; 1,242 related
+  regression tests PASS, no fail/skip. Secret scan and current documentation
+  link gate PASS. Exact baseline reuse is additionally checked against admitted
+  historical status, effective params, original arrays and the scored calendar.
+- Registered signed-axis probes are deterministic; their design seed labels are
+  not random draws or stochastic repetitions. Only the sampler extension
+  actually runs two candidate-generation seeds. Full geometry/long transfer
+  and whole-procedure selection uncertainty remain outside this tranche.
 
 <a id="mode5-m5-09"></a>
 ### Phase M5-09 - Diagnostic Dossier, Advisory Governance And Calibration Seal
