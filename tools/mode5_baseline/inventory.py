@@ -31,6 +31,24 @@ BINDINGS = (
     ("native_evaluation", "backends/native_prepared_evaluation.py", "NativePreparedEvaluationRuntimeV1", "tests/test_phase73_prepared_evaluation.py"),
 )
 
+CONSUMERS = {
+    "public_route": "tests/test_phase49a_walkforward_schedules.py",
+    "configuration": "src/quantbt/endpoint.py",
+    "legacy_selection": "src/quantbt/walkforward.py",
+    "legacy_plateau": "src/quantbt/walkforward.py",
+    "shared_schema": "src/quantbt/optimization/wfo_study.py",
+    "sampler_factory": "src/quantbt/optimization/wfo_study.py",
+    "sampler_observer": "src/quantbt/optimization/wfo_study.py",
+    "prepared_context": "src/quantbt/walkforward.py",
+    "domain_evaluator": "src/quantbt/optimization/meta_selection/domains/scalar.py",
+    "metric_contract": "src/quantbt/optimization/meta_selection/observer.py",
+    "report_contract": "src/quantbt/metrics/reporting/request.py",
+    "output_retention": "src/quantbt/planning/resolve.py",
+    "trial_records": "src/quantbt/optimization/optimizer.py",
+    "causal_history": "src/quantbt/optimization/meta_selection/config.py",
+    "native_evaluation": "src/quantbt/backends/native_wfo_public.py",
+}
+
 NEW_SELECTORS = ("full_dro_cvar", "full_sam_basin", "full_pareto_chebyshev",
                  "full_alpha_adaptive_invariant")
 
@@ -55,10 +73,21 @@ def binding_map(repo: Path) -> dict:
         line = source_symbols(path).get(symbol)
         if line is None:
             raise ValueError(f"unresolved source symbol: {relative}:{symbol}")
+        consumer_path = repo / CONSUMERS[responsibility]
+        reference = symbol.rsplit(".", 1)[-1]
+        nodes = [node for node in ast.walk(ast.parse(consumer_path.read_text()))
+                 if (isinstance(node, ast.Name) and node.id == reference)
+                 or (isinstance(node, ast.Attribute) and node.attr == reference)]
+        if not nodes:
+            raise ValueError(f"unresolved actual consumer reference: {responsibility}")
+        consumer = {"source": CONSUMERS[responsibility], "reference": reference,
+                    "reference_lines": sorted({node.lineno for node in nodes}),
+                    "sha256": file_identity(consumer_path)["sha256"],
+                    "proof": "AST_REFERENCE_ONLY_NOT_EXECUTION_CERTIFICATE"}
         rows.append({"responsibility": responsibility, "source": f"src/quantbt/{relative}",
                      "symbol": symbol, "line": line, "sha256": file_identity(path)["sha256"],
                      "test": test, "test_present": (repo / test).is_file(),
-                     "consumer": "Mode5 research layer via existing shared contract",
+                     "consumer": consumer,
                      "disposition": "REUSE_EXISTING_NO_DUPLICATE",
                      "runtime_qualification": "NOT_RUN_IN_M5_01"})
     if not all(row["test_present"] for row in rows):

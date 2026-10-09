@@ -248,6 +248,8 @@ def test_m5t_010_existing_bindings_and_future_selectors_not_fictional_apis():
     result = binding_map(ROOT)
     assert len(result["bindings"]) == 15
     assert all(row["line"] and row["test_present"] for row in result["bindings"])
+    assert all(row["consumer"]["reference_lines"] and len(row["consumer"]["sha256"]) == 64
+               for row in result["bindings"])
     for selector in NEW_SELECTORS:
         with pytest.raises(ValueError):
             WalkForwardConfig(optimization_mode="mode_5_full_robust", candidate_selection_metric=selector)
