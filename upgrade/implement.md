@@ -27853,7 +27853,18 @@ decisions/access logs, recovery instructions and matched cold/warm cost report.
 <a id="mode5-m5-05"></a>
 ### Phase M5-05 - Dual Environments, Calendar Attribution And Causal Rights
 
-**Status:** NOT_STARTED; owner implementation approval PENDING; gates NOT_RUN.
+**Status:** IN_PROGRESS; owner implementation approval 2026-10-09; gates NOT_RUN.
+**Registered local execution:** `m5-05/attempt-01` in ignored private/local
+research lanes; 256 MiB incremental disk budget, >=5 GiB reserve, one worker
+and one numeric thread. Reuse current qualified tooling; no builds/installs,
+private-alpha simulations, optimization, source-kernel/endpoint changes or
+release activity. Protect original alphas, guide, market, prior receipts and
+financial/statistical/cache source. Acceptance M5T-041..050 plus scoped
+regression; actual synthetic QuantBT execution and five retained alpha paths.
+Exact disposable scratch: `.maturin/mode5-m505/attempt-01`; retain passing and
+failed receipts, manifests, access logs, matrices and editable harness. A thin
+train-only adapter binds reviewed existing feature providers, not a new regime
+model project. Economic status remains DESCRIPTIVE_ONLY; no forward-benefit claim.
 **Goal:** compare historical anchors and endogenous states without synthetic
    price paths, fake OOS, warmup bias or double-counted market evidence.
 **Entry:** M5-04 reviewed exit and separate phase approval.
