@@ -84,14 +84,34 @@ class HypothesisLedger:
         object.__setattr__(self,"entries",tuple(self.entries))
         if not isinstance(self.scope,ComparisonScope) or any(not isinstance(e,str) for e in self.entries):
             raise ValueError("typed scope and immutable canonical entries required")
+        states = {}
         for entry in self.entries:
             row = json.loads(entry)
             if canonical(row)!=entry or row.get("scope")!=self.scope.identity:
                 raise ValueError("ledger entries bind exact scope/revision")
+            hypothesis = row.get("hypothesis_id")
+            if not isinstance(hypothesis,str) or not hypothesis:
+                raise ValueError("hypothesis identity required")
+            state = row.get("state")
+            if state=="REGISTERED":
+                if hypothesis in states or not row.get("witness") or not row.get("recipes"):
+                    raise ValueError("unique prior registration required")
+                if any(not isinstance(v,str) or not v for v in row["recipes"]) or len(set(row["recipes"]))!=len(row["recipes"]):
+                    raise ValueError("distinct recipe identities required")
+            elif state=="OBSERVED":
+                if states.get(hypothesis)!="REGISTERED" or not row.get("evidence_refs") or row.get("outcome") not in {
+                        "POSITIVE_WITHIN_SCOPE","NEGATIVE_WITHIN_SCOPE","INCONCLUSIVE","NOT_EVALUABLE"}:
+                    raise ValueError("registered-before-observed chronology required")
+                if any(not isinstance(v,str) or not v for v in row["evidence_refs"]):
+                    raise ValueError("retained evidence identities required")
+            else:
+                raise ValueError("unknown hypothesis state")
+            states[hypothesis]=state
 
     def register(self, hypothesis_id, recipes, witness):
         self.scope.access.require(witness)
-        if not hypothesis_id or not recipes or len(set(recipes)) != len(recipes):
+        if (not isinstance(hypothesis_id,str) or not hypothesis_id or not recipes or
+                any(not isinstance(r,str) or not r for r in recipes) or len(set(recipes)) != len(recipes)):
             raise ValueError("explicit unique comparison recipes required")
         if any(json.loads(e)["hypothesis_id"]==hypothesis_id for e in self.entries):
             raise ValueError("new recipe/radius/window requires a new hypothesis revision")

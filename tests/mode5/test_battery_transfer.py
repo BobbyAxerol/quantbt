@@ -24,7 +24,7 @@ def test_m5t_075_frozen_train_scale_requires_actual_forward_resimulation():
                             target_volatility=.005,scale_cap=1.)
 
 
-@pytest.mark.parametrize("returns",[np.zeros(91),np.array([.1]*2),np.full(91,np.nan)])
+@pytest.mark.parametrize("returns",[np.zeros(91),np.full(91,.1),np.array([.1]*2),np.full(91,np.nan)])
 def test_risk_scale_undefined_train_is_not_silently_favorable(returns):
     w=AccessWitness("train","development",0,100,100)
     with pytest.raises(ValueError):
@@ -64,3 +64,22 @@ def test_bankruptcy_and_mismatched_calendar_fail_closed():
         paired_transfer(x,x,x,np.r_[-1.,x[1:]])
     with pytest.raises(ValueError,match="calendar"):
         paired_transfer(x,x[:-1],x,x)
+
+
+def test_transfer_point_estimates_match_independent_sample_sharpe_arithmetic():
+    x=np.linspace(-.01,.02,91)
+    treatment=x+.002
+    out=paired_transfer(x,treatment,x,x+.001,policy=BlockPolicy(draws=16))
+    expected=.002/np.std(x,ddof=1)
+    assert out["estimate"]["is_quality_change"]==pytest.approx(expected)
+    assert out["estimate"]["forward_quality_change"]==pytest.approx(expected/2)
+    assert out["estimate"]["decay_change"]==pytest.approx(expected/2)
+
+
+def test_block_analysis_does_not_modify_global_numpy_rng_or_input_arrays():
+    x=np.random.default_rng(3).normal(0,.01,91); original=x.copy()
+    np.random.seed(811); before=np.random.get_state()
+    paired_transfer(x,x,x,x,policy=BlockPolicy(draws=8))
+    after=np.random.get_state()
+    assert all(np.array_equal(a,b) for a,b in zip(before,after))
+    np.testing.assert_array_equal(x,original)

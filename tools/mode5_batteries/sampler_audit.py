@@ -1,4 +1,5 @@
 """Describe actual work and observable shared sampler dispatch, not winner tables."""
+import math
 from tools.mode5_diagnostics.identity import digest
 
 
@@ -20,6 +21,9 @@ def audit_sampler(records, *, recipe, seed, proposal_budget, observed_relative,
             raise ValueError("effective geometry and retained attempt required")
         if row["status"]!="COMPLETE" and row.get("objective") is not None:
             raise ValueError("failed runtime is not an adverse economic observation")
+        if row["status"]=="COMPLETE" and (isinstance(row.get("objective"),bool) or not isinstance(row.get("objective"),(int,float))
+                or not math.isfinite(row["objective"])):
+            raise ValueError("complete objective requires a measured finite scalar")
     complete=[r for r in records if r["status"]=="COMPLETE"]
     unique={r["effective_digest"] for r in complete}
     relative=dict(observed_relative)
@@ -32,6 +36,7 @@ def audit_sampler(records, *, recipe, seed, proposal_budget, observed_relative,
         actual_relative_trials=sum(bool(v) for v in relative.values()),relative_samples=relative,
         independent_samples=dict(observed_independent),
         resolved_recipe="ALL_INDEPENDENT_OBSERVED" if not any(relative.values()) else "RELATIVE_WITH_REPORTED_INDEPENDENT_STARTUP_OR_FALLBACK",
+        dispatch_interpretation="sample_independent is also primary parameter-wise TPE, not necessarily random fallback",
         trial_ledger_identity=digest(records),same_integer_seed_aligns_sequences=False,
         universal_superiority_claim=False)
 

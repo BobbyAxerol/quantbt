@@ -28327,9 +28327,17 @@ targeted probes/sampler ledgers, hypothesis outcomes, compute bill and cleanup.
   RSS cap 2 GiB; 15-minute per-cell scheduling timeout, with failures retained.
   Register source/native hashes and all cells before execution; preserve prior
   receipts and perform host process/FD review before exact scratch cleanup.
-- Owner disposition requested for diagnostic-only scientific insufficiency;
-  implementation proceeds locally, but inadequate economics cannot be relabelled
+- Owner approved targeted diagnostics with long independent study reserved for
+  M5-11; inadequate economics cannot be relabelled
   PASS. No M5-09, build, CI, push, merge, tag, version or release action authorized.
+- Measured pilot: SC approximately 10 s/cell; HMA 301.45 s/cell with 231 actual
+  feedback-account passes / 504,504 visited bars. This is offline admitted
+  compiler work, not one production backtest or a WFO/kernel throughput claim.
+  Budgeted remaining work stays sequential and sharded by candidate; no window,
+  seed, alpha or opportunity-frequency change to shorten the experiment.
+- Verification may run one isolated single-thread test worker alongside the
+  single financial worker; total numeric process/thread budget at most two.
+  No parallel adaptive sampler tells, account timeline or carried state.
 
 <a id="mode5-m5-09"></a>
 ### Phase M5-09 - Diagnostic Dossier, Advisory Governance And Calibration Seal

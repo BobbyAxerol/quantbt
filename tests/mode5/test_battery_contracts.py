@@ -9,6 +9,7 @@ from tests.mode5.selection_fixtures import panel,plan
 from tools.mode5_batteries import ComparisonScope,HypothesisLedger,SupportPolicy,compare_selectors,fixed_panel_leave_out,same_front
 from tools.mode5_diagnostics.access import AccessWitness
 from tools.mode5_batteries.sampler_audit import audit_sampler,matched_sampler_work
+from tools.mode5_diagnostics.identity import canonical
 
 
 def scope(p):
@@ -110,3 +111,24 @@ def test_sampler_audit_never_turns_failure_into_bad_economic_score():
     with pytest.raises(ValueError,match="adverse"):
         audit_sampler(rows,recipe="tpe",seed=1,proposal_budget=1,observed_relative={},observed_independent={},
                       objective_id="v1",economic_contract="v1")
+
+
+def test_forged_persisted_hypothesis_outcome_without_registration_rejected():
+    s=scope(panel())
+    row=dict(scope=s.identity,hypothesis_id="EH-01",state="OBSERVED",outcome="POSITIVE_WITHIN_SCOPE",evidence_refs=["receipt"])
+    with pytest.raises(ValueError,match="chronology"):
+        HypothesisLedger(s,(canonical(row),))
+
+
+@pytest.mark.parametrize("objective",[None,float("nan"),float("inf"),True])
+def test_complete_sampler_observation_cannot_hide_unknown_scalar(objective):
+    row=dict(trial_id=0,status="COMPLETE",effective_digest="p",evidence_ref="r",actual_execution_calls=0,visited_bars=0,objective=objective)
+    with pytest.raises(ValueError,match="finite scalar"):
+        audit_sampler([row],recipe="tpe",seed=1,proposal_budget=1,observed_relative={},observed_independent={},
+                      objective_id="v1",economic_contract="v1")
+
+
+def test_future_witness_cannot_enter_registered_hypothesis_even_with_matching_panel_hash():
+    s=scope(panel())
+    with pytest.raises(PermissionError):
+        HypothesisLedger(s).register("EH-01",("r1",),AccessWitness("synthetic-panel","synthetic",0,5,20))
