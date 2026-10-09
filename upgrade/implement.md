@@ -27976,7 +27976,17 @@ leakage report and resource/cleanup records.
 <a id="mode5-m5-06"></a>
 ### Phase M5-06 - Effective Geometry, Sensitivity And Active Local Probes
 
-**Status:** NOT_STARTED; owner implementation approval PENDING; gates NOT_RUN.
+**Status:** IN_PROGRESS; owner implementation approval 2026-10-09; gates NOT_RUN.
+**Registered execution:** `m5-06/attempt-01`, protected original inputs and prior
+receipts, 256 MiB incremental disk / >=5 GiB reserve, one worker/numeric thread.
+Reuse qualified tooling and five admitted 91-day account baselines. Only bounded
+targeted development mechanics/account probes; no formal search, automatic
+parameter pruning, new selector, core changes or release. Explicit schema scales,
+independent selection/validation probe seeds and all effective collisions retained.
+Structured sensitivity acceptance uses mathematical design controls; market
+screening is labelled paired local screening, not arbitrary-panel Sobol estimates.
+Exact disposable scratch `.maturin/mode5-m506/attempt-01`; retain every receipt,
+negative outcome and private alpha copy, with cleanup/hash verification at exit.
 **Goal:** measure feasible parameter activity and real local stability without
    treating top-trial density, sample covariance or low observed effect as proof.
 **Entry:** M5-03/04/05 reviewed exits and separate phase approval.
