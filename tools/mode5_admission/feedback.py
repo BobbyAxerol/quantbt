@@ -49,6 +49,7 @@ class BarCloseBinding:
         self.events = []
         self.fill_feedback_count = 0
         self.preflight_rejections = []
+        self.entry_capacity = 0.
 
     def initialize(self, context):
         self.adapter.prepare()
@@ -68,10 +69,14 @@ class BarCloseBinding:
             if follow:
                 raise UnsupportedFinancialBinding("bar-close binding cannot execute fill-relative protection")
             self.fill_feedback_count += 1
+            if self.adapter.state.position == 0.:
+                self.entry_capacity = 0.
         for event in context.order_events_this_bar:
             if event.event_name == "reject":
                 self.adapter.state.pending_entry_side = 0
                 self.adapter.state.pending_exit = False
+                if self.adapter.state.position == 0.:
+                    self.entry_capacity = 0.
         np.testing.assert_allclose(self.adapter.state.position, context.positions[self.symbol],
                                    rtol=0, atol=1e-12, err_msg="strategy actual-fill feedback mismatch")
         if offset < self.score_start_bar:
@@ -99,9 +104,12 @@ class BarCloseBinding:
                 self.adapter.state.pending_entry_side = 0
                 self.adapter.state.pending_exit = False
                 continue
+            raw_quantity = (self.entry_capacity if kind == "exit_all" else self.notional / float(context.close[0]))
+            if kind != "exit_all":
+                self.entry_capacity = raw_quantity
             commands.append(OrderCommand(
                 timestamp=context.timestamp, symbol=self.symbol, side=side,
-                order_type=OrderType.MARKET, qty=float(quantity),
+                order_type=OrderType.MARKET, qty=raw_quantity,
                 reduce_only=kind == "exit_all", order_id=f"admission-{offset}-{ordinal}",
                 metadata={"admission_intent_kind": kind, "admission_decision_bar": offset,
                           "requested_quote_notional": self.notional if kind != "exit_all" else None,

@@ -35,14 +35,19 @@ def run_retained(root, output, command, sources, name, *, env=None, timeout=600)
         "M5_PILOT_RUN": name,
         **(env or {})}
     start = perf_counter()
+    identities = [file_identity(Path(source)) for source in sources]
     try:
         result = subprocess.run(command, cwd=root, env=environment, capture_output=True,
                                 text=True, timeout=timeout)
         receipt = dict(command=command, exit_code=result.returncode, stdout=result.stdout,
                        stderr=result.stderr, wall_seconds=perf_counter()-start,
-                       sources=[file_identity(Path(source)) for source in sources])
+                       sources=identities,
+                       sources_unchanged=identities == [file_identity(Path(source)) for source in sources])
     except subprocess.TimeoutExpired as exc:
         receipt = dict(command=command, exit_code=None, wall_seconds=perf_counter()-start,
-                       stdout=str(exc.stdout), stderr=str(exc.stderr), status="TIMED_OUT")
+                       stdout=str(exc.stdout), stderr=str(exc.stderr), status="TIMED_OUT", sources=identities)
+    if receipt.get("sources_unchanged") is False:
+        receipt["status"] = "SOURCE_CHANGED_DURING_RUN"
+        receipt["exit_code"] = 1
     write_json(output / (name + ".json"), receipt)
     return receipt

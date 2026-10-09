@@ -33,7 +33,10 @@ if __name__ == "__main__":
             sources = [ROOT / "tests/mode5/test_admission_ledger.py",
                        ROOT / "tests/mode5/test_admission_boundary.py",
                        ROOT / "tests/mode5/test_admission_lifecycle.py",
-                       ROOT / "upgrade/local/mode5_upgrade_v1/m5-02/test_private_alpha_contracts.py"]
+                       ROOT / "tests/mode5/test_admission_conformance.py",
+                       ROOT / "upgrade/local/mode5_upgrade_v1/m5-02/test_private_alpha_contracts.py",
+                       ROOT / "upgrade/local/mode5_upgrade_v1/m5-02/test_static_binding.py",
+                       ROOT / "upgrade/local/mode5_upgrade_v1/m5-02/test_binding_edges.py"]
             result = check(ROOT, output, sources, args.check_name)
         print(result["stdout"], result["stderr"])
         sys.exit(result["exit_code"] if result["exit_code"] is not None else 124)

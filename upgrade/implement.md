@@ -27432,6 +27432,39 @@ and private report/resource/cleanup receipts.
   reports. Private strategy logic/parameters never enter Git/package artifacts.
   M5-03 and later phases remain unstarted.
 
+**Registered transport revision, before protected-alpha pilots:**
+- The existing static order-lifecycle route may be qualified as an offline
+  actual-feedback compiler under M502.05. It is not a new online callback hook.
+  All feedback comes from actual QuantBT fills/rejections in engine event order.
+  Same-bar fill-derived protection uses existing parent activation; close
+  amendments become effective next bar. No guessed fills or one-TP substitution.
+- Fresh adapter/account per pass; bounded 256-run budget and explicit cycle
+  rejection. Require exact command/decision fixed point AND exact full fill,
+  order-event, fee/funding/margin/turnover/position/equity replay, independent
+  accounting and causal prefix/suffix checks. Exit-bar convergence alone fails.
+- Register a new private attempt with unchanged candidates/data/calendar before
+  results. Preserve the blocked callback pilot, distinguish actual replay cost
+  from runtime performance and keep unsupported/non-converged routes blocked.
+
+**Binding-support revision, after the retained 91-day pilot:**
+- The initially registered VWAP 1h filter candidate produced insufficient fills;
+  retain FAILED_ADMISSION. Register one explicit 4h higher-timeframe candidate
+  on the same ETH 1h tape/calendar before another run. Only this schema field
+  changes; no PnL/objective/optimizer search or substitution of alpha logic.
+- The second candidate is a separate binding witness, not evidence that 4h is
+  economically superior. Other four candidates stay unchanged. If it still
+  lacks actual fills, admission stays blocked; no vacuous pass.
+
+**Quantity transport correction - binding v2:**
+- A controlled lot-size fixture exposed duplicate quantity quantization in the
+  new lab binding, not a change to QuantBT's accounting. Submit raw requested
+  entry/rung quantities and let existing engine constraints accept them once;
+  canonical ladder helper remains the expected accepted-quantity witness.
+- ALL exits use original parent requested capacity with reduce-only clipping,
+  not a second pre-rounded inventory request. Preserve genuine venue residuals
+  and flat-only cooldown. Register corrected pilots before results; retain
+  earlier paths and report repair-induced changes separately from methodology.
+
 <a id="mode5-m5-03"></a>
 ### Phase M5-03 - Metric Units, PSR, Tail, Uncertainty And Independent Oracles
 
