@@ -111,6 +111,12 @@ class SaltelliLayout:
     stress_multiplier: int
     schema: str = "saltelli_layout_v1"
 
+    def __post_init__(self):
+        if (any(type(value) is not int or value <= 0 for value in (self.base_n, self.dimensions, self.rows, self.stress_multiplier))
+                or type(self.second_order) is not bool or self.schema != "saltelli_layout_v1" or
+                self.rows != self.base_n*(2*self.dimensions+2 if self.second_order else self.dimensions+2)):
+            raise ValueError("invalid immutable structured layout")
+
     @property
     def execution_cells(self):
         return self.rows*self.stress_multiplier

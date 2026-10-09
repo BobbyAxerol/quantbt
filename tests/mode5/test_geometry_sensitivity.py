@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 
 from tools.mode5_geometry import paired_screen, saltelli_layout, validate_saltelli_outputs
+from tools.mode5_geometry.design import SaltelliLayout
 
 
 def structured_inputs(n, d, second=False):
@@ -27,6 +28,11 @@ def test_m5t_056_saltelli_budget_and_arbitrary_panel_rejection():
         validate_saltelli_outputs(layout, x, x.sum(axis=1), method="plain_qmc", independent_axes=True)
     with pytest.raises(ValueError, match="cross"):
         validate_saltelli_outputs(layout, x, x.sum(axis=1), method="saltelli_pick_freeze_v1", independent_axes=True)
+
+
+def test_malformed_restored_saltelli_layout_rejected():
+    with pytest.raises(ValueError, match="layout"):
+        SaltelliLayout(256, 10, False, 256, 1)
 
 
 @pytest.mark.parametrize("second", [False, True])
