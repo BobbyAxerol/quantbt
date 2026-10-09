@@ -51,7 +51,8 @@ class ExecutionEvidence:
     backend: str
 
     def __post_init__(self):
-        if (not self.execution_id or not self.source_ref or not self.backend
+        if (not isinstance(self.witness, AccessWitness)
+                or any(not isinstance(v, str) or not v for v in (self.execution_id, self.source_ref, self.backend))
                 or self.status not in {"VALID", "VALID_NO_TRADE", "VALID_ADVERSE"}
                 or type(self.buffers) is not tuple or not self.buffers
                 or len({b.name for b in self.buffers}) != len(self.buffers)):
@@ -129,6 +130,7 @@ class PanelRow:
     value: float | None
     source_ref: str
     backend: str
+    reason: str | None = None
 
     def __post_init__(self):
         if (any(not isinstance(getattr(self, k), str) or not getattr(self, k) for k in
@@ -139,8 +141,8 @@ class PanelRow:
                 or self.warmup_start_ns > self.witness.start_ns or self.cutoff_ns < self.witness.ready_ns):
             raise ValueError("invalid typed panel provenance/support")
         if self.status in {"UNAVAILABLE", "INVALID_RUNTIME"}:
-            if self.value is not None:
-                raise ValueError("invalid/missing evidence cannot carry an economic sentinel")
+            if self.value is not None or not self.reason:
+                raise ValueError("invalid/missing evidence requires reason and cannot carry an economic sentinel")
         elif self.value is None or not math.isfinite(self.value):
             raise ValueError("valid measured value required")
 

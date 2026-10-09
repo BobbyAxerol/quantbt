@@ -4,6 +4,10 @@ from dataclasses import asdict, dataclass
 
 from .identity import digest
 
+DEVELOPMENT_ROLES = frozenset({"development", "diagnostic_development", "DEVELOPMENT_REVIEWED",
+    "EXPLORATORY_REVIEWED_2024", "synthetic", "post_selected_diagnostic_fixture"})
+VALIDATION_ROLES = frozenset({"holdout", "holdout_live", "independent_validation", "independent_holdout"})
+
 
 @dataclass(frozen=True)
 class AccessWitness:
@@ -14,7 +18,7 @@ class AccessWitness:
     ready_ns: int
 
     def __post_init__(self):
-        if (not self.manifest_id or not self.role or not self.start_ns < self.end_ns
+        if (not self.manifest_id or self.role not in DEVELOPMENT_ROLES | VALIDATION_ROLES or not self.start_ns < self.end_ns
                 or self.ready_ns < self.end_ns):
             raise ValueError("invalid role, interval or readiness witness")
         if any(type(v) is not int for v in (self.start_ns, self.end_ns, self.ready_ns)):
@@ -36,9 +40,11 @@ class AccessPolicy:
     def __post_init__(self):
         if (not self.policy_id or type(self.roles) is not tuple or type(self.manifests) is not tuple
                 or not self.roles or not self.manifests or type(self.cutoff_ns) is not int
+                or any(role not in DEVELOPMENT_ROLES | VALIDATION_ROLES for role in self.roles)
+                or any(not isinstance(ref, str) or not ref for ref in self.manifests)
                 or self.purpose not in {"diagnostic", "selection", "independent_validation"}):
             raise ValueError("explicit frozen access scope required")
-        if self.purpose != "independent_validation" and "holdout" in self.roles:
+        if self.purpose != "independent_validation" and any(role in VALIDATION_ROLES for role in self.roles):
             raise ValueError("holdout cannot be authorized for development selection/diagnostics")
 
     @property

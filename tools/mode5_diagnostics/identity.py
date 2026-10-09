@@ -1,6 +1,6 @@
 """Three immutable identities; mathematical identity never grants access."""
 
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, fields
 from hashlib import sha256
 import json
 
@@ -19,6 +19,9 @@ class Fingerprint:
         return digest({"schema": type(self).__name__+".v1", **asdict(self)})
 
     def __post_init__(self):
+        for field in fields(self):
+            if field.type is str and not isinstance(getattr(self, field.name), str):
+                raise ValueError("immutable string identity required: "+field.name)
         for name, value in asdict(self).items():
             if isinstance(value, str) and not value.strip():
                 raise ValueError("empty identity component: "+name)

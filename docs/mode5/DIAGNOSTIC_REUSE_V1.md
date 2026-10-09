@@ -37,6 +37,10 @@ access are independently checked and logged. A cached holdout cannot be
 relabelled development, selected by hash or read before maturity. This is a
 scientific information boundary within trusted research Python code, not a
 security sandbox against a caller forging its own manifests.
+The role vocabulary is explicit in `access.py`; unknown roles fail closed.
+All validation/holdout roles require independent-validation permission, which
+itself cannot be used for selection. New environment-role semantics require
+their own reviewed contract rather than a new label bypassing this boundary.
 
 `DiagnosticReuse` wraps `PreparedObjectCache`, respecting its LRU byte/entry,
 pin, clear and generation semantics. Retained numeric buffers own immutable
@@ -62,8 +66,10 @@ invalid values are null, not a fabricated bad objective.
 `DiagnosticAudit` uses `ResearchAuditWriterV1` and its existing immutable
 columnar chunks. Its export hook uses the shared POSIX local checkpoint writer
 for fsync/atomic publication of each append-only chunk. There is one synchronous
-in-flight export with backpressure, no unbounded queue. A final completion
-marker is published only after required chunks flush; cancellation is partial.
+in-flight export with backpressure, explicit chunk/byte budgets and no unbounded
+queue. A final completion marker requires the external scheduled trial IDs and
+expected table counts, and is published only after required chunks flush;
+cancellation is partial.
 Recover validates chunk digests, the exact inventory and trial cardinality.
 An absent completion marker stays `PARTIAL_INTERRUPTED`, even when chunks are
 readable. Recovery is evidence inspection, not account/Optuna RNG continuation.

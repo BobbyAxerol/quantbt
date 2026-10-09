@@ -105,6 +105,10 @@ def test_m5t_036_cached_holdout_cannot_be_relabelled_or_selected():
         owner.evaluate(key(), witness(), policy(), plan(), lambda _: pytest.fail("executed"))
     with pytest.raises(PermissionError):
         owner.analyze(AnalysisKey(key().identity, "whole", "metric", "ref"), out, policy(), lambda _: {})
+    a = AnalysisKey(key().identity, "whole", "metric", "ref")
+    s = SelectionKey((a.identity,), "universe", "selector", "plan", p.identity)
+    with pytest.raises(PermissionError, match="validation"):
+        owner.require_selection(s, (a,), (out,), p)
     assert owner.executions == 1 and any(r["decision"] == "DENIED" for r in log)
 
 
@@ -173,7 +177,7 @@ def test_typed_panel_does_not_conflate_no_trade_adverse_and_runtime_failure():
                    -1, 7, "MET-v1", 6, "VALID_NO_TRADE", 0., "source", "python")
     assert row.record()["witness"]["ready_ns"] == 7
     assert replace(row, status="VALID_ADVERSE", value=-5.).value == -5.
-    assert replace(row, status="INVALID_RUNTIME", value=None).value is None
+    assert replace(row, status="INVALID_RUNTIME", value=None, reason="runtime failure").value is None
     with pytest.raises(ValueError, match="sentinel"):
         replace(row, status="INVALID_RUNTIME", value=-1e9)
     with pytest.raises(ValueError):
@@ -185,6 +189,25 @@ def test_audit_only_never_runs_missing_financial_evidence():
     with pytest.raises(ValueError, match="AUDIT_ONLY"):
         owner.evaluate(key(), witness(), policy(), plan(), lambda _: pytest.fail("executed"), allow_execution=False)
     assert owner.executions == 0
+
+
+def test_mutable_identity_component_and_mismatched_selection_pool_fail_closed():
+    with pytest.raises(ValueError, match="immutable"):
+        replace(key(), effective_params={"value": 1})
+    owner, _ = reuse()
+    a = AnalysisKey(key().identity, "whole", "metric", "ref")
+    s = SelectionKey((a.identity,), "universe", "selector", "plan", policy().identity)
+    with pytest.raises(ValueError, match="incomplete"):
+        owner.require_selection(s, (a,), (), policy())
+    with pytest.raises(ValueError, match="scope"):
+        owner.require_selection(replace(s, access_scope="other-policy"), (a,), (output(),), policy())
+
+
+@pytest.mark.parametrize("role", ["holdout", "holdout_live", "independent_holdout", "independent_validation"])
+def test_validation_roles_are_not_implicitly_development_permissions(role):
+    with pytest.raises(ValueError, match="holdout"):
+        policy(role=role)
+    assert policy(role=role, purpose="independent_validation").purpose == "independent_validation"
 
 
 def test_m5t_037_same_effective_params_can_have_distinct_raw_trial_identities():

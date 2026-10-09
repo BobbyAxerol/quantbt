@@ -53,6 +53,15 @@ class DiagnosticReuse:
             retained = self.cache.put(("m5_execution_v1", key.identity), output, size_bytes=output.size_bytes)
             return output, "EXECUTED_RETAINED" if retained else "EXECUTED_BUDGET_BYPASS"
 
+    def retain_existing(self, key, evidence, policy, plan):
+        """Import only already-qualified manifest-bound inputs, not summaries."""
+        if not isinstance(evidence, ExecutionEvidence) or key.identity != evidence.execution_id:
+            raise ValueError("retained execution lineage mismatch")
+        self._authorize(evidence.witness, policy, layer="existing_evidence_import", identity=key.identity)
+        evidence.require(plan)
+        with self._lock:
+            return self.cache.put(("m5_execution_v1", key.identity), evidence, size_bytes=evidence.size_bytes)
+
     def analyze(self, key, evidence, policy, reduce):
         self._authorize(evidence.witness, policy, layer="analysis_request", identity=key.identity)
         if key.execution != evidence.execution_id:
@@ -72,6 +81,10 @@ class DiagnosticReuse:
             return json.loads(encoded), "REDUCED"
 
     def require_selection(self, key, analyses, evidences, policy):
+        if policy.purpose == "independent_validation":
+            self.access_log(dict(layer="selection", identity=key.identity,
+                policy=policy.identity, decision="DENIED", reason="validation is not selection permission"))
+            raise PermissionError("independent validation cannot authorize selection")
         if key.access_scope != policy.identity or tuple(k.identity for k in analyses) != key.analyses:
             raise ValueError("selection scope/ordered analysis identity mismatch")
         if len(analyses) != len(evidences):
