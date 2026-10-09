@@ -5,10 +5,14 @@ import numpy as np
 from tools.mode5_diagnostics.identity import digest
 from .manifests import calendar
 
+DAY_NS = 86_400_000_000_000
+
 
 def overlap_support(times_ns, views, *, family_weights, exposure, campaigns_per_day,
                     minimum_days, minimum_exposed_bars, minimum_campaigns):
     times = calendar(times_ns)
+    if np.any(times % DAY_NS != 0):
+        raise ValueError("unique UTC day-start membership calendar required; bars are not independent days")
     if (any(type(v) is not int or v < 0 for v in (minimum_days,minimum_exposed_bars,minimum_campaigns))
             or minimum_days < 1 or not views or not family_weights
             or any(not np.isfinite(v) or v <= 0 for v in family_weights.values())

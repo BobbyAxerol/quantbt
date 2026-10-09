@@ -107,7 +107,7 @@ def match_calendar(times_ns, *, score_start_ns, end_ns, candidates):
     for name, row in sorted(candidates.items()):
         if set(row) != {"required_preload_ns", "ready_ns"} or any(type(v) is not int for v in row.values()):
             raise ValueError("exact candidate readiness witness required")
-        if row["required_preload_ns"] > score_start_ns:
+        if row["required_preload_ns"] > score_start_ns or row["ready_ns"] < row["required_preload_ns"]:
             raise ValueError("preload cannot start after score")
         ready = row["required_preload_ns"] >= int(times[0]) and row["ready_ns"] <= int(times[mask][0])
         rows.append(dict(candidate_id=name, **row, status="READY" if ready else "NOT_READY"))

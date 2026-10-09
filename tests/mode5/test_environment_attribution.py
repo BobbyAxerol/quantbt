@@ -106,14 +106,56 @@ def test_duration_attribution_uses_elapsed_time_not_asynchronous_bar_counts():
     assert out["censored_open_campaigns"] == 1
 
 
+def test_between_marks_entry_uses_asof_state_not_the_next_future_label():
+    out = attribute_campaigns([dict(id="between",opened_ns=2,end_ns=100,net_pnl=5.,closed=True)],
+        np.array([0,10,100],dtype=np.int64),np.array([0,1,1]),method="entry_state")
+    assert out["allocation"] == {0:5.,1:0.}
+
+
+def test_support_rejects_intraday_rows_as_multiple_independent_days():
+    with pytest.raises(ValueError,match="day-start"):
+        overlap_support(np.array([DAY,DAY+1],dtype=np.int64),{"a":{"family":"f","membership":np.array([1,1])}},
+            family_weights={"f":1.},exposure=np.ones(2),campaigns_per_day=np.ones(2),
+            minimum_days=1,minimum_exposed_bars=1,minimum_campaigns=1)
+
+
+def test_missing_endogenous_family_does_not_silently_redistribute_its_weight():
+    times = np.arange(1,4,dtype=np.int64)*DAY
+    out = overlap_support(times,{"a":{"family":"anchors","membership":np.ones(3,dtype=int)}},
+        family_weights={"anchors":.5,"endogenous":.5},exposure=np.ones(3),campaigns_per_day=np.ones(3),
+        minimum_days=1,minimum_exposed_bars=1,minimum_campaigns=1)
+    assert out["total_allocated_mass"] == 1.5 and out["unallocated_mass"] == 1.5
+
+
+def test_unavailable_labels_reconcile_bad_daily_pnl_without_dropping_cells():
+    _,result,evidence,policy = account()
+    labels = np.zeros(12,dtype=int)
+    labels[:3] = -1
+    out = attribute_days(daily_path(evidence,policy,initial_equity=20000.),labels)
+    assert out["observed_days"] == 12 and out["rows"][0]["days"] == 3
+    assert out["rows"][0]["money_pnl"] != 0 and out["rows"][0]["status"] == "UNAVAILABLE_LABEL"
+    assert out["summed_group_pnl"] == pytest.approx(result.equity.iloc[-1]-20000.)
+
+
 def test_missing_ledger_inputs_fail_without_implicit_replay_or_fabrication():
     _,_,evidence,policy = account()
     raw = evidence.arrays()
-    del raw["fees"]
+    del raw["positions"]
     incomplete = ExecutionEvidence.from_arrays(evidence.execution_id,evidence.witness,raw,
         source_ref=evidence.source_ref,backend=evidence.backend)
-    with pytest.raises(MissingInputs,match="fees"):
+    with pytest.raises(MissingInputs,match="positions"):
         daily_path(incomplete,policy,initial_equity=20000.)
+
+
+def test_missing_fees_preserves_measured_account_pnl_but_never_invents_zero_cost():
+    _,result,evidence,policy = account()
+    raw = evidence.arrays()
+    del raw["fees"]
+    missing = ExecutionEvidence.from_arrays(evidence.execution_id,evidence.witness,raw,
+        source_ref=evidence.source_ref,backend=evidence.backend)
+    grouped = attribute_days(daily_path(missing,policy,initial_equity=20000.),np.zeros(12,dtype=int))
+    assert grouped["money_pnl"] == pytest.approx(result.equity.iloc[-1]-20000.)
+    assert grouped["fees"] is None and grouped["fee_status"] == "REPLAY_REQUIRED"
 
 
 def test_bankrupt_and_unknown_label_kept_without_fake_zero_return():
