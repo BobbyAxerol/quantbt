@@ -161,3 +161,22 @@ def test_m5t_037_optuna_trial_store_matches_append_only_attempts(tmp_path):
     owner.append_trials([trial(t.number, mapping[t.state.name]) for t in study.trials])
     done = owner.close(expected_trial_ids=[str(t.number) for t in study.trials], expected_rows={"trial_ledger": 4})
     assert [r["status"] for r in done["rows"]["trial_ledger"]] == ["COMPLETE", "PRUNED", "FAILED", "COMPLETE"]
+
+
+def test_m5t_040_concurrent_access_logs_serialize_the_single_producer_sink(tmp_path):
+    from concurrent.futures import ThreadPoolExecutor
+    from tests.mode5.test_diagnostic_planner import key, output, plan, policy, witness
+    from quantbt.preparation.cache import PreparedObjectCache
+    from tools.mode5_diagnostics import DiagnosticReuse
+    sink = DiagnosticAudit(tmp_path / "concurrent")
+    export = sink.writer._export_hook
+    def slow(table, chunk_id, chunk):
+        sleep(.01)
+        export(table, chunk_id, chunk)
+    sink.writer._export_hook = slow
+    owner = DiagnosticReuse(PreparedObjectCache(), access_log=lambda r: sink.append("data_access_log", [r]))
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        results = list(pool.map(lambda _: owner.evaluate(key(), witness(), policy(), plan(), lambda _: output()), range(4)))
+    result = sink.close(expected_trial_ids=(), expected_rows={"data_access_log": 8})
+    assert result["status"] == "COMPLETE" and len(result["rows"]["data_access_log"]) == 8
+    assert owner.executions == 1 and sum(state == "REUSED" for _, state in results) == 3

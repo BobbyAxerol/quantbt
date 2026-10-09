@@ -27705,6 +27705,14 @@ reconciled supported panels, availability/moment-support report and resources.
 **Status:** COMPLETE_LOCAL_REUSE / TECHNICALLY_VALID; owner implementation
    approval 2026-10-09; registered local gates PASS, report review PENDING.
    Scientific DESCRIPTIVE_ONLY; M5-05/public activation not authorized.
+
+**Final Review Extension (2026-10-09):** prior attempt-01 receipts remain
+historical source-bound evidence. Register attempt-02 before a final concurrent
+access-log control: two callers must not enter the single-producer durable
+writer simultaneously. Reuse the same scope, tooling, 256 MiB disk budget,
+5 GiB reserve, fixed 2,000-bar/25-pair benchmark and all accounting/statistics
+contracts. Exact new scratch `.maturin/mode5-m504/attempt-02`; preserve attempt-01
+and all failures. Current-source closure awaits this test and final requalification.
 **Goal:** execute each compatible financial task once while retaining every
    required diagnostic input, trial record and information-access boundary.
 **Entry:** M5-01..03 reviewed exits and separate phase approval.

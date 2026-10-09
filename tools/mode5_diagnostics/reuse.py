@@ -22,14 +22,20 @@ class DiagnosticReuse:
         self.executions = 0
         self._lock = RLock()
 
+    def _emit(self, row):
+        # The shared audit writer has one producer. Cache access can originate
+        # on several caller threads, including before a miss takes the lock.
+        with self._lock:
+            self.access_log(row)
+
     def _authorize(self, witness, policy, *, layer, identity):
         row = dict(layer=layer, identity=identity, witness=witness.identity, policy=policy.identity)
         try:
             policy.require(witness)
         except PermissionError:
-            self.access_log({**row, "decision": "DENIED"})
+            self._emit({**row, "decision": "DENIED"})
             raise
-        self.access_log({**row, "decision": "AUTHORIZED"})
+        self._emit({**row, "decision": "AUTHORIZED"})
 
     def evaluate(self, key, witness, policy, plan, execute, *, allow_execution=True):
         self._authorize(witness, policy, layer="execution_request", identity=key.identity)
@@ -82,7 +88,7 @@ class DiagnosticReuse:
 
     def require_selection(self, key, analyses, evidences, policy):
         if policy.purpose == "independent_validation":
-            self.access_log(dict(layer="selection", identity=key.identity,
+            self._emit(dict(layer="selection", identity=key.identity,
                 policy=policy.identity, decision="DENIED", reason="validation is not selection permission"))
             raise PermissionError("independent validation cannot authorize selection")
         if key.access_scope != policy.identity or tuple(k.identity for k in analyses) != key.analyses:
