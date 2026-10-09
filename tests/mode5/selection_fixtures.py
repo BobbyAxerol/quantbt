@@ -19,7 +19,7 @@ def panel(rows=((.1, .2), (.2, .1)), *, channel=None, weights=None, benchmark=No
                               None if x is not None else "missing environment") for x in row),
             tuple(AnalysisKey(f"execution-{i}", f"env-{j}", "statistics-v1", reference.identity) for j in range(n)),
             tuple(AccessWitness("synthetic-panel", "synthetic", 0, 5, 5) for _ in range(n)),
-            "synthetic-qualified-gates-v1", True, True, True, True, True, 0.))
+            "synthetic-qualified-gates-v1", True, True, True, True, True, 0., activity_penalty_unit=channel.unit))
     return Panel("synthetic-economics-schema-scope", "analysis-v1", channel, reference,
                  tuple(candidates), access, "qmc", "synthetic-qmc-provenance")
 

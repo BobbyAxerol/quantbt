@@ -54,6 +54,7 @@ class Candidate:
     evaluated: bool
     activity_penalty: float
     representative_kind: str = "evaluated_point"
+    activity_penalty_unit: str = "decimal_return"
 
     def __post_init__(self):
         for name in ("candidate_id", "params_digest", "gate_ref"):
@@ -69,6 +70,7 @@ class Candidate:
             raise ValueError("explicit qualification flags required")
         if not math.isfinite(self.activity_penalty) or self.activity_penalty < 0:
             raise ValueError("nonnegative same-channel activity penalty required")
+        nonempty(self.activity_penalty_unit)
         if self.representative_kind not in {"evaluated_point", "medoid", "centroid"}:
             raise ValueError("unknown representative semantics")
 
@@ -101,6 +103,8 @@ class Panel:
         if not self.candidates or len({c.candidate_id for c in self.candidates}) != len(self.candidates):
             raise ValueError("nonempty distinct candidate IDs required")
         for c in self.candidates:
+            if c.activity_penalty_unit != self.channel.unit:
+                raise ValueError("activity penalty has incompatible units")
             if len(c.metrics) != len(self.reference.values):
                 raise ValueError("candidate must retain every declared environment")
             for metric, analysis, witness in zip(c.metrics, c.analyses, c.witnesses, strict=True):
@@ -145,6 +149,8 @@ class Formula:
             raise ValueError("tail alpha in (0,1] required")
         if self.version == "legacy_spec_1_1_quantile" and self.channel.name != "PSR_EVIDENCE_V1":
             raise ValueError("legacy guide quantile replay uses explicit PSR evidence")
+        if self.version == "finite_panel_minimax_regret_v1" and self.channel.name != "ECONOMIC_UTILITY_V1":
+            raise ValueError("finite-panel minimax regret is defined on economic utility")
 
     @property
     def params(self):

@@ -45,6 +45,8 @@ def test_M5T062_moving_objective_blocked_and_full_panel_revision_kept():
     newplan = plan(newp, "legacy_floor_mean_regret_v1")
     with pytest.raises(ValueError, match="moving"):
         ledger.append(newplan, evaluate(newp, newplan)[0])
+    with pytest.raises(ValueError, match="different formula"):
+        ledger.append(frozen, evaluate(newp, newplan)[0])
     revision = rescore_revision(ledger, newp, newplan)
     assert revision.parent_ledger == original and revision.identity != original and ledger.identity == original
     with pytest.raises(ValueError, match="all comparable"):
@@ -69,6 +71,7 @@ def test_M5T064_quantile_is_not_tail_and_fractional_mass():
     old = evaluate(p, plan(p, "legacy_spec_1_1_quantile", prefs))[0]
     new = evaluate(p, plan(p, "environment_lower_tail_v2", prefs))[0]
     assert old["components"]["tail"] == pytest.approx(.6775)
+    assert not old["components"]["floor_tail_redundancy"]
     assert new["components"]["tail"] == .01
     assert new["components"]["floor_tail_redundancy"]
     p = panel(((0., 10.),), weights=[.2, .8])

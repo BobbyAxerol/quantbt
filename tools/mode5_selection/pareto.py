@@ -62,6 +62,8 @@ def reduce_pareto(panel, plan, preference):
             or preference.environment_ids != panel.reference.environment_ids or preference.channel_identity != panel.channel.identity):
         raise ValueError("Pareto environment/channel reference mismatch")
     rows = []
+    binding = dict(plan_identity=plan.identity, formula_identity=plan.formula.identity,
+                   reference_identity=panel.reference.identity)
     ideal, worst = np.asarray(preference.ideal), np.asarray(preference.worst)
     directions = np.asarray(preference.directions)
     widths = np.abs(ideal-worst)
@@ -76,6 +78,7 @@ def reduce_pareto(panel, plan, preference):
         if not complete:
             reasons.append("INCOMPLETE_ENVIRONMENTS")
         row = dict(candidate_id=c.candidate_id, params_digest=c.params_digest, gate_ref=c.gate_ref,
+            **binding,
             representative_kind=c.representative_kind, reasons=reasons, score=None, components=None, values=None)
         if complete:
             values = np.asarray([m.value for m in c.metrics])

@@ -37,6 +37,9 @@ class StageLedger:
     def append(self, plan, row):
         if plan.identity != self.plan_identity:
             raise ValueError("moving objective/reference blocked; rescore the full stage into a revision")
+        if (row.get("plan_identity") != plan.identity or row.get("formula_identity") != plan.formula.identity
+                or row.get("reference_identity") != plan.reference_identity):
+            raise ValueError("observation components belong to a different formula/reference/plan")
         if not row["eligible"] or row["score"] is None:
             raise ValueError("only completed admissible observations can be sent to the study")
         observation = Observation(row["candidate_id"], row["score"], digest(row))

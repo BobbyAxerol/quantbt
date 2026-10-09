@@ -80,6 +80,8 @@ def evaluate(panel, plan, *, local_evidence=()):
     if family not in {"local", "unified"} and local_evidence:
         raise ValueError("unused local evidence cannot be silently accepted")
     p, rows = plan.formula.params, []
+    binding = dict(plan_identity=plan.identity, formula_identity=plan.formula.identity,
+                   reference_identity=panel.reference.identity)
     for c in panel.candidates:
         reasons = [name for name, ok in (("INFEASIBLE", c.feasible), ("RISK_FAIL", c.risk_pass),
             ("QUALITY_FAIL", c.quality_pass), ("INSUFFICIENT_SUPPORT", c.support_pass),
@@ -92,6 +94,7 @@ def evaluate(panel, plan, *, local_evidence=()):
             if reason:
                 reasons.append(reason)
         row = dict(candidate_id=c.candidate_id, params_digest=c.params_digest, gate_ref=c.gate_ref,
+            **binding,
             representative_kind=c.representative_kind, eligible=not reasons, reasons=reasons,
             score=None, components=None)
         # Risk/quality failures remain visible with their valid numerical components.
@@ -121,7 +124,9 @@ def evaluate(panel, plan, *, local_evidence=()):
                         tail = tail_result.value
                         parts["tail_definition"] = "lower_environment_utility_tail"
                     parts["tail"] = tail
-                    parts["floor_tail_redundancy"] = p["alpha"] <= min(panel.reference.weights)/sum(panel.reference.weights)
+                    minimum_mass = math.fsum(w for x, w in zip(values, panel.reference.weights, strict=True)
+                                             if x == parts["floor"])/math.fsum(panel.reference.weights)
+                    parts["floor_tail_redundancy"] = version == "environment_lower_tail_v2" and p["alpha"] <= minimum_mass
                     score = p["floor"]*parts["floor"]+p["tail"]*tail-p["dispersion"]*parts["mad"]-c.activity_penalty
                 elif probes is not None:
                     downside = local_downside(parts["mean"], probes, unit=panel.channel.unit)

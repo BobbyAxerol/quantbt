@@ -84,3 +84,23 @@ def test_unknown_results_preserved_but_probability_checked():
         panel(((1.1, .2),), channel=probability)
     with pytest.raises(ValueError):
         panel(weights=[0., 1.])
+
+
+def test_penalty_units_and_minimax_utility_restricted():
+    p = panel()
+    with pytest.raises(ValueError, match="penalty"):
+        replace(p, candidates=(replace(p.candidates[0], activity_penalty_unit="dollars"),))
+    ch = Channel("PSR_EVIDENCE_V1", "mode5.classical_psr_plugin_v1", "probability")
+    with pytest.raises(ValueError):
+        Formula("finite_panel_minimax_regret_v1", ch, ())
+
+
+def test_registry_is_versioned_and_caller_mutation_cannot_change_rules():
+    from tools.mode5_selection.contracts import FORMULAS
+    from tools.mode5_selection.registry import formula_registry
+    before = formula_registry()
+    changed = formula_registry()
+    changed["formulas"]["local_downside_v1"]["definition"] = "not-the-formula"
+    assert formula_registry() == before
+    with pytest.raises(TypeError):
+        FORMULAS["other"] = ("local", ())
