@@ -1,5 +1,13 @@
 # M5-01 - Baseline, Errata, Isolation And Research Contract Freeze
 
+**Current disposition (2026-10-09):** M5-01 COMPLETE_LOCAL_BASELINE; reviewed
+exit PASS_OWNER_DISPOSITION. The owner confirmed the guide's ZIP-derived
+provenance and accepted following the guide/hash-verified extracted inputs.
+Read the [exit review](M5_01_EXIT_REVIEW.md) and
+[new seal](evidence/m5-01-exit-review.json). The attempt-04 report below retains
+its original historical input-pending disposition; original receipts are not
+rewritten. M5-02 remains NOT_STARTED pending its separate phase approval.
+
 ## 1. Objective And Scope
 
 Owner approved M5-01 on 2026-10-09. Follow the

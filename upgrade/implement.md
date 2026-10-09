@@ -2,14 +2,16 @@
 
 ## Current Mode 5 Diagnostics-First Upgrade - M5-01 Owner Approval 2026-10-09
 
-**Status:** M5-01 TECHNICALLY_VALID_LOCAL / INPUT_EXIT_PENDING; 76 tests PASS,
+**Status:** M5-01 COMPLETE_LOCAL_BASELINE / EXIT_PASS_OWNER_DISPOSITION; 76 tests PASS,
 M5T-001..010 exercised, 427 protected hashes unchanged. M5-02..M5-12 NOT_STARTED;
 their implementation approval remains PENDING_PER_PHASE and gates NOT_RUN.
 Read the [M5-01 baseline report](../docs/mode5/M5_01_BASELINE_REPORT.md) and
-[source-bound seal](../docs/mode5/evidence/m5-01.json). Whole-phase exit needs the
-owner's disposition of two unavailable original ZIPs versus the verified
-extracted-member baseline. Do not call original archives certified or advance
-to M5-02 implicitly. No new market evaluation or financial/methodology change.
+[reviewed-exit seal](../docs/mode5/evidence/m5-01-exit-review.json). The owner
+confirmed the detailed guide's reports came from the original ZIPs and accepts
+guide/hash-verified extracted inputs as baseline. Original ZIP files are not
+an M5-02 entry blocker; archive hashes are not claimed locally remeasured.
+No remaining M5-01 exit blocker. Do not advance to M5-02 implicitly; it requires
+separate phase approval. No new market or financial/methodology change.
 The owner authorized the [twelve-phase program](#mode5-diagnostics-first-upgrade)
 and adds the [economic-support requirement](#mode5-economic-support): adequate
 IS/OOS duration and actual order/fill/closed-campaign support for each economic
@@ -26952,9 +26954,9 @@ NOT_RUN. Only documentation structure/link verification is authorized now.
 **Owner planning approval:** 2026-10-08; separate M5-01 implementation approval
 2026-10-09. Each phase needs separate owner approval, the recorded entry gate
 and a reviewed completion report before its dependent phase can start.
-M5-01 local technical checks pass, with whole-phase input disposition still
-pending. M5-02..M5-12 remain NOT_STARTED / NOT_RUN. Read the
-[M5-01 report](../docs/mode5/M5_01_BASELINE_REPORT.md) before further approval.
+M5-01 local technical checks and reviewed exit pass after the owner's ZIP-guide
+clarification. M5-02..M5-12 remain NOT_STARTED / NOT_RUN. Read the
+[M5-01 exit review](../docs/mode5/M5_01_EXIT_REVIEW.md) before further approval.
 
 **Authoritative detailed guide:**
 [QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md),
@@ -27179,7 +27181,7 @@ Every phase below inherits this mandatory resource registration/cleanup exit.
 
 | Phase | Main outcome | Entry dependency | Acceptance IDs | Current state |
 |---|---|---|---|---|
-| [M5-01](#mode5-m5-01) | Baseline, source/errata, isolation and study freeze | Separate approval; actual inputs/access | M5T-001..010 | TECHNICALLY_VALID / INPUT_EXIT_PENDING |
+| [M5-01](#mode5-m5-01) | Baseline, source/errata, isolation and study freeze | Separate approval; actual inputs/access | M5T-001..010 | COMPLETE_LOCAL_BASELINE / EXIT_PASS_OWNER_DISPOSITION |
 | [M5-02](#mode5-m5-02) | Actual five-alpha execution admission | M5-01 reviewed exit | M5T-011..020 | NOT_STARTED |
 | [M5-03](#mode5-m5-03) | Metric/PSR/HAC/tail units and oracles | M5-02 streams | M5T-021..030 | NOT_STARTED |
 | [M5-04](#mode5-m5-04) | Shared panel planning, reuse and evidence | M5-01..03 reviewed exits | M5T-031..040 | NOT_STARTED |
@@ -27200,10 +27202,10 @@ implementations; formal tuning begins only after M5-09's sealed dossier/plan.
 <a id="mode5-m5-01"></a>
 ### Phase M5-01 - Baseline, Errata, Isolation And Research Contract Freeze
 
-**Status:** TECHNICALLY_VALID_LOCAL; owner implementation approval 2026-10-09;
-M5T-001..010 and privacy/protected-source gates PASS. Whole-phase exit
-INPUT_EXIT_PENDING for original ZIP/extracted-member scope. Scientific status
-DESCRIPTIVE_ONLY; no market or installed-artifact qualification claimed.
+**Status:** COMPLETE_LOCAL_BASELINE / TECHNICALLY_VALID_LOCAL; owner approval
+2026-10-09; M5T-001..010 and privacy/protected-source gates PASS. Reviewed exit
+PASS_OWNER_DISPOSITION after owner's guide/extracted-input clarification.
+Scientific status DESCRIPTIVE_ONLY; no market or installed-artifact claim.
 **Goal:** establish trustworthy source/evidence/data-role identity and freeze
 the research questions, privacy boundaries and support/compute contract.
 **Entry:** explicit M5-01 approval, approved source/workspace, access to supplied
@@ -27281,7 +27283,8 @@ The existing main `.venv` has older distribution metadata; preserve it and
 record the discrepancy, without reinstalling it. Register scientific thresholds
 as proposals/unresolved until separately reviewed; market work stays locked.
 
-**M5-01 technical closure / input review receipt - 2026-10-09:**
+**Historical M5-01 technical closure / input review receipt - 2026-10-09,
+before the owner's ZIP-guide clarification:**
 
 - Implementation commits `d3645c3`, `14dd9b8` on the new branch. Source baseline
   `bb0072a`, actual imported core/native 1.1.2/0.4.3; source egg-info metadata
@@ -27324,6 +27327,27 @@ as proposals/unresolved until separately reviewed; market work stays locked.
   Pending question is not owner consent. Do not advance or call the whole phase
   COMPLETE until resolved; M5-02 still needs separate approval. No financial
   implementation debt or unapproved M5-02 work; no CI/push/merge/tag/release.
+
+**M5-01 reviewed exit - owner ZIP-guide clarification 2026-10-09:**
+
+- Owner confirms guide reports were produced from original archives and asks
+  implementation to follow that detailed guide. Accept the guide plus locally
+  hash-verified extracted members; no need to supply/recreate the ZIPs before
+  M5-02. Expected archive hashes remain distinct from locally observed members.
+- [Exit review](../docs/mode5/M5_01_EXIT_REVIEW.md) and
+  [appended seal](../docs/mode5/evidence/m5-01-exit-review.json) resolve only the
+  historical INPUT_EXIT_PENDING disposition. Original attempt/report/seal/log
+  hashes and historical failure records remain unchanged.
+- Revalidated 76 actual JUnit PASS/no fail/skip, ten exercised acceptance IDs,
+  prior check exits, all receipt hashes, all 427 protected hashes, Git privacy
+  and absence of owned scratch. No unchanged pytest/market/build rerun.
+- All M5-01 exit gates pass in accepted baseline scope. Missing full metric
+  paths and future per-alpha execution/snapshot/support choices have registered
+  M5-02/03/04/08/11 obligations, not new M5-01 blocker/debt requirements.
+- Documentation review budget <=1 MiB, existing interpreter, no scratch or
+  cleanup deletion; prior cleanup verified. No runtime/financial/alpha/lock/
+  native/version changes or CI/push/merge/tag/release. M5-02 may enter on its
+  own approval but remains NOT_STARTED in this readiness review.
 
 <a id="mode5-m5-02"></a>
 ### Phase M5-02 - Five-Alpha Economic Admission And Actual QuantBT Routes
