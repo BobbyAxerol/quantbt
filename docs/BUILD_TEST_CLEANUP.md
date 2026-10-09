@@ -85,6 +85,12 @@ proof. Resume domain work only after disk and evidence checks are complete.
 
 ## Recorded Cleanup
 
+The [M5-08 receipt](maintenance/M5_08_CLEANUP.md) records exact inactive
+pytest/JIT/plot scratch removal after host process/FD review, 1,445 protected
+and 1,339 retained hashes unchanged, and 7.61 MiB observed filesystem recovery.
+All five-alpha paths, sampler/stress evidence, failed attempts, private source,
+current tooling and exact artifacts remain retained; no rebuild ran.
+
 The [M5-07 receipt](maintenance/M5_07_CLEANUP.md) verifies 1,359 protected and
 21 current source/harness hashes, retains all math/benchmark/failure evidence,
 and removes only the inactive registered scratch after host process/FD review.
