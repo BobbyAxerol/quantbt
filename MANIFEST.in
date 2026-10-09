@@ -14,6 +14,7 @@ global-exclude .pypirc
 prune upgrade/private
 prune upgrade/local
 prune upgrade/drafts
+prune upgrade/alphas
 prune benchmarks
 prune artifacts
 prune data/raw
