@@ -85,6 +85,13 @@ proof. Resume domain work only after disk and evidence checks are complete.
 
 ## Recorded Cleanup
 
+The [M5-11.1 owner-stopped tranche receipt](maintenance/M5_11_1_TRANCHE_CLEANUP.md)
+records exact research-worker stop/reap custody and inactive HASH Numba-cache
+removal, 2,777 retained pin checks and 1.40 MiB observed filesystem recovery.
+Complete/failed/censored research evidence, source, current tooling and exact
+artifacts remain. An interrupted account's exact work stays unknown; cleanup
+does not certify the incomplete phase or terminal order state.
+
 The [M5-11 receipt](maintenance/M5_11_CLEANUP.md) records exact inactive
 research-test/native-extraction scratch removal after host process/FD/maps
 review, 3,620 protected records (one documented authorized sampler amendment),

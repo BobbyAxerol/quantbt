@@ -119,8 +119,13 @@ sequence [M5-11.1](#mode5-m5-11-1) -> [M5-11.2](#mode5-m5-11-2) ->
 [M5-11.3](#mode5-m5-11-3). The owner approved all three recovery phases in
 sequence. M5-11.1 is IN_PROGRESS with five frozen 128-effective-configuration
 designs, complete BTC/ETH market witnesses and full-horizon resource pilots;
-see [execution checkpoint](../docs/mode5/M5_11_1_BROAD_DIAGNOSTICS.md). Bulk
-resource registration follows measured pilots. Broad matrices/dossiers and
+see [execution checkpoint](../docs/mode5/M5_11_1_BROAD_DIAGNOSTICS.md). RSI/SC
+complete their 128-point development panels, but native broad coverage is HMA
+1/128, HASH 2/128 and VWAP 1/128. The owner stopped the small native tranche
+for runtime/gap review; all owned workers are reaped, interrupted measurements
+are censored and no further run is currently authorized. Exact cleanup and
+preserved source/artifact custody are recorded in the
+[tranche receipt](../docs/maintenance/M5_11_1_TRANCHE_CLEANUP.md). Broad matrices/dossiers and
 M5-11.2/11.3 remain unfinished, not research PASS from prepared points.
 M5-12 remains NOT_STARTED / NOT_RUN. Neutral coverage
 and unexecuted held directions are not full-space or independent-OOS proof.

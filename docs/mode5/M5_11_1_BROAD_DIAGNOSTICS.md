@@ -142,6 +142,12 @@ The original HMA interruption receipt omits the in-flight entry, and the HASH
 supervisor emits no final receipt on interruption. Both historical limitations
 are retained alongside the new dated owner-stop receipt, not rewritten as PASS.
 
+The [tranche cleanup receipt](../maintenance/M5_11_1_TRANCHE_CLEANUP.md) records
+host custody, both reaped sessions, exact inactive HASH cache removal and
+1.40 MiB observed filesystem recovery. All private paths, source, failures,
+current tooling and exact artifacts remain; cleanup does not close a scientific
+or financial qualification gate.
+
 Completed initial pilots on the entire development horizon: A-RSI took 7.498 s
 inside the financial driver (two actual account passes, exact array parity);
 A-SC took 33.299 s (one callback account run, 140 fills, 70 closed campaigns,

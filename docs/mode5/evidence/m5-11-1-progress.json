@@ -218,6 +218,17 @@
     "M5-11.2_actual_calibration": "NOT_RUN",
     "M5-11.3_transfer_economics": "NOT_RUN"
   },
+  "owner_stop_cleanup": {
+    "all_owned_financial_workers_gone": true,
+    "hma_session_reaped": true,
+    "hash_session_reaped": true,
+    "hash_verified_retained_pins": 2777,
+    "observed_free_increase_bytes": 1470464,
+    "deleted_only_owned_inactive_hash_numba_cache": true,
+    "shared_current_environment_native_extraction_preserved": true,
+    "sources_evidence_artifacts_preserved": true,
+    "scientific_gate_certified_by_cleanup": false
+  },
   "full_phase_certified": false,
   "independent_oos_claim": false,
   "recipe_superiority_claim": false,
