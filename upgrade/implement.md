@@ -29339,7 +29339,7 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    that gate or estimate a dependable runtime distribution. No full native
    panel, formal search or forward study starts from this tranche approval.
    VWAP recovery is sequential after the SC probe worker, within the same
-   three-worker limit. Its inactive constructor input is 8 from the original
+   three-worker limit. Its inactive constructor input comes from the original
    config only when time-stop is off; active inputs, effective IDs, alpha source,
    costs and accounting must remain unchanged and separately qualified.
 **Goal:** actually measure the effective landscape, active neighborhoods and

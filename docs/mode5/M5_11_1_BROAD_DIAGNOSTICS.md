@@ -176,8 +176,8 @@ failure, not no-trade/negative economics. Recovery must retain the original
 proposal, restore only a source-bound registered raw input, prove the effective
 identity unchanged and create a new lane; no module default or favorable
 replacement candidate is permitted.
-The owner has approved restoring `time_stop_bars=8` from the original sealed
-economic config **only when the time-stop dimension is inactive**. A separately
+The owner has approved restoring the required constructor input from the original
+sealed economic config **only when the time-stop dimension is inactive**. A separately
 registered recovery must prove strict constructor coverage, unchanged effective
 IDs and behavior, and full financial parity. The failed attempt remains retained;
 this approval alone is not a passing recovered account run.
@@ -213,6 +213,44 @@ and no-trade states. With three equal-weight years, a lower-tail mass of .25
 reduces to the minimum; it is not evidence for a separate nonredundant tail test.
 These descriptions do not establish an economic promotion or independent
 transfer result. Held LORO scores and gates are excluded from selection.
+
+The distinction matters in the measured results: all six RSI kept-gate
+floor/lower-tail LORO held annual utilities are negative (-0.126 to -0.306),
+despite the all-years floor choice having positive utility in every registered
+annual view. LORO here is retrospective omission, not a chronological forecast.
+The actual same-panel raw-Sharpe control differs from the pooled-utility choice.
+None of these fixed-panel results replace separate matched adaptive studies.
+
+For SC's weak 2022 environment, 119 candidates lose marked PnL and nine have
+no trades. All 119 active paths remain negative **before recorded fees** under
+fixed-fill accounting; there are no fee-only sign flips. Median net marked PnL
+is -862.15 USDT. Pre-fee arithmetic holds actual execution prices/fills fixed:
+it is not an independently rerun frictionless strategy or a complete causal
+market/execution decomposition. SC's empty admissible Pareto front means the
+compromise comparison is `NOT_RUN`, not agreement between two null choices.
+
+## Actual RSI Execution-Cost Stress
+
+The separately registered 2x-fee scenario reexecutes all **128/128** original
+RSI configurations on the same full development path, using both original
+endpoint and direct owner. No posthoc fee subtraction, source/parameter change,
+funding/slippage/allocation change or economic filtering is used. Base cells are
+verified reuse, not repeated new base executions.
+
+All paired Sharpes and utilities decrease. Median **paired changes** are -0.0684
+Sharpe, -4.2352 percentage points net return and -0.05187 utility; median paired
+drawdown increases 0.7036 percentage points. Signals and close-mark exposure are
+unchanged. Utility rank changes for 108/128 candidates. This demonstrates cost
+sensitivity on a finite development panel, not independent selector superiority.
+Accepted-fill/campaign/payment ledgers remain unavailable on the legacy route.
+
+The new scenario bills 256 actual account passes / 6,727,680 account-bars.
+Financial-cell elapsed sum is 74.617 s and supervisor elapsed 125.090 s, including
+isolated worker/import/verification overhead. All workers are reaped and exact
+original sources remain unchanged. Protected paths, failed prior attempts and
+paired daily account contributions remain private. The latest independent cold
+analytics suite has 36 PASS; this count includes its earlier overlapping suites
+and is separate from the 61 ingestion/design controls.
 
 Independent focused verification: **61 PASS in 9.30 s**, with protected files
 and helper sources unchanged. Tests cover all original seals, altered/future
