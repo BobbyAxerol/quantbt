@@ -1,10 +1,12 @@
 """Tiny callback/pin fixtures only. Never build native code or run an account."""
 
 from copy import deepcopy
+import gzip
 import importlib.util
 import json
 import os
 from pathlib import Path
+import pickle
 from types import SimpleNamespace
 
 import pytest
@@ -178,6 +180,33 @@ def gate_fixture(tmp_path, driver):
     return path, pin, sources, gate
 
 
+def fake_static_account(owner, calendar, liquidation_bar=-1):
+    import pandas as pd
+    metadata = dict(backend="native_event", native_event_backend_resolved="rust" if owner == "native" else "python",
+        execution_contract_id="event_lifecycle_v3_next_open", report_level="audit",
+        engine="event_v2_rust_full_contract" if owner == "native" else "event_v3_lifecycle",
+        liquidation_reason=1 if liquidation_bar >= 0 else 0)
+    if owner == "native":
+        metadata.update(rust_contract="native_event_v3_full_contract", rust_output_profile="audit",
+            rust_audit_replay=False, native_static_execution_boundary_calls=1,
+            bar_coordinate="local_market", prepared_market_bar_offset=0, absolute_liquidation_bar=liquidation_bar)
+    return SimpleNamespace(equity=pd.Series(0., index=calendar), liquidated=liquidation_bar >= 0,
+        liquidation_bar=liquidation_bar, metadata=metadata)
+
+
+def fake_tranche(driver, root, request, registration, output, gate, candidate=0):
+    cell = dict(request=file_pin(request), candidate_index=candidate, registration=str(registration),
+        output=str(output), scratch=str(root.parent / (root.name + "-isolated-scratch")),
+        progress=str(output / "progress.jsonl"))
+    plan = dict(schema=driver.TRANCHE_SCHEMA, status="PREREGISTERED_NO_FINANCIAL_LAUNCH",
+        budget=driver.TRANCHE_BUDGET, cell_budget=driver.BUDGET, owner_packaging=driver.OWNER_PACKAGING,
+        capacity_review_required_before_next_tranche=True, retained_root=str(root),
+        native_gate=file_pin(gate), driver=file_pin(driver.SCRIPT), cells=[cell])
+    path = root / "tranche.json"
+    path.write_text(json.dumps(plan))
+    return path, plan
+
+
 def test_exact_native_gate_and_artifact_source_pins(private_driver, tmp_path):
     path, pin, sources, gate = gate_fixture(tmp_path, private_driver)
     assert private_driver.validate_gate(file_pin(path), pin, sources) == gate
@@ -219,6 +248,7 @@ def test_missing_main_launch_authorization_writes_fault_without_imports(private_
     request.write_text('{"fixture_only":true}')
     registration = tmp_path / "registration.json"
     registration.write_text(json.dumps(dict(schema=private_driver.SCHEMA, budget=private_driver.BUDGET,
+        owner_packaging=private_driver.OWNER_PACKAGING, billing_contract=private_driver.BAR_CONTRACT,
         request=json.loads(request.read_text()), native_path=str(tmp_path), native_gate=file_pin(path),
         artifact=artifact, gate_source_pins=sources, pins=[file_pin(path), artifact, *sources, file_pin(request)])))
     output = tmp_path / "output"
@@ -260,6 +290,29 @@ def test_empty_partial_schema_not_generically_repaired(private_driver):
         private_driver.empty_views(owner, owner, (), "A-VWAP")
 
 
+def test_known_native_empty_schema_adds_only_typed_empty_relationship_columns(private_driver):
+    import pandas as pd
+    native_columns = {"bar": "int64", "timestamp": "object", "event_type": "int64", "status": "int64",
+        "order_id": "object", "target_order_id": "object", "symbol": "object", "reject_code": "int64", "event_name": "object"}
+    ledger = pd.DataFrame({k: pd.Series(dtype=v) for k, v in native_columns.items()})
+    native = SimpleNamespace(fills=(), metadata=dict(order_events=ledger, command_report=pd.DataFrame()))
+    python = SimpleNamespace(fills=(), metadata=dict(order_events=pd.DataFrame(), command_report=pd.DataFrame()))
+    snapshot = ledger.copy(deep=True)
+    reference, actual = private_driver.empty_views(python, native, (), "A-VWAP")
+    assert len(actual.metadata["order_events"]) == len(reference.metadata["order_events"]) == 0
+    assert set(actual.metadata["order_events"]) - set(ledger) == {"parent_order_id", "related_sorted_index"}
+    assert actual.metadata["order_events"].parent_order_id.dtype == "object"
+    assert actual.metadata["order_events"].related_sorted_index.dtype == "int64"
+    pd.testing.assert_frame_equal(actual.metadata["order_events"][list(ledger)], snapshot)
+    pd.testing.assert_frame_equal(native.metadata["order_events"], snapshot)
+    native.metadata["order_events"] = pd.DataFrame([dict.fromkeys(native_columns)])
+    with pytest.raises(ValueError, match="zero-row"):
+        private_driver.empty_views(python, native, (), "A-VWAP")
+    native.metadata["order_events"] = snapshot.assign(unknown_column=pd.Series(dtype="object"))
+    with pytest.raises(ValueError, match="partial"):
+        private_driver.empty_views(python, native, (), "A-VWAP")
+
+
 def test_runtime_materialization_only_restores_frozen_inactive_input(private_driver):
     class Geometry:
         def resolve(self, params):
@@ -278,18 +331,19 @@ def test_runtime_materialization_only_restores_frozen_inactive_input(private_dri
         private_driver.runtime_input("A-VWAP", effective, config, geometry, identity)
 
 
-@pytest.mark.parametrize("mutation", [False, True])
-def test_fake_original_orchestration_captures_one_python_pass_no_replay(private_driver, tmp_path, monkeypatch, mutation):
+@pytest.mark.parametrize("mutation,endpoint", [(False, -1), (True, -1), (False, 123)])
+def test_fake_original_orchestration_captures_one_python_pass_no_replay(private_driver, tmp_path, monkeypatch, mutation, endpoint):
     import pandas as pd
     from tools.mode5_admission import conformance
     calls = []
     request = dict(alpha="A-HMA", params={}, candidate_id="fake-candidate")
     geometry = SimpleNamespace(identity="fake-domain", resolve=lambda p: SimpleNamespace(identity="fake-candidate", params={}))
     history = pd.DataFrame({"close": 1.}, index=pd.date_range("2020-01-01", "2024-01-01", freq="h", inclusive="left", tz="UTC"))
-    context = SimpleNamespace(history=history, scored=history.loc["2021-01-01":].copy(), config={},
+    context = SimpleNamespace(history=history, scored=history.loc["2021-01-01":].copy(),
+        config=dict(execution_contract="event_lifecycle_v3_next_open"),
         design={"schema_id": "fake-domain"}, candidates=[{"requested": {}}], witness={"fixture": True},
         signature=lambda: "immutable-history", request=lambda index: deepcopy(request))
-    account = SimpleNamespace(equity=[0]*26280, liquidated=False)
+    accounts = {owner: fake_static_account(owner, context.scored.index, endpoint) for owner in ("native", "python")}
 
     class Static:
         def __init__(self, *args, **kwargs):
@@ -297,7 +351,7 @@ def test_fake_original_orchestration_captures_one_python_pass_no_replay(private_
 
         def execute(self, commands):
             calls.append("python")
-            return account
+            return accounts["python"]
 
     class Native(Static):
         def build(self, feedback):
@@ -308,7 +362,7 @@ def test_fake_original_orchestration_captures_one_python_pass_no_replay(private_
             calls.append("native")
             if mutation:
                 context.scored.iloc[0, 0] += 1.
-            return account
+            return accounts["native"]
 
     finance = SimpleNamespace(NativeBinding=Native, StaticBinding=Static,
         static_binding=SimpleNamespace(), numba=SimpleNamespace(get_num_threads=lambda: 1),
@@ -325,7 +379,8 @@ def test_fake_original_orchestration_captures_one_python_pass_no_replay(private_
         reference = finance.StaticBinding.execute(binding, compilation.commands)
         finance.parity(reference, result)
         (target / "actual_owner.pkl").write_bytes(b"fake owner, no financial evidence")
-        row = dict(request=original_request, actual_execution_calls=3, visited_bars=3*26280)
+        row = dict(request=original_request, actual_execution_calls=3, visited_bars=3*26280,
+            wall_seconds=0.1, stage_seconds={"fake_original": 0.1})
         (target / "cell.json").write_text(json.dumps(row))
         return row
 
@@ -351,6 +406,18 @@ def test_fake_original_orchestration_captures_one_python_pass_no_replay(private_
         else:
             result = private_driver.execute_registered(registration, request, output, observer)
             assert result["actual_execution_calls"] == 3 and result["visited_bars"] == 3*26280
+            prefix = 26280 if endpoint < 0 else endpoint+1
+            assert result["processed_prefix_bars"] == 3*prefix
+            assert result["legacy_scheduled_barcount"] == 3*26280
+            assert result["work_bill"]["post_liquidation_calendar_bars"] == 3*(26280-prefix)
+            FrozenPins([result["python_owner"]]).verify()
+            assert result["python_owner_artifact"]["format"] == "gzip+pickle"
+            assert result["python_owner_artifact"]["readback_receipt"]["status"] == "PASS_SERIALIZED_BYTES_EQUAL"
+            assert not (output / "python_owner.pkl").exists()
+            with gzip.open(result["python_owner"]["path"], "rb") as stream:
+                restored, commands = pickle.load(stream)
+            pd.testing.assert_series_equal(restored.equity, accounts["python"].equity)
+            assert restored.metadata == accounts["python"].metadata and commands == ()
             assert calls == ["build", "native", "signature", "build", "native", "signature", "python", "original_parity"]
             assert result["market"]["before"] == result["market"]["after"]
             assert result["market"]["future_tape_opened"] is False
@@ -367,6 +434,7 @@ def test_main_source_fault_retains_receipt_without_native_import(private_driver,
     request = dict(fixture_only=True)
     request_path.write_text(json.dumps(request))
     registration = dict(schema=private_driver.SCHEMA, budget=private_driver.BUDGET, request=request,
+        owner_packaging=private_driver.OWNER_PACKAGING, billing_contract=private_driver.BAR_CONTRACT,
         native_path=str(tmp_path), native_gate=file_pin(path), artifact=artifact,
         gate_source_pins=sources, pins=[file_pin(path), artifact, *sources, file_pin(request_path)])
     registration_path.write_text(json.dumps(registration))
@@ -487,9 +555,240 @@ def test_cold_registration_only_hashes_fake_inputs_never_imports_accounts(privat
     monkeypatch.setattr(private_driver, "native_sources", lambda: set())
     monkeypatch.setattr(private_driver, "original_inputs", lambda *args: ({}, {}, file_pin(market), {market}))
     monkeypatch.setattr(private_driver, "load_original", lambda *args: pytest.fail("cold registration must not import finance/native"))
-    private_driver.register(request, registration, native, gate, 0)
+    output = root / "output"
+    tranche, _ = fake_tranche(private_driver, root, request, registration, output, gate)
+    monkeypatch.setattr(private_driver, "private_path", lambda path: None)
+    private_driver.register(request, registration, native, gate, 0, output, tranche)
     record = json.loads(registration.read_text())
     assert record["status"] == "PREREGISTERED_NO_FINANCIAL_LAUNCH"
     assert record["financial_execution_calls"] == 0 and record["future_tape_opened"] is False
-    assert record["budget"] == dict(scratch_bytes=32*1024**2, retained_bytes=64*1024**2, reserve_bytes=5*1024**3)
+    assert record["budget"] == dict(scratch_bytes=96*1024**2, retained_bytes=512*1024**2, reserve_bytes=5*1024**3)
+    assert record["tranche_budget"] == dict(retained_bytes=4*1024**3, max_cells=3, reserve_bytes=5*1024**3)
+    assert record["owner_packaging"] == private_driver.OWNER_PACKAGING
+    assert record["tranche_registration"] == file_pin(tranche)
     FrozenPins(record["pins"]).verify()
+
+
+@pytest.mark.parametrize("owner,endpoint", [("native", -1), ("python", -1), ("native", 0),
+    ("native", 73), ("python", 73), ("native", 26279), ("python", 26279)])
+def test_returned_static_liquidation_prefix_is_not_padded_length(private_driver, owner, endpoint):
+    import pandas as pd
+    calendar = pd.date_range("2021-01-01", "2024-01-01", freq="h", inclusive="left", tz="UTC")
+    account = fake_static_account(owner, calendar, endpoint)
+    witness = private_driver.account_bar_witness(account, owner, calendar, "event_lifecycle_v3_next_open")
+    assert witness["visited_bars"] == witness["scheduled_bars"] == 26280
+    assert witness["processed_prefix_bars"] == (26280 if endpoint == -1 else endpoint+1)
+    assert witness["event_loop_iterations"] == 26280-(owner == "python")
+    assert witness["post_liquidation_calendar_bars"] + witness["processed_prefix_bars"] == 26280
+
+
+@pytest.mark.parametrize("bad", ["missing_endpoint", "boolean_endpoint", "float_endpoint", "outside",
+    "negative_liquidation", "live_endpoint", "reason", "offset", "absolute", "replay", "reactive", "short_path", "wrong_calendar", "no_index"])
+def test_unavailable_liquidation_contract_is_explicit_block_not_economic_zero(private_driver, tmp_path, bad):
+    import pandas as pd
+    calendar = pd.date_range("2021-01-01", "2024-01-01", freq="h", inclusive="left", tz="UTC")
+    account = fake_static_account("native", calendar, 73)
+    if bad == "missing_endpoint":
+        del account.liquidation_bar
+    elif bad == "boolean_endpoint":
+        account.liquidation_bar = True
+    elif bad == "float_endpoint":
+        account.liquidation_bar = 73.
+    elif bad == "outside":
+        account.liquidation_bar = 26280
+    elif bad == "negative_liquidation":
+        account.liquidation_bar = -1
+    elif bad == "live_endpoint":
+        account.liquidated = False
+    elif bad == "reason":
+        account.metadata["liquidation_reason"] = 0
+    elif bad == "offset":
+        account.metadata["prepared_market_bar_offset"] = 8784
+    elif bad == "absolute":
+        account.metadata["absolute_liquidation_bar"] += 1
+    elif bad == "replay":
+        account.metadata["rust_audit_replay"] = True
+    elif bad == "reactive":
+        account.metadata["engine"] = "event_v3_reactive_single_pass"
+    elif bad == "short_path":
+        account.equity = account.equity.iloc[:74]
+    elif bad == "wrong_calendar":
+        account.equity.index = account.equity.index + pd.Timedelta(hours=1)
+    elif bad == "no_index":
+        account.equity = [0]*26280
+    calls = []
+    with FeedbackObserver(tmp_path / "progress.jsonl") as observer:
+        bill = private_driver.StaticWorkBill(observer, calendar, "event_lifecycle_v3_next_open")
+        with pytest.raises(private_driver.BillingUnavailable) as blocked:
+            observer.execute("native", lambda: calls.append("returned") or account, bars=lambda r: bill.measure("native", r))
+        assert calls == ["returned"] and observer.attempted_calls == {"native": 1}
+        assert observer.summary()["incomplete_work"] == "UNKNOWN_NOT_ZERO"
+        assert not bill.passes
+    receipt = blocked.value.receipt
+    assert receipt["status"] == "BLOCKED_ACTUAL_WORK_UNKNOWN" and not receipt["economic_sample"]
+    assert receipt["visited_bars"] is receipt["processed_prefix_bars"] is None
+    assert receipt["required_instrumentation"] and receipt["source_paths"]
+    journal = records(tmp_path / "progress.jsonl")
+    assert not any(r["stage"] == "account_complete" for r in journal)
+    assert any(r["stage"] == "billing_blocked" and r["visited_bars"] is None for r in journal)
+
+
+def test_gzip_custody_roundtrip_preserves_full_fake_account_and_old_evidence(private_driver, tmp_path):
+    import numpy as np
+    import pandas as pd
+    calendar = pd.date_range("2021-01-01", periods=8, freq="h", tz="UTC")
+    account = SimpleNamespace(equity=pd.Series(np.arange(8.), index=calendar),
+        returns=pd.Series(np.zeros(8), index=calendar), positions=pd.DataFrame({"FIXTURE": np.arange(8.)}, index=calendar),
+        closes=pd.DataFrame({"FIXTURE": np.full(8, 10.)}, index=calendar),
+        fees=pd.Series(np.zeros(8), index=calendar), funding=pd.Series(np.ones(8), index=calendar),
+        margin=pd.DataFrame({"initial_margin": np.ones(8), "maintenance_margin": np.zeros(8)}, index=calendar),
+        liquidated=True, liquidation_bar=7, fills=({"qty": 1., "fixture": True},), orders=({"id": "fixture"},),
+        diagnostics=pd.DataFrame({"turnover": np.arange(8.)}, index=calendar),
+        metadata=dict(dense_trace=pd.DataFrame({"bar": np.tile(np.arange(8), 1000), "phase": ["fixture"]*8000}),
+            nested={"values": np.arange(16).reshape(8, 2)},
+            order_events=pd.DataFrame({"timestamp": pd.Series(dtype="datetime64[ns, UTC]"), "bar": pd.Series(dtype="int64")})))
+    commands = (dict(action="fixture-only", metadata={"nested": [1, 2, 3]}),)
+    old = tmp_path / "old_reference_owner.pkl"
+    old.write_bytes(pickle.dumps((account, commands), protocol=4))
+    before = file_pin(old)
+    artifact = private_driver.package_python_owner(tmp_path / "python_owner.pkl.gz", account, commands)
+    readback = private_driver.verify_owner_package(artifact)
+    with gzip.open(artifact["path"], "rb") as stream:
+        restored, restored_commands = pickle.load(stream)
+        assert stream.read() == b""
+    assert set(vars(restored)) == set(vars(account)) and restored_commands == commands
+    for name in ("equity", "returns", "fees", "funding"):
+        pd.testing.assert_series_equal(getattr(restored, name), getattr(account, name))
+    for name in ("positions", "closes", "margin", "diagnostics"):
+        pd.testing.assert_frame_equal(getattr(restored, name), getattr(account, name))
+    pd.testing.assert_frame_equal(restored.metadata["dense_trace"], account.metadata["dense_trace"])
+    pd.testing.assert_frame_equal(restored.metadata["order_events"], account.metadata["order_events"])
+    np.testing.assert_array_equal(restored.metadata["nested"]["values"], account.metadata["nested"]["values"])
+    for name in ("liquidated", "liquidation_bar", "fills", "orders"):
+        assert getattr(restored, name) == getattr(account, name)
+    assert artifact["format"] == "gzip+pickle" and artifact["lossless"]
+    assert artifact["uncompressed_sha256"] == before["sha256"]
+    assert readback["account_replays"] == 0 and file_pin(old) == before
+    duplicate = private_driver.package_python_owner(tmp_path / "duplicate.pkl.gz", account, commands)
+    assert duplicate["sha256"] == artifact["sha256"]
+    assert artifact["bytes"] < artifact["uncompressed_bytes"]
+    with pytest.raises(FileExistsError):
+        private_driver.package_python_owner(Path(artifact["path"]), account, commands)
+    damaged = dict(artifact, uncompressed_sha256="0"*64)
+    with pytest.raises(ValueError, match="readback"):
+        private_driver.verify_owner_package(damaged)
+
+
+@pytest.mark.parametrize("bad", [None, "four_cells", "cell_budget", "packaging", "driver", "overlap", "outside", "request"])
+def test_tranche_cold_gate_exact_paths_budget_packaging_and_at_most_three_cells(private_driver, tmp_path, monkeypatch, bad):
+    gate, _, _, _ = gate_fixture(tmp_path, private_driver)
+    request, registration, output = tmp_path / "request.json", tmp_path / "registration.json", tmp_path / "output"
+    request.write_text('{"fixture_only":true}')
+    path, plan = fake_tranche(private_driver, tmp_path, request, registration, output, gate)
+    monkeypatch.setattr(private_driver, "private_path", lambda path: None)
+    if bad == "four_cells":
+        plan["cells"] *= 4
+    elif bad == "cell_budget":
+        plan["cell_budget"] = dict(scratch_bytes=32*1024**2, retained_bytes=64*1024**2, reserve_bytes=5*1024**3)
+    elif bad == "packaging":
+        plan["owner_packaging"] = {"format": "raw pickle"}
+    elif bad == "driver":
+        plan["driver"] = {}
+    elif bad == "overlap":
+        plan["cells"][0]["scratch"] = str(output / "scratch")
+    elif bad == "outside":
+        plan["cells"][0]["output"] = str(tmp_path.parent / "outside")
+    elif bad == "request":
+        plan["cells"][0]["request"]["sha256"] = "0"*64
+    path.write_text(json.dumps(plan))
+    if bad:
+        with pytest.raises((ValueError, PinMismatch)):
+            private_driver.validate_tranche(file_pin(path), request, registration, output, file_pin(gate), 0)
+    else:
+        validated, cell = private_driver.validate_tranche(file_pin(path), request, registration, output, file_pin(gate), 0)
+        assert validated == plan and cell == plan["cells"][0]
+
+
+def test_107_mib_owner_evidence_fits_new_cell_cap_but_global_cap_still_enforced(private_driver, tmp_path, monkeypatch):
+    output, scratch, root = tmp_path / "output", tmp_path / "scratch", tmp_path
+    output.mkdir()
+    scratch.mkdir()
+    monkeypatch.setattr(private_driver, "tree_bytes", lambda path: 107*1024**2 if path == output else 0)
+    private_driver.resource_check(output, scratch, output / "progress.jsonl", dict(retained_root=str(root), cells=[{}]))
+    monkeypatch.setattr(private_driver, "tree_bytes", lambda path: 513*1024**2 if path == output else 0)
+    with pytest.raises(ValueError, match="retained lane"):
+        private_driver.resource_check(output, scratch, output / "progress.jsonl")
+    monkeypatch.setattr(private_driver, "tree_bytes", lambda path: 4*1024**3+1 if path == root else 0)
+    with pytest.raises(ValueError, match="global retained"):
+        private_driver.resource_check(output, scratch, output / "progress.jsonl", dict(retained_root=str(root), cells=[{}]))
+    monkeypatch.setattr(private_driver, "tree_bytes", lambda path: 511*1024**2 if path == output else 0)
+    with pytest.raises(ValueError, match="retained lane"):
+        private_driver.resource_check(output, scratch, output / "progress.jsonl", additional_retained_bytes=2*1024**2)
+
+
+def test_source_contract_cold_inspection_successful_static_owners_visit_after_liquidation(private_driver):
+    import ast
+    root = private_driver.ROOT
+    tree = ast.parse((root / "src/quantbt/core/event.py").read_text())
+    kernel = next(node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name == "_engine_event_v2")
+    loop = next(node for node in kernel.body if isinstance(node, ast.For) and isinstance(node.target, ast.Name) and node.target.id == "i")
+    assert ast.unparse(loop.iter) == "range(1, n_bars)"
+    assert ast.unparse(loop.body[0].test) == "liq_flag"
+    assert isinstance(loop.body[0].body[-1], ast.Continue)
+    assert not any(isinstance(node, ast.Break) for node in ast.walk(loop))
+    endpoints = [node for node in ast.walk(loop) if isinstance(node, ast.Assign)
+        and any(isinstance(t, ast.Name) and t.id == "liq_idx" for t in node.targets)]
+    assert endpoints and all(ast.unparse(node.value) == "i" for node in endpoints)
+    rust = (root / "rust/crates/quantbt-engine/src/session.rs").read_text()
+    static = rust.split("pub fn run_typed_output_with_requirements_v1(", 1)[1].split("pub fn ", 1)[0]
+    assert "for bar in 0..n_bars {" in static and "break;" not in static
+    assert "score.liquidation_bar = step.liquidation_bar;" in static
+    assert "self.liquidation_bar = bar as i64;" in rust
+    assert "if self.liquidated {\n            self.last_bar = Some(bar);" in rust
+    adapter = (root / "src/quantbt/backends/_native_event_rust.py").read_text()
+    assert "absolute_liquidation_bar - offset" in adapter
+    assert 'result_metadata["absolute_liquidation_bar"] = absolute_liquidation_bar' in adapter
+
+
+def test_main_unsupported_billing_retains_blocked_and_fault_receipts_no_economic_result(private_driver, tmp_path, monkeypatch):
+    import pandas as pd
+    gate, artifact, sources, _ = gate_fixture(tmp_path, private_driver)
+    request_path, registration_path, output = tmp_path / "request.json", tmp_path / "registration.json", tmp_path / "output"
+    request = dict(fixture_only=True)
+    request_path.write_text(json.dumps(request))
+    tranche_path, plan = fake_tranche(private_driver, tmp_path, request_path, registration_path, output, gate)
+    cell = plan["cells"][0]
+    registration = dict(schema=private_driver.SCHEMA, budget=private_driver.BUDGET,
+        owner_packaging=private_driver.OWNER_PACKAGING, billing_contract=private_driver.BAR_CONTRACT,
+        request=request, candidate_index=0, native_path=str(tmp_path), native_gate=file_pin(gate),
+        artifact=artifact, gate_source_pins=sources, tranche_registration=file_pin(tranche_path), tranche_cell=cell,
+        pins=[file_pin(gate), artifact, *sources, file_pin(request_path), file_pin(tranche_path)])
+    registration_path.write_text(json.dumps(registration))
+    authorization_path = tmp_path / "authorization.json"
+    authorization_path.write_text(json.dumps(dict(status="AUTHORIZED", registration=file_pin(registration_path),
+        request=request, native_gate=file_pin(gate), financial_workers=1, numeric_threads=1,
+        tranche_registration=file_pin(tranche_path), output=str(output), scratch=cell["scratch"], progress=cell["progress"])))
+    monkeypatch.delenv("MODE5_JOB_PROGRESS", raising=False)
+    for name in ("NUMBA_NUM_THREADS", "OPENBLAS_NUM_THREADS", "OMP_NUM_THREADS", "RAYON_NUM_THREADS"):
+        monkeypatch.setenv(name, "1")
+    monkeypatch.setattr(private_driver.sys, "argv", ["driver", str(output), str(request_path),
+        "--native-path", str(tmp_path), "--registration", str(registration_path),
+        "--launch-authorization", str(authorization_path), "--scratch", cell["scratch"]])
+    monkeypatch.setattr(private_driver.signal, "signal", lambda *args: None)
+    monkeypatch.setattr(private_driver, "private_path", lambda path: None)
+    monkeypatch.setattr(private_driver, "load_original", lambda *args: pytest.fail("no account/native imports"))
+    def fake_execution(registration, request, output, observer):
+        calendar = pd.date_range("2021-01-01", "2024-01-01", freq="h", inclusive="left", tz="UTC")
+        bill = private_driver.StaticWorkBill(observer, calendar, "event_lifecycle_v3_next_open")
+        observer.driver_work_bill = bill
+        return observer.execute("native", lambda: SimpleNamespace(equity=[0]*26280, liquidated=True),
+            bars=lambda result: bill.measure("native", result))
+    monkeypatch.setattr(private_driver, "execute_registered", fake_execution)
+    with pytest.raises(private_driver.BillingUnavailable):
+        private_driver.main()
+    assert not (output / "result.json").exists()
+    blocked, fault = json.loads((output / "blocked.json").read_text()), json.loads((output / "fault.json").read_text())
+    assert blocked["status"] == "BLOCKED_ACTUAL_WORK_UNKNOWN" and blocked["visited_bars"] is None
+    assert not blocked["economic_sample"] and not fault["economic_sample"]
+    assert fault["work"]["attempted_execution_calls"] == {"native": 1}
+    assert fault["work"]["incomplete_work"] == "UNKNOWN_NOT_ZERO"
