@@ -2713,6 +2713,36 @@ mod tests {
     }
 
     #[test]
+    fn terminal_state_v1_reaches_native_request_result_without_audit_replay() {
+        let audit_request = request(NativeOutputProfileV1::Audit)
+            .with_audit_detail_limit(0)
+            .unwrap();
+        let result = audit_request.execute().unwrap();
+        let NativeExecutionOutputV1::Audit(audit) = &result.output else {
+            panic!("audit expected");
+        };
+        let state = audit.terminal_state.as_ref().unwrap();
+        assert_eq!(state.sorted_index, vec![0, 1]);
+        assert_eq!(state.command_index, vec![0, 1]);
+        assert_eq!(state.status, vec![1, 1]);
+        assert_eq!(state.remaining_qty, vec![0.0, 0.0]);
+        assert_eq!(
+            state.canceled_orders_by_bar,
+            vec![0; audit_request.template.bar_count()]
+        );
+        assert_eq!(state.canceled_event_count, 0);
+        assert!(audit.fills.bar.is_empty() && audit.events.bar.is_empty());
+        assert_eq!(audit.compact.score.fill_count, 2);
+        assert!(result.header_v2.detail_truncated);
+        let score = request(NativeOutputProfileV1::Score).execute().unwrap();
+        assert_eq!(
+            score.header_v2.terminal_fingerprint,
+            result.header_v2.terminal_fingerprint
+        );
+        assert_eq!(score.output.score(), result.output.score());
+    }
+
+    #[test]
     fn windowed_template_uses_local_tape_clock_and_runner_resets_without_leakage() {
         let source = market();
         let template = Arc::new(

@@ -235,6 +235,9 @@ pub struct NativeFillOutputV1 {
     pub order_id: Vec<i64>,
     pub symbol: Vec<i64>,
     pub side: Vec<i64>,
+    /// Matched order authority, not a venue liquidity claim. Legacy reporting
+    /// labels market as taker and every other type (including stop-market) as maker.
+    pub order_type: Vec<i64>,
     pub qty: Vec<f64>,
     pub price: Vec<f64>,
     pub fee: Vec<f64>,
@@ -252,6 +255,62 @@ pub struct NativeEventOutputV1 {
     pub target_id: Vec<i64>,
     pub symbol: Vec<i64>,
     pub reject_code: Vec<i64>,
+}
+
+pub const NATIVE_TERMINAL_STATE_VERSION_V1: u16 = 1;
+pub const NATIVE_TERMINAL_STATE_SCHEMA_V1: &str = "terminal-command-slots-v1";
+
+/// One row per static tape slot, including retired orders and control commands.
+/// Working columns come from accepted owner state at retirement or run end,
+/// never from intent defaults. Unavailable working numbers are NaN. Identity
+/// columns describe the immutable tape; original indices are unavailable (-1).
+/// This audit-only sink is bounded by command count plus bar count, independent
+/// of the fill/event row budget, and is never allocated by score or compact.
+#[derive(Clone, Debug, Default, PartialEq)]
+pub struct NativeTerminalStateOutputV1 {
+    pub command_index: Vec<i64>,
+    pub sorted_index: Vec<i64>,
+    pub original_index: Vec<i64>,
+    pub command_bar: Vec<i64>,
+    pub action: Vec<i64>,
+    pub order_id: Vec<i64>,
+    pub target_id: Vec<i64>,
+    pub symbol: Vec<i64>,
+    pub side: Vec<i64>,
+    pub order_type: Vec<i64>,
+    pub tif: Vec<i64>,
+    pub reduce_only: Vec<bool>,
+    pub parent_id: Vec<i64>,
+    pub group_id: Vec<i64>,
+    pub oco_id: Vec<i64>,
+    pub activation: Vec<i64>,
+    pub expires_bar: Vec<i64>,
+    /// -1 unprocessed, 0 pending, 1 filled/accepted control, 2 canceled, 3 rejected.
+    pub status: Vec<i64>,
+    pub reject_code: Vec<i64>,
+    pub processed: Vec<bool>,
+    pub working_state_available: Vec<bool>,
+    pub active: Vec<bool>,
+    pub waiting_parent: Vec<bool>,
+    pub trigger_armed: Vec<bool>,
+    /// 0 NONE, 1 ORDER quantity, 2 COUNTER of directly canceled order slots.
+    pub qty_semantics: Vec<i64>,
+    /// Actual owner working quantity at retirement/run end (before the final
+    /// retirement fill, if any); affected slot count for cancel controls.
+    pub qty: Vec<f64>,
+    /// Actual residual at retirement/run end; cancel controls carry COUNTER, not units.
+    pub remaining_qty: Vec<f64>,
+    pub price: Vec<f64>,
+    pub trigger: Vec<f64>,
+    /// Last owner retirement cause (-1 for still-live or unprocessed slots).
+    pub event_kind: Vec<i64>,
+    pub bar: Vec<i64>,
+    pub canceled_order_count: Vec<i64>,
+    /// Actual canceled slot transitions, including replacement retirement.
+    /// This intentionally differs from the frozen native canceled_count scalar,
+    /// which excludes replacement. Never derive it from event-row cardinality.
+    pub canceled_orders_by_bar: Vec<i64>,
+    pub canceled_event_count: i64,
 }
 
 /// Compact typed result: scalar score plus dense account columns, without
@@ -272,6 +331,9 @@ pub struct NativeAuditOutputV1 {
     pub fills: NativeFillOutputV1,
     pub events: NativeEventOutputV1,
     pub detail_retention: AuditRetentionV1,
+    /// Static CommandTapeV5 only. None explicitly means this workload does not
+    /// provide the terminal-slot contract, not that it has zero working orders.
+    pub terminal_state: Option<NativeTerminalStateOutputV1>,
 }
 
 /// Versioned output family used by ABI-0.5 typed requests. The legacy static
@@ -386,6 +448,7 @@ impl From<NativeExecutionOutputV1> for StaticTapeOutput {
                     fills,
                     events,
                     detail_retention: _,
+                    terminal_state: _,
                 } = *audit;
                 Self::from_typed_parts(compact.score, compact.paths, fills, events)
             }

@@ -2818,6 +2818,245 @@ impl NativePathFieldsCore {
     }
 }
 
+/// Static audit terminal slots, transferred once from the authoritative owner.
+#[pyclass(name = "NativeTerminalStateV1", module = "_quantbt_native", get_all)]
+struct NativeTerminalStateCore {
+    version: u16,
+    schema: &'static str,
+    canceled_order_count: i64,
+    canceled_event_count: i64,
+    command_index: Py<PyArray1<i64>>,
+    sorted_index: Py<PyArray1<i64>>,
+    original_index: Py<PyArray1<i64>>,
+    command_bar: Py<PyArray1<i64>>,
+    action: Py<PyArray1<i64>>,
+    order_id: Py<PyArray1<i64>>,
+    target_id: Py<PyArray1<i64>>,
+    symbol: Py<PyArray1<i64>>,
+    side: Py<PyArray1<i64>>,
+    order_type: Py<PyArray1<i64>>,
+    tif: Py<PyArray1<i64>>,
+    parent_id: Py<PyArray1<i64>>,
+    group_id: Py<PyArray1<i64>>,
+    oco_id: Py<PyArray1<i64>>,
+    activation: Py<PyArray1<i64>>,
+    expires_bar: Py<PyArray1<i64>>,
+    status: Py<PyArray1<i64>>,
+    reject_code: Py<PyArray1<i64>>,
+    qty_semantics: Py<PyArray1<i64>>,
+    event_kind: Py<PyArray1<i64>>,
+    bar: Py<PyArray1<i64>>,
+    reduce_only: Py<PyArray1<bool>>,
+    processed: Py<PyArray1<bool>>,
+    working_state_available: Py<PyArray1<bool>>,
+    active: Py<PyArray1<bool>>,
+    waiting_parent: Py<PyArray1<bool>>,
+    trigger_armed: Py<PyArray1<bool>>,
+    qty: Py<PyArray1<f64>>,
+    remaining_qty: Py<PyArray1<f64>>,
+    price: Py<PyArray1<f64>>,
+    trigger: Py<PyArray1<f64>>,
+    canceled_orders_by_bar: Py<PyArray1<i64>>,
+    command_canceled_order_count: Py<PyArray1<i64>>,
+}
+
+impl NativeTerminalStateCore {
+    fn from_native(
+        py: Python<'_>,
+        output: quantbt_engine::output::NativeTerminalStateOutputV1,
+    ) -> Self {
+        let canceled_order_count = output.canceled_orders_by_bar.iter().sum();
+        Self {
+            version: quantbt_engine::output::NATIVE_TERMINAL_STATE_VERSION_V1,
+            schema: quantbt_engine::output::NATIVE_TERMINAL_STATE_SCHEMA_V1,
+            canceled_order_count,
+            canceled_event_count: output.canceled_event_count,
+            command_index: PyArray1::from_vec(py, output.command_index).unbind(),
+            sorted_index: PyArray1::from_vec(py, output.sorted_index).unbind(),
+            original_index: PyArray1::from_vec(py, output.original_index).unbind(),
+            command_bar: PyArray1::from_vec(py, output.command_bar).unbind(),
+            action: PyArray1::from_vec(py, output.action).unbind(),
+            order_id: PyArray1::from_vec(py, output.order_id).unbind(),
+            target_id: PyArray1::from_vec(py, output.target_id).unbind(),
+            symbol: PyArray1::from_vec(py, output.symbol).unbind(),
+            side: PyArray1::from_vec(py, output.side).unbind(),
+            order_type: PyArray1::from_vec(py, output.order_type).unbind(),
+            tif: PyArray1::from_vec(py, output.tif).unbind(),
+            parent_id: PyArray1::from_vec(py, output.parent_id).unbind(),
+            group_id: PyArray1::from_vec(py, output.group_id).unbind(),
+            oco_id: PyArray1::from_vec(py, output.oco_id).unbind(),
+            activation: PyArray1::from_vec(py, output.activation).unbind(),
+            expires_bar: PyArray1::from_vec(py, output.expires_bar).unbind(),
+            status: PyArray1::from_vec(py, output.status).unbind(),
+            reject_code: PyArray1::from_vec(py, output.reject_code).unbind(),
+            qty_semantics: PyArray1::from_vec(py, output.qty_semantics).unbind(),
+            event_kind: PyArray1::from_vec(py, output.event_kind).unbind(),
+            bar: PyArray1::from_vec(py, output.bar).unbind(),
+            reduce_only: PyArray1::from_vec(py, output.reduce_only).unbind(),
+            processed: PyArray1::from_vec(py, output.processed).unbind(),
+            working_state_available: PyArray1::from_vec(py, output.working_state_available)
+                .unbind(),
+            active: PyArray1::from_vec(py, output.active).unbind(),
+            waiting_parent: PyArray1::from_vec(py, output.waiting_parent).unbind(),
+            trigger_armed: PyArray1::from_vec(py, output.trigger_armed).unbind(),
+            qty: PyArray1::from_vec(py, output.qty).unbind(),
+            remaining_qty: PyArray1::from_vec(py, output.remaining_qty).unbind(),
+            price: PyArray1::from_vec(py, output.price).unbind(),
+            trigger: PyArray1::from_vec(py, output.trigger).unbind(),
+            canceled_orders_by_bar: PyArray1::from_vec(py, output.canceled_orders_by_bar).unbind(),
+            command_canceled_order_count: PyArray1::from_vec(py, output.canceled_order_count)
+                .unbind(),
+        }
+    }
+}
+
+fn add_terminal_state_fields(
+    py: Python<'_>,
+    payload: &Bound<'_, PyDict>,
+    state: &NativeTerminalStateCore,
+) -> PyResult<()> {
+    let nested = PyDict::new(py);
+    nested.set_item("version", state.version)?;
+    nested.set_item("schema", state.schema)?;
+    nested.set_item("canceled_order_count", state.canceled_order_count)?;
+    nested.set_item("canceled_event_count", state.canceled_event_count)?;
+    nested.set_item("command_index", state.command_index.clone_ref(py))?;
+    nested.set_item("sorted_index", state.sorted_index.clone_ref(py))?;
+    nested.set_item("original_index", state.original_index.clone_ref(py))?;
+    nested.set_item("command_bar", state.command_bar.clone_ref(py))?;
+    nested.set_item("action", state.action.clone_ref(py))?;
+    nested.set_item("order_id", state.order_id.clone_ref(py))?;
+    nested.set_item("target_id", state.target_id.clone_ref(py))?;
+    nested.set_item("symbol", state.symbol.clone_ref(py))?;
+    nested.set_item("side", state.side.clone_ref(py))?;
+    nested.set_item("order_type", state.order_type.clone_ref(py))?;
+    nested.set_item("tif", state.tif.clone_ref(py))?;
+    nested.set_item("parent_id", state.parent_id.clone_ref(py))?;
+    nested.set_item("group_id", state.group_id.clone_ref(py))?;
+    nested.set_item("oco_id", state.oco_id.clone_ref(py))?;
+    nested.set_item("activation", state.activation.clone_ref(py))?;
+    nested.set_item("expires_bar", state.expires_bar.clone_ref(py))?;
+    nested.set_item("status", state.status.clone_ref(py))?;
+    nested.set_item("reject_code", state.reject_code.clone_ref(py))?;
+    nested.set_item("qty_semantics", state.qty_semantics.clone_ref(py))?;
+    nested.set_item("event_kind", state.event_kind.clone_ref(py))?;
+    nested.set_item("bar", state.bar.clone_ref(py))?;
+    nested.set_item("reduce_only", state.reduce_only.clone_ref(py))?;
+    nested.set_item("processed", state.processed.clone_ref(py))?;
+    nested.set_item(
+        "working_state_available",
+        state.working_state_available.clone_ref(py),
+    )?;
+    nested.set_item("active", state.active.clone_ref(py))?;
+    nested.set_item("waiting_parent", state.waiting_parent.clone_ref(py))?;
+    nested.set_item("trigger_armed", state.trigger_armed.clone_ref(py))?;
+    nested.set_item("qty", state.qty.clone_ref(py))?;
+    nested.set_item("remaining_qty", state.remaining_qty.clone_ref(py))?;
+    nested.set_item("price", state.price.clone_ref(py))?;
+    nested.set_item("trigger", state.trigger.clone_ref(py))?;
+    nested.set_item(
+        "canceled_orders_by_bar",
+        state.canceled_orders_by_bar.clone_ref(py),
+    )?;
+    nested.set_item(
+        "command_canceled_order_count",
+        state.command_canceled_order_count.clone_ref(py),
+    )?;
+    payload.set_item("terminal_state_v1", nested)?;
+    payload.set_item("terminal_state_version", state.version)?;
+    payload.set_item("terminal_state_schema", state.schema)?;
+    payload.set_item("canceled_order_count", state.canceled_order_count)?;
+    payload.set_item("canceled_event_count", state.canceled_event_count)?;
+    payload.set_item("terminal_command_index", state.command_index.clone_ref(py))?;
+    payload.set_item("terminal_sorted_index", state.sorted_index.clone_ref(py))?;
+    payload.set_item(
+        "terminal_original_index",
+        state.original_index.clone_ref(py),
+    )?;
+    payload.set_item("terminal_command_bar", state.command_bar.clone_ref(py))?;
+    payload.set_item("terminal_action", state.action.clone_ref(py))?;
+    payload.set_item("terminal_order_id", state.order_id.clone_ref(py))?;
+    payload.set_item("terminal_target_id", state.target_id.clone_ref(py))?;
+    payload.set_item("terminal_symbol", state.symbol.clone_ref(py))?;
+    payload.set_item("terminal_side", state.side.clone_ref(py))?;
+    payload.set_item("terminal_order_type", state.order_type.clone_ref(py))?;
+    payload.set_item("terminal_tif", state.tif.clone_ref(py))?;
+    payload.set_item("terminal_parent_id", state.parent_id.clone_ref(py))?;
+    payload.set_item("terminal_group_id", state.group_id.clone_ref(py))?;
+    payload.set_item("terminal_oco_id", state.oco_id.clone_ref(py))?;
+    payload.set_item("terminal_activation", state.activation.clone_ref(py))?;
+    payload.set_item("terminal_expires_bar", state.expires_bar.clone_ref(py))?;
+    payload.set_item("terminal_status", state.status.clone_ref(py))?;
+    payload.set_item("terminal_reject_code", state.reject_code.clone_ref(py))?;
+    payload.set_item("terminal_qty_semantics", state.qty_semantics.clone_ref(py))?;
+    payload.set_item("terminal_event_kind", state.event_kind.clone_ref(py))?;
+    payload.set_item("terminal_bar", state.bar.clone_ref(py))?;
+    payload.set_item("terminal_reduce_only", state.reduce_only.clone_ref(py))?;
+    payload.set_item("terminal_processed", state.processed.clone_ref(py))?;
+    payload.set_item(
+        "terminal_working_state_available",
+        state.working_state_available.clone_ref(py),
+    )?;
+    payload.set_item("terminal_active", state.active.clone_ref(py))?;
+    payload.set_item(
+        "terminal_waiting_parent",
+        state.waiting_parent.clone_ref(py),
+    )?;
+    payload.set_item("terminal_trigger_armed", state.trigger_armed.clone_ref(py))?;
+    payload.set_item("terminal_qty", state.qty.clone_ref(py))?;
+    payload.set_item("terminal_remaining_qty", state.remaining_qty.clone_ref(py))?;
+    payload.set_item("terminal_price", state.price.clone_ref(py))?;
+    payload.set_item("terminal_trigger", state.trigger.clone_ref(py))?;
+    payload.set_item(
+        "canceled_orders_by_bar",
+        state.canceled_orders_by_bar.clone_ref(py),
+    )?;
+    payload.set_item(
+        "terminal_canceled_order_count",
+        state.command_canceled_order_count.clone_ref(py),
+    )?;
+    Ok(())
+}
+
+fn terminal_state_output_bytes(
+    output: &quantbt_engine::output::NativeTerminalStateOutputV1,
+) -> usize {
+    0_usize
+        .saturating_add(bytes_i64(&output.command_index))
+        .saturating_add(bytes_i64(&output.sorted_index))
+        .saturating_add(bytes_i64(&output.original_index))
+        .saturating_add(bytes_i64(&output.command_bar))
+        .saturating_add(bytes_i64(&output.action))
+        .saturating_add(bytes_i64(&output.order_id))
+        .saturating_add(bytes_i64(&output.target_id))
+        .saturating_add(bytes_i64(&output.symbol))
+        .saturating_add(bytes_i64(&output.side))
+        .saturating_add(bytes_i64(&output.order_type))
+        .saturating_add(bytes_i64(&output.tif))
+        .saturating_add(bytes_i64(&output.parent_id))
+        .saturating_add(bytes_i64(&output.group_id))
+        .saturating_add(bytes_i64(&output.oco_id))
+        .saturating_add(bytes_i64(&output.activation))
+        .saturating_add(bytes_i64(&output.expires_bar))
+        .saturating_add(bytes_i64(&output.status))
+        .saturating_add(bytes_i64(&output.reject_code))
+        .saturating_add(bytes_i64(&output.qty_semantics))
+        .saturating_add(bytes_i64(&output.event_kind))
+        .saturating_add(bytes_i64(&output.bar))
+        .saturating_add(bytes_i64(&output.canceled_order_count))
+        .saturating_add(bytes_bool(&output.reduce_only))
+        .saturating_add(bytes_bool(&output.processed))
+        .saturating_add(bytes_bool(&output.working_state_available))
+        .saturating_add(bytes_bool(&output.active))
+        .saturating_add(bytes_bool(&output.waiting_parent))
+        .saturating_add(bytes_bool(&output.trigger_armed))
+        .saturating_add(bytes_f64(&output.qty))
+        .saturating_add(bytes_f64(&output.remaining_qty))
+        .saturating_add(bytes_f64(&output.price))
+        .saturating_add(bytes_f64(&output.trigger))
+        .saturating_add(bytes_i64(&output.canceled_orders_by_bar))
+}
+
 /// Audit-only typed fill/event SoA columns. IDs remain `int64` rather than
 /// being silently coerced into floating-point values.
 struct NativeAuditFieldsCore {
@@ -2825,6 +3064,7 @@ struct NativeAuditFieldsCore {
     fill_order_id: Py<PyArray1<i64>>,
     fill_symbol: Py<PyArray1<i64>>,
     fill_side: Py<PyArray1<i64>>,
+    fill_order_type: Py<PyArray1<i64>>,
     fill_qty: Py<PyArray1<f64>>,
     fill_price: Py<PyArray1<f64>>,
     fill_fee: Py<PyArray1<f64>>,
@@ -2850,6 +3090,7 @@ impl NativeAuditFieldsCore {
             fill_order_id: PyArray1::from_vec(py, fills.order_id).unbind(),
             fill_symbol: PyArray1::from_vec(py, fills.symbol).unbind(),
             fill_side: PyArray1::from_vec(py, fills.side).unbind(),
+            fill_order_type: PyArray1::from_vec(py, fills.order_type).unbind(),
             fill_qty: PyArray1::from_vec(py, fills.qty).unbind(),
             fill_price: PyArray1::from_vec(py, fills.price).unbind(),
             fill_fee: PyArray1::from_vec(py, fills.fee).unbind(),
@@ -3075,10 +3316,17 @@ fn audit_output_bytes(output: &quantbt_engine::NativeAuditOutputV1) -> usize {
     let fills = &output.fills;
     let events = &output.events;
     compact_output_bytes(&output.compact)
+        .saturating_add(
+            output
+                .terminal_state
+                .as_ref()
+                .map_or(0, terminal_state_output_bytes),
+        )
         .saturating_add(bytes_i64(&fills.bar))
         .saturating_add(bytes_i64(&fills.order_id))
         .saturating_add(bytes_i64(&fills.symbol))
         .saturating_add(bytes_i64(&fills.side))
+        .saturating_add(bytes_i64(&fills.order_type))
         .saturating_add(bytes_f64(&fills.qty))
         .saturating_add(bytes_f64(&fills.price))
         .saturating_add(bytes_f64(&fills.fee))
@@ -3261,6 +3509,7 @@ fn add_audit_fields(
     payload.set_item("fill_order_id", audit.fill_order_id.clone_ref(py))?;
     payload.set_item("fill_symbol", audit.fill_symbol.clone_ref(py))?;
     payload.set_item("fill_side", audit.fill_side.clone_ref(py))?;
+    payload.set_item("fill_order_type", audit.fill_order_type.clone_ref(py))?;
     payload.set_item("fill_qty", audit.fill_qty.clone_ref(py))?;
     payload.set_item("fill_price", audit.fill_price.clone_ref(py))?;
     payload.set_item("fill_fee", audit.fill_fee.clone_ref(py))?;
@@ -3784,10 +4033,23 @@ struct NativeAuditOutputCore {
     paths: NativePathFieldsCore,
     audit: NativeAuditFieldsCore,
     workload_audit: NativeWorkloadAuditFieldsCore,
+    terminal_state: Option<Py<NativeTerminalStateCore>>,
 }
 
 #[pymethods]
 impl NativeAuditOutputCore {
+    #[getter]
+    fn terminal_state_v1(&self, py: Python<'_>) -> Option<Py<NativeTerminalStateCore>> {
+        self.terminal_state
+            .as_ref()
+            .map(|state| state.clone_ref(py))
+    }
+
+    #[getter]
+    fn fill_order_type(&self, py: Python<'_>) -> Py<PyArray1<i64>> {
+        self.audit.fill_order_type.clone_ref(py)
+    }
+
     #[getter]
     fn native_result_version(&self) -> u16 {
         self.metadata.native_result_version
@@ -4115,6 +4377,9 @@ impl NativeAuditOutputCore {
         add_score_fields(py, &payload, &self.score)?;
         add_path_fields(py, &payload, &self.paths)?;
         add_audit_fields(py, &payload, &self.audit)?;
+        if let Some(state) = self.terminal_state.as_ref() {
+            add_terminal_state_fields(py, &payload, &state.borrow(py))?;
+        }
         add_native_workload_audit_core_fields(py, &payload, &self.workload_audit)?;
         Ok(payload.unbind())
     }
@@ -9180,6 +9445,7 @@ fn direct_target_typed_output(
                 fills,
                 events,
                 detail_retention: _,
+                terminal_state,
             } = *output;
             let quantbt_engine::NativeCompactOutputV1 { score, paths } = compact;
             Py::new(
@@ -9189,6 +9455,9 @@ fn direct_target_typed_output(
                     score: NativeScoreFieldsCore::from_native(py, score),
                     paths: NativePathFieldsCore::from_native(py, paths),
                     audit: NativeAuditFieldsCore::from_native(py, fills, events),
+                    terminal_state: terminal_state
+                        .map(|state| Py::new(py, NativeTerminalStateCore::from_native(py, state)))
+                        .transpose()?,
                     workload_audit: NativeWorkloadAuditFieldsCore::from_direct_target(
                         py,
                         target_kind,
@@ -9207,7 +9476,7 @@ fn direct_target_typed_output(
 
 fn native_request_output_payload(
     py: Python<'_>,
-    result: execution::NativeExecutionResultV1,
+    mut result: execution::NativeExecutionResultV1,
 ) -> PyResult<Py<PyDict>> {
     let profile = result.output_profile;
     let output_bytes = match &result.output {
@@ -9218,10 +9487,27 @@ fn native_request_output_payload(
     .saturating_add(workload_audit_output_bytes(&result.workload_audit));
     let metadata = NativeOutputMetadataCore::from_result(&result, output_bytes);
     let metrics = NativeMetricFieldsCore::from_native(result.output.score());
+    let (terminal_state, fill_order_type) = match &mut result.output {
+        quantbt_engine::NativeExecutionOutputV1::Audit(output) => (
+            output.terminal_state.take(),
+            Some(std::mem::take(&mut output.fills.order_type)),
+        ),
+        _ => (None, None),
+    };
     // The frozen `execute()` API remains a cold-path mapping adapter. Moving
     // the typed SoA result into this legacy shape never reruns the engine.
     let output = result.output.into_legacy_static();
     let payload = PyDict::new(py);
+    if let Some(state) = terminal_state {
+        add_terminal_state_fields(
+            py,
+            &payload,
+            &NativeTerminalStateCore::from_native(py, state),
+        )?;
+    }
+    if let Some(order_type) = fill_order_type {
+        payload.set_item("fill_order_type", PyArray1::from_vec(py, order_type))?;
+    }
     payload.set_item("final_equity", output.final_equity)?;
     payload.set_item("final_positions", output.final_positions)?;
     payload.set_item("total_fee", output.total_fee)?;
@@ -9317,6 +9603,7 @@ fn native_request_typed_output(
                 fills,
                 events,
                 detail_retention: _,
+                terminal_state,
             } = *output;
             let quantbt_engine::NativeCompactOutputV1 { score, paths } = compact;
             Py::new(
@@ -9326,6 +9613,9 @@ fn native_request_typed_output(
                     score: NativeScoreFieldsCore::from_native(py, score),
                     paths: NativePathFieldsCore::from_native(py, paths),
                     audit: NativeAuditFieldsCore::from_native(py, fills, events),
+                    terminal_state: terminal_state
+                        .map(|state| Py::new(py, NativeTerminalStateCore::from_native(py, state)))
+                        .transpose()?,
                     workload_audit: NativeWorkloadAuditFieldsCore::from_native(py, workload_audit),
                 },
             )
@@ -9464,6 +9754,7 @@ fn _quantbt_native(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<NativeScoreOutputCore>()?;
     module.add_class::<NativeCompactOutputCore>()?;
     module.add_class::<NativeAuditOutputCore>()?;
+    module.add_class::<NativeTerminalStateCore>()?;
     module.add_class::<NativeIntrabarRequestCore>()?;
     module.add_class::<prepared_evaluation::NativePreparedEvaluationBindingCore>()?;
     module.add_class::<prepared_evaluation::NativePreparedEvaluationRuntimeCore>()?;

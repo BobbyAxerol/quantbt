@@ -1247,6 +1247,7 @@ fn execute_direct_target(
                 events: events.expect("audit direct target output requires events"),
                 detail_retention: execution_retention
                     .expect("audit direct target output requires retention"),
+                terminal_state: None,
             }))
         }
     };
@@ -2279,6 +2280,7 @@ fn execute_shared_portfolio_target(
                 events: events.expect("audit shared portfolio output requires events"),
                 detail_retention: execution_retention
                     .expect("audit shared portfolio output requires retention"),
+                terminal_state: None,
             }))
         }
     };
@@ -2553,6 +2555,8 @@ fn append_fill_and_event(
             fills.order_id.push(order_id);
             fills.symbol.push(symbol as i64);
             fills.side.push(if delta > 0.0 { 1 } else { -1 });
+            // This direct target route executes market deltas; it has no passive orders.
+            fills.order_type.push(0);
             fills.qty.push(delta.abs());
             fills.price.push(price);
             fills.fee.push(fee);
