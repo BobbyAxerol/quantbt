@@ -27344,9 +27344,9 @@ Every phase below inherits this mandatory resource registration/cleanup exit.
 | [M5-09](#mode5-m5-09) | Dossier, advisory and sealed plan | M5-08/08.1 reviewed exit | M5T-081..090 | COMPLETE_LOCAL_DOSSIER_GOVERNANCE |
 | [M5-10](#mode5-m5-10) | Public opt-in integration/runtime reuse | M5-09 plus current source map | M5T-091..100 | COMPLETE_LOCAL_PUBLIC_OPT_IN / TECHNICALLY_VALID |
 | [M5-11](#mode5-m5-11) | Formal calibration and scoped economics | M5-10 plus authorized adequate data | M5T-101..110 | REOPENED_RESEARCH_COVERAGE; original finite pilot preserved |
-| [M5-11.1](#mode5-m5-11-1) | Broad five-alpha diagnostics and renewed dossier | M5-11 scope review; registered data/design/resource protocol | M5T-041..060 / 071..090 | PLANNED; market execution NOT_RUN |
-| [M5-11.2](#mode5-m5-11-2) | Actual adaptive formal search and selector comparisons | Reviewed M5-11.1 dossier; new sealed plans | M5T-091..103 / EH-01..05 | PLANNED; formal expanded studies NOT_RUN |
-| [M5-11.3](#mode5-m5-11-3) | Multi-origin fixed-policy transfer and economic qualification | Frozen M5-11.2 outputs and prefix studies | M5T-101..110 / EH-06..12 | PLANNED; expanded forward tests NOT_RUN |
+| [M5-11.1](#mode5-m5-11-1) | Broad five-alpha diagnostics and renewed dossier | M5-11 scope review; registered data/design/resource protocol | M5T-041..060 / 071..090 | APPROVED / IN_PROGRESS; broad execution not yet complete |
+| [M5-11.2](#mode5-m5-11-2) | Actual adaptive formal search and selector comparisons | Reviewed M5-11.1 dossier; new sealed plans | M5T-091..103 / EH-01..05 | APPROVED; formal expanded studies NOT_RUN |
+| [M5-11.3](#mode5-m5-11-3) | Multi-origin fixed-policy transfer and economic qualification | Frozen M5-11.2 outputs and prefix studies | M5T-101..110 / EH-06..12 | APPROVED; expanded forward tests NOT_RUN |
 | [M5-12](#mode5-m5-12) | Local qualification/docs/handoff | M5-01..11 dispositions reviewed | M5T-111..120 | NOT_STARTED |
 
 Respect the guide dependency graph. M5-05 and independent M5-06 preparation
@@ -29289,7 +29289,14 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
 <a id="mode5-m5-11-1"></a>
 ### Phase M5-11.1 - Broad Five-Alpha Diagnostics And Renewed Dossier
 
-**Status:** PLANNED / NOT_RUN; broad recovery direction requested by owner.
+**Status:** APPROVED / IN_PROGRESS; owner approved the three recovery phases
+   together on 2026-10-10. Inventory, protocol and measured route pilots precede
+   bulk execution; no expanded financial result is claimed at approval.
+**Execution Checkpoint:** five 128-effective-configuration proposal designs
+   registered without outcomes; BTC/ETH 2020-2025 hourly tapes complete. Initial
+   protocol/design tests PASS; complete-horizon route pilots and bulk resources
+   under measurement. See [current report](../docs/mode5/M5_11_1_BROAD_DIAGNOSTICS.md).
+   Prepared points are not executed candidate/path or full dossier certification.
 **Goal:** actually measure the effective landscape, active neighborhoods and
    environment differences before formal tuning, for all five admitted alphas.
 **Entry:** M5-11 review, unchanged alpha/account witnesses, source/data inventory,
@@ -29377,7 +29384,7 @@ and [M5-06..09 work packages](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_V
 <a id="mode5-m5-11-2"></a>
 ### Phase M5-11.2 - Actual Adaptive Calibration And Selector Comparisons
 
-**Status:** PLANNED / NOT_RUN; recipe choice follows M5-11.1, not current winners.
+**Status:** APPROVED / NOT_RUN; execution follows M5-11.1, not current winners.
 **Goal:** exercise actual Mode5 search and selection on meaningful search budgets
    after diagnostics, distinguishing selector-only from end-to-end effects.
 **Entry:** reviewed new dossier for each scope, researcher-approved recipe and
@@ -29434,7 +29441,8 @@ and [M511.01..03](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#phase-m
 <a id="mode5-m5-11-3"></a>
 ### Phase M5-11.3 - Multi-Origin Fixed-Policy Transfer And Economic Qualification
 
-**Status:** PLANNED / NOT_RUN; no independent-forward certification promised.
+**Status:** APPROVED / NOT_RUN; execution follows M5-11.2, no independent-forward
+   certification promised.
 **Goal:** test the entire diagnostic -> recipe -> search -> selection procedure
    over long forward horizons, not just bootstrap one already chosen curve.
 **Entry:** M5-11.1/11.2 reviewed scope and frozen actual outputs, complete prefix
