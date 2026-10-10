@@ -28606,6 +28606,39 @@ extension analyses when inputs/contracts change. Never backdate a new recipe.
   recovery remain pending; no winner, independent economics or M5-09 permission
   follows from this software receipt.
 
+**2026-10-10 Append-Only Empty-Account Projection Recovery:**
+- The fixed batch ended with 51 successful commands and the two registered
+  constructor failures. First carrier retries reached actual execution, but
+  the parity harness assumed that an empty Python audit table has named
+  columns. Both original retry failures are retained; they are not scores.
+- M5081-G02 is confined to the cold-path research reference representation:
+  register a new isolated adapter that calls the original Python owner unchanged
+  and supplies typed zero-row schemas only when the actual command tape,
+  orders, fills and events are empty and every financial path is exactly flat.
+  No event row, fill, order, inventory, cash or metric may be invented. Preserve
+  account-buffer identities, original metadata columns and both failure attempts.
+- Original financial driver, carrier registration/code, alpha and production
+  source remain byte-identical. Run the same inactive carrier/effective point
+  under a new attempt, with the existing numeric tolerance and full clock,
+  ledger and alternate-carrier proof. Non-empty/non-flat inputs fail closed.
+  A real QuantBT empty-tape differential test must reproduce and close the
+  schema error before the historical retry. No new economic candidate or
+  selection permission; charge failed work and stay within the original budget.
+
+**2026-10-10 Same-Point Recovery Receipt:**
+- Both deferred cells now PASS the original full clock/fill/accounting and
+  independent ledger checks. The alternative legal inactive carrier produces
+  identical effective parameters, commands and actual-feedback decisions.
+- The first empty-schema wrapper exposed an unbound-method dispatch mistake;
+  its two failures are retained. A separate versioned wrapper explicitly calls
+  the unchanged reference owner; seven focused tests PASS, including a real
+  QuantBT zero-command differential and the original unbound calling convention.
+- Only zero-row reference schemas are projected. Actual fills/orders/events
+  remain zero and original financial buffers remain unchanged. All 53 frozen
+  requests now have qualified results; no candidate/window/gate replenishment.
+  Final independent metrics, reporting, current-source regression and cleanup
+  still precede phase completion.
+
 <a id="mode5-m5-09"></a>
 ### Phase M5-09 - Diagnostic Dossier, Advisory Governance And Calibration Seal
 
