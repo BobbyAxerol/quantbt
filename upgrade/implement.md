@@ -28864,7 +28864,8 @@ radar source tables, CalibrationPlanV1 seal, override log and cost/cleanup bill.
 <a id="mode5-m5-10"></a>
 ### Phase M5-10 - Public Opt-In Mode 5, Sampler Bridge And Prepared Runtime
 
-**Status:** NOT_STARTED; owner implementation approval PENDING; gates NOT_RUN.
+**Status:** IN_PROGRESS; owner implementation approval GRANTED 2026-10-10;
+gates REGISTERED, NOT_RUN. No M5-11 study or release action authorized.
 **Goal:** wire the actual stable user route to sealed diagnostics/recipes and
    shared prepared execution, not certify disconnected helpers or mock wiring.
 **Entry:** M5-09 reviewed exit, actual M5-01 source map and separate approval
@@ -28920,6 +28921,42 @@ matched performance and installed-consumer/resource/privacy/cleanup evidence.
    tests; matched benchmarks, docs and source-bound report. No release action.
 **Rollback:** turn off new opt-in entries and pin compatible prior artifacts;
    legacy endpoints/data/scientific behavior remain reproducible.
+
+**Approved Execution Registration (2026-10-10):**
+- Stable entry: `QuantBTEndpoint.walk_forward`, Mode 5/global only, optional
+  `optimization_config.mode5_calibration`. Absent opt-in keeps the frozen
+  legacy route. Typed configuration binds verified dossier/plan/governance,
+  authorized development windows, formula/reference/schema, execution
+  economics, support/retention and actual sampler settings. Deferred plans,
+  stale dependencies, post-hoc seals and old objective-score imports fail
+  before candidate execution. This is not automatic advisory routing.
+- Promote canonical M5-03/07/09 contracts/reducers into focused `src/quantbt`
+  modules; research imports become compatibility re-exports, not duplicate
+  formula implementations. Do not bundle private sources/evidence or loaders.
+- Extend existing endpoint scorer and WFO sampler/study boundary. Reuse
+  prepared market/context and original financial execution; no financial
+  engine, second sampler registry or cache. Numeric retained inputs are
+  reduced without constructing full reports on each opted-in trial.
+- Register public synthetic contracts for four selectors, sampler variants,
+  sequential vs fixed-batch schedules, cancellation/pruning/failure/duplicates,
+  actual feedback and score/audit reconciliation. Existing five-alpha fixed
+  execution controls are integration evidence, not researcher approval of
+  the five deferred real search plans or M5-11 economic findings.
+- Run M5T-091..100, affected Mode1..5/QMS/sampler/prepared/reporting/privacy
+  regressions; local wheel/sdist and isolated outside-checkout installed
+  consumers. Reuse exact unchanged native artifact; no Rust rebuild absent
+  native changes. Benchmark matched fixed-candidate public/prepared workloads
+  with three registered repeats, one worker and one numeric thread; report
+  both timings/RSS and actual backend/fallback/retention.
+- Resource lane: `upgrade/private/mode5_upgrade_v1/m5-10/attempt-01`;
+  private harness `upgrade/local/mode5_upgrade_v1/m5-10/attempt-01`;
+  disposable scratch `.maturin/mode5-m510/attempt-01`. Retain receipts,
+  failures, source snapshots and exact artifacts. Retained budget 256 MiB;
+  peak incremental scratch budget 2 GiB plus at least 5 GiB free reserve.
+  Before execution inspect bytes/inodes; reuse current controlled tooling.
+  Before cleanup inspect host processes/FDs, remove only registered inactive
+  ignored scratch, then verify originals/prior receipts/current artifacts and
+  source state. No push/merge/tag/CI/PyPI or private alpha modification.
 
 <a id="mode5-m5-11"></a>
 ### Phase M5-11 - Formal Calibration, Adequate Forward Tests And Economics
