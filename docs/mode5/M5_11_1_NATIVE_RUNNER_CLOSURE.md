@@ -76,3 +76,29 @@ tag/publication ran. Reviewed build/extraction/JIT scratch remains because
 upcoming registered jobs need it; no shared cache/evidence was deleted. Disk
 reserve exceeds 5 GiB. The next execution is only missing RSI/SC selector
 evidence, followed by remaining native panels and required diagnostics.
+
+## Retained HASH Index1 Adoption
+
+After the bounded RSI/SC compound closure, the second retained HASH control
+passed a fresh source-bound adoption check. It reused its completed commands;
+the historical 846 feedback passes were **not repeated or rebilled**. Two Rust
+runs plus one Python reference billed **3 passes / 78,840 account-bars**.
+Worker elapsed time was **34.42 seconds**, peak process-group RSS **608.02 MiB**;
+the whole supervision lane took 45.07 seconds including custody overhead.
+These are replay-control costs, not full-candidate or sampler benchmarks.
+
+The control has 1,138 fills, 421 cancellation events and 968 canceled order-slot
+transitions. Raw retained accounting and repeat Rust execution pass; available
+terminal/cancellation/liquidity fields match the Python oracle. Rust remains
+the authoritative terminal-state owner. `remaining_qty`, `qty_semantics`,
+`processed`, working-state availability and terminal/command coordinates have
+no corresponding Python terminal fields, so full cross-owner remaining-quantity
+parity is explicitly unavailable, not claimed. Existing focused native tests
+certify those native outputs separately. The next full build yields identical
+commands and the market witness remains unchanged.
+
+All owned children were reaped, cleanup verification has no errors, and all
+control outputs/failures/artifacts remain retained. This step changes no alpha,
+matching, fees, accounting, RNG or scientific policy. The fresh three-cell
+native tranche still requires exact runtime/wrapper custody review; this receipt
+does not complete HMA/HASH/VWAP's 128-configuration panels or release gates.

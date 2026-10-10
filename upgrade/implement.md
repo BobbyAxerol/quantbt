@@ -29598,6 +29598,14 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    This closes the registered bounded step-1 inputs, not the five-alpha phase
    or sampler/forward gates. The next ordered action is the retained HASH
    control check and source-bound native tranche, with unchanged science.
+   **HASH Control Adoption:** the additional completed HASH control now passes
+   two Rust replays plus one Python reference: 3 passes/78,840 bars, 34.42-second
+   worker and 608.02 MiB peak group RSS. Its 846 historical feedback passes were
+   not rerun. Raw accounting, available terminal/cancel/liquidity fields and
+   identical next-build commands pass. Native-only terminal fields retain
+   explicit availability, not invented cross-owner oracle parity. Custody and
+   cleanup pass with all owned children reaped; all source/artifact/control
+   evidence is retained. See [control adoption](../docs/mode5/M5_11_1_NATIVE_RUNNER_CLOSURE.md#retained-hash-index1-adoption).
 **Goal:** actually measure the effective landscape, active neighborhoods and
    environment differences before formal tuning, for all five admitted alphas.
 **Entry:** M5-11 review, unchanged alpha/account witnesses, source/data inventory,
