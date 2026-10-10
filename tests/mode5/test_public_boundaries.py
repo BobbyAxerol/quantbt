@@ -197,3 +197,11 @@ def test_reviewed_source_guard_rejects_unreviewed_bytes():
     assert without_public_additions(source, name) != source
     with pytest.raises(AssertionError, match="unreviewed Mode5 public bytes"):
         without_public_additions(source + b"\n# unreviewed mutation\n", name)
+
+
+def test_returned_full_sample_cannot_execute_outside_development_witness(tmp_path):
+    e, frame, ranges, _ = public_setup(tmp_path)
+    extra = frame.iloc[[-1]].copy()
+    extra.index = extra.index + pd.Timedelta(hours=1)
+    with pytest.raises(PermissionError, match="development witnesses"):
+        e.backtest(data=pd.concat([frame, extra]), param_ranges=ranges)

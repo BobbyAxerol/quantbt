@@ -209,6 +209,8 @@ class PublicMode5Runtime:
                     raise ValueError("selected replay finance/components mismatch; no final vector allowed")
             self.metadata.update(status="SELECTED_REPLAY_VERIFIED", selected_params_digest=cid,
                 selected_audit=replay, capability=dict(callbacks="strategy_owned_python", execution="original_endpoint"),
+                environment_account_policy="independent_reset_flat_v1",
+                final_account_policy="original_endpoint_full_development_v1",
                 selected_replay_retention="audit_requested_on_original_endpoint")
             c.preflight(self.engine, self.data, self.index, param_ranges)
             records = [WalkForwardTrialRecord(r["trial_id"], r["effective_params"],

@@ -28923,6 +28923,11 @@ matched performance and installed-consumer/resource/privacy/cleanup evidence.
    legacy endpoints/data/scientific behavior remain reproducible.
 
 **Approved Execution Registration (2026-10-10):**
+- Final integration rights check: the returned full-sample run must not
+  execute input bars outside the registered development witnesses. Environment
+  observations retain an explicit reset-flat label; they are not silently
+  substituted for continuous calendar-membership attribution. No new account
+  semantics, financial source or scientific estimator is introduced.
 - Stable entry: `QuantBTEndpoint.walk_forward`, Mode 5/global only, optional
   `optimization_config.mode5_calibration`. Absent opt-in keeps the frozen
   legacy route. Typed configuration binds verified dossier/plan/governance,

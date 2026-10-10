@@ -378,6 +378,8 @@ def test_q7_t07_protected_financial_source_and_published_pair_unchanged():
         ["git", "diff", "6c0f877", "--name-only", "--", "src/quantbt", "rust"],
         cwd=ROOT, text=True,
     ).splitlines()
+    from tools.mode5_public_source_guard import prior_names
+    current = prior_names(current, "6c0f877")
     from tools.qms_release_source_guard import PACKAGING_FILES, without_release_identity
     from tools.qms_c02_source_guard import ALLOW, verify
     from tools.qms_c03_source_guard import ALLOW as C03_ALLOW

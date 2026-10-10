@@ -169,6 +169,12 @@ class Mode5Calibration:
             raise NotImplementedError("public Mode5 Python callback evaluation currently requires one worker")
         if cfg.sampler_config is None or cfg.sampler_config.metadata() != self.binding.data["sampler"]:
             raise ValueError("actual sampler configuration differs from sealed binding")
+        authorized = None
+        for window in self.windows:
+            mask = (index.asi8 >= window.witness.start_ns) & (index.asi8 <= window.witness.end_ns)
+            authorized = mask if authorized is None else authorized | mask
+        if authorized is None or not authorized.all():
+            raise PermissionError("full calibration input exceeds registered development witnesses")
         scorer = engine.scorer
         if not hasattr(scorer, "mode5_metric_policy") or scorer.mode5_metric_policy is None:
             raise NotImplementedError("original endpoint result/retention witness required; arbitrary scalar scorer is unsupported")
