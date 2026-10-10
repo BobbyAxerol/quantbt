@@ -29035,7 +29035,9 @@ matched performance and installed-consumer/resource/privacy/cleanup evidence.
 <a id="mode5-m5-11"></a>
 ### Phase M5-11 - Formal Calibration, Adequate Forward Tests And Economics
 
-**Status:** NOT_STARTED; owner implementation approval PENDING; gates NOT_RUN.
+**Status:** IN_PROGRESS; owner implementation approval GRANTED 2026-10-10;
+technical gates registered below. Real recipe/budget/support protocol approval
+is separate and requested before new formal tuning; no deferred seal is bypassed.
 **Goal:** evaluate the frozen recipe's actual economic meaning and transfer,
    without confusing full-development calibration with independent OOS.
 **Entry:** M5-10 reviewed exit, sealed plans and owner-approved per-alpha
@@ -29095,6 +29097,47 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    validation chunks; reviewed private findings and sanitized source-bound report.
 **Rollback:** retain independent incumbents/legacy choices and negative evidence;
    no live deployment, automatic retune or rewrite of prior scientific results.
+
+**Execution Registration (2026-10-10, before new outcomes):**
+- M5-10 exit and guide M511.01..06 / M5T-101..110 are the entry authority.
+  Phase implementation is approved; existing five real plans remain immutable
+  DEFER_CALIBRATION. Requested researcher protocol is not considered approved
+  until the owner's reply. Do not manufacture eligible advice or seal times.
+- Implement focused research economic/validation contracts and independent
+  oracles. Reuse original accounting, canonical metric/tail/PSR reducers,
+  shared dossier/rights, sampler and public runtime; no endpoint, financial
+  engine, optimizer or Rust/Numba scientific estimator replacement.
+- Inventory qualified actual 2021/2025 annual paths for all five alphas and
+  source-bound data/holding/campaign support without a new financial run.
+  Cached forward histories remain reviewed/exploratory, never independent OOS;
+  original post-selected anchors and prior outcomes remain explicit.
+- Proposed minimal finite-panel pilot: eligible A-RSI/A-SC only, existing
+  registered anchor/neutral coordinates; raw-Sharpe baseline versus frozen
+  environment_floor_mean_v1 challenger. No new range, seed, automatic router,
+  sampler superiority or broad recipe claim. Full-active SAM and unsupported
+  advice stay blocked. Register any approved real run before execution.
+- Proposed support/inference policy awaiting approval: 365 scored days in
+  development and forward; 30 accepted fills / 20 closed campaigns where
+  available, three distinct qualified origins for transfer claims; seven-day
+  paired circular blocks, 1,024 draws, seed 731, 99% family-wise intervals
+  across five predeclared alpha contrasts; 0.5 bps net account/day business
+  hurdle. Ledger unavailable is null, not zero or a fabricated trade count.
+  Record exact exposure/cost/account conventions and no effect-based extension.
+- Unit tests cover M5T-101..110, raw fixed-vector SR/growth/log-PF decay,
+  annualized versus original-period units, lower-IS-only pseudo-improvement,
+  actual-turnover MDE, null/zero/negative/insolvent paths, paired common calendar,
+  immature/future/reviewed roles, whole-procedure versus fixed-path uncertainty,
+  admissible selected replay, dynamic stress rerun and blocked-alpha coverage.
+  Register all attempts/failures; negative or insufficient outcomes never retune.
+- Resource lane `upgrade/private/mode5_upgrade_v1/m5-11/attempt-01`, private
+  harness `upgrade/local/mode5_upgrade_v1/m5-11/attempt-01`, disposable ignored
+  scratch `.maturin/mode5-m511/attempt-01`. Reuse current controlled tooling;
+  one process/one numeric thread, 256 MiB retained budget / 1 GiB incremental
+  scratch / at least 5 GiB free reserve. Initial filesystem about 25 GiB free.
+  Preserve original guide/alphas/data, prior source-bound receipts and exact
+  core/native artifacts; no native build/dependency install planned.
+  Host process/FD/maps review precedes exact scratch cleanup, then protected
+  hashes and actual free bytes are verified. No M5-12, push/CI/tag/release/PyPI.
 
 <a id="mode5-m5-12"></a>
 ### Phase M5-12 - Local Package Qualification, Regression, Docs And Handoff
