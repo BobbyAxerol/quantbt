@@ -210,6 +210,19 @@
     "original_interruption_receipts_rewritten": false,
     "further_financial_execution_authorized_now": false
   },
+  "hma_cold_closeout": {
+    "status": "OWNER_CANCELED_PARTIAL_COLD_CLOSEOUT",
+    "focused_tests_passed": 29,
+    "test_seconds": 0.1719378960551694,
+    "closeout_seconds": 0.7551011899486184,
+    "financial_execution_calls_added": 0,
+    "original_failed_harness_attempts_preserved": 2,
+    "completed_pilot_financial_stage_seconds": 3008.5610321139684,
+    "completed_pilot_driver_wall_seconds": 3014.9921418230515,
+    "completed_pilot_process_wall_seconds": 3018.7650541580515,
+    "new_completed_timing_samples": 0,
+    "full_terminal_parity": "UNQUALIFIED"
+  },
   "remaining": {
     "A-HMA": "ONE_COMPLETE_CANDIDATE_ONE_CENSORED_OWNER_STOP_REVIEW_PENDING",
     "A-HASH": "TWO_COMPLETE_CANDIDATES_ONE_CENSORED_OWNER_STOP_REVIEW_PENDING",

@@ -148,6 +148,17 @@ host custody, both reaped sessions, exact inactive HASH cache removal and
 current tooling and exact artifacts remain; cleanup does not close a scientific
 or financial qualification gate.
 
+The append-only HMA cold closeout verifies the original pilot, current source/
+calendar/path custody and interrupted-pass lower bounds without importing or
+executing the financial runtime. Its new 29-fixture suite PASSes (0.172 s),
+and cold closeout takes 0.755 s. The initial launcher-symlink registration
+failure and the first fixture failure from transitive engine-definition imports
+remain sealed. A separate registered harness revision resolves those control
+issues, not by rerunning the alpha or weakening a financial tolerance. HMA
+compiler-plus-Python financial stages are 3,008.561 s, driver wall 3,014.992 s
+and process wall 3,018.765 s; these clocks are not interchangeable. No new
+completed-candidate timing is inferred from the censored run.
+
 Completed initial pilots on the entire development horizon: A-RSI took 7.498 s
 inside the financial driver (two actual account passes, exact array parity);
 A-SC took 33.299 s (one callback account run, 140 fills, 70 closed campaigns,

@@ -21,6 +21,12 @@ This is an operational stop receipt, not complete fault/cancellation or
 terminal-state certification. Completed-candidate checkpoints survive;
 mid-compiler exact continuation is not certified.
 
+The separately registered HMA cold closeout finishes its 29-fixture suite and
+0.755-second source/calendar/path inventory without financial runtime imports
+or calls. Its two preceding harness-control failures remain retained. All
+associated command sessions are completed; this cold helper creates no
+disposable scratch or consumer and removes nothing from the shared lane.
+
 ## Inventory And Removal
 
 After host FD/maps review, the HASH owner removed only:
