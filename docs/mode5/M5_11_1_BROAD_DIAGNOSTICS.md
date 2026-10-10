@@ -197,8 +197,27 @@ replacement candidate is permitted.
 The owner has approved restoring the required constructor input from the original
 sealed economic config **only when the time-stop dimension is inactive**. A separately
 registered recovery must prove strict constructor coverage, unchanged effective
-IDs and behavior, and full financial parity. The failed attempt remains retained;
-this approval alone is not a passing recovered account run.
+IDs and behavior, and scoped financial parity. Both failed attempts remain
+retained. The first recovery then encountered a checker error on the genuinely
+empty Python event ledger, not an account/alpha failure. A separately qualified
+23-fixture wrapper declares only source-proven zero-row schemas in isolated
+views, then invokes the unchanged original parity helper; it cannot conceal
+nonempty events, fills, numeric/clock mismatches or malformed ledgers.
+
+Recovery02 now completes the **same original candidate 0**: all 128 constructor
+inputs and effective IDs verify, with explicit original inactive input recovery
+only on the 64 inactive rows. The full 1,095-day account has zero commands,
+fills, fees and exposure; equity is flat, Sharpe/PSR remain undefined. This valid
+no-trade outcome is retained, not replaced by a trading or profitable candidate.
+Numeric/fill/event/clock parity and independent account reconciliation PASS
+with difference zero. Terminal active-order parity is a separate audit.
+
+The recovered cell bills two native fixed-point passes plus one Python owner
+pass, **78,840 account-bars**, 17.944 s financial-driver and 22.894 s supervisor
+elapsed. All workers are reaped; the loaded source/native origins and market
+signature are protected. These costs describe one no-order configuration,
+**not** an eventful route speed benchmark or a runtime estimate for all VWAP
+branches. Bulk VWAP discovery and probes remain unexecuted.
 
 ## Cold Measurement Verification
 

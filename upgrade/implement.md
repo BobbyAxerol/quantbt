@@ -29305,9 +29305,13 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    HMA/HASH original native-route pilots now complete with Python numeric/fill/
    selected-event parity and independent accounting difference zero; terminal
    active-order parity has a separately tracked supplementary audit. They are one candidate
-   per native alpha, not 128-point coverage. VWAP's failed inactive-input
-   attempt remains retained; the owner approved restoring only the required
-   inactive input from the sealed original config in a new recovery lane.
+   per native alpha, not 128-point coverage. VWAP's original failed inactive-
+   input and empty-ledger checker attempts remain retained. Recovery02 validates
+   all 128 constructor inputs/effective IDs and completes the original no-trade
+   candidate using only the approved inactive input and strict empty-schema
+   parity wrapper. Three complete account passes, zero orders/fills, undefined
+   Sharpe and accounting difference zero are retained; this is not an eventful
+   VWAP runtime benchmark or broad coverage.
    See
    [current report](../docs/mode5/M5_11_1_BROAD_DIAGNOSTICS.md).
    Prepared points are not executed candidate/path or full dossier certification.
