@@ -29320,6 +29320,10 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    See
    [current report](../docs/mode5/M5_11_1_BROAD_DIAGNOSTICS.md).
    Prepared points are not executed candidate/path or full dossier certification.
+   The [economics/frozen-checkpoint report](../docs/mode5/M5_11_1_ECONOMICS_CHECKPOINT.md)
+   consolidates completed results and retained negative evidence for owner
+   review. Existing result manifests reverify 2,813 unique files with no hash
+   failure/conflict; this cold review opens no financial run or new phase.
    Cold measurement verification: 61 focused tests PASS, unchanged protected
    source/receipts; 128 sealed RSI paths produce 512 whole/annual dependent rows,
    monetary reconciliation diff zero and wealth residual at most 4.45e-16.

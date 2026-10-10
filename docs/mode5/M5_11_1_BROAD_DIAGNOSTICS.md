@@ -3,6 +3,10 @@
 Status: **IN_PROGRESS**, owner-approved recovery, 2026-10-10. This report is not
 a completed broad landscape, selector/search or economic promotion receipt.
 
+Owner review: [economics and frozen checkpoint](M5_11_1_ECONOMICS_CHECKPOINT.md)
+consolidates the completed results, remaining coverage and approval boundary.
+Financial execution remains stopped; the report does not authorize another run.
+
 Authority: [unified phase](../../upgrade/implement.md#mode5-m5-11-1),
 [effective domain](../../upgrade/QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#453-diagnostic-domain-không-bị-ép-nhỏ-chỉ-để-rẻ),
 [six matrices](../../upgrade/QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#43-sáu-ma-trận-derived-bắt-buộc-trong-dossier),
