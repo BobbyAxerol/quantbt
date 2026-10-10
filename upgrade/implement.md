@@ -29657,6 +29657,21 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    or normalize accounting to meet the envelope. A custody factory scopes only
    resource budget through registration/authorization/delegation, never a new
    financial engine or driver clone. No estimator/utility/RNG change is implied.
+   **Interruption Custody Recovery (2026-10-10):** direct host PID/start checks
+   confirm that the tranche03 supervisor is absent after the turn interruption,
+   while the original HMA/HASH workers remain live and VWAP is checkpointed.
+   Do not relaunch workers or reset their six-hour caps. A source-pinned detached
+   private guard must monitor those exact sessions using the original resource
+   and ownership helpers; no simulation, new attempt or optimizer is involved.
+   Preserve the old claim/journal and register adoption separately. Because
+   orphaned workers are no longer children of a new supervisor, their OS exit
+   codes/reaping cannot be invented. Independent closed-output qualification
+   may verify original result/owner/parity/runtime/factory/source witnesses and
+   exact account work, with exit-code availability and observed timing bounds
+   explicitly separated. Any unknown/incomplete output stays unqualified.
+   Recovery fixtures must cover PID reuse, a live owner's protection, resource
+   caps from the original epoch, closed-output faults and truthful unavailable
+   process status. Current source, artifacts, alpha and science remain frozen.
 **Goal:** actually measure the effective landscape, active neighborhoods and
    environment differences before formal tuning, for all five admitted alphas.
 **Entry:** M5-11 review, unchanged alpha/account witnesses, source/data inventory,
