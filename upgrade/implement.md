@@ -29522,6 +29522,33 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    resolving its executable symlink alone would lose that environment. No
    covariance union is implied by these schema-floor requests; measured fits
    and exact role-bound directions remain a separate preceding design gate.
+   **Schema-Account Completion / Covariance Follow-Up (2026-10-10):** all 195
+   exact schema-floor requests completed in their 17 ordered custody lanes.
+   A separate checkpoint/source/output reconciliation verified 374 returned
+   owner passes and 9,828,720 account-bars, with no failed or dropped cells;
+   this is account-work custody, not selector or economic certification.
+   Four measured supported regularized clouds generated 108 genuinely missing
+   covariance-role requests (96 RSI, 12 SC), preserving the original 195
+   request identities. The full bounded union therefore has 303 role requests
+   and requires 909 annual attribution views after account qualification.
+   Covariance does not imply a Hessian, independent validation, annual-local
+   estimator authorization or a complete 128-center local contest.
+   Source-bound covariance work runs in 11 ordered lanes using the same
+   three-slot store and frozen finance, horizons, domains, seeds and economics.
+   Registered forecast is 204 additional returned passes/5,361,120 account-bars;
+   final receipts, not this forecast, establish actual completed work.
+   The controller's initial registration/source are retained. Before any
+   covariance launch, a custody-only revision added an exclusive controller
+   claim and stop rechecks across launch/wait/completion; four fake process
+   fixtures passed without executing an account. The account request set and
+   lane source pins did not change. Covariance preparation passed 25 cold
+   tests; the compound reconciliation/analysis adapter passed 50 focused
+   fixtures. Their commits are `541b63d` and `7b48485`, respectively.
+   Native tranche preparation remains conditional on completed selector
+   reconciliation and exact source/artifact/custody gates. HASH's second
+   completed control requires a retained-command financial-equivalence check,
+   not another historical feedback search. New native panels retain the
+   128-effective-config target and fresh attempts for stopped configurations.
 **Goal:** actually measure the effective landscape, active neighborhoods and
    environment differences before formal tuning, for all five admitted alphas.
 **Entry:** M5-11 review, unchanged alpha/account witnesses, source/data inventory,
