@@ -29505,6 +29505,23 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    speed claim for feedback convergence. Current source/binary pins must pass
    again before launch; no public/remote gate is inherited. Step3/4/5 remain
    pending their ordered evidence gates, not complete after supervisor launch.
+   **Missing-Evidence Execution Registration:** the follow-up source-bound
+   controller runs the 195 exact schema-floor requests (179 RSI, 16 SC), grouped
+   into bounded source/dependency-pinned custody lanes. Each lane has at most
+   three independent one-thread workers; lanes execute sequentially using one
+   shared store, avoiding an unbounded set of waiting supervisors. Original
+   2020 preload, continuous 2021-2023 account, candidate/role identities, costs,
+   account owners and metrics remain unchanged. Expected work is 374 returned
+   owner passes/9,828,720 scheduled bars, not measured work or 195 independent
+   replicates. Exact completed counters and faults govern the final receipt.
+   Register global retained cap 4 GiB, scratch cap 96 MiB, 6 GiB total/2 GiB
+   worker RSS, six-hour safety caps and 5 GiB free reserve before launch; inode
+   caps account for registered manifests and scoped JIT output. Supervisors
+   clean only their verified inactive owned scratch after preserving outputs.
+   The controlled Python wrapper preserves actual virtualenv/package origins;
+   resolving its executable symlink alone would lose that environment. No
+   covariance union is implied by these schema-floor requests; measured fits
+   and exact role-bound directions remain a separate preceding design gate.
 **Goal:** actually measure the effective landscape, active neighborhoods and
    environment differences before formal tuning, for all five admitted alphas.
 **Entry:** M5-11 review, unchanged alpha/account witnesses, source/data inventory,
