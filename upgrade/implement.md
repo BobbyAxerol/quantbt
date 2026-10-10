@@ -29624,6 +29624,24 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    extending the panel. Five-alpha coverage, dossiers, sampler-only comparison,
    256-query calibration and prefix forward gates remain open in their order.
    No remote, publication or clean-OOS claim is authorized by this launch.
+   **Formal-Study Entry Preflight:** source-only review identifies an explicit
+   bridge gap before M5-11.2, not permission to reuse old two-coordinate pilot
+   receipts as expanded-search evidence. Existing public Mode5 resets each
+   evaluation environment; the approved long study instead needs one continuous
+   development account with attributable annual views. Existing local offsets
+   also do not inherit the registered effective schema/covariance/probe-role
+   design. Preserve both contracts and qualify an explicit versioned continuous
+   observation/adaptation path using the existing account/reducer authorities,
+   without changing utility/estimator or silently substituting annual reset.
+   Native fixed-tape integration does not yet certify arbitrary-candidate full
+   HMA/HASH/VWAP feedback compilation; use the qualified original compiler and
+   work bill, not a signal approximation. Sampler effective/cast/conditional/
+   coupled binding, generated raw-Sharpe baseline, dossier/CalibrationPlan
+   budget seals and prefix producer must pass before real studies launch.
+   No source in a running source-pinned tranche may change. Read-only design
+   work may proceed, but implementation/qualification uses a fresh registered
+   source revision after the active tranche is finished. This is an ordered
+   entry dependency, not a claimed completed calibration/forward capability.
 **Goal:** actually measure the effective landscape, active neighborhoods and
    environment differences before formal tuning, for all five admitted alphas.
 **Entry:** M5-11 review, unchanged alpha/account witnesses, source/data inventory,
