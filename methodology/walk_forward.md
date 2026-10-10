@@ -636,6 +636,13 @@ một phần IS score để lấy stability.
 
 ## 14. Mode 5: `mode_5_full_robust`
 
+This section describes the preserved legacy path. The opt-in M5-10
+diagnostics-first path is documented separately in
+[Public Diagnostics-First Mode 5](../docs/mode5/PUBLIC_CALIBRATION_V1.md): sealed
+recipes, explicit measurement units, sampler lineage and original-account
+selected audit. Neither route makes calibration performance independent OOS
+proof or automatic deployment permission.
+
 Mode 5 là full-sample robust calibration, không phải WFO validation. QuantBT tạo
 một fold duy nhất:
 

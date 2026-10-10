@@ -1,6 +1,6 @@
 # QuantBT Upgrade Implementation Plan
 
-## Current Mode 5 Diagnostics-First Upgrade - M5-09 Dossier Governance
+## Current Mode 5 Diagnostics-First Upgrade - M5-10 Public Integration
 
 **Status:** M5-01 COMPLETE_LOCAL_BASELINE / EXIT_PASS_OWNER_DISPOSITION; 76 tests PASS,
 M5T-001..010 exercised, 427 protected hashes unchanged. M5-02
@@ -84,14 +84,30 @@ Read the [M5-09 report](../docs/mode5/M5_09_DOSSIER_REPORT.md),
 [contract](../docs/mode5/DOSSIER_GOVERNANCE_V1.md),
 [aggregate summary](../docs/mode5/evidence/m5-09.json) and
 [cleanup](../docs/maintenance/M5_09_CLEANUP.md).
-M5-10..M5-12 remain NOT_STARTED / NOT_RUN. Neutral coverage
+M5-10 is COMPLETE_LOCAL_PUBLIC_OPT_IN / TECHNICALLY_VALID after separate
+owner approval on 2026-10-10. The stable endpoint delegates sealed diagnostics,
+shared samplers, original financial execution and selected audit through an
+optional calibration contract. Final certification covers 1,876 distinct
+source cases; both outside-checkout wheel/sdist consumers pass 50 public cases.
+Five real fixed-coordinate controls reconcile source/wheel/sdist accounting
+with maximum difference zero; this is not authorization of their deferred search.
+All 2,757 protected hashes unchanged, artifact privacy/source checks and exact
+scratch cleanup PASS. Matched fully-warm 8,760-bar/16-candidate public medians:
+prepared off 910.998 ms, on 903.934 ms; RSS about 266 MiB, no material speed/RSS
+benefit claimed. Same-version old native artifact capability mismatch was
+closed by a registered offline build of unchanged current Rust source.
+Read the [M5-10 report](../docs/mode5/M5_10_PUBLIC_RUNTIME_REPORT.md),
+[public opt-in contract](../docs/mode5/PUBLIC_CALIBRATION_V1.md),
+[summary](../docs/mode5/evidence/m5-10.json) and
+[cleanup](../docs/maintenance/M5_10_CLEANUP.md).
+M5-11/M5-12 remain NOT_STARTED / NOT_RUN. Neutral coverage
 and unexecuted held directions are not full-space or independent-OOS proof.
 Read the [M5-01 baseline report](../docs/mode5/M5_01_BASELINE_REPORT.md) and
 [reviewed-exit seal](../docs/mode5/evidence/m5-01-exit-review.json). The owner
 confirmed the detailed guide's reports came from the original ZIPs and accepts
 guide/hash-verified extracted inputs as baseline. Original ZIP files are not
 an M5-02 entry blocker; archive hashes are not claimed locally remeasured.
-No remaining registered M5-01..09 local implementation exit blocker within their
+No remaining registered M5-01..10 local implementation exit blocker within their
 approved scopes. M5-02 qualified local
 binding pilots and actual-engine synthetic tests, not methodology/default
 changes. Protection-dependent bindings are offline actual-feedback compilers,
@@ -27060,7 +27076,12 @@ receipts and frozen decisions remain unchanged; evidence limits remain explicit.
 M5-09 is COMPLETE_LOCAL_DOSSIER_GOVERNANCE / DESCRIPTIVE_ONLY; read the
 [dossier report](../docs/mode5/M5_09_DOSSIER_REPORT.md). Five dossiers and
 zero-budget deferred seals qualify governance, not an automatic router or a
-formal recipe choice. M5-10..12 remain NOT_STARTED / NOT_RUN.
+formal recipe choice. M5-10 is COMPLETE_LOCAL_PUBLIC_OPT_IN / TECHNICALLY_VALID;
+read the [integration report](../docs/mode5/M5_10_PUBLIC_RUNTIME_REPORT.md)
+and [stable opt-in contract](../docs/mode5/PUBLIC_CALIBRATION_V1.md).
+Installed exact local artifacts, original-account selected audit, matched
+prepared/fresh controls, legacy/meta regression and cleanup pass. No real
+deferred plan, default, version or release promotion; M5-11/12 remain NOT_STARTED.
 Read the
 [M5-01 exit review](../docs/mode5/M5_01_EXIT_REVIEW.md) and
 [M5-02 admission report](../docs/mode5/M5_02_ADMISSION_REPORT.md) before further
@@ -27300,7 +27321,7 @@ Every phase below inherits this mandatory resource registration/cleanup exit.
 | [M5-08](#mode5-m5-08) | Five empirical batteries/five-alpha review | M5-07 and valid panels/routes | M5T-071..080 | COMPLETE_LOCAL_TARGETED_DIAGNOSTICS / DESCRIPTIVE_ONLY |
 | [M5-08.1](#mode5-m5-08-1) | Longer calendar, coverage and mechanism diagnostics | Reviewed M5-08; separate owner approval | M5T-071..080 plus extension contracts | COMPLETE_LOCAL_REGISTERED_HISTORICAL_DIAGNOSTICS; DESCRIPTIVE_ONLY; broad confirmation INCONCLUSIVE |
 | [M5-09](#mode5-m5-09) | Dossier, advisory and sealed plan | M5-08/08.1 reviewed exit | M5T-081..090 | COMPLETE_LOCAL_DOSSIER_GOVERNANCE |
-| [M5-10](#mode5-m5-10) | Public opt-in integration/runtime reuse | M5-09 plus current source map | M5T-091..100 | NOT_STARTED |
+| [M5-10](#mode5-m5-10) | Public opt-in integration/runtime reuse | M5-09 plus current source map | M5T-091..100 | COMPLETE_LOCAL_PUBLIC_OPT_IN / TECHNICALLY_VALID |
 | [M5-11](#mode5-m5-11) | Formal calibration and scoped economics | M5-10 plus authorized adequate data | M5T-101..110 | NOT_STARTED |
 | [M5-12](#mode5-m5-12) | Local qualification/docs/handoff | M5-01..11 dispositions reviewed | M5T-111..120 | NOT_STARTED |
 
@@ -28864,8 +28885,10 @@ radar source tables, CalibrationPlanV1 seal, override log and cost/cleanup bill.
 <a id="mode5-m5-10"></a>
 ### Phase M5-10 - Public Opt-In Mode 5, Sampler Bridge And Prepared Runtime
 
-**Status:** IN_PROGRESS; owner implementation approval GRANTED 2026-10-10;
-gates REGISTERED, NOT_RUN. No M5-11 study or release action authorized.
+**Status:** COMPLETE_LOCAL_PUBLIC_OPT_IN / TECHNICALLY_VALID;
+owner implementation approval GRANTED 2026-10-10; M5T-091..100, source/installed
+accounting, privacy/resource/cleanup gates PASS. No M5-11 study or release action
+authorized; real formal search plans remain deferred.
 **Goal:** wire the actual stable user route to sealed diagnostics/recipes and
    shared prepared execution, not certify disconnected helpers or mock wiring.
 **Entry:** M5-09 reviewed exit, actual M5-01 source map and separate approval
@@ -28962,6 +28985,52 @@ matched performance and installed-consumer/resource/privacy/cleanup evidence.
   Before cleanup inspect host processes/FDs, remove only registered inactive
   ignored scratch, then verify originals/prior receipts/current artifacts and
   source state. No push/merge/tag/CI/PyPI or private alpha modification.
+
+**Actual Exit Receipt (2026-10-10):**
+- All six work packages and M5T-091..100 are mapped to actual public route,
+  schedule, inherited sampler, original financial lifecycle and artifact
+  assertions in the [report](../docs/mode5/M5_10_PUBLIC_RUNTIME_REPORT.md).
+  Modes 1..4/meta and legacy Mode 5 preserve their contracts; utility is never
+  relabeled raw Sharpe. Three selectors and the researcher-choice fourth slot,
+  rights/full-input authorization, probes/incumbent guard and NO_SELECTION
+  behavior are explicit; no silent automatic recipe or scalar-score import.
+- Final source panels 1,608/265/485 PASS overlap; the certification union is
+  1,876 distinct source cases, not their sum. Actual Python/Rust protection,
+  amend/cancel, rejected-order/fill-feedback and selected replay pass. Fresh
+  outside-checkout wheel/sdist consumers each pass 50 public cases; one
+  source-only Git-history guard is deselected there and passes locally.
+  Four additional metadata-only report tests, benchmark/source/artifact
+  full-precision reconciliation and Markdown links/anchors PASS; no new scratch
+  or financial execution for final documentation certification.
+- Five actual private bindings run one fixed coordinate over 2,184 hourly
+  development bars with 365-day preload. Available original finance/fills and
+  selected identity match source/wheel/sdist exactly, accounting difference
+  zero. RSI accepted-fill ledger is unavailable, not a zero-fill claim. Real
+  plans remain DEFER; these controls do not claim economic/independent transfer.
+- Exact local 1.1.2/0.4.3 artifacts retain 308 canonical Python modules and
+  privacy allowlists. The planned old native reuse was denied when actual
+  installed G01 capability was absent despite its matching version. A registered
+  offline locked release rebuild of unchanged current Rust source closed that
+  artifact mismatch. Old wheels/failed receipts remain; no finance/science,
+  Rust source or version change. Platform scope is local cp312/manylinux_2_34;
+  pinned dependencies were reused offline, not clean internet resolution.
+- Same 8,760 bars/16 coordinates, three repeats/case, one worker/thread and
+  required retained outputs: fully-warm prepared off 910.998 ms, on 903.934 ms
+  (0.78% lower; no material speedup claim), RSS about 266 MiB. Earlier
+  cache-start reporting-JIT costs stay separately labeled. All trajectories,
+  objective/selection/audit/account hashes match. No heavy per-trial report;
+  terminal-only native score is ineligible when full paths are required.
+- Host inspection covers 162 processes, no owned scratch refs/FD/maps/errors.
+  Only registered ignored inactive scratch removed; 2,757 protected, 491
+  retained and 317 current source/harness hashes unchanged. Observed recovery
+  405,250,048 bytes (386.48 MiB); cleaned consumers require fresh installation.
+  Current tooling, offline dependencies, private evidence and artifacts remain.
+- [Opt-in usage](../docs/mode5/PUBLIC_CALIBRATION_V1.md),
+  [source/artifact summary](../docs/mode5/evidence/m5-10.json) and
+  [cleanup](../docs/maintenance/M5_10_CLEANUP.md) complete this local exit.
+  No known in-scope implementation debt; explicit unsupported capabilities,
+  M5-11 formal economics and M5-12 final program/platform gates remain separate.
+  No push/CI/merge/tag/PyPI/release or live deployment occurred.
 
 <a id="mode5-m5-11"></a>
 ### Phase M5-11 - Formal Calibration, Adequate Forward Tests And Economics

@@ -3752,6 +3752,12 @@ Important rules:
   `full_plateau_robust` (dense parameter plateau only),
   `full_temporal_robust` (best subperiod stability among top trials), and
   `full_best` (best full-sample objective, highest overfit risk);
+- opt-in diagnostics-first Mode 5 uses a typed
+  `optimization_config.mode5_calibration` to bind verified dossier, sealed
+  researcher recipe, data rights and original endpoint execution. Its four
+  research selector slots do not replace the legacy selectors above. See
+  [Public Diagnostics-First Mode 5](mode5/PUBLIC_CALIBRATION_V1.md) for exact
+  sampler, prepared retention, failure, measurement and selected-audit rules;
 - numba accelerates repeated scoring/bootstrap loops when installed; Python /
   NumPy fallback remains available for debug and equivalence tests.
 

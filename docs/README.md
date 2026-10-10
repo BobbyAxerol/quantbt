@@ -38,6 +38,7 @@ to verify the pair and [Endpoint contract](endpoint.md) to select a route.
 | Choose a strict causal WFO schedule and read its audit metadata | [Causal walk-forward guide](walkforward_causal.md) |
 | Understand WFO parameter selection methodology | [Walk-forward methodology](walkforward_methodology_vi.md) |
 | Configure feature-branch WFO samplers without changing legacy behavior | [QMS sampler contracts](meta_selection/SAMPLERS.md) |
+| Opt into diagnostics-first full-development Mode 5 on the feature branch | [Public calibration contract](mode5/PUBLIC_CALIBRATION_V1.md), [source/installed qualification and timings](mode5/M5_10_PUBLIC_RUNTIME_REPORT.md) (not yet published; no independent OOS claim) |
 | Prepare optional sampler-compatible ranges with explicit declarations and overrides | [Sampler-space helper](meta_selection/SAMPLER_SPACE_HELPER.md), [public pct-equity example](../examples/wfo_sampler_space.py) |
 | Inspect internal causal history, descriptors, anchor labels and revision retention | [QMS-03 history foundation](meta_selection/HISTORY.md) and [phase evidence](meta_selection/QMS03_REPORT.md) |
 | Inspect internal origin-sum Ridge, predicted-Q guard, native blocks and complete model artifacts | [QMS-04 model methodology](meta_selection/MODEL.md) and [phase evidence](meta_selection/QMS04_REPORT.md) |

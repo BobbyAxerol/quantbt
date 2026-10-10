@@ -20,6 +20,7 @@ PYTHONPATH=/root/bobby/pool_alpha python3 quantbt/examples/single_order_event.py
 | `arbitrage_basis.py` | `QuantBTEndpoint.arbitrage(...)` | Basis arbitrage spec and package execution |
 | `walk_forward_train_test.py` | `QuantBTEndpoint.train_test_split(...)` | Single holdout train/test using the walk-forward adapter |
 | `wfo_meta_selection.py` | existing `QuantBTEndpoint.walk_forward(...)` | Feature-branch Mode-4 causal off/shadow/active, typed history, original-result observer and audit lineage; synthetic smoke only |
+| `mode5_calibration_optin.py` | existing `QuantBTEndpoint.walk_forward(...)` | Optional feature-branch diagnostics-first Mode 5 wrapper; caller supplies sealed evidence/recipe and original adapter, no automatic research approval or OOS claim |
 | `wfo_meta_portfolio.py` | existing portfolio WFO/shared account | E04 opt-in with ordered universe, original aggregate labels and exact position output; synthetic engineering evidence, not empirical promotion |
 | `wfo_meta_handoff.py` | existing meta result and pure selector | Full reviewed decision/model/snapshot export and restore; no broker, replay, activation or state reset |
 | `wfo_meta_contract.py` | existing WFO endpoint and strict history restore | Complete off, sampler-only, reviewed local-history and unsupported-method cases; synthetic software proof, no economic/live claim |
