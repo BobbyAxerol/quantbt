@@ -123,7 +123,9 @@ see [execution checkpoint](../docs/mode5/M5_11_1_BROAD_DIAGNOSTICS.md). RSI/SC
 complete their 128-point development panels, but native broad coverage is HMA
 1/128, HASH 2/128 and VWAP 1/128. The owner stopped the small native tranche
 for runtime/gap review; all owned workers are reaped, interrupted measurements
-are censored and no further run is currently authorized. Exact cleanup and
+are censored. The owner's subsequent full-goal approval now authorizes the
+[ordered closure/resumption](#mode5-m5-11-goal-closure) after native runner gates,
+not an ungated relaunch or retroactive certification. Exact cleanup and
 preserved source/artifact custody are recorded in the
 [tranche receipt](../docs/maintenance/M5_11_1_TRANCHE_CLEANUP.md). Broad matrices/dossiers and
 M5-11.2/11.3 remain unfinished, not research PASS from prepared points.
@@ -29410,6 +29412,85 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    M5-11.2/11.3 NOT_RUN. Runtime review and source/schema gap disposition precede
    any further execution authorization; cleanup preserves the exact native
    artifact, private paths, failed attempts and current tooling.
+<a id="mode5-m5-11-goal-closure"></a>
+**Owner Full-Goal Approval / Ordered Closure:** the owner subsequently approved
+   all five steps below, including monitored background tranches, scope-bound
+   fixes and real calibration/forward studies. This supersedes the operational
+   stop for future registered work, never edits its historical receipts. Keep
+   all five alpha targets, original alpha logic, economic/data/metric contracts
+   and scientific gates. No CI, push, release or publication is authorized.
+   Detailed authorities are [4.9 comparison levels](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#49-multi-hypothesis-empirical-battery-giữ-năm-chiều-làm-rõ-mỗi-phép-thử),
+   [4.5 geometry/probes](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#45-trục-2--parameter-geometry-và-landscape),
+   [6.5 advisory authority](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#65-full_alpha_adaptive_invariant),
+   [7.2 cache identities](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#72-computationoutput-plan-và-cache),
+   [7.3 resource plan](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#73-resource-plan-và-tốc-độ-không-làm-hỏng-methodology)
+   and the [M5-11 scientific work packages](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#phase-m5-11--formal-calibration-pilot-independent-checks-và-economic-inference).
+
+   **Execution Order / Deliverables / Exit Gates:**
+   1. Complete RSI/SC selector-only analysis from the same verified development
+      panel: raw-Sharpe, floor/tail, local and Pareto. Preserve preferences,
+      candidate universe, risk/support gates, actual representatives and all
+      negative/undefined/no-selection outcomes. A partially probed roster is
+      explicitly limited, not a full-panel local contest. Register and execute
+      only missing required neighborhood cells; no duplicate account work to
+      enlarge a test count. Exit with side-by-side decisions/components,
+      sufficiency/covariance/overlap flags and cold independent tests.
+   2. Close native runner qualification gaps before new native panels: OCO
+      outcome projection, cancellation units, liquidity provenance, actual
+      terminal working-state output and durable interruption/fault receipts.
+      Keep execution/matching/accounting unchanged; additive cold adapters and
+      native output snapshots must not invent working state or replay execution.
+      Preserve the compiler's actual-fill-feedback semantics and measure its
+      iteration/work bill. Focused synthetic lifecycle/accounting/termination
+      fixtures and a matched retained native control gate the new artifact.
+      Old artifacts/receipts remain frozen; schema changes receive new identities.
+   3. Resume HMA/HASH/VWAP to 128 original effective configurations each, then
+      required probes/matrices/dossiers. Reuse verified completed candidates;
+      owner-stopped cells use fresh append-only attempts, not mid-compiler RNG/
+      financial-state continuation. Up to three independent financial workers,
+      one numeric thread each; never parallelize time slices of one account.
+      Register data/source/artifact/requests and retained outputs before each
+      tranche. Supervisors journal progress, cap resource use, reap only their
+      owned processes, and preserve exact completed or lower-bound censored work.
+      A watcher verifies live PID/start identities and emits tranche reports;
+      a stale heartbeat alone never triggers a duplicate launch. Errors are
+      investigated/fixed with a new attempt, not retried in an unbounded loop.
+   4. Finish evidence-backed per-alpha dossiers and declared sampler-only
+      contrasts. Hold objective, selector, domain, account and work budget fixed;
+      retain actual unique candidates, rejected/fallback samples and timings.
+      Compare only compatible registry recipes; no universal sampler taxonomy
+      or giant factorial. No forward outcome selects the recipe. Exit with
+      explicit shortlist/NO_CLEAR_WINNER and frozen CalibrationPlan proposals.
+   5. Execute M5-11.2 real baseline/challenger studies (256 registered query
+      attempts per primary study) and M5-11.3 prefix-rebuilt forward studies
+      only after their entry gates. Keep fit/search/selection rights within each
+      prefix, fixed selected params within forward, original reset/carry and
+      terminal contract, paired economics/support and honest reviewed-data
+      labels. Preserve negative results; no threshold/seed/range rescue.
+
+   **Verification:** test frozen source/data/candidate identities, untouched
+   historical receipts, future-suffix/probe-role rights, action-specific OCO/
+   partial-fill/cancel/replace/expiry/amend transitions, count units, full
+   terminal snapshots, cash/fill/account reconciliation, output-profile parity,
+   process fault/cancel custody, and actual ask/tell order/unique coverage.
+   Existing narrow numeric/fill parity cannot certify missing lifecycle output.
+   New artifacts must record loaded origins/hashes; current source is not an
+   old wheel receipt. Record work once even when multiple reports reuse it.
+
+   **Resource / Privacy / Cleanup:** reuse the controlled tooling environment.
+   Before each build/test/tranche check free bytes/inodes and active processes.
+   Register up to 3 GiB incremental native gate build/test scratch, 4 GiB
+   retained research evidence and at least 5 GiB reserve; inventory actual
+   requirements before expanding a tranche. Existing six-hour per-native-cell
+   safety cap and 4,096 feedback-run contract remain visible, never scientific
+   sufficiency limits. Do not shorten data or censor by profit. Keep alpha/data/
+   params/paths and exact historical/current artifacts private and ignored.
+   Cleanup only exact reviewed inactive reproducible scratch after retaining
+   hashes/logs, with a receipt; never delete evidence to meet the budget.
+   Commit each coherent verified plan/code/report change. Goal completion
+   requires all five steps and requirement-by-requirement evidence, not just
+   successful launch or background work. Current five-alpha science gates stay
+   IN_PROGRESS until verified; economic success is not a required positive sign.
 **Goal:** actually measure the effective landscape, active neighborhoods and
    environment differences before formal tuning, for all five admitted alphas.
 **Entry:** M5-11 review, unchanged alpha/account witnesses, source/data inventory,
