@@ -29036,8 +29036,8 @@ matched performance and installed-consumer/resource/privacy/cleanup evidence.
 ### Phase M5-11 - Formal Calibration, Adequate Forward Tests And Economics
 
 **Status:** IN_PROGRESS; owner implementation approval GRANTED 2026-10-10;
-technical gates registered below. Real recipe/budget/support protocol approval
-is separate and requested before new formal tuning; no deferred seal is bypassed.
+technical gates registered below. Owner separately APPROVED the finite pilot and
+reviewed/exploratory protocol on 2026-10-10; no historical deferred seal is bypassed.
 **Goal:** evaluate the frozen recipe's actual economic meaning and transfer,
    without confusing full-development calibration with independent OOS.
 **Entry:** M5-10 reviewed exit, sealed plans and owner-approved per-alpha
@@ -29138,6 +29138,36 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
   core/native artifacts; no native build/dependency install planned.
   Host process/FD/maps review precedes exact scratch cleanup, then protected
   hashes and actual free bytes are verified. No M5-12, push/CI/tag/release/PyPI.
+
+**Owner Protocol Approval (2026-10-10, before pilot outcomes):**
+- Owner answer: finite pilot and exploratory labeling APPROVED. Preserve the
+  five M5-09 DEFER seals; new dossiers/plans/journals authorize only A-RSI/A-SC,
+  using the registered anchor/neutral coordinates. Two queued TPE queries per
+  alpha, seed 731, no generated search vectors, probes or budget extension.
+- Calibration is the complete 2021 reset account with its registered preload;
+  reviewed 2025 is the fixed-vector forward diagnostic. The retrospective
+  origin is not a historical causal prefix: prior evidence includes later
+  histories. No independent OOS or whole-method superiority claim.
+- Compare annual raw-Sharpe selection with `environment_floor_mean_v1`, keeping
+  the historical coefficient `mean=0.25`, reference floor `0.25`, unit scale
+  `1.0`, net utility, positive quality, drawdown at most 0.5 and unchanged cost/
+  terminal economics. One annual environment cannot identify multi-environment
+  robustness; report this rather than silently invent new subperiods.
+- Approved economic policy: 365 scored days per segment, 30 fills / 20 closed
+  campaigns where measurable, three qualified origins for transfer, paired
+  seven-day circular blocks / 1,024 draws / seed 731, **99% family confidence**
+  over five alpha mean contrasts (Bonferroni marginal level 99.8%), and meaningful
+  improvement above 0.5 bps net account/day. Ledger absence and insufficient
+  origins remain INCONCLUSIVE; no tolerance/support/metric shopping.
+- Selected baseline and challenger are actual registered vectors. Reconcile
+  development with the certified path; forward cache reuse requires exact
+  parameter/calendar/account/source identities and keeps its reviewed role.
+  Run the original endpoint again under predeclared doubled one-way fee and
+  doubled slippage on both complete annual scopes for eligible selected vectors;
+  deduplicate identical vectors, not fixed-fill stress accounting. Stress does
+  not alter the primary selected vector or claim independent confirmation.
+- Stop after this finite panel regardless of result. Prospective independent
+  tests require a separately approved future registration/data-access seal.
 
 <a id="mode5-m5-12"></a>
 ### Phase M5-12 - Local Package Qualification, Regression, Docs And Handoff

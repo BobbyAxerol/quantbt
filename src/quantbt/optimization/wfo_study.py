@@ -260,7 +260,9 @@ class WfoSamplerStudy:
             "seed": self.seed,
             "stage": self.stage,
             "objective_scope": "current_is_study_folds",
-            "is_cutoff": self.cutoff,
+            "is_cutoff": getattr(self, "market_cutoff", self.cutoff),
+            "warm_start_cutoff": self.cutoff,
+            "cutoff_authority": getattr(self, "cutoff_authority", "historical_is_end"),
             "space": self.space.metadata(),
             "space_identity": self.space.identity,
             "constraint_mode": self.config.constraint_mode,
@@ -335,6 +337,13 @@ class WfoSamplerStudy:
 def prepare_wfo_studies(config, ranges, groups, *, strategy_identity, derive_seed):
     """Validate all study policies before preparing a scorer or calling an alpha."""
     bridges = {}
+    calibration = config.mode5_calibration
+    retrospective_cutoff = None
+    if (calibration is not None and config.optimization_mode == "mode_5_full_robust"
+            and config.optimization_schedule == "global"):
+        # Sealed static calibration may use reviewed coordinates discovered
+        # after its historical market window; causal schedules keep the IS clock.
+        retrospective_cutoff = pd.Timestamp(calibration.access.cutoff_ns, unit="ns", tz="UTC")
     for study_id, folds in groups:
         seed = (
             config.random_seed
@@ -349,12 +358,14 @@ def prepare_wfo_studies(config, ranges, groups, *, strategy_identity, derive_see
                 ranges or {},
                 seed=seed,
                 budget=int(config.optuna_trials),
-                cutoff=max(f.train_end for f in folds),
+                cutoff=retrospective_cutoff if retrospective_cutoff is not None else max(f.train_end for f in folds),
                 strategy_identity=strategy_identity,
                 stage="sbb_proxy_is_search"
                 if config.optimization_mode == "mode_2_sbb"
                 else "is_search",
             )
+            bridge.market_cutoff = max(f.train_end for f in folds)
+            bridge.cutoff_authority = "sealed_mode5_selection_policy" if retrospective_cutoff is not None else "historical_is_end"
             if config.flat_selector == "centroid" and (
                 config.parameter_constraints is not None
                 or config.result_constraints is not None
