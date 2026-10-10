@@ -1,11 +1,11 @@
 from dataclasses import asdict
 
-from tools.mode5_baseline.isolation import file_identity, write_json
-from tools.mode5_diagnostics.access import AccessPolicy, AccessWitness
-from tools.mode5_dossier.records import Record
-from tools.mode5_dossier.evidence import EvidenceCatalog, Source, Matrix, KINDS
-from tools.mode5_dossier.dossier import AXES, DEPENDENCIES, Dossier, radar_point
-from tools.mode5_dossier.plans import CalibrationPlan, FIELDS
+from quantbt.mode5.artifacts import file_identity, write_json
+from quantbt.mode5.diagnostics.access import AccessPolicy, AccessWitness
+from quantbt.mode5.dossier.records import Record
+from quantbt.mode5.dossier.evidence import EvidenceCatalog, Source, Matrix, KINDS
+from quantbt.mode5.dossier.dossier import AXES, DEPENDENCIES, Dossier, radar_point
+from quantbt.mode5.dossier.plans import CalibrationPlan, FIELDS
 
 
 def fixture(tmp_path):

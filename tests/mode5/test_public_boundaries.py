@@ -188,6 +188,8 @@ def test_deadline_before_first_ask_is_observable_no_fake_score(tmp_path):
         e.backtest(data=frame, param_ranges=ranges)
     assert caught.value.mode5_metadata["trial_ledger"] == []
     assert caught.value.mode5_metadata["compute_bill"]["original_account_observations"] == 0
+
+
 def test_reviewed_source_guard_rejects_unreviewed_bytes():
     from tools.mode5_public_source_guard import ROOT, without_public_additions
     name = "src/quantbt/endpoint.py"
@@ -195,4 +197,3 @@ def test_reviewed_source_guard_rejects_unreviewed_bytes():
     assert without_public_additions(source, name) != source
     with pytest.raises(AssertionError, match="unreviewed Mode5 public bytes"):
         without_public_additions(source + b"\n# unreviewed mutation\n", name)
-
