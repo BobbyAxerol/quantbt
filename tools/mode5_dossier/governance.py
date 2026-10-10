@@ -90,3 +90,21 @@ class GovernanceLog:
 
     def request_auto_route(self, *args, **kwargs):
         raise PermissionError("no whole-procedure-qualified routing policy in V1")
+
+
+def require_formal_chronology(log, dossier_id, plan_id, first_trial_ns):
+    """A late profile may describe old trials, never certify prior registration."""
+    if type(first_trial_ns) is not int:
+        raise ValueError("exact actual first-formal-trial timestamp required")
+    history = log.history()
+    dossiers = [e for e in history if e.data["kind"] == "DOSSIER_SEALED"
+                and e.data["payload"]["dossier_id"] == dossier_id]
+    plans = [e for e in history if e.data["kind"] == "PLAN_SEALED"
+             and e.data["payload"]["plan_id"] == plan_id
+             and e.data["payload"]["dossier_id"] == dossier_id]
+    if (not dossiers or not plans or plans[-1].data["payload"]["plan"]["status"] != "RESEARCHER_CHOICE"
+            or not dossiers[-1].data["sealed_at_ns"] < plans[-1].data["sealed_at_ns"] < first_trial_ns):
+        raise PermissionError("post-hoc profile cannot certify a pre-search calibration")
+    return Record.of(dict(status="PRE_SEARCH_ORDER_VERIFIED", dossier_id=dossier_id,
+                          plan_id=plan_id, first_trial_ns=first_trial_ns,
+                          validation_claim="none_full_sample_calibration"))

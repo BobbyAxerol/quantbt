@@ -10,7 +10,7 @@ from tools.mode5_dossier.records import Record
 from tools.mode5_dossier.evidence import EvidenceCatalog, Source, Matrix, reconcile_rosters
 from tools.mode5_dossier.dossier import Dossier, ordered_advice, invalidation, DEPENDENCIES, radar_point
 from tools.mode5_dossier.plans import CalibrationPlan
-from tools.mode5_dossier.governance import GovernanceLog
+from tools.mode5_dossier.governance import GovernanceLog, require_formal_chronology
 from tests.mode5.dossier_fixtures import fixture, spec
 
 
@@ -255,3 +255,38 @@ def test_governance_reload_preserves_exact_history_and_rights(tmp_path):
     assert reloaded.history() == log.history()
     with pytest.raises(PermissionError):
         reloaded.begin_search(d, q, cat, replace(search_access(), cutoff_ns=8), "trial-0")
+
+
+def test_external_formal_trial_before_profile_is_not_backfilled(tmp_path):
+    d, cat, _ = fixture(tmp_path)
+    q = CalibrationPlan.search(d, spec(d), "synthetic formal choice")
+    log = GovernanceLog(tmp_path / "journal")
+    dseal = log.seal_dossier(d, cat)
+    qseal = log.seal_plan(d, q, cat, researcher="researcher", reason="approved")
+    for first_trial in (1, dseal.data["sealed_at_ns"], qseal.data["sealed_at_ns"]):
+        with pytest.raises(PermissionError):
+            require_formal_chronology(log, d.record.identity, q.record.identity, first_trial)
+    result = require_formal_chronology(log, d.record.identity, q.record.identity, qseal.data["sealed_at_ns"]+1)
+    assert result.data["status"] == "PRE_SEARCH_ORDER_VERIFIED"
+
+
+def test_null_measures_are_supported_without_neutral_imputation(tmp_path):
+    d, cat, kwargs = fixture(tmp_path)
+    raw = cat.read("registered")
+    raw["cells"][0]["utility"] = None
+    from tools.mode5_baseline.isolation import file_identity, write_json
+    path = tmp_path / "source-null.json"
+    write_json(path, raw)
+    source = cat._sources["registered"]
+    identity = file_identity(path)
+    new_cat = EvidenceCatalog([replace(source, path=str(path), sha256=identity["sha256"], bytes=identity["bytes"])], cat.policy)
+    for axis, points in kwargs["radar"].items():
+        point = points[0]
+        point["ref"] = new_cat.ref("registered", "/cells/0/utility")
+        point["definition_ref"] = new_cat.ref("registered", "/definitions/"+axis)
+        kwargs["radar"][axis] = [radar_point(**{k: v for k, v in point.items()
+            if k not in {"normalized", "extrapolated", "rendering", "value", "reason"}}, value=None, reason="no-trade control")]
+    # New dependencies and rosters are required, not a stale old dossier seal.
+    assert all(p["normalized"] is None for points in kwargs["radar"].values() for p in points)
+    with pytest.raises(ValueError):
+        d.verify(new_cat)
