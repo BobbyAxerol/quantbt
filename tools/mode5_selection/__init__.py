@@ -1,11 +1,4 @@
-"""M5-07 research-only policy layer; public Mode 5 activation belongs to M5-10."""
-from .advisory import AdvisoryDossier
-from .contracts import Candidate, Channel, Decision, Formula, LocalEvidence, Panel, Probe, SelectionPlan
-from .migration import StageLedger, rescore_revision
-from .objectives import economic_utility, evaluate
-from .pareto import ParetoPreference
-from .selectors import select
-
-__all__ = ["AdvisoryDossier", "Candidate", "Channel", "Decision", "Formula", "LocalEvidence", "Panel",
-           "Probe", "SelectionPlan", "StageLedger", "rescore_revision", "economic_utility", "evaluate",
-           "ParetoPreference", "select"]
+"""Compatibility import; canonical implementation ships under src/quantbt."""
+from importlib import import_module as _import_module
+_canonical = _import_module("quantbt.mode5.selection")
+globals().update({k: v for k, v in vars(_canonical).items() if not k.startswith("__")})

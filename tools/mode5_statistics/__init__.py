@@ -1,10 +1,4 @@
-"""Opt-in research analysis; no endpoint, selector or simulation activation."""
-
-from .contracts import MetricValue, StatisticsPolicy
-from .moments import MomentEstimate, classical_psr, moments, sharpe_to_period
-from .dependence import HACPolicy, sharpe_hac
-from .tails import FrozenReference, expected_shortfall, lower_tail, regret, weighted_mad, weighted_median
-
-__all__ = ["MetricValue", "StatisticsPolicy", "MomentEstimate", "classical_psr", "moments",
-           "sharpe_to_period", "HACPolicy", "sharpe_hac", "FrozenReference", "expected_shortfall",
-           "lower_tail", "regret", "weighted_mad", "weighted_median"]
+"""Compatibility import; canonical implementation ships under src/quantbt."""
+from importlib import import_module as _import_module
+_canonical = _import_module("quantbt.mode5.statistics")
+globals().update({k: v for k, v in vars(_canonical).items() if not k.startswith("__")})
