@@ -29544,6 +29544,19 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    lane source pins did not change. Covariance preparation passed 25 cold
    tests; the compound reconciliation/analysis adapter passed 50 focused
    fixtures. Their commits are `541b63d` and `7b48485`, respectively.
+   **Covariance Custody Interruption (2026-10-10):** the first three lanes
+   completed 32 requests; the fourth completed three more before its supervisor
+   recorded `PermissionError(13)` and stopped with `SUPERVISOR_FAULT`.
+   All 35 completed covariance accounts and the failed lane/controller receipts
+   remain retained. The remaining 73 requests are not completed; neither the
+   108-request covariance union nor its selector analysis is certified yet.
+   A fresh recovery lane will reuse only independently verified COMPLETE
+   checkpoints and preserve the original candidate identities, source pins,
+   finance, RNG, geometry and resource limits. A private supervision hook must
+   filter unrelated process groups before reading namespace metadata, retain
+   fail-closed ownership checks and pass cold process fixtures before launch.
+   The exact denied path is not yet established; no financial failure or
+   algorithmic root cause is inferred from the supervisor exception.
    Native tranche preparation remains conditional on completed selector
    reconciliation and exact source/artifact/custody gates. HASH's second
    completed control requires a retained-command financial-equivalence check,
