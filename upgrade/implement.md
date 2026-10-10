@@ -61,9 +61,17 @@ family exclusion or long-term economics verdict. Read the
 [M5-08 report](../docs/mode5/M5_08_BATTERY_REPORT.md),
 [aggregate seal](../docs/mode5/evidence/m5-08.json) and
 [cleanup](../docs/maintenance/M5_08_CLEANUP.md).
-M5-08.1 is IN_PROGRESS after separate owner approval 2026-10-09; its
-[registered extension](#mode5-m5-08-1) precedes M5-09. Historical diagnostics,
-data availability, economic adequacy and technical validity remain separate.
+M5-08.1 is COMPLETE_LOCAL_REGISTERED_HISTORICAL_DIAGNOSTICS / DESCRIPTIVE_ONLY
+after separate owner approval: all 53 fixed requests qualified; 1,191 related
+tests and four report/readiness tests PASS, no fail/skip. Six of 20 canonical
+decisions select a candidate; 14 remain NO_SELECTION. Accounting difference
+zero and independent metric difference at most 4.884981308350689e-15.
+Read the [historical report](../docs/mode5/M5_08_1_HISTORICAL_REPORT.md),
+[aggregate seal](../docs/mode5/evidence/m5-08-1.json) and
+[cleanup receipt](../docs/maintenance/M5_08_1_CLEANUP.md).
+Its [registered extension](#mode5-m5-08-1) precedes M5-09; data availability,
+economic adequacy and technical validity remain separate. Long scope is bounded,
+reviewed and sparse; these outcomes do not establish whole-recipe superiority.
 M5-09..M5-12 remain NOT_STARTED / NOT_RUN. Neutral coverage
 and unexecuted held directions are not full-space or independent-OOS proof.
 Read the [M5-01 baseline report](../docs/mode5/M5_01_BASELINE_REPORT.md) and
@@ -71,7 +79,7 @@ Read the [M5-01 baseline report](../docs/mode5/M5_01_BASELINE_REPORT.md) and
 confirmed the detailed guide's reports came from the original ZIPs and accepts
 guide/hash-verified extracted inputs as baseline. Original ZIP files are not
 an M5-02 entry blocker; archive hashes are not claimed locally remeasured.
-No remaining registered M5-01..08 local implementation exit blocker within their
+No remaining registered M5-01..08.1 local implementation exit blocker within their
 approved scopes. M5-02 qualified local
 binding pilots and actual-engine synthetic tests, not methodology/default
 changes. Protection-dependent bindings are offline actual-feedback compilers,
@@ -27032,8 +27040,11 @@ COMPLETE_LOCAL_OBJECTIVES / MATHEMATICAL_ONLY; read their
 [selection report](../docs/mode5/M5_07_SELECTION_REPORT.md). M5-08 is
 COMPLETE_LOCAL_TARGETED_DIAGNOSTICS / DESCRIPTIVE_ONLY under approved bounded
 scope; read the [battery report](../docs/mode5/M5_08_BATTERY_REPORT.md).
-M5-08.1 extended historical diagnostics is IN_PROGRESS under separate approval;
-the original M5-08 receipts and frozen decisions remain unchanged.
+M5-08.1 extended historical diagnostics is COMPLETE_LOCAL_REGISTERED_HISTORICAL_DIAGNOSTICS /
+DESCRIPTIVE_ONLY under separate approval; read the
+[historical report](../docs/mode5/M5_08_1_HISTORICAL_REPORT.md). All 53 requests,
+independent metric/accounting checks and cleanup pass. The original M5-08
+receipts and frozen decisions remain unchanged; evidence limits remain explicit.
 M5-09..12 remain NOT_STARTED / NOT_RUN.
 Read the
 [M5-01 exit review](../docs/mode5/M5_01_EXIT_REVIEW.md) and
@@ -27272,7 +27283,7 @@ Every phase below inherits this mandatory resource registration/cleanup exit.
 | [M5-06](#mode5-m5-06) | Effective geometry and active probes | M5-03/04/05 reviewed exits | M5T-051..060 | COMPLETE_LOCAL_GEOMETRY |
 | [M5-07](#mode5-m5-07) | Three objective families/four selectors | M5-03..06 reviewed exits | M5T-061..070 | COMPLETE_LOCAL_OBJECTIVES |
 | [M5-08](#mode5-m5-08) | Five empirical batteries/five-alpha review | M5-07 and valid panels/routes | M5T-071..080 | COMPLETE_LOCAL_TARGETED_DIAGNOSTICS / DESCRIPTIVE_ONLY |
-| [M5-08.1](#mode5-m5-08-1) | Longer calendar, coverage and mechanism diagnostics | Reviewed M5-08; separate owner approval | M5T-071..080 plus extension contracts | IN_PROGRESS; economic gates NOT_RUN |
+| [M5-08.1](#mode5-m5-08-1) | Longer calendar, coverage and mechanism diagnostics | Reviewed M5-08; separate owner approval | M5T-071..080 plus extension contracts | COMPLETE_LOCAL_REGISTERED_HISTORICAL_DIAGNOSTICS; DESCRIPTIVE_ONLY; broad confirmation INCONCLUSIVE |
 | [M5-09](#mode5-m5-09) | Dossier, advisory and sealed plan | M5-08 reviewed exit | M5T-081..090 | NOT_STARTED |
 | [M5-10](#mode5-m5-10) | Public opt-in integration/runtime reuse | M5-09 plus current source map | M5T-091..100 | NOT_STARTED |
 | [M5-11](#mode5-m5-11) | Formal calibration and scoped economics | M5-10 plus authorized adequate data | M5T-101..110 | NOT_STARTED |
@@ -28430,9 +28441,10 @@ targeted probes/sampler ledgers, hypothesis outcomes, compute bill and cleanup.
 <a id="mode5-m5-08-1"></a>
 ### Phase M5-08.1 - Extended Historical Diagnostics, Geometry And Mechanism Attribution
 
-**Status:** IN_PROGRESS; separately approved 2026-10-09 after review of M5-08.
-Registration, actual execution, analysis, regression and cleanup must precede
-completion. M5-09..12 are not authorized by this extension.
+**Status:** COMPLETE_LOCAL_REGISTERED_HISTORICAL_DIAGNOSTICS / DESCRIPTIVE_ONLY;
+separately approved 2026-10-09 after review of M5-08. Registration, actual
+execution, independent analysis, current-source regression and cleanup PASS.
+M5-09..12 are not authorized by this extension.
 **Goal:** resolve why the short fixed panel cannot distinguish recipes, inspect
 longer fixed-parameter behavior and obtain information for a truthful M5-09
 dossier. Neither a positive result nor end-to-end superiority is an exit condition.
@@ -28654,6 +28666,52 @@ extension analyses when inputs/contracts change. Never backdate a new recipe.
   guards check required scalar clocks and untouched multi-column raw buffers.
   The first failed full-analysis receipt and all prior source bytes remain
   retained; this software receipt alone is not an economic certificate.
+
+**2026-10-10 Final Registered-Tranche Exit Receipt:**
+- All **53 fixed financial requests / 28 effective points** have qualified
+  actual results; **59 attempts** include six recovery commands with all
+  original constructor/schema/dispatch failures retained. No candidate, market,
+  threshold, estimator, RNG, financial tolerance or account source was changed.
+- Frozen ETHUSDT hourly snapshot: **59,280 rows**, 2020-01-01..2026-10-05;
+  2020 preload excluded from scores. Five complete-year 2021/2025 route panels;
+  only two anchors receive 2022..2024/partial-2026 resets and continuous accounts.
+  Partial/leap years and carry/preload initialization differences remain explicit.
+- Current source: **1,191 related tests PASS** plus **four** additive report/
+  readiness tests PASS, no failures/skips; six Optuna experimental warnings.
+  All 53 paths pass independent return/DD/daily ES95/Sharpe/PSR/utility and
+  available fill/fee/closed-open PnL oracles. Maximum accounting difference **0**;
+  maximum metric difference **4.884981308350689e-15**. Legacy scalar unavailable
+  accepted-fill/campaign data is not synthesized.
+- Canonical formula requests give **6 SELECTED / 14 NO_SELECTION** on the
+  identical permitted finite panel. Two candidates pass primary gates; SAM
+  still lacks full active-schema coverage. These are not independent repeated
+  confirmations. Nine valid forward-quality and decay-change intervals contain
+  zero; one no-trade contrast remains insufficient. One selected neutral has
+  six closed campaigns/year, insufficient for broad campaign inference despite
+  sufficient daily calendar support. No universal edge/recipe conclusion.
+- Kept-only leave-out, held/partial exclusions, schema/clock guards, original
+  accepted accounting and preserved source invariance PASS. Constructor-carrier,
+  empty-schema/unbound-dispatch and scalar calendar-view harness gaps are closed;
+  no in-scope implementation blocker remains. Unexecuted full-schema geometry,
+  other command-alpha historical years/carry, longer independent origins,
+  full historical trial panels and long risk/cost controls remain coverage limits.
+- Successful work: **10,243 account passes / 89,847,696 scored account-bars**.
+  Batch elapsed **11,684.60 s** plus all recovery elapsed **57.38 s**, within
+  the original 21,600 s wall budget. Offline feedback compilation dominates;
+  summed worker time is not elapsed time or public WFO/kernel throughput.
+  Peak individual fresh account-worker RSS **748.17 MiB**; system peak not inferred.
+  Pilot/failed work and missing counters are separately retained, not erased.
+- Host process/FD review: 152 processes, zero owned matches/FDs/errors.
+  Exact ignored scratch only removed; **2,803 protected / 635 retained hashes**
+  unchanged, **8,663,040 bytes (8.26 MiB)** observed immediate free improvement.
+  All science, source copies, failures, data, tooling and exact artifacts remain.
+- Deliverables: [public report](../docs/mode5/M5_08_1_HISTORICAL_REPORT.md),
+  [source-bound aggregate seal](../docs/mode5/evidence/m5-08-1.json),
+  [cleanup](../docs/maintenance/M5_08_1_CLEANUP.md); private Appendix D and JSON
+  matrices remain in the registered ignored lane. Primary economic mandate
+  remains unchanged. M5-09 requires separate approval; broad confirmatory
+  economics belongs to independently registered M5-11. No new sampler study,
+  formal calibration, production binding, artifact build, CI/push or release ran.
 
 <a id="mode5-m5-09"></a>
 ### Phase M5-09 - Diagnostic Dossier, Advisory Governance And Calibration Seal
