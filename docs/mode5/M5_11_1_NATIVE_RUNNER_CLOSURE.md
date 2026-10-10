@@ -178,3 +178,34 @@ stay explicit. Its cold cleanup/reserve passes with 592,066 retained bytes,
 zero scratch and zero deletion. HMA/HASH require their own closed-output proof
 after exact session absence; this VWAP integration does not qualify live or
 incomplete work or complete the remaining 128-point panels.
+
+## Recovery And Future Queue Integration
+
+The focused append-only checkpoint helper passes **34 cold tests**, with
+2,601 protected pins unchanged. Main exercised its actual host/checkpoint path
+against the already-complete VWAP cell: **SAFE_REUSE_ONLY**, with the original
+receipt/checkpoint hashes unchanged. New account calls, attempts, receipt writes
+and checkpoint writes are all **zero**. Result SHA256 is
+`5cae37b1ff5f9531f89536ef913dbb6c1caf73fbd9e3808619aa44c963a85a41`.
+Cleanup passes with 5,405 retained bytes, no scratch and no deletion.
+
+For an orphan with no existing receipt, completed domain output may be
+checkpointed only after independent closed-output qualification, exact request/
+manifest/count/source verification and fresh host session absence under its
+original cell lock. Unknown OS exit code, reaping and exact worker runtime stay
+unavailable; domain completion is not invented process success. Historical
+failed/interrupted receipts and partial publication faults are never overwritten.
+Helper source SHA256 is
+`92b13a2ed6db566223bc46a4d8eb8329db7ae7cf9e38807a14be8ae9df094ca8`.
+
+The reusable typed future queue passes **30 cold tests**, with 2,542 prior pins
+unchanged. Its source SHA256 is
+`51eeb9db863f3c34687fb69c203708eafd1b925ffb92efacdbb94e5a254c4d05`.
+It delegates the original financial driver, request producer, authorization and
+three shared worker slots; it does not clone an account engine. Prior failed
+fixture laps stay retained; only exact inactive successful fixture scratch is
+cleaned. This is mocked custody integration, **NOT_ACTIVATED**, with no actual
+future financial requests or launches. All first-three closed outputs, full
+cell inventories and fresh full-envelope resource admission remain mandatory.
+These receipts do not complete the 128-point panels, dossiers, sampler studies,
+formal calibration or forward economics.

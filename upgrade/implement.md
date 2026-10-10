@@ -29752,6 +29752,30 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    `5daa2f54b51fa6fb67db08fba3ec14440dafda5986a516ab4709f5c885589559`.
    HMA/HASH remain live and require separate closed proof; native full-panel,
    future queue/capacity, dossiers/sampler and formal/prefix gates remain open.
+   **Recovery/Queue Main Integration Entry:** independent cold qualification
+   passed 34 checkpoint-recovery fixtures and 30 future-queue fixtures. Before
+   publishing any original orphan checkpoint, register a main-owned 32 MiB
+   retained, zero-scratch lane with exact helper/handoff/source/output pins and
+   5 GiB reserve. Exercise read-only COMPLETE reuse against the actual VWAP
+   cell first; prove its original receipt/checkpoint hashes unchanged, with
+   zero financial calls, attempts or new completion writes. HMA/HASH publication
+   still requires their own closed output proof and fresh host absence under
+   the original cell lock. The future queue remains NOT_ACTIVATED until all
+   first-three outputs and whole-cell capacity pass; mock/cold fixtures do not
+   certify financial execution or justify skipping those entry gates.
+   **Recovery/Queue Receipt (2026-10-10):** checkpoint helper passes 34 cold
+   fixtures with 2,601 protected pins unchanged; the reusable future queue
+   passes 30 with 2,542 pins unchanged. Failed fixtures/snapshots stay retained;
+   both cleanup gates pass. Exact helper/launcher source SHA256 values are
+   `92b13a2ed6db566223bc46a4d8eb8329db7ae7cf9e38807a14be8ae9df094ca8`
+   and `51eeb9db863f3c34687fb69c203708eafd1b925ffb92efacdbb94e5a254c4d05`.
+   Main real-host VWAP integration returns SAFE_REUSE_ONLY, verifies its
+   original receipt/checkpoint unchanged, and writes no account, attempt or
+   checkpoint. Result SHA256 is
+   `5cae37b1ff5f9531f89536ef913dbb6c1caf73fbd9e3808619aa44c963a85a41`;
+   cold cleanup retains 5,405 bytes, zero scratch/deletion. No HMA/HASH output
+   adoption or later financial activation occurred. First-three capacity,
+   remaining panels/probes, sampler and formal/prefix studies remain open.
 **Goal:** actually measure the effective landscape, active neighborhoods and
    environment differences before formal tuning, for all five admitted alphas.
 **Entry:** M5-11 review, unchanged alpha/account witnesses, source/data inventory,
