@@ -100,8 +100,9 @@ Read the [M5-10 report](../docs/mode5/M5_10_PUBLIC_RUNTIME_REPORT.md),
 [public opt-in contract](../docs/mode5/PUBLIC_CALIBRATION_V1.md),
 [summary](../docs/mode5/evidence/m5-10.json) and
 [cleanup](../docs/maintenance/M5_10_CLEANUP.md).
-M5-11 is COMPLETE_LOCAL_FINITE_PILOT_EXPLORATORY after separately approved
-finite-panel protocol: 654 shared tests, 50 overlapping final economics/clock
+M5-11 research is REOPENED_RESEARCH_COVERAGE after the owner's scope correction
+on 2026-10-10 (Asia/Saigon). The separately approved historical finite pilot
+remains COMPLETE_LOCAL_FINITE_PILOT_EXPLORATORY: 654 shared tests, 50 overlapping final economics/clock
 tests and four report tests PASS; 20 qualified 365-day paths reconcile and two
 eligible public calibrations/stress controls preserve exact accounting. Both
 selectors pick the same vectors; one origin, missing/sparse accepted campaign
@@ -111,6 +112,13 @@ the [M5-11 report](../docs/mode5/M5_11_ECONOMIC_REPORT.md),
 [economic contract](../docs/mode5/ECONOMIC_CONTRACT_V1.md),
 [summary](../docs/mode5/evidence/m5-11.json) and
 [cleanup](../docs/maintenance/M5_11_CLEANUP.md).
+Those two-point studies are not PROFILE_STANDARD or a completed broad
+diagnostics/search/selection experiment. Read the
+[scope review](../docs/mode5/M5_11_RESEARCH_SCOPE_REVIEW.md) and the recovery
+sequence [M5-11.1](#mode5-m5-11-1) -> [M5-11.2](#mode5-m5-11-2) ->
+[M5-11.3](#mode5-m5-11-3). The broad research exit remains open; the proposed
+dated protocol and measured execution/resource budgets must be registered
+before new outcome inspection. No expanded experiment has run yet.
 M5-12 remains NOT_STARTED / NOT_RUN. Neutral coverage
 and unexecuted held directions are not full-space or independent-OOS proof.
 Read the [M5-01 baseline report](../docs/mode5/M5_01_BASELINE_REPORT.md) and
@@ -118,8 +126,10 @@ Read the [M5-01 baseline report](../docs/mode5/M5_01_BASELINE_REPORT.md) and
 confirmed the detailed guide's reports came from the original ZIPs and accepts
 guide/hash-verified extracted inputs as baseline. Original ZIP files are not
 an M5-02 entry blocker; archive hashes are not claimed locally remeasured.
-No remaining registered M5-01..11 local implementation exit blocker within their
-approved scopes. M5-02 qualified local
+Earlier local software/finite-scope receipts remain valid within their exact
+scope, not evidence of fulfilled broad research coverage. Broad candidate
+geometry, complete active-neighbor coverage, multi-year diagnostics and actual
+adaptive formal search are outstanding M5-11 research gates. M5-02 qualified local
 binding pilots and actual-engine synthetic tests, not methodology/default
 changes. Protection-dependent bindings are offline actual-feedback compilers,
 not new intrabar callbacks; RSI keeps its original legacy target-account scope.
@@ -27333,7 +27343,10 @@ Every phase below inherits this mandatory resource registration/cleanup exit.
 | [M5-08.1](#mode5-m5-08-1) | Longer calendar, coverage and mechanism diagnostics | Reviewed M5-08; separate owner approval | M5T-071..080 plus extension contracts | COMPLETE_LOCAL_REGISTERED_HISTORICAL_DIAGNOSTICS; DESCRIPTIVE_ONLY; broad confirmation INCONCLUSIVE |
 | [M5-09](#mode5-m5-09) | Dossier, advisory and sealed plan | M5-08/08.1 reviewed exit | M5T-081..090 | COMPLETE_LOCAL_DOSSIER_GOVERNANCE |
 | [M5-10](#mode5-m5-10) | Public opt-in integration/runtime reuse | M5-09 plus current source map | M5T-091..100 | COMPLETE_LOCAL_PUBLIC_OPT_IN / TECHNICALLY_VALID |
-| [M5-11](#mode5-m5-11) | Formal calibration and scoped economics | M5-10 plus authorized adequate data | M5T-101..110 | COMPLETE_LOCAL_FINITE_PILOT_EXPLORATORY; transfer INCONCLUSIVE |
+| [M5-11](#mode5-m5-11) | Formal calibration and scoped economics | M5-10 plus authorized adequate data | M5T-101..110 | REOPENED_RESEARCH_COVERAGE; original finite pilot preserved |
+| [M5-11.1](#mode5-m5-11-1) | Broad five-alpha diagnostics and renewed dossier | M5-11 scope review; registered data/design/resource protocol | M5T-041..060 / 071..090 | PLANNED; market execution NOT_RUN |
+| [M5-11.2](#mode5-m5-11-2) | Actual adaptive formal search and selector comparisons | Reviewed M5-11.1 dossier; new sealed plans | M5T-091..103 / EH-01..05 | PLANNED; formal expanded studies NOT_RUN |
+| [M5-11.3](#mode5-m5-11-3) | Multi-origin fixed-policy transfer and economic qualification | Frozen M5-11.2 outputs and prefix studies | M5T-101..110 / EH-06..12 | PLANNED; expanded forward tests NOT_RUN |
 | [M5-12](#mode5-m5-12) | Local qualification/docs/handoff | M5-01..11 dispositions reviewed | M5T-111..120 | NOT_STARTED |
 
 Respect the guide dependency graph. M5-05 and independent M5-06 preparation
@@ -29046,10 +29059,17 @@ matched performance and installed-consumer/resource/privacy/cleanup evidence.
 <a id="mode5-m5-11"></a>
 ### Phase M5-11 - Formal Calibration, Adequate Forward Tests And Economics
 
-**Status:** COMPLETE_LOCAL_FINITE_PILOT_EXPLORATORY; approved pilot technical
-gates PASS 2026-10-10. Transfer/method superiority INCONCLUSIVE, not promoted.
+**Status:** REOPENED_RESEARCH_COVERAGE after owner correction 2026-10-10
+(Asia/Saigon). Historical COMPLETE_LOCAL_FINITE_PILOT_EXPLORATORY technical
+gates remain PASS; that receipt does not close the expanded research target.
+Transfer/method superiority INCONCLUSIVE, not promoted.
 Owner separately approved the finite pilot and reviewed/exploratory protocol;
 no historical deferred seal is bypassed. M5-12 remains separately unapproved.
+**Current scope disposition:** the two-point panel was inadequate for the
+intended full diagnostics -> actual search -> selector/forward experiment.
+Read [review](../docs/mode5/M5_11_RESEARCH_SCOPE_REVIEW.md). Complete the three
+recovery stages below before requesting M5-12; their experiments are not yet
+registered/executed and must not inherit the finite pilot's PASS badge.
 **Goal:** evaluate the frozen recipe's actual economic meaning and transfer,
    without confusing full-development calibration with independent OOS.
 **Entry:** M5-10 reviewed exit, sealed plans and owner-approved per-alpha
@@ -29181,7 +29201,7 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
 - Stop after this finite panel regardless of result. Prospective independent
   tests require a separately approved future registration/data-access seal.
 
-**Execution / Local Exit Receipt (2026-10-10):**
+**Historical Finite-Pilot Execution / Local Exit Receipt (2026-10-10):**
 - M511.01..06 complete for the approved finite/exploratory scope. Twenty actual
   anchor/neutral annual paths (2021/2025 x five alphas; 365 scored days each,
   original 365-day preload) reverify source/parameter/calendar/account identities,
@@ -29247,6 +29267,235 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
   economics and richer eligible environments remain scientific limitations with
   a bounded prospective protocol requiring new approval, not fake completed
   studies. No M5-12, push/CI/merge/tag/release/PyPI or live deployment occurred.
+
+**Scope Correction / Recovery Direction (2026-10-10, Asia/Saigon):**
+- Owner requires meaningful broad parameter-space diagnostics followed by
+  real Mode5 search/selection, with longer development and forward horizons.
+  The preceding minimal approval was not blanket approval to substitute two
+  coordinates for full geometry or declare the intended research complete.
+- Guide 4.5.3 and 7.3 specify PROFILE_STANDARD starting at 128 unique feasible
+  configurations, with dimensional/branch coverage assessed explicitly. That
+  is not 128 raw labels, 128 environments, or a proof of full-space coverage.
+  A 256-point extension requires a preregistered coverage reason/stop rule,
+  never a weak profit result. Formal trial budgets are separate from profiling.
+- Preserve every original M5-01..11 receipt, deferred seal, negative result,
+  approved finite registration and exact alpha/data/account contracts. New
+  data/domain/recipe revisions create new identities, dossiers and journals.
+- Scope-review-only change: no financial/kernel/alpha/estimator edits, new
+  market runs, builds, CI, push, merge, release or publication in this review.
+  Date/design/resource values below are proposals to seal before execution,
+  not retroactively approved completed studies.
+
+<a id="mode5-m5-11-1"></a>
+### Phase M5-11.1 - Broad Five-Alpha Diagnostics And Renewed Dossier
+
+**Status:** PLANNED / NOT_RUN; broad recovery direction requested by owner.
+**Goal:** actually measure the effective landscape, active neighborhoods and
+   environment differences before formal tuning, for all five admitted alphas.
+**Entry:** M5-11 review, unchanged alpha/account witnesses, source/data inventory,
+   dated study registration and measured resource budget; no borrowed broad badge.
+**Detailed Guide:** [1.1 required workflow](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#11-giữ-diagnostics-first-như-một-product-contract),
+[4.1..4.3 study/six matrices](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#41-diagnosticstudy-là-đơn-vị-khoa-học-không-một-lần-gọi-optimizer),
+[4.5 effective domain/probes](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#45-trục-2--parameter-geometry-và-landscape),
+[4.6 chronology/views](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#46-trục-3--dual-perspective-environments-và-chronology),
+[4.9 five batteries](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#49-multi-hypothesis-empirical-battery-giữ-năm-chiều-làm-rõ-mỗi-phép-thử),
+[7.3 PROFILE_STANDARD](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#73-resource-plan-và-tốc-độ-không-làm-hỏng-methodology)
+and [M5-06..09 work packages](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#phase-m5-06--geometry-sensitivity-và-active-robustness-probes).
+**To-Do:**
+1. Map original schemas/structural thesis, inactive/cast/conditional/coupled
+   dimensions and complete QuantBT bindings. Preserve HMA recursive adaptation,
+   VWAP closed-HTF/amendments and HASH partial-ladder/actual-fill behavior; no
+   scalar target approximation to make a difficult route cheaper. Record any
+   public WFO adapter work needed for those complete workloads before search.
+2. Inventory retained full panels, not winners-only summaries. Existing masters
+   lack complete adaptive trial/path histories; old 156 comparison rows and
+   two-point annual controls do not count as a recovered 128-point landscape.
+   Reuse only exact source/parameter/calendar/account/role-compatible cells.
+3. Proposed primary timeline: 2020 feature preload, full contiguous development
+   2021-01-01..2023-12-31 (1,095 days), fixed forward 2024-01-01..2025-12-31
+   (731 days), and separately partial 2026 through the pinned complete-day end.
+   The primary development/forward path must not reset at each year/regime;
+   annual anchor and endogenous views attribute that actual path. Counterfactual
+   reset episodes stay separate. Include leap days, starting equity marks and
+   terminal/open-campaign contribution. Do not splice disjoint price intervals.
+4. Restore guide 1.5's BTCUSDT primary scope for the four supplied alphas and
+   register RSI's symbol explicitly. ETHUSDT evidence remains valid supplementary
+   evidence, not silently equivalent BTC qualification. Pin complete 1h OHLCV,
+   costs/funding/instrument rules/readiness for each selected symbol; do not
+   start if a required snapshot is incomplete or silently switch symbols. Final
+   symbol roster needs explicit protocol registration; no cross-market claim.
+5. Generate 128 unique effective feasible configurations per alpha over the
+   actual active schema, not only two favorite dimensions. Register representation,
+   conditional branch allocation, seed/scramble, constraint/projection policy and
+   raw proposal cap before outcomes. Invalid, duplicate, no-trade and losing
+   outcomes stay visible. Known post-selected anchors are separate controls,
+   not outcome-independent discovery points. Shortfalls are coverage failures,
+   not automatic search until profit; a finite smaller domain is named explicitly.
+6. On multiple centers selected from development only, execute schema signed,
+   integer-adjacent, categorical and coupled/joint probes plus supported local
+   covariance directions. Complete per-axis/group coverage; no universal eight-
+   probe shortcut. Keep independent held directions/seeds out of selection.
+   Failed/missing probes cannot be dropped to certify a basin. Structured global
+   Sobol indices require their own valid design; plain QMC is only screening.
+7. Populate all six matrices and B1..B5: same-panel selector-only comparisons,
+   supported matched sampler contrasts, rank/near-optimal/LORO, local survival,
+   tail/exposure/campaign/stress and temporal support. Do not count views sharing
+   days as independent evidence. Sampler experiments use real new proposals,
+   pinned recipe/fallbacks and their own declared work budget, not queued winners.
+8. Build new five-axis dossiers/advice from this evidence, preserving all old
+   DEFER seals. An alpha label never dictates its recipe; insufficient economic
+   quality remains an outcome, not an unsupported technical endpoint. Reuse
+   existing planner, preparation, evidence/journal and metric authority.
+**Tests:** M5T-041..060 / 071..090; future suffix/threshold/probe-role mutation,
+   branch/effective collisions, categorical distance, actual-fill/gap/amend/ladder
+   controls, signed/zero/insolvent metrics, campaign/account reconciliation,
+   covariance blind direction, full partial-state retention and privacy. Verify
+   every registered cell or its explicit failure, not just a few selected vectors.
+**Deliverables:** new registration, actual coverage/neighbor/environment panels,
+   five batteries, valid per-alpha dossiers, proposed calibration plans, private
+   paths/campaigns and sanitized numeric/resource/insufficiency report.
+**Exit Gate:** all five alpha dispositions explicit; registered 128 unique
+   effective configs evaluated where the domain permits, complete required probe
+   coverage or a blocker preventing that research claim; long actual paths and
+   views reconciled. A broad financial loss is not a software failure. A missing
+   matrix/direction is not INCONCLUSIVE evidence of a completed measurement.
+**Resource/Cleanup:** measure one complete representative workload per route
+   using only status/parity/time/RSS for sizing; do not shorten the research
+   interval after a slow pilot. For five alphas, 128 x 5 = 640 primary candidate
+   paths before probes/samplers; at 26,280 development bars that is 16,819,200
+   primary account-bars, excluding preload and feedback/parity reexecutions.
+   Bill actual account passes, including the existing costly feedback compiler.
+   Report full work/time/disk estimate before bulk launch; prepared reuse,
+   bounded independent shards and compact required retention, never invented
+   fills or a smaller hidden sample. Check bytes/inodes, retain 5 GiB reserve,
+   register exact scratch/outputs and host-reviewed cleanup after each tranche.
+**Debt Policy:** no scientific metric/threshold/source changes to rescue results;
+   no hidden dimension pruning, missing-history substitution or universal edge.
+**Commit/Rollback:** registered plans, verified shard chunks, then reviewed
+   dossier/report; leave old pipeline/receipts untouched and new results opt-in.
+
+<a id="mode5-m5-11-2"></a>
+### Phase M5-11.2 - Actual Adaptive Calibration And Selector Comparisons
+
+**Status:** PLANNED / NOT_RUN; recipe choice follows M5-11.1, not current winners.
+**Goal:** exercise actual Mode5 search and selection on meaningful search budgets
+   after diagnostics, distinguishing selector-only from end-to-end effects.
+**Entry:** reviewed new dossier for each scope, researcher-approved recipe and
+   sealed CalibrationPlan; per-route adapter/readiness/accounting gate passed.
+**Detailed Guide:** [5.4..5.7 objectives](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#54-họ-objective-1--environment-floor-lower-tail-utility-và-regret),
+[6.1..6.7 selector/lifecycle](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#61-common-selector-interface),
+[M5-10 integration](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#phase-m5-10--public-mode5-binding-inherited-samplers-và-prepared-runtime)
+and [M511.01..03](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#phase-m5-11--formal-calibration-pilot-independent-checks-và-economic-inference).
+**To-Do:**
+1. Propose 256 actual query attempts per primary study, no performance-based
+   early stopping, on the frozen full effective domain. Separate raw/feasible/
+   unique/economic-eligible/failed counts; at most a small declared common
+   coordinate warm start, not a queue occupying the entire trial budget.
+   Duplicates retain trial refs but do not supply parameter-space coverage.
+   Reaching 256 labels with fewer than 100 effective proposals is not broad
+   search qualification; raise a coverage issue, do not mask it with replays.
+2. First compare raw-Sharpe and versioned floor/tail/local/Pareto selections
+   on the common verified diagnostic panel. Four slots do not mean four
+   independent outcomes: adaptive-invariant is dossier-backed advisory,
+   not a fourth numerical formula or an already validated automatic router.
+3. Then execute matched baseline and at least one dossier-approved challenger
+   as separate actual public Mode5 studies per alpha/scope, with equal declared
+   search/effective-work/retention budgets and same domain/economics. Objectives
+   may generate different adaptive sequences; a shared seed does not make them
+   the same samples. Do not reconstruct a raw-Sharpe optimizer merely by sorting
+   the challenger's two queued trial rows, or select a recipe using forward scores.
+4. Preserve the three objective families; local selection requires completed
+   neighbor evidence and measured representative, Pareto requires frozen scales,
+   tail uses correct mass, and advisory routes require explicit choice/override.
+   If quality fails broadly, retain NO_SELECTION with the full tested domain.
+   Do not exclude HMA/HASH/VWAP because their old two-point advice was deferred.
+5. Use inherited TPE/univariate, multivariate/group, CMA and Sobol support only
+   where compatible, with categorical/conditional fallbacks declared. Sampler-
+   only comparison holds objective/selector fixed. End-to-end recipe contrast
+   includes changed search trajectories and the whole cost of probes/selection.
+6. Audit selected actual params via the original engine; compare score/compact/
+   audit and prepared/reference paths, full financial components and execution
+   state. Keep trial/evaluation/access IDs, no-deploy status and dynamic feedback.
+**Tests:** M5T-061..070 / 091..103; sealed-before-search chronology, observed new
+   proposal counts/ask-tell order, rights/cache invalidation, objective channels,
+   reference scale, legacy Modes1..4 invariants, real selected fill/position/
+   fee/funding/margin/equity parity and unsupported-route explicit errors.
+**Deliverables:** new sealed plans, actual full trial ledgers for both arms,
+   component/front/neighborhood tables, selected audits and resource accounting.
+**Exit Gate:** real adaptive/generated search occurred, declared coverage/work
+   reconciles and each selector's required inputs are valid. Equal selections
+   are an empirical outcome, not a substitute for a discriminating experiment.
+**Debt/Resource/Cleanup:** no duplicated optimizer/financial bridge, no missing
+   negative/pruned/failed records; measure and register full workload before
+   launch, reuse immutable market/compatible paths and clean only ignored scratch.
+**Commit/Rollback:** plan seals, verified public-study chunks, selected audit;
+   keep old Mode5 and all finite-pilot records independently reproducible.
+
+<a id="mode5-m5-11-3"></a>
+### Phase M5-11.3 - Multi-Origin Fixed-Policy Transfer And Economic Qualification
+
+**Status:** PLANNED / NOT_RUN; no independent-forward certification promised.
+**Goal:** test the entire diagnostic -> recipe -> search -> selection procedure
+   over long forward horizons, not just bootstrap one already chosen curve.
+**Entry:** M5-11.1/11.2 reviewed scope and frozen actual outputs, complete prefix
+   rights/source registry, approved inference/family/resource registration.
+**Detailed Guide:** [2.2 static/repeated origins](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#22-mode-5-data-contract),
+[4.7 fixed-parameter transfer](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#47-trục-4--invariance-transfer-và-evidence-strength),
+[5.8 inference](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#58-statistical-inference-và-phép-kiểm-có-ý-nghĩa-kinh-tế-không),
+[M511.04..06](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#phase-m5-11--formal-calibration-pilot-independent-checks-và-economic-inference)
+and [8.2..8.4 claim limits](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#82-khi-nào-đủ-gọi-mode5-upgrade-v1-complete).
+**To-Do:**
+1. Primary proposed long comparison: full 2021-2023 development, params frozen
+   before scoring complete 2024-2025. Preserve pending orders/positions/account
+   state under the registered forward runner, or label an explicit fresh-account
+   diagnostic; do not change reset/carry or flatten arbitrary year boundaries.
+2. Proposed additional annual origins: 2023-01-01 (development through 2022),
+   2024-01-01 (through 2023), 2025-01-01 (through 2024), each with at least one
+   complete forward calendar year, same warmup/economics and fixed params within
+   that horizon. Rebuild diagnostics, environment thresholds, geometry fits,
+   recipe advice/references and search at each prefix; do not copy a 2026 dossier.
+3. Prefix-limited engine experiments are still retrospective research because
+   guide/method design and histories were already reviewed. Future-mutation
+   invariants must pass, but do not launder hindsight anchors/previous selected
+   params into historically available warm starts or call these untouched OOS.
+   Shared forward dates/origins/alpha shocks require dependence accounting,
+   not three independent replications by relabeling identical stored paths.
+4. Evaluate held local probes separately, absolute forward net quality, raw
+   Sharpe/growth/PF decay, drawdown/tails/exposure, opportunity and campaign
+   concentration, terminal PnL and actual costs. Attribution must distinguish
+   reduced IS from increased forward quality; no-trade/sparse/null stays visible.
+5. Preserve approved 365-day minimum, measured 30-fill/20-campaign support where
+   available and three-origin target; absence of RSI accepted ledger remains
+   explicit, never synthesized from position regimes. More dates/trials do not
+   guarantee more independent episodes. Never alter strategy flags/sizing to
+   manufacture support. Partial 2026 is descriptive follow-up, not a full-year
+   replacement and not pooled to make a complete interval pass.
+6. Re-register the full hypotheses/multiplicity family before outcomes: the old
+   five-contrast adjustment does not cover new recipes/origins automatically.
+   Keep paired dates/block mechanics/business hurdle and defined moments; assess
+   tail resolution and method-vs-fixed-vector uncertainty explicitly. Numerical
+   estimator or scientific changes require separate approval, not silent fixes.
+7. Actual original-engine cost/latency/protection scenarios where supported,
+   no fixed-fill stress proxy. Report measured dispatch/callback/preparation/
+   kernel/reduction/adaptation, RSS, unique work/cache/recovery and source hashes.
+8. Give per-alpha technical/descriptive/local/transfer/decision-value verdicts;
+   equal, adverse and inconclusive results are valid. No retune after forward
+   results. Rebuild safe report/JSON from immutable evidence, protect private
+   alpha/code/params/market paths and complete exact host-reviewed cleanup.
+**Tests:** M5T-101..110 / EH-01..12; full-prefix future suffix mutation while
+   actual recipe fit/search/rank occurs, not only fail-closed tests; matched
+   support/accounting/campaign/clock/continuity oracle; source/cache-role/cutoff
+   identity and realistic lifecycle under fixed params across the full horizon.
+**Deliverables:** prefix dossiers/plans/searches, real fixed-policy forward
+   paths, paired decision/decay/support/uncertainty tables, claim matrix and
+   reviewed economic report with exact reproduction/resource/cleanup receipts.
+**Exit Gate:** broad registered measurements really executed or exact approved
+   partial disposition, no fake panel completeness/independence; every claim
+   matches support. Economic loss/INCONCLUSIVE can close the study only after
+   the required measurement, not instead of performing it. M5-12 needs separate
+   approval after this new scope is reviewed; no automatic release/live orders.
+**Commit/Rollback:** immutable forward chunks, reviewed findings/docs and
+   cleanup; keep incumbent/legacy choices and all negative historical evidence.
 
 <a id="mode5-m5-12"></a>
 ### Phase M5-12 - Local Package Qualification, Regression, Docs And Handoff
