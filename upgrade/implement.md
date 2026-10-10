@@ -28639,6 +28639,22 @@ extension analyses when inputs/contracts change. Never backdate a new recipe.
   Final independent metrics, reporting, current-source regression and cleanup
   still precede phase completion.
 
+**2026-10-10 Calendar Analysis Representation Correction:**
+- First full analysis exposed M5081-G03: the retained native margin projection
+  contains two values per bar; a generic boolean slice assumed every buffer was
+  scalar. The failed analysis command is retained; no financial cell is rerun.
+- Register a cold-path view revision that passes only the unchanged reducer's
+  required scalar equity/positions/optional-fee inputs with exact clock checks.
+  Original margin, account paths and financial sources remain byte-identical.
+  Malformed scalar shapes fail closed; calendar/previous-mark, metric units,
+  primary eligibility, seed, bootstrap and selector contracts do not change.
+  Verify all original long paths independently before report completion.
+- Current-source regression after this cold-view correction: **1,191 PASS**,
+  no failures/skips; six existing Optuna experimental warnings. Four new view
+  guards check required scalar clocks and untouched multi-column raw buffers.
+  The first failed full-analysis receipt and all prior source bytes remain
+  retained; this software receipt alone is not an economic certificate.
+
 <a id="mode5-m5-09"></a>
 ### Phase M5-09 - Diagnostic Dossier, Advisory Governance And Calibration Seal
 
