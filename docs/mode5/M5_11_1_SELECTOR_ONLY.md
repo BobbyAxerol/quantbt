@@ -162,3 +162,116 @@ free inodes from 5,584,564 to 5,583,978. This is an observed shared-filesystem
 change, not reclaimed space or attribution to this sidecar. The 5 GiB reserve
 and 256 MiB retained cap pass. Source/test/receipt pins and the final report
 are retained in the private closeout, while private evidence remains ignored.
+
+## Retained Annual Views
+
+Follow-up to accepted `15c6422`, registered before cold reduction in the new
+ignored `goal-step1/annual-view01/` lane. This append closes only the **639
+retained-path annual requests** from `missing_evidence_requests_08.json`.
+The preceding report remains the historical checkpoint: its raw-Sharpe,
+floor/tail/Pareto and whole-path local decisions are not changed.
+
+| Alpha | Actual Role Accounts | Annual Selection Views | Annual Validation Views | Total Annual Views |
+| --- | ---: | ---: | ---: | ---: |
+| RSI | 155 | 228 | 237 | 465 |
+| SC | 58 | 87 | 87 | 174 |
+
+Every registered execution contributes all three annual rows, including adverse
+outcomes, plus a whole-path parity check. Full rows retain typed metrics, raw
+reporting results/contracts, entry valuations, carried-watermark diagnostics,
+cash PnL, actual support, costs and explicit unavailable fields. Daily support
+is `calendar_days`, cross-checked against the qualified reporting period count;
+it is not fabricated campaign/opportunity support.
+
+The adapter calls the unchanged `panels.continuous_annual_rows` directly with
+the original sealed reporting contract and utility preference. Annual entry is
+initial capital for 2021 and the **previous actual close before the first mark**
+for later years. Accounts carry continuously, with no annual reset. Sampling
+is complete UTC daily returns with annual periods 365; annual Sharpes are never
+averaged into a whole-path Sharpe. Annual cash PnL, compounded net returns,
+retained cost streams, fill counts and campaign closures reconcile to the full
+path. RSI's unavailable ledgers remain unavailable; SC's sealed ledgers remain
+available. No finance, build, native extension or financial-engine import.
+
+Selection and local-validation roles retain their own execution identities.
+READY-coordinate overlap remains **42 RSI / 13 SC**, with 37 / 16 genuinely
+distinct validation coordinates. These are dependent development views, not
+independent environments, temporal holdouts or untouched OOS.
+
+### Common Authorization
+
+Before reduction, both centers and every neighbor were bound to the same
+`environment_floor_mean_v1`: `min(U2021,U2022,U2023) + 0.25 * mean(U2021,U2022,U2023)`.
+Weights are equal positive 1.0, activity penalty is zero, and U is unchanged
+decimal net return minus scope-entry drawdown minus daily loss ES (0.95).
+Preference remains `m5081-primary-equal-year-v1`; risk DD <=0.5, quality U >0
+and daily support >=365 are unchanged, checked separately for every year.
+Negative finite scores remain visible even when qualification fails.
+
+The shared policy identity is
+`011d4d4b22556a773fda983f291fbddcb7fc2d7a3f18e3fa1cfc182c6db05f9f`.
+There are 217 common-aggregate input records: 213 actual role-specific probes
+and four original centers. RSI 56 passes the annual gates; RSI 66 and both SC
+centers fail. These are input qualifications, **not new local selections**.
+Validation records cannot be relabeled as selection inputs.
+
+Annual policy suitability: **qualified for dependent annual attribution and
+the authorized common aggregate; not yet authorized for annual-local ranking**.
+The canonical `local_downside_v1` is hard-bound to
+`weighted_environment_mean_v1`. A floor-plus-mean substitution requires an
+explicit versioned local reducer authorization and annual local plan binding:
+channel/AnalysisKey/reference identity, gamma, scale and probe qualification
+policy. Whole-path settings are not silently promoted to that plan. These two
+missing policy requests are sealed; no new estimator, fallback or winner is
+invented. Full-panel local comparison remains unavailable from two centers.
+Four covariance designs, 195 new neighbor accounts and their 585 future annual
+views remain separate, unexecuted requests for the main workstream.
+
+### Integration And Seals
+
+`tools.mode5_research.probe_views` imports only stdlib custody helpers until
+numeric reduction is requested. `sealed_json(pin)` verifies exact bytes/SHA;
+read `closure_02.json` to discover output pins. Each output's `annual_rows`
+contains `role`, `center`, `execution_index`, `source_cell`, `source_path` and
+`common_aggregate_identity`. `whole_path_checks` is a separate parity population.
+`annual_aggregate(rows, policy, role=..., expected_candidate=...,
+expected_execution=...)` rejects mixed accounts, roles, years and unauthorized
+policy changes. Numeric APIs require a fresh dedicated cold process; package
+facades are bypassed, while the original pure producer/reducers are loaded.
+An import guard rejects financial runtime modules before their execution.
+
+Exact SHA256 seals below are relative to the private `annual-view01/` lane:
+
+| Artifact | SHA256 |
+| --- | --- |
+| `registration_01.json` | `fa8b612b069660cdf4c6989f5123ac026f7143ac3da62323b0376aee15a6f23b` |
+| `rsi_annual_views_02.json` | `9e1a51d0553ce0d0e58366727b8559a2c5bfacd99bdbbdcea08f04f38f4a1bff` |
+| `sc_annual_views_02.json` | `5df080da20fd0211575b20e29533e80e52b86f33507d22cdabf22c71bd61ad71` |
+| `common_aggregates_02.json` | `59040e69d45e8dc24a3104e88ff5a6f77ae363f21c116f711e763b5ba4319c5b` |
+| `closure_02.json` | `31a6111c889c58afaeb0f57d0b302561f49c063ab1036ef45e7c0a4955738124` |
+| `tests_02.json` | `14c31d71513525f4c1cdcfda6af715cd612dfe3e83cb72b9dc88a12e409174da` |
+| `cleanup_02.json` | `9d4fe340babba074f7d073bc1910a9654c47a05d3772947e6ed139f3fa4ae24b` |
+
+Attempt 02: **29 focused cold tests PASS**, without pytest/conftest or a
+financial runtime. Tests cover producer ownership, scope-entry marks, no reset,
+watermark separation, future-suffix invariance, daily 365, monetary/cost
+conservation, adverse/no-trade/bankrupt typing and common authorization.
+All 4,752 historical pins, 61 prior step-1 records and 62 producer/software
+pins remain unchanged. Independent Node checks verify file seals and all 639
+request/role/calendar bindings; normative Python canonical checks verify all
+639 row/request digests. JavaScript reserialization does not preserve Python
+float lexemes, so its initial canonical-row digest rejection is retained as a
+verification-tool failure, not used as an evidence verdict.
+
+```sh
+.maturin/qms08/release-regression-v1/bin/python -B -m unittest discover \
+  -s tests -p test_mode5_probe_views.py -v
+```
+
+Attempt 01's diagnostics-facade import was blocked before reduction; FAIL and
+cleanup receipts are retained. Attempt 02 keeps 34,873,857 bytes before its
+cleanup receipt (about 33.3 MiB), within the 128 MiB incremental retained cap.
+Scratch and deletion are both zero. Free bytes before/after are
+24,714,379,264 / 24,679,211,008; free inodes are 5,588,300 / 5,588,300.
+The >=5 GiB reserve passes; shared-filesystem changes are not attributed to
+deletion. No shared plan/native files, environments or prior receipts changed.
