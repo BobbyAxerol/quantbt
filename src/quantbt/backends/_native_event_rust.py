@@ -45,6 +45,7 @@ from ..core.product_contracts import (
 from ..errors import CommandValidationError, EngineErrorContext, NativeProtocolError
 from ..preparation.cache import ResetScope
 from ..strategies.commands import CommandBatchView
+from .native_audit_projection import command_terminal_report, legacy_liquidity, terminal_columns, terminal_fill_summary
 
 
 RUST_NATIVE_API_VERSION = "0.4"
@@ -409,6 +410,8 @@ class RustFullAuditResult:
     external_id_values: Mapping[int, str] = field(default_factory=dict)
     command_report: Optional[pd.DataFrame] = None
     command_metadata: Mapping[str, Mapping[str, object]] = field(default_factory=dict)
+    terminal_state: Optional[Mapping[str, object]] = None
+    fill_order_type: Optional[np.ndarray] = None
 
     @property
     def final_equity(self) -> float:
@@ -557,6 +560,9 @@ class RustFullAuditResult:
         )
         return cls(
             **arrays,
+            terminal_state=terminal_columns(_payload_value(payload, "terminal_state_v1"), n_bars=n_bars),
+            fill_order_type=(None if _payload_value(payload, "fill_order_type") is None else
+                np.asarray(_payload_value(payload, "fill_order_type"), dtype=np.int64)),
             total_fee=float(_payload_value(payload, "total_fee")),
             total_turnover=float(_payload_value(payload, "total_turnover")),
             total_funding=float(_payload_value(payload, "total_funding")),
@@ -626,6 +632,19 @@ class RustFullAuditResult:
         fill_meta = [
             self.command_metadata.get(order_id(code) or "", {}) for code in self.fill_order_id
         ]
+        liquidity, liquidity_sources = legacy_liquidity(
+            self.fill_order_type, [order_id(code) for code in self.fill_order_id], self.command_report,
+        )
+        terminal_report = (
+            command_terminal_report(self.command_report, self.terminal_state, order_id=order_id)
+            if include_audit_reports and self.terminal_state is not None and self.command_report is not None
+            else None
+        )
+        if terminal_report is not None and not terminal_report.empty:
+            terminal_report = terminal_fill_summary(
+                terminal_report, order_ids=[order_id(code) for code in self.fill_order_id],
+                quantities=self.fill_qty, prices=self.fill_price, fees=self.fill_fee,
+            )
         if include_audit_reports:
             fills_report = pd.DataFrame({
                 "bar": self.fill_bar,
@@ -638,6 +657,8 @@ class RustFullAuditResult:
                 "fee": self.fill_fee,
                 "fill_reason_code": self.fill_reason,
                 "fill_ambiguity_code": self.fill_ambiguity,
+                "liquidity": [label.value for label in liquidity],
+                "liquidity_provenance": liquidity_sources,
                 "tag": [meta.get("tag") for meta in fill_meta],
                 "campaign_id": [meta.get("campaign_id") for meta in fill_meta],
                 "cycle_id": [meta.get("cycle_id") for meta in fill_meta],
@@ -658,11 +679,13 @@ class RustFullAuditResult:
                     timestamp=timestamp_for_bar(int(bar)), symbol=symbols[int(symbol)],
                     side=OrderSide.BUY if int(side) > 0 else OrderSide.SELL,
                     qty=float(qty), price=float(price), fee=float(fee), order_id=order_id(order_code),
-                    metadata={"backend": "rust_full_contract", "bar": int(bar)},
+                    liquidity=label,
+                    metadata={"backend": "rust_full_contract", "bar": int(bar),
+                              "liquidity_provenance": source, "liquidity_contract": "legacy_order_type_label_v1"},
                 )
-                for bar, order_code, symbol, side, qty, price, fee in zip(
+                for bar, order_code, symbol, side, qty, price, fee, label, source in zip(
                     self.fill_bar, self.fill_order_id, self.fill_symbol, self.fill_side,
-                    self.fill_qty, self.fill_price, self.fill_fee,
+                    self.fill_qty, self.fill_price, self.fill_fee, liquidity, liquidity_sources,
                 )
             )
         else:
@@ -675,10 +698,10 @@ class RustFullAuditResult:
                 np.asarray(self.event_bar[self.event_kind == 7], dtype=np.int64) - offset,
                 minlength=len(idx),
             ),
-            "canceled_orders": np.bincount(
+            "canceled_orders": (self.terminal_state["canceled_orders_by_bar"] if self.terminal_state is not None else np.bincount(
                 np.asarray(self.event_bar[self.event_kind == 1], dtype=np.int64) - offset,
                 minlength=len(idx),
-            ),
+            )),
         }, index=idx)
         result_metadata = {
             "backend": "native_event",
@@ -689,15 +712,28 @@ class RustFullAuditResult:
             "fills_report": fills_report,
             "order_report": order_report,
             "command_report": (
-                self.command_report.copy(deep=False)
+                terminal_report if terminal_report is not None else self.command_report.copy(deep=False)
                 if self.command_report is not None
                 else pd.DataFrame()
             ),
+            "active_orders": (terminal_report.loc[terminal_report.active | terminal_report.waiting_parent].copy()
+                if terminal_report is not None and not terminal_report.empty else pd.DataFrame()),
+            "native_terminal_state_v1": {
+                "available": terminal_report is not None,
+                "authority": "rust" if terminal_report is not None else None,
+                "reason": None if terminal_report is not None else "workload/artifact lacks static terminal-slot output",
+                "replayed": False,
+            },
+            "cancellation_diagnostic_unit": "canceled_order_slot_transition" if self.terminal_state is not None else "legacy_cancel_event_rows",
+            "liquidity_contract": "legacy_order_type_label_v1",
             "id_values": self.id_values,
             "liquidation_reason": int(self.liquidation_reason),
             "lifecycle_counters": {
                 "fill_count": int(self.fill_count), "event_count": int(self.event_count),
                 "rejected_count": int(self.rejected_count), "canceled_count": int(self.canceled_count),
+                **({"canceled_order_count": int(np.sum(self.terminal_state["canceled_orders_by_bar"])),
+                    "canceled_event_count": int(self.terminal_state["canceled_event_count"])}
+                   if self.terminal_state is not None else {}),
             },
             "event_ledger": {
                 "bar": self.event_bar,

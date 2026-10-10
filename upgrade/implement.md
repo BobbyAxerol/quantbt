@@ -29491,6 +29491,20 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    requires all five steps and requirement-by-requirement evidence, not just
    successful launch or background work. Current five-alpha science gates stay
    IN_PROGRESS until verified; economic success is not a required positive sign.
+   **Progress Receipt (2026-10-10):** step1 cold selector-only checkpoint is
+   committed with explicit limited-local coverage and 195 missing schema-floor
+   account requests plus four covariance fit/design requests; 639 existing-path
+   annual views need cold reductions, not financial replay. Native output and
+   process-custody step2 now pass the local source-bound gate. See
+   [native runner closure](../docs/mode5/M5_11_1_NATIVE_RUNNER_CLOSURE.md): 72 Rust,
+   39 Python output/clock and separate 34 custody tests; final retained HMA/HASH/
+   VWAP replay bills 9 actual account passes/236,520 bars with full available
+   terminal/cancel/liquidity/accounting parity. Old artifacts and failed receipts
+   remain. Partial fills reduce retained qty/fees without changing native state.
+   All three native panels still need completion; fixed-tape replay is not a
+   speed claim for feedback convergence. Current source/binary pins must pass
+   again before launch; no public/remote gate is inherited. Step3/4/5 remain
+   pending their ordered evidence gates, not complete after supervisor launch.
 **Goal:** actually measure the effective landscape, active neighborhoods and
    environment differences before formal tuning, for all five admitted alphas.
 **Entry:** M5-11 review, unchanged alpha/account witnesses, source/data inventory,

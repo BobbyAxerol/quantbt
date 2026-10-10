@@ -6559,12 +6559,17 @@ class NativeEventBackend:
         if not isinstance(command_report, pd.DataFrame):
             raise TypeError("Rust audit command_report must be a DataFrame")
 
-        command_outcomes = cls._build_rust_command_outcome_report(
-            command_report=command_report,
-            compiled_commands=compiled_commands,
-            n_bars=n_bars,
-            order_events=order_events,
-        )
+        if result.metadata.get("native_terminal_state_v1", {}).get("available", False):
+            from .native_audit_projection import terminal_outcomes
+
+            command_outcomes = terminal_outcomes(command_report, n_bars=n_bars)
+        else:
+            command_outcomes = cls._build_rust_command_outcome_report(
+                command_report=command_report,
+                compiled_commands=compiled_commands,
+                n_bars=n_bars,
+                order_events=order_events,
+            )
         lifecycle_events = cls._build_lifecycle_event_report(order_events)
         result.metadata["command_outcome_report_v1"] = command_outcomes
         result.metadata["lifecycle_event_report_v1"] = lifecycle_events
