@@ -1,6 +1,6 @@
 # QuantBT Upgrade Implementation Plan
 
-## Current Mode 5 Diagnostics-First Upgrade - M5-08.1 Extended Diagnostics
+## Current Mode 5 Diagnostics-First Upgrade - M5-09 Dossier Governance
 
 **Status:** M5-01 COMPLETE_LOCAL_BASELINE / EXIT_PASS_OWNER_DISPOSITION; 76 tests PASS,
 M5T-001..010 exercised, 427 protected hashes unchanged. M5-02
@@ -72,14 +72,26 @@ Read the [historical report](../docs/mode5/M5_08_1_HISTORICAL_REPORT.md),
 Its [registered extension](#mode5-m5-08-1) precedes M5-09; data availability,
 economic adequacy and technical validity remain separate. Long scope is bounded,
 reviewed and sparse; these outcomes do not establish whole-recipe superiority.
-M5-09..M5-12 remain NOT_STARTED / NOT_RUN. Neutral coverage
+M5-09 is COMPLETE_LOCAL_DOSSIER_GOVERNANCE / DESCRIPTIVE_ONLY after separate
+owner approval on 2026-10-10. Five dossiers, 30 exact matrices / 1,659 source
+records, 193 short cells + 53 historical requests, 64 sampler trials and 40
+formula decisions reconcile. Five zero-budget DEFER_CALIBRATION plans are
+sealed before any new formal tuning; no researcher recipe is invented.
+1,230 related tests PASS/no fail/skip (52 governance tests included); actual
+five-alpha proof and metadata-only benchmark PASS. 3,449 protected prior
+hashes plus 18 current source hashes unchanged; exact scratch cleanup PASS.
+Read the [M5-09 report](../docs/mode5/M5_09_DOSSIER_REPORT.md),
+[contract](../docs/mode5/DOSSIER_GOVERNANCE_V1.md),
+[aggregate summary](../docs/mode5/evidence/m5-09.json) and
+[cleanup](../docs/maintenance/M5_09_CLEANUP.md).
+M5-10..M5-12 remain NOT_STARTED / NOT_RUN. Neutral coverage
 and unexecuted held directions are not full-space or independent-OOS proof.
 Read the [M5-01 baseline report](../docs/mode5/M5_01_BASELINE_REPORT.md) and
 [reviewed-exit seal](../docs/mode5/evidence/m5-01-exit-review.json). The owner
 confirmed the detailed guide's reports came from the original ZIPs and accepts
 guide/hash-verified extracted inputs as baseline. Original ZIP files are not
 an M5-02 entry blocker; archive hashes are not claimed locally remeasured.
-No remaining registered M5-01..08.1 local implementation exit blocker within their
+No remaining registered M5-01..09 local implementation exit blocker within their
 approved scopes. M5-02 qualified local
 binding pilots and actual-engine synthetic tests, not methodology/default
 changes. Protection-dependent bindings are offline actual-feedback compilers,
@@ -27045,7 +27057,10 @@ DESCRIPTIVE_ONLY under separate approval; read the
 [historical report](../docs/mode5/M5_08_1_HISTORICAL_REPORT.md). All 53 requests,
 independent metric/accounting checks and cleanup pass. The original M5-08
 receipts and frozen decisions remain unchanged; evidence limits remain explicit.
-M5-09..12 remain NOT_STARTED / NOT_RUN.
+M5-09 is COMPLETE_LOCAL_DOSSIER_GOVERNANCE / DESCRIPTIVE_ONLY; read the
+[dossier report](../docs/mode5/M5_09_DOSSIER_REPORT.md). Five dossiers and
+zero-budget deferred seals qualify governance, not an automatic router or a
+formal recipe choice. M5-10..12 remain NOT_STARTED / NOT_RUN.
 Read the
 [M5-01 exit review](../docs/mode5/M5_01_EXIT_REVIEW.md) and
 [M5-02 admission report](../docs/mode5/M5_02_ADMISSION_REPORT.md) before further
@@ -27284,7 +27299,7 @@ Every phase below inherits this mandatory resource registration/cleanup exit.
 | [M5-07](#mode5-m5-07) | Three objective families/four selectors | M5-03..06 reviewed exits | M5T-061..070 | COMPLETE_LOCAL_OBJECTIVES |
 | [M5-08](#mode5-m5-08) | Five empirical batteries/five-alpha review | M5-07 and valid panels/routes | M5T-071..080 | COMPLETE_LOCAL_TARGETED_DIAGNOSTICS / DESCRIPTIVE_ONLY |
 | [M5-08.1](#mode5-m5-08-1) | Longer calendar, coverage and mechanism diagnostics | Reviewed M5-08; separate owner approval | M5T-071..080 plus extension contracts | COMPLETE_LOCAL_REGISTERED_HISTORICAL_DIAGNOSTICS; DESCRIPTIVE_ONLY; broad confirmation INCONCLUSIVE |
-| [M5-09](#mode5-m5-09) | Dossier, advisory and sealed plan | M5-08 reviewed exit | M5T-081..090 | NOT_STARTED |
+| [M5-09](#mode5-m5-09) | Dossier, advisory and sealed plan | M5-08/08.1 reviewed exit | M5T-081..090 | COMPLETE_LOCAL_DOSSIER_GOVERNANCE |
 | [M5-10](#mode5-m5-10) | Public opt-in integration/runtime reuse | M5-09 plus current source map | M5T-091..100 | NOT_STARTED |
 | [M5-11](#mode5-m5-11) | Formal calibration and scoped economics | M5-10 plus authorized adequate data | M5T-101..110 | NOT_STARTED |
 | [M5-12](#mode5-m5-12) | Local qualification/docs/handoff | M5-01..11 dispositions reviewed | M5T-111..120 | NOT_STARTED |
@@ -28716,9 +28731,12 @@ extension analyses when inputs/contracts change. Never backdate a new recipe.
 <a id="mode5-m5-09"></a>
 ### Phase M5-09 - Diagnostic Dossier, Advisory Governance And Calibration Seal
 
-**Status:** IN_PROGRESS; owner implementation approval 2026-10-10;
+**Status:** COMPLETE_LOCAL_DOSSIER_GOVERNANCE / DESCRIPTIVE_ONLY;
+owner implementation approval 2026-10-10;
 M5-08 and M5-08.1 reviewed technical exits accepted for this dossier phase.
-Governance, evidence reconciliation, regression and cleanup gates NOT_RUN.
+Governance, actual five-alpha evidence reconciliation, regression and cleanup
+PASS. No in-scope implementation blocker; all five plans are deferred with
+zero search budget, not a researcher-approved formal tuning recipe.
 **Goal:** turn evidence into an auditable recipe decision before formal tuning,
    retaining uncertainty and researcher choice without bypassing technical gates.
 **Entry:** M5-08 reviewed exit and separate phase approval.
@@ -28805,6 +28823,43 @@ radar source tables, CalibrationPlanV1 seal, override log and cost/cleanup bill.
 - Commit verified governance modules/tests, then actual dossiers/plans/report
   and current unified-plan status. No M5-10, build, CI/push, merge/tag or release
   is authorized by this approval.
+
+**2026-10-10 Completion Receipt:**
+- M509.01..06 / M5T-081..090 exercised; 1,230 related source tests PASS, zero
+  fail/skip, including 52 new governance tests. Six Optuna experimental warnings
+  retained. Fresh actual proof reconciles five dossier identities and seals.
+- Six matrices per alpha: 84 parameter, 451 candidate/environment (including
+  bindings/views), 929 neighbor/design, 50 environment, 117 recipe/trial and
+  28 stress records. These 1,659 records are not new simulations or independent
+  sample N. All 193 short cells, 53 historical requests, 64 trials and 40 formula
+  decisions remain bound to raw sources, including adverse and missing results.
+- Five axes use raw measures/units/support/uncertainty and source-bound fixed
+  definitions; no fabricated normalization or family router. VWAP's unsupported
+  transfer estimate stays null with reason. Short/annual/continuous/partial-year
+  namespaces remain separate; underlying accounting differences remain zero.
+- Readiness advice retains NO_CLEAR_WINNER; six finite-panel selections are
+  not six independent recipe confirmations. Missing full-schema SAM and sparse
+  reviewed-origin/whole-procedure evidence remain explicit limits, not alpha
+  exclusion. All five CalibrationPlanV1 seals are DEFER_CALIBRATION, budget 0.
+- Immutable copy/pickle/JSON, wrong hash/unit/reference, missing adverse row,
+  role/maturity/holdout, override/rights, dependency reuse and post-hoc chronology
+  controls PASS. Unqualified automatic routing and deferred search are denied.
+  The existing canonical selectors, statistical estimators and financial engine
+  are unchanged. Public binding remains M5-10, separately approved.
+- Three matched metadata repeats: cold median 2.415 s, shared-catalog median
+  2.236 s; benchmark process peak RSS 182.35 MiB. No WFO/kernel/RSS-reduction
+  claim; zero new financial execution or sampler trials. Failed embedded-request,
+  null-pointer and optional-tooling attempts retained and technically resolved.
+- Host review: 164 processes, no owned matches/FDs/errors. 3,449 prior + 18
+  current source hashes and 77 retained files verified. Only registered ignored
+  scratch removed; observed free improvement 7,647,232 bytes (7.29 MiB).
+  Evidence/private source copies/current environments/artifacts remain.
+- Deliverables: [report](../docs/mode5/M5_09_DOSSIER_REPORT.md),
+  [governance contract](../docs/mode5/DOSSIER_GOVERNANCE_V1.md),
+  [aggregate summary](../docs/mode5/evidence/m5-09.json),
+  [cleanup](../docs/maintenance/M5_09_CLEANUP.md); private Appendix D and all
+  five dossiers/radar/plans/logs in the registered ignored lane. No M5-10,
+  formal study, production/Rust/alpha change, build, CI/push/merge/tag or release.
 
 <a id="mode5-m5-10"></a>
 ### Phase M5-10 - Public Opt-In Mode 5, Sampler Bridge And Prepared Runtime

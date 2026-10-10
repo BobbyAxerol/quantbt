@@ -85,6 +85,12 @@ proof. Resume domain work only after disk and evidence checks are complete.
 
 ## Recorded Cleanup
 
+The [M5-09 receipt](maintenance/M5_09_CLEANUP.md) records exact inactive
+research-test scratch removal after host process/FD review, 3,449 protected
+prior and 18 current source hashes unchanged, and 7.29 MiB observed filesystem
+recovery. All dossiers/plans/journals, original/failed/repair receipts, source
+copies, data and current environments remain; no financial rerun/build occurred.
+
 The [M5-08.1 receipt](maintenance/M5_08_1_CLEANUP.md) records exact inactive
 historical-diagnostic scratch removal after host process/FD review, 2,803
 protected and 635 retained hashes unchanged, and 8.26 MiB observed filesystem
