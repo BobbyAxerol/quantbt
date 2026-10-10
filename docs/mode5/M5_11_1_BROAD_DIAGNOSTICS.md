@@ -60,8 +60,10 @@ native pilot under the retained allocation amendment. The limit remains three
 financial workers, never parallel slices of the same chronological account.
 
 The extended original HMA/HASH pilots are now complete. Each is still only the
-first registered candidate; its actual paths, lifecycle traces, full Python-owner
-parity and independent fill-account reconciliation are retained.
+first registered candidate; its actual paths, lifecycle traces, Python numeric/
+fill/selected-event parity and independent fill-account reconciliation are
+retained. Terminal active-order parity is being independently supplemented;
+the original parity helper did not test that terminal state.
 
 | Original native pilot | HMA | HASH |
 |---|---:|---:|
@@ -164,10 +166,26 @@ These are within-alpha development observations, not a cross-alpha ranking.
 
 Supervisor elapsed was 2,402.081 s (about 40 minutes), with 128 original account
 passes / 3,363,840 account-bars including reused pilot. Peak financial RSS was
-611.83 MiB. No time/economic-quality stop filtered the panel. SC neighborhoods,
-stress, actual sampler/search contrasts and transfer remain separate work.
+611.83 MiB. No time/economic-quality stop filtered the panel. SC stress, actual
+sampler/search contrasts and transfer remain separate work.
 Private summary and validation: `sc_panel_summary.json`, `sc_panel_summary.md`
 and retained original shard receipts.
+
+SC's registered multi-center neighborhood work now completes **58/58** actual
+paths, covering all four active axes and supported same-branch covariance
+proposals. Both centers retain `FRAGILE_CENTER`: tested quality survival is
+78.57% at the first center and 86.67% on validation at the second. All probe
+account returns are positive (+0.87% to +19.99%), but minimum utility is -0.0862.
+Positive return is not equivalent to a risk-qualified basin.
+
+Selection and validation have effective-coordinate overlaps. Each center has
+eight genuinely distinct held coordinates; repeated paths are dependent
+repeatability checks, not independent confirmations or temporal OOS. No
+undeclared coupled group or covariance/Hessian interpretation was invented.
+The tranche bills 58 account passes / 1,524,240 account-bars, 1,045.753 s of
+financial-cell elapsed and 1,105.048 s of supervisor elapsed. All workers are
+reaped. Ledgers retain 3,928 actual fills, 1,936 closures and 56 open campaigns;
+these sum alternative candidate runs, not independent financial observations.
 
 VWAP's first extended pilot failed before accounting because its original alpha
 requires an explicit input even when that dimension is structurally inactive.
@@ -201,6 +219,23 @@ SC also ingests all 128 original paths into 512 whole/annual rows. Monetary
 reconciliation is exact; wealth-product residual is at most 2.2205e-16 and
 campaign/account residual at most 3.2174e-10. Actual campaign closures and
 boundary-censored holdings remain distinct from annual marked account PnL.
+
+The registered endogenous volatility partition reuses the qualified provider:
+fit BTC/ETH on **2020 only**, then label each UTC development day from information
+available at midnight, including only the preceding completed hourly bar.
+All 256 RSI/SC account paths yield 4,096 full/annual state-contribution rows;
+marked monetary PnL reconciles with difference zero, and exposure, costs and
+day counts conserve. Unknown availability is retained as unknown. These are
+contributions from the same continuous accounts, not artificial equity curves
+formed by joining disjoint state days. State annualized Sharpe/drawdown/utility
+and campaign attribution are not claimed.
+
+Twelve focused chronology/conservation tests PASS, including future-suffix
+mutation, later intraday marks, late/missing features and frozen provider
+identity. The fit algorithm is causal, but this attribution was reconstructed
+at current knowledge in 2026: it is not a historical 2020 deployment seal or
+clean independent OOS. Trend/activity partitions and complete five-battery
+qualification remain `NOT_RUN`.
 
 Retrospective same-panel diagnostics, with separately registered preferences,
 show RSI annual utility-rank Spearman correlations of -0.025, +0.106 and -0.086;
@@ -267,6 +302,22 @@ search remains unstarted until its entry conditions are satisfied or the owner
 approves an explicitly labeled partial disposition. No public release is implied.
 
 ## Technical Controls
+
+An independent 19-case source/fake-process audit found **qualification gaps,
+not observed account corruption**: some supervisors can omit a fault receipt,
+some per-tranche source lists omit financial dependencies, terminal active
+orders are absent from the original Python parity check, and HMA's cache check
+does not itself anchor the cell to its original pilot receipt. Independent
+cold inspection verifies the current pilot bytes and calendars, but cannot
+retroactively create a missing historical seal.
+
+Append-only source/cache custody, terminal-owner oracle checks and failure
+receipts are being added without changing active sealed workers or financial
+source. Completed cells retain exact pass bills. A capped/failed worker lacking
+a durable final pass ledger has an **unknown exact count**, with any observed
+count only a lower bound; it must not be billed as zero or certified as complete.
+No full-phase or fault/cancellation qualification is implied by the original
+successful path/fill comparisons.
 
 Focused tests cover strict protocol budgets and chronology, deterministic branch
 quotas, conditional inactivity, effective deduplication, retained infeasibility,

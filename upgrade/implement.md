@@ -29302,8 +29302,9 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    protocol/design tests PASS. RSI has 128/128 verified continuous development
    paths and 155 separately executed multi-center probes. SC also verifies all
    128 original callback paths, retaining loss/no-trade outcomes. Extended
-   HMA/HASH original native-route pilots now complete with full Python-owner
-   parity and independent accounting difference zero. They are one candidate
+   HMA/HASH original native-route pilots now complete with Python numeric/fill/
+   selected-event parity and independent accounting difference zero; terminal
+   active-order parity has a separately tracked supplementary audit. They are one candidate
    per native alpha, not 128-point coverage. VWAP's failed inactive-input
    attempt remains retained; the owner approved restoring only the required
    inactive input from the sealed original config in a new recovery lane.
@@ -29315,6 +29316,21 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    monetary reconciliation diff zero and wealth residual at most 4.45e-16.
    Scope-entry drawdown remains primary; carried watermark and current-knowledge
    versus development-data cutoffs have separate named provenance.
+   SC's registered 58 multi-center probes now complete, preserving fragile
+   centers and dependent overlaps. RSI's 128 actual 2x-fee reruns and 256 RSI/SC
+   state-contribution paths also reconcile; no actual adaptive search or forward
+   promotion is inferred from these development/cold measurements.
+**Independent Tranche Audit (2026-10-10):** retain the read-only 19-case audit and
+   original receipts. Supplement incomplete financial dependency lists using
+   original protected records and pre-launch Git source identity, with an honest
+   current-date witness, not a retroactive registration. Anchor HMA pilot reuse
+   to its original cell/arrays/calendar receipt. Add full terminal active-order
+   semantic comparison to a new oracle audit without editing the running sealed
+   driver or original financial source. Supervisors must preserve fault custody
+   and reap owned children even if final pin validation fails; an incomplete
+   pass ledger stays unknown/lower-bound, never zero or an economic outcome.
+   These checks gate tranche qualification; they do not authorize extra search,
+   full native panels, new alpha logic or a scientific contract change.
 **Owner Runtime Amendment (2026-10-10):** prioritize adequate economic execution,
    not another resource-optimization phase. Preserve capped 30-minute pilots and
    register an append-only extension: up to three independent financial workers,

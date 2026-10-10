@@ -26,7 +26,17 @@
     "cross_role_effective_overlap": 42,
     "distinct_held_validation_coordinates": 37,
     "distinct_held_negative_utility": 0,
-    "probe_temporal_oos": false
+    "probe_temporal_oos": false,
+    "actual_fee_2x_stress": {
+      "paired_configurations": 128,
+      "actual_account_passes": 256,
+      "actual_account_bars": 6727680,
+      "median_paired_sharpe_change": -0.0683638234,
+      "median_paired_return_change": -0.0423519067,
+      "median_paired_utility_change": -0.0518733206,
+      "signal_and_exposure_unchanged": true,
+      "no_posthoc_cost_subtraction": true
+    }
   },
   "A-SC": {
     "complete_configurations": 128,
@@ -41,7 +51,14 @@
     "summed_open_campaigns": 82,
     "maximum_equity_reconciliation_difference": 0.0,
     "maximum_campaign_reconciliation_difference": 3.2162006391445175e-10,
-    "sums_are_independent_information": false
+    "sums_are_independent_information": false,
+    "complete_probe_paths": 58,
+    "probe_account_passes": 58,
+    "probe_account_bars": 1524240,
+    "genuinely_distinct_held_coordinates_per_center": [8, 8],
+    "probe_centers": "FRAGILE_CENTER",
+    "probe_financial_seconds": 1045.7530992345419,
+    "probe_temporal_oos": false
   },
   "cold_rsi_attribution": {
     "complete_paths": 128,
@@ -84,6 +101,26 @@
       "maximum_accounting_difference": 0.0
     }
   },
+  "cold_endogenous_attribution": {
+    "actual_account_paths": 256,
+    "state_contribution_rows": 4096,
+    "maximum_money_reconciliation_difference": 0.0,
+    "fit_data_year": 2020,
+    "daily_label_availability": "UTC_MIDNIGHT_PRECEDING_COMPLETED_HOUR",
+    "financial_reruns": 0,
+    "focused_tests_passed": 12,
+    "current_knowledge_year": 2026,
+    "historical_deployment_claim": false,
+    "disjoint_state_equity_claim": false
+  },
+  "independent_native_tranche_audit": {
+    "cold_reproduction_tests_passed": 19,
+    "observed_account_corruption": false,
+    "source_cache_custody_supplement": "IN_PROGRESS",
+    "terminal_python_owner_parity": "IN_PROGRESS",
+    "exact_incomplete_pass_billing": "UNKNOWN_OR_OBSERVED_LOWER_BOUND",
+    "fault_cancellation_qualification": false
+  },
   "owner_small_tranche": {
     "new_native_candidate_indices": [1, 2, 3],
     "final_effective_target_per_alpha": 128,
@@ -92,7 +129,7 @@
   },
   "remaining": {
     "A-HMA": "ORIGINAL_PILOT_PASS_SMALL_TRANCHE_IN_PROGRESS",
-    "A-HASH": "ORIGINAL_PILOT_PASS_SMALL_TRANCHE_REGISTERING",
+    "A-HASH": "ORIGINAL_PILOT_PASS_SMALL_TRANCHE_IN_PROGRESS",
     "A-VWAP": "FAILED_ATTEMPT_RETAINED_OWNER_APPROVED_INACTIVE_INPUT_RECOVERY",
     "six_matrices_and_five_alpha_dossiers": "INCOMPLETE",
     "M5-11.2_actual_calibration": "NOT_RUN",
