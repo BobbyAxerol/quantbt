@@ -229,6 +229,14 @@ class NormalizedSearchSpace:
             "effective_builder": "omit_explicit_inactive_v1",
         }
 
+    def portable_ranges(self):
+        """JSON-safe constructor ranges without tuple/list interpretation loss."""
+        return {s.name: ({"kind": "fixed", "value": s.value} if s.fixed else {
+            "kind": s.kind,
+            **({"choices": list(s.choices)} if s.choices else {
+                "low": s.low, "high": s.high, "step": s.step, "log": s.log}),
+            **({"active_if": dict(s.active_if)} if s.active_if else {})}) for s in self.specs}
+
     def suggest(self, trial):
         params = {}
         for spec in self.specs:

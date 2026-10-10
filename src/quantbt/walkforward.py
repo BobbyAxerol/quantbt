@@ -511,8 +511,13 @@ class WalkForwardConfig:
     parameter_constraints: Optional[Callable] = None
     result_constraints: Optional[Callable] = None
     meta_selection: Any = None
+    mode5_calibration: Any = None
 
     def __post_init__(self) -> None:
+        if self.mode5_calibration is not None:
+            from .mode5.integration_contracts import Mode5Calibration
+            if not isinstance(self.mode5_calibration, Mode5Calibration):
+                raise TypeError("mode5_calibration requires sealed Mode5Calibration")
         if self.meta_selection is not None:
             from .optimization.meta_selection.config import normalize_meta_config
             object.__setattr__(self, "meta_selection", normalize_meta_config(self.meta_selection))
@@ -1103,6 +1108,13 @@ class WalkForwardEngine:
                 calendar_plan=calendar_plan,
             )
             folds = self.build_folds(idx)
+            self._mode5_runtime = None
+            if self.config.mode5_calibration is not None:
+                from .mode5.runtime import PublicMode5Runtime
+                if params is not None or not param_ranges:
+                    raise ValueError("diagnostics-first Mode5 requires sealed optimizing ranges")
+                self._mode5_runtime = PublicMode5Runtime(self, self.config.mode5_calibration,
+                    data_for_strategy, idx, param_ranges)
             if self._meta_runtime is not None:
                 self._meta_runtime.validate_market(data_for_strategy, idx, folds)
             self._sampler_studies = []
@@ -1176,6 +1188,8 @@ class WalkForwardEngine:
             )
             if self._meta_runtime is not None:
                 self._meta_runtime.finalize(result)
+            if self._mode5_runtime is not None:
+                result.metadata["mode5_diagnostics_first"] = self._mode5_runtime.metadata
             if prepared_context is not None and prepared_context._witness_owners:
                 prepared_context.validate_source(data_for_strategy)
             return result
@@ -1213,6 +1227,10 @@ class WalkForwardEngine:
                 self._meta_runtime.close()
             if prepared_context is not None:
                 prepared_context.close_witnesses()
+            mode5_runtime = getattr(self, "_mode5_runtime", None)
+            if mode5_runtime is not None:
+                mode5_runtime.close()
+                self._mode5_runtime = None
 
     def _run_aligned(
         self,
@@ -1773,6 +1791,9 @@ class WalkForwardEngine:
         research_context: Mapping[str, Any] | None = None,
     ) -> tuple[WalkForwardTrialRecord, List[WalkForwardTrialRecord], List[WalkForwardTrialRecord]]:
         """Run anti-leakage two-stage optimization and return selected params plus ledgers."""
+        mode5_runtime = getattr(self, "_mode5_runtime", None)
+        if mode5_runtime is not None:
+            return mode5_runtime.optimize(data, folds, param_ranges)
         if not param_ranges:
             raise ValueError(f"{self.config.optimization_mode} optimization requires param_ranges")
         validate_param_ranges(param_ranges, context=self.config.optimization_mode)
@@ -5682,6 +5703,8 @@ def _config_hash(config: WalkForwardConfig) -> str:
         "trade_penalty_factor": config.trade_penalty_factor,
         "use_numba": config.use_numba,
     }
+    if config.mode5_calibration is not None:
+        payload["mode5_calibration"] = config.mode5_calibration.identity
     if config.sampler_config is not None or config.sampler_warm_start or config.parameter_constraints or config.result_constraints:
         payload["sampler_policy"] = {
             "config": None if config.sampler_config is None else config.sampler_config.metadata(),

@@ -1,1 +1,7 @@
 """Opt-in diagnostics-first static calibration; no implicit deployment."""
+
+from .integration_contracts import (CalibrationWindow, Mode5Calibration,
+    calibration_binding, calibration_context, mode5_capabilities)
+
+__all__ = ["CalibrationWindow", "Mode5Calibration", "calibration_binding",
+           "calibration_context", "mode5_capabilities"]

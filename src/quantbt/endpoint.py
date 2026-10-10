@@ -2107,6 +2107,11 @@ class QuantBTEndpoint:
             if wf_config.meta_selection is not None and wf_config.meta_selection != normalized_meta:
                 raise ValueError("META_CONFIG_INVALID: conflicting walkforward_config/meta_selection policies")
             wf_config = replace(wf_config, meta_selection=normalized_meta)
+        if wf_config is not None and "mode5_calibration" in optimization_config:
+            supplied = optimization_config["mode5_calibration"]
+            if wf_config.mode5_calibration is not None and wf_config.mode5_calibration != supplied:
+                raise ValueError("conflicting walkforward_config/mode5_calibration")
+            wf_config = replace(wf_config, mode5_calibration=supplied)
         if wf_config is None:
             from .walkforward import WalkForwardConfig
 
@@ -2124,6 +2129,7 @@ class QuantBTEndpoint:
                 parameter_constraints=optimization_config.get("parameter_constraints"),
                 result_constraints=optimization_config.get("result_constraints"),
                 meta_selection=optimization_config.get("meta_selection"),
+                mode5_calibration=optimization_config.get("mode5_calibration"),
                 inner_split_frequency=optimization_config.get("inner_split_frequency"),
                 inner_window_mode=optimization_config.get("inner_window_mode"),
                 inner_train_window=optimization_config.get("inner_train_window"),
@@ -3830,13 +3836,18 @@ class QuantBTEndpoint:
             native_scorer=scorer if native_proxy_scorer_required else None,
         )
         wf_run_kwargs = {"meta_history": meta_history} if meta_enabled else {}
-        wf_result = engine.run(
-            data=data if data is not None else closes,
-            params=params,
-            param_ranges=param_ranges,
-            datetime_index=datetime_index,
-            **wf_run_kwargs,
-        )
+        try:
+            wf_result = engine.run(
+                data=data if data is not None else closes,
+                params=params,
+                param_ranges=param_ranges,
+                datetime_index=datetime_index,
+                **wf_run_kwargs,
+            )
+        except BaseException:
+            if wf_config.mode5_calibration is not None and hasattr(scorer, "release_prepared_state"):
+                scorer.release_prepared_state()
+            raise
         stitched = wf_result.oos_output
         if stitched is None:
             raise ValueError("walk-forward strategy produced no OOS output")
@@ -4054,6 +4065,8 @@ class QuantBTEndpoint:
         result.metadata["walk_forward_result"] = wf_result
         if "sampler_studies" in wf_result.metadata:
             result.metadata["walk_forward"]["sampler_studies"] = wf_result.metadata["sampler_studies"]
+        if "mode5_diagnostics_first" in wf_result.metadata:
+            result.metadata["walk_forward"]["mode5_diagnostics_first"] = wf_result.metadata["mode5_diagnostics_first"]
         if "meta_selection" in wf_result.metadata:
             result.metadata["walk_forward"]["meta_selection"] = wf_result.metadata["meta_selection"]
             for key in ("validation_claim", "chronological_validation_claim", "causality_claim"):
@@ -4985,6 +4998,10 @@ class _WalkForwardEndpointScorer:
         self.market_lows = market_lows
         self.market_datetime_index = market_datetime_index
         self.meta_metric_support = bool(meta_metric_support)
+        self.mode5_metric_policy = None
+        if wf_config is not None and wf_config.mode5_calibration is not None:
+            from .mode5.evaluation import Mode5MetricPolicy
+            self.mode5_metric_policy = Mode5MetricPolicy(wf_config.mode5_calibration)
         if config.wfo_execution_config is not None:
             self.meta_account_authority = "existing_execution_endpoint_continuous_account"
         self._meta_witness = None
@@ -5014,6 +5031,7 @@ class _WalkForwardEndpointScorer:
         self.use_scalar_trial_scoring = bool(
             (wf_config.metadata if wf_config is not None else {}).get("use_scalar_trial_scoring", True)
             and not self.meta_metric_support
+            and self.mode5_metric_policy is None
         )
         self.prepared_scoring_report_level = str(
             (wf_config.metadata if wf_config is not None else {}).get("prepared_scoring_report_level", "minimal")
@@ -5100,7 +5118,7 @@ class _WalkForwardEndpointScorer:
         entries = tuple(tasks)
         if not entries:
             return []
-        if self._native_prepared_wfo is not None:
+        if self._native_prepared_wfo is not None and self.mode5_metric_policy is None:
             metrics = self._native_prepared_wfo.score_batch(entries)
             if metrics is not None:
                 return metrics
@@ -5139,7 +5157,9 @@ class _WalkForwardEndpointScorer:
             from .optimization.meta_selection.domains.scalar_contract import validate_scalar_payload
             validate_scalar_payload(output, index, self.target_mode)
         try:
-            if self._can_score_single_vectorized_prepared(output):
+            if self.mode5_metric_policy is not None and context == "mode5.selected_audit":
+                result = self._score_fallback(data=data, output=output, index=index, report_level="audit")
+            elif self._can_score_single_vectorized_prepared(output):
                 result = self._score_single_vectorized_prepared(
                     output=output,
                     index=index,
@@ -5154,6 +5174,8 @@ class _WalkForwardEndpointScorer:
                 )
             else:
                 result = self._score_fallback(data=data, output=output, index=index)
+            if self.mode5_metric_policy is not None:
+                return self.mode5_metric_policy.score(result, index)
             report_started = perf_counter()
             report = result.full_report(trading_days=trading_days, scope="full")
             self._stats["metric_report_seconds"] += perf_counter() - report_started
@@ -5242,14 +5264,15 @@ class _WalkForwardEndpointScorer:
             and isinstance(output, (pd.DataFrame, dict))
         )
 
-    def _score_fallback(self, data, output, index):
+    def _score_fallback(self, data, output, index, report_level=None):
         self._stats["fallback_runs"] += 1
-        temp = QuantBTEndpoint(self.score_config)
+        score_config = self.score_config if report_level is None else replace(self.score_config, report_level=report_level)
+        temp = QuantBTEndpoint(score_config)
         sliced_data = _slice_wf_data_to_index(data, index)
         symbol_list = self._symbol_list(output)
         from .wfo_execution import EXECUTION_ROUTES, execute_window
         if self.target_mode in EXECUTION_ROUTES:
-            return execute_window(self.score_config, sliced_data, output.slice(index), symbols=symbol_list)
+            return execute_window(score_config, sliced_data, output.slice(index), symbols=symbol_list)
         if self.score_config.mode == "portfolio":
             return temp.backtest(data=sliced_data, positions=output, symbols=symbol_list)
         return temp.backtest(data=sliced_data, signal=output, symbols=symbol_list)
