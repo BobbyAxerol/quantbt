@@ -29672,6 +29672,40 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    Recovery fixtures must cover PID reuse, a live owner's protection, resource
    caps from the original epoch, closed-output faults and truthful unavailable
    process status. Current source, artifacts, alpha and science remain frozen.
+   **Recovery Guard Revision Gate:** independent cold fixtures found two
+   operational faults in the first adopted guard: its own retention cap raises
+   before owned-session enforcement, and repeated budget-stop publication can
+   collide with an exclusive receipt. Preserve the failed tests and live guard
+   source. Qualify a fresh private guard revision with retention as an explicit
+   stop reason and idempotent enforcement; stop only the old monitor after the
+   replacement cold tests pass, never the financial workers. Register a separate
+   adoption with the same original PID/start identities and time epochs; zero
+   new financial calls, no clock reset and no overwritten historical receipts.
+   **Next-Tranche Preparation:** cold planning may enumerate the unchanged
+   128-point native rosters and source-bound completion/active/censored states
+   while the first tranche runs. Prepare one reusable typed private custody
+   launcher for later tranche IDs, rather than cloning the financial driver
+   for every three cells. Reuse the qualified runtime/dependency guard, original
+   request producer, worker authorization and shared store slots. This work
+   does not grant financial activation: each later registration needs the
+   closed first-three capacity review, exact source/policy pins, no live-session
+   collision and a fresh resource gate. Completed output reuse and censored
+   attempts remain distinct, and no old receipt or six-hour epoch is rewritten.
+   **Adoption Receipt (2026-10-10 23:22 UTC):** the replacement monitor passed
+   16 cold tests, with 2,530 protected pins unchanged; the old failed 13-test
+   receipt/source remains retained. Host transition stopped only the old
+   monitor, verified its leave-workers-running acknowledgement and the new
+   monitor's exact live identity. No worker signal, restart, account execution
+   or epoch/cap reset occurred. Original HMA/HASH work remains in progress;
+   unavailable non-child exit codes/reaping cannot become invented success.
+   Monitor source SHA256 is
+   `2f3614c86a4867064f870fac36f7d4dcb7cef352ecb496f6dfd7648d55d9a30e`.
+   Future retention policy passed 31 cold tests and 2,525 protected pin checks,
+   source SHA256
+   `8c1c41ec88521bbb405fd135158fd2b489775853819bc2a698d4f753115b1b69`;
+   it is not activated or a real capacity/financial qualification. Next-tranche
+   integration, first-three output review and all remaining ordered study gates
+   remain open. See the [native custody report](../docs/mode5/M5_11_1_NATIVE_RUNNER_CLOSURE.md#adopted-monitor-qualification).
 **Goal:** actually measure the effective landscape, active neighborhoods and
    environment differences before formal tuning, for all five admitted alphas.
 **Entry:** M5-11 review, unchanged alpha/account witnesses, source/data inventory,

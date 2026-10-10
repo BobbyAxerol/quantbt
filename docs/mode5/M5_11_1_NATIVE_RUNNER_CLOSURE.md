@@ -125,3 +125,36 @@ forecast or live lower bound qualifies an incomplete configuration. A new
 capacity/runtime review must precede expansion beyond these first three cells;
 the 128-effective-configuration targets and further probe/dossier gates remain
 open. No search, forward, remote or release work is hidden in this tranche.
+
+## Adopted Monitor Qualification
+
+The interrupted original supervisor was absent on the host while HMA/HASH's
+exact original PID/start sessions remained live; VWAP was already checkpointed.
+A detached monitor adopted only observation and original budget enforcement,
+not accounting execution. Independent cold tests found two operational faults
+in that first monitor (retention-stop handling and repeated stop publication).
+Its source, failed 13-test receipt and journal remain retained unchanged.
+
+A fresh monitor revision passed **16 cold tests**, with 2,530 protected pins
+verified and only its exact inactive fixture scratch removed. The main host
+transition verified both monitor identities, stopped only the old monitor,
+verified its leave-workers-running acknowledgement, and checked that the new
+monitor was live. Financial worker signals, restarts and new account calls were
+all **zero**. Original worker/tranche epochs and six-hour caps were preserved.
+The new source SHA256 is
+`2f3614c86a4867064f870fac36f7d4dcb7cef352ecb496f6dfd7648d55d9a30e`.
+
+Because the workers are no longer children of the monitor, OS exit codes and
+reaping are unavailable; neither is fabricated. Closed financial output must
+pass independent request/count/owner/parity/dependency/source qualification
+before domain completion or checkpoint adoption. Live progress is a returned
+work lower bound, not a completed configuration or a convergence forecast.
+
+The prospective resource-only policy passed **31 cold tests** with 2,525
+protected pins verified. It leaves the active signed 4 GiB records untouched.
+Its source SHA256 is
+`8c1c41ec88521bbb405fd135158fd2b489775853819bc2a698d4f753115b1b69`.
+No 16 GiB policy was activated: actual first-three closed-output inventories,
+fresh capacity admission and future wrapper integration remain entry gates.
+These are custody tests, not additional alpha configurations, compiler speed
+benchmarks, a completed five-alpha dossier or a calibration/forward certificate.
