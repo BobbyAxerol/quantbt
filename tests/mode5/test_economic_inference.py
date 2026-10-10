@@ -19,6 +19,7 @@ def test_lower_is_alone_cannot_pass_joint_forward_gate():
     assert row["observed"]["decay_change"] < 0
     assert row["observed"]["forward_mean_net_change"] == 0
     assert row["status"] == "NEGATIVE_WITHIN_REGISTERED_SCOPE"
+    assert row["fixed_path_mean_evidence"] == "EXCLUDES_REGISTERED_MEAN_HURDLE"
     assert row["lower_is_only_does_not_establish_forward_gain"]
 
 
@@ -28,6 +29,8 @@ def test_capable_positive_control_and_harmful_control():
     harmful=contrast(values,values,values,values-.001)
     assert improved["status"] == "POSITIVE_WITHIN_REGISTERED_SCOPE"
     assert harmful["status"] == "NEGATIVE_WITHIN_REGISTERED_SCOPE"
+    assert improved["fixed_path_mean_evidence"] == "EXCEEDS_REGISTERED_MEAN_HURDLE"
+    assert harmful["fixed_path_mean_evidence"] == "WHOLLY_HARMFUL_MEAN"
     assert improved["observed"]["forward_mean_net_change"] == pytest.approx(.001)
     assert not improved["whole_procedure_validation"]
 
@@ -53,6 +56,7 @@ def test_undefined_sr_draws_are_not_conditioned_on_survivors():
     zeros=np.zeros(365)
     row=contrast(zeros,zeros,zeros,zeros+.001)
     assert row["status"] == "INCONCLUSIVE" and row["invalid_draws"] == 64
+    assert row["fixed_path_mean_evidence"] == "EXCEEDS_REGISTERED_MEAN_HURDLE"
     assert row["intervals"]["forward_sharpe_change"] is None
     assert row["intervals"]["forward_mean_net_change"] == pytest.approx((.001,.001))
 
@@ -85,3 +89,12 @@ def test_misaligned_calendar_and_changed_vector_raise_not_interpolate():
     with pytest.raises(ValueError,match="fixed vector"):
         paired_economics(path(values),path(values,vector="challenger"),path(values,year=2025,vector="changed"),
             path(values,year=2025,vector="challenger"),protocol=protocol(),origins=1)
+
+
+def test_finite_large_means_do_not_overflow_bootstrap_sum():
+    with np.errstate(over="ignore",invalid="ignore"):
+        row=contrast(np.full(365,1e308),np.full(365,1e308),
+            np.full(365,1e308),np.full(365,1e307))
+    assert row["status"] == "INCONCLUSIVE"
+    assert np.isfinite(row["intervals"]["forward_mean_net_change"]).all()
+    np.testing.assert_allclose(row["intervals"]["forward_mean_net_change"],[-9e307,-9e307],rtol=1e-14)

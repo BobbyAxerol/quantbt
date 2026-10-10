@@ -41,6 +41,21 @@ def validation_rights(*, frozen_at_ns, first_execution_ns, witness, access, revi
         whole_procedure_uncertainty=False, deployment_authorized=False))
 
 
+def cached_validation_rights(*, witness, access, source_receipt_id, requested_claim="reviewed_exploratory"):
+    """Reverified historical paths are not new post-freeze financial executions."""
+    if requested_claim != "reviewed_exploratory":
+        raise PermissionError("historical cache reuse cannot certify independent validation")
+    if not isinstance(source_receipt_id, str) or not source_receipt_id:
+        raise ValueError("immutable qualified original execution receipt required")
+    if not isinstance(access, AccessPolicy) or access.purpose not in {"diagnostic", "validation"}:
+        raise ValueError("explicit cached diagnostic access, not new selection authority, required")
+    access.require(witness)
+    return Record.of(dict(status="CACHED_DIAGNOSTIC_AUTHORIZED", validation_claim=requested_claim,
+        witness_id=witness.identity, source_receipt_id=source_receipt_id,
+        reexecuted_account=False, new_post_freeze_execution=False,
+        deployment_authorized=False, whole_procedure_validation=False))
+
+
 @dataclass(frozen=True)
 class StressRequest:
     baseline_execution_id: str

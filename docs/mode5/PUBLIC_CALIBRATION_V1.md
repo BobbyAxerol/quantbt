@@ -169,5 +169,8 @@ preserving cold result metadata. Data permissions are revalidated on reload.
 
 Without `mode5_calibration`, existing behavior and hashes remain unchanged.
 To roll back, remove this optional entry; retain previous compatible artifacts
-and the sealed audit. Formal independent economics belong to M5-11. Remote
+and the sealed audit. Formal scoped economics follow the
+[M5-11 contract](ECONOMIC_CONTRACT_V1.md); read the
+[approved finite-pilot findings](M5_11_ECONOMIC_REPORT.md) separately from
+independent validation. Remote
 matrix, final product qualification and any publication require later approval.

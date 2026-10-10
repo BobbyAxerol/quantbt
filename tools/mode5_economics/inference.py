@@ -70,7 +70,8 @@ def paired_economics(development_base, development_new, forward_base, forward_ne
     for _ in range(protocol.draws):
         dev_ids, fwd_ids = _paired_indices(ndev, protocol, rng), _paired_indices(nfwd, protocol, rng)
         sampled = (rows[0][dev_ids], rows[1][dev_ids], rows[2][fwd_ids], rows[3][fwd_ids])
-        mean_draws.append(float(np.mean(sampled[3])-np.mean(sampled[2])))
+        mean_draws.append(math.fsum(float(v/len(sampled[3])) for v in sampled[3])
+                          - math.fsum(float(v/len(sampled[2])) for v in sampled[2]))
         sr = [_annual_sr(x, protocol.annual_periods) for x in sampled]
         if any(v is None for v in sr):
             invalid += 1
@@ -82,6 +83,11 @@ def paired_economics(development_base, development_new, forward_base, forward_ne
         return tuple(float(x) for x in np.quantile(values, q, method="linear"))
     intervals = dict(forward_mean_net_change=bounds(mean_draws),
         forward_sharpe_change=None if invalid else bounds(sr_draws), decay_change=None if invalid else bounds(decay_draws))
+    mean_lo, mean_hi = intervals["forward_mean_net_change"]
+    mean_evidence = ("WHOLLY_HARMFUL_MEAN" if mean_hi < 0 else
+        "EXCLUDES_REGISTERED_MEAN_HURDLE" if mean_hi < protocol.mean_hurdle_daily else
+        "EXCEEDS_REGISTERED_MEAN_HURDLE" if mean_lo > protocol.mean_hurdle_daily else
+        "MEAN_INTERVAL_CROSSES_HURDLE")
     if gaps or invalid or observed["decay_change"] is None:
         status, reason = "INCONCLUSIVE", "support or SR interval unavailable; no conditioning on surviving draws"
     elif intervals["forward_mean_net_change"][0] > protocol.mean_hurdle_daily and intervals["forward_sharpe_change"][0] >= 0 and intervals["decay_change"][1] < 0:
@@ -91,6 +97,7 @@ def paired_economics(development_base, development_new, forward_base, forward_ne
     else:
         status, reason = "INCONCLUSIVE", "joint meaningful improvement not established"
     return base | dict(observed=observed, intervals=intervals, support=support, status=status, reason=reason,
+        fixed_path_mean_evidence=mean_evidence,
         invalid_draws=invalid, decay_baseline=fixed_decay(accounts[0], accounts[2], annual_periods=protocol.annual_periods),
         decay_challenger=fixed_decay(accounts[1], accounts[3], annual_periods=protocol.annual_periods),
         lower_is_only_does_not_establish_forward_gain=observed["forward_mean_net_change"] <= 0)

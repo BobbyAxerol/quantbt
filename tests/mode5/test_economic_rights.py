@@ -2,7 +2,7 @@
 import pytest
 
 from quantbt.mode5.diagnostics.access import AccessPolicy, AccessWitness
-from tools.mode5_economics import validation_rights, prefix_rights, StressRequest
+from tools.mode5_economics import validation_rights, cached_validation_rights, prefix_rights, StressRequest
 
 
 def witness(role="DEVELOPMENT_REVIEWED",start=10,end=20,ready=20):
@@ -61,3 +61,17 @@ def test_actual_dynamic_stress_rejects_fixed_fill_fee_proxy():
     result=request.execute(lambda req: dict(method="ACTUAL_ACCOUNT_RESIMULATION",params_digest=req.params_digest,
         economic_contract=req.stressed_economic_contract,accounting_verified=True,execution_id="real-stress"))
     assert result.data["execution_id"] == "real-stress"
+
+
+def test_cached_reviewed_execution_is_not_a_new_post_freeze_run():
+    proof=cached_validation_rights(witness=witness(),access=access(purpose="diagnostic"),source_receipt_id="qualified-original")
+    assert not proof.data["reexecuted_account"] and not proof.data["new_post_freeze_execution"]
+    with pytest.raises(PermissionError,match="independent"):
+        cached_validation_rights(witness=witness(),access=access(purpose="diagnostic"),source_receipt_id="qualified-original",
+            requested_claim="independent_fixed_vector")
+
+
+def test_cached_witness_still_revalidates_current_data_permissions():
+    with pytest.raises(PermissionError,match="future or immature"):
+        cached_validation_rights(witness=witness(ready=101),access=access(purpose="diagnostic",cutoff=100),
+            source_receipt_id="qualified-original")
