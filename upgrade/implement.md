@@ -29335,6 +29335,17 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    pass ledger stays unknown/lower-bound, never zero or an economic outcome.
    These checks gate tranche qualification; they do not authorize extra search,
    full native panels, new alpha logic or a scientific contract change.
+   Actual HMA pilot0 oracle supplementation now confirms the original cash
+   paths, fills and selected/action-specific events, but retains differences in
+   cancelled-event versus cancelled-slot counting and limit-fill liquidity
+   labels. Native full terminal working-state witnesses are unavailable on the
+   retained static result surface. Do not rename these gaps PASS, reconstruct
+   working state from intent defaults or claim full-owner/carry parity. Any
+   source/schema repair needs a separately reviewed scope; this research stage
+   keeps the original financial/alpha source unchanged. One completed Python
+   oracle pass is billed from its sealed account receipt even though its
+   later JSON-write stage exceeded its own 16-MiB cap; the failed/truncated
+   output remains preserved and cold recovery does not rerun the account.
 **Owner Runtime Amendment (2026-10-10):** prioritize adequate economic execution,
    not another resource-optimization phase. Preserve capped 30-minute pilots and
    register an append-only extension: up to three independent financial workers,

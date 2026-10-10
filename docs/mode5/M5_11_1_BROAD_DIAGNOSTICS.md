@@ -338,6 +338,37 @@ count only a lower bound; it must not be billed as zero or certified as complete
 No full-phase or fault/cancellation qualification is implied by the original
 successful path/fill comparisons.
 
+The supplementary **actual HMA pilot0 Python-owner audit** confirms exact
+equity, returns, positions, closes, fees, funding, both margin columns and
+turnover. The original 645 ordered fills agree on time/symbol/side/quantity/
+price/fee; the stricter action-specific event check agrees on 2,977 events.
+It also exposes raw-schema gaps that the original helper did not certify:
+
+- `canceled_orders` differs on 395 bars: native reports 644 CANCEL event rows,
+  while Python reports 395 cancelled order slots. The same field currently
+  has different counting units; raw diagnostic parity is **not qualified**.
+- 249 liquidity labels differ: the static Rust Fill adapter records default
+  TAKER where Python labels limit-type fills MAKER. Recorded prices, quantities
+  and fees still agree; raw liquidity-label parity is **not qualified**.
+- Native terminal working quantity/price/trigger/active/waiting witnesses are
+  unavailable on this retained static result surface. Command outcomes are not
+  a replacement for working state. **Full terminal parity remains unsupported**.
+
+This is not a finding of differing measured cash-account economics. It is a
+reason to preserve the original narrower parity scope and forbid full-owner or
+carry-state equivalence claims. Source-level/schema resolution requires explicit
+scope before further promotion; no alpha, financial kernel, tolerance or
+scientific formula has been changed to rescue the audit.
+
+The audit's original 16-MiB incremental-retention cap stopped its worker while
+serializing duplicate witness JSON, **not because host disk was exhausted**.
+The sealed completed Python account and raw pickle were already retained:
+one actual 26,280-bar pass / 17.670 s, not zero work. A new cold receipt corrects
+that bill without a financial rerun. The interrupted invalid JSON stays retained
+and is not consumed as successful evidence. Twenty-eight strict terminal/empty-
+ledger fixtures and four additional cold semantic checks PASS; they do not make
+the unavailable native working-state fields available.
+
 Focused tests cover strict protocol budgets and chronology, deterministic branch
 quotas, conditional inactivity, effective deduplication, retained infeasibility,
 finite-domain shortfall and design identity including the admission budget.
