@@ -1,9 +1,67 @@
 # M5-11.1 Selector-Only Checkpoint
 
-Status: **COLD_REPLAY_COMPLETE / LOCAL_SCOPE_INCOMPLETE**. This bounded step-1
-sidecar uses existing SHA-sealed development evidence. It launches no financial
-work, optimizer, build, install or forward study. It does not close the ordered
+Current status: **BOUNDED_COMPOUND_UNION_COMPLETE / FULL_PANEL_LOCAL_NOT_EVALUABLE**.
+The original cold checkpoint below is historical and unchanged. The appended
+compound closure incorporates newly qualified missing accounts and cold
+reductions, not a new optimizer or forward study. It does not close the ordered
 full goal or authorize deployment, publication, push or release.
+
+## Compound Union Closure
+
+The original 128 effective configurations per alpha, 2020 preload and continuous
+2021-2023 account are unchanged. All **195 schema-floor + 108 covariance** role
+requests are now qualified. Covariance custody reused 35 completed requests
+after a retained supervisor fault and executed only the 73 remaining requests.
+The compound result is `PASS_COLD_UNION_CLOSURE`: **303 whole-path rows, 909
+annual attribution rows, 578 returned owner passes and 15,189,840 account-bars**.
+Reconciliation and analysis added no financial execution. These counts describe
+role requests and actual work, not independent replications.
+
+| Policy | RSI Original Index | SC Original Index |
+| --- | ---: | ---: |
+| Raw whole-path Sharpe, unqualified control | 10 | 33 |
+| Annual floor + mean | 56 | NO_SELECTION |
+| Annual lower-tail | 49 | NO_SELECTION |
+| Annual Pareto/Chebyshev | 56 | NO_SELECTION |
+| Whole-path local, newly completed bounded roster | 10 | 33 |
+
+The additive local roster is RSI 10/49/114 and SC 33. It is not a replacement
+for the earlier four-center receipt or a local contest over all 128 candidates.
+The unchanged `local_downside_v1` uses gamma 1, decimal-return scale 1, full
+1095-day utility and every-neighbor quality/risk/support qualification.
+
+| Alpha / Index | Selection Probes | Selection Worst Utility | Validation Probes | Validation Worst Utility | Qualified |
+| --- | ---: | ---: | ---: | ---: | --- |
+| RSI / 10 | 45 | 0.353696640 | 47 | 0.353696640 | Yes |
+| RSI / 49 | 45 | -0.399208855 | 47 | -0.274812081 | No |
+| RSI / 114 | 45 | -0.043094340 | 46 | -0.077617068 | No |
+| SC / 33 | 14 | 0.004598253 | 14 | 0.004598253 | Yes |
+
+All measurements, including losses and 304 nonpositive annual utilities, remain
+retained. Validation is appended after selection, but overlapping coordinates
+and reviewed development days make it dependent evidence, not independent OOS.
+SC's narrow positive whole-path local margin is not a forward-success claim.
+
+**Interpretation:** annual rules require positive utility in each year; local
+rules require nonnegative center/neighbors over the whole path. RSI10 fails the
+annual utility gate in 2021/2023, and SC33 fails it in 2022. Thus local acceptance
+does not contradict annual rejection. These are comparisons of family policies
+with different qualification rules, not an isolated causal selector advantage.
+Covariance does not estimate a Hessian or basin volume. Full-panel local remains
+`NOT_EVALUABLE`, annual-local `NOT_AUTHORIZED`, and no new forward tape was opened.
+Do not use the historical nested `covariance_union_status` pending label as the
+completion authority: the outer qualified union and custody receipts govern it.
+
+The exact private compound result SHA256 is
+`344a11647bd2a5fe309925e57fb56b5fdf4cf6d22b496b1586c0ee4b728b7aba`;
+the 303-request registration is
+`366cc60f50a248b18f2df070c96e9ffdbd6ab55faaffc7d4fe5bcc7c7ed5e83e`.
+Independent cold review verified 65 software pins, exact request lineage and
+both cleanup receipts without hash errors. Old failures, data, alpha sources,
+artifacts and returned accounts remain protected. This bounded closure permits
+the next ordered native-control/tranche work, not sampler or release promotion.
+
+## Historical Checkpoint
 
 Authority: [ordered goal closure](../../upgrade/implement.md#mode5-m5-11-goal-closure),
 [guide 4.5](../../upgrade/QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#45-trục-2--parameter-geometry-và-landscape),

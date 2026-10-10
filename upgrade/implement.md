@@ -29576,6 +29576,28 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    completed control requires a retained-command financial-equivalence check,
    not another historical feedback search. New native panels retain the
    128-effective-config target and fresh attempts for stopped configurations.
+   **Compound Selector Closure (2026-10-10):** the fresh covariance recovery
+   qualified all 108 registered requests exactly once, reusing 35 prior COMPLETE
+   accounts and executing only the remaining 73. The 195 schema-floor plus 108
+   covariance requests reconcile to 303 role accounts, 578 returned owner passes
+   and 15,189,840 account-bars. Cold reconciliation and analysis produced all
+   909 annual attribution views with zero additional financial execution.
+   Independent review verifies exact lineage, 65 software pins and both cleanup
+   receipts. The retained supervisor fault remains a failed historical receipt.
+   The new limited whole-path union roster selects RSI original index 10 and SC
+   index 33; RSI 49/114 fail all-neighbor quality despite complete measurements.
+   Raw Sharpe controls remain 10/33; annual floor and Pareto choose RSI 56,
+   annual tail chooses RSI 49, and SC remains NO_SELECTION under annual gates.
+   Annual quality and whole-path local gates differ: these are family-policy
+   contrasts, not a pure same-gate causal selector effect or forward advantage.
+   Full-128 local remains NOT_EVALUABLE, annual-local NOT_AUTHORIZED, and all
+   overlapping/reviewed development evidence remains non-independent. See the
+   [updated selector checkpoint](../docs/mode5/M5_11_1_SELECTOR_ONLY.md#compound-union-closure).
+   The compound result SHA256 is
+   `344a11647bd2a5fe309925e57fb56b5fdf4cf6d22b496b1586c0ee4b728b7aba`.
+   This closes the registered bounded step-1 inputs, not the five-alpha phase
+   or sampler/forward gates. The next ordered action is the retained HASH
+   control check and source-bound native tranche, with unchanged science.
 **Goal:** actually measure the effective landscape, active neighborhoods and
    environment differences before formal tuning, for all five admitted alphas.
 **Entry:** M5-11 review, unchanged alpha/account witnesses, source/data inventory,
