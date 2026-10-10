@@ -28588,6 +28588,24 @@ extension analyses when inputs/contracts change. Never backdate a new recipe.
   No protected alpha, financial driver, production source or original receipt
   may be changed. The final report must close this transport gap explicitly.
 
+**2026-10-10 Current-Source Software Receipt (Financial Batch Still Running):**
+- **1,180 related M5/MET/private analysis and carrier tests PASS**, no failures
+  or skips; six existing Optuna experimental warnings. This includes **19**
+  calendar/account-view fixtures and **15** private analysis/transport guards.
+- Exact-clock unsigned-overflow rejection is now covered; it does not alter
+  the registered positive 2020+ tape or admitted accounting. Earlier software
+  receipts remain historical and are not overwritten.
+- Two additive report tests PASS: adverse/undefined/partial rows remain visible,
+  failed command time is charged and unknown failed-pass/system-RSS counters
+  stay null. An initial heading-count assertion accidentally counted third-level
+  headings; that failed test receipt is retained separately from finance.
+- Appendix D generation is read-only and requires the entire frozen roster,
+  independent numeric proof, source identities and exact inactive scratch
+  cleanup before it may produce a completion seal. No partial batch is certified.
+- Long account execution and the deferred same-effective-point constructor
+  recovery remain pending; no winner, independent economics or M5-09 permission
+  follows from this software receipt.
+
 <a id="mode5-m5-09"></a>
 ### Phase M5-09 - Diagnostic Dossier, Advisory Governance And Calibration Seal
 
