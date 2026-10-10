@@ -29557,6 +29557,20 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    fail-closed ownership checks and pass cold process fixtures before launch.
    The exact denied path is not yet established; no financial failure or
    algorithmic root cause is inferred from the supervisor exception.
+   **Controlled Runtime Custody Revision:** the unlaunched native preparation
+   used a different SciPy patch release from the qualified controlled runtime.
+   Preserve that signed preparation as NOT_LAUNCHED and register the same three
+   original requests under one controlled interpreter/dependency witness.
+   Eligibility for lazy imports is distinct from actually executed modules.
+   A cold check measured full dependency verification at 1.67 seconds versus
+   0.12 seconds for the prior source set; these are hash timings, not engine
+   benchmarks. Before long feedback compilation, qualify a worker-local
+   read-only dependency witness: full hash at entry/exit and strict file-stat
+   identity checks between calls, with tamper/race/inode tests and observable
+   counters. Only declared third-party dependency files may use this policy;
+   alpha, market, finance, observer, native artifact and request/source pins
+   retain their existing full-hash checks. No witness state crosses workers,
+   candidates or attempts, and no estimator, RNG or accounting change is allowed.
    Native tranche preparation remains conditional on completed selector
    reconciliation and exact source/artifact/custody gates. HASH's second
    completed control requires a retained-command financial-equivalence check,
