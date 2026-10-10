@@ -29071,8 +29071,10 @@ no historical deferred seal is bypassed. M5-12 remains separately unapproved.
 **Current scope disposition:** the two-point panel was inadequate for the
 intended full diagnostics -> actual search -> selector/forward experiment.
 Read [review](../docs/mode5/M5_11_RESEARCH_SCOPE_REVIEW.md). Complete the three
-recovery stages below before requesting M5-12; their experiments are not yet
-registered/executed and must not inherit the finite pilot's PASS badge.
+recovery stages below before requesting M5-12. M5-11.1 is registered and executing;
+its current 128-point RSI panel and multi-center probes are measured evidence,
+not five-alpha completion. M5-11.2/.3 remain unexecuted and must not inherit the
+finite pilot's PASS badge.
 **Goal:** evaluate the frozen recipe's actual economic meaning and transfer,
    without confusing full-development calibration with independent OOS.
 **Entry:** M5-10 reviewed exit, sealed plans and owner-approved per-alpha
@@ -29297,8 +29299,10 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    bulk execution; no expanded financial result is claimed at approval.
 **Execution Checkpoint:** five 128-effective-configuration proposal designs
    registered without outcomes; BTC/ETH 2020-2025 hourly tapes complete. Initial
-   protocol/design tests PASS; complete-horizon route pilots and bulk resources
-   under measurement. See [current report](../docs/mode5/M5_11_1_BROAD_DIAGNOSTICS.md).
+   protocol/design tests PASS. RSI has 128/128 verified continuous development
+   paths and 155 separately executed multi-center probes; SC bulk and extended
+   original native-route pilots continue. See
+   [current report](../docs/mode5/M5_11_1_BROAD_DIAGNOSTICS.md).
    Prepared points are not executed candidate/path or full dossier certification.
 **Owner Runtime Amendment (2026-10-10):** prioritize adequate economic execution,
    not another resource-optimization phase. Preserve capped 30-minute pilots and
@@ -29309,6 +29313,10 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    seeds, account rules, thresholds and scientific exit gates are unchanged.
    Resource monitoring is a host-safety control, not permission to shrink data
    or declare a capped/unfinished measurement certified.
+   Finished workstreams may free their slots for another independent native
+   pilot; an append-only allocation receipt records this reuse. Maximum total
+   financial concurrency remains three, never concurrent time slices of the
+   same account or reordered adaptive sampler feedback.
 **Goal:** actually measure the effective landscape, active neighborhoods and
    environment differences before formal tuning, for all five admitted alphas.
 **Entry:** M5-11 review, unchanged alpha/account witnesses, source/data inventory,

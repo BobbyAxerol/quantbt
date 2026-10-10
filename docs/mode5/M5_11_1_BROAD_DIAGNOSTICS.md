@@ -55,15 +55,63 @@ estimate. HMA/VWAP/HASH use the existing actual-fill feedback compiler and
 full Python/Rust accounting/lifecycle parity, not a substituted signal backtest.
 All compiler passes must be billed; one nominal configuration can execute many
 account passes. Failed/capped pilots remain incomplete, not zero-return samples.
+When a workstream completes, its slot may be reused for another independent
+native pilot under the retained allocation amendment. The limit remains three
+financial workers, never parallel slices of the same chronological account.
 
 Completed initial pilots on the entire development horizon: A-RSI took 7.498 s
 inside the financial driver (two actual account passes, exact array parity);
 A-SC took 33.299 s (one callback account run, 140 fills, 70 closed campaigns,
 independent accounting difference zero). These are the first frozen discovery
 points, not selected winners or sampler experiments. HMA's initial pilot reached
-the 1,800-second cap without a final certificate; this is incomplete execution,
+the 1,800-second cap without a final certificate; HASH also reached its initial
+1,800-second cap. Both are retained as incomplete execution,
 not evidence that its economics are negative. Broad alpha-level results require
 all registered points and the additional matrices/probes, not these pilots.
+
+## Verified RSI Development Tranche
+
+All **128/128** registered effective RSI configurations completed and passed
+source/request/calendar/array/metric validation on the original ETHUSDT route:
+127 new cells plus one identity-verified original pilot reuse. There were no
+execution failures, missing cells or zero-exposure paths. Negative outcomes are
+retained: 108 positive and 20 negative account returns.
+
+| Whole continuous development metric | Minimum | Median | Maximum |
+|---|---:|---:|---:|
+| Net account return | -41.50% | +29.37% | +189.62% |
+| Daily-frequency Sharpe, annualized 365 | -0.737 | 0.560 | 1.708 |
+| Maximum drawdown | 9.91% | 21.42% | 58.96% |
+| Registered net economic utility | -0.942 | 0.078 | 1.685 |
+
+These are finite-panel **development observations**, not calibrated forward
+results or a method-superiority test. They cover 256 original endpoint/direct
+owner account passes and 6,727,680 actual account-bars. The bulk supervisor took
+112.127 s; the account-cell elapsed sum including reused pilot was 80.006 s.
+Peak financial RSS was 345.93 MiB. This is a work bill, not a benchmark speedup.
+Accepted-fill/campaign and fee/funding/turnover ledgers were not retained by this
+legacy route: support is **unavailable**, not zero or inferred from signal changes.
+
+The separately registered neighborhood tranche executed **155** complete
+development paths at two centers: 76 selection probes and 79 validation probes,
+covering all eight active axes, integer-adjacent and three coupled groups, plus
+supported covariance proposals for one center. All 155 account returns were
+positive; four role-specific rows had negative utility because drawdown/tail
+penalties can outweigh positive return. Both centers retain `FRAGILE_CENTER`
+under the registered all-probe quality policy, not an "alpha has no edge" label.
+
+Of the 79 validation points, 42 overlap selection effective points. Only **37**
+are genuinely new held coordinates (10 and 27 per center); all 37 had positive
+return and utility. Reexecuting overlapped adverse points validates repeatability,
+not independent confirmation of the adverse basin. Held probes remain on the
+same development market, not temporal OOS. One center has schema-only covariance
+support; the other has regularized proposal directions, not a measured Hessian.
+
+Private immutable details: `rsi_panel_summary.json`, `rsi_panel_validation.json`,
+`rsi_probes_summary.json` and `rsi_probes_held_review.json` in the registered lane.
+Annual attribution uses actual prior close marks, not fresh yearly accounts.
+Primary utility keeps the existing scope-entry drawdown convention; carried
+global-watermark drawdown is a separately named diagnostic, not a formula change.
 
 After pilot measurement: freeze bulk work/resource registration, execute
 checkpointed candidates, then actual multi-center schema/conditional/joint and
