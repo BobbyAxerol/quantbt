@@ -29642,6 +29642,21 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    work may proceed, but implementation/qualification uses a fresh registered
    source revision after the active tranche is finished. This is an ordered
    entry dependency, not a claimed completed calibration/forward capability.
+   **Prospective Retention Admission:** the first completed VWAP cell retains
+   27.93 MiB including custody; current 4 GiB full-panel capacity is not proven.
+   Prepare a focused typed private custody policy for later registrations only,
+   allowing an explicitly pinned 16 GiB global retained envelope while keeping
+   per-cell 512 MiB retained/96 MiB scratch, three slots, one thread, six-hour
+   caps and 5 GiB reserve unchanged. Old signed 4 GiB records and all active
+   source/financial/runtime witnesses remain untouched. Cold tests cover exact
+   policy pins, scope restoration, reserve boundaries and unchanged financial
+   contracts; no finance launch is part of policy preparation. Activation needs
+   actual whole-cell HMA/HASH/VWAP sizes and a fresh conservative free-space
+   gate (16 GiB + 288 MiB scratch + 5 GiB reserve), not a pilot-derived promise
+   that the full panel fits. Do not archive/delete evidence, drop audit fields
+   or normalize accounting to meet the envelope. A custody factory scopes only
+   resource budget through registration/authorization/delegation, never a new
+   financial engine or driver clone. No estimator/utility/RNG change is implied.
 **Goal:** actually measure the effective landscape, active neighborhoods and
    environment differences before formal tuning, for all five admitted alphas.
 **Entry:** M5-11 review, unchanged alpha/account witnesses, source/data inventory,
