@@ -36,7 +36,8 @@ def public_setup(tmp_path, *, selector="full_dro_cvar", sampler_name="tpe_legacy
                  batch_size=1, trials=8, frame=None, strategy=alpha, ranges=None,
                  execution_endpoint=None, target_mode="pct_equity", prepared=True,
                  min_daily=2, min_utility=-10., requested_selector=None, two_windows=False,
-                 sampler_options=None, incumbent=None, warm_start=(), account_options=None):
+                 sampler_options=None, incumbent=None, warm_start=(), account_options=None,
+                 market_role="synthetic"):
     frame = market() if frame is None else frame
     tmp_path.mkdir(parents=True, exist_ok=True)
     ranges = {"period": (6, 24, 1)} if ranges is None else ranges
@@ -59,15 +60,16 @@ def public_setup(tmp_path, *, selector="full_dro_cvar", sampler_name="tpe_legacy
     original_witness = next(iter(catalog._sources.values())).witness
     # Existing diagnostic evidence is mature; current market remains development.
     cutoff = int(frame.index[-1].value)+2*3_600_000_000_000
-    access = AccessPolicy("public-selection-v1", ("synthetic",), ("development-1",), cutoff, "selection")
+    access = AccessPolicy("public-selection-v1", tuple(dict.fromkeys(("synthetic", market_role))),
+                         ("development-1",), cutoff, "selection")
     if two_windows:
         windows = tuple(CalibrationWindow(f"environment-{i}", int(frame.index[j].value),
-            int(frame.index[k].value), AccessWitness("development-1", "synthetic",
+            int(frame.index[k].value), AccessWitness("development-1", market_role,
                 int(frame.index[j].value), int(frame.index[k].value)+1, cutoff-1))
             for i, (j, k) in enumerate(((0, len(frame)//2-1), (len(frame)//2, len(frame)-1))))
     else:
         windows = (CalibrationWindow("development", int(frame.index[0].value), int(frame.index[-1].value),
-            AccessWitness("development-1", "synthetic", int(frame.index[0].value), int(frame.index[-1].value)+1, cutoff-1)),)
+            AccessWitness("development-1", market_role, int(frame.index[0].value), int(frame.index[-1].value)+1, cutoff-1)),)
     channel = Channel("ECONOMIC_UTILITY_V1", "mode5.utility.net_v1", "decimal_return")
     reference = FrozenReference("frozen-1", tuple(w.environment_id for w in windows),
         (0.,)*len(windows), (1.,)*len(windows), channel.identity, "registered-before-search")
