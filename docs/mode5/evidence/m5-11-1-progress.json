@@ -1,0 +1,70 @@
+{
+  "schema": "mode5.broad_diagnostics.progress.v1",
+  "date": "2026-10-10",
+  "phase": "M5-11.1",
+  "status": "IN_PROGRESS",
+  "data_role": "REVIEWED_EXPLORATORY_DEVELOPMENT",
+  "development": {
+    "start": "2021-01-01",
+    "stop_exclusive": "2024-01-01",
+    "days_per_path": 1095,
+    "bars_per_path": 26280,
+    "preload_start": "2020-01-01",
+    "yearly_account_reset": false
+  },
+  "A-RSI": {
+    "complete_configurations": 128,
+    "failed_or_missing": 0,
+    "positive_return_paths": 108,
+    "negative_return_paths": 20,
+    "zero_return_paths": 0,
+    "original_account_passes": 256,
+    "actual_account_bars": 6727680,
+    "accepted_fill_campaign_support": "UNAVAILABLE",
+    "selection_probe_paths": 76,
+    "validation_probe_paths": 79,
+    "cross_role_effective_overlap": 42,
+    "distinct_held_validation_coordinates": 37,
+    "distinct_held_negative_utility": 0,
+    "probe_temporal_oos": false
+  },
+  "A-SC": {
+    "complete_configurations": 128,
+    "failed_or_missing": 0,
+    "positive_return_paths": 122,
+    "negative_return_paths": 4,
+    "valid_no_trade_paths": 2,
+    "original_account_passes": 128,
+    "actual_account_bars": 3363840,
+    "summed_actual_fills": 11224,
+    "summed_closed_campaigns": 5571,
+    "summed_open_campaigns": 82,
+    "maximum_equity_reconciliation_difference": 0.0,
+    "maximum_campaign_reconciliation_difference": 3.2162006391445175e-10,
+    "sums_are_independent_information": false
+  },
+  "cold_rsi_attribution": {
+    "complete_paths": 128,
+    "whole_and_annual_rows": 512,
+    "maximum_money_pnl_reconciliation_difference": 0.0,
+    "maximum_wealth_reconciliation_difference": 4.440892098500626e-16,
+    "primary_drawdown_basis": "scope_entry",
+    "secondary_drawdown_basis": "carried_global_watermark",
+    "annual_rows_with_different_drawdown_bases": 145,
+    "financial_reruns": 0,
+    "focused_tests_passed": 61
+  },
+  "remaining": {
+    "A-HMA": "EXTENDED_PILOT_IN_PROGRESS",
+    "A-HASH": "EXTENDED_PILOT_IN_PROGRESS",
+    "A-VWAP": "FAILED_INPUT_BINDING_ATTEMPT_RETAINED_RECOVERY_REQUIRED",
+    "six_matrices_and_five_alpha_dossiers": "INCOMPLETE",
+    "M5-11.2_actual_calibration": "NOT_RUN",
+    "M5-11.3_transfer_economics": "NOT_RUN"
+  },
+  "full_phase_certified": false,
+  "independent_oos_claim": false,
+  "recipe_superiority_claim": false,
+  "release_or_publication_authorized": false,
+  "private_paths_or_parameters_exported": false
+}

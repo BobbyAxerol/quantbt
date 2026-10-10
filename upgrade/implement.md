@@ -29300,10 +29300,18 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
 **Execution Checkpoint:** five 128-effective-configuration proposal designs
    registered without outcomes; BTC/ETH 2020-2025 hourly tapes complete. Initial
    protocol/design tests PASS. RSI has 128/128 verified continuous development
-   paths and 155 separately executed multi-center probes; SC bulk and extended
-   original native-route pilots continue. See
+   paths and 155 separately executed multi-center probes. SC also verifies all
+   128 original callback paths, retaining loss/no-trade outcomes. Extended
+   original native-route pilots continue; VWAP's failed inactive-input
+   materialization attempt remains retained pending an explicit adapter recovery.
+   See
    [current report](../docs/mode5/M5_11_1_BROAD_DIAGNOSTICS.md).
    Prepared points are not executed candidate/path or full dossier certification.
+   Cold measurement verification: 61 focused tests PASS, unchanged protected
+   source/receipts; 128 sealed RSI paths produce 512 whole/annual dependent rows,
+   monetary reconciliation diff zero and wealth residual at most 4.45e-16.
+   Scope-entry drawdown remains primary; carried watermark and current-knowledge
+   versus development-data cutoffs have separate named provenance.
 **Owner Runtime Amendment (2026-10-10):** prioritize adequate economic execution,
    not another resource-optimization phase. Preserve capped 30-minute pilots and
    register an append-only extension: up to three independent financial workers,

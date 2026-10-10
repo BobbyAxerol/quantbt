@@ -113,6 +113,59 @@ Annual attribution uses actual prior close marks, not fresh yearly accounts.
 Primary utility keeps the existing scope-entry drawdown convention; carried
 global-watermark drawdown is a separately named diagnostic, not a formula change.
 
+## Verified SC Development Tranche
+
+SC completed **128/128** registered configurations on the original BTCUSDT Python
+callback route: 127 new account runs and one identity-verified pilot. All 26,280
+hourly bars / 1,095 development days per configuration remain intact. There are
+122 positive, four negative and two zero-return/no-trade paths; the two no-trade
+Sharpes remain undefined rather than favorable numerical sentinels.
+
+The retained actual ledgers contain 11,224 fills, 5,571 closed and 82 censored
+open campaigns across the candidate runs. Those sums are a computation/support
+bill, **not independent trades across experiments**. Independent equity
+reconciliation has maximum difference zero; summed campaign/account PnL differs
+by at most 3.217e-10 currency units under the unchanged 1e-8 absolute tolerance.
+Net returns range -4.85% to +18.21%; defined Sharpes range -0.427 to 1.142.
+These are within-alpha development observations, not a cross-alpha ranking.
+
+Supervisor elapsed was 2,402.081 s (about 40 minutes), with 128 original account
+passes / 3,363,840 account-bars including reused pilot. Peak financial RSS was
+611.83 MiB. No time/economic-quality stop filtered the panel. SC neighborhoods,
+stress, actual sampler/search contrasts and transfer remain separate work.
+Private summary and validation: `sc_panel_summary.json`, `sc_panel_summary.md`
+and retained original shard receipts.
+
+VWAP's first extended pilot failed before accounting because its original alpha
+requires an explicit input even when that dimension is structurally inactive.
+The effective search representation had omitted it. This is an input-binding
+failure, not no-trade/negative economics. Recovery must retain the original
+proposal, restore only a source-bound registered raw input, prove the effective
+identity unchanged and create a new lane; no module default or favorable
+replacement candidate is permitted.
+
+## Cold Measurement Verification
+
+`tools/mode5_research/panels.py` ingests original caller-sealed paths/requests,
+source and data witnesses; it does not execute/replay an account or reconstruct
+an opaque execution key. The 128 real RSI paths yield 512 verified whole/annual
+rows. Annual monetary PnL sums reconcile exactly; wealth-product residual is at
+most 4.4409e-16. All 857 original/current-knowledge identities were checked.
+
+The primary scope-entry and diagnostic carried-watermark drawdowns differ in
+145 annual rows. Both have explicit valuation/contract identities. Preserving
+this distinction avoids changing the scientific utility while adding a risk
+view. The development data cutoff is 2024-01-01; artifact/current-knowledge
+cutoffs are in 2026. This is retrospective attribution, not a 2024-vintage seal.
+Missing legacy ledgers remain null. No financial rerun occurred during ingest.
+
+Independent focused verification: **61 PASS in 9.30 s**, with protected files
+and helper sources unchanged. Tests cover all original seals, altered/future
+suffix rejection, leap days, previous-close valuation, bankruptcy, losses,
+no-trade/undefined states, censored ledgers, immutable buffers, numerical backend
+parity and explicitly separated valuation/cutoff provenance. Prior failed and
+earlier successful verification receipts remain retained.
+
 After pilot measurement: freeze bulk work/resource registration, execute
 checkpointed candidates, then actual multi-center schema/conditional/joint and
 supported covariance probes. Keep held directions separate. Populate all six
