@@ -29382,6 +29382,25 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    three-worker limit. Its inactive constructor input comes from the original
    config only when time-stop is off; active inputs, effective IDs, alpha source,
    costs and accounting must remain unchanged and separately qualified.
+**Owner Stop And Runtime Review (2026-10-10):** the owner subsequently chose
+   "stop, report runtime and gaps first." Stop only the two verified HMA/HASH
+   research supervisors; preserve their completed cells and incomplete logs.
+   A new dated custody receipt verifies all owned workers gone, with unchanged
+   source and completed-result pins. HMA remains one completed candidate;
+   HASH now has two, including original index1 (3,695.959 financial seconds,
+   846 actual account passes). HMA index1 stopped after approximately 122.89
+   minutes, with at least 1,344 observed native passes; HASH index2 stopped
+   after approximately 53.47 minutes, with at least 784. Those are censored
+   attempts, not zero-return configurations or exact completed-pass totals.
+   Original HMA interruption receipt omits the in-flight entry and original
+   HASH controller does not write a final receipt after interruption; retain
+   them and the append-only owner-stop custody, never synthesize historical PASS.
+   No more financial execution is authorized by this tranche. Checkpoints are
+   at completed-candidate granularity; there is no certified mid-compiler resume.
+   Keep the 128-effective-per-alpha target, pending matrices/probes/dossiers and
+   M5-11.2/11.3 NOT_RUN. Runtime review and source/schema gap disposition precede
+   any further execution authorization; cleanup preserves the exact native
+   artifact, private paths, failed attempts and current tooling.
 **Goal:** actually measure the effective landscape, active neighborhoods and
    environment differences before formal tuning, for all five admitted alphas.
 **Entry:** M5-11 review, unchanged alpha/account witnesses, source/data inventory,

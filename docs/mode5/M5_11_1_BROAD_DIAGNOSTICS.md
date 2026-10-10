@@ -95,6 +95,53 @@ six-hour safety caps, required evidence retention and the unchanged data/account
 contracts. The final target remains 128 per alpha. Reporting four points as a
 completed broad native panel would be incorrect.
 
+### Owner-Approved Stop And Runtime Review
+
+The owner subsequently approved stopping the current tranche to review runtime
+and qualification gaps before continuing. Both exact research supervisors were
+interrupted; their owned workers were reaped and an independent host custody
+check found none remaining. No other service or notebook kernel was stopped.
+Completed cells, original failures, incomplete logs and the exact artifacts
+remain retained. No further financial execution is opened by this tranche.
+
+| Native alpha / point | Completed financial-driver seconds | Account passes | Status |
+|---|---:|---:|---|
+| HMA / original 0 | 3,014.992 | 648 | Numeric/fill/selected-event qualified |
+| HASH / original 0 | 2,106.138 | 539 | Numeric/fill/selected-event qualified |
+| HASH / original 1 | 3,695.959 | 846 | Numeric/fill/selected-event qualified |
+| HMA / original 1 | Not completed | At least 1,344 native | Owner-stopped, censored |
+| HASH / original 2 | Not completed | At least 784 native | Owner-stopped, censored |
+
+HMA index1 ran about **122.89 minutes** before the stop; HASH index2 about
+**53.47 minutes**. These are start-to-stop elapsed times, not completed-driver
+samples, and are excluded from completed runtime medians. Observed account-bar
+lower bounds are 35,320,320 and 20,603,520. Exact final pass counts are unknown,
+not zero. HMA indices2/3 and HASH index3 were not launched.
+
+For the two completed HASH points, driver min/median/max are
+2,106.138 / 2,901.048 / 3,695.959 seconds (35.10 / 48.35 / 61.60 minutes).
+HMA has only one completed sample, 50.25 minutes. Selection is original ordinal,
+not random runtime sampling; censored slow attempts prevent a dependable 128-
+point ETA. Retained financial peak RSS is 555.23 MiB for the completed HMA pilot
+and 612.23 / 647.04 MiB for the completed HASH points. This is measured research
+cost under this compiler, not a native-kernel throughput benchmark.
+
+HASH point1 has 1,138 fills, 421 closed / one boundary-open campaign, net return
++0.6202%, daily Sharpe 0.0733, drawdown 4.1921%, utility -0.03889, and independent
+accounting difference zero. Its native feedback compiler consumes 3,672.027 s;
+the final Python owner comparison takes 18.272 s and metric reduction 4.263 s.
+The retained input/account/source contract is unchanged; no completed negative
+outcome is dropped and no stopping decision is based on profitability.
+
+Coverage is **HMA 1/128, HASH 2/128, VWAP 1/128**, with RSI and SC at 128/128.
+The phase, six-matrix/five-dossier gate and formal/forward gates remain open.
+Completed-candidate checkpoints support identity-verified reuse; interrupted
+compiler passes cannot be resumed exactly from the logs. Continuing a stopped
+candidate requires a new authorized fresh attempt, not a fabricated continuation.
+The original HMA interruption receipt omits the in-flight entry, and the HASH
+supervisor emits no final receipt on interruption. Both historical limitations
+are retained alongside the new dated owner-stop receipt, not rewritten as PASS.
+
 Completed initial pilots on the entire development horizon: A-RSI took 7.498 s
 inside the financial driver (two actual account passes, exact array parity);
 A-SC took 33.299 s (one callback account run, 140 fills, 70 closed campaigns,
