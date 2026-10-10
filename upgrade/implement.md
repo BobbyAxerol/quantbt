@@ -29606,6 +29606,24 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    explicit availability, not invented cross-owner oracle parity. Custody and
    cleanup pass with all owned children reaped; all source/artifact/control
    evidence is retained. See [control adoption](../docs/mode5/M5_11_1_NATIVE_RUNNER_CLOSURE.md#retained-hash-index1-adoption).
+   **Native Tranche03 In Progress:** a fresh controlled-runtime registration
+   now runs original HMA index 1, HASH index 2 and VWAP index 1 under the exact
+   private safe supervisor. Three shared slots, one thread per worker, six-hour
+   cell/tranche caps, zero automatic retries, original 2020 preload and continuous
+   2021-2023 accounts remain unchanged. Old stopped attempts and unlaunched
+   tranche01/02 preparations remain retained. The worker-local dependency guard
+   passed 29 cold tests and wrapper integration 9; full dependency entry/exit
+   verification and every non-dependency full-hash check remain explicit.
+   All native requests, account logic and the frozen financial driver are
+   unchanged. Registration SHA256 is
+   `d6006325a8b727c32c70c9b1f68e754c36fb30b40ae67c427370112a6c12f761`.
+   VWAP index 1 is COMPLETE with 3 passes/78,840 bars and qualified accounting,
+   output, runtime custody and checkpoint. HMA/HASH are still compiling; their
+   returned lower-bound work is not a completed scientific configuration.
+   The capacity/runtime review after these three cells remains mandatory before
+   extending the panel. Five-alpha coverage, dossiers, sampler-only comparison,
+   256-query calibration and prefix forward gates remain open in their order.
+   No remote, publication or clean-OOS claim is authorized by this launch.
 **Goal:** actually measure the effective landscape, active neighborhoods and
    environment differences before formal tuning, for all five admitted alphas.
 **Entry:** M5-11 review, unchanged alpha/account witnesses, source/data inventory,

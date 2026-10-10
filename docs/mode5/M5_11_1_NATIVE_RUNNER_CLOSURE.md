@@ -102,3 +102,26 @@ control outputs/failures/artifacts remain retained. This step changes no alpha,
 matching, fees, accounting, RNG or scientific policy. The fresh three-cell
 native tranche still requires exact runtime/wrapper custody review; this receipt
 does not complete HMA/HASH/VWAP's 128-configuration panels or release gates.
+
+## Controlled Tranche In Progress
+
+Fresh tranche03 is running original HMA1, HASH2 and VWAP1 requests with 2020
+preload and full continuous 2021-2023 accounts. The same three-slot store owns
+all workers; each has one numeric thread, a six-hour safety cap and no automatic
+retry. Stopped old attempts are preserved, not presented as resumed execution.
+Tranche01/02 preparations remain unlaunched historical custody records.
+
+Only explicitly declared third-party dependency pins use a single-worker
+stamp witness between full-hash entry/exit checks. All alpha, market, financial,
+native-artifact, request and other source checks remain original full hashes.
+The guard has 29 passing cold tests; wrapper integration has 9. Separate cold
+measurement is custody overhead, not a backtest speed benchmark or runtime
+equivalence claim against the old environment. Both guard and financial
+counters are retained separately, without mutating financial results.
+
+VWAP1 completed and qualified **3 passes / 78,840 bars** in a **93.89-second**
+worker. HMA/HASH remain in actual-fill feedback convergence. No elapsed-time
+forecast or live lower bound qualifies an incomplete configuration. A new
+capacity/runtime review must precede expansion beyond these first three cells;
+the 128-effective-configuration targets and further probe/dossier gates remain
+open. No search, forward, remote or release work is hidden in this tranche.
