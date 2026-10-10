@@ -29346,6 +29346,15 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    oracle pass is billed from its sealed account receipt even though its
    later JSON-write stage exceeded its own 16-MiB cap; the failed/truncated
    output remains preserved and cold recovery does not rerun the account.
+   The append-only final owner audit also reproduces a genuine HMA OCO cold-
+   projection defect: 249 filled winners are reported CANCELED. HASH's named
+   lifecycle outcomes match, but cancellation-count units and 490 liquidity
+   labels differ; its margin residuals are below the unchanged 1e-8 tolerance,
+   not exactly zero. Native terminal snapshots are missing on the retained
+   result surface, not presumed empty or evidence of absent Rust ownership.
+   Both new Python oracle workers are reaped, one account pass each. Six
+   unused audit passes are not permission to rerun an unchanged missing-output
+   surface. Keep these qualification gaps separate from matched cash economics.
 **Owner Runtime Amendment (2026-10-10):** prioritize adequate economic execution,
    not another resource-optimization phase. Preserve capped 30-minute pilots and
    register an append-only extension: up to three independent financial workers,

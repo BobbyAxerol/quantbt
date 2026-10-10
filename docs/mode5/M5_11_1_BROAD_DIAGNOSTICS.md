@@ -52,7 +52,8 @@ does not constitute an exact Sobol-index estimator or whole-space coverage proof
 
 Complete original-account route pilots precede the bulk time/RSS/retention
 estimate. HMA/VWAP/HASH use the existing actual-fill feedback compiler and
-full Python/Rust accounting/lifecycle parity, not a substituted signal backtest.
+Python/Rust numeric, fill and selected-event parity, not a substituted signal
+backtest. Full terminal/lifecycle-state equivalence is a separate, open gate.
 All compiler passes must be billed; one nominal configuration can execute many
 account passes. Failed/capped pilots remain incomplete, not zero-return samples.
 When a workstream completes, its slot may be reused for another independent
@@ -350,6 +351,10 @@ It also exposes raw-schema gaps that the original helper did not certify:
 - 249 liquidity labels differ: the static Rust Fill adapter records default
   TAKER where Python labels limit-type fills MAKER. Recorded prices, quantities
   and fees still agree; raw liquidity-label parity is **not qualified**.
+- 249 actual HMA fill winners are projected as `CANCELED` through OCO sibling
+  cancel links, while Python records `FILLED`. An independent cold fixture
+  reproduces this stored lifecycle-projection defect. It is not merely a
+  counting-unit difference and is not normalized to PASS.
 - Native terminal working quantity/price/trigger/active/waiting witnesses are
   unavailable on this retained static result surface. Command outcomes are not
   a replacement for working state. **Full terminal parity remains unsupported**.
@@ -368,6 +373,35 @@ that bill without a financial rerun. The interrupted invalid JSON stays retained
 and is not consumed as successful evidence. Twenty-eight strict terminal/empty-
 ledger fixtures and four additional cold semantic checks PASS; they do not make
 the unavailable native working-state fields available.
+
+The append-only HASH pilot0 owner audit also completes one new Python account
+pass / 26,280 bars in 18.746 s (596.50 MiB process peak). Equity, returns,
+positions, closes, fees and funding differences are exactly zero. Initial-margin
+and maintenance-margin maxima are 1.137e-13 and 1.332e-15, respectively, below
+the unchanged 1e-8 absolute tolerance (`rtol=0`); they must not be described as
+exact-zero differences. All 1,607 named lifecycle rows agree. Its cancellation
+diagnostic differs on 185 bars (267 native event rows versus 579 Python cancelled
+slots), and 490 raw liquidity labels differ. Python labels every non-MARKET
+order, including STOP_MARKET, MAKER; native Fill defaults to TAKER. Neither
+label convention is promoted as correct merely to force parity.
+
+Python's retained terminal owner has two live HMA orders and three live HASH
+orders. Native full working-state snapshots are absent on the retained static
+result surface, not asserted empty and not evidence that Rust lacks ownership.
+VWAP reuses its existing three account passes with no new financial execution;
+its zero commands/orders/fills do not certify a missing native terminal snapshot.
+All supplemental oracle workers are reaped. Six of the registered eight oracle
+passes remain unused; rerunning the same missing-output surface would not close
+the gate. Original failed receipts and the corrected append-only work bill stay
+retained privately.
+
+Read-only source/ABI inspection confirms that static `research` and `audit`
+profiles already choose native audit retention; switching profiles alone cannot
+export the missing terminal orders. The pinned wheel owns a `FullSession` and
+its compatibility session exposes a 14-column live-order getter, but the typed
+static result does not expose it and even that getter omits some terminal
+qualification fields. No extra financial passes or engine patches are opened
+to work around this gap within the approved runtime tranche.
 
 Focused tests cover strict protocol budgets and chronology, deterministic branch
 quotas, conditional inactivity, effective deduplication, retained infeasibility,
