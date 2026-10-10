@@ -20,9 +20,13 @@ and [scope correction](M5_11_RESEARCH_SCOPE_REVIEW.md).
   from 2021-01-01 inclusive to 2024-01-01 exclusive: 1,095 days / 26,280 bars.
   Annual views do not reset that path. Forward 2024-2025 remains outside the
   diagnostics worker's development file.
-- Seed 731, one financial worker, one numeric thread. Each route's measured
-  complete-horizon pilot has a registered 1,800-second / 2-GiB RSS cap. The cap
-  concerns the pilot, not permission to shorten research data.
+- Seed 731. The initial route pilots used one financial worker, one numeric
+  thread and a 1,800-second / 2-GiB RSS cap. The owner subsequently authorized
+  more runtime and delegated execution: an append-only amendment allows three
+  independent financial workers, one numeric thread each, and six hours per
+  native pilot. Original capped attempts remain preserved. Economics is the
+  priority; these caps are host-safety controls, not a resource-optimization
+  gate or permission to shorten the research data.
 - Disk was about 25 GiB free with 5.59 million free inodes before work. Scratch
   cap is 1 GiB, retained cap 4 GiB, minimum reserve 5 GiB. Exact scratch is
   `.maturin/mode5-m5111/attempt-01`; inputs/evidence/artifacts are retained.
@@ -51,6 +55,15 @@ estimate. HMA/VWAP/HASH use the existing actual-fill feedback compiler and
 full Python/Rust accounting/lifecycle parity, not a substituted signal backtest.
 All compiler passes must be billed; one nominal configuration can execute many
 account passes. Failed/capped pilots remain incomplete, not zero-return samples.
+
+Completed initial pilots on the entire development horizon: A-RSI took 7.498 s
+inside the financial driver (two actual account passes, exact array parity);
+A-SC took 33.299 s (one callback account run, 140 fills, 70 closed campaigns,
+independent accounting difference zero). These are the first frozen discovery
+points, not selected winners or sampler experiments. HMA's initial pilot reached
+the 1,800-second cap without a final certificate; this is incomplete execution,
+not evidence that its economics are negative. Broad alpha-level results require
+all registered points and the additional matrices/probes, not these pilots.
 
 After pilot measurement: freeze bulk work/resource registration, execute
 checkpointed candidates, then actual multi-center schema/conditional/joint and

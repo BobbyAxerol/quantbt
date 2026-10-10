@@ -116,9 +116,12 @@ Those two-point studies are not PROFILE_STANDARD or a completed broad
 diagnostics/search/selection experiment. Read the
 [scope review](../docs/mode5/M5_11_RESEARCH_SCOPE_REVIEW.md) and the recovery
 sequence [M5-11.1](#mode5-m5-11-1) -> [M5-11.2](#mode5-m5-11-2) ->
-[M5-11.3](#mode5-m5-11-3). The broad research exit remains open; the proposed
-dated protocol and measured execution/resource budgets must be registered
-before new outcome inspection. No expanded experiment has run yet.
+[M5-11.3](#mode5-m5-11-3). The owner approved all three recovery phases in
+sequence. M5-11.1 is IN_PROGRESS with five frozen 128-effective-configuration
+designs, complete BTC/ETH market witnesses and full-horizon resource pilots;
+see [execution checkpoint](../docs/mode5/M5_11_1_BROAD_DIAGNOSTICS.md). Bulk
+resource registration follows measured pilots. Broad matrices/dossiers and
+M5-11.2/11.3 remain unfinished, not research PASS from prepared points.
 M5-12 remains NOT_STARTED / NOT_RUN. Neutral coverage
 and unexecuted held directions are not full-space or independent-OOS proof.
 Read the [M5-01 baseline report](../docs/mode5/M5_01_BASELINE_REPORT.md) and
@@ -29297,6 +29300,15 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    protocol/design tests PASS; complete-horizon route pilots and bulk resources
    under measurement. See [current report](../docs/mode5/M5_11_1_BROAD_DIAGNOSTICS.md).
    Prepared points are not executed candidate/path or full dossier certification.
+**Owner Runtime Amendment (2026-10-10):** prioritize adequate economic execution,
+   not another resource-optimization phase. Preserve capped 30-minute pilots and
+   register an append-only extension: up to three independent financial workers,
+   one numeric thread each, and six hours per native-route pilot. RSI and SC
+   workers execute their frozen 128-point panels while one native-route worker
+   preserves the original fill-feedback/accounting contract. Data, candidates,
+   seeds, account rules, thresholds and scientific exit gates are unchanged.
+   Resource monitoring is a host-safety control, not permission to shrink data
+   or declare a capped/unfinished measurement certified.
 **Goal:** actually measure the effective landscape, active neighborhoods and
    environment differences before formal tuning, for all five admitted alphas.
 **Entry:** M5-11 review, unchanged alpha/account witnesses, source/data inventory,
