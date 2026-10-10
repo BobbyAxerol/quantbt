@@ -45,7 +45,20 @@
   },
   "blocked_alphas": 3,
   "calibration_eligible_alphas": 2,
-  "cleanup": "receipt pending final safe cleanup",
+  "cleanup": {
+    "status": "PASS",
+    "host_processes": 159,
+    "host_scratch_references": 0,
+    "host_inspection_errors": 0,
+    "protected_verified": 3620,
+    "initial_hashes_unchanged": 3619,
+    "authorized_source_exceptions": 1,
+    "retained_files_verified": 115,
+    "current_source_harness_verified": 329,
+    "observed_free_change_bytes": 16257024,
+    "exact_native_extraction_requires_restoration": true,
+    "current_tooling_retained": true
+  },
   "deployment_authorized": false,
   "economic_disposition": "INCONCLUSIVE; selected recipes coincide; no meaningful comparative improvement established",
   "formal": [

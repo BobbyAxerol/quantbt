@@ -100,14 +100,25 @@ Read the [M5-10 report](../docs/mode5/M5_10_PUBLIC_RUNTIME_REPORT.md),
 [public opt-in contract](../docs/mode5/PUBLIC_CALIBRATION_V1.md),
 [summary](../docs/mode5/evidence/m5-10.json) and
 [cleanup](../docs/maintenance/M5_10_CLEANUP.md).
-M5-11/M5-12 remain NOT_STARTED / NOT_RUN. Neutral coverage
+M5-11 is COMPLETE_LOCAL_FINITE_PILOT_EXPLORATORY after separately approved
+finite-panel protocol: 654 shared tests, 50 overlapping final economics/clock
+tests and four report tests PASS; 20 qualified 365-day paths reconcile and two
+eligible public calibrations/stress controls preserve exact accounting. Both
+selectors pick the same vectors; one origin, missing/sparse accepted campaign
+support and reviewed data prevent independent transfer promotion. Source clock
+amendment, negative/inconclusive findings and exact cleanup are documented in
+the [M5-11 report](../docs/mode5/M5_11_ECONOMIC_REPORT.md),
+[economic contract](../docs/mode5/ECONOMIC_CONTRACT_V1.md),
+[summary](../docs/mode5/evidence/m5-11.json) and
+[cleanup](../docs/maintenance/M5_11_CLEANUP.md).
+M5-12 remains NOT_STARTED / NOT_RUN. Neutral coverage
 and unexecuted held directions are not full-space or independent-OOS proof.
 Read the [M5-01 baseline report](../docs/mode5/M5_01_BASELINE_REPORT.md) and
 [reviewed-exit seal](../docs/mode5/evidence/m5-01-exit-review.json). The owner
 confirmed the detailed guide's reports came from the original ZIPs and accepts
 guide/hash-verified extracted inputs as baseline. Original ZIP files are not
 an M5-02 entry blocker; archive hashes are not claimed locally remeasured.
-No remaining registered M5-01..10 local implementation exit blocker within their
+No remaining registered M5-01..11 local implementation exit blocker within their
 approved scopes. M5-02 qualified local
 binding pilots and actual-engine synthetic tests, not methodology/default
 changes. Protection-dependent bindings are offline actual-feedback compilers,
@@ -27322,7 +27333,7 @@ Every phase below inherits this mandatory resource registration/cleanup exit.
 | [M5-08.1](#mode5-m5-08-1) | Longer calendar, coverage and mechanism diagnostics | Reviewed M5-08; separate owner approval | M5T-071..080 plus extension contracts | COMPLETE_LOCAL_REGISTERED_HISTORICAL_DIAGNOSTICS; DESCRIPTIVE_ONLY; broad confirmation INCONCLUSIVE |
 | [M5-09](#mode5-m5-09) | Dossier, advisory and sealed plan | M5-08/08.1 reviewed exit | M5T-081..090 | COMPLETE_LOCAL_DOSSIER_GOVERNANCE |
 | [M5-10](#mode5-m5-10) | Public opt-in integration/runtime reuse | M5-09 plus current source map | M5T-091..100 | COMPLETE_LOCAL_PUBLIC_OPT_IN / TECHNICALLY_VALID |
-| [M5-11](#mode5-m5-11) | Formal calibration and scoped economics | M5-10 plus authorized adequate data | M5T-101..110 | NOT_STARTED |
+| [M5-11](#mode5-m5-11) | Formal calibration and scoped economics | M5-10 plus authorized adequate data | M5T-101..110 | COMPLETE_LOCAL_FINITE_PILOT_EXPLORATORY; transfer INCONCLUSIVE |
 | [M5-12](#mode5-m5-12) | Local qualification/docs/handoff | M5-01..11 dispositions reviewed | M5T-111..120 | NOT_STARTED |
 
 Respect the guide dependency graph. M5-05 and independent M5-06 preparation
@@ -29035,9 +29046,10 @@ matched performance and installed-consumer/resource/privacy/cleanup evidence.
 <a id="mode5-m5-11"></a>
 ### Phase M5-11 - Formal Calibration, Adequate Forward Tests And Economics
 
-**Status:** IN_PROGRESS; owner implementation approval GRANTED 2026-10-10;
-technical gates registered below. Owner separately APPROVED the finite pilot and
-reviewed/exploratory protocol on 2026-10-10; no historical deferred seal is bypassed.
+**Status:** COMPLETE_LOCAL_FINITE_PILOT_EXPLORATORY; approved pilot technical
+gates PASS 2026-10-10. Transfer/method superiority INCONCLUSIVE, not promoted.
+Owner separately approved the finite pilot and reviewed/exploratory protocol;
+no historical deferred seal is bypassed. M5-12 remains separately unapproved.
 **Goal:** evaluate the frozen recipe's actual economic meaning and transfer,
    without confusing full-development calibration with independent OOS.
 **Entry:** M5-10 reviewed exit, sealed plans and owner-approved per-alpha
@@ -29168,6 +29180,73 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
   not alter the primary selected vector or claim independent confirmation.
 - Stop after this finite panel regardless of result. Prospective independent
   tests require a separately approved future registration/data-access seal.
+
+**Execution / Local Exit Receipt (2026-10-10):**
+- M511.01..06 complete for the approved finite/exploratory scope. Twenty actual
+  anchor/neutral annual paths (2021/2025 x five alphas; 365 scored days each,
+  original 365-day preload) reverify source/parameter/calendar/account identities,
+  daily metrics and campaign/account reconciliation. Zero finance reruns in that
+  cache inventory; 175,200 verified hourly marks / 7,300 daily observations are
+  work counts, not independent samples or origins.
+- New real A-RSI/A-SC dossiers/plans/journals inherit eligible advice and the
+  exact two coordinates. Public Mode5/global search, selected audit and returned
+  account use the original endpoints. Canonical components/equity match the
+  qualified paths exactly (maximum diff zero). Each challenger selects the same
+  vector as raw daily-Sharpe baseline: comparative forward/decay effect zero.
+  One annual environment cannot identify multi-environment robustness; no extra
+  coordinates/environments are invented after this result. A-HMA/A-HASH/A-VWAP
+  keep unsupported advice and receive descriptive accounting/decay, not search.
+- Economic verdict INCONCLUSIVE: one registered origin, not three; RSI has no
+  accepted-fill campaign ledger; selected SC has 13 fills / six closed campaigns
+  in each complete year. Neutral/anchor RSI forward Sharpe change +0.818399 and
+  decay change -2.835087 are a coordinate diagnostic, not the new recipe effect.
+  Its adjusted mean net interval [-13.2108, 30.5206] bps/day crosses zero; about
+  71.13% of observed decay reduction comes from weaker IS. Negative/flat paths,
+  undefined PF/SR and all support shortfalls remain visible, without retuning.
+- Four original-engine annual cost scenarios PASS, actual-fill SC accounting
+  and RSI direct-owner parity diff zero. Fee/slippage are doubled as registered;
+  SC's zero slippage remains zero and does not certify a nonzero latency stress.
+  A separate real synthetic equity-guard callback changes subsequent orders
+  under higher costs. No fixed-fill fee proxy replaces actual stress execution.
+- Only production correction: sealed diagnostics-first Mode5/global warm-start
+  availability uses its explicit selection-policy cutoff. Reviewed 2026
+  coordinates on a 2021 static development window are not relabeled historically
+  causal. Additive sampler telemetry separates historical `is_cutoff`, actual
+  `warm_start_cutoff` and authority. Legacy/unsealed and per-fold causal cutoffs
+  remain historical. Current source rights pass; attempting the actual later
+  pipeline at a 2021 prefix and independent cache relabel are denied. No new
+  repeated-origin experiment or genuine independent forward test was executed.
+- Final source shared panel 654 PASS, zero fail/skip; overlapping latest 50
+  economics/clock cases and four cold report consistency/privacy cases PASS.
+  M5T-101..110 traceability and exact command/XML/private source receipts are in
+  [report](../docs/mode5/M5_11_ECONOMIC_REPORT.md) /
+  [contract](../docs/mode5/ECONOMIC_CONTRACT_V1.md) /
+  [summary](../docs/mode5/evidence/m5-11.json). Source regression reused the exact
+  M5-10 native wheel after a preserved old-same-version G01 capability failure;
+  no Rust build or dependency install. Current core artifact certification is
+  M5-12, not borrowed from old installed-core receipts.
+- Valid pilot body elapsed: RSI 13.195 s / peak RSS 343.73 MiB; SC 33.514 s /
+  402.79 MiB. Body timers include market/seal/reconciliation but exclude process
+  imports; all subprocess times remain in receipts. Inventory 8.466 s with zero
+  account reruns; actual stress/direct controls 22.789 s. All research attempts
+  include 22 actual account passes / 192,720 bars and eight query attempts
+  including exact artifact-recovery repetitions, only four unique registered
+  coordinates. This is neither a matched speedup nor independent sample count.
+- Two artifact failures (Timestamp JSON / local callback closure pickling) and
+  test/environment failures remain immutable. Recovery repeats exact vectors
+  with fresh journals, not a scientific budget/range/seed extension. No failed
+  receipt is promoted. Public files expose only aggregate aliases/counts/units;
+  private source, vectors, market paths and return series remain ignored.
+- [Cleanup](../docs/maintenance/M5_11_CLEANUP.md) PASS: 159 host processes reviewed,
+  no scratch references or inspection errors; exact registered scratch removed,
+  15.50 MiB observed free-space increase. 3,620 protected records checked:
+  3,619 initial hashes unchanged plus the one exact authorized sampler amendment;
+  115 retained files / 329 current source-harness hashes unchanged. Evidence,
+  original alphas/data, failed logs, artifacts and current tooling preserved.
+- No known in-scope implementation blocker. Adequate independent/multi-origin
+  economics and richer eligible environments remain scientific limitations with
+  a bounded prospective protocol requiring new approval, not fake completed
+  studies. No M5-12, push/CI/merge/tag/release/PyPI or live deployment occurred.
 
 <a id="mode5-m5-12"></a>
 ### Phase M5-12 - Local Package Qualification, Regression, Docs And Handoff

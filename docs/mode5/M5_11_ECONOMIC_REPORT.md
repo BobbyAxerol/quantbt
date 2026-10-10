@@ -7,7 +7,8 @@ pass; adequate independent transfer or recipe superiority is **not established**
 Authority: [unified plan](../../upgrade/implement.md#mode5-m5-11),
 [detailed guide](../../upgrade/QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#phase-m5-11--formal-calibration-pilot-independent-checks-và-economic-inference),
 [measurement/rights contract](ECONOMIC_CONTRACT_V1.md),
-[full-precision summary](evidence/m5-11.json). Final cleanup has a separate receipt.
+[full-precision summary](evidence/m5-11.json) and
+[cleanup receipt](../maintenance/M5_11_CLEANUP.md).
 
 ## Registered Scope
 
@@ -115,6 +116,8 @@ new complete historical-prefix calibration experiment was not performed.
 Shared source regression: **654 PASS**, zero fail/skip,
 52.047 s. Latest focused economics/clock panel:
 **50 PASS**. Public report consistency tests are separate.
+Four cold report consistency/privacy/source-bound tests PASS; the distinct
+certification union is 658 cases, not 654 + 50 + 4.
 Coverage includes immutable observations, independent unit arithmetic/PSR,
 null/zero/bankrupt PF/SR, harmful/MDE-crossing controls, common-date blocks,
 non-survivor-conditioned inference, current/prefix/cache rights, actual
@@ -151,6 +154,12 @@ The only production amendment is the sealed Mode 5 selection-clock boundary
 and additive clock metadata. Original financial engines, alpha/data bytes and
 legacy/causal cutoff semantics remain unchanged. Current core wheel/sdist
 qualification belongs to M5-12; old core artifacts are not current-source proof.
+
+Final host review inspected 159 processes with no scratch references/errors.
+Exact ignored scratch removal observed 15.50 MiB more free space. All 3,620
+protected records verify (3,619 initial hashes unchanged; one documented exact
+sampler amendment), plus 115 retained files and 329 current source/harness hashes.
+Private evidence, failed attempts, alpha/data and current tooling remain intact.
 
 ## Acceptance Traceability
 

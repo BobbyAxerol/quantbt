@@ -85,6 +85,13 @@ proof. Resume domain work only after disk and evidence checks are complete.
 
 ## Recorded Cleanup
 
+The [M5-11 receipt](maintenance/M5_11_CLEANUP.md) records exact inactive
+research-test/native-extraction scratch removal after host process/FD/maps
+review, 3,620 protected records (one documented authorized sampler amendment),
+115 retained files and 329 current source/harness hashes checked. Observed
+filesystem recovery is 15.50 MiB; evidence, failures, private inputs and current
+tooling remain. Native extraction requires exact-artifact restoration for rerun.
+
 The [M5-10 receipt](maintenance/M5_10_CLEANUP.md) records exact inactive
 build/test/installed-consumer scratch removal after host process/FD/maps review,
 2,757 protected, 491 retained and 317 current source/harness hashes unchanged,
