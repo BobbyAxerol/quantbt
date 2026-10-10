@@ -158,3 +158,23 @@ No 16 GiB policy was activated: actual first-three closed-output inventories,
 fresh capacity admission and future wrapper integration remain entry gates.
 These are custody tests, not additional alpha configurations, compiler speed
 benchmarks, a completed five-alpha dossier or a calibration/forward certificate.
+
+## Actual Closed-Output Integration
+
+The independent closed-output validator passed **32 cold fault/identity/count/
+availability fixtures**. Main then exercised it against the already-complete
+native03 VWAP output: a separate host process verified original session absence,
+closed manifest stability and namespace identity. Exact original request/counts,
+native and losslessly compressed Python-owner seals, available financial/oracle
+qualification, loaded source pins and both dependency completion reports pass.
+The separate qualification SHA256 is
+`5daa2f54b51fa6fb67db08fba3ec14440dafda5986a516ab4709f5c885589559`.
+
+This added **zero financial executions and zero checkpoint operations**. VWAP's
+original COMPLETE receipt/checkpoint remains unchanged and governs its original
+captured exit0/reaping; the independent non-child observer does not invent
+those process facts or recalculate numerical parity. Unavailable oracle fields
+stay explicit. Its cold cleanup/reserve passes with 592,066 retained bytes,
+zero scratch and zero deletion. HMA/HASH require their own closed-output proof
+after exact session absence; this VWAP integration does not qualify live or
+incomplete work or complete the remaining 128-point panels.

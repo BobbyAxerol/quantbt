@@ -61,6 +61,42 @@ both cleanup receipts without hash errors. Old failures, data, alpha sources,
 artifacts and returned accounts remain protected. This bounded closure permits
 the next ordered native-control/tranche work, not sampler or release promotion.
 
+## Common Eligibility Control
+
+A separately registered cold control isolates annual filtering from ranking.
+It reuses both original 128-point grids and the same 2021/2022/2023 risk,
+positive-utility and support gates as the canonical annual selectors. Original
+whole-path Sharpe, metric units and candidate-ID tie-break are unchanged; the
+historical ungated Sharpe control remains a separate policy, not overwritten.
+
+| Policy | RSI Original Index | SC Original Index |
+| --- | ---: | ---: |
+| Raw Sharpe, historical ungated control | 10 | 33 |
+| Raw Sharpe, same annual eligibility | 56 | NO_SELECTION |
+| Annual floor + mean, same eligibility | 56 | NO_SELECTION |
+| Annual lower-tail, same eligibility | 49 | NO_SELECTION |
+| Annual Pareto/Chebyshev, same eligibility | 56 | NO_SELECTION |
+
+Only **3 RSI / 0 SC** original candidates pass the shared annual gate. Thus
+RSI's change from raw index10 to index56 cannot be attributed solely to a new
+selector: raw Sharpe also chooses 56 after the same filtering. Floor/Pareto do
+not show additional selected-candidate differentiation from that matched
+control on this panel; lower-tail does. SC's empty common universe contains no
+selector ranking contest. This is not evidence that those policies are
+universally equivalent, that SC has no edge or that forward decay improved.
+The bounded whole-path local contest has different eligibility/evidence and
+remains separate; absent neighborhoods are not silently filled in.
+
+Both complete grids and every canonical annual decision are scalar-replayed;
+all rejected/null rows remain. **7 focused fixtures PASS** for shared filtering,
+annual quality/support failures, empty universes, undefined Sharpe, tie-breaks
+and mismatched canonical eligibility. No numeric/financial import, candidate
+execution, probe, sampler or forward access occurred. The result SHA256 is
+`347c90e3853bf7a2a98ab43cf162e0d06d8451dbaac4cea6ef9b47ae5c1871d5`.
+Cleanup/reserve PASS: 183,881 retained bytes before the cleanup receipt,
+zero scratch and zero deletion. These are reviewed development comparisons,
+not independent holdout results or authorization to deploy a recipe.
+
 ## Historical Checkpoint
 
 Authority: [ordered goal closure](../../upgrade/implement.md#mode5-m5-11-goal-closure),

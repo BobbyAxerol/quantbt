@@ -29706,6 +29706,52 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    it is not activated or a real capacity/financial qualification. Next-tranche
    integration, first-three output review and all remaining ordered study gates
    remain open. See the [native custody report](../docs/mode5/M5_11_1_NATIVE_RUNNER_CLOSURE.md#adopted-monitor-qualification).
+   **Matched-Gate Control Follow-Up:** cold-only replay will rank original
+   whole-path raw Sharpe inside the unchanged annual eligibility universe used
+   by floor/tail/Pareto, preserving the historical ungated control separately.
+   This diagnostic isolates filtering from ranking and adds no runtime formula,
+   threshold, preference, candidate, market execution or forward access. Verify
+   both 128-point grids, all annual gate components, existing canonical decisions,
+   null/empty-universe and tie-break semantics, source/data pins and the output
+   without a financial import. Scope is an ignored private sidecar; register
+   32 MiB scratch/32 MiB retained and 5 GiB reserve before reduction. Local
+   neighborhoods retain their separate bounded universe and existing policy;
+   no absent full-panel local contest or economic superiority is inferred.
+   **Closed-Output Proof Entry:** the independent orphan output validator passed
+   32 cold fault/identity/availability fixtures, without finance or adoption.
+   Before relying on it for HMA/HASH, exercise its real host-absence and sealed
+   output checks against the already-complete native03 VWAP cell. Register a
+   separate 32 MiB cold lane first, keep its existing checkpoint unchanged and
+   do not bill a new account. This checks integration with actual retained
+   outputs; it does not re-estimate financial parity or assert unknown exit
+   status. HMA/HASH qualify only after their exact sessions are absent.
+   **Orphan Checkpoint Publication:** qualify a focused append-only recovery
+   helper before any orphan checkpoint. It may publish the original attempt's
+   previously absent receipt/checkpoint only after independent closed-output
+   PASS, exact request/manifest/count/source verification and fresh host session
+   absence under the cell lock. Reuse the existing checkpoint writer, never
+   reserve another financial attempt or simulate/replay an account. Receipt
+   status describes completed domain output; non-child exit code, reaping and
+   exact process runtime remain explicitly unavailable. Existing receipts,
+   failed/interrupted attempts and checkpoint failures must not be replaced or
+   promoted. Register 32 MiB cold scratch/retention and 5 GiB reserve; fixtures
+   cover stale qualifications, live/PID-reused owners, mismatched counts/files,
+   source changes, existing receipts, partial publication and safe reuse.
+   **Matched/Closed Integration Receipt (2026-10-10):** matched annual eligibility
+   admits 3 RSI / 0 SC original candidates. Raw Sharpe then chooses RSI56, as do
+   floor/Pareto, while lower-tail chooses49; all common-gate SC decisions remain
+   NO_SELECTION. This separates filtering from ranking without new finance or
+   forward evidence. Seven focused cold fixtures pass; full grids/canonical
+   annual decisions replay and cleanup/reserve pass. Result SHA256 is
+   `347c90e3853bf7a2a98ab43cf162e0d06d8451dbaac4cea6ef9b47ae5c1871d5`;
+   [selector interpretation](../docs/mode5/M5_11_1_SELECTOR_ONLY.md#common-eligibility-control)
+   preserves the historical ungated control and bounded local scope.
+   Closed-output validator passes 32 cold fixtures and real host/output proof
+   on the already-complete VWAP cell, with zero account/checkpoint work and
+   its original receipt unchanged. Qualification SHA256 is
+   `5daa2f54b51fa6fb67db08fba3ec14440dafda5986a516ab4709f5c885589559`.
+   HMA/HASH remain live and require separate closed proof; native full-panel,
+   future queue/capacity, dossiers/sampler and formal/prefix gates remain open.
 **Goal:** actually measure the effective landscape, active neighborhoods and
    environment differences before formal tuning, for all five admitted alphas.
 **Entry:** M5-11 review, unchanged alpha/account witnesses, source/data inventory,
