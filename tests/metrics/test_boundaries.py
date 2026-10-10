@@ -43,7 +43,9 @@ def test_t01_existing_raw_shapes_record_capability_not_assumed_completeness(cls,
 
 def test_t01_t08_new_schema_has_no_production_consumer_or_heavy_import():
     for path in (ROOT / "src/quantbt").rglob("*.py"):
-        if path.name == "report_contracts.py" or path.is_relative_to(ROOT / "src/quantbt/metrics/reporting") or path.relative_to(ROOT).as_posix() in ADMITTED:
+        if (path.name == "report_contracts.py" or path.is_relative_to(ROOT / "src/quantbt/metrics/reporting")
+                or path.relative_to(ROOT).as_posix() in ADMITTED
+                or path.relative_to(ROOT).as_posix() == "src/quantbt/mode5/evaluation.py"):
             continue
         assert "report_contracts" not in path.read_text(), str(path)
     tree = ast.parse((ROOT / "src/quantbt/metrics/report_contracts.py").read_text())

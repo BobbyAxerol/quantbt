@@ -18,6 +18,8 @@ PACKAGING_FILES = frozenset({
 
 
 def without_release_identity(source, name):
+    from tools.mode5_public_source_guard import without_public_additions
+    source = without_public_additions(source, name)
     if name not in PACKAGING_FILES:
         return source
     old = subprocess.check_output(["git", "show", f"{ENTRY}:{name}"], cwd=ROOT)

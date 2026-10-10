@@ -1,6 +1,7 @@
 """Thin Mode5 study/selection hooks on the existing public WFO evaluator."""
 from dataclasses import replace
 import math
+from time import perf_counter
 
 import numpy as np
 import optuna
@@ -45,10 +46,13 @@ class PublicMode5Runtime:
         self.rows, self.candidates, self.locals, self.params = [], {}, {}, {}
         self.observations = {}
         self.study = None
+        self.started = perf_counter()
+        self.evaluation_seconds = 0.
         self.metadata = dict(schema="quantbt.mode5.public_run.v1", status="PREFLIGHT_VALIDATED",
             dossier_id=calibration.dossier.record.identity, calibration_plan_id=calibration.plan.record.identity,
             runtime_binding_identity=calibration.binding.identity, validation_claim="none_full_sample_calibration",
-            meta_learning_activated=False, automatic_routing=False, deployment_authorized=False)
+            meta_learning_activated=False, automatic_routing=False, deployment_authorized=False,
+            advisory_shortlist=calibration.dossier.record.data["recommendations"]["recipes"])
 
     def _panel(self, candidates):
         return Panel(self.context_id, "formal_search_v1", self.channel, self.reference,
@@ -70,6 +74,7 @@ class PublicMode5Runtime:
 
     def _observe_point(self, params, folds, trial_id, *, stage):
         from ..walkforward import _slice_output_to_test
+        started = perf_counter()
         tasks = []
         for w in self.calibration.windows:
             idx = self.index[(self.index.asi8 >= w.start_ns) & (self.index.asi8 <= w.end_ns)]
@@ -82,6 +87,7 @@ class PublicMode5Runtime:
         raw = self.engine._score_strategy_outputs_with_scope(self.data, tasks, trial_id=trial_id,
             params=params, stage=stage, adaptive_optimizer=True, study_id=0)
         observations = tuple(r["mode5_observation"] for r in raw)
+        self.evaluation_seconds += perf_counter()-started
         return observations
 
     def _candidate(self, params, observations):
@@ -232,6 +238,12 @@ class PublicMode5Runtime:
                 batch_size=c.binding.data["batch_size"],
                 candidate_sequence_equivalent_to_sequential=c.binding.data["batch_size"] == 1,
                 trial_reports="one completed full candidate at step 0; NopPruner", meta_learning_activated=False)
+            self.metadata["compute_bill"] = dict(elapsed_seconds=perf_counter()-self.started,
+                successful_evaluation_seconds=self.evaluation_seconds,
+                original_account_observations=self.engine.scorer.mode5_metric_policy.evaluations,
+                effective_candidates=len(self.candidates), query_attempts=len(study.trials),
+                heavy_trial_reports=0, equity_and_daily_inputs_retained=True,
+                native_scalar_score_eligible=False, failed_cost_not_omitted_from_elapsed=True)
             c.catalog.verify_current()
 
     def close(self):

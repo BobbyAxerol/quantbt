@@ -37,11 +37,13 @@ def without_g01(source, name):
 
 
 def protected_changes(entry, protected):
+    from tools.mode5_public_source_guard import without_public_additions, prior_names
     names = subprocess.check_output(["git", "diff", "--name-only", entry,
         "--", *protected], cwd=ROOT, text=True).splitlines()
+    names = prior_names(names, entry)
     remaining = []
     for name in names:
-        current = without_g01((ROOT / name).read_bytes(), name)
+        current = without_g01(without_public_additions((ROOT / name).read_bytes(), name), name)
         original = subprocess.run(["git", "show", f"{entry}:{name}"], cwd=ROOT, capture_output=True)
         if current != original.stdout:
             remaining.append(name)

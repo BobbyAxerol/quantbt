@@ -36,7 +36,7 @@ def public_setup(tmp_path, *, selector="full_dro_cvar", sampler_name="tpe_legacy
                  batch_size=1, trials=8, frame=None, strategy=alpha, ranges=None,
                  execution_endpoint=None, target_mode="pct_equity", prepared=True,
                  min_daily=2, min_utility=-10., requested_selector=None, two_windows=False,
-                 sampler_options=None, incumbent=None, warm_start=()):
+                 sampler_options=None, incumbent=None, warm_start=(), account_options=None):
     frame = market() if frame is None else frame
     tmp_path.mkdir(parents=True, exist_ok=True)
     ranges = {"period": (6, 24, 1)} if ranges is None else ranges
@@ -46,6 +46,7 @@ def public_setup(tmp_path, *, selector="full_dro_cvar", sampler_name="tpe_legacy
         native_prepared_wfo="off", is_subperiods=1)
     account = dict(initial_capital=20000., fee=.0005, slippage=.0001, alloc_per_trade=.5,
                    leverage=1., use_funding=False, symbols=["ETHUSDT"])
+    account.update(account_options or {})
     args = dict(strategy_class=strategy, optimization_mode="mode_5_full_robust", target_mode=target_mode,
         split_frequency="single", random_seed=731, optuna_trials=trials)
     if execution_endpoint is not None:
@@ -107,6 +108,7 @@ def public_setup(tmp_path, *, selector="full_dro_cvar", sampler_name="tpe_legacy
     recipe["reuse"]["selection_policy"] = asdict(access)
     recipe["retention"]["runtime_binding_identity"] = binding.identity
     recipe["probes"]["budget"] = len(binding.data["local_offsets"])*trials
+    recipe["probes"]["design"] = "schema_numeric_offsets_v1" if local else "no_local_probes_v1"
     plan = CalibrationPlan.search(dossier, recipe, "owner-approved public synthetic integration, no edge claim")
     log = GovernanceLog(tmp_path / "journal")
     log.seal_dossier(dossier, catalog)

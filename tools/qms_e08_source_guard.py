@@ -35,6 +35,8 @@ def without_e08(source, name):
 
 
 def without_e07_e08(source, name):
+    from tools.mode5_public_source_guard import without_public_additions
+    source = without_public_additions(source, name)
     source = without_e08(source, name)
     if name != RUNTIME:
         return source

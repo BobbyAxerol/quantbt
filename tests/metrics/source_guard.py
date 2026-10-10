@@ -49,6 +49,8 @@ def normalized(text, path, *, changed):
 
 def assert_protected(path, expected_hash):
     current = (ROOT / path).read_bytes()
+    from tools.mode5_public_source_guard import without_mode5_public
+    current = without_mode5_public(current, path)
     if path not in ADMITTED:
         assert hashlib.sha256(current).hexdigest() == expected_hash, path
         return

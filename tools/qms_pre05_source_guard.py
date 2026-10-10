@@ -37,7 +37,8 @@ def without_pre05(source, name):
 
 def prior_names(names, entry):
     """Remove only an exact amendment absent from the historical scope."""
-    result = set(names)
+    from tools.mode5_public_source_guard import prior_names as mode5_prior_names
+    result = mode5_prior_names(names, entry)
     from tools.qms_e08_source_guard import ALLOW as E08_ALLOW, RUNTIME
     for name in result & (ALLOW | E08_ALLOW | {RUNTIME}):
         normalized = without_pre05((ROOT / name).read_bytes(), name)

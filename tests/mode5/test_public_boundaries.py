@@ -147,3 +147,52 @@ def test_prepared_and_fresh_public_work_preserve_candidate_scores(tmp_path):
         outputs.append([(r["effective_params"], r["state"], r.get("objective")) for r in m["trial_ledger"]])
         assert e.engine._mode5_runtime is None
     assert outputs[0] == outputs[1]
+
+
+@pytest.mark.parametrize("trials", [128, 256])
+def test_sobol_actual_sequence_projection_and_collision_ledger(tmp_path, trials):
+    e, frame, ranges, _ = public_setup(tmp_path, sampler_name="sobol", trials=trials)
+    m = e.backtest(data=frame, param_ranges=ranges).metadata["walk_forward"]["mode5_diagnostics_first"]
+    assert m["sampler"]["attempts"] == trials
+    assert m["sampler"]["qmc_sequence_position"] == trials-1
+    assert m["sampler"]["startup_policy"] == "first_independent_trial"
+    assert m["sampler"]["qmc_dimension_order"] == ["period"]
+    duplicate = [r for r in m["trial_ledger"] if r.get("reason") == "DUPLICATE_EFFECTIVE_PARAMS"]
+    assert len(duplicate) > 0 and all(r["evaluation_ref"] for r in duplicate)
+    assert len({r["candidate_id"] for r in m["trial_ledger"]}) <= 19
+
+
+def test_tpe_conditional_categorical_actual_effective_rows(tmp_path):
+    ranges = dict(period=(6, 24, 1), label=["a", "b"], flag={"kind": "boolean"},
+                  extra={"kind": "integer", "low": 1, "high": 3, "active_if": {"flag": True}})
+    e, frame, _, _ = public_setup(tmp_path, sampler_name="tpe_multivariate_group", ranges=ranges, trials=16)
+    m = e.backtest(data=frame, param_ranges=ranges).metadata["walk_forward"]["mode5_diagnostics_first"]
+    assert all(("extra" in r["effective_params"]) == r["effective_params"]["flag"] for r in m["trial_ledger"])
+    assert m["sampler"]["kwargs"]["multivariate"] is True
+    assert m["sampler"]["kwargs"]["group"] is True
+
+
+def test_diagnostic_evidence_changed_since_seal_is_rejected(tmp_path):
+    e, frame, ranges, _ = public_setup(tmp_path)
+    (tmp_path / "source.json").write_text("{}")
+    with pytest.raises(ValueError, match="source changed"):
+        e.backtest(data=frame, param_ranges=ranges)
+
+
+def test_deadline_before_first_ask_is_observable_no_fake_score(tmp_path):
+    e, frame, ranges, _ = public_setup(tmp_path)
+    cfg = e.config.walkforward_config
+    e.config = replace(e.config, walkforward_config=replace(cfg,
+        metadata={**cfg.metadata, "mode5_deadline_seconds": 0.}))
+    with pytest.raises(RuntimeCanceledError) as caught:
+        e.backtest(data=frame, param_ranges=ranges)
+    assert caught.value.mode5_metadata["trial_ledger"] == []
+    assert caught.value.mode5_metadata["compute_bill"]["original_account_observations"] == 0
+def test_reviewed_source_guard_rejects_unreviewed_bytes():
+    from tools.mode5_public_source_guard import ROOT, without_public_additions
+    name = "src/quantbt/endpoint.py"
+    source = (ROOT / name).read_bytes()
+    assert without_public_additions(source, name) != source
+    with pytest.raises(AssertionError, match="unreviewed Mode5 public bytes"):
+        without_public_additions(source + b"\n# unreviewed mutation\n", name)
+

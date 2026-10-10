@@ -119,6 +119,18 @@ class Mode5Calibration:
         if any(type(m[n]) is not int or m[n] < 0 for n in ("min_daily_returns", "min_closed_records")):
             raise ValueError("nonnegative support counts required")
         recipe = self.plan.record.data["recipe"]
+        supported_fields = dict(support={"contract_id"}, constraints={"contract_id"},
+            incumbent={"contract_id"}, failure={"contract_id"},
+            retention={"contract_id", "runtime_binding_identity"},
+            probes={"contract_id", "design", "budget"})
+        for section, fields in supported_fields.items():
+            if set(recipe[section]) != fields:
+                raise NotImplementedError("unbound runtime policy fields in sealed "+section)
+        expected_design = "schema_numeric_offsets_v1" if b["local_offsets"] else "no_local_probes_v1"
+        if recipe["probes"]["design"] != expected_design:
+            raise ValueError("probe design differs from sealed numeric runtime binding")
+        if recipe["selector"]["id"] == "full_sam_basin" and not b["local_offsets"]:
+            raise NotImplementedError("SAM requires registered actually evaluated local probes")
         if recipe["sampler"]["name"] != b["sampler"]["name"]:
             raise ValueError("sampler differs from sealed recipe")
         if len(recipe["sampler"]["seeds"]) != 1:

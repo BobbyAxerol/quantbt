@@ -5102,7 +5102,7 @@ class _WalkForwardEndpointScorer:
         terminal metrics provided by the prepared Rust scorer below it.
         """
 
-        if self._native_prepared_wfo is None:
+        if self._native_prepared_wfo is None or self.mode5_metric_policy is not None:
             return None
         contract = self._native_prepared_wfo.wfo_execution_reuse_contract()
         return None if contract is None else dict(contract)
