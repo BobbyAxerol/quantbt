@@ -54,10 +54,46 @@
     "financial_reruns": 0,
     "focused_tests_passed": 61
   },
+  "cold_sc_attribution": {
+    "complete_paths": 128,
+    "whole_and_annual_rows": 512,
+    "maximum_money_pnl_reconciliation_difference": 0.0,
+    "maximum_wealth_reconciliation_difference": 2.220446049250313e-16,
+    "maximum_campaign_reconciliation_difference": 3.2173375075217336e-10,
+    "financial_reruns": 0
+  },
+  "original_native_pilots": {
+    "A-HMA": {
+      "complete_configurations": 1,
+      "financial_driver_seconds": 3014.9921418230515,
+      "actual_account_passes": 648,
+      "actual_account_bars": 17029440,
+      "summed_actual_fills": 645,
+      "closed_campaigns": 322,
+      "open_campaigns": 1,
+      "maximum_accounting_difference": 0.0
+    },
+    "A-HASH": {
+      "complete_configurations": 1,
+      "financial_driver_seconds": 2106.1375865170266,
+      "actual_account_passes": 539,
+      "actual_account_bars": 14164920,
+      "summed_actual_fills": 758,
+      "closed_campaigns": 267,
+      "open_campaigns": 1,
+      "maximum_accounting_difference": 0.0
+    }
+  },
+  "owner_small_tranche": {
+    "new_native_candidate_indices": [1, 2, 3],
+    "final_effective_target_per_alpha": 128,
+    "full_panel_launch_authorized_now": false,
+    "required_runtime_report_before_continuation": true
+  },
   "remaining": {
-    "A-HMA": "EXTENDED_PILOT_IN_PROGRESS",
-    "A-HASH": "EXTENDED_PILOT_IN_PROGRESS",
-    "A-VWAP": "FAILED_INPUT_BINDING_ATTEMPT_RETAINED_RECOVERY_REQUIRED",
+    "A-HMA": "ORIGINAL_PILOT_PASS_SMALL_TRANCHE_IN_PROGRESS",
+    "A-HASH": "ORIGINAL_PILOT_PASS_SMALL_TRANCHE_REGISTERING",
+    "A-VWAP": "FAILED_ATTEMPT_RETAINED_OWNER_APPROVED_INACTIVE_INPUT_RECOVERY",
     "six_matrices_and_five_alpha_dossiers": "INCOMPLETE",
     "M5-11.2_actual_calibration": "NOT_RUN",
     "M5-11.3_transfer_economics": "NOT_RUN"

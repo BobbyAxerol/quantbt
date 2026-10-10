@@ -59,6 +59,39 @@ When a workstream completes, its slot may be reused for another independent
 native pilot under the retained allocation amendment. The limit remains three
 financial workers, never parallel slices of the same chronological account.
 
+The extended original HMA/HASH pilots are now complete. Each is still only the
+first registered candidate; its actual paths, lifecycle traces, full Python-owner
+parity and independent fill-account reconciliation are retained.
+
+| Original native pilot | HMA | HASH |
+|---|---:|---:|
+| Financial-driver seconds | 3,014.992 | 2,106.138 |
+| Actual account passes, including Python parity | 648 | 539 |
+| Actual account-bars | 17,029,440 | 14,164,920 |
+| Actual fills | 645 | 758 |
+| Closed / boundary-open campaigns | 322 / 1 | 267 / 1 |
+| Net account return | +6.88% | +3.12% |
+| Daily Sharpe, annualized 365 | 0.445 | 0.377 |
+| Maximum drawdown | 8.07% | 6.41% |
+| Registered net economic utility | -0.018 | -0.037 |
+| Independent accounting difference | 0 | 0 |
+| Financial-process peak RSS, MiB | 555.23 | 612.23 |
+
+Both positive returns coexist with negative registered risk/tail utility. That
+does not establish absence of alpha edge or a selector failure. Partial rung
+fills in HASH are not independent campaigns. The expensive stage is the existing
+offline actual-feedback compiler: 3,001.853 / 2,086.002 seconds, not a claim that
+one native kernel pass takes 50/35 minutes.
+
+One-point scaling suggests roughly 107/75 serial hours for 128 HMA/HASH points,
+but is **not a distribution, bound or reliable ETA**. After this measurement the
+owner chose a **small tranche**, not a multi-day full-panel launch: original
+indices 1, 2 and 3 per native alpha, separately from retained pilot index 0.
+New registrations seal exact requests, one worker per alpha, one numeric thread,
+six-hour safety caps, required evidence retention and the unchanged data/account
+contracts. The final target remains 128 per alpha. Reporting four points as a
+completed broad native panel would be incorrect.
+
 Completed initial pilots on the entire development horizon: A-RSI took 7.498 s
 inside the financial driver (two actual account passes, exact array parity);
 A-SC took 33.299 s (one callback account run, 140 fills, 70 closed campaigns,
@@ -143,6 +176,11 @@ failure, not no-trade/negative economics. Recovery must retain the original
 proposal, restore only a source-bound registered raw input, prove the effective
 identity unchanged and create a new lane; no module default or favorable
 replacement candidate is permitted.
+The owner has approved restoring `time_stop_bars=8` from the original sealed
+economic config **only when the time-stop dimension is inactive**. A separately
+registered recovery must prove strict constructor coverage, unchanged effective
+IDs and behavior, and full financial parity. The failed attempt remains retained;
+this approval alone is not a passing recovered account run.
 
 ## Cold Measurement Verification
 
@@ -158,6 +196,23 @@ this distinction avoids changing the scientific utility while adding a risk
 view. The development data cutoff is 2024-01-01; artifact/current-knowledge
 cutoffs are in 2026. This is retrospective attribution, not a 2024-vintage seal.
 Missing legacy ledgers remain null. No financial rerun occurred during ingest.
+
+SC also ingests all 128 original paths into 512 whole/annual rows. Monetary
+reconciliation is exact; wealth-product residual is at most 2.2205e-16 and
+campaign/account residual at most 3.2174e-10. Actual campaign closures and
+boundary-censored holdings remain distinct from annual marked account PnL.
+
+Retrospective same-panel diagnostics, with separately registered preferences,
+show RSI annual utility-rank Spearman correlations of -0.025, +0.106 and -0.086;
+the three annual near-optimal sets have pairwise Jaccard zero. Floor/Chebyshev
+and pooled **utility** selection agree on this finite panel; lower-tail selects
+a different compromise. This is not the forthcoming raw-Sharpe adaptive-search
+comparison. SC has no candidate passing the day-supported quality/risk gate in
+all three annual views, so selectors return `NO_SELECTION`, preserving losses
+and no-trade states. With three equal-weight years, a lower-tail mass of .25
+reduces to the minimum; it is not evidence for a separate nonredundant tail test.
+These descriptions do not establish an economic promotion or independent
+transfer result. Held LORO scores and gates are excluded from selection.
 
 Independent focused verification: **61 PASS in 9.30 s**, with protected files
 and helper sources unchanged. Tests cover all original seals, altered/future

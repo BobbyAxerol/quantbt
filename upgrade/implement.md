@@ -29302,8 +29302,11 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    protocol/design tests PASS. RSI has 128/128 verified continuous development
    paths and 155 separately executed multi-center probes. SC also verifies all
    128 original callback paths, retaining loss/no-trade outcomes. Extended
-   original native-route pilots continue; VWAP's failed inactive-input
-   materialization attempt remains retained pending an explicit adapter recovery.
+   HMA/HASH original native-route pilots now complete with full Python-owner
+   parity and independent accounting difference zero. They are one candidate
+   per native alpha, not 128-point coverage. VWAP's failed inactive-input
+   attempt remains retained; the owner approved restoring only the required
+   inactive input from the sealed original config in a new recovery lane.
    See
    [current report](../docs/mode5/M5_11_1_BROAD_DIAGNOSTICS.md).
    Prepared points are not executed candidate/path or full dossier certification.
@@ -29325,6 +29328,20 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    pilot; an append-only allocation receipt records this reuse. Maximum total
    financial concurrency remains three, never concurrent time slices of the
    same account or reordered adaptive sampler feedback.
+**Owner Tranche Decision (2026-10-10):** after measured HMA/HASH pilots of
+   approximately 50/35 minutes per complete 1,095-day configuration, the owner
+   chose a small checkpointed tranche before approving multi-day execution.
+   Execute only original admitted indices 1, 2 and 3 per HMA/HASH alpha, with
+   pilot index 0 kept as an explicitly verified existing control. Register the
+   original-order requests, per-cell/supervisor safety caps, all source/data
+   witnesses and observed work estimate before launch. The target remains
+   128 effective configurations per alpha; four measured points do not satisfy
+   that gate or estimate a dependable runtime distribution. No full native
+   panel, formal search or forward study starts from this tranche approval.
+   VWAP recovery is sequential after the SC probe worker, within the same
+   three-worker limit. Its inactive constructor input is 8 from the original
+   config only when time-stop is off; active inputs, effective IDs, alpha source,
+   costs and accounting must remain unchanged and separately qualified.
 **Goal:** actually measure the effective landscape, active neighborhoods and
    environment differences before formal tuning, for all five admitted alphas.
 **Entry:** M5-11 review, unchanged alpha/account witnesses, source/data inventory,
