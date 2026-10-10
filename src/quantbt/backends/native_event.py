@@ -6474,7 +6474,7 @@ class NativeEventBackend:
                             order_status = LifecycleOrderStatus.REJECTED
                             terminal_bar = int(event_bars[event_idx])
                         elif kind == ORDER_EVENT_CANCEL and (
-                            targets_order
+                            (targets_order and int(event_statuses[event_idx]) == ORDER_STATUS_FILLED)
                             or (owns_order and int(event_statuses[event_idx]) == ORDER_STATUS_CANCELED)
                         ):
                             order_status = LifecycleOrderStatus.CANCELED
@@ -6488,7 +6488,11 @@ class NativeEventBackend:
                         occurs_after_creation = cancel_bar > command_bar or (
                             cancel_bar == command_bar and cancel_idx > sorted_idx
                         )
-                        precedes_terminal = terminal_bar < 0 or cancel_bar <= terminal_bar
+                        # An OCO cause ID names the filled winner, not a canceled
+                        # target. Likewise cancel-all cannot undo an actual fill.
+                        precedes_terminal = order_status is not LifecycleOrderStatus.FILLED and (
+                            terminal_bar < 0 or cancel_bar <= terminal_bar
+                        )
                         if (
                             occurs_after_creation
                             and precedes_terminal
