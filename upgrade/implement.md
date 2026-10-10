@@ -28716,7 +28716,9 @@ extension analyses when inputs/contracts change. Never backdate a new recipe.
 <a id="mode5-m5-09"></a>
 ### Phase M5-09 - Diagnostic Dossier, Advisory Governance And Calibration Seal
 
-**Status:** NOT_STARTED; owner implementation approval PENDING; gates NOT_RUN.
+**Status:** IN_PROGRESS; owner implementation approval 2026-10-10;
+M5-08 and M5-08.1 reviewed technical exits accepted for this dossier phase.
+Governance, evidence reconciliation, regression and cleanup gates NOT_RUN.
 **Goal:** turn evidence into an auditable recipe decision before formal tuning,
    retaining uncertainty and researcher choice without bypassing technical gates.
 **Entry:** M5-08 reviewed exit and separate phase approval.
@@ -28769,6 +28771,40 @@ radar source tables, CalibrationPlanV1 seal, override log and cost/cleanup bill.
    sealed plan/report. Public examples use synthetic safe evidence only.
 **Rollback:** invalidate affected seals and return to the dependency-specific
    diagnostics; never manufacture prior registration after tuning.
+
+**2026-10-10 Execution Registration / Scope Lock:**
+- Implement research-only `tools/mode5_dossier` contracts on existing immutable
+  identity/access, metric/geometry, canonical selector and advisory boundaries.
+  No changes to production `src`, Rust, financial contracts, original alphas,
+  prior scientific receipts, default/public endpoint or packaging metadata.
+- Reconcile all six matrices from retained M5-02..08/M5-08.1 artifacts; bind
+  expected rosters, source/data/economic/schema/role identities, observed units,
+  null reasons and actual coverage. Different study horizons/contracts remain
+  separate; missing geometry/trial/stress rows remain masked, never interpolated.
+- Five-axis dossiers/radar show raw measures and support. No invented normalized
+  score, family-name router, low-rank-correlation rejection or negative-result
+  deletion. Recommendations distinguish finite-panel selection from independent
+  whole-recipe validation; lack of a clear winner is valid.
+- Seal scope/choice/audit before formal tuning. Current evidence permits an
+  explicit research-inconclusive/deferred plan with zero search budget and no
+  execution/deployment authority. A future search-enabled plan needs an explicit
+  researcher choice and complete authorized recipe/budget/validation contract;
+  neither phase approval nor a high radar score is such a choice.
+- Tests: M5T-081..090, immutable copy/pickle/serialization, evidence tampering and
+  omitted adverse rows, maturity/holdout denial, independent reference scales,
+  override/history preservation, dependency invalidation and chronology guards;
+  actual five-alpha dossier replay plus related M5/MET regression. EH-11 remains
+  a whole-procedure evidence limit, not a claim certified by metadata assembly.
+- Reuse `.maturin/qms08/release-regression-v1`; no new market execution, sampler
+  study, environment install or wheel build. Retain outputs/copies in
+  `upgrade/private/mode5_upgrade_v1/m5-09/attempt-01` and
+  `upgrade/local/mode5_upgrade_v1/m5-09/attempt-01`. Only disposable scratch:
+  `.maturin/mode5-m509/attempt-01`; incremental cap 128 MiB plus 5 GiB reserve,
+  one numeric thread, bounded test/assembly wall. Verify protected/hash state,
+  host processes/FDs and exact ignored-path cleanup before final receipt.
+- Commit verified governance modules/tests, then actual dossiers/plans/report
+  and current unified-plan status. No M5-10, build, CI/push, merge/tag or release
+  is authorized by this approval.
 
 <a id="mode5-m5-10"></a>
 ### Phase M5-10 - Public Opt-In Mode 5, Sampler Bridge And Prepared Runtime
