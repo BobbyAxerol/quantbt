@@ -76,6 +76,12 @@ def test_float_timestamps_do_not_silently_round_into_a_valid_clock():
         continuous_year_views(times,np.full(24,100.),initial_capital=100.)
 
 
+def test_unsigned_timestamps_do_not_wrap_into_a_different_valid_year():
+    times = pd.date_range("1969-01-01", periods=24, freq="h", tz="UTC").asi8.astype(np.uint64)
+    with pytest.raises(ValueError, match="without wrapping"):
+        continuous_year_views(times,np.full(24,100.),initial_capital=100.)
+
+
 def test_below_zero_account_is_not_clipped_to_one_hundred_percent_drawdown():
     row = eligibility_breakdown(-1.2,1.2,.2,daily_count=365)
     assert row["drawdown_cost"] == 1.2

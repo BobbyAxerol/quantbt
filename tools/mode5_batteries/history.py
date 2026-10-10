@@ -25,6 +25,8 @@ def continuous_year_views(times_ns, equity, *, initial_capital):
     raw_times = np.asarray(times_ns)
     if raw_times.dtype.kind not in "iu" or raw_times.dtype.itemsize > 8:
         raise ValueError("exact integer nanosecond timestamps required")
+    if raw_times.dtype.kind == "u" and np.any(raw_times > np.iinfo(np.int64).max):
+        raise ValueError("nanosecond timestamps must fit signed int64 without wrapping")
     times = np.asarray(raw_times, dtype=np.int64)
     marks = np.asarray(equity, dtype=np.float64)
     hour = 3_600_000_000_000
