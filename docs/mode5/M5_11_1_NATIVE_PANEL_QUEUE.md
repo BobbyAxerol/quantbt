@@ -1,25 +1,33 @@
 # M5-11.1 Native Panel Queue And Missing Work
 
-Status: **NATIVE07_SINGLE_HASH_PILOT_ACTIVE / NATIVE_PANELS_PENDING**
-(dated host observation and sealed prefix, 2026-10-11 18:47 UTC).
+Status: **OWNER_BOUNDED_TRANCHE_CLOSED / NATIVE_PANELS_INCOMPLETE**.
+The owner requested a one-hour closeout with completed evidence reused. Native07
+is now CENSORED / SUPERVISOR_SIGINT, with all owned children reaped and its exact
+sessions absent. The [bounded closeout](M5_11_OWNER_BOUNDED_CLOSEOUT.md) preserves
+1,124 returned passes and exact original-prefix agreement; it does not certify
+convergence, final accounting or full panels. Later live observations below are
+historical, not current process state. No future queue activates automatically.
 Authority: [ordered closure](../../upgrade/implement.md#mode5-m5-11-goal-closure)
 and [guide comparison levels](../../upgrade/QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#49-multi-hypothesis-empirical-battery-giữ-năm-chiều-làm-rõ-mỗi-phép-thử).
 
-The [latest custody/handoff receipt](#native-owned-full-file-custody-and-single-worker-handoff)
-supersedes operational status only. Earlier inventories, rejected adapters,
+The [custody/handoff receipt](#native-owned-full-file-custody-and-single-worker-handoff)
+records the earlier launch; the bounded closeout above governs current liveness.
+Earlier inventories, rejected adapters,
 unused registrations and CENSORED attempts below retain their historical scope.
 Seven of the 384 native configurations have qualified reuse; 377 remain
-incomplete, including one active HASH2 attempt. No full panel, actual-economic
+incomplete, including the now stopped HASH2 attempt. No full panel, actual-economic
 sampler comparison or forward study is complete.
 
-The future queue reuses the existing preparation, exact-path registration,
-worker authorization, supervisor ownership and explicit activation algorithms
-in an isolated compatibility module. It binds the qualified request-based v2
-capacity consumer and the unchanged native05 witnessed driver. Original
-financial execution, dependency guard, six-hour caps, three global worker slots
-and one numeric thread remain unchanged. No rejected epoch optimization is used.
+The cold-qualified future queue43 reuses existing preparation, request-based v2
+admission, registration and supervisor contracts, bound to native07's qualified
+owned-file custody. Financial execution and original registered queue budgets
+remain unchanged. It has not activated, and its old inventory does not certify
+current liveness. No rejected epoch optimization or automatic retry is used.
 
 ## Cold Qualification
+
+The following queue32/38 qualification is historical. Its native05 binding and
+then-active HASH statements do not describe current execution or queue43.
 
 The initial seven source/entry/session cases PASS. A separately sealed revision
 adds verified-inventory admission, ordered original-request matching and

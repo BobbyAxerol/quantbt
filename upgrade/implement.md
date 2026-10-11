@@ -2,7 +2,26 @@
 
 ## Current Mode 5 Diagnostics-First Upgrade - M5-11.1 Broad Diagnostics
 
-**Current Goal Checkpoint (2026-10-11):** ordered closure remains ACTIVE,
+**Current Owner-Bounded Checkpoint:** execution tranche CLOSED_OWNER_ONE_HOUR;
+M5-11.1 remains scientifically PARTIAL / DEFERRED_OWNER_TIME_BOUND,
+M5-11.2/11.3 NOT_RUN and M5-12 NOT_STARTED. The owner requested passed work be
+reused and the running tranche closed within one hour. Native07 is now terminal
+CENSORED / SUPERVISOR_SIGINT, with no validation/cleanup errors, zero retries,
+all owned children reaped and both exact sessions absent. Its 1,124 returned
+passes / 29,538,720 account-bars and all 1,124 signature pairs are retained;
+all seven returned-prefix fields match native04 exactly. This is not a final
+candidate, convergence certificate or mid-compiler resume. The seven COMPLETE
+native candidates remain reusable (HMA2/HASH2/VWAP3); 28 retained artifact pins
+recheck unchanged. RSI/SC complete 128-point panels, bounded selector controls
+and independently regenerated dossiers are reused, retaining NO_CLEAR_WINNER.
+No additional financial run or build is warranted merely to repeat passed work.
+No queue/CI/push/release is activated. Targets remain unchanged; full native
+panels, actual sampler studies and prefix-forward qualification are not PASS.
+Read the [bounded closeout](../docs/mode5/M5_11_OWNER_BOUNDED_CLOSEOUT.md)
+and [plan receipt](#mode5-m5-11-owner-bounded-closeout). Earlier receipts and dated
+live observations below remain historical and must not control current liveness.
+
+**Historical Goal Checkpoint (superseded operational state, 2026-10-11):** ordered closure remained ACTIVE,
 M5-11.1 IN_PROGRESS; M5-11.2/11.3 NOT_RUN and M5-12 NOT_STARTED. Earlier
 phase/owner-stop receipts below remain historical, not the current worker state.
 Latest operational state: native05 is terminal CENSORED / TRANCHE_TIME_CAP;
@@ -233,20 +252,25 @@ Those two-point studies are not PROFILE_STANDARD or a completed broad
 diagnostics/search/selection experiment. Read the
 [scope review](../docs/mode5/M5_11_RESEARCH_SCOPE_REVIEW.md) and the recovery
 sequence [M5-11.1](#mode5-m5-11-1) -> [M5-11.2](#mode5-m5-11-2) ->
-[M5-11.3](#mode5-m5-11-3). The owner approved all three recovery phases in
-sequence. M5-11.1 is IN_PROGRESS with five frozen 128-effective-configuration
-designs, complete BTC/ETH market witnesses and full-horizon resource pilots;
+[M5-11.3](#mode5-m5-11-3). **Historical recovery checkpoint:** the owner approved
+all three recovery phases in sequence. At that checkpoint M5-11.1 was
+IN_PROGRESS with five frozen 128-effective-configuration designs, complete
+BTC/ETH market witnesses and full-horizon resource pilots;
 see [execution checkpoint](../docs/mode5/M5_11_1_BROAD_DIAGNOSTICS.md). RSI/SC
 complete their 128-point development panels. At the historical owner stop,
 native broad coverage was HMA 1/128, HASH 2/128 and VWAP 1/128; those owned
-workers were reaped and interrupted measurements censored. The later tranche03
-has qualified VWAP1 output and live HMA1/HASH2 sessions; native full panels
-remain unfinished. The owner's subsequent full-goal approval authorizes the
+workers were reaped and interrupted measurements censored. The dated tranche03
+checkpoint then had qualified VWAP1 output and live HMA1/HASH2 sessions; those
+sessions are no longer live. Native full panels remain unfinished. The owner's
+subsequent full-goal approval authorized the
 [ordered closure/resumption](#mode5-m5-11-goal-closure) after native runner gates,
 not an ungated relaunch or retroactive certification. Exact cleanup and
 preserved source/artifact custody are recorded in the
-[tranche receipt](../docs/maintenance/M5_11_1_TRANCHE_CLEANUP.md). Broad matrices/dossiers and
-M5-11.2/11.3 remain unfinished, not research PASS from prepared points.
+[tranche receipt](../docs/maintenance/M5_11_1_TRANCHE_CLEANUP.md). The latest
+[owner one-hour closeout](#mode5-m5-11-owner-bounded-closeout) now supersedes that
+unbounded execution budget: no research worker remains active, bounded RSI/SC
+dossiers are complete, native broad panels and M5-11.2/11.3 remain incomplete.
+Prepared points do not supply a research PASS.
 M5-12 remains NOT_STARTED / NOT_RUN. Neutral coverage
 and unexecuted held directions are not full-space or independent-OOS proof.
 Read the [M5-01 baseline report](../docs/mode5/M5_01_BASELINE_REPORT.md) and
@@ -27472,7 +27496,7 @@ Every phase below inherits this mandatory resource registration/cleanup exit.
 | [M5-09](#mode5-m5-09) | Dossier, advisory and sealed plan | M5-08/08.1 reviewed exit | M5T-081..090 | COMPLETE_LOCAL_DOSSIER_GOVERNANCE |
 | [M5-10](#mode5-m5-10) | Public opt-in integration/runtime reuse | M5-09 plus current source map | M5T-091..100 | COMPLETE_LOCAL_PUBLIC_OPT_IN / TECHNICALLY_VALID |
 | [M5-11](#mode5-m5-11) | Formal calibration and scoped economics | M5-10 plus authorized adequate data | M5T-101..110 | REOPENED_RESEARCH_COVERAGE; original finite pilot preserved |
-| [M5-11.1](#mode5-m5-11-1) | Broad five-alpha diagnostics and renewed dossier | M5-11 scope review; registered data/design/resource protocol | M5T-041..060 / 071..090 | APPROVED / IN_PROGRESS; broad execution not yet complete |
+| [M5-11.1](#mode5-m5-11-1) | Broad five-alpha diagnostics and renewed dossier | M5-11 scope review; registered data/design/resource protocol | M5T-041..060 / 071..090 | PARTIAL / DEFERRED_OWNER_TIME_BOUND; execution tranche closed, broad target incomplete |
 | [M5-11.2](#mode5-m5-11-2) | Actual adaptive formal search and selector comparisons | Reviewed M5-11.1 dossier; new sealed plans | M5T-091..103 / EH-01..05 | APPROVED; formal expanded studies NOT_RUN |
 | [M5-11.3](#mode5-m5-11-3) | Multi-origin fixed-policy transfer and economic qualification | Frozen M5-11.2 outputs and prefix studies | M5T-101..110 / EH-06..12 | APPROVED; expanded forward tests NOT_RUN |
 | [M5-12](#mode5-m5-12) | Local qualification/docs/handoff | M5-01..11 dispositions reviewed | M5T-111..120 | NOT_STARTED |
@@ -29419,9 +29443,13 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
 <a id="mode5-m5-11-1"></a>
 ### Phase M5-11.1 - Broad Five-Alpha Diagnostics And Renewed Dossier
 
-**Status:** APPROVED / IN_PROGRESS; owner approved the three recovery phases
-   together on 2026-10-10. Inventory, protocol and measured route pilots precede
-   bulk execution; no expanded financial result is claimed at approval.
+**Status:** APPROVED / PARTIAL / EXECUTION_TRANCHE_CLOSED. Owner subsequently
+   limited execution to a one-hour closeout: reuse completed work, retain every
+   receipt and do not repeat expensive unsuccessful attempts. Remaining broad
+   execution is DEFERRED_OWNER_TIME_BOUND, not PASS; the original 128-effective-
+   configuration targets and scientific gates remain unchanged. Read the
+   [current closeout](#mode5-m5-11-owner-bounded-closeout). Earlier checkpoints
+   below retain their original dated scopes.
 **Execution Checkpoint:** five 128-effective-configuration proposal designs
    registered without outcomes; BTC/ETH 2020-2025 hourly tapes complete. Initial
    protocol/design tests PASS. RSI has 128/128 verified continuous development
@@ -29531,10 +29559,13 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    any further execution authorization; cleanup preserves the exact native
    artifact, private paths, failed attempts and current tooling.
 <a id="mode5-m5-11-goal-closure"></a>
-**Owner Full-Goal Approval / Ordered Closure:** the owner subsequently approved
+**Historical Owner Full-Goal Approval / Ordered Closure:** the owner subsequently approved
    all five steps below, including monitored background tranches, scope-bound
    fixes and real calibration/forward studies. This supersedes the operational
-   stop for future registered work, never edits its historical receipts. Keep
+   stop for future registered work, never edits its historical receipts. The
+   later [owner one-hour closeout](#mode5-m5-11-owner-bounded-closeout) supersedes
+   this open-ended execution budget for the current tranche; the order/targets
+   remain recorded, but it does not authorize automatic future execution. Keep
    all five alpha targets, original alpha logic, economic/data/metric contracts
    and scientific gates. No CI, push, release or publication is authorized.
    Detailed authorities are [4.9 comparison levels](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#49-multi-hypothesis-empirical-battery-giữ-năm-chiều-làm-rõ-mỗi-phép-thử),
@@ -31378,6 +31409,51 @@ and [M5-06..09 work packages](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_V
    passes/pairs, no completion; worker VmRSS/VmHWM 412,332/434,972 KiB and
    23,251,283,968 filesystem bytes available. This unsealed dated observation
    is progress/resource context, not terminal accounting or compiler ETA.
+
+<a id="mode5-m5-11-owner-bounded-closeout"></a>
+#### M5-11 Owner One-Hour Execution Closeout
+
+**Scope:** owner requested completed rounds/results be reused, existing evidence
+retained and the execution tranche closed within one hour. This supersedes the
+open-ended execution budget, not the mathematical/financial contracts or the
+original 128-effective-point targets. Do not report unfinished panels as PASS.
+**Guide:** [4.9 comparison levels](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#49-multi-hypothesis-empirical-battery-giữ-năm-chiều-làm-rõ-mỗi-phép-thử),
+[4.10 dossier](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#410-radar-và-advisory-dossier)
+and [8.2 claim limits](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#82-khi-nào-đủ-gọi-mode5-upgrade-v1-complete).
+**Registered Actions:** stop only the identity-verified native07 supervisor via
+the existing jobs API; retain complete journals, counts, signatures and terminal
+receipts. Verify completed artifact identity once; reuse prior financial and
+scientific qualification without a new certification framework or replay. Use
+zero scratch / <=32 MiB incremental retained / >=5 GiB free-space reserve.
+No builds, new financial studies, queue activation, CI, push or publication.
+**Actual Receipt:** supervisor stop/reap PASS; native07 financial attempt remains
+CENSORED / SUPERVISOR_SIGINT, exit-9, worker wall 10,699.410 s and observed peak
+446.805 MiB. All owned children reaped, exact sessions absent, no validation or
+cleanup errors, zero automatic retries. Retain 1,124 returned account passes /
+29,538,720 account-bars and 1,124 complete signature pairs; every original
+seven-field pair matches native04 exactly. Missing final account/checkpoint
+and interrupted compiler work are not guessed, zeroed or adopted as COMPLETE.
+The cold closeout rechecks 28 artifacts for the seven completed native candidates
+and the sealed RSI/SC compound/common-gate/final-handoff/dossiers in 1.576 s.
+Initial wrong intermediate-handoff pointer FAIL/source preserved; final pointer
+correction changes no historical evidence. Existing source/tests/account
+qualification are reused, not counted as new tests or executions.
+**Science/Disposition:** RSI/SC panels remain 128/128 each with bounded selector
+and six-matrix evidence, NO_CLEAR_WINNER. Native HMA/HASH/VWAP remain 2/2/3
+completed candidates: 377/384 incomplete, DEFERRED_OWNER_TIME_BOUND. Actual
+sampler-only, 256-query baseline/challenger and prefix-forward are NOT_RUN;
+M5-12 NOT_STARTED. Full-panel local NOT_EVALUABLE, annual-local NOT_AUTHORIZED.
+Independent read-only review recommends no further already-passed reductions or
+unevidenced short-run scientific test within this tranche. No economic benefit
+or full-phase/goal completion is inferred.
+**Cleanup:** only existing supervisor's registered inactive scratch removed;
+evidence/artifacts/source/environments preserved. Supervisor free-space delta
+-48,590,848 bytes; cold closeout delta -24,576 bytes, not positive reclamation.
+No new scratch/deletions and ~21.62 GiB available. Private result/cleanup SHA256:
+`5ef914d52a2bba46718036da65de0a40ab01b8cb355df3d1128fa4a5cceebf30` /
+`81eb5a797a6ddf728ffa366f676f46c392f37226921bf930f87b25272789fe05`.
+Read the [public bounded report](../docs/mode5/M5_11_OWNER_BOUNDED_CLOSEOUT.md).
+Execution closeout is complete; scientific work remains explicitly incomplete.
 
 <a id="mode5-m5-11-2"></a>
 ### Phase M5-11.2 - Actual Adaptive Calibration And Selector Comparisons
