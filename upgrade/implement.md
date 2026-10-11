@@ -53,9 +53,12 @@ requests: five qualified reuse, two closed but source-rejected COMPLETE requests
 one active HASH2 and 376 eligible fresh targets. The two old COMPLETE accounts
 remain protected from rerun. Their exact reporting-source amendment now PASS:
 twelve focused tests, both unchanged historical checkpoint validators and clean
-original closures, zero financial execution/global patch. A separate retained
-numeric measurement and fresh inventory disposition remain pending; the old
-inventory is not rewritten. Actual new queue admission
+original closures, zero financial execution/global patch. Retained numeric
+measurement also PASS: five fixtures, two accounts/eight dependent views, twenty
+exact finite original comparisons and unchanged independent tolerances. HASH1
+is slightly profitable but utility negative; VWAP1 remains valid no-trade with
+undefined Sharpe/PSR. Fresh versioned inventory admission remains pending; old
+inventory/rejections are not rewritten. Actual new queue admission
 rejects pending HASH capacity before any reservation/factory/worker. These are
 work/custody proofs, not completed scientific panels or new economic evidence.
 New wrapper/observer qualification totals 107 passing source tests, including
@@ -30626,9 +30629,41 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    pins unchanged, 5-GiB reserve holds, free space decreases 61,440 bytes. Result
    SHA256 `148fcdbe9f487576338afb40639f3783127c111c82035cefb7c54b7c49be9ebe`;
    cleanup `0343e25f63b051b71f2969b00efb8c407d2ab8185b6eff26c2c9412e5f01e3ba`.
-   Retained numeric proof36 and a new versioned inventory remain separate pending
-   gates; neither COMPLETE account is rerun or silently admitted to old inventory.
+   Retained numeric proof36 and a new versioned inventory remain separate gates;
+   neither COMPLETE account is rerun or silently admitted to old inventory.
    See [source amendment](../docs/mode5/M5_11_1_NATIVE_PANEL_QUEUE.md#closed-account-source-amendment).
+   **Retained Measurement36 Receipt (2026-10-11):** final revision02 PASS: five
+   focused fixtures, two original accounts/eight dependent whole/annual views,
+   no engine/compiler/native call, owner read, sampler or RNG. Twenty finite
+   original comparisons match exactly; 44 independent comparisons have maximum
+   residual 1.2212453270876722e-15. Campaign/net-mark reconciliation residual
+   9.522693744656863e-11 is within unchanged 1e-8 accounting tolerance. Fees,
+   funding, turnover and annual PnL/return conservation verify. HASH1 whole
+   return +0.620215%, Sharpe 0.0733171, 1,138 fills/421 closed/one open campaign;
+   2021 return is negative and economic utility remains negative. VWAP1 is valid
+   no-trade, flat 20,000, zero fills/campaigns; Sharpe/PSR remain undefined, not
+   zero. Original lifecycle/native-only terminal limitations and absent campaign
+   PF/information count stay explicit; reporting PASS is not complete metrics or
+   economic promotion. Wall 1.007 s/peak RSS 45.293 MiB; cleanup PASS, zero scratch/
+   deletion, 479,214 bytes retained before receipt, original failed revision kept.
+   Main read-only checks 80 unique source/input/result pins, no reducer rerun.
+   Result `81f7311efddd8283a6f9d21901ddf322318a73ea58b25754e9e3213a0d8bcfda`;
+   cleanup `695653884987e46a752ea04b46682cc6ef2a5d2a03f4969beed8dc966bc92e46`.
+   **Inventory37 Entry:** a fresh explicitly versioned, read-only inventory may
+   combine original inventory33, exact amendment35 and retained measurement36.
+   Preserve old inventories/rejections; admit only the two exact closed requests
+   through matched checkpoint/result/NPZ/ledger lineage and unchanged numerical
+   tolerances. Do not infer current-source financial re-execution, missing
+   terminal fields, complete metrics, selector eligibility or economic support.
+   Verify all original source/artifact/request/output pins via existing qualified
+   helpers, with the narrow reporting transition confined to amendment35. Keep
+   HASH2 ACTIVE, 384 original requests, 376 eligible fresh targets and original
+   attempt identity/counts. The new schema must fail closed at the old inventory
+   consumer; do not auto-activate queue32 or change its sealed sources. Register
+   ten minutes, one thread, 16-MiB scratch/32-MiB retained, 512-MiB RSS and 5-GiB
+   reserve; focused wrong-lineage/alias/active/COMPLETE/source/numeric/undefined
+   fixtures, actual proof verification and own-only cleanup precede admission.
+   No finance, account deserialization, numeric rerun, source edit or worker.
    **Native03 Closed-Custody Receipt (2026-10-11):** host/session and source
    review passes for the actual cap event, not final financial qualification.
    HMA/HASH journals contain 77,568/80,419 valid sequential rows and returned

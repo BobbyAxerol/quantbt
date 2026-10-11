@@ -111,10 +111,65 @@ Result SHA256:
 Cleanup SHA256:
 `0343e25f63b051b71f2969b00efb8c407d2ab8185b6eff26c2c9412e5f01e3ba`.
 
-Independent current-reporting reduction of the retained account paths remains
-a separate required proof. The original inventory is not rewritten, two new
-reuse admissions are not yet claimed, and no queue or financial worker is
-activated by this source witness alone.
+Independent current-reporting reduction now passes in the separate receipt
+below. The original inventory is not rewritten; admission into a new versioned
+inventory is still required. No queue or financial worker is activated by the
+source or numeric proof alone.
+
+### Retained Account Measurement
+
+The final numeric revision passes five focused tests and reduces the two
+original accounts into eight dependent whole/annual views. It uses the existing
+official reporting reducers and retained NPZs with `allow_pickle=False`; no
+engine, compiler, native execution, owner deserialization, sampler or RNG runs.
+HASH adoption is linked through its original qualified control manifest to the
+original NPZ/cell/fill/campaign files. VWAP uses its original checkpoint's files.
+New source qualification is not mislabeled as new financial execution.
+
+| Scope | HASH Net Return | HASH Daily Sharpe | HASH Max Drawdown |
+| --- | ---: | ---: | ---: |
+| Whole 2021-2023 | +0.6202% | 0.073317 | 4.1921% |
+| 2021 | -2.6338% | -0.582556 | 4.1921% |
+| 2022 | +2.9168% | 0.770964 | 3.2393% |
+| 2023 | +0.4132% | 0.152659 | 3.6413% |
+
+The account is continuous: annual returns use the prior actual close, annual
+flows conserve whole-account totals and carried watermark is distinct from
+scope-entry drawdown. Whole Sharpe is calculated from actual daily account
+returns, not an average of annual Sharpes. Costs are already in net equity and
+are not deducted twice. Whole HASH PnL is **124.0430 USDT**, fees **673.3240 USDT**,
+1,138 fills, 421 closed campaigns and one open campaign. Whole economic utility
+is **-0.0388901** under the already frozen preference; a positive small net return
+does not become economic promotion.
+
+VWAP is **VALID_NO_TRADE** on all four views: equity 20,000, zero fills, campaigns,
+fees, funding, turnover and PnL. Zero-variance Sharpe/PSR are **undefined**, not
+fabricated zeros or a failed financial run. Missing campaign PF/information count
+and native-only terminal fields remain explicitly incomplete. A reused no-trade
+candidate does not thereby satisfy a selection support/quality gate.
+
+Twenty finite original scalar comparisons are exact. Forty-four independent
+stdlib comparisons have maximum residual **1.2212453270876722e-15**. The largest
+campaign/net-mark accounting residual is **9.522693744656863e-11**, within the
+unchanged **1e-8** money tolerance. Annual fees/funding/turnover/PnL and compounded
+returns reconcile; original 365-day growth and official elapsed 365.25 CAGR
+conventions remain separately labeled. Main verifies 80 unique registered
+source/input/result pins without rerunning reduction.
+
+Wall **1.007 s**, peak RSS **45.293 MiB**. Cleanup PASS, zero scratch/deletion,
+479,214 retained bytes before receipt; earlier failed registration/fixture lanes
+remain sealed. Actual available space decreases 356,352 bytes during concurrent
+work, so no recovered-space gain is claimed. This is post-execution reduction
+cost, not an execution/kernel benchmark or independent OOS/decay evidence.
+Result SHA256:
+`81f7311efddd8283a6f9d21901ddf322318a73ea58b25754e9e3213a0d8bcfda`.
+Cleanup SHA256:
+`695653884987e46a752ea04b46682cc6ef2a5d2a03f4969beed8dc966bc92e46`.
+
+The next read-only inventory must combine the exact historical source and
+current reporting proofs explicitly, preserving all original attempts and
+unknown fields. It cannot silently rewrite old FAIL or turn these two points
+into complete 128-configuration panels, full terminal parity or a winning recipe.
 
 The actual new entry revalidates the inventory and its sources/closed proofs,
 then matches three missing targets to the unchanged original financial requests:
