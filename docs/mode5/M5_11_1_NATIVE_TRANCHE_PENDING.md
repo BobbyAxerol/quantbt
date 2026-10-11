@@ -1,18 +1,45 @@
 # M5-11.1 Native Tranche Pending
 
-Current status: **NATIVE03_IN_PROGRESS / FULL_NATIVE_PANELS_UNFINISHED**.
+Current status: **NATIVE03_CENSORED / FULL_NATIVE_PANELS_UNFINISHED**.
 The registration-only note below is historical and unchanged. The later native03
 tranche launched after the retained covariance closure and qualified native
-output gate. Its VWAP cell is COMPLETE; HMA/HASH original sessions remain live
-at the 2026-10-11 checkpoint. This is one original configuration per running
-cell, not hundreds of candidates because the feedback compiler makes many passes.
+output gate. VWAP is COMPLETE; the guardian stopped HMA/HASH at the unchanged
+six-hour cap on 2026-10-11 03:54:51 UTC. Exact worker and monitor sessions are now
+absent. These cells remain CENSORED, not completed financial accounts. Each cell
+is one original configuration, not hundreds of candidates because the feedback
+compiler makes many passes.
 
 The [read-only partial cost profile](M5_11_1_NATIVE_COST_PROFILE.md) records
 1,081 HMA / 1,134 HASH returned passes at 2026-10-11 01:07 UTC. Validation and
 signature work dominate that snapshot; inclusive nested timers must not be
 added, and incomplete compiler work is not a final backtest speed or ETA.
 
-## Watched Completion Custody
+## Closed Cap Disposition
+
+Independent host review verifies the original boot/start/session identities,
+guardian stop/absence receipts, the collector's retained FAIL/cleanup PASS,
+2,588 unique source/artifact/custody pins and both complete progress journals.
+HMA has 1,846 returned passes / 48,512,880 account-bars; HASH has 1,914 /
+50,299,920. Unreturned work, final accounting and final order state remain
+unavailable, not zero. Original worker exit codes and exact whole-worker wall
+times are unavailable because neither guardian nor collector is their parent.
+
+The collector correctly refuses COMPLETE qualification when HMA's final
+`output/result.json` is missing. That failure is preserved, not converted into
+PASS. The append-only `native03-cap-disposition14` receipt is
+**PASS_CENSORED_CUSTODY_ONLY**: no account/replay, new attempt, signal, deletion,
+checkpoint or queue activation. Whole HMA/HASH cells retain 23,194,150 /
+21,863,792 bytes; VWAP's existing COMPLETE checkpoint passes read-only reuse.
+Review took 8.046 seconds. Cleanup/reserve PASS retains 651,872 bytes before
+its receipt, zero scratch and no deletion. Result SHA256:
+`734412ad5ef78c4c1fd758c4de9b7477aabe03888afa44341a34aed5db14305b`.
+
+First-three COMPLETE capacity review is **NOT_SATISFIED**, so the prepared
+16-GiB queue is not activated. Native panels, dossiers, actual sampler/search
+and prefix-forward work remain unfinished. The next source repair must use a
+new witness; old source/artifact receipts remain historical and unmodified.
+
+## Historical Watched Completion Custody
 
 The original supervisor is absent. The qualified guardian preserves the original
 six-hour epochs, worker identities and resource caps; neither worker was restarted.

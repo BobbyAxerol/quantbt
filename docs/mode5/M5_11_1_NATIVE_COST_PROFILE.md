@@ -1,6 +1,6 @@
 # M5-11.1 Native Tranche Cost Profile
 
-Status: **PASS_READ_ONLY_LIVE_PREFIX_PROFILE / FINANCIAL_RUNS_INCOMPLETE**.
+Status: **PASS_READ_ONLY_PREFIX_PROFILE / CAPPED_CONFIGURATIONS_INCOMPLETE**.
 Authority: [native custody cost review](../../upgrade/implement.md#mode5-m5-11-1)
 and the guide's [actual work accounting](../../upgrade/QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#49-multi-hypothesis-empirical-battery-giữ-năm-chiều-làm-rõ-mỗi-phép-thử).
 
@@ -56,6 +56,30 @@ unchanged registered private binding/financial driver. The final financial
 receipt must retain the actual iteration witnesses before any convergence claim.
 No source, guard, feedback frequency, execution contract, account or worker was
 changed by this inspection.
+
+## Closed Cap Work
+
+The original guardian stopped both sessions at 2026-10-11 03:54:51 UTC with
+`TRANCHE_TIME_CAP`. Host review and the
+[closed custody receipt](M5_11_1_NATIVE_TRANCHE_PENDING.md#closed-cap-disposition)
+verify complete retained progress sequences and unchanged original epochs.
+
+| Returned Work Lower Bound | HMA | HASH |
+| --- | ---: | ---: |
+| Original configurations | 1 | 1 |
+| Returned owner passes | 1,846 | 1,914 |
+| Returned account-bars | 48,512,880 | 50,299,920 |
+| Progress journal rows | 77,568 | 80,419 |
+| Final financial result | Unavailable | Unavailable |
+
+These 3,760 returned passes / 98,812,800 account-bars are compiler work, not
+trials or independent economic replications. The earlier stage attribution is
+still a dated partial profile, not a newly measured full-run decomposition.
+Elapsed time at the guardian's first-absence observation is 21,608.063 /
+21,606.299 seconds; it includes observation latency and is not an exact worker
+wall time. No convergence ETA, final alpha metric, whole-run peak RSS or
+Rust-kernel speed claim is inferred. Capped cells require fresh attempts, not
+mid-compiler continuation or relabeling the last returned account as a result.
 
 ## Cost Attribution
 

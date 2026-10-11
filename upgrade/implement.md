@@ -8,11 +8,14 @@ phase/owner-stop receipts below remain historical, not the current worker state.
 RSI/SC original 128-point continuous panels, bounded selector controls and renewed
 dossiers are available; they retain NO_CLEAR_WINNER and explicit missing local
 coverage, not full five-alpha or forward qualification. Original tranche03 HMA1
-and HASH2 exact worker sessions remain live under the unchanged six-hour caps;
-VWAP1 is COMPLETE and independently closed-output/checkpoint qualified. Guardian
-and collector are live; first-three actual completion/capacity review and future
-16-GiB queue activation remain pending. Sources remain frozen while workers live.
-The actual partial cost profile is not final runtime or a convergence ETA.
+and HASH2 were stopped by the guardian at the unchanged six-hour cap on
+2026-10-11 03:54:51 UTC. Exact original sessions and both monitors are absent;
+HMA/HASH remain CENSORED with 1,846/1,914 returned passes, not COMPLETE accounts.
+VWAP1 remains independently closed-output/checkpoint qualified. The collector's
+COMPLETE-only proof correctly rejects HMA's missing final result; its FAIL and
+cleanup PASS are retained. First-three COMPLETE capacity review and future
+16-GiB queue activation remain pending; the old live/source-freeze checkpoint
+below is historical. Compiler counts are work lower bounds, not a convergence ETA.
 See [selector controls](../docs/mode5/M5_11_1_SELECTOR_ONLY.md),
 [bounded dossiers](../docs/mode5/M5_11_1_BOUNDED_DOSSIERS.md),
 [native custody](../docs/mode5/M5_11_1_NATIVE_TRANCHE_PENDING.md),
@@ -30108,6 +30111,38 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    Cleanup/reserve PASS: 55,069 bytes before cleanup, zero scratch/deletion.
    This red regression establishes the before-repair authority only; shared
    helper repair and reporting qualification still follow live-worker closure.
+   **Native03 Cap Disposition And Shared Repair Entry (2026-10-11):** preserve
+   the original guardian's TRANCHE_TIME_CAP at 03:54:51 UTC, its exact-session
+   absence observations and the collector's COMPLETE-only FAIL/cleanup PASS.
+   HMA/HASH final result/output/exit code remain unavailable, never zero or
+   COMPLETE. Before any shared source edit, verify original candidate/source,
+   stopped-session identities, progress sequences/returned lower bounds and
+   whole-cell retained inventories; seal an append-only closed disposition in
+   the ignored native03-cap-disposition14 lane. Do not replay accounts, publish
+   COMPLETE checkpoints, overwrite old receipts, reset epochs, retry or activate
+   the future queue. Register five minutes, one thread, zero scratch, 32 MiB
+   retained and 5 GiB reserve; preserve all stopped evidence and record cleanup.
+   After that custody check, preserve the exact old snapshots.py bytes and apply
+   only the already staged readonly-ancestor repair. Run the same 24-case public
+   roster and tests/metrics on the actual new source, without monkeypatching or
+   changing formulas, engine, alpha, data or historical receipts. Register ten
+   minutes, one numeric thread, 64 MiB exact pytest/JIT scratch, 128 MiB retained
+   and 5 GiB reserve in snapshot-public-regression12/applied. No rebuild or new
+   environment; retain failure and success logs, source before/after identities
+   and cleanup. New source witnesses are required for future qualification;
+   passing reporting regressions do not close native panels or formal studies.
+   **Native03 Closed-Custody Receipt (2026-10-11):** host/session and source
+   review passes for the actual cap event, not final financial qualification.
+   HMA/HASH journals contain 77,568/80,419 valid sequential rows and returned
+   lower bounds of 1,846/1,914 passes, 48,512,880/50,299,920 account-bars. Both
+   final results/checkpoints/accounting/order states and worker exit codes remain
+   unavailable; do not relabel intermediate accounts COMPLETE. All 2,588 unique
+   original source/artifact/custody pins and whole-cell inventories verify;
+   VWAP COMPLETE reuses read-only. Actual proof 8.046 s, zero finance/attempts/
+   signals; cleanup/reserve PASS, 651,872 retained bytes, zero scratch/deletion.
+   Result SHA256: `734412ad5ef78c4c1fd758c4de9b7477aabe03888afa44341a34aed5db14305b`.
+   Collector FAIL and its cleanup PASS remain unchanged. First-three COMPLETE
+   capacity gate NOT_SATISFIED; no automatic future queue or fresh native retry.
    **First-Three Capacity Review Entry:** prepare a small read-only producer for
    the qualified future-queue policy's existing capacity-review schema. It may
    run only after collector result/cleanup PASS, each exact original session is
