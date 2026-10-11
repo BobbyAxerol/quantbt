@@ -29966,6 +29966,13 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    selected-audit/prefix wiring remains NOT_BOUND/NOT_RUN; public V1 is unchanged.
    No CalibrationPlan or formal trial is sealed. See
    [bounded handoff report](../docs/mode5/M5_11_2_CONTINUOUS_HANDOFF.md).
+   Final supplement regenerates all 256 parents/1,024 views and verifies 512
+   delivery deepcopy/pickle roundtrips plus mutable-export isolation in 16.247 s;
+   it is not extra financial evidence. Main verifies 1,968 unique final pins /
+   202,973,435 bytes in 1.296 s. Final handoff SHA256 is
+   `02dd58fd955f77493354cae650de2ed024fe5b4a726ea1fd66e80e8445523e66`;
+   combined owned source/evidence 6,206,227 bytes before final receipts,
+   cleanup/reserve PASS, zero scratch/deletion. All prior scopes stay historical.
    **First-Three Capacity Review Entry:** prepare a small read-only producer for
    the qualified future-queue policy's existing capacity-review schema. It may
    run only after collector result/cleanup PASS, each exact original session is

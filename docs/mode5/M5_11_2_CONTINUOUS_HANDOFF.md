@@ -65,6 +65,15 @@ backtest or search benchmarks. Cleanup/reserve PASS: the corrected lane retains
 within the registered 64-MiB retained/32-MiB scratch budget and 5-GiB reserve.
 Prior failures, private inputs, exact artifacts and live environments remain.
 
+The separately registered final supplement regenerates all 256 requests and
+1,024 source views, then checks **512 delivery deepcopy/pickle round trips**
+and mutable-export isolation. PASS in 16.247 s, without finance, sampler or RNG
+calls. This supplements the 35 focused cases; it is not 512 new economic tests.
+Final combined owned source/evidence is 6,206,227 bytes before final receipts,
+within the unchanged 64-MiB budget; cleanup PASS, zero scratch/deletion.
+Main verifies the final handoff and **1,968 unique pins / 202,973,435 bytes** in
+1.296 s. The earlier 1,962-pin review remains its own historical scope.
+
 | Corrected Artifact | SHA256 |
 | --- | --- |
 | Registration | `c2f6a633ddedee6020ba3fdd65a6c2ce359bf4dc96b7c2d237d15592bfec46c4` |
@@ -72,6 +81,9 @@ Prior failures, private inputs, exact artifacts and live environments remain.
 | Bundles | `c4bf09b387cfb1a5d8014dca05faaae8741df9e3a5c383d4b7da9e724cdef8ce` |
 | Receipt | `fba5295d7e96249831d74b55395cf9b63827fc7a0a45a55de9b0777f5d182cd7` |
 | Cleanup | `a6e12ebfcc59dd2c6d5e462eea464a949d45626c3537839067bf78bd36d38be9` |
+| Final Handoff | `02dd58fd955f77493354cae650de2ed024fe5b4a726ea1fd66e80e8445523e66` |
+| Final Verification | `1d543b73c1a0cdbd028eb55c7a5d588ed4e19ff0aa87024855b5f81383dfe5d3` |
+| Final Cleanup | `3a8020c9122f26b758f749c786edd805dcabfffd257e152088981c0fa7c4010a` |
 
 ## Remaining Integration
 
