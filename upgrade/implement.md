@@ -31523,6 +31523,15 @@ fill/campaign ledgers. Source snapshots bind subsequent cold use to the executed
 harness version. A legacy-schema collector must explicitly admit the new
 recovery schema before rebuilding full diagnostic dossiers; do not fabricate
 legacy PASS receipts or silently relabel current proof as old custody.
+**Cold evidence reuse:** the explicit recovery reader verifies caller-sealed
+outputs, original design/account/data roles, externally approved control-source
+identities and retained source snapshots before producing the shared typed
+account view. Reconcile dated fills/campaigns, complete hourly/daily calendars
+and unchanged official account metrics. Preserve recovery schema and actual
+Python-oracle coverage; use retrospective knowledge labels, never historical or
+independent-OOS claims. Existing annual reducers may consume verified accounts;
+selector/checkpoint consumers need explicit status/role admission, not forged
+legacy PASS files. This cold reader runs no alpha, financial engine or pickle.
 **Cleanup/Commit:** retain data, exact artifacts, alpha source, failures, result
 paths and current environment; remove only registered inactive scratch after
 checks. Commit focused tooling/tests and report/plan; no CI/push/release.

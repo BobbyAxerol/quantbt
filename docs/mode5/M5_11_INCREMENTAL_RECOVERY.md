@@ -87,3 +87,23 @@ disposable scratch deletion; retained evidence is not "garbage". CI, push,
 release and publication remain off. Completing financial rows alone does not
 certify the six diagnostic matrices, held probes, actual sampler studies or
 prefix-forward economics required by M5-11.2/11.3.
+
+## Cold Evidence Reuse
+
+The explicit `load_recovery_cell` adapter reads caller-sealed recovery receipts,
+approved source identities from passed controls, retained source snapshots and
+the original data/design/account contract. It imports no private alpha, loads
+no owner pickle and runs no financial engine. Dated fills independently
+reconstruct account marks and campaigns; existing official reducers verify
+hourly/daily calendar and metric identity. Nineteen cold-reader tests PASS.
+
+A sealed snapshot of **119 completed bulk rows** passes cold ingestion and the
+unchanged annual reducers, producing **476 dependent views** in **114.476 s**
+with **zero additional financial execution calls**. This retains exact recovery
+schema and zero fresh Python-oracle coverage for bulk. It is not a new economic
+replication, full diagnostic battery, selector promotion or independent OOS.
+The scheduled account-bar bill is not native processed-bar telemetry.
+
+Legacy selector/checkpoint consumers still require explicit status/role
+admission before using these recovery rows. No legacy PASS file is forged;
+current financial rows remain usable through the verified typed account views.
