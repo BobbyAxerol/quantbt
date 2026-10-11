@@ -29923,6 +29923,27 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    [retained negative result](../docs/mode5/M5_11_1_NATIVE_COST_PROFILE.md#cold-traversal-disposition).
    Keep original guard and native03 clocks. This closes the narrow cold experiment,
    not full panels, actual output/capacity review, sampler or formal/forward gates.
+   **Continuous Formal Account Handoff Entry (2026-10-11):** prepare a focused
+   cold, versioned request/view contract for the formal integration gap while
+   original financial/public sources are frozen. It must describe one original
+   continuous account per effective point, not reset-per-environment execution;
+   annual views retain that parent's opaque execution/path/source identity,
+   prior-actual-close baseline and carried watermark provenance without resetting
+   ownership. Reuse shared immutable Record/AnalysisKey/AccessPolicy/AccessWitness
+   contracts and original effective candidate IDs; do not invent an ExecutionKey
+   from incomplete legacy metadata. Keep preload/data/artifact/knowledge cutoffs,
+   probe selection versus validation rights, attribution versus independent
+   execution and returned-work accounting separate. No metric/objective/selector,
+   estimator, range, seed, threshold, epoch or alpha change; no account, sampler,
+   RNG or mutable state replay. The prospective thin delivery/admission seam must
+   reject reset views, wrong source/point/clock/economics, incomplete or reordered
+   rosters, stale permission/cutoff and held-role reuse. Validate actual retained
+   RSI/SC parent/year bundles plus focused mutation/serialization/access fixtures.
+   Register sources/inputs and 32 MiB scratch/64 MiB retained with 5 GiB reserve
+   before reduction; preserve failure lanes and exact owned cleanup. Raw-Sharpe
+   channel and actual public provider/search/probe wiring remain explicit future
+   integration gates, not certified by this cold contract. No CalibrationPlan,
+   generated trial, future worker or public binding is activated in this step.
    **First-Three Capacity Review Entry:** prepare a small read-only producer for
    the qualified future-queue policy's existing capacity-review schema. It may
    run only after collector result/cleanup PASS, each exact original session is
