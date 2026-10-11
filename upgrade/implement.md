@@ -17,8 +17,17 @@ See [selector controls](../docs/mode5/M5_11_1_SELECTOR_ONLY.md),
 [bounded dossiers](../docs/mode5/M5_11_1_BOUNDED_DOSSIERS.md),
 [native custody](../docs/mode5/M5_11_1_NATIVE_TRANCHE_PENDING.md),
 [cost profile](../docs/mode5/M5_11_1_NATIVE_COST_PROFILE.md) and
-[continuous handoff](../docs/mode5/M5_11_2_CONTINUOUS_HANDOFF.md).
-Cold structural/domain and source-bound handoff gates PASS within their scopes;
+[continuous handoff](../docs/mode5/M5_11_2_CONTINUOUS_HANDOFF.md),
+[continuous measurement](../docs/mode5/M5_11_2_CONTINUOUS_MEASUREMENT.md) and
+[sampler runtime](../docs/mode5/M5_11_2_SAMPLER_RUNTIME_PREFLIGHT.md).
+Cold structural/domain, source-bound handoff, bounded continuous measurement
+and synthetic sampler runtime gates PASS within their distinct scopes.
+The shared reporting storage gap is reproduced; its
+[staged repair](../docs/mode5/M5_11_1_SNAPSHOT_STORAGE_STAGE.md) passes fixtures
+but shared source/regression remains deferred until workers close. At 02:17 UTC,
+HMA1/HASH2 remain live with 1,403/1,467 returned compiler passes, not trial counts;
+collector completion/capacity receipts remain pending. This dated checkpoint is
+not a final result, convergence estimate or lifecycle certificate. Still open:
 actual continuous provider/raw-Sharpe/probe/public wiring, matched sampler-only
 studies, real 256-query baseline/challenger searches and prefix-rebuilt forward
 economics are not certified or executed. No automatic phase promotion or release.
