@@ -63,3 +63,9 @@ studies. V1 remains unchanged while the native tranche sources are frozen.
 Five-alpha panels/dossiers, matched sampler-only studies and prefix-rebuilt
 forward tests are unfinished. No deployment, publication or automatic recipe
 promotion is authorized by this receipt.
+
+The [continuous handoff follow-up](M5_11_2_CONTINUOUS_HANDOFF.md) qualifies cold
+typed admission for the original 256 RSI/SC parents and 1,024 whole/annual
+views. It preserves original source/path/candidate/access identities without
+resetting accounts. It does not bind the actual public provider, raw-Sharpe
+channel or adaptive study, and does not replace these formal entry gates.

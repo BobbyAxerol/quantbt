@@ -29944,6 +29944,28 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    channel and actual public provider/search/probe wiring remain explicit future
    integration gates, not certified by this cold contract. No CalibrationPlan,
    generated trial, future worker or public binding is activated in this step.
+   **Continuous Handoff Receipt (2026-10-11):** cold typed delivery/admission
+   qualifies all 128 RSI and 128 SC original parent accounts with 1,024 ordered
+   whole/annual views, preserving 2020 preload and continuous 2021-2023 ownership.
+   The first run incorrectly rejected original annual_anchor rows; its source,
+   FAIL/log/cleanup remain. Fresh revision02 preserves the exact source family
+   and passes 35 focused fixtures, including immutable roundtrips and semantic
+   source/candidate/clock/economics/baseline/watermark/cutoff/role/roster faults.
+   Main independent row/request/source review verifies 1,962 unique pins over
+   202,441,104 bytes and every original coordinate. No financial/numeric/RNG/
+   sampler call, raw-array reconstruction or public/active-source change occurs.
+   Receipt SHA256 is
+   `fba5295d7e96249831d74b55395cf9b63827fc7a0a45a55de9b0777f5d182cd7`;
+   bundles SHA256 is
+   `c4bf09b387cfb1a5d8014dca05faaae8741df9e3a5c383d4b7da9e724cdef8ce`.
+   Cold work 28.203 s/143.746 MiB peak RSS, main read-only review 2.994 s;
+   metadata costs, not a search/kernel speed claim. Cleanup/reserve PASS,
+   corrected lane 5,561,881 bytes before cleanup receipt, zero scratch/deletion.
+   Original opaque execution IDs and unavailable fields are not invented.
+   Actual continuous provider, raw-Sharpe channel, effective/probe/ask-tell/
+   selected-audit/prefix wiring remains NOT_BOUND/NOT_RUN; public V1 is unchanged.
+   No CalibrationPlan or formal trial is sealed. See
+   [bounded handoff report](../docs/mode5/M5_11_2_CONTINUOUS_HANDOFF.md).
    **First-Three Capacity Review Entry:** prepare a small read-only producer for
    the qualified future-queue policy's existing capacity-review schema. It may
    run only after collector result/cleanup PASS, each exact original session is
