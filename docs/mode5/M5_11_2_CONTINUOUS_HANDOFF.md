@@ -98,3 +98,10 @@ matched sampler experiments, real 256-attempt baseline/challenger studies and
 prefix-rebuilt forward economics still follow their registered gates. No
 deployment, publication, account ownership transfer, cache or memory-lifetime
 qualification is authorized by these cold immutable records.
+
+The subsequent [continuous measurement proof](M5_11_2_CONTINUOUS_MEASUREMENT.md)
+reduces the actual retained RSI/SC snapshots: 37 focused tests, 256 parents,
+1,024 views and 45,056 exact field comparisons against pinned oracle/rows.
+It exposes genuine whole-account Sharpe and preserves carried annual attribution.
+This adds bounded numerical qualification; public provider/raw-Sharpe registry,
+actual adaptive studies and shared storage source activation remain separate.

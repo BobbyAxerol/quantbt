@@ -30017,6 +30017,24 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    bounded cold run, no automatic retry, preserve failures and exact cleanup.
    Keep any eventual public change staged outside src/tools until workers close;
    no duplicate financial bridge, account engine, estimator or researcher recipe.
+   **Continuous Measurement Receipt (2026-10-11):** final revision06 passes 37
+   focused tests and 45,056 exact top-level field comparisons for all 256
+   original RSI/SC parents / 1,024 whole/annual views against both pinned oracle
+   and retained rows. Whole raw Sharpe is the official daily UTC/365 account
+   ratio, never an annual average; baseline/watermark, nulls, bankruptcy, missing
+   versus zero ledgers and identities stay explicit. Main independently reviews
+   2,065 unique pins / 293,618,117 bytes and all original roster/raw whole Sharpe
+   references, without new reductions or market opens. Final handoff SHA256:
+   `0babaf6fa914aee00fe1a901be706fa9772330b332e41c98cf066eef9768f520`.
+   Work 104.469 s / 168.531 MiB RSS, one numeric thread; not a kernel benchmark.
+   Cleanup/reserve PASS; 92,891,275 bytes before final seal, zero scratch/deletion.
+   Earlier failures remain. Revision04/05 numerical PASS hashed two market files;
+   their zero-open telemetry is superseded, not a full task certificate. Final06
+   denies those exact paths; only supplied retained accounts are reduced. The
+   [measurement report](../docs/mode5/M5_11_2_CONTINUOUS_MEASUREMENT.md) separates
+   bounded measurement from public/provider/registry/ask-tell/probe/prefix gates
+   still NOT_BOUND. Shared storage source repair remains deferred until native
+   worker closure; the protected sidecar boundary does not close that source gap.
    **Snapshot Ownership Finding (2026-10-11):** preserve the measurement fixture
    FAIL receipts and registered diagnostic. Under the actual NumPy 2.2.6 runtime,
    a pickled account observation can have writable ndarray ancestry ending in
