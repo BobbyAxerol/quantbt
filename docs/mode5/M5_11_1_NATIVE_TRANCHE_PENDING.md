@@ -1,6 +1,6 @@
 # M5-11.1 Native Tranche Pending
 
-Current status: **NATIVE04_CLOSED_TWO_COMPLETE / HASH_CENSORED / PANELS_UNFINISHED**.
+Current status: **NATIVE05_SINGLE_HASH_RUNNING / TWO_NEW_COMPLETE / PANELS_UNFINISHED**.
 The [closed checkpoint report](M5_11_1_NATIVE04_CLOSED_CHECKPOINTS.md) records
 HMA1/VWAP2 COMPLETE and original certificate/source/receipt reconciliation PASS;
 HASH2 is censored at the unchanged six-hour cap with no financial checkpoint.
@@ -9,6 +9,35 @@ independent slots, financial source and full 2021-2023 accounts are unchanged.
 Neither dependency prototype nor the unqualified 16-GiB queue is activated.
 The live-prefix section below is a dated historical observation, not current
 liveness. Reuse completed cells; missing cells need explicit fresh registration.
+
+## Native05 Single-Worker Follow-Up
+
+After native04 closure, the main-owned cold preparation registers the exact
+same original HASH index2 request under a fresh private identity. Six focused
+path/occupancy-only AST, source/guard, request, budget and entry tests PASS.
+No existing source, finance, alpha, market or COMPLETE account is changed.
+All 273 tools modules and the original native/dependency gate are pinned.
+
+The one-worker supervisor launches at 2026-10-11 10:56 UTC. Exact supervisor
+PID3592504/start68451681 and HASH worker PID3592528/start68452267 are host-verified
+live, each in its own registered session. Six-hour caps, one numeric thread,
+four-GiB store, per-cell 96/512-MiB budgets and five-GiB reserve are unchanged.
+The maximum global occupancy stays three; this tranche intentionally uses one.
+No automatic retries, 16-GiB activation or mid-compiler continuation occurs.
+
+The sealed 10:59:11 UTC prefix has 15 returned passes, 394,200 account-bars and
+15 complete signature pairs. A separate read-only comparison matches every
+run/command/fill/feedback/unmapped/full-hash field against the corresponding
+original native04 HASH prefix. It adds no account or financial-object hashing.
+Current hashes still change: this is prefix consistency, not convergence,
+final accounting, remaining-time estimate or language-speed evidence.
+
+Capture SHA256:
+`3bed7483e57d5830626882fdacedf188357649e3309f8834a925bdc427084a3a`.
+Comparison SHA256:
+`06f4b3d60fa111aee12ad7037fa7170b879cb024813d0b61359a19aae8fe1560`.
+Cleanup PASS_NO_SCRATCH_CREATED; original capped attempts and active caches
+are preserved. No new HMA/VWAP account runs alongside this isolated attempt.
 
 ## Native04 Live Prefix
 

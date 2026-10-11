@@ -5,7 +5,13 @@ a completed broad landscape, selector/search or economic promotion receipt.
 
 Owner review: [economics and frozen checkpoint](M5_11_1_ECONOMICS_CHECKPOINT.md)
 consolidates the completed results, remaining coverage and approval boundary.
-Financial execution remains stopped; the report does not authorize another run.
+That owner-stop checkpoint is historical. Subsequent full-goal approval opens
+source-bound monitored tranches without rewriting old receipts. The current
+[closed native04 report](M5_11_1_NATIVE04_CLOSED_CHECKPOINTS.md) qualifies HMA1
+and VWAP2 COMPLETE; HASH2 remains censored there. A fresh
+[single-worker HASH attempt](M5_11_1_NATIVE_TRANCHE_PENDING.md#native05-single-worker-follow-up)
+is running under unchanged six-hour/source/account contracts. This report
+alone does not authorize a run or imply 128-point native coverage.
 
 Authority: [unified phase](../../upgrade/implement.md#mode5-m5-11-1),
 [effective domain](../../upgrade/QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#453-diagnostic-domain-không-bị-ép-nhỏ-chỉ-để-rẻ),

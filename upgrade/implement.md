@@ -29,6 +29,15 @@ See [closed checkpoints](../docs/mode5/M5_11_1_NATIVE04_CLOSED_CHECKPOINTS.md).
 The sealed 04:47 live prefixes remain historical. Original guard/FrozenPins were
 unchanged; the faster epoch prototype fails strict authorization semantics and
 is NOT_ACTIVATED. Reuse COMPLETE cells, never restart them or resume HASH midway.
+Native05 has a fresh single-worker HASH2 attempt, launched at 10:56 UTC after
+all native04 children were reaped. Exact supervisor3592504/start68451681 and
+worker3592528/start68452267 verify live in the original host namespace. The
+sealed 10:59 prefix has 15 returned account passes/394,200 bars and 15 signature
+pairs. All seven count/hash fields match the corresponding original native04
+HASH pairs; this proves only the returned prefix, not convergence, final
+accounting, timing improvement or a resumable checkpoint. Six-hour caps,
+original guards and finance remain unchanged. HMA/VWAP retained whole/annual
+measurement is being prepared separately without replay or active-source edits.
 New wrapper/observer qualification totals 107 passing source tests, including
 eight wrapper and ten driver-pattern cases; this is not 107 economic trials.
 The six-hour caps, three independent worker slots, one numeric thread, original
@@ -30367,6 +30376,44 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    REGISTERED_NOT_LAUNCHED with no financial call during registration. The
    prior censored cell roots/receipts are retained; no automatic retry, launch,
    sixteen-GiB gate promotion or compiler-state continuation occurs here.
+   **Native04 Retained Measurement Entry (2026-10-11):** reduce only the two
+   newly COMPLETE, checkpoint/signature-qualified native04 HMA1/VWAP2 account
+   NPZs and retained actual ledgers into whole plus ordered annual attribution
+   views. Reuse existing typed ContinuousSnapshot/measurement modules and
+   official account/drawdown/tail/utility authorities; no engine, alpha import,
+   market loading, private finance execution, optimization or new RNG. Keep
+   original effective/request/path/cutoff/clock identities and prior-close
+   annual baselines, carried watermark, open campaigns and unavailable fields.
+   Do not mutate existing measurement modules or active src/tools. Use a
+   disjoint ignored adapter; whole output must reconcile sealed original
+   metrics and partitioned fees/funding/turnover/money PnL without resetting
+   accounts. Test malformed/missing/reordered/source/cutoff inputs and real
+   supplied snapshots. Register ten minutes, one thread, 16-MiB scratch,
+   64-MiB retained, 1-GiB peak RSS, 5-GiB reserve and exact cleanup inventory.
+   Two parents/eight dependent views are not native panels, selector winners,
+   private strategy publication, new economic replications or formal search.
+   **Native05 Returned-Prefix Comparison Entry:** after host-verified launch,
+   compare already-returned signature pairs in the sealed native05 prefix with
+   the corresponding original native04 HASH pairs. Require exact original
+   request equality, ordered run/count/hash fields, immutable input pins and
+   full available prefix; no hashing account objects, live journal mutation,
+   calls/replays, timing superiority, convergence or remaining-time inference.
+   Register sixty seconds, zero scratch/one-MiB retained, five-GiB reserve;
+   retain the original capped receipt and the live prefix's narrower scope.
+   **Native05 Launch And Prefix Receipt (2026-10-11):** exact controlled
+   one-worker supervisor starts as PID3592504/start68451681; HASH's private
+   session is PID3592528/start68452267 under that parent, same boot/pid namespace
+   as the registered epoch. Host verifies both handles live before/after the
+   10:59:11 UTC read-only capture. Fifteen returned passes/394,200 account-bars
+   and 15 complete pairs are sealed. Already-computed run/command/fill/feedback/
+   unmapped/hash fields match all corresponding original native04 HASH pairs
+   exactly; no original or current account is replayed/qualified by that check.
+   Prefix capture SHA256 `3bed7483e57d5830626882fdacedf188357649e3309f8834a925bdc427084a3a`;
+   prefix comparison SHA256 `06f4b3d60fa111aee12ad7037fa7170b879cb024813d0b61359a19aae8fe1560`.
+   Comparison wall 0.135 s, cleanup PASS_NO_SCRATCH_CREATED; all live/historical
+   data, workers, caches and evidence remain. Original request, four-GiB store,
+   one numeric thread and six-hour caps unchanged; 16-GiB queue inactive.
+   No convergence/ETA/timing-superiority/COMPLETE/economic/phase promotion.
    **Native03 Closed-Custody Receipt (2026-10-11):** host/session and source
    review passes for the actual cap event, not final financial qualification.
    HMA/HASH journals contain 77,568/80,419 valid sequential rows and returned
