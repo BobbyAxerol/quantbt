@@ -24,6 +24,11 @@ Native06 is registered but deliberately unused. Matched custody verify p50 is
 financial speedup. Seven native configurations have qualified reuse; 377/384
 remain incomplete, including the active HASH2. No complete native panel exists.
 See the [current custody/handoff receipt](../docs/mode5/M5_11_1_NATIVE_PANEL_QUEUE.md#native-owned-full-file-custody-and-single-worker-handoff).
+The future queue43 now binds the qualified owned-file guard instead of native05:
+nine focused cold cases PASS, exact sources/cleanup sealed, NOT_ACTIVATED.
+It does not supply the missing third COMPLETE capacity slot or refresh the
+historical inventory. The first manifest-controller postcheck failure remains
+retained; corrected metadata does not rewrite its receipt or rerun finance.
 RSI/SC original 128-point continuous panels, bounded selector controls and renewed
 dossiers are available; they retain NO_CLEAR_WINNER and explicit missing local
 coverage, not full five-alpha or forward qualification. Original tranche03 HMA1
@@ -31304,6 +31309,75 @@ and [M5-06..09 work packages](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_V
    This closes only the actual returned-prefix differential check for the new
    custody handoff. Full candidate, compiler convergence, terminal accounting,
    capacity, panels and studies remain unproven and required.
+
+**Future Native Queue43 Owned-Custody Handoff Registration (2026-10-11):**
+   focused source inspection finds the sealed queue38 still selects native05 /
+   guard03. Preserve all predecessors; do not launch that obsolete binding.
+   Add one isolated binding/entry selecting the already qualified native07 inner
+   namespace on both verification and session load paths. Compose its owned-file
+   seal augmentation with original draft/registration seals, include every exact
+   source/shim/crypto/qualification/cleanup pin before first registration and
+   forward the existing inventory pin once in worker argv. Keep the inherited
+   v2 request admission, fresh targets, original preparation/finalization/
+   supervisor/financial algorithms, exception-safe session restoration and
+   per-process/main-thread guard ownership. Require the owned-file readiness
+   schema; never reuse the active native07 attempt or call its readiness launcher.
+   No queue activation, new financial run, capacity substitution or inventory
+   refresh is authorized by this cold proof. Actual three-slot COMPLETE capacity
+   remains mandatory before a future queue launch. Reuse the exact prior
+   financial/guard tests; focused new cold cases cover both namespace loads,
+   composed seals, complete authority graph, wrong authority/readiness rejection,
+   inventory forwarding, unchanged original request/caps and session restoration
+   after an explicitly synthetic admitted-scope exception. Such a fixture is
+   not a financial capacity slot. Budget: 300 seconds, 512 MiB RSS, 8 MiB owned
+   scratch, 32 MiB retained evidence, one numeric thread, 5 GiB reserve. Register
+   source/inputs before tests, retain failures and remove only exact inactive
+   owned scratch with hash/cleanup receipt. No public endpoint, financial source,
+   compiler, estimator, alpha logic, market or current worker changes.
+   Authority: [native custody handoff](#mode5-m5-11-native-custody41),
+   [ordered goal](#mode5-m5-11-goal-closure),
+   [guide cache rights](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#72-computationoutput-plan-và-cache)
+   and [resource contract](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#73-resource-plan-và-tốc-độ-không-làm-hỏng-methodology).
+
+**Queue43 Cold PASS / Publication Controller Failure:** nine targeted binding
+   cases PASS, zero failures/errors/skips, 5.689 seconds, peak 34.965 MiB,
+   zero financial calls or worker launches. Main independently rechecks all
+   93 protected pins / 20,518,730 bytes unchanged; narrow read-only review finds
+   no concrete binding blocker. The first manifest controller then publishes
+   its immutable cold metadata but fails its final check by concatenating two
+   overlapping pin sets into the original unique-only validator. Preserve that
+   source, manifest and observed failure; do not use it as a completed handoff
+   or erase it. A disjoint controller/revision must apply the existing
+   conflict-rejecting exact-pin deduplicator and verify the combined set before
+   publication and afterward. Reuse the exact nine-case result/cleanup and
+   unchanged binding/entry; no tests, finance or native build need rerun for
+   this controller-only correction. Keep the same retained/reserve budget,
+   retain the first failed publication, and record a new metadata cleanup.
+
+**Queue43 Final Cold Handoff Receipt:** the corrected controller uses the
+   existing conflict-rejecting exact-pin deduplicator before publication and
+   again for the postcheck. Binding/entry and their nine-case proof remain
+   unchanged; no tests/build/account are rerun. Ninety-three runtime/handoff
+   source pins are sealed; independent narrow review finds no concrete blocker
+   in the two load paths, seal composition or session restoration. Final status
+   COLD_QUALIFIED_NOT_ACTIVATED; actual capacity PENDING_HASH_COMPLETE, fresh
+   inventory required for later tranche admission. The original nine-case result
+   and cleanup preserve zero failures/errors/skips, 5.689 seconds / 34.965 MiB;
+   cleanup removes only empty owned scratch, retains 26,428 bytes before receipt
+   and reports -65,536 available bytes, reserve PASS. New metadata cleanup creates
+   no scratch, retains 50,565 bytes before receipt and reports -69,632 available
+   bytes, reserve PASS. All scientific evidence, old failed publication, current
+   worker and caches remain protected. Qualified result / original cleanup:
+   `bad11a8ce7120d59a375afa7ae5e029599009b04d39dd2c43106d16ee6a377c0` /
+   `7bcb0a61829eaef6305f9aaf14edf971d705fdffc5d3892fbe2837acfe0ff093`.
+   Corrected handoff / metadata cleanup:
+   `764650023a5a1e9ada360e730dce23ed6b74be0237a84eb77fdd78a3aebcf078` /
+   `4e49fe3cf4a07d3a97dd068fc59b13b528974ef008be536857249add5d20de78`.
+   No queue activation or extra worker follows this cold receipt. Host observation
+   at 19:03 UTC verifies both original native07 handles live, 176 returned
+   passes/pairs, no completion; worker VmRSS/VmHWM 412,332/434,972 KiB and
+   23,251,283,968 filesystem bytes available. This unsealed dated observation
+   is progress/resource context, not terminal accounting or compiler ETA.
 
 <a id="mode5-m5-11-2"></a>
 ### Phase M5-11.2 - Actual Adaptive Calibration And Selector Comparisons

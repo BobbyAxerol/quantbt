@@ -520,6 +520,49 @@ Returned-prefix comparison result/cleanup SHA256:
 `01a09a572822752b0dfd46eeebdde7167f0a8e5547a8557fb488b1a3ca455b65` /
 `f98a6934356d14ac2a1ae12cb9a4d6d91884de3dd4149b3b983b4f0cb454da79`.
 
+### Future Queue Owned-Custody Binding
+
+The sealed future queue38 still selected native05/guard03. A fresh queue43
+binding now selects native07's isolated inner namespace on both inventory
+verification and session loading. It composes owned-file augmentation with the
+existing draft and registration seals, including source, crypto, shim,
+qualification and cleanup pins. Authority is checked before owned source loads;
+inventory-pin forwarding, original raw requests/caps and exception-safe session
+restoration remain. No current worker, public endpoint, financial engine,
+compiler, alpha or data changes. A synthetic admitted-scope fixture tests
+restoration; it is explicitly not an actual financial capacity slot.
+
+**Nine focused cold cases PASS**, zero failures/errors/skips, **5.689 s**, peak
+**34.965 MiB**, zero financial calls/worker launches. Main independently verifies
+**93 protected pins / 20,518,730 bytes** unchanged. Narrow read-only review finds
+no concrete blocker in this delta; original financial/guard proofs are reused,
+not rerun or counted as new tests. Cleanup removes only empty owned fixture
+scratch, retains 26,428 bytes before receipt, records **-65,536 bytes** available
+space change and preserves evidence/caches/active workers, reserve PASS.
+
+The first metadata controller failed after publication because its final check
+passed overlapping pin lists to the original unique-only validator. Its source
+and immutable publication remain retained and are not the current handoff. A
+disjoint controller/revision now deduplicates exact pins with conflict rejection
+and verifies the combined set before and after publication. No tests or finance
+are rerun. The corrected manifest seals **93 source pins**, with metadata
+cleanup PASS_NO_SCRATCH_CREATED, 50,565 retained bytes before receipt and
+**-69,632 bytes** available-space change, reserve PASS.
+
+Cold result / original cleanup SHA256:
+`bad11a8ce7120d59a375afa7ae5e029599009b04d39dd2c43106d16ee6a377c0` /
+`7bcb0a61829eaef6305f9aaf14edf971d705fdffc5d3892fbe2837acfe0ff093`.
+Corrected handoff / metadata cleanup SHA256:
+`764650023a5a1e9ada360e730dce23ed6b74be0237a84eb77fdd78a3aebcf078` /
+`4e49fe3cf4a07d3a97dd068fc59b13b528974ef008be536857249add5d20de78`.
+
+Status **COLD_QUALIFIED_NOT_ACTIVATED**. The current inventory is still a
+historical snapshot; a fresh verified snapshot and actual third COMPLETE
+capacity slot are required before a future tranche can activate. At **19:03 UTC**
+the original HASH2 supervisor and worker are verified live with **176 returned
+passes/pairs**, no completion. Worker VmRSS/VmHWM is **412,332/434,972 KiB**.
+These dated observations are progress only, not complete candidates or ETA.
+
 ### Panel And Capacity Requirements
 
 Three actual closed, request-bound capacity slots and conservative disk headroom
