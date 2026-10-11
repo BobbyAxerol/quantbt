@@ -30017,6 +30017,19 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    bounded cold run, no automatic retry, preserve failures and exact cleanup.
    Keep any eventual public change staged outside src/tools until workers close;
    no duplicate financial bridge, account engine, estimator or researcher recipe.
+   **Snapshot Ownership Finding (2026-10-11):** preserve the measurement fixture
+   FAIL receipts and registered diagnostic. Under the actual NumPy 2.2.6 runtime,
+   a pickled account observation can have writable ndarray ancestry ending in
+   bytes. The shared immutable_storage fast path currently trusts that owner type
+   and can preserve writable storage. Reconstruction alone does not close this
+   reporting/identity-cache gap; it is not a raw-engine accounting defect. Stage
+   and test safe fresh immutable storage at the new typed measurement boundary,
+   including nested returns/streams and copy/pickle/header mutation. A narrow
+   shared-helper repair plus reporting/cache regression remains required after
+   the active workers close, before new source witnesses and public/formal
+   provider certification. Do not edit pinned source while workers are live,
+   weaken immutability assertions, discard the failures or call this shared gap
+   closed merely because a prospective adapter passes its own boundary tests.
    **First-Three Capacity Review Entry:** prepare a small read-only producer for
    the qualified future-queue policy's existing capacity-review schema. It may
    run only after collector result/cleanup PASS, each exact original session is
