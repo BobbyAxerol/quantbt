@@ -8,13 +8,20 @@ phase/owner-stop receipts below remain historical, not the current worker state.
 Latest operational state: native05 is terminal CENSORED / TRANCHE_TIME_CAP;
 its owned supervisor/worker handles are absent and all owned children reaped.
 The live native05/inventory rows below describe their dated checkpoints only.
-Native custody40 revision04 passes 26 focused cold tests and matched-roster
-counter parity, with verify/lifetime time reductions of 21.71%/11.80%; it remains
-NOT_ACTIVATED because independent review retains two interruption/provenance
-gaps. These are not compiler/account speedups or completed financial candidates.
-Seven native configurations have qualified reuse; no new final HASH2 account
-or complete 128-point native panel exists. See the
-[current native/custody receipt](../docs/mode5/M5_11_1_NATIVE_PANEL_QUEUE.md#strict-native-custody-measurement).
+Custody40 remains historically NOT_ACTIVATED. Its two reviewed defects are now
+closed by custody41 revision03: native code owns the complete file/descriptor
+lifetime, and reports retain combined integrity/interruption faults. All 24
+focused Python cases PASS; the exact prior Rust unit/build proof is reused.
+The seven-case source-bound native07 handoff also PASS, followed by an actual
+single HASH2 worker launch at 18:38 UTC. Host observation at about 18:42 UTC
+verifies the supervisor live, no completion receipt, and 24 returned account
+passes; these are compiler work, not completed candidates or resumable accounts.
+Original six-hour caps, exact request, finance and Python oracle remain unchanged.
+Native06 is registered but deliberately unused. Matched custody verify p50 is
+10.87% lower, but entry/exit plus ten verifies costs 33.96% more; this is not a
+financial speedup. Seven native configurations have qualified reuse; 377/384
+remain incomplete, including the active HASH2. No complete native panel exists.
+See the [current custody/handoff receipt](../docs/mode5/M5_11_1_NATIVE_PANEL_QUEUE.md#native-owned-full-file-custody-and-single-worker-handoff).
 RSI/SC original 128-point continuous panels, bounded selector controls and renewed
 dossiers are available; they retain NO_CLEAR_WINNER and explicit missing local
 coverage, not full five-alpha or forward qualification. Original tranche03 HMA1
@@ -31094,6 +31101,167 @@ and [M5-06..09 work packages](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_V
    `bdc0b67fd980e62a472fa9efc98d40ed6d834a9bcac7cd38c0fb32a4be12bdaf`;
    cleanup SHA256:
    `f0174cb26ff7455a336e106aaf2ec03315b426942f99023d3095ec983a89fef3`.
+
+<a id="mode5-m5-11-native-custody41"></a>
+**Native Custody41 Full-File Ownership Registration (2026-10-11):** the previous
+   discussion turn produced no new execution evidence; actual host review now
+   confirms no financial workers. Native05 and custody40 receipts remain sealed.
+   Close the two remaining production defects in a focused private adapter:
+   native code owns root/ancestor/leaf opens, full-file SHA256, before/after/current
+   metadata and every close inside one FFI call. No raw FD or release retry loop
+   crosses into Python. Preserve read-only/no-follow/regular-file checks, all
+   original counters, entry ctime minimum age, full entry/exit hashes, expected
+   stamps, original non-dependency verifier and PID/thread/single-use lifetime.
+   Python signal handlers/masks, financial source, compiler, alpha, data and six-
+   hour account caps remain unchanged. Use proven OpenSSL EVP SHA256, not a new
+   digest implementation; pin the exact local libcrypto.so.3 and its mapped
+   origin plus the private shim. Verify actual EVP symbol origins with dladdr;
+   create an isolated OpenSSL context using only its built-in default provider,
+   without loading ambient provider configuration. Crypto failures fail closed.
+   This provider isolation is included in measured entry/exit cost. Keep every
+   later fault cause, including library authority failures after an earlier latch.
+   New responsibilities live in small Rust path/digest/ABI modules and one
+   private Python adapter; this is not a public financial-wheel rebuild.
+   Register exact source/compiler/build command/input pins before offline build.
+   Focused tests compare digest/stamps/counters with sealed guard03 on empty,
+   chunk-boundary and multi-chunk files; reject symlinks, nonregular, missing,
+   real permission-denied and changed files. Exercise finite SIGTERM/SIGINT at
+   native return/bookkeeping boundaries, fault disposal, later-error retention,
+   report isolation and durable failure/cleanup. Native calls cannot guarantee
+   bounded interruption of arbitrary blocked IO; the existing supervisor remains
+   the hard cap. No relaxed scientific or financial contract is permitted.
+   Measure seven alternating actual-roster lifetimes with ten verifies each,
+   matching the shim and libcrypto additional pins in both arms; report fresh
+   construction, entry, verify and exit separately, never financial speedup.
+   Budget: 900 seconds total, 512 MiB RSS, 8 MiB exact owned fixture scratch,
+   64 MiB retained evidence/artifact, at least 5 GiB reserve. Actual preflight:
+   23,289,753,600 available bytes and 5,566,307 free inodes. Reuse the controlled
+   interpreter/rustc; preserve all old attempts and remove only exact inactive
+   owned scratch with cleanup/hash receipt. Exit requires differential PASS and
+   independent review, followed by a separately pinned fresh-worker handoff;
+   neither cold tests nor a faster guard supplies the missing COMPLETE capacity.
+   Authority: [ordered closure](#mode5-m5-11-goal-closure),
+   [guide cache authorization](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#72-computationoutput-plan-và-cache)
+   and [resource plan](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#73-resource-plan-và-tốc-độ-không-làm-hỏng-methodology).
+   No financial retry, sampler, CI, push, merge, tag or publication occurs in this
+   cold lane; three 128-point panels and later sampler/forward work remain open.
+
+**Custody41 Revision01 Fixture Failure / Revision02 Entry:** preserve the first
+   FAIL: Rust close-ownership test passes and 21/22 Python fixtures pass; the
+   mutation fixture asserts rejection without guaranteeing a distinct filesystem
+   timestamp under its synthetic future-clock override. Timing did not run.
+   Revision02 makes that fixture's post-write mtime explicitly distinct, retaining
+   the real content/grow/truncate/replacement operations and original guard oracle.
+   Reuse the exact already-built Rust artifacts and identical Rust/adapter source;
+   do not rebuild the financial wheel or weaken the production ctime/stamp policy.
+   Keep the same registered differential/timing budget, failed result and cleanup.
+   Production/source handoff remains pending independent review and measured PASS.
+
+**Custody41 Revision02 Receipt / Revision03 Focused Entry:** 22 Python fixtures
+   and the exact reused Rust ownership unit PASS. Actual-roster counters match;
+   verify p50 ratio 0.86324 (13.68% less time), entry 2.03479, exit 1.85721 and
+   ten-verify lifetime 1.29435 (29.43% more time). Isolated provider construction
+   is included, not hidden; this short-lifetime regression is not an account
+   regression estimate. Wall 119.022 seconds, peak 46.012 MiB, no financial work.
+   Independent review finds no remaining concrete FD/crypto-context ownership
+   blocker, but identifies one fail-closed provenance defect: a completed deep
+   integrity mismatch plus owned SIGTERM propagates only interruption before
+   Python validates the returned digest/stamps. Revision03 validates completed
+   typed deep output before propagating captured interrupts and retains both
+   causes. Add wrong-digest-plus-SIGTERM and stamp-race-plus-interrupt fixtures;
+   do not change the native artifact, financial code or existing deep checks.
+   Reuse the exact Rust build/unit proof; source-pin the narrow adapter change
+   and rerun focused Python qualification plus the registered matched timing
+   within unchanged budgets. Preserve both former receipts and cleanup. Next
+   action after this fix is the separately pinned single-worker handoff, not
+   another broad custody project or full financial-wheel rebuild.
+
+**Custody41 Source-Bound Native06 Handoff Entry:** after revision03 PASS and
+   focused review, prepare one disjoint HASH2 attempt using sealed native05
+   preparation/registration/delegation/supervisor algorithms in a fresh isolated
+   namespace. Only native05/native06 path identities and the explicitly selected
+   dependency guard change. Original driver, request, alpha, data, observer,
+   compiler feedback/signatures, native financial artifact and full Python oracle
+   remain exact. Add the template, adapter, original guard, Rust sources, shim,
+   libcrypto, qualification and cleanup pins before each first registration seal.
+   Source readiness reuses the exact already-qualified complete tools inventory;
+   no fabricated owner completion, synthetic capacity slot or source exception.
+   Cold tests/readiness only first: wrong receipt/artifact/source, changed request,
+   unpinned origins and old-attempt reuse must reject; preparation/finalization
+   still needs main review and exact fresh paths. Budget 180 seconds/512 MiB RSS,
+   8 MiB owned fixture scratch/32 MiB retained and 5 GiB reserve. No financial
+   call or attempt authorization in the cold handoff gate. A subsequently
+   reviewed single-worker pilot retains original four-GiB retention, six-hour
+   supervisor/cell caps, one numeric thread, max_feedback_runs=4096 and no retries;
+   it is not activation of the pending 16-GiB multi-alpha queue. Preserve censored
+   HASH attempts and completed HMA/VWAP; future panels/search remain required.
+   Authority: [ordered closure](#mode5-m5-11-goal-closure),
+   [native owned custody](#mode5-m5-11-native-custody41) and the linked guide
+   resource/cache contracts above. Exact source/receipt/cleanup evidence is
+   required before launch, never a copied PASS label or an unchanged expensive retry.
+
+**Native06 Cold Pre-Registration Fault:** the first handoff command stops before
+   creating its destination, because merged qualification/authority pins repeat
+   the identical crypto path and the unchanged FrozenPins validator requires
+   unique paths. Preserve this main-observed failure; no tests, scratch,
+   preparation, authorization or financial work occurred. Normalize with the
+   inherited conflict-rejecting exact-pin deduplicator before verification; do
+   not skip either authority or allow conflicting witnesses. Then register the
+   first cold handoff run using the corrected as-yet-unsealed wrapper.
+
+**Native06 Cold Finalization / Native07 Immutable Report Entry:** native06 passes
+   six cold source/request/authority cases, is prepared and finalized as one
+   REGISTERED_NOT_LAUNCHED HASH2 cell; zero attempts/authorizations/financial calls.
+   Preserve this registration and all native06 source. Independent review finds
+   one report-custody defect: owner.report re-reads readiness and can publish a
+   new unvalidated pin or mask the original fault if that path disappears.
+   Create a disjoint native07 wrapper/registration retaining native05 financial
+   algorithms and exact owned-file guard; capture and validate the handoff pin
+   at owner construction, deep-copy it into reports without filesystem IO.
+   Add one report-after-readiness-replacement/removal fixture to the six cold
+   cases, using a clearly synthetic handoff while retaining actual guard code.
+   Reuse custody41 revision03/native artifacts and all financial/account proofs;
+   no full-suite/native build or timing rerun for this reporting-only fix. Keep
+   the same 180-second/512-MiB/8-MiB/32-MiB/5-GiB cold budget and original bounded
+   pilot caps. Native06 remains unused, never rewritten or automatically run.
+   Exact main source review/finalization and retained cleanup still precede one
+   actual worker launch; no scientific panel, capacity or sampler completion.
+
+**Custody41 Revision03 / Native07 Actual Handoff Receipt (2026-10-11):**
+   24 focused Python cases PASS, zero failures/errors/skips. The exact prior
+   native artifact and Rust unit proof are reused, not counted as new builds or
+   tests. Independent narrow review closes the combined integrity/interrupt
+   provenance defect. On seven alternating matched lifetimes, verify p50 is
+   0.405580/0.361494 seconds (original/native), while entry+ten verifies+exit is
+   6.887074/9.225892 seconds. Retain the 10.87% verify reduction and 33.96%
+   short-lifetime regression together; page cache/noise are uncontrolled and no
+   compiler/financial speedup is certified. Cold wall 121.383 seconds, peak
+   44.051 MiB. Cleanup PASS preserves all evidence and artifacts; only empty
+   owned scratch is removed, zero reclaimed fixture bytes, available-space
+   change -409,600 bytes. Result/cleanup SHA256:
+   `4ca6b530c76ad08aa5077e5bd26825560fee58ee55abc8cb474758657af3908b` /
+   `7aaec310d04358529867560e3fc9aff6e68e0899ed1486098d1dffba26edade3`.
+   Native07 fixes report-only readiness custody without changing financial
+   algorithms; seven source/authority/request/report cases PASS, 1.073 seconds,
+   peak 32.789 MiB, zero cold financial calls. Its cleanup PASS removes only
+   empty owned fixture scratch, retains 5,248 bytes before receipt and reports
+   -24,576 available bytes. Result/cleanup SHA256:
+   `7aab9b6c24eefc12954116b36d610d95afafc7bc5c4bab1e658a3f23579252c0` /
+   `3c435a2e0d5d63b8515165dacbfb9d7154d605059c9c282ea4dcafa5f95a6304`.
+   Main verifies exact source readiness, unchanged original HASH2 raw/effective
+   request, complete tools inventory, fresh paths and caps before preparation,
+   finalization and launch. One actual supervisor/worker started at 18:38 UTC;
+   the 18:42 host observation verifies the supervisor handle live and 24 returned
+   account passes, with no final account or completion receipt. This dated
+   observation is not a sealed terminal/lifecycle certificate or convergence
+   estimate. Supervisor3694603/start71221282 owns worker3694631/start71221870.
+   Keep the original six-hour cell/tranche caps, 4-GiB retained budget, one
+   numeric thread, max_feedback_runs=4096, no automatic retries and no concurrent
+   duplicate HASH2. Native06 remains unlaunched; failed old custody/financial
+   receipts remain historical. Pending three-slot/16-GiB capacity, original
+   128-point native panels, sampler-only studies, 256-query calibration and
+   prefix-rebuilt forward remain required. No CI, push, merge, tag or release.
+   See [the measured report](../docs/mode5/M5_11_1_NATIVE_PANEL_QUEUE.md#native-owned-full-file-custody-and-single-worker-handoff).
 
 <a id="mode5-m5-11-2"></a>
 ### Phase M5-11.2 - Actual Adaptive Calibration And Selector Comparisons

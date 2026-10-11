@@ -1,8 +1,16 @@
 # M5-11.1 Native Panel Queue And Missing Work
 
-Status: **NATIVE05_CENSORED / NATIVE_CUSTODY_COLD_MEASURED / PRODUCTION_CUSTODY_AND_PANELS_PENDING**.
+Status: **NATIVE07_SINGLE_HASH_PILOT_ACTIVE / NATIVE_PANELS_PENDING**
+(dated host observation, 2026-10-11 about 18:42 UTC).
 Authority: [ordered closure](../../upgrade/implement.md#mode5-m5-11-goal-closure)
 and [guide comparison levels](../../upgrade/QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#49-multi-hypothesis-empirical-battery-giữ-năm-chiều-làm-rõ-mỗi-phép-thử).
+
+The [latest custody/handoff receipt](#native-owned-full-file-custody-and-single-worker-handoff)
+supersedes operational status only. Earlier inventories, rejected adapters,
+unused registrations and CENSORED attempts below retain their historical scope.
+Seven of the 384 native configurations have qualified reuse; 377 remain
+incomplete, including one active HASH2 attempt. No full panel, actual-economic
+sampler comparison or forward study is complete.
 
 The future queue reuses the existing preparation, exact-path registration,
 worker authorization, supervisor ownership and explicit activation algorithms
@@ -422,6 +430,78 @@ Final result SHA256:
 `bdc0b67fd980e62a472fa9efc98d40ed6d834a9bcac7cd38c0fb32a4be12bdaf`.
 Cleanup SHA256:
 `f0174cb26ff7455a336e106aaf2ec03315b426942f99023d3095ec983a89fef3`.
+
+### Native-Owned Full-File Custody And Single-Worker Handoff
+
+Custody41 replaces the rejected Python-visible descriptor lifetime with one
+native-owned open/stat/full-SHA256/close call. Root, ancestors and leaf retain
+read-only/no-follow checks; regular-file, before/after/current stamps, expected
+digest and original non-dependency checks remain. The local OpenSSL dependency
+and actual symbol origins are pinned. An isolated built-in default provider is
+used without loading ambient configuration. No raw descriptor or crypto context
+escapes. Finite interruption and combined integrity-fault provenance are covered;
+arbitrarily blocked IO still relies on the existing supervisor hard cap. This
+is a private custody shim, not a new financial wheel or public endpoint.
+
+Revision01's 21/22 fixture result remains FAIL: its changed-file fixture did not
+guarantee a distinct timestamp under its synthetic future clock. Revision02
+corrected only that fixture, passing all 22 cases with the exact same native
+build. Independent review then found a completed integrity mismatch could lose
+its cause when interruption also occurred. Revision03 retains both causes and
+passes **24 Python cases**, zero failures/errors/skips. The exact prior Rust
+close-ownership unit/build evidence is reused, not rerun or inflated.
+
+Seven alternating measurements use the same actual roster of **1,635 dependency
+files / 130 original non-dependency files**, plus the same two additional
+authority pins in both arms. All original counters match. Fresh construction is
+reported separately; page cache and host noise are not controlled.
+
+| Custody Stage | Original Median | Native Median | Native / Original |
+| --- | ---: | ---: | ---: |
+| Construction | 0.150567 s | 0.177088 s | 1.1761 |
+| Entry | 1.414725 s | 2.842052 s | 2.0089 |
+| Verify, pooled p50 | 0.405580 s | 0.361494 s | 0.8913 |
+| Exit | 1.418563 s | 2.683937 s | 1.8920 |
+| Entry + ten verifies + exit | 6.887074 s | 9.225892 s | 1.3396 |
+
+Verify costs **10.87% less**, but this short custody lifetime costs **33.96%
+more**. Full-hash provider isolation remains in those timings. This does not
+prove financial throughput improvement or compiler convergence. Cold wall is
+**121.383 s**, peak **44.051 MiB**. Cleanup PASS removes only empty owned fixture
+scratch, reclaims zero fixture bytes, retains 944,379 bytes before receipt and
+records **-409,600 bytes** available-space change; no evidence is deleted.
+
+Revision03 result SHA256:
+`4ca6b530c76ad08aa5077e5bd26825560fee58ee55abc8cb474758657af3908b`.
+Cleanup SHA256:
+`7aaec310d04358529867560e3fc9aff6e68e0899ed1486098d1dffba26edade3`.
+
+The first source-bound native06 wrapper passed six cold cases and was registered
+without launch. Its readiness-report custody was then corrected in a new
+native07 wrapper; native06 source/registration remain intact and unused. The
+new report captures an exact readiness pin at construction and deep-copies it
+without filesystem IO. **Seven cold handoff cases PASS**, **1.073 s**, peak
+**32.789 MiB**, zero financial calls. Cleanup PASS removes only empty owned
+fixture scratch, retains 5,248 bytes before receipt and records **-24,576 bytes**
+available-space change. Handoff result/cleanup SHA256:
+`7aab9b6c24eefc12954116b36d610d95afafc7bc5c4bab1e658a3f23579252c0` /
+`3c435a2e0d5d63b8515165dacbfb9d7154d605059c9c282ea4dcafa5f95a6304`.
+
+After main source/request/budget review and finalization, one actual HASH2
+attempt launched at **18:38 UTC on 2026-10-11**. The original sealed native05
+preparation, compiler-feedback/signature, financial execution and Python-oracle
+algorithms remain; only isolated lane identities and the qualified custody
+adapter differ. Original caps remain: six hours per cell/tranche, 4-GiB retained
+outputs, one numeric thread, max_feedback_runs=4096 and no automatic retry. No
+HMA/VWAP rerun or pending 16-GiB queue activation occurs.
+
+The host observation at about **18:42 UTC** verifies supervisor3694603 /
+start71221282 live, an actual worker-start receipt for worker3694631 /
+start71221870, and **24 returned account passes**. No completion or final
+account exists then. This is a dated progress observation, not a resumable
+checkpoint, final lifecycle certificate, economic trial count or ETA. Preserve
+the native05 CENSORED result and all other attempts; repeated passes are compiler
+work, not new effective configurations.
 
 ### Panel And Capacity Requirements
 
