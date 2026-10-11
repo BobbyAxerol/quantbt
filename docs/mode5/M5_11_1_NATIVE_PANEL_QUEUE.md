@@ -1,6 +1,6 @@
 # M5-11.1 Native Panel Queue And Missing Work
 
-Status: **V2_INVENTORY_BINDING_AND_ACTUAL_ROSTER_INTEGRATION_PASS / CAPACITY_AND_PANELS_PENDING**.
+Status: **NATIVE05_CENSORED / COLD_INTERRUPT_REPAIR_PASS / CAPACITY_AND_PANELS_PENDING**.
 Authority: [ordered closure](../../upgrade/implement.md#mode5-m5-11-goal-closure)
 and [guide comparison levels](../../upgrade/QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#49-multi-hypothesis-empirical-battery-giữ-năm-chiều-làm-rõ-mỗi-phép-thử).
 
@@ -300,12 +300,82 @@ Full-graph cleanup SHA256:
 **Final consumer handoff SHA256:**
 `8f3d24ab256fb50362311052a9e6aecab70720775b14ee968360b3404a4b617c`.
 
+## Native05 Terminal And Interruption Custody
+
+The live HASH2 isolation retry is now **CENSORED / TRANCHE_TIME_CAP**, not
+ACTIVE or COMPLETE. Its original receipt records **21,606.036 s**, exit **-9**,
+peak process-group RSS **478.168 MiB**, and a retained lower bound of **2,028
+native account passes / 53,295,840 calendar bars**. These are repeated compiler
+work, not configurations, independent samples or a final account. No final
+result/checkpoint exists. Supervisor closure reports INCOMPLETE, all owned
+children reaped, zero errors and zero automatic retries. The old inventory37
+ACTIVE row is a historical snapshot and is not overwritten.
+
+The actual log identifies a secondary interruption-custody defect: the driver's
+owned SIGTERM handler raises InterruptedError after the guard closes an ancestor
+descriptor, before its directory ownership assignment. Finally then closes the
+same descriptor again, producing EBADF and masking the original interruption.
+This does not make the censored account qualified. Original fault/result/log
+and guard evidence remain sealed, including the guard's CLOSED/FAULT status.
+
+A separately registered cold adapter inherits the exact sealed guard03 and
+overrides only descriptor custody. SIGTERM/SIGINT are briefly deferred while
+descriptor allocation/ownership/cleanup is inconsistent; signals are unmasked
+before the yielded file read/hash/stat work. Existing full entry/exit hashes,
+stamp/inode/symlink rules, actual IO faults and worker/lifetime checks remain.
+SIGKILL remains unmaskable. Guard03, financial driver, native artifact, alpha,
+data, request, six-hour safety cap and historical receipts are not edited.
+
+**13 targeted cold tests PASS**, zero failures/errors/skips: old-race reproduction,
+actual SIGTERM/SIGINT allocation/close interruption, mask/FD restoration, yielded
+interruption, missing files, symlink ancestors/leaves, real IO errors, full-hash
+lifetime and changed-dependency fault latching. No financial/numeric engine is
+loaded. The original broad guard qualification is not rerun or added to this
+count. Main independently verifies **15 unique pins / 2,430,223 bytes** without
+test or financial replay.
+
+Cold wall **2.501 s**, peak RSS **27.641 MiB**. The preregistered five-repeat,
+200-opens-per-repeat alternating-order microbenchmark records repaired/original
+p50 **1.2051**, or **20.51% slower** for descriptor open/read/close only. This is
+not a financial or whole-guard benchmark, speedup or activation gate. The repair
+is **COLD_QUALIFIED_NOT_ACTIVATED**; queue38 still selects the old guard. A fresh
+source-bound production handoff and resource/performance decision are required.
+
+The retained financial fault bill records native execution **930.513 s** and
+pin validation **10,843.335 s**. These stage timers are nested and must not be
+summed into total wall time. Compiler convergence is not certified; no profit,
+Sharpe or final accounting metric is derived from the interrupted iterations.
+Repeating the same unchanged six-hour attempt does not resolve this outcome.
+
+Native05 supervisor cleanup removes only its inactive owned scratch, retains
+all evidence and reports zero protected-pin errors. Cold cleanup likewise
+removes only the empty registered fixture root; all 15 inputs/output pins remain
+unchanged. It retains 5,722 bytes before its receipt, deletes no evidence and
+has zero reclaimed fixture bytes. Available-space change is **-28,672 bytes**,
+not a recovered-space claim; the 5-GiB reserve passes. There is no queue launch,
+new financial candidate, native build, automatic retry or release.
+
+Native05 censored receipt SHA256:
+`a7f18e65207f440616d5b519091b3327fcc6046e30cd033bffdb4c76e404ed27`.
+Supervisor completion SHA256:
+`7fb360f9747f289c8f1e010632ff02e52658697ca12af75169939cd38667ea06`.
+Cold repair result SHA256:
+`8fda083a2075be7ce2e4505b8dad497ff3c9975eb368590b3d49e3823158b91f`.
+Cold cleanup SHA256:
+`953854a95f3ad8a7ca1b2afd1804ca64ff69287b462da12962fff10c13a4f60a`.
+
 ## Remaining Scientific Work
 
 Three actual closed, request-bound capacity slots and conservative disk headroom
 are still required before queue activation. Reuse qualified COMPLETE requests,
 keep active candidates unavailable for duplicate scheduling and preserve old
 CENSORED attempts. A new attempt is not a mid-compiler resume.
+
+The censored HASH2 retry supplies no third qualified COMPLETE slot. Both prior
+capacity reviews and the seven-reuse inventory remain sealed; neither an
+interruption fix nor a synthetic positive fixture authorizes the missing
+financial capacity. A new attempt requires an explicit qualified source/budget
+handoff, not an unmodified automatic six-hour rerun.
 
 The original target remains 128 effective configurations for each native alpha
 on continuous 2021-2023 accounts with 2020 preload. Original requests, costs,

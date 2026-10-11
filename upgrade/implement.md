@@ -30925,6 +30925,62 @@ and [M5-06..09 work packages](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_V
 **Commit/Rollback:** registered plans, verified shard chunks, then reviewed
    dossier/report; leave old pipeline/receipts untouched and new results opt-in.
 
+<a id="mode5-m5-11-native05-interruption"></a>
+**Native05 Terminal / Targeted Interruption-Custody Registration (2026-10-11):**
+   The exact live HASH2 retry is now closed, not ACTIVE. Its original receipt
+   is CENSORED / TRANCHE_TIME_CAP after 21,606.036 seconds, exit -9; the original
+   supervisor reports INCOMPLETE, all owned children reaped, no errors and zero
+   automatic retries. There is no final account/result/checkpoint. The retained
+   lower bound is 2,028 native passes / 53,295,840 calendar bars, not 2,028
+   candidates, a completed financial sample or convergence. Original inventory37
+   remains a historical ACTIVE snapshot; do not overwrite it or reuse this cell.
+   Supervisor cleanup removes only its owned inactive scratch and retains all
+   output/log/source pins. Negative free-space change is not reclaimed space.
+   Traceback establishes a secondary custody defect: owned SIGTERM interrupts
+   descriptor close before ownership transfer, and finally closes the descriptor
+   again, masking InterruptedError with EBADF. Preserve this failure. Register
+   an isolated append-only guard adapter and cold signal/descriptor fixtures;
+   do not edit sealed guard03, driver, alpha, financial engine or old receipts.
+   The adapter must preserve full entry/exit hashes, symlink/inode/stamp checks,
+   PID/lifetime rules and actual faults. Only short descriptor-ownership
+   transitions defer SIGTERM/SIGINT; SIGKILL remains supervisor-controlled.
+   Tests must reproduce the old race, preserve interruption without FD leaks,
+   restore masks/handlers, reject symlinks and tampering, and retain real IO
+   errors. Measure cold overhead separately; no financial rerun or activation.
+   Detailed authority: [ordered runner custody](#mode5-m5-11-goal-closure),
+   [guide resource plan](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#73-resource-plan-và-tốc-độ-không-làm-hỏng-methodology).
+   Cold budget: 180 seconds, 256 MiB RSS, 2 MiB exact owned scratch, 8 MiB
+   retained output, at least 5 GiB free reserve; reuse the controlled tooling
+   interpreter. Seal inputs/source, terminal/cleanup lineage and tests before
+   execution; keep failure receipts and verify protected pins after cleanup.
+   Future capacity/guard activation needs a new source-bound request and remains
+   separate. No unmodified expensive retry, safety-cap relaxation, synthetic
+   third capacity slot, financial resume or release is authorized by this proof.
+
+**Native05 Closure / Cold Interrupt39 Receipt (2026-10-11):** the original
+   supervisor closure and CENSORED receipt are independently inspected after
+   both exact process handles disappear. TRANCHE_TIME_CAP, all children reaped,
+   zero closure/validation errors and zero automatic retries are retained.
+   There is no final account/checkpoint; original inventory ACTIVE status is a
+   historical snapshot, not a live worker. The cold descriptor adapter passes
+   13 focused actual-POSIX/FD/lifetime/tamper fixtures, zero fail/error/skip.
+   Wall 2.501 seconds, peak 27.641 MiB; zero financial/numeric imports, executions,
+   builds or activation. Main verifies 15 unique pins / 2,430,223 bytes without
+   rerunning tests. Exact source/request/artifact and old receipts are unchanged.
+   Its registered descriptor microbenchmark is 20.51% slower p50; do not claim
+   a whole-workload regression estimate or activate it through the old queue.
+   Cleanup/reserve PASS, only empty owned scratch removed, 5,722 retained bytes
+   before receipt, zero reclaimed fixture bytes and -28,672 available bytes.
+   The secondary EBADF is repaired in cold fixtures, not retroactively erased
+   from the six-hour failed attempt. A source-bound production handoff and
+   resource/performance decision still precede any new native financial retry;
+   no synthetic third slot or unmodified repeat is permitted. See the
+   [terminal/custody report](../docs/mode5/M5_11_1_NATIVE_PANEL_QUEUE.md#native05-terminal-and-interruption-custody).
+   Cold result SHA256:
+   `8fda083a2075be7ce2e4505b8dad497ff3c9975eb368590b3d49e3823158b91f`;
+   cleanup SHA256:
+   `953854a95f3ad8a7ca1b2afd1804ca64ff69287b462da12962fff10c13a4f60a`.
+
 <a id="mode5-m5-11-2"></a>
 ### Phase M5-11.2 - Actual Adaptive Calibration And Selector Comparisons
 
