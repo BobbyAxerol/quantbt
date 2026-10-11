@@ -2,11 +2,18 @@
 
 ## Current Mode 5 Diagnostics-First Upgrade - M5-11.1 Broad Diagnostics
 
-**Current Action (2026-10-11):** owner authorizes a smarter performance-only
-rerun after the bounded closeout. See [incremental recovery](#mode5-m5-11-incremental-recovery).
-Existing COMPLETE evidence is reused; no old compiler queue is relaunched.
-New financial scope is admitted only after matched final-command/accounting
-checks and a measured closed-candidate pilot. Scientific targets remain unchanged.
+**Current Action (2026-10-11):** performance-only incremental recovery completed
+its registered 45-minute tranche; all owned workers are reaped. See
+[incremental recovery](#mode5-m5-11-incremental-recovery) and the
+[final runtime report](../docs/mode5/M5_11_INCREMENTAL_RECOVERY.md#final-tranche-receipt).
+Matched HMA1/VWAP2 account paths remain exactly equal to the retained baseline;
+155 new native candidates pass final compiler, lifecycle and accounting checks.
+HMA/HASH/VWAP now each have 56/128 reusable configurations, RSI/SC remain
+128/128 each. The 216 missing native configurations are explicitly retained as
+212 pending plus four time-bound interruptions. Cold proof covers all 155 new
+rows / 620 dependent views without rerunning finance. No old queue is relaunched
+and no new queue survives this turn. M5-11.1 remains scientifically PARTIAL;
+M5-11.2/11.3 NOT_RUN, M5-12 NOT_STARTED. Targets and scientific gates are unchanged.
 
 **Previous Owner-Bounded Checkpoint:** execution tranche CLOSED_OWNER_ONE_HOUR;
 M5-11.1 remains scientifically PARTIAL / DEFERRED_OWNER_TIME_BOUND,
@@ -31464,8 +31471,9 @@ Execution closeout is complete; scientific work remains explicitly incomplete.
 <a id="mode5-m5-11-incremental-recovery"></a>
 #### M5-11.1 - Incremental Feedback And Prepared Native Recovery
 
-**Status:** RUNTIME_AND_MATCHED_CONTROLS_PASS / MISSING_ONLY_TRANCHE_READY;
-not panel-complete. [Recovery report](../docs/mode5/M5_11_INCREMENTAL_RECOVERY.md).
+**Status:** RUNTIME_AND_MATCHED_CONTROLS_PASS / TRANCHE_CLOSED_PARTIAL_PANEL /
+COLD_ACCOUNT_VIEWS_PASS; not panel-complete.
+[Recovery report](../docs/mode5/M5_11_INCREMENTAL_RECOVERY.md).
 **Goal:** remove quadratic replay of strategy decisions and repeated cold-path
 validation/report work without changing any alpha, market, account, clock,
 quantity policy, objective, RNG, configuration roster or economic threshold.
@@ -31532,6 +31540,32 @@ Python-oracle coverage; use retrospective knowledge labels, never historical or
 independent-OOS claims. Existing annual reducers may consume verified accounts;
 selector/checkpoint consumers need explicit status/role admission, not forged
 legacy PASS files. This cold reader runs no alpha, financial engine or pickle.
+**Closed tranche receipt (2026-10-11):** 155 new COMPLETE candidates in
+2,702.538 seconds: HMA52/HASH52/VWAP51, with median workers 76.888 / 34.777 /
+14.075 seconds and maximum per-worker peaks 461.996 / 508.516 / 443.316 MiB.
+Including 13 retained controls/candidates, all three native alpha panels now
+have 56/128 COMPLETE each; RSI/SC remain 128/128. All completed bulk financial
+residuals are zero, original compiler and typed lifecycle/terminal parity PASS;
+fresh Python financial-oracle coverage remains control-only. Four exact owned
+workers interrupted at the tranche limit are not successful observations. The
+212 pending plus four censored rows form a sealed 216-config missing-only
+inventory; the next tranche must consume that inventory, not restart at index4.
+Preserve the first controller's missing-directory fault and reuse its completed
+VWAP4. No automatic retry, source-alpha edit or financial-core change occurred.
+The latest cold proof verifies all 155 bulk rows, 620 dependent annual/full views
+in 109.893 seconds with zero financial runs. Exact old/new HMA1 and VWAP2
+hourly/daily account, cost, position and timestamp arrays match byte values.
+Sixteen focused runtime and nineteen cold-reader tests PASS. No full diagnostic
+panel, actual sampler study or prefix-forward result is implied.
+**Actual cleanup:** all workers reaped, no new build/environment/scratch; 790
+retained pins and native hash verified, no deletions. Tranche evidence occupies
+496.847 MiB, free space 20.96 GiB; closeout consumes 221,184 bytes, not positive
+reclamation. Private closeout result/cleanup SHA256 are
+`b579aac17690f76069bc91ecb08ea26041cfe153ef5448ce52f9b8af73621ab8` /
+`1c9fa6f4faf7eaee0c90036b10fd6a56a38d98ce442a56feed6c20dc8380a879`.
+Full native panels and explicit recovery-schema admission in diagnostic/selector
+consumers remain the M5-11.1 scientific work before M5-11.2/11.3. CI, push,
+release and publication remain off.
 **Cleanup/Commit:** retain data, exact artifacts, alpha source, failures, result
 paths and current environment; remove only registered inactive scratch after
 checks. Commit focused tooling/tests and report/plan; no CI/push/release.

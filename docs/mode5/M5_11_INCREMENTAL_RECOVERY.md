@@ -1,5 +1,9 @@
 # M5-11 Incremental Research Runner Recovery
 
+Current status: **RUNNER_AND_CONTROL_PARITY_PASS / CLOSED_PARTIAL_PANEL**.
+The 45-minute execution tranche is closed, with every owned worker reaped.
+Research panels and later scientific studies are not declared complete.
+
 Authority: [registered performance-only scope](../../upgrade/implement.md#mode5-m5-11-incremental-recovery)
 and guide [resource and retention procedure](../../upgrade/QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#73-resource-plan-và-tốc-độ-không-làm-hỏng-methodology).
 This is an offline research harness improvement, not a public endpoint or Rust
@@ -107,3 +111,67 @@ The scheduled account-bar bill is not native processed-bar telemetry.
 Legacy selector/checkpoint consumers still require explicit status/role
 admission before using these recovery rows. No legacy PASS file is forged;
 current financial rows remain usable through the verified typed account views.
+
+## Final Tranche Receipt
+
+The missing-only tranche returned **155 completed candidates in 2,702.538 s**
+(45-minute work budget plus shutdown). All score the original 2021-2023 hourly
+account, with 2020 preload and the same 128-point effective design per alpha.
+
+| Alpha | Newly Completed In Tranche02 | Total Reusable / Target | Median Worker Wall | Worker Wall Range | Maximum Worker Peak RSS |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| HMA | 52 | 56 / 128 | 76.888 s | 38.867-182.090 s | 461.996 MiB |
+| HASH | 52 | 56 / 128 | 34.777 s | 17.337-770.580 s | 508.516 MiB |
+| VWAP | 51 | 56 / 128 | 14.075 s | 11.469-126.561 s | 443.316 MiB |
+
+Totals deduplicate completed controls and prior native candidates. Thirteen
+native candidates were already reusable before tranche02, including VWAP4 from
+tranche01. There are now **168 / 384** completed native candidates. RSI and SC
+remain **128 / 128** each and were not rerun. The missing-only inventory retains
+**216** native configurations: 212 unstarted and four interrupted at the tranche
+boundary. Their retained faults are `InterruptedError: owned worker stop`, not
+financial parity failures or substituted economic observations.
+
+All 155 completed bulk rows passed full original compiler/decision and
+typed-to-normal lifecycle/terminal/accounting checks. Independent fixed-fill
+accounting residual is **zero** for every row. Python financial-oracle runs are
+explicitly control-only, not fresh oracle coverage for these 155 bulk rows.
+Thirty of the 51 new VWAP rows have no fills; retain flat equity and undefined
+zero-variance metrics rather than turn them into successful search outcomes.
+
+The first tranche controller failed because its checkpoint directory was not
+created. That failure and stopped workers remain retained. The corrected queue
+used a new append-only tranche and reused its completed VWAP4, without changing
+any financial request. No old failed or censored receipt was overwritten.
+
+After queue closure, the current cold reader verified **all 155 bulk rows** and
+produced **620 dependent annual/full-period views in 109.893 s**, with **zero**
+additional financial executions. The earlier 119-row proof above is historical.
+Closed HMA1/VWAP2 paths were also compared against retained native04: equity,
+positions, fees, funding, margin, turnover, daily returns and timestamps are
+**exactly equal**, not merely within a relative tolerance. The 16 runtime and
+19 cold-reader tests remain PASS; no already-passed financial run was repeated
+for this closeout.
+
+Tranche02 retains 496.847 MiB of evidence, below its 2 GiB budget. No new build,
+wheel, environment or disposable scratch was created. Cleanup verified **790**
+retained pins, the exact native hash and the reused environment. No deletion
+was warranted; free space after closeout is **20.96 GiB**, with 221,184 bytes
+consumed during the cold closeout rather than a fictitious reclamation claim.
+
+Private closeout result/cleanup SHA256:
+`b579aac17690f76069bc91ecb08ea26041cfe153ef5448ce52f9b8af73621ab8` /
+`1c9fa6f4faf7eaee0c90036b10fd6a56a38d98ce442a56feed6c20dc8380a879`.
+The sealed missing-only inventory is the next-tranche authority; do not restart
+the old queue at index 4 and repeat these completed configurations.
+
+## Remaining Scientific Work
+
+This closes the performance-only rerun, not M5-11 scientific qualification.
+Complete the remaining 72 configurations per native alpha, explicitly admit
+the recovery schema in diagnostic/selector consumers, and rebuild their full
+matrices/probes from verified accounts before scientific promotion. M5-11.2
+actual sampler/selector studies and M5-11.3 prefix-forward tests remain NOT_RUN;
+M5-12 remains NOT_STARTED. No new edge, sampler winner or independent-OOS claim
+is inferred from faster candidate evaluation. No queue, push, CI or publication
+remains active.
