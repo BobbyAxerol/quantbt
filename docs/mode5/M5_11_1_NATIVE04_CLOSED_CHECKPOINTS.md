@@ -71,6 +71,41 @@ PASS removes only its exact empty inactive fixture scratch; all original
 checkpoints, data, logs, source snapshots and shared environments remain.
 No cache/receipt cleanup is relabeled as economic qualification.
 
+## Retained Continuous Attribution
+
+A separate, registered cold adapter now reduces both COMPLETE account paths
+through the unchanged typed continuous snapshot and official reporting reducers.
+Nine focused fixtures PASS; two parent accounts produce eight dependent
+whole/annual views. No alpha, financial engine, compiler or owner pickle is run
+or loaded. Initial adapter-shape FAIL remains retained: the original margin
+output has two flattened columns, not one value per bar. Revision02 only admits
+that retained shape as supplementary, unused measurement data.
+
+| Annual View | HMA1 Return | HMA1 Sharpe | VWAP2 Return | VWAP2 Sharpe |
+| --- | ---: | ---: | ---: | ---: |
+| 2021 | -9.2697% | -1.791472 | -1.5054% | -0.190459 |
+| 2022 | +2.9701% | +0.810014 | +2.3243% | +0.746115 |
+| 2023 | -3.8349% | -1.336946 | -1.9865% | -1.626247 |
+
+Later-year baselines are the actual prior closes. Returns compound; cash PnL,
+fees/funding/turnover and fill/closure flows partition the one original account.
+Carried watermark and held campaign stocks remain separate. Whole Sharpe is
+calculated from all 1,095 daily UTC/365 returns, not averaged annual Sharpes.
+Costs already in equity are not charged again. Twenty-six sealed numeric
+comparisons are exact; 48 independent stdlib validation comparisons have maximum
+absolute errors 1.111e-15 / 8.882e-16, within the unchanged registered tolerances.
+Original 365-day growth and the official 365.25-day elapsed CAGR retain different
+names and values. These checks do not add independent economic replications.
+
+Reduction wall **7.139 s**, peak RSS **71.813 MiB**. Cleanup PASS verifies 2,560
+protected pins unchanged; zero scratch/deletion. Original failures, source,
+account paths, artifacts and the live HASH worker remain protected. Result SHA256:
+`1590177f9674a8a1c048aa41cdfe4250230aa035e35ebf98a7a1d1a679d41b94`.
+Cleanup SHA256:
+`db943147df028ed88843dd8ac6487ebaf17847554e76cdefb27374ee751c71e7`.
+Full rows and source-bound report remain private. This is measurement of two
+configurations, not native 128-point panels, search/selector comparison or forward.
+
 Result SHA256:
 `bb7eef250a6bfe6d030cdfba4e1ba542bba40862a4b210a623efccb1b83067f8`.
 Cleanup SHA256:

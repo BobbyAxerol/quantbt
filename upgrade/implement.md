@@ -37,7 +37,12 @@ pairs. All seven count/hash fields match the corresponding original native04
 HASH pairs; this proves only the returned prefix, not convergence, final
 accounting, timing improvement or a resumable checkpoint. Six-hour caps,
 original guards and finance remain unchanged. HMA/VWAP retained whole/annual
-measurement is being prepared separately without replay or active-source edits.
+measurement now PASS: nine focused fixtures, two parents/eight dependent views,
+26 exact sealed comparisons and 48 independent stdlib comparisons, no replay.
+Original FAIL and unused flattened-margin metadata remain explicit. A new cold
+retry-capacity contract admits those exact two requests, with HASH still missing;
+12 fixtures PASS. Old native03 capacity FAIL and all censored attempts remain.
+The versioned consumer/three-slot/disk gate is still open; no policy activation.
 New wrapper/observer qualification totals 107 passing source tests, including
 eight wrapper and ten driver-pattern cases; this is not 107 economic trials.
 The six-hour caps, three independent worker slots, one numeric thread, original
@@ -30414,6 +30419,62 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    data, workers, caches and evidence remain. Original request, four-GiB store,
    one numeric thread and six-hour caps unchanged; 16-GiB queue inactive.
    No convergence/ETA/timing-superiority/COMPLETE/economic/phase promotion.
+   **Native04 Retained Measurement Receipt (2026-10-11):** revision02 passes
+   nine focused fixtures and produces eight dependent whole/annual views from
+   the two exact COMPLETE account NPZs. All 26 original scalar/component values
+   match exactly; 48 independent stdlib checks have maximum error 1.111e-15 /
+   8.882e-16. Annual cash/cost flows reconcile, prior-close and carried watermark
+   remain distinct, whole Sharpe is not mean annual Sharpe, and original 365-day
+   growth is not silently replaced by the official 365.25 elapsed convention.
+   Initial FAIL preserves the original adapter's wrong one-column margin
+   assumption; correction admits the existing flattened two-column array as
+   unused supplementary data, without changing account arrays or methodology.
+   Wall 7.139 s, peak RSS 71.813 MiB; cleanup PASS verifies 2,560 protected pins,
+   no scratch/deletion, finance/alpha/market/owner/native/compiler/worker calls.
+   Result SHA256 `1590177f9674a8a1c048aa41cdfe4250230aa035e35ebf98a7a1d1a679d41b94`.
+   See [closed economics attribution](../docs/mode5/M5_11_1_NATIVE04_CLOSED_CHECKPOINTS.md#retained-continuous-attribution).
+   **Retry-Aware Capacity Entry (2026-10-11):** prepare a versioned, cold-only
+   resource review for the exact native04 HMA1/HASH2/VWAP2 requests. A successful
+   fresh retry may supply its own COMPLETE checkpoint only when its entire raw
+   request equals the preregistered original and its closed compiler/custody
+   proof passes. Keep original censored attempts and native03 capacity FAIL;
+   never rename, adopt, overwrite or relabel their checkpoints. Require one
+   distinct source-bound request per alpha, original financial/native gate,
+   exact selected registration, complete whole-cell inventory and original
+   receipt/output/source/hash seals. Missing/live/censored/faulted slots produce
+   PENDING, not capacity PASS or activation. Resource identities are separate
+   from candidate selection and scientific support; no economic winner chooses
+   the capacity sample. New consumer integration must explicitly accept this
+   version before it can use the future 16-GiB policy. Register five minutes,
+   one thread, 16-MiB scratch/32-MiB retained/512-MiB RSS and 5-GiB reserve.
+   No account execution, owner unpickle, object-signature recomputation,
+   sampler/RNG, active source mutation or automatic queue launch. Retain focused
+   fixtures, source/input snapshots, actual admission output and exact cleanup.
+   **Retry-Aware Capacity Receipt (2026-10-11):** twelve focused cold fixtures
+   PASS and existing exact Candidate/checkpoint/closed-compiler proof verifies
+   HMA1/VWAP2 against the original native04 three-request roster. Full cells,
+   source, receipts and returned-work inventories reconcile. HASH remains
+   missing; actual output PENDING_MISSING_CLOSED_SLOTS, not three-slot capacity
+   PASS. Whole raw-request equality is type-sensitive and unchanged; a retry
+   name does not replace candidate identity. Wall 8.762 s, peak RSS 37.621 MiB;
+   cleanup PASS_NO_SCRATCH_CREATED, no finance/unpickle/object-signature/launch.
+   Result SHA256 `a3d0aa5e27b57f1521c53705e6f314573bf539e043617607c1a495c7c1337830`.
+   Historical native03 resource review is preserved; explicit v2 consumer,
+   third closed proof and conservative disk admission remain required before
+   the future queue. See [resource-only report](../docs/mode5/M5_11_1_RETRY_CAPACITY.md).
+   **Strict Custody Repair Experiment Entry (2026-10-11):** independently repair
+   the rejected epoch16 prototype's missing per-path ancestor-read authorization
+   in a fresh ignored source/evidence lane. Preserve the original guard, prior
+   FAIL and active native05 pins. Every guard use must revalidate original path,
+   ancestor authorization and unchanged hash/identity semantics; a once-per-epoch
+   permission check is not equivalent. Reuse exact original and adversarial
+   cold fixtures, adding only cases needed for the observed fault. Compare with
+   original runtime outputs and exceptions, then a bounded custody-only timing
+   fixture. Register ten minutes, one thread, 16-MiB scratch/64-MiB retained,
+   512-MiB RSS and 5-GiB reserve. No finance/native engine, alpha/market loading,
+   financial-object hashing, worker signals, source edits or activation. A
+   successful local experiment is still not permission to switch live workers;
+   future integration needs explicit versioned source/entry/exit/custody proof.
    **Native03 Closed-Custody Receipt (2026-10-11):** host/session and source
    review passes for the actual cap event, not final financial qualification.
    HMA/HASH journals contain 77,568/80,419 valid sequential rows and returned
