@@ -30082,6 +30082,32 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    bytes before cleanup receipt, zero scratch/deletion. See the
    [staged ownership report](../docs/mode5/M5_11_1_SNAPSHOT_STORAGE_STAGE.md).
    Public shared repair/reporting regression remains required after worker close.
+   **Public Snapshot Regression Entry (2026-10-11):** add focused source tests
+   for the actual 144-mark pickle counterexample before the shared repair.
+   Exercise copy/deepcopy and all supported pickle protocols, nested account
+   returns, execution fees, cached identity reuse and readonly/header-isolation
+   controls. Test the existing reporting authorities on synthetic marks only;
+   no finance, market, sampler, native call, JIT or source monkeypatch. Keep the
+   failing current-source baseline, not an xfail or a claimed deployed fix.
+   The native03 registration contains no repository test-file pins; its shared
+   executable source, dependency/artifact pins and worker epochs stay frozen.
+   Register one controlled thread, three-minute wall cap, 16 MiB scratch,
+   32 MiB retained test outputs and 5 GiB reserve before pytest; preserve JUnit
+   and command results and remove only the exact inactive pytest scratch.
+   Apply the narrow helper repair and rerun this same roster plus the existing
+   reporting regression only after exact live-worker closure. A red baseline
+   is evidence of the known reporting/cache gap, not phase completion.
+   **Public Snapshot Baseline Receipt (2026-10-11):** the actual public source
+   roster returns 15 FAIL / 9 PASS, no errors/skip/xfail. Failures reproduce
+   account/cache/fee-path writable ancestry on pickle 0..4; copy/deepcopy,
+   protocol 5 and storage controls pass. No monkeypatch, source activation,
+   JIT, market or financial execution. All 11 exact registered source pins stay
+   unchanged; 3.583 s / 179.70 MiB child RSS. JUnit/log/result retained in the
+   ignored snapshot-public-regression12 lane; result SHA256
+   `c078f7fcf4f89c914ff6c1af73a6aaf5d99c852360abb1163dcfd35313018d47`.
+   Cleanup/reserve PASS: 55,069 bytes before cleanup, zero scratch/deletion.
+   This red regression establishes the before-repair authority only; shared
+   helper repair and reporting qualification still follow live-worker closure.
    **First-Three Capacity Review Entry:** prepare a small read-only producer for
    the qualified future-queue policy's existing capacity-review schema. It may
    run only after collector result/cleanup PASS, each exact original session is

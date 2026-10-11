@@ -1,6 +1,6 @@
 # M5-11.1 Snapshot Storage Staging
 
-Status: **GAP_REPRODUCED / STAGED_FIXTURES_PASS / SOURCE_UNPATCHED**.
+Status: **GAP_REPRODUCED / PUBLIC_REGRESSION_RED / SOURCE_UNPATCHED**.
 This is reporting/cache correctness work required before the continuous public
 measurement provider. It does not change engine accounting, formulas or studies.
 
@@ -48,6 +48,24 @@ preserves array lengths and directly tests write-enable before cache mutation.
 | Cleanup | 90c707d2cd723e26937f5515835f458f16c1b92ca2110d13f6aac592364eb4d1 |
 
 ## Custody And Next Gate
+
+The public source regression now contains the actual 144-mark case in
+[test_snapshot_large_roundtrip.py](../../tests/metrics/test_snapshot_large_roundtrip.py).
+Its unchanged-source baseline is **15 FAIL / 9 PASS**, with no collection error,
+skip, xfail, monkeypatch or financial execution. The failures are account/storage,
+cache and fee-path pickle protocols 0..4; copy/deepcopy, protocol 5 and the
+readonly-sharing/mutable-owner controls pass. This is a deliberately recorded
+red baseline, not passing source qualification. It retains JUnit, command output
+and exact input/source hashes in the ignored `snapshot-public-regression12` lane.
+
+The source test took 3.583 seconds including process startup, peak child RSS
+179.70 MiB. All 11 registered source pins remained unchanged. Cleanup PASS
+retains 55,069 bytes before its receipt, zero disposable scratch and no deletion;
+the three-minute cap, 16-MiB scratch/32-MiB retained and 5-GiB reserve hold.
+Baseline result SHA256:
+`c078f7fcf4f89c914ff6c1af73a6aaf5d99c852360abb1163dcfd35313018d47`.
+Repository test files are not native03 financial source pins; no active worker,
+guard, compiler or shared reporting implementation changed for this regression.
 
 The private snapshot-storage11 lane remains ignored. Registered bounds were one
 numeric thread, ten minutes, 16 MiB scratch, 32 MiB combined retained and a 5-GiB
