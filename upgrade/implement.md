@@ -29790,6 +29790,42 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    real host launch; 32 MiB scratch, 64 MiB retained and 5 GiB reserve. Existing
    monitor remains solely responsible for original worker caps. This collector
    does not activate the future queue, alter epochs or close research gates.
+   **Main Collector Integration Entry:** review the corrected cold handoff and
+   exact original/helper/source pins before a main-owned real host launch. Seal
+   the typed request and source-bound registration in a fresh collector lane;
+   keep launch/log custody in a separate lane so no output overwrite or false
+   resume occurs. Confirm the original guardian is live in the same namespace
+   and its original epoch/budget remains unchanged. The collector may only wait
+   for the two original workers and delegate their closed proof/checkpoint
+   sequence. Existing VWAP evidence is read-only; no finance, signals, retries
+   or later queue activation. Register 32 MiB scratch/64 MiB retained and 5 GiB
+   reserve; preserve cold failed laps and all actual stage/fault receipts. A live
+   collector is a watched wait, not financial or full-goal completion.
+   **Collector Prefix Correction:** the original 38 mocked custody fixtures
+   did not cover the real dash/controlled-wrapper prefix. Handoff01 is blocked
+   and retained, not relabeled qualified. Thirteen focused replacement tests
+   verify the original registration prefix, both command-file pins, typed CLI,
+   exact delegated argv, missing/changed/symlinked inputs and nonzero child
+   returns. Source02 SHA256 is
+   `1cf09aca57f57786a3ef87481c35142db8660d57a1f5876a1f18bd112ef0c64e`.
+   Main's initial sys.executable pin check failed before any registration or
+   collector/helper launch; its source/error/cleanup receipt remains retained.
+   Corrected main integration uses the unchanged original prefix, not another
+   interpreter or financial runner. These counts are separate qualification
+   scopes, not a combined full-regression certificate.
+   **Actual Collector Receipt (2026-10-11):** corrected source02 and handoff02
+   independently verify, with 13 focused prefix fixtures, cold cleanup PASS and
+   8,043 protected pins unchanged. Main seals the exact request/registration and
+   launches through the original controlled prefix. Host inspection confirms
+   the collector, original guardian and both original HMA/HASH workers live in
+   their distinct unchanged sessions; collector entry has no fault or delegated
+   stage yet. Financial calls, new attempts, worker signals/restarts and future
+   queue activation are zero. Existing VWAP output/checkpoint remains read-only.
+   Actual collector cleanup is pending; cold failures and main preflight failure
+   remain retained, not promoted. See the
+   [current watched-tranche note](../docs/mode5/M5_11_1_NATIVE_TRANCHE_PENDING.md#watched-completion-custody).
+   Native full panels, capacity review, sampler and formal/prefix work are still
+   IN_PROGRESS/NOT_RUN; the collector does not close any economic gate.
    **Formal Domain Structural Preflight Entry:** while financial sources remain
    frozen, an isolated cold check may project the original pure schema function
    without importing private alpha/finance modules. Require exact geometry IDs
