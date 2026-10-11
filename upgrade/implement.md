@@ -29776,6 +29776,48 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    cold cleanup retains 5,405 bytes, zero scratch/deletion. No HMA/HASH output
    adoption or later financial activation occurred. First-three capacity,
    remaining panels/probes, sampler and formal/prefix studies remain open.
+   **Closed-Tranche Collector Entry:** prepare a bounded private custody-only
+   collector so background completion leads to proof/checkpoint work rather
+   than repeated manual status polling. Pin the two main integration helpers,
+   original native03 worker/supervisor identities and the independent helper
+   handoffs. Poll exact host identities without signals, retries, new attempts
+   or financial imports. After an original session is absent, invoke the
+   unchanged closed-output register/host/qualify and checkpoint register/publish
+   sequence only; pre-existing proof/receipt paths require verified safe reuse,
+   never overwrite. Incomplete/changed/live/PID-reused outputs remain explicit
+   failures and block further activation. Retain append-only stage/fault
+   receipts and final resource/cleanup evidence. Cold mocked fixtures precede
+   real host launch; 32 MiB scratch, 64 MiB retained and 5 GiB reserve. Existing
+   monitor remains solely responsible for original worker caps. This collector
+   does not activate the future queue, alter epochs or close research gates.
+   **Formal Domain Structural Preflight Entry:** while financial sources remain
+   frozen, an isolated cold check may project the original pure schema function
+   without importing private alpha/finance modules. Require exact geometry IDs
+   and raw/effective identities for all 128 original points of all five alphas.
+   Validate existing sampler recipes through the shared factory's geometry
+   preflight, with declared inactive/cast/conditional/coupled policies and no
+   ordinal encoding, silent support change or objective observations. This is
+   structural compatibility only, not a sampler recommendation or executed
+   search. Preserve V1 and expose the remaining continuous-account/probe bridge
+   requirements explicitly. Register 32 MiB scratch/64 MiB retained and 5 GiB
+   reserve; focused fixtures, source/input seals and cleanup precede the report.
+   Do not create samplers, draw RNG, import an engine, rerun accounts or activate
+   M5-11.2 before the approved dossier/scientific/runtime entry gates.
+   **Structural Preflight Receipt (2026-10-11):** eight focused fixtures PASS;
+   all 640 original effective points preserve schema/raw/effective identities.
+   Legacy and multivariate/group TPE pass geometry for all five alphas. Strict
+   CMA is numeric-compatible only for RSI/HASH; SC/HMA/VWAP reject without ordinal
+   encoding. Legacy Sobol rejects VWAP conditional support; the existing explicit
+   conditional policy passes geometry. No samplers, RNG draws, finance or engine
+   imports occurred. Failed import/fixture lanes remain retained and shared code
+   is unchanged. Result SHA256 is
+   `f922226fbbdcd6a6bac68a9b3bba0ebc7a15dff1e9c9d4e3ba752f0bf2a9fbbe`;
+   cleanup/reserve PASS retains 47,157 bytes, zero scratch/deletion. The
+   [structural report](../docs/mode5/M5_11_2_RUNTIME_PREFLIGHT.md) separates these
+   compatibility checks from constructor/RNG/work qualification and the still
+   required continuous-account/raw-Sharpe/effective-probe integration. Original
+   V1, financial sources and active native03 workers remain unchanged; no actual
+   sampler study, future tranche activation or formal/forward completion claim.
 **Goal:** actually measure the effective landscape, active neighborhoods and
    environment differences before formal tuning, for all five admitted alphas.
 **Entry:** M5-11 review, unchanged alpha/account witnesses, source/data inventory,
