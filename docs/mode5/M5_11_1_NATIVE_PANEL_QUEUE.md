@@ -1,6 +1,6 @@
 # M5-11.1 Native Panel Queue And Missing Work
 
-Status: **COLD_BINDING_AND_ACTUAL_ROSTER_INTEGRATION_PASS / CAPACITY_AND_PANELS_PENDING**.
+Status: **V2_INVENTORY_BINDING_AND_ACTUAL_ROSTER_INTEGRATION_PASS / CAPACITY_AND_PANELS_PENDING**.
 Authority: [ordered closure](../../upgrade/implement.md#mode5-m5-11-goal-closure)
 and [guide comparison levels](../../upgrade/QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#49-multi-hypothesis-empirical-battery-giữ-năm-chiều-làm-rõ-mỗi-phép-thử).
 
@@ -219,9 +219,10 @@ Result SHA256:
 Cleanup SHA256:
 `4dd0f17189b379f4384c779a98db817a420e7e7cc0396ea4e5b61373feb72226`.
 
-The sealed queue32 remains unchanged and does not consume v2 yet. An explicit
-new binding and source handoff are required; pending real capacity cannot be
-replaced with a synthetic PASS or inferred from seven unrelated COMPLETE cells.
+At the inventory37 checkpoint, sealed queue32 remained unchanged and did not
+consume v2. The separately qualified binding below now supplies that missing
+handoff; pending real capacity cannot be replaced with a synthetic PASS or
+inferred from seven unrelated COMPLETE cells.
 
 The actual new entry revalidates the inventory and its sources/closed proofs,
 then matches three missing targets to the unchanged original financial requests:
@@ -238,6 +239,66 @@ Result SHA256:
 `6cc6429d5c5e9464b6ce540f2f7220b132cdd0097ca8d5bf57b513374a7a40cd`.
 Cleanup SHA256:
 `b024a9dbe38d95ab90d67537582b583d50cf1e4c3f75d9d17bcf67ceff657ddb`.
+
+## Explicit V2 Queue Binding
+
+Future queue38 now selects the exact qualified inventory37 revision02 in an
+isolated instance of queue32. It preserves the original native05 worker, fresh
+driver, dependency guard, queue preparation/finalization/activation, resource
+consumer and six-hour/three-slot/one-thread limits. All loaded sources and
+inventory authority receipts are in the request's 51-path source graph. Sealed
+queue32, inventory33/37, historical financial outputs and the live worker are
+unchanged; no new execution engine or checkpoint adoption is introduced.
+
+Six focused authority/version/source/delegation/argv/mutation tests PASS, with
+no failure/error/skip. The existing queue32 session/fault/restore tests are
+reused, not rerun or counted as new tests. An initial fixture lacked the original
+wrapper's `entry_argv`; its FAIL and cleanup remain. Revision02 corrects the
+fixture by loading the exact unchanged native wrapper.
+
+Actual integration verifies all 384 original requests and the seven-reuse,
+one-active, 376-fresh inventory. It admits HMA2/HASH3/VWAP3, rejects duplicate,
+boolean-index, COMPLETE, ACTIVE and changed-document targets, and matches the
+selected exact raw financial requests through the original queue verifier.
+The real pending review raises `CustodyFault` before destination reservation or
+financial factory access: **zero factories, workers, financial/numeric runs or
+activation**. This is negative capacity integration, not positive authorization
+to launch the future 16-GiB queue.
+
+Wall **75.552 s**, peak RSS **172.383 MiB**. Main read-only review verifies 66
+unique source/input/result pins over 10,635,205 bytes without producer rerun.
+Cleanup/reserve PASS: 65,837 bytes retained before the receipt, zero scratch or
+deletion. Observed free space decreases 585,728 bytes during concurrent work;
+no recovered-space gain is claimed. Private code, requests, sources and evidence
+remain ignored. Actual financial preparation/finalization and launch await real
+closed capacity and disk review; full panels, recipes and forward remain open.
+
+Result SHA256:
+`fcc508dbf822f40fe84997335c34c014143a0c134473cb7be0dc01ff9cb0f6b3`.
+Cleanup SHA256:
+`083589862578fa455bc6b524306a1b9c17592c1b327730901559a83ee347062e`.
+Revision02 handoff SHA256 (preserved, not the final consumer handoff):
+`0a8c41b4e033a5e498f670d13e39d61eb615ba71578c5ad76c17a2f146601c50`.
+
+Independent review found duplicate binding/launcher pins in that handoff and
+30 request-source paths missing from the runner's cleanup verifier. Main's
+66-pin review covers the actual run, but the old handoff correctly fails the
+standard `FrozenPins` uniqueness rule. A separate append-only revision03 keeps
+all old evidence, rejects conflicting duplicates, deduplicates identical records
+and checks the entire 51-path request graph plus authority: **70 unique pins**
+before and after sealing. Its final handoff passes the standard verifier.
+There is no test/integration/account rerun, no new runtime authority and no
+retroactive claim that the old cleanup covered those missing paths.
+
+Seal amendment: **0.058 s**, peak RSS **17.750 MiB**. Cleanup PASS, 19,375 retained
+bytes before receipt, zero scratch/deletion and unchanged original source.
+Observed available-space change is -28,672 bytes, not reclaimed space.
+Final seal result SHA256:
+`aa88aedb27a4419f4c45bff75b9e0d7d44f2c43ff6af4210cacc6bf06ac17015`.
+Full-graph cleanup SHA256:
+`1619670c7d8ff818aeae0155101882611345102d66946baf75a63c4687731d76`.
+**Final consumer handoff SHA256:**
+`8f3d24ab256fb50362311052a9e6aecab70720775b14ee968360b3404a4b617c`.
 
 ## Remaining Scientific Work
 

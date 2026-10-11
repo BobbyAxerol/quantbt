@@ -60,8 +60,10 @@ is slightly profitable but utility negative; VWAP1 remains valid no-trade with
 undefined Sharpe/PSR. Fresh v2 inventory now admits both exact requests: seven
 qualified reuse, one active HASH2 and 376 eligible fresh targets. Eight focused
 cases and actual lineage/source/numeric proof PASS; old inventory/rejections
-are not rewritten. The new schema rejects through the old consumer; a new
-explicit queue binding is pending. Actual original queue admission
+are not rewritten. The new schema rejects through the old consumer; isolated
+queue38 now binds the exact v2 inventory and unchanged queue32/native05 contracts.
+Six focused cases and actual 384-request integration PASS, 75.552 s/172.383 MiB,
+zero financial factories, workers or reservations. Actual new queue admission
 rejects pending HASH capacity before any reservation/factory/worker. These are
 work/custody proofs, not completed scientific panels or new economic evidence.
 New wrapper/observer qualification totals 107 passing source tests, including
@@ -30704,6 +30706,48 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    modify sealed queue32/inventory33/37/amendment35/measurement36 sources, live
    worker, public QuantBT or private alpha. No new worker, simulation or launch
    until the existing three-COMPLETE-slot and conservative free-space gate pass.
+   **Future Queue38 Receipt (2026-10-11):** revision02 PASS: six focused
+   authority/version/source/delegation/argv/mutation cases and actual v2 roster
+   integration. Original queue32 session/fault/restore proof is reused, not
+   counted twice. Initial wrapper-stub fixture FAIL and cleanup retained;
+   correction calls the exact unchanged native05 wrapper. All 384 original
+   requests verify, seven qualified reuse/one ACTIVE/376 fresh unchanged.
+   HMA2/HASH3/VWAP3 match exact original raw requests; duplicate/bool/COMPLETE/
+   ACTIVE/changed-document admission rejects. Actual pending review raises
+   CustodyFault before factory/destination: zero financial/numeric calls,
+   workers, reservations or activation. Loaded helpers and qualified inventory
+   authorities are in the 51-path request source graph; no sealed helper,
+   public source, financial compiler or live worker is edited. Wall 75.552 s,
+   peak RSS 172.383 MiB; cleanup PASS, 65,837 retained bytes before receipt,
+   zero scratch/deletion, 5-GiB reserve. Main read-only review verifies 66 unique
+   pins/10,635,205 bytes without producer rerun. Result SHA256
+   `fcc508dbf822f40fe84997335c34c014143a0c134473cb7be0dc01ff9cb0f6b3`;
+   cleanup `083589862578fa455bc6b524306a1b9c17592c1b327730901559a83ee347062e`;
+   handoff `0a8c41b4e033a5e498f670d13e39d61eb615ba71578c5ad76c17a2f146601c50`.
+   Independent read-only review finds duplicate binding/launcher source pins in
+   the revision02 handoff and 30 required paths omitted by its cleanup verifier.
+   Main's actual 66-pin review covers the run, but the old handoff cannot be used
+   directly with FrozenPins. Register an append-only cold seal amendment: verify
+   every actual request source plus prior protected authority, deduplicate only
+   identical path/size/hash records, reject conflicts, and seal a unique handoff.
+   Preserve old source/tests/integration/result/cleanup and their limitations;
+   no test, integration, financial or numeric rerun. Sixty seconds, 512-MiB RSS,
+   one-MiB retained, zero scratch, 5-GiB reserve; full before/after pin verification
+   and own-only cleanup precede handoff. No worker or capacity activation.
+   **Queue38 Full-Graph Seal Receipt:** revision03 PASS, reusing the exact six
+   focused tests and actual integration without rerun. All 51 required-source
+   paths and authorities are checked as 70 unique pins before/after; conflicting
+   duplicates reject and final handoff passes standard FrozenPins. Old non-unique
+   handoff fails as expected and remains retained; old partial cleanup coverage
+   is not rewritten. Seal 0.058 s/17.750 MiB, zero finance/numeric/test/integration
+   reruns, workers or activation; cleanup PASS, 19,375 bytes before receipt,
+   zero scratch/deletion, reserve PASS. Result SHA256
+   `aa88aedb27a4419f4c45bff75b9e0d7d44f2c43ff6af4210cacc6bf06ac17015`;
+   cleanup `1619670c7d8ff818aeae0155101882611345102d66946baf75a63c4687731d76`;
+   final handoff `8f3d24ab256fb50362311052a9e6aecab70720775b14ee968360b3404a4b617c`.
+   COLD_QUALIFIED_NOT_ACTIVATED: actual three-COMPLETE-slot/disk/finalization
+   remain required. Scientific panels/dossiers/sampler/formal-forward unchanged;
+   no CI/push/merge/release. See [v2 queue binding](../docs/mode5/M5_11_1_NATIVE_PANEL_QUEUE.md#explicit-v2-queue-binding).
    **Native03 Closed-Custody Receipt (2026-10-11):** host/session and source
    review passes for the actual cap event, not final financial qualification.
    HMA/HASH journals contain 77,568/80,419 valid sequential rows and returned
