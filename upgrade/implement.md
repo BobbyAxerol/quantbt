@@ -30056,6 +30056,31 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    required continuous-account/raw-Sharpe/effective-probe integration. Original
    V1, financial sources and active native03 workers remain unchanged; no actual
    sampler study, future tranche activation or formal/forward completion claim.
+   **Sampler Constructor And Ordered Ask/Tell Entry (2026-10-11):** close the
+   remaining runtime dependency/constructor gate using a fresh ignored functional
+   fixture lane, not an economic sampler comparison. Reuse the original pure
+   five-alpha geometry and shared sampler factory/bridge; do not import or run
+   alpha, market, account, native execution or public WFO facades. Exercise the
+   compatible legacy/group TPE, strict numeric CMA and versioned Sobol recipes
+   with a preregistered small ordered ask/tell roster and explicitly synthetic
+   feedback. Incompatible spaces must retain explicit rejection; no ordinal
+   category conversion, inactive-input rewrite or silent independent fallback.
+   Preserve raw/effective cast, conditional and coupled-constraint identities;
+   separate proposed, infeasible, duplicate, completed and failed fixture points.
+   Record actual Optuna/CMA/SciPy module origins/versions and sampler warnings,
+   conditional masks, QMC startup/index provenance and repeatability under the
+   unchanged seed. Verify existing exact-continuation policy only within its
+   documented supported contract; do not claim financial/account checkpointing.
+   RNG draws belong solely to independent fixture processes and must never read,
+   consume or replace an actual study's state. Do not rank synthetic outcomes as
+   sampler quality or count these as diagnostics, trials or economic evidence.
+   Register exact sources/dependencies/inputs, per-arm ask/tell work and bounded
+   wall time before execution; use the current controlled environment, one
+   numeric thread, 32 MiB scratch/64 MiB combined retained and 5 GiB reserve.
+   Preserve failure lanes, clean only reviewed owned scratch and report remaining
+   actual sampler-only, public-provider and formal/prefix entry gates separately.
+   No public/shared source change, native03 signal/retry, next tranche activation,
+   CalibrationPlan, financial call, CI, push, release or publication is allowed.
 **Goal:** actually measure the effective landscape, active neighborhoods and
    environment differences before formal tuning, for all five admitted alphas.
 **Entry:** M5-11 review, unchanged alpha/account witnesses, source/data inventory,
