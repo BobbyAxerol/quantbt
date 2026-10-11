@@ -69,3 +69,10 @@ typed admission for the original 256 RSI/SC parents and 1,024 whole/annual
 views. It preserves original source/path/candidate/access identities without
 resetting accounts. It does not bind the actual public provider, raw-Sharpe
 channel or adaptive study, and does not replace these formal entry gates.
+
+The subsequent [sampler runtime preflight](M5_11_2_SAMPLER_RUNTIME_PREFLIGHT.md)
+exercises actual factory, dependency, ordered ask/tell and supported continuation
+contracts on synthetic feedback: 21 compatible arms, four explicit rejections,
+10/10 corrected-control tests PASS with the original FAIL retained. This closes
+that bounded functional gate, not sampler economics, public/provider qualification
+or formal search.

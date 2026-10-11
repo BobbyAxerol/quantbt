@@ -30119,6 +30119,23 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    actual sampler-only, public-provider and formal/prefix entry gates separately.
    No public/shared source change, native03 signal/retry, next tranche activation,
    CalibrationPlan, financial call, CI, push, release or publication is allowed.
+   **Sampler Runtime Receipt (2026-10-11):** 21 compatible actual shared-factory
+   arms and four explicit rejections; 10/10 corrected-control tests PASS. The
+   original 9/10 FAIL remains unchanged; runtime correctly rejected COMPLETE
+   on a duplicate. Fresh controls honor PRUNED without changing inputs/RNG/draw
+   order or rerunning the matrix. Each compatible arm preserves 24-point ordered
+   repeat/continuation witnesses; all 640 original identities revalidate. Actual
+   CMA implementation/dependencies loaded; warnings and legacy mixed-category
+   policy remain explicit. Total 1,796 FIXTURE_QUERIES / 1,795 terminal tells
+   are not financial trials; zero accounts, economic executions, actual study
+   RNG reads or source changes. Corrected result SHA256:
+   `7c8e10e10dc5a8d967c7ee2e013a1a867212eb47f1980a99423647e1a81b50c9`.
+   Main verifies 4,004 unique pins / 223,289,488 bytes before planned docs changes.
+   Original/control work 51.709/7.182 s, RSS 161.9/159.3 MiB, not economic latency.
+   Cleanup/reserve PASS; 6,543,635 bytes before final receipt, no scratch/deletion.
+   The [runtime report](../docs/mode5/M5_11_2_SAMPLER_RUNTIME_PREFLIGHT.md) separates
+   functional qualification from actual provider, sampler-only, dossier, formal
+   search and prefix/forward gates still NOT_RUN.
 **Goal:** actually measure the effective landscape, active neighborhoods and
    environment differences before formal tuning, for all five admitted alphas.
 **Entry:** M5-11 review, unchanged alpha/account witnesses, source/data inventory,
