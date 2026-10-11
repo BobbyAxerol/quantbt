@@ -168,3 +168,30 @@ Handoff SHA256:
 `13070609603d8361a663a30847b1f99e500982466cdf5a97b1aa8de6b89b0797`.
 Matched measurement SHA256:
 `e2f3b7d23126d4983f714fa733a5aa3b9ed1d46590f4ea382d09fbe8efdb55da`.
+
+## Passive Iteration Witness
+
+A new focused [signature observer](../../tools/mode5_research/iteration_witness.py)
+pairs the original already-computed compilation/result hashes and actual
+command/feedback/fill counts in the durable journal. It neither computes an
+extra hash nor simulates an account. A returned pair is diagnostic evidence,
+not a convergence certificate or resumable financial checkpoint. Original
+conformance remains the sole fixed-point/cycle authority.
+
+Nine new tests, 69 existing observer and 11 existing conformance cases PASS
+(89 total, no failure/error/skip). The real synthetic six-bar account comparison
+runs three baseline and three observed passes and preserves the complete
+iteration certificate and callback order exactly. Interrupted signatures,
+unreturned pairs, journal faults and invalid order remain explicit and latched.
+Other suites' synthetic account work is not separately instrumented; none of
+these counts is a private-alpha trial or an economic replication.
+
+The registered source-only workload takes 21.900 seconds, peak completed-child
+RSS 337.008 MiB. Cleanup PASS removes only 2,142,274 logical owned scratch bytes,
+retains 80,989 bytes before its receipt and verifies every source pin. No build,
+installation, private-alpha execution or new tranche occurred. The future worker
+still needs explicit source-pinned wrapper integration; this does not upgrade
+the old capped HMA/HASH journals or prove their convergence.
+
+Result SHA256:
+`c2c3b49213c7a0fa8625a70257f0566328eab87eb0d0b4b25dd53a1acdfc3077`.

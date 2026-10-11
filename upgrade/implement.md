@@ -30191,6 +30191,30 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    convergence, studies, worker wall caps or the COMPLETE capacity gate. A
    beneficial qualified change still needs source/wrapper integration and a
    new exact financial registration; old attempt receipts remain unchanged.
+   **Iteration Witness Entry (2026-10-11):** retain each future compiler pass's
+   already-computed command/result hashes and actual feedback/fill counts in
+   the existing durable FeedbackObserver journal. Use a focused signature
+   decorator on the frozen conformance functions; do not change the compiler,
+   signatures, convergence rule, order/account state, run limits or old driver.
+   Pair only a completed compilation signature with its returned result; an
+   interrupted/unreturned pair stays unavailable and cannot become a checkpoint.
+   Test exact original/observed real synthetic-account certificates, ordering,
+   observer faults and no extra callback/hash/evaluation calls. Register ten
+   minutes, one numeric thread, 16 MiB scratch, 32 MiB retained and 5 GiB reserve.
+   Future wrapper integration must explicitly pin this source and preserve
+   original guard checks, before any new private-alpha attempt is launched.
+   **Iteration Witness Local Receipt (2026-10-11):** nine new witness tests,
+   69 existing observer and 11 existing conformance cases PASS (89 total,
+   zero failures/errors/skips). The actual six-bar Python fixture runs three
+   original plus three observed accounts; command/result hashes, iteration
+   certificate and call order are exact. Journal pairing adds no hash or
+   financial callback. Unreturned pairs and observer faults remain unavailable,
+   latched and non-resumable. Actual source-only workload 21.900 s, completed
+   child peak RSS 337.008 MiB. Cleanup PASS removes 2,142,274 logical owned
+   scratch bytes, retains 80,989 bytes before receipt and preserves source.
+   Result SHA256 `c2c3b49213c7a0fa8625a70257f0566328eab87eb0d0b4b25dd53a1acdfc3077`.
+   This qualifies the passive decorator, not native runtime integration,
+   private-alpha convergence, a completed panel or resumable account state.
    **Native03 Closed-Custody Receipt (2026-10-11):** host/session and source
    review passes for the actual cap event, not final financial qualification.
    HMA/HASH journals contain 77,568/80,419 valid sequential rows and returned
