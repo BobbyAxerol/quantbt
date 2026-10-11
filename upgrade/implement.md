@@ -2,7 +2,13 @@
 
 ## Current Mode 5 Diagnostics-First Upgrade - M5-11.1 Broad Diagnostics
 
-**Current Owner-Bounded Checkpoint:** execution tranche CLOSED_OWNER_ONE_HOUR;
+**Current Action (2026-10-11):** owner authorizes a smarter performance-only
+rerun after the bounded closeout. See [incremental recovery](#mode5-m5-11-incremental-recovery).
+Existing COMPLETE evidence is reused; no old compiler queue is relaunched.
+New financial scope is admitted only after matched final-command/accounting
+checks and a measured closed-candidate pilot. Scientific targets remain unchanged.
+
+**Previous Owner-Bounded Checkpoint:** execution tranche CLOSED_OWNER_ONE_HOUR;
 M5-11.1 remains scientifically PARTIAL / DEFERRED_OWNER_TIME_BOUND,
 M5-11.2/11.3 NOT_RUN and M5-12 NOT_STARTED. The owner requested passed work be
 reused and the running tranche closed within one hour. Native07 is now terminal
@@ -31454,6 +31460,72 @@ No new scratch/deletions and ~21.62 GiB available. Private result/cleanup SHA256
 `81eb5a797a6ddf728ffa366f676f46c392f37226921bf930f87b25272789fe05`.
 Read the [public bounded report](../docs/mode5/M5_11_OWNER_BOUNDED_CLOSEOUT.md).
 Execution closeout is complete; scientific work remains explicitly incomplete.
+
+<a id="mode5-m5-11-incremental-recovery"></a>
+#### M5-11.1 - Incremental Feedback And Prepared Native Recovery
+
+**Status:** RUNTIME_AND_MATCHED_CONTROLS_PASS / MISSING_ONLY_TRANCHE_READY;
+not panel-complete. [Recovery report](../docs/mode5/M5_11_INCREMENTAL_RECOVERY.md).
+**Goal:** remove quadratic replay of strategy decisions and repeated cold-path
+validation/report work without changing any alpha, market, account, clock,
+quantity policy, objective, RNG, configuration roster or economic threshold.
+**Guide:** [financial boundary](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#24-financial-boundary-và-route-qualification),
+[cache rights](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#72-computationoutput-plan-và-cache),
+[resource plan](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#73-resource-plan-và-tốc-độ-không-làm-hỏng-methodology)
+and [M5-11](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#phase-m5-11--formal-calibration-pilot-independent-checks-và-economic-inference).
+**To-Do:** preserve the seven completed native candidates and all failures;
+prepare market once per candidate/symbol lifetime; use the existing Rust
+execution owner for every actual fill. Process strategy feedback incrementally,
+rewinding only the current uncommitted bar when same-bar protective orders
+change its actual events. Never invent entry prices or delay fill protections.
+Reuse original intent translation conventions and verify the complete final
+command/decision tape through the unchanged original compiler. Intermediate
+typed native output is feedback, not a completed public report. Perform full
+source/market hashes at candidate boundaries and retain cheap liveness/resource
+checks between iterations; this is a newly registered harness contract, not a
+claim that old per-stage custody ran. No estimator or financial core rewrite.
+**Tests:** exact current-bar replay, same-bar OCO/ladder fills, next-open exits,
+cancel/amend/rejection, no-trade, fresh state/reset and immutable prepared data;
+final command and decisions equal the original compiler; final typed output
+equals two normal native executions and available Python-oracle accounting,
+with existing tolerances. Compare retained HMA/HASH/VWAP controls before using
+the new runner for missing indices. Preserve any failure and do not launch bulk
+if financial/lifecycle parity fails.
+**Resource/Exit:** first measure one full 2021-2023 candidate per route with
+2020 preload; 15-minute pilot cap per candidate, one numeric thread, <=2 GiB
+RSS, <=256 MiB retained pilot output and >=5 GiB filesystem reserve. No new
+environment/native build. Expand only after closed-account parity and measured
+throughput; checkpoint each completed candidate in append-only paths. Keep
+128 configurations/alpha as the target and report incomplete counts honestly.
+**Matched control receipt (2026-10-11):** original HMA1/HASH1/VWAP2 controls
+passed final commands/decisions, complete typed/native lifecycle/terminal output,
+normal native repetition, original Python oracle and fixed-fill reconciliation.
+Measured full-worker walls: 147.354 / 70.684 / 25.772 seconds; RSS 653.887 /
+604.566 / 590.461 MiB. HMA1 and VWAP2 compare to 20,191.936 / 1,253.506 seconds
+on retained native04, with unchanged economics. HASH has no matched current-source
+old wall; no ratio is inferred. Earlier controls and failures stay immutable.
+**Expansion contract:** after those matched controls, retain full compiler,
+typed-to-normal lifecycle/terminal/accounting checks and daily/campaign evidence
+on every missing candidate. Python oracle plus duplicate normal execution is
+control/stress-only, explicitly counted per receipt; do not claim per-candidate
+Python parity on bulk rows. This follows guide 7.3(7), not dropped financial
+outputs. Original alpha sources, 128-design roster, 2020 preload and 2021-2023
+accounts stay frozen. Run missing candidates only with at most four isolated
+one-thread workers (four available CPUs), <=900 seconds/candidate, <=45 minutes
+per tranche, <=2 GiB/candidate, <=2 GiB additional retained outputs, >=5 GiB free
+space. No candidate retries or replacement; interrupted rows stay censored,
+unfinished rows stay pending. Stop/reap exact owned workers, preserve every
+checkpoint and report returned counts before another tranche. No background
+queue survives the turn. New controls validate cached command ordering and
+strict committed liquidity/reason/ambiguity witnesses before bulk launch.
+Dense owner pickles are control-only; all rows retain daily paths and dated
+fill/campaign ledgers. Source snapshots bind subsequent cold use to the executed
+harness version. A legacy-schema collector must explicitly admit the new
+recovery schema before rebuilding full diagnostic dossiers; do not fabricate
+legacy PASS receipts or silently relabel current proof as old custody.
+**Cleanup/Commit:** retain data, exact artifacts, alpha source, failures, result
+paths and current environment; remove only registered inactive scratch after
+checks. Commit focused tooling/tests and report/plan; no CI/push/release.
 
 <a id="mode5-m5-11-2"></a>
 ### Phase M5-11.2 - Actual Adaptive Calibration And Selector Comparisons
