@@ -29889,6 +29889,22 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    original/failed receipts, verify source pins and exact owned cleanup. Cold
    PASS, if any, is not financial parity, launch permission or a native kernel
    speedup; no next-tranche activation before its actual capacity/source gates.
+   **Read-Only Native Cost Receipt (2026-10-11 01:07 UTC):** nine pure journal
+   fixtures PASS; exact original HMA/HASH identities remain live before/after
+   immutable complete-prefix capture. Returned work is 1,081/1,134 owner passes
+   and 28,408,680/29,801,520 account-bars, one configuration per cell, elapsed
+   lower bounds 11,560.605/11,558.898 seconds. Exclusive observer intervals show
+   combined validation approximately 53%/56% of elapsed time and execute 2%/3%;
+   execute is owner-call timing, not an isolated kernel. Inclusive validation
+   timers are nested and cannot be added. Open build/validation stages remain
+   censored, with no convergence/ETA or economic-completion claim. Original
+   journal prefixes and source/request pins reverify unchanged. Result SHA256
+   `874d514e5007b3235b67110a98a02ad5a4998fde37819d185627d0833ff9d9a2`;
+   cleanup/reserve PASS, 22,438,666 retained bytes before cleanup receipt,
+   zero scratch/deletion/finance/worker signals. See the
+   [partial cost profile](../docs/mode5/M5_11_1_NATIVE_COST_PROFILE.md). The isolated
+   future custody prototype is IN_PROGRESS, not activated; original live sources,
+   six-hour clocks, capacity and formal-study gates remain unchanged.
    **First-Three Capacity Review Entry:** prepare a small read-only producer for
    the qualified future-queue policy's existing capacity-review schema. It may
    run only after collector result/cleanup PASS, each exact original session is

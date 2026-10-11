@@ -7,6 +7,11 @@ output gate. Its VWAP cell is COMPLETE; HMA/HASH original sessions remain live
 at the 2026-10-11 checkpoint. This is one original configuration per running
 cell, not hundreds of candidates because the feedback compiler makes many passes.
 
+The [read-only partial cost profile](M5_11_1_NATIVE_COST_PROFILE.md) records
+1,081 HMA / 1,134 HASH returned passes at 2026-10-11 01:07 UTC. Validation and
+signature work dominate that snapshot; inclusive nested timers must not be
+added, and incomplete compiler work is not a final backtest speed or ETA.
+
 ## Watched Completion Custody
 
 The original supervisor is absent. The qualified guardian preserves the original
