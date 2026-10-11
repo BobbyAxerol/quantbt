@@ -30215,6 +30215,49 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    Result SHA256 `c2c3b49213c7a0fa8625a70257f0566328eab87eb0d0b4b25dd53a1acdfc3077`.
    This qualifies the passive decorator, not native runtime integration,
    private-alpha convergence, a completed panel or resumable account state.
+   **Frozen Driver Observer Integration Entry (2026-10-11):** compose a scoped
+   FeedbackObserver subclass in the new worker wrapper. Route only the frozen
+   driver's two exact signature callbacks through the qualified witness;
+   all other callbacks, guard checks, returned work bills and fault receipts
+   delegate unchanged. Reject unknown callbacks or alternate argument shapes.
+   Do not edit driver.py, finance.py, compiler rules or old registrations.
+   Compare actual certificates and guard/callback order against the original
+   observer, including interruption/fault and independent-worker state.
+   Register ten minutes, one thread, 16 MiB scratch, 32 MiB retained, 5 GiB
+   reserve. This is worker integration, not a new financial engine or resume.
+   **Driver Observer Receipt (2026-10-11):** ten new driver-pattern cases and
+   the prior 89 witness/observer/conformance tests PASS (99 total, no skips).
+   The new paired fixture runs six synthetic account passes (three per arm),
+   preserves full certificates, guards and callback order, and adds no hash/
+   financial execution. The prior witness fixture is separately six passes;
+   neither number is the total work of all conformance tests. Alternate hash
+   callbacks/arguments fail before execution; independent workers have separate
+   pending state; interruption receipts retain unknown, non-resumable pairs.
+   Source-only wall 21.973 s, child peak RSS 336.422 MiB. Cleanup PASS removes
+   2,158,106 logical scratch bytes, retains 82,887 bytes before receipt.
+   Result SHA256 `0d2c389a41812c3356d977a9dec98918c06200fa155b0a43b6aa0bfec78abaee`.
+   The observer factory is qualified; fresh financial registration is still
+   required. The original driver/finance/compiler/guard files are unchanged.
+   **Dependency Epoch16 Disposition (2026-10-11):** corrected prototype passes
+   91 fixtures and reduces ten matched verify calls from 4.363 to 1.440 s;
+   full entry/verify/exit work from 7.431 to 4.557 s. However, ancestor directory
+   read authorization is checked once per epoch rather than per path stamp.
+   Original authorization-race semantics remain unproven: strict safety gate
+   FAIL, NOT_USABLE_NOT_ACTIVATED. Initial descriptor-leak faults, revised
+   source and both benchmarks are retained; original guard/FrozenPins remain.
+   Cleanup PASS removes both owned scratch lanes; 1,953,561 bytes retained.
+   Do not treat cold timing or synthetic tests as financial parity, a compiler
+   speedup, a valid financial registration or permission to relax guard checks.
+   **Instrumented Resumption Entry:** use the unchanged original guard and new
+   passive observer in a fresh bounded four-GiB tranche; no dependency prototype,
+   no 16-GiB queue activation and no rewritten original capacity gate. Advance
+   the next missing VWAP point and inspect returned signature pairs from fresh
+   HMA/HASH attempts. Preserve 2020 preload, continuous 2021-2023 accounts,
+   original 128 effective rosters and max_feedback_runs=4096. Existing six-hour
+   caps, three independent slots, one thread, 96-MiB scratch/512-MiB retained
+   per cell and five-GiB reserve remain. No automatic retries or fabricated
+   convergence/resume. Fresh source/dependency/wrapper/request pins, exact
+   worker-entry tests, cleanup and process custody precede any financial run.
    **Native03 Closed-Custody Receipt (2026-10-11):** host/session and source
    review passes for the actual cap event, not final financial qualification.
    HMA/HASH journals contain 77,568/80,419 valid sequential rows and returned

@@ -195,3 +195,44 @@ the old capped HMA/HASH journals or prove their convergence.
 
 Result SHA256:
 `c2c3b49213c7a0fa8625a70257f0566328eab87eb0d0b4b25dd53a1acdfc3077`.
+
+### Frozen Driver Integration
+
+The [worker-local observer factory](../../tools/mode5_research/driver_observer.py)
+uses the frozen driver's existing signature callback pattern; the driver,
+financial source and compiler remain unchanged. Ten new cases plus the prior
+89 cases PASS (99 total, no skips). The new real paired fixture performs three
+baseline and three observed account passes, retaining exact certificates,
+guards, call order and work bills. This is separate from the earlier six-pass
+witness fixture and is not a total bill for all conformance tests.
+
+Unknown callback/argument shapes fail closed before execution. Independent
+workers own separate pending pairs; interrupted receipts retain unknown work
+without creating a checkpoint. Wall 21.973 seconds, child peak RSS 336.422 MiB;
+cleanup PASS, 2,158,106 logical scratch bytes removed and 82,887 bytes retained
+before receipt. A future exact financial registration remains required.
+
+Result SHA256:
+`0d2c389a41812c3356d977a9dec98918c06200fa155b0a43b6aa0bfec78abaee`.
+
+## Dependency Epoch Prototype Rejected
+
+The revised epoch prototype passes 91 fixtures, including the same 29 original
+fixture bodies on each implementation. On the exact 1,635-dependency and
+130-nondependency roster, ten alternating verify calls take 4.363 seconds with
+the original guard and 1.440 with the candidate; full entry/verify/exit totals
+are 7.431 and 4.557 seconds. These are cold custody timings, not compiler or
+backtest speedups.
+
+**Strict safety gate FAIL; NOT_USABLE_NOT_ACTIVATED.** Full-path lookup checks
+search permission and symlink traversal but does not repeat the original
+O_RDONLY authorization for every ancestor on every path stamp. The synthetic
+PASS therefore cannot certify the original authorization-race semantics.
+Original guard and FrozenPins remain; the earlier descriptor-leak failure and
+both measured source versions are retained. No financial execution, build,
+installation or wrapper activation occurred. Cleanup PASS removes only the
+two owned scratch lanes and retains 1,953,561 bytes of evidence.
+
+The next bounded tranche uses the original guard plus passive signature
+observation. It advances missing points without weakening safety or declaring
+the capped compiler passes complete. The 16-GiB capacity gate remains closed.
