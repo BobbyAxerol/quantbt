@@ -5,6 +5,16 @@
 **Current Goal Checkpoint (2026-10-11):** ordered closure remains ACTIVE,
 M5-11.1 IN_PROGRESS; M5-11.2/11.3 NOT_RUN and M5-12 NOT_STARTED. Earlier
 phase/owner-stop receipts below remain historical, not the current worker state.
+Latest operational state: native05 is terminal CENSORED / TRANCHE_TIME_CAP;
+its owned supervisor/worker handles are absent and all owned children reaped.
+The live native05/inventory rows below describe their dated checkpoints only.
+Native custody40 revision04 passes 26 focused cold tests and matched-roster
+counter parity, with verify/lifetime time reductions of 21.71%/11.80%; it remains
+NOT_ACTIVATED because independent review retains two interruption/provenance
+gaps. These are not compiler/account speedups or completed financial candidates.
+Seven native configurations have qualified reuse; no new final HASH2 account
+or complete 128-point native panel exists. See the
+[current native/custody receipt](../docs/mode5/M5_11_1_NATIVE_PANEL_QUEUE.md#strict-native-custody-measurement).
 RSI/SC original 128-point continuous panels, bounded selector controls and renewed
 dossiers are available; they retain NO_CLEAR_WINNER and explicit missing local
 coverage, not full five-alpha or forward qualification. Original tranche03 HMA1
@@ -29,9 +39,9 @@ See [closed checkpoints](../docs/mode5/M5_11_1_NATIVE04_CLOSED_CHECKPOINTS.md).
 The sealed 04:47 live prefixes remain historical. Original guard/FrozenPins were
 unchanged; the faster epoch prototype fails strict authorization semantics and
 is NOT_ACTIVATED. Reuse COMPLETE cells, never restart them or resume HASH midway.
-Native05 has a fresh single-worker HASH2 attempt, launched at 10:56 UTC after
+Historical native05 launch checkpoint: a fresh single-worker HASH2 attempt launched at 10:56 UTC after
 all native04 children were reaped. Exact supervisor3592504/start68451681 and
-worker3592528/start68452267 verify live in the original host namespace. The
+worker3592528/start68452267 verified live then in the original host namespace. The
 sealed 10:59 prefix has 15 returned account passes/394,200 bars and 15 signature
 pairs. All seven count/hash fields match the corresponding original native04
 HASH pairs; this proves only the returned prefix, not convergence, final
@@ -30980,6 +30990,110 @@ and [M5-06..09 work packages](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_V
    `8fda083a2075be7ce2e4505b8dad497ff3c9975eb368590b3d49e3823158b91f`;
    cleanup SHA256:
    `953854a95f3ad8a7ca1b2afd1804ca64ff69287b462da12962fff10c13a4f60a`.
+
+<a id="mode5-m5-11-native-custody40"></a>
+**Targeted Native Custody40 Registration (2026-10-11):** native05 is terminal
+   CENSORED, with no usable financial result. The independent interrupt39 review
+   additionally identifies combined IO/interrupt fault provenance and production
+   thread custody as unqualified. Preserve that source and all receipts. Do not
+   repeat the unchanged six-hour run, relax caps or count cold tests as capacity.
+   The next narrow action is an isolated std-only Rust descriptor adapter: every
+   path still traverses root and all ancestors using read-only/no-follow opens,
+   then opens/stats the leaf. No cached directory permission, skipped stat/hash,
+   financial code, estimator, compiler-feedback or data contract is permitted.
+   Native ownership transitions close descriptors before returning; explicit
+   leaf handles survive only the original full-hash read and are released through
+   an interruption-safe output slot. Preserve real IO and interruption causes,
+   symlink rejection, stamp/counter outcomes, full entry/exit hashes, original
+   non-dependency verification and single-worker/thread lifetime. Do not mask or
+   alter signal handlers or silently substitute the previous rejected epoch cache.
+   Focused differential fixtures cover metadata/error/permission outcomes,
+   regular-file constraints, FD leaks, combined faults, preblocked signal state,
+   thread/PID/lifetime/tamper rejection and full guard verification. Benchmark
+   alternating original/native guard lifetimes on the actual registered dependency
+   and non-dependency roster; report entry/verify/exit separately with identical
+   record order and checks. Predeclare seven repeats, ten verifies per lifetime;
+   cold speed alone does not certify compiler convergence or economic output.
+   Build/test budget: 900 seconds total, 512 MiB RSS, 8 MiB exact scratch,
+   64 MiB retained source/artifact/log/receipt, at least 5 GiB reserve. Build
+   offline with the existing rustc and controlled Python; no cargo dependency,
+   financial native wheel rebuild, new environment or financial execution.
+   Seal source/build command/compiler/artifact and original input pins before
+   qualification. Cleanup deletes only exact inactive owned fixture scratch,
+   retaining failed attempts, artifacts and scientific evidence. Exit with
+   differential and matched measured receipts, or retain FAIL without activation.
+   A passing useful adapter requires a separately pinned fresh-worker handoff
+   before one real financial pilot; pending three-slot capacity remains pending.
+   Authority: [ordered goal closure](#mode5-m5-11-goal-closure),
+   [guide cache contracts](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#72-computationoutput-plan-và-cache)
+   and [resource measurement](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#73-resource-plan-và-tốc-độ-không-làm-hỏng-methodology).
+
+**Custody40 Revision01 Review / Revision02 Entry:** the first cold receipt
+   passes 20 focused fixtures and seven matched actual-roster lifetimes; verify
+   p50 ratio is 0.7831, lifetime ratio 0.8493. These exclude construction/startup
+   and are not financial speedups. Keep that sealed receipt, but do not activate:
+   independent review identifies pre-release interruption ownership, artifact
+   verification order, disposal after authority failure, nested fault provenance,
+   mutable report references and terminal receipt coverage as further gaps.
+   Revision02 must address all six with focused regression fixtures and unchanged
+   Rust descriptor code/artifact, reusing the exact existing build rather than
+   rebuilding the financial extension. Keep the same 900-second/512-MiB/8-MiB/
+   64-MiB/5-GiB cold budget and seven-repeat matched roster; include constructor
+   time separately. A surviving output slot must be consumed before finite owned
+   interruptions propagate; SIGKILL/process death remains supervisor custody.
+   Upfront authority failure must prohibit native use and dispose stamps without
+   trusting the failed library. Failed final pin verification must itself produce
+   durable FAIL/cleanup receipts. These are targeted runner repairs, not new
+   scientific data or three-slot capacity. Production integration remains a
+   separate pinned fresh-worker step after actual review of the repaired revision.
+
+**Custody40 Revision02 Fixture Failure / Revision03 Entry:** revision02 is
+   retained FAIL: 26 tests ran, 25 passed and one fixture errored before reaching
+   its intended final-verification fault, because it supplied an empty original
+   roster to the unchanged nonempty-pin validator. No timing or financial work
+   was authorized. Preserve FAIL/log/cleanup. Revision03 corrects only that
+   synthetic fixture input, retains its induced FAIL/cleanup payload explicitly
+   and reuses the same native build, budgets and registered timing design.
+   The six reviewed runtime fixes remain source-bound; a fixture correction
+   cannot by itself activate financial work or erase the earlier failed attempt.
+
+**Custody40 Revision03 Fixture Isolation Failure / Revision04 Entry:** retain
+   the third cold FAIL and cleanup. The nested synthetic runner lacked its
+   adverse-receipt attribute and changed the shared scratch environment to a
+   subsequently removed fixture directory. Those harness faults prevented
+   intended coverage and caused cascading setup errors; no benchmark, account
+   or financial retry ran. Revision04 must isolate the nested fixture's full
+   environment and supply the declared adverse-receipt list, leaving the v2
+   runtime adapter and exact Rust artifact unchanged. Preserve both old failures,
+   repeat only the focused cold gate and registered actual-roster timing under
+   the same budgets; no scientific or accounting substitution is authorized.
+
+**Custody40 Revision04 Measured Receipt / Remaining Production Gap:** final
+   focused suite passes 26 tests, zero failures/errors/skips, with retained
+   adverse terminal/cleanup payloads. Seven matched actual-roster lifetimes
+   preserve all original work counters: original/native median verify ratio
+   0.7829, entry 1.0274, exit 0.9472, lifetime 0.8820. Construction is separate
+   (0.1464/0.1481 seconds); page cache/noise are uncontrolled. This means 21.71%
+   less verify time and 11.80% less custody-lifetime time, not financial speed
+   or compiler convergence. Cold wall 93.074 seconds, peak 45.676 MiB, exact
+   313,800-byte library reused, zero new builds/financial executions/activation.
+   Cleanup/reserve PASS, only empty owned scratch removed, no evidence deletion,
+   952,708 retained bytes before receipt, zero reclaimed fixture bytes and
+   -143,360 available bytes. Main verifies 1,792 unique pins / 371,842,006 bytes,
+   zero hash errors, without rerunning work. All earlier PASS/FAIL receipts remain.
+   Independent review still finds a finite second-interrupt gap in Python drain
+   bookkeeping and missing later authority-fault provenance after first latch.
+   Do not activate this revision or claim runner custody/three-slot capacity.
+   Next available safe action: close full-hash descriptor lifetime wholly within
+   a native call, retain all later fault causes and qualify that exact change
+   before a fresh pinned single-worker financial handoff. Preserve original
+   full SHA256, permission/stat/inode checks and source/financial contracts;
+   do not substitute an epoch cache, signal approximation or silently longer cap.
+   See [measured receipt and remaining findings](../docs/mode5/M5_11_1_NATIVE_PANEL_QUEUE.md#strict-native-custody-measurement).
+   Result SHA256:
+   `bdc0b67fd980e62a472fa9efc98d40ed6d834a9bcac7cd38c0fb32a4be12bdaf`;
+   cleanup SHA256:
+   `f0174cb26ff7455a336e106aaf2ec03315b426942f99023d3095ec983a89fef3`.
 
 <a id="mode5-m5-11-2"></a>
 ### Phase M5-11.2 - Actual Adaptive Calibration And Selector Comparisons

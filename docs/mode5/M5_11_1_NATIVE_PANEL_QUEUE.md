@@ -1,6 +1,6 @@
 # M5-11.1 Native Panel Queue And Missing Work
 
-Status: **NATIVE05_CENSORED / COLD_INTERRUPT_REPAIR_PASS / CAPACITY_AND_PANELS_PENDING**.
+Status: **NATIVE05_CENSORED / NATIVE_CUSTODY_COLD_MEASURED / PRODUCTION_CUSTODY_AND_PANELS_PENDING**.
 Authority: [ordered closure](../../upgrade/implement.md#mode5-m5-11-goal-closure)
 and [guide comparison levels](../../upgrade/QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#49-multi-hypothesis-empirical-battery-giữ-năm-chiều-làm-rõ-mỗi-phép-thử).
 
@@ -365,6 +365,65 @@ Cold cleanup SHA256:
 `953854a95f3ad8a7ca1b2afd1804ca64ff69287b462da12962fff10c13a4f60a`.
 
 ## Remaining Scientific Work
+
+### Strict Native Custody Measurement
+
+A private Linux x86_64 descriptor shim now repeats the original read-only,
+no-follow root/ancestor/leaf traversal in Rust. It caches only encoded path
+components, never read authorization or descriptors. The exact sealed guard03,
+financial driver, account/compiler, alpha, data and native financial artifact
+remain unchanged. This is private research custody, not a new public backend.
+
+The first revision passes 20 cold fixtures but independent review identifies
+additional ownership, authority, disposal, provenance and snapshot gaps. It is
+not activated. Revision02/03 harness failures are retained: an empty synthetic
+pin roster and leaked nested fixture environment prevented intended coverage;
+neither failure ran timing or financial work. Revision04 retains the corrected
+adverse-case terminal receipts and passes **26 focused tests**, zero failures,
+errors or skips. This count overlaps the earlier suite, not 46 independent tests.
+
+The final matched timing uses seven alternating lifetimes, ten verifies each,
+the actual **1,635 dependency / 130 non-dependency** roster and one identical
+additional library pin in both arms. All original work counters match; full
+dependency entry/exit hashes and non-dependency verification remain intact.
+Construction is measured separately; page cache and host noise are not controlled.
+
+| Stage, Median | Original Guard | Native Descriptor Guard | Native / Original |
+| --- | ---: | ---: | ---: |
+| Construction | 0.1464 s | 0.1481 s | 1.0116 |
+| Entry | 1.4360 s | 1.4754 s | 1.0274 |
+| Per verify, pooled p50 | 0.3807 s | 0.2980 s | 0.7829 |
+| Exit | 1.4331 s | 1.3573 s | 0.9472 |
+| Entry + ten verifies + exit | 6.6876 s | 5.8985 s | 0.8820 |
+
+Verify time decreases **21.71%**; measured lifetime decreases **11.80%**.
+Neither is a compiler/account speedup or a convergence guarantee. The earlier
+revision's 15.07% lifetime result is retained separately, not substituted for the
+final cost of upfront artifact authorization. No financial account ran.
+
+Final cold qualification: **93.074 s**, peak **45.676 MiB**, zero new builds
+(the exact 313,800-byte native shim is reused), zero financial executions or
+activation. Cleanup/reserve PASS, empty owned fixture scratch only, zero evidence
+deleted or reclaimed scratch bytes; free-space change **-143,360 bytes**.
+Main independently rechecks **1,792 unique pins / 371,842,006 bytes**, zero hash
+errors, without repeating tests or finance. Original failures/artifacts remain.
+
+**Production remains blocked by two focused review findings:** another finite
+owned interrupt can escape Python bookkeeping between release retries while a
+leaf slot remains live; a later authority fault can disappear after an earlier
+fault is latched. These are not a completed-worker certificate. Do not activate
+the shim, create a synthetic capacity slot or repeat the unchanged six-hour run.
+The next repair should remove Python-visible FD lifetime from full-hash custody
+and retain every fault cause, then bind one fresh worker through an exact pinned
+handoff. It must retain the original full-hash/stamp/permission contracts rather
+than weaken checks, defer arbitrary strategy signals or approximate feedback.
+
+Final result SHA256:
+`bdc0b67fd980e62a472fa9efc98d40ed6d834a9bcac7cd38c0fb32a4be12bdaf`.
+Cleanup SHA256:
+`f0174cb26ff7455a336e106aaf2ec03315b426942f99023d3095ec983a89fef3`.
+
+### Panel And Capacity Requirements
 
 Three actual closed, request-bound capacity slots and conservative disk headroom
 are still required before queue activation. Reuse qualified COMPLETE requests,
