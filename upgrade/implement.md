@@ -30258,6 +30258,18 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    per cell and five-GiB reserve remain. No automatic retries or fabricated
    convergence/resume. Fresh source/dependency/wrapper/request pins, exact
    worker-entry tests, cleanup and process custody precede any financial run.
+   **Native04 Cold Wrapper Receipt (2026-10-11):** eight new disjoint-path,
+   original-guard/frozen-driver, exact shell-entry, AST critical-function and
+   fault/argv-restoration cases PASS together with the prior 99 tests (107,
+   no failures/errors/skips). The new wrapper is a path/observer-only derivative;
+   runtime validation, registration, guarded delegation and guard reports keep
+   exact original AST. It does not import the rejected epoch guard. HMA1/HASH2
+   use new cell/attempt identities; COMPLETE VWAP1 is skipped for VWAP2.
+   Source-only workload 22.327 s; cleanup PASS removes 2,157,911 logical scratch
+   bytes, retains 85,492 bytes before receipt and verifies all source pins.
+   Result SHA256 `45cc88cf82cd3258b3c54b750c2164d8e61f5cf6a9ce61e69c69328c450c5920`.
+   Actual cold registration is a separate entry: no financial completion,
+   worker authorization or 16-GiB capacity promotion follows from these tests.
    **Native03 Closed-Custody Receipt (2026-10-11):** host/session and source
    review passes for the actual cap event, not final financial qualification.
    HMA/HASH journals contain 77,568/80,419 valid sequential rows and returned

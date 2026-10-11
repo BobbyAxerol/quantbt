@@ -1,6 +1,13 @@
 # M5-11.1 Native Tranche Pending
 
 Current status: **NATIVE03_CENSORED / FULL_NATIVE_PANELS_UNFINISHED**.
+Fresh native04 wrapper qualification is PASS; actual cold registration and
+host-supervised launch remain separately gated. HMA1/HASH2 are fresh attempts,
+not resumes; completed VWAP1 is retained and the next request is VWAP2. The
+original guard, six-hour caps, 4-GiB store budget, three independent slots,
+financial sources and complete 2021-2023 accounts remain unchanged. Neither
+dependency prototype nor the unqualified 16-GiB queue is activated.
+
 The registration-only note below is historical and unchanged. The later native03
 tranche launched after the retained covariance closure and qualified native
 output gate. VWAP is COMPLETE; the guardian stopped HMA/HASH at the unchanged
