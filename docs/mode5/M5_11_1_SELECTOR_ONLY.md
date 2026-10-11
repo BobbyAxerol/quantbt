@@ -6,6 +6,11 @@ compound closure incorporates newly qualified missing accounts and cold
 reductions, not a new optimizer or forward study. It does not close the ordered
 full goal or authorize deployment, publication, push or release.
 
+The [current bounded dossier receipt](M5_11_1_BOUNDED_DOSSIERS.md) reconciles all
+six matrix rosters, dependent source/role/year views and explicit missing fields.
+It preserves the current common-eligibility control and the historical receipts
+below; it does not certify full-panel local coverage or authorize a recipe.
+
 ## Compound Union Closure
 
 The original 128 effective configurations per alpha, 2020 preload and continuous

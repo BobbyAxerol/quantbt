@@ -29844,6 +29844,30 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    reserve before reduction, focused mutation/omission/access/null/identity tests
    and cleanup. Output is bounded descriptive consolidation for goal step4,
    not full-phase, forward, economic-superiority or publication certification.
+   **Bounded Dossier Renewal Receipt (2026-10-11):** RSI/SC dossiers are assembled
+   through existing Dossier/EvidenceCatalog/Matrix/Record contracts with all six
+   matrix rosters and source-bound masks. The initial nullable-label assembly
+   failure remains retained; revision02 keys repeated observations by sealed
+   request/role/environment identity, not a nullable cell label. No observations
+   were dropped or deduplicated. Twenty-five focused cold fixtures and six actual
+   source-assembly regressions PASS; independent regeneration PASS. Main read-only
+   review verified 886 unique pins (419,408,376 bytes), including original source
+   inventory and failed receipt. This is bounded descriptive reconciliation,
+   not full coverage: full-128 local NOT_EVALUABLE, annual-local NOT_AUTHORIZED,
+   recommendations NO_CLEAR_WINNER, and no CalibrationPlan seal. Candidate/year/
+   source views are dependent, not new executions or independent observations.
+   The common annual universe remains three RSI/zero SC candidates; matched raw
+   Sharpe/floor/Pareto choose the same RSI candidate, so historical ungated-versus-
+   gated differences are not isolated selector superiority. Handoff SHA256 is
+   `2ee891514201f3c003674ef79cbd3c3452eae2c1f1eeee5368e104620e081f5b`.
+   Both revisions retain 197,161,849 bytes within the registered 256-MiB budget;
+   cleanup/reserve PASS, zero scratch/deletion, finance/RNG/sampler/queue calls.
+   Measured assembly/review cost is 122.948/74.291 seconds with peak RSS
+   1,387.980/1,340.113 MiB; these are metadata assembly costs, not search or kernel
+   benchmarks. The [bounded dossier report](../docs/mode5/M5_11_1_BOUNDED_DOSSIERS.md)
+   records per-matrix measured/missing scope. Original live HMA/HASH workers and
+   their clocks/contracts remain unchanged; native panels, matched samplers,
+   actual formal studies and prefix-forward validation are still unfinished.
    **First-Three Capacity Review Entry:** prepare a small read-only producer for
    the qualified future-queue policy's existing capacity-review schema. It may
    run only after collector result/cleanup PASS, each exact original session is
