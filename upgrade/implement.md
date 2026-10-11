@@ -1,6 +1,27 @@
 # QuantBT Upgrade Implementation Plan
 
-## Current Mode 5 Diagnostics-First Upgrade - M5-10 Public Integration
+## Current Mode 5 Diagnostics-First Upgrade - M5-11.1 Broad Diagnostics
+
+**Current Goal Checkpoint (2026-10-11):** ordered closure remains ACTIVE,
+M5-11.1 IN_PROGRESS; M5-11.2/11.3 NOT_RUN and M5-12 NOT_STARTED. Earlier
+phase/owner-stop receipts below remain historical, not the current worker state.
+RSI/SC original 128-point continuous panels, bounded selector controls and renewed
+dossiers are available; they retain NO_CLEAR_WINNER and explicit missing local
+coverage, not full five-alpha or forward qualification. Original tranche03 HMA1
+and HASH2 exact worker sessions remain live under the unchanged six-hour caps;
+VWAP1 is COMPLETE and independently closed-output/checkpoint qualified. Guardian
+and collector are live; first-three actual completion/capacity review and future
+16-GiB queue activation remain pending. Sources remain frozen while workers live.
+The actual partial cost profile is not final runtime or a convergence ETA.
+See [selector controls](../docs/mode5/M5_11_1_SELECTOR_ONLY.md),
+[bounded dossiers](../docs/mode5/M5_11_1_BOUNDED_DOSSIERS.md),
+[native custody](../docs/mode5/M5_11_1_NATIVE_TRANCHE_PENDING.md),
+[cost profile](../docs/mode5/M5_11_1_NATIVE_COST_PROFILE.md) and
+[continuous handoff](../docs/mode5/M5_11_2_CONTINUOUS_HANDOFF.md).
+Cold structural/domain and source-bound handoff gates PASS within their scopes;
+actual continuous provider/raw-Sharpe/probe/public wiring, matched sampler-only
+studies, real 256-query baseline/challenger searches and prefix-rebuilt forward
+economics are not certified or executed. No automatic phase promotion or release.
 
 **Status:** M5-01 COMPLETE_LOCAL_BASELINE / EXIT_PASS_OWNER_DISPOSITION; 76 tests PASS,
 M5T-001..010 exercised, 427 protected hashes unchanged. M5-02
@@ -120,10 +141,11 @@ sequence [M5-11.1](#mode5-m5-11-1) -> [M5-11.2](#mode5-m5-11-2) ->
 sequence. M5-11.1 is IN_PROGRESS with five frozen 128-effective-configuration
 designs, complete BTC/ETH market witnesses and full-horizon resource pilots;
 see [execution checkpoint](../docs/mode5/M5_11_1_BROAD_DIAGNOSTICS.md). RSI/SC
-complete their 128-point development panels, but native broad coverage is HMA
-1/128, HASH 2/128 and VWAP 1/128. The owner stopped the small native tranche
-for runtime/gap review; all owned workers are reaped, interrupted measurements
-are censored. The owner's subsequent full-goal approval now authorizes the
+complete their 128-point development panels. At the historical owner stop,
+native broad coverage was HMA 1/128, HASH 2/128 and VWAP 1/128; those owned
+workers were reaped and interrupted measurements censored. The later tranche03
+has qualified VWAP1 output and live HMA1/HASH2 sessions; native full panels
+remain unfinished. The owner's subsequent full-goal approval authorizes the
 [ordered closure/resumption](#mode5-m5-11-goal-closure) after native runner gates,
 not an ungated relaunch or retroactive certification. Exact cleanup and
 preserved source/artifact custody are recorded in the
@@ -29973,6 +29995,28 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    `02dd58fd955f77493354cae650de2ed024fe5b4a726ea1fd66e80e8445523e66`;
    combined owned source/evidence 6,206,227 bytes before final receipts,
    cleanup/reserve PASS, zero scratch/deletion. All prior scopes stay historical.
+   **Continuous Measurement Adapter Entry (2026-10-11):** prepare a focused
+   prospective measurement adapter in a fresh ignored lane while public/financial
+   sources stay frozen. One supplied actual continuous account snapshot produces
+   whole-path and explicitly declared annual view metrics using existing
+   reporting/statistics/utility authorities, not an engine replay or new formula.
+   Preserve original initial capital, prior actual close, separate carried
+   watermark, daily UTC/365 convention, source/clock/cutoff and null/bankruptcy/
+   no-trade semantics. Expose genuine whole-account Sharpe separately from annual
+   attribution; never average annual Sharpes or impute undefined values as zero.
+   Source-bound retained RSI/SC paths and original continuous_annual_rows are the
+   comparison oracle; all 256 original parents remain in the roster. Tests cover
+   reset marks, future suffix, serialization, missing/zero ledgers, accounting
+   conservation and exact metric/support/contract parity. No alpha/market/engine,
+   sampler/RNG, ask/tell, candidate proposal, threshold or scientific change.
+   No new Financial ExecutionKey from opaque old data. The adapter accepts typed
+   snapshots/deliveries only; original financial dispatch and public study wiring
+   remain separate NOT_BOUND gates until actual integration qualification.
+   Register input/source/work and 64 MiB scratch/128 MiB retained with 5 GiB
+   reserve before numeric reduction; one controlled numeric thread, <=30 minutes
+   bounded cold run, no automatic retry, preserve failures and exact cleanup.
+   Keep any eventual public change staged outside src/tools until workers close;
+   no duplicate financial bridge, account engine, estimator or researcher recipe.
    **First-Three Capacity Review Entry:** prepare a small read-only producer for
    the qualified future-queue policy's existing capacity-review schema. It may
    run only after collector result/cleanup PASS, each exact original session is
