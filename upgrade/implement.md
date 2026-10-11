@@ -29826,6 +29826,35 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    [current watched-tranche note](../docs/mode5/M5_11_1_NATIVE_TRANCHE_PENDING.md#watched-completion-custody).
    Native full panels, capacity review, sampler and formal/prefix work are still
    IN_PROGRESS/NOT_RUN; the collector does not close any economic gate.
+   **Bounded RSI/SC Dossier Renewal Entry:** assemble a current, source-reconciled
+   dossier for the two completed 128-point development panels while original
+   native sessions run. Reuse retained continuous-account rows, annual views,
+   old/new role-bound probes, selector/common-eligibility controls, cost/state
+   diagnostics and structural preflight; no financial replay or RNG. Inventory
+   all six matrix kinds from the registered candidate/role/scenario designs,
+   never only successful rows. Preserve absent/undefined/untested masks, local
+   bounded-roster versus full-panel limitations, original annual/local policies,
+   raw Sharpe versus pooled utility, dependent development labels and billing.
+   Use existing Dossier/EvidenceCatalog/Matrix/Record contracts, no new product
+   model, selector formula, reference, threshold or scientific estimator.
+   Scientific recommendations remain NO_CLEAR_WINNER; compatible samplers are
+   candidates for later matched study, not winners. Private schemas/params stay
+   ignored; do not seal a CalibrationPlan or qualify the unfinished native panels.
+   Register source/input/roster and 64 MiB scratch/256 MiB retained with 5 GiB
+   reserve before reduction, focused mutation/omission/access/null/identity tests
+   and cleanup. Output is bounded descriptive consolidation for goal step4,
+   not full-phase, forward, economic-superiority or publication certification.
+   **First-Three Capacity Review Entry:** prepare a small read-only producer for
+   the qualified future-queue policy's existing capacity-review schema. It may
+   run only after collector result/cleanup PASS, each exact original session is
+   absent and all three original attempts have immutable COMPLETE checkpoints.
+   Reuse the existing Candidate/checkpoint validator; inventory every retained
+   file in each whole cell, not only output JSON or successful account rows.
+   Seal original registration, native gate, exact counts and source identities;
+   keep the future 16-GiB resource policy distinct from financial semantics.
+   Register 32 MiB retained, zero scratch and 5 GiB reserve. Incomplete/fault/live
+   cells remain inadmissible, with no automatic retry, account, deletion or queue
+   activation. Actual review requires completed outputs, not a cold PASS proxy.
    **Formal Domain Structural Preflight Entry:** while financial sources remain
    frozen, an isolated cold check may project the original pure schema function
    without importing private alpha/finance modules. Require exact geometry IDs
