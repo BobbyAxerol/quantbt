@@ -30030,6 +30030,31 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    provider certification. Do not edit pinned source while workers are live,
    weaken immutability assertions, discard the failures or call this shared gap
    closed merely because a prospective adapter passes its own boundary tests.
+   Stage the narrow helper in a separate ignored snapshot-storage fixture lane:
+   only share bytes-backed storage if every ndarray ancestor is readonly,
+   otherwise create fresh immutable storage. Compare original and staged helper
+   in separate fresh controlled processes; exercise all pickle protocols, copy,
+   deepcopy, nested returns, execution streams, episode buffers, readonly sharing
+   and writable-ancestor/cache counterexamples. Preserve exact values, shapes,
+   dtype/header isolation, content identities and reducer/report contracts; no
+   new formula or source activation. Register synthetic-only work, source pins,
+   one numeric thread, <=10-minute wall cap, 16 MiB scratch/32 MiB retained and
+   5 GiB reserve before execution. Original shared-helper/source hashes and live
+   financial sessions must remain unchanged; report staged versus applied gates
+   distinctly and retain exact failure/cleanup receipts.
+   **Snapshot Staging Receipt (2026-10-11):** original/staged fresh processes
+   each exercise 80 cases on three- and 144-point paths. Actual NumPy 2.2.6
+   reproduces ten failed roundtrips and five stale-cache clones only on the
+   144-point pickle 0..4 cases; the staged helper has zero failures. Independent
+   review verifies 16 source/dependency pins and sealed receipt SHA256
+   `a0df3e19d7ed94f9a01ad7d2938dfb6e590452f43f5ee8f5222c0bdfe76be184`.
+   Measurement and cleanup seals are valid, but the wrapper exits 1 after seal
+   due to a terminal-print KeyError; preserve that failed exit, do not call the
+   invocation green. Earlier fixture/import failures remain retained. No shared
+   source, financial account or worker changes. Cleanup/reserve PASS; 160,069
+   bytes before cleanup receipt, zero scratch/deletion. See the
+   [staged ownership report](../docs/mode5/M5_11_1_SNAPSHOT_STORAGE_STAGE.md).
+   Public shared repair/reporting regression remains required after worker close.
    **First-Three Capacity Review Entry:** prepare a small read-only producer for
    the qualified future-queue policy's existing capacity-review schema. It may
    run only after collector result/cleanup PASS, each exact original session is
