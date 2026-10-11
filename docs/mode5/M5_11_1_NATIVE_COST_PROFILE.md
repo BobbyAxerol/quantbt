@@ -25,6 +25,38 @@ economic replications. Unreturned work is **UNKNOWN_NOT_ZERO**. Neither cell has
 a certified final result at this checkpoint. Convergence and remaining runtime
 are not inferred from pass counts.
 
+## Compiler Mechanism And Scope
+
+Read-only source inspection distinguishes offline admission work from a single
+Rust backtest. The unchanged compiler copies a pristine prepared strategy,
+rebuilds its full command/decision tape from the previous actual execution's
+chronological fill/rejection feedback, and starts another fresh account execution.
+Protection commands require actual entry-fill feedback; subsequent decisions
+can therefore change when the preceding execution supplies new events. This
+dependency is not replaced by hypothetical fills or a signal approximation.
+
+The shared certificate requires consecutive equal **compilation signatures**
+(commands, decisions and feedback counts), equal full execution signatures and
+complete mapped actual fills. Cycle detection and the declared run limit fail
+closed. Compilation stability is not inferred from final equity alone or from
+an unchanged number of orders. The original native03 cell requests separately
+retain their six-hour safety caps; a capped account remains incomplete evidence.
+
+This explains why the measured fixture can require multiple complete passes;
+it does not prove the exact causal frontier, convergence rate or final cost of
+either unfinished configuration. The current observer journals stage timings
+and account-bar witnesses, not each intermediate compilation/result signature.
+Do not claim an observed per-pass frontier or predict the number of remaining
+passes from source inspection. Do not label this offline certificate as an
+online callback or sparse reactive runtime qualification.
+
+Source authorities are the existing
+[feedback certificate](../../tools/mode5_admission/conformance.py) and the
+unchanged registered private binding/financial driver. The final financial
+receipt must retain the actual iteration witnesses before any convergence claim.
+No source, guard, feedback frequency, execution contract, account or worker was
+changed by this inspection.
+
 ## Cost Attribution
 
 The following values use **exclusive intervals between observer events**. They
