@@ -1,7 +1,7 @@
 # M5-11.1 Native Panel Queue And Missing Work
 
 Status: **NATIVE07_SINGLE_HASH_PILOT_ACTIVE / NATIVE_PANELS_PENDING**
-(dated host observation, 2026-10-11 about 18:42 UTC).
+(dated host observation and sealed prefix, 2026-10-11 18:47 UTC).
 Authority: [ordered closure](../../upgrade/implement.md#mode5-m5-11-goal-closure)
 and [guide comparison levels](../../upgrade/QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#49-multi-hypothesis-empirical-battery-giữ-năm-chiều-làm-rõ-mỗi-phép-thử).
 
@@ -502,6 +502,23 @@ account exists then. This is a dated progress observation, not a resumable
 checkpoint, final lifecycle certificate, economic trial count or ETA. Preserve
 the native05 CENSORED result and all other attempts; repeated passes are compiler
 work, not new effective configurations.
+
+The subsequent read-only **18:47 UTC** prefix seals **65 returned accounts /
+1,708,200 simulated bars** and **64 published feedback signature pairs**. Both
+exact handles verify live before and after capture. All seven command/result/
+count witness fields match the corresponding 64 original native04 runs, with
+**zero differing runs**. The original comparison takes **0.108 s**, no account
+replay or mutable-state access. The one-record difference is a capture between
+account return and feedback publication, not a terminal or complete candidate.
+Both cleanup receipts PASS_NO_SCRATCH_CREATED, reserve PASS, no deletion of
+workers, caches, original CENSORED evidence or protected private inputs.
+
+Capture result/cleanup SHA256:
+`1c0f2c9c443cc5b335718cd9fd54da7bcdd2f24520834d41d9a83d34cd62b7bd` /
+`d363f5a4ce9b578b58c9366a03ddba44667911a183cd3746b40aae6c8f5f9d2b`.
+Returned-prefix comparison result/cleanup SHA256:
+`01a09a572822752b0dfd46eeebdde7167f0a8e5547a8557fb488b1a3ca455b65` /
+`f98a6934356d14ac2a1ae12cb9a4d6d91884de3dd4149b3b983b4f0cb454da79`.
 
 ### Panel And Capacity Requirements
 

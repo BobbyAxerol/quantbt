@@ -13,9 +13,11 @@ closed by custody41 revision03: native code owns the complete file/descriptor
 lifetime, and reports retain combined integrity/interruption faults. All 24
 focused Python cases PASS; the exact prior Rust unit/build proof is reused.
 The seven-case source-bound native07 handoff also PASS, followed by an actual
-single HASH2 worker launch at 18:38 UTC. Host observation at about 18:42 UTC
-verifies the supervisor live, no completion receipt, and 24 returned account
-passes; these are compiler work, not completed candidates or resumable accounts.
+single HASH2 worker launch at 18:38 UTC. The sealed 18:47 UTC prefix verifies
+both handles live before/after capture: 65 returned account passes / 1,708,200
+bars, with 64 published signature pairs matching all seven original native04
+witness fields exactly. The capture falls between one returned account and its
+later feedback record; it is not a final account or resumable checkpoint.
 Original six-hour caps, exact request, finance and Python oracle remain unchanged.
 Native06 is registered but deliberately unused. Matched custody verify p50 is
 10.87% lower, but entry/exit plus ten verifies costs 33.96% more; this is not a
@@ -31262,6 +31264,46 @@ and [M5-06..09 work packages](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_V
    128-point native panels, sampler-only studies, 256-query calibration and
    prefix-rebuilt forward remain required. No CI, push, merge, tag or release.
    See [the measured report](../docs/mode5/M5_11_1_NATIVE_PANEL_QUEUE.md#native-owned-full-file-custody-and-single-worker-handoff).
+
+**Native07 Returned-Prefix Differential Registration (2026-10-11):** while the
+   exact supervisor/worker handles are verified live, take one read-only copy of
+   the complete newline-delimited progress prefix. Reuse the original native05
+   observer/comparison algorithms in disjoint native07 evidence paths. Require
+   contiguous observer sequence, contiguous signature-pair run IDs and matching
+   original HASH2 raw request. Compare all seven existing command/result witness
+   fields against the same returned runs in sealed native04; preserve that
+   CENSORED receipt. This qualifies only observed compiler feedback ordering,
+   not terminal accounting, convergence, timing improvement or a resumable
+   checkpoint. No account factories, mutable compiler state, worker signals,
+   dependency/source changes or retries are permitted. Budget: 60 seconds per
+   existing comparison, 32 MiB capture plus 1 MiB comparison retained, zero
+   scratch, at least 5 GiB reserve. Pin exact observer/comparison inputs before
+   publication, verify them afterward, retain every result and record cleanup
+   without deleting active workers/caches or old evidence. Stop with a retained
+   FAIL if any witness differs; do not reinterpret the difference as parity.
+   Authority: [native custody registration](#mode5-m5-11-native-custody41),
+   [guide cache authorization](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#72-computationoutput-plan-và-cache)
+   and [resource contract](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#73-resource-plan-và-tốc-độ-không-làm-hỏng-methodology).
+
+**Native07 Returned-Prefix Receipt (18:47 UTC):** original observer/comparison
+   algorithms, with only disjoint lane/cell identities, capture 65 returned
+   account passes / 1,708,200 bars and 64 completed feedback signature pairs.
+   Supervisor and worker handles verify live before/after capture. All seven
+   command/result/count fields match the same 64 native04 returned runs exactly;
+   zero differing runs, comparison wall 0.108 seconds, no account replay. One
+   account has returned before its next feedback witness is published; incomplete
+   work is UNKNOWN_NOT_ZERO, never a missing terminal account converted to PASS.
+   Both cleanup receipts PASS_NO_SCRATCH_CREATED, no deletions, reserve PASS;
+   active workers, caches, original CENSORED attempts and private evidence remain.
+   Capture result/cleanup SHA256:
+   `1c0f2c9c443cc5b335718cd9fd54da7bcdd2f24520834d41d9a83d34cd62b7bd` /
+   `d363f5a4ce9b578b58c9366a03ddba44667911a183cd3746b40aae6c8f5f9d2b`.
+   Comparison result/cleanup SHA256:
+   `01a09a572822752b0dfd46eeebdde7167f0a8e5547a8557fb488b1a3ca455b65` /
+   `f98a6934356d14ac2a1ae12cb9a4d6d91884de3dd4149b3b983b4f0cb454da79`.
+   This closes only the actual returned-prefix differential check for the new
+   custody handoff. Full candidate, compiler convergence, terminal accounting,
+   capacity, panels and studies remain unproven and required.
 
 <a id="mode5-m5-11-2"></a>
 ### Phase M5-11.2 - Actual Adaptive Calibration And Selector Comparisons
