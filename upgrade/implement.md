@@ -30340,6 +30340,33 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    [closed economics/cost report](../docs/mode5/M5_11_1_NATIVE04_CLOSED_CHECKPOINTS.md).
    M5-11.1 remains IN_PROGRESS, first-three capacity/16-GiB gate unfulfilled,
    M5-11.2/11.3 NOT_RUN. No CI/push/merge/release/publication.
+   **Native05 Single-Worker Entry (2026-10-11):** the actual native04 controller
+   has returned and all exact handles are absent. Register HASH's original
+   index2 request in a fresh one-worker lane, with no concurrent new HMA/VWAP
+   accounts during this contention-isolation tranche. Reuse COMPLETE HMA1 and
+   VWAP2 through their sealed checkpoint proofs; preserve both HASH cap receipts.
+   Only private paths/target list and supervisor occupancy change relative to
+   qualified native04. Require exact critical worker/guard/driver AST, original
+   request equality, disjoint attempts, unchanged full source/dependency/native
+   gate and worker-entry tests before launch. Original six-hour cell/tranche
+   caps, one numeric thread, 4-GiB retained store, per-cell 96/512-MiB budgets,
+   five-GiB reserve and maximum three global slots remain; no 16-GiB activation,
+   automatic retry or invented mid-compiler resume. This is a registered fresh
+   attempt, not a timing rerun to claim language/kernel superiority. Cold tests
+   use five minutes, 16-MiB scratch/32-MiB retained, exact cleanup receipts; launch
+   is main-owned only after source/request/checkpoint/custody gates pass.
+   **Native05 Cold And Registration Receipt (2026-10-11):** six targeted
+   single-worker cases PASS in 0.138 s without numeric/engine imports. All
+   critical guard/worker/observer/driver functions have exact original AST;
+   normalized path/occupancy-only functions match native04. HASH index2 request
+   equals the original censored request, unchanged 4096-run cap, six-hour
+   wall caps and four-GiB budget. Cold cleanup PASS deletes only empty owned
+   scratch and preserves snapshots. Main cold registration then verifies all
+   273 tools modules, original native/dependency/driver guard, existing observer
+   proofs and HMA1/VWAP2 COMPLETE seals. One fresh native05-HASH-002 cell is
+   REGISTERED_NOT_LAUNCHED with no financial call during registration. The
+   prior censored cell roots/receipts are retained; no automatic retry, launch,
+   sixteen-GiB gate promotion or compiler-state continuation occurs here.
    **Native03 Closed-Custody Receipt (2026-10-11):** host/session and source
    review passes for the actual cap event, not final financial qualification.
    HMA/HASH journals contain 77,568/80,419 valid sequential rows and returned

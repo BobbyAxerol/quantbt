@@ -1,12 +1,14 @@
 # M5-11.1 Native Tranche Pending
 
-Current status: **NATIVE04_RUNNING / FULL_NATIVE_PANELS_UNFINISHED**.
-Fresh native04 wrapper qualification and actual cold registration PASS;
-the exact host-supervised tranche has launched. HMA1/HASH2 are fresh attempts,
-not resumes; completed VWAP1 is retained and the next request is VWAP2. The
-original guard, six-hour caps, 4-GiB store budget, three independent slots,
-financial sources and complete 2021-2023 accounts remain unchanged. Neither
-dependency prototype nor the unqualified 16-GiB queue is activated.
+Current status: **NATIVE04_CLOSED_TWO_COMPLETE / HASH_CENSORED / PANELS_UNFINISHED**.
+The [closed checkpoint report](M5_11_1_NATIVE04_CLOSED_CHECKPOINTS.md) records
+HMA1/VWAP2 COMPLETE and original certificate/source/receipt reconciliation PASS;
+HASH2 is censored at the unchanged six-hour cap with no financial checkpoint.
+All owned children are reaped. Original guard, 4-GiB store, maximum three
+independent slots, financial source and full 2021-2023 accounts are unchanged.
+Neither dependency prototype nor the unqualified 16-GiB queue is activated.
+The live-prefix section below is a dated historical observation, not current
+liveness. Reuse completed cells; missing cells need explicit fresh registration.
 
 ## Native04 Live Prefix
 
