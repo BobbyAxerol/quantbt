@@ -1,8 +1,49 @@
 # M5-11.1 Snapshot Storage Staging
 
-Status: **GAP_REPRODUCED / PUBLIC_REGRESSION_RED / SOURCE_UNPATCHED**.
+Status: **SHARED_SOURCE_REPAIRED / LOCAL_REPORTING_REGRESSION_PASS**.
 This is reporting/cache correctness work required before the continuous public
 measurement provider. It does not change engine accounting, formulas or studies.
+
+## Shared Source Closure
+
+After the original native workers and monitors closed, the actual shared helper
+was repaired: bytes-backed storage is shared only if every ndarray ancestor is
+readonly. Writable pickle ancestry instead receives fresh immutable storage.
+The exact old source remains retained; no financial formula, engine, alpha,
+market, scientific threshold or installed environment changed.
+
+The new 24-case public regression now passes on the real helper. The full
+`tests/metrics` roster passes **862 tests, zero failures/errors/skips**. This
+includes the 24 cases and 74 new source-amendment cases; they are not added again
+to the total. The amendment verifies exact committed before/after blobs for nine
+already-approved native/clock changes, without rebasing historical MET hashes.
+Unreviewed bytes, manifest mutations and stale commit hashes still fail closed.
+
+All earlier failures remain retained: old helper 15 FAIL / 9 PASS; minimal-tooling
+broad run 14 FAIL / 768 PASS / 6 SKIP; source/full-dependency run 861 PASS / one
+incompatible W3 native-pair FAIL. The final run uses explicit source imports and
+the exact previously qualified local CPython 3.12 core/native pair **1.1.2 / 0.4.3**.
+The native wheel and loaded binary hashes match their original gate; there is
+no compatibility patch, package installation, native rebuild or hidden test skip.
+This is source regression, not a new installed/public artifact certificate.
+
+Final runtime is **71.736 s**, peak completed-child RSS **566.031 MiB**. These are
+regression costs, not financial or kernel benchmarks. Synthetic producer runs
+inside tests are not separately instrumented; no private alpha was rerun.
+Source and retained pins verify unchanged. Cleanup removes only the exact owned
+inactive scratch (3,970,521 logical bytes); 231,452 bytes remain before the
+cleanup receipt, within budget. Available filesystem space decreased 937,984
+bytes during concurrent work, so no measured free-space gain is claimed.
+
+| Final Evidence | SHA256 |
+| --- | --- |
+| Shared helper | `c83f9203e7a6d17453bdd22cc9fcab17a258455e846d93d19bac4b581baf2501` |
+| Source regression | `7fe3ea219da1c5e631030f9054e7b0f27c0de639aab7c278d75f30fa611ce307` |
+| Cleanup | `5cea14d02d8e9b073d5f34d67aed9db464481af6b3902c8b75412f9844ae8393` |
+
+The historical staging/red-baseline receipts below remain unchanged. This closes
+the shared storage prerequisite only; continuous provider wiring, native panels,
+formal studies and prefix-forward economics remain separate, unfinished gates.
 
 ## Actual Counterexample
 
@@ -25,7 +66,7 @@ this runtime. This is not evidence that every pickle or snapshot is defective.
 An isolated helper shares bytes-backed storage only when every ndarray ancestor
 is readonly; otherwise it creates fresh immutable storage. All 80 staged cases
 pass, with identical values, shapes, dtypes, content identities and reduction
-contracts. No shared source was changed while the exact native workers are live.
+contracts. No shared source was changed while the exact native workers were live.
 These synthetic fixtures do not certify a deployed source patch, the complete
 reporting regression corpus or an installed-wheel consumer.
 
@@ -72,7 +113,6 @@ numeric thread, ten minutes, 16 MiB scratch, 32 MiB combined retained and a 5-Gi
 reserve. Cleanup PASS recorded 160,069 retained bytes before its receipt, zero
 scratch and no deletion. All failures, exact fixtures and receipts are preserved.
 
-After active worker closure, apply the narrow shared repair under a new source
-witness and qualify reporting/cache serialization regressions. Only then can
-the continuous public provider claim that shared snapshot gate closed. This
-staged test does not complete M5-11.1, authorize a recipe or release a package.
+The narrow source repair and reporting regression have subsequently passed under
+the new source witness above. This does not bind the continuous public provider,
+complete M5-11.1, authorize a recipe or release a package.

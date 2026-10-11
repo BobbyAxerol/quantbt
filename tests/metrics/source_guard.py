@@ -1,7 +1,8 @@
-"""MET-03 narrowly admits cold reporting only; archived baselines stay immutable."""
+"""Exact reviewed amendments; archived MET source baselines stay immutable."""
 
 import ast
 import hashlib
+import json
 from pathlib import Path
 import subprocess
 
@@ -11,6 +12,46 @@ PARENT = "864b38a"
 ADMITTED = {"src/quantbt/__init__.py", "src/quantbt/endpoint.py",
             "src/quantbt/core/types.py", "src/quantbt/core/results.py"}
 EXPORTS = {"ReportingRequest", "ReportingContractV1", "ReportingCoverageV1", "ReportingCache"}
+AMENDMENT = ROOT / "docs/metrics/evidence/met-source-amendment-v1.json"
+AMENDMENT_SHA256 = "a67d8573b89d7e1312230a657c51c1ea6e5868e11aae14e17192f2a5ed1a403f"
+AMENDMENT_ID = "met-m5-11-clock-and-m5-11-1-native-output-v1"
+
+
+def source_amendment():
+    raw = AMENDMENT.read_bytes()
+    assert hashlib.sha256(raw).hexdigest() == AMENDMENT_SHA256, "source amendment digest"
+    manifest = json.loads(raw)
+    assert manifest["schema"] == "met-reviewed-source-amendment-v1", "source amendment schema"
+    assert manifest["identity"] == AMENDMENT_ID, "source amendment identity"
+    return manifest
+
+
+def committed_blob(commit, path, expected_hash):
+    assert len(commit) == 40 and all(c in "0123456789abcdef" for c in commit), path
+    source = subprocess.check_output(["git", "show", f"{commit}:{path}"], cwd=ROOT)
+    assert hashlib.sha256(source).hexdigest() == expected_hash, f"amendment blob: {path}"
+    return source
+
+
+def without_reviewed_amendments(current, path, expected_hash):
+    entry = source_amendment()["sources"].get(path)
+    if entry is None:
+        return current
+    assert expected_hash == entry["baseline_sha256"], f"amendment baseline: {path}"
+    baseline = committed_blob(entry["baseline_commit"], path, expected_hash)
+    if current == baseline:
+        return baseline
+    previous_hash = expected_hash
+    admitted = False
+    # Every link must start at the archived bytes or the preceding reviewed blob.
+    for change in entry["transitions"]:
+        assert change["before_sha256"] == previous_hash, f"amendment chain: {path}"
+        committed_blob(change["before_commit"], path, previous_hash)
+        after = committed_blob(change["after_commit"], path, change["after_sha256"])
+        admitted |= current == after
+        previous_hash = change["after_sha256"]
+    assert admitted, f"unreviewed source bytes: {path}"
+    return baseline
 
 
 def normalized(text, path, *, changed):
@@ -48,9 +89,15 @@ def normalized(text, path, *, changed):
 
 
 def assert_protected(path, expected_hash):
-    current = (ROOT / path).read_bytes()
+    assert_protected_bytes(path, expected_hash, (ROOT / path).read_bytes())
+
+
+def assert_protected_bytes(path, expected_hash, current):
+    current = without_reviewed_amendments(current, path, expected_hash)
     from tools.mode5_public_source_guard import without_mode5_public
     current = without_mode5_public(current, path)
+    if hashlib.sha256(current).hexdigest() == expected_hash:
+        return
     if path not in ADMITTED:
         assert hashlib.sha256(current).hexdigest() == expected_hash, path
         return

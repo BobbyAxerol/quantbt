@@ -8,10 +8,11 @@ import numpy as np
 
 def immutable_storage(array):
     """Share bytes only; always return a private ndarray shape/dtype header."""
-    owner = array
+    owner, readonly = array, True
     while isinstance(owner, np.ndarray):
+        readonly = readonly and not owner.flags.writeable
         owner = owner.base
-    if isinstance(owner, bytes):
+    if isinstance(owner, bytes) and readonly:
         return array.view()
     return np.frombuffer(array.tobytes(), dtype=array.dtype).reshape(array.shape)
 

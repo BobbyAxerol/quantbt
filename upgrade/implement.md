@@ -25,9 +25,14 @@ See [selector controls](../docs/mode5/M5_11_1_SELECTOR_ONLY.md),
 [sampler runtime](../docs/mode5/M5_11_2_SAMPLER_RUNTIME_PREFLIGHT.md).
 Cold structural/domain, source-bound handoff, bounded continuous measurement
 and synthetic sampler runtime gates PASS within their distinct scopes.
-The shared reporting storage gap is reproduced; its
-[staged repair](../docs/mode5/M5_11_1_SNAPSHOT_STORAGE_STAGE.md) passes fixtures
-but shared source/regression remains deferred until workers close. At 02:17 UTC,
+The shared reporting storage gap is now repaired on actual source; the
+[closure](../docs/mode5/M5_11_1_SNAPSHOT_STORAGE_STAGE.md) passes all 862 reporting
+tests, including the new large-pickle and exact later-amendment guards, with no
+failures or skips. Historical red/minimal-environment/incompatible-native
+attempts remain retained. This source regression uses the exact qualified local
+native 0.4.3, not the tooling environment's incompatible historical 0.4.2;
+it does not certify a new installed/public artifact or bind the provider.
+Historical live checkpoint at 02:17 UTC:
 HMA1/HASH2 remain live with 1,403/1,467 returned compiler passes, not trial counts;
 collector completion/capacity receipts remain pending. This dated checkpoint is
 not a final result, convergence estimate or lifecycle certificate. Still open:
@@ -30131,6 +30136,61 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    environment; retain failure and success logs, source before/after identities
    and cleanup. New source witnesses are required for future qualification;
    passing reporting regressions do not close native panels or formal studies.
+   **Reporting Regression Environment/Guard Correction Entry (2026-10-11):**
+   retain the first applied-source attempt: the new 24 cases pass, while the
+   broad 788-case roster returns 14 FAIL / 768 PASS / 6 SKIP. Diagnose source
+   guards against immutable historical baselines and actual reviewed later
+   changes; do not replace old baseline hashes with today's source. A new exact
+   amendment may admit only individually reconciled, committed native/QMS
+   changes with before/after blob hashes, phase authority and tests that reject
+   unrelated mutations. Missing Matplotlib and subprocess imports of the old
+   installed wheel are environment defects, not evidence against snapshot
+   values. Use explicit src/repository PYTHONPATH and an existing fully provisioned
+   reporting environment; preserve the controlled NumPy runtime and original
+   installed artifacts/dependencies. Record versions/origins and distinguish
+   optional-oracle support; no hidden skip, source monkeypatch, formula change,
+   environment reinstall or native rebuild. Reuse the same ten-minute,
+   64-MiB scratch/128-MiB retained/5-GiB reserve contract in a fresh attempt lane.
+   The explicit-source/full-dependency attempt returns 861 PASS / one W3
+   incompatible-pair FAIL, no skips: primary tooling loads historical native
+   0.4.2 with current core 1.1.2. Preserve this failure. A fresh attempt may use
+   the already-qualified goal-native-gate01 extraction via explicit PYTHONPATH
+   after verifying its exact wheel/binary hashes and loaded module origin;
+   no package installation, artifact mutation, test skip or compatibility
+   monkeypatch. Record the actual source/native pair and distinguish this
+   source regression from installed/public artifact certification.
+   **Reporting Closure Receipt (2026-10-11):** actual shared helper now rejects
+   writable ndarray ancestry despite a final bytes owner. All 862 tests/metrics
+   pass with no failure/error/skip, including 24 large-pickle and 74 reviewed
+   source-amendment cases. Nine exact already-committed native/clock transitions
+   are admitted through a hash-pinned manifest; original MET baselines and old
+   public amendment stay unchanged, unknown mutations remain fail-closed.
+   Explicit source/native origin and artifact hashes verify core 1.1.2 / native
+   0.4.3; no build/install/compatibility patch/private-alpha account occurred.
+   Full workload 71.736 s, peak completed-child RSS 566.031 MiB. Cleanup PASS
+   removes exact owned inactive scratch, 3,970,521 logical bytes; 231,452 retained
+   bytes before receipt. No filesystem gain claimed amid concurrent writes.
+   Result SHA256 `7fe3ea219da1c5e631030f9054e7b0f27c0de639aab7c278d75f30fa611ce307`.
+   Shared storage gate closes; native panels, continuous provider binding,
+   matched economic sampler/studies and prefix-forward gates remain open.
+   **Next Native Runtime Entry (2026-10-11):** do not blind-retry the capped
+   six-hour cells. Qualify a bounded same-frequency dependency traversal change
+   against the original worker guard before fresh finance. The previous cached
+   descriptor prototype was slower and remains NOT_ACTIVATED. A new candidate
+   may share ancestry traversal only within each fresh verification epoch,
+   never retain directory descriptors across verify calls, relax no-symlink
+   checks, omit pins, change expected bytes or skip entry/exit deep hashing.
+   Preserve PID lifetime, fault latches, full nondependency hashing and exact
+   original accounting/compiler behavior. Original namespace/race fixtures and
+   explicit rename/symlink/inter-epoch/descriptor-release faults must qualify;
+   a weaker or inconclusive witness stays inactive. Register at most 30 minutes,
+   one numeric thread, 32 MiB scratch, 64 MiB retained and 5 GiB reserve, using
+   existing tooling only. Benchmark actual declared dependency/nondependency
+   rosters in matched alternating order; retain adverse results without reruns
+   to select a favorable timing. This changes custody overhead only, not
+   convergence, studies, worker wall caps or the COMPLETE capacity gate. A
+   beneficial qualified change still needs source/wrapper integration and a
+   new exact financial registration; old attempt receipts remain unchanged.
    **Native03 Closed-Custody Receipt (2026-10-11):** host/session and source
    review passes for the actual cap event, not final financial qualification.
    HMA/HASH journals contain 77,568/80,419 valid sequential rows and returned

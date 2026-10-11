@@ -105,3 +105,6 @@ reduces the actual retained RSI/SC snapshots: 37 focused tests, 256 parents,
 It exposes genuine whole-account Sharpe and preserves carried annual attribution.
 This adds bounded numerical qualification; public provider/raw-Sharpe registry,
 actual adaptive studies and shared storage source activation remain separate.
+The shared snapshot prerequisite has subsequently closed in the
+[actual source regression](M5_11_1_SNAPSHOT_STORAGE_STAGE.md#shared-source-closure).
+Other public/provider/study gates remain open; the old handoff is not rewritten.

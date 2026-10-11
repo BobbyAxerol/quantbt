@@ -64,7 +64,9 @@ recorded-only market pins preserve their separate roles.
 The prospective boundary detaches immutable storage/headers, including nested
 returns and streams. It does not patch the shared helper. The separately
 [reproduced size/protocol-specific cache gap](M5_11_1_SNAPSHOT_STORAGE_STAGE.md)
-still requires source activation and reporting regression after worker closure.
+has subsequently passed shared-source repair and all 862 reporting regressions
+after worker closure. The numerical revision06 receipt remains historical and
+unchanged; the source closure is a separate prerequisite, not provider wiring.
 
 ## Cost And Custody
 
