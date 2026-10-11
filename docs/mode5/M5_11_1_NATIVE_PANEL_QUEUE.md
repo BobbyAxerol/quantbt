@@ -1,6 +1,6 @@
 # M5-11.1 Native Panel Queue And Missing Work
 
-Status: **COLD_BINDING_PASS / ACTUAL_CAPACITY_AND_PANEL_QUALIFICATION_PENDING**.
+Status: **COLD_BINDING_AND_ACTUAL_ROSTER_INTEGRATION_PASS / CAPACITY_AND_PANELS_PENDING**.
 Authority: [ordered closure](../../upgrade/implement.md#mode5-m5-11-goal-closure)
 and [guide comparison levels](../../upgrade/QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#49-multi-hypothesis-empirical-battery-giữ-năm-chiều-làm-rõ-mỗi-phép-thử).
 
@@ -30,8 +30,9 @@ The old queue, resource policy and active HASH process are not modified.
 Revision02 takes **0.406 s**, peak RSS **32.445 MiB**. Exact fixture scratch is
 copied to retained evidence before removal; source/input pins and 5-GiB reserve
 PASS. No financial call, native build, worker process, queue reservation or
-activation occurs. Actual inventory and finalization integration remain a
-separate pending proof, not inferred from these isolated fixtures.
+activation occurs. Actual inventory integration is certified separately below;
+positive financial finalization and launch remain pending, not inferred from
+these isolated fixtures.
 
 Revision02 result SHA256:
 `525779ddb9f293cdd926a2a786f23955ec37d662ab068391cb3e35d13ac140e0`.
@@ -39,6 +40,59 @@ Cleanup SHA256:
 `a54d4ab571f1583b6eee84989884b1637db46bcb9bb545bb4af9cd836137ae95`.
 Handoff SHA256:
 `4bb61270bd86bc3f7c01527a8d22e22b35ddefdfdf2fe975e7960a78fe61043b`.
+
+## Actual Missing-Work Inventory
+
+A separately registered immutable inventory reconciles every original raw and
+effective identity against the original design and financial custody. Twelve
+focused fixtures PASS; all 384 original requests match the frozen request
+producer. Completed account adoption is based on original sealed financial
+provenance or the existing exact checkpoint validator, with original compiler
+signature proof where available. No account is unpickled or simulated.
+
+| Alpha | Qualified Reuse | Closed But Source Rejected | Active | Eligible Fresh Work |
+| --- | ---: | ---: | ---: | ---: |
+| HMA | 2 | 0 | 0 | 126 |
+| HASH | 1 | 1 | 1 | 125 |
+| VWAP | 2 | 1 | 0 | 125 |
+| Total | 5 | 2 | 1 | 376 |
+
+Seven original candidates have returned financial completion, but only five
+currently pass reuse custody. HASH1 and VWAP1 fail current input-pin validation
+at the reviewed reporting `snapshots.py` amendment. Both original COMPLETE
+results and failures are retained and blocked from rerun, not mislabeled as
+unfinished financial work. Their source-amendment disposition must be qualified
+separately; no broad ignore rule, source restoration over the live checkout or
+unreviewed checkpoint adoption is allowed. HASH2 remains an immutable ACTIVE
+snapshot. Earlier censored attempts stay separate from candidate-level status.
+
+The inventory is descriptive, not a convergence certificate or financial panel.
+It takes **37.088 s**, peak RSS **160.758 MiB**. Cleanup PASS removes only owned
+inactive fixture scratch, retains all failed attempts and verifies current
+sources. Inventory SHA256:
+`6c27eb90645aa066d07d65ec7efec3455376323982e6ccbc06754bf2b98d07a4`.
+Result SHA256:
+`9372248d73671bbc0d87790d2e217ce386b5bf7957c26faf8a5a05b3ab32f66a`.
+Cleanup SHA256:
+`a6026e71fdd94de01ae9050b03443261d1657495c8c84911e7f3e51df4475d3e`.
+
+## Actual Queue Admission
+
+The actual new entry revalidates the inventory and its sources/closed proofs,
+then matches three missing targets to the unchanged original financial requests:
+HMA2, HASH3 and VWAP3. It excludes qualified COMPLETE candidates, the live HASH2
+and the two source-rejected COMPLETE accounts. The new v2 resource consumer
+rejects the real pending three-slot capacity receipt with `CustodyFault` before
+creating any destination, driver, account or worker. This expected rejection is
+successful fail-closed integration, not actual positive capacity qualification.
+
+Wall **50.834 s**, peak RSS **181.621 MiB**. Cleanup/reserve PASS, no scratch or
+deletion, no financial work or queue activation. The prepared future request
+exists only in retained review evidence, not as a reserved financial job.
+Result SHA256:
+`6cc6429d5c5e9464b6ce540f2f7220b132cdd0097ca8d5bf57b513374a7a40cd`.
+Cleanup SHA256:
+`b024a9dbe38d95ab90d67537582b583d50cf1e4c3f75d9d17bcf67ceff657ddb`.
 
 ## Remaining Scientific Work
 

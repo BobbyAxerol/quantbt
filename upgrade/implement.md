@@ -47,6 +47,14 @@ The pending v2 consumer now rejects forged/missing/changed-origin capacity befor
 factory calls; seven focused cases PASS with original four-GiB fixture restore.
 The isolated strict custody repair passes 103 cold tests, but measured verifies
 are slower, so it is NOT_ACTIVATED; original live guard/source remain unchanged.
+Future queue32's new v2 consumer/native05 binding passes ten focused tests and
+actual missing-roster integration. Inventory33 reconciles all 384 original
+requests: five qualified reuse, two closed but source-rejected COMPLETE requests,
+one active HASH2 and 376 eligible fresh targets. The two old COMPLETE accounts
+remain protected from rerun; their reporting-source amendment needs a separate
+exact disposition, not a hash-ignore exception. Actual new queue admission
+rejects pending HASH capacity before any reservation/factory/worker. These are
+work/custody proofs, not completed scientific panels or new economic evidence.
 New wrapper/observer qualification totals 107 passing source tests, including
 eight wrapper and ten driver-pattern cases; this is not 107 economic trials.
 The six-hour caps, three independent worker slots, one numeric thread, original
@@ -30556,6 +30564,30 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    Actual source-bound panel inventory/finalization proof and HASH closure are
    still required; no new financial worker/reservation/activation. See
    [queue proof](../docs/mode5/M5_11_1_NATIVE_PANEL_QUEUE.md).
+   **Inventory33 And Actual Queue34 Receipt (2026-10-11):** twelve focused
+   original-identity/admission fixtures PASS; all 384 raw/effective requests
+   match the frozen producer. Five requests have qualified reuse, two original
+   COMPLETE accounts have rejected custody at the reporting snapshots amendment,
+   HASH2 is ACTIVE and 376 targets are eligible fresh work. Do not rerun either
+   closed source-rejected account; preserve its COMPLETE result and rejection.
+   Inventory wall 37.088 s/peak RSS 160.758 MiB; original failures and source
+   snapshots remain, exact own scratch cleanup PASS. Inventory SHA256
+   `6c27eb90645aa066d07d65ec7efec3455376323982e6ccbc06754bf2b98d07a4`;
+   result `9372248d73671bbc0d87790d2e217ce386b5bf7957c26faf8a5a05b3ab32f66a`.
+   Actual queue34 verifies those sources/closed proofs and exact future HMA2,
+   HASH3/VWAP3 requests. Pending capacity rejects with CustodyFault before any
+   destination/factory/worker; wall 50.834 s/peak RSS 181.621 MiB. Result SHA256
+   `6cc6429d5c5e9464b6ce540f2f7220b132cdd0097ca8d5bf57b513374a7a40cd`;
+   cleanup `b024a9dbe38d95ab90d67537582b583d50cf1e4c3f75d9d17bcf67ceff657ddb`.
+   Source/custody implementation and integration PASS, actual three-slot
+   capacity/positive financial finalization/launch and full panels still pending.
+   **Closed-Account Amendment Follow-Up:** before claiming current-source reuse
+   for HASH1/VWAP1, reconcile original snapshots-source pins, immutable financial
+   receipts and the reviewed storage amendment. Preserve old FAIL and account
+   arrays; do not change science or financial source, mask arbitrary hash drift,
+   restore old bytes into live shared paths, deserialize accounts or repeat
+   financial execution merely to get current pins. An explicit source-dependent
+   historical/current measurement disposition must precede inventory refresh.
    **Native03 Closed-Custody Receipt (2026-10-11):** host/session and source
    review passes for the actual cap event, not final financial qualification.
    HMA/HASH journals contain 77,568/80,419 valid sequential rows and returned
