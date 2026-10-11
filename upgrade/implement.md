@@ -30525,6 +30525,37 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    COLD_PARITY_PASS/PERFORMANCE_ADVERSE/NOT_ACTIVATED, not universal race or
    worker qualification. Keep the original guard; no prior unsafe speed claim.
    See [bounded experiment](../docs/mode5/M5_11_1_STRICT_CUSTODY_REPAIR.md).
+   **Future Queue32 And Missing-Panel Inventory33 Entry (2026-10-11):** finish
+   the future-only queue binding before more scientific work is reserved. Reuse
+   queue04 custody/registration algorithms in an isolated module; bind the exact
+   qualified v2 retry-capacity consumer and native05's witnessed driver, not the
+   old callback observer or rejected epoch prototype. Build a source-bound roster
+   of all 384 original native panel requests; COMPLETE reuse, active requests,
+   censored attempts and missing candidates remain distinct. Reject fresh aliases
+   of already qualified or active candidates. No private alpha code, account
+   state, strategy output or scientific threshold changes; no financial execution
+   or new worker while the isolated HASH attempt remains live. Register each
+   cold lane before running: ten minutes, one thread, 16-MiB scratch/32-MiB
+   retained/512-MiB RSS and 5-GiB reserve; source/custody fixtures and exact cleanup
+   receipts. Three actual closed capacity slots plus explicit activation and
+   conservative disk headroom are still required before launch. This entry
+   prepares real missing work; it does not promote 128-point panel completion,
+   sampler quality, actual formal calibration or release.
+   **Future Queue32 Cold Binding Receipt (2026-10-11):** initial seven wiring
+   tests PASS; separately sealed revision02 adds verified inventory, ordered
+   exact raw-request matching and bool/int type preservation, ten focused tests
+   PASS/no skips. Isolated original queue algorithms now select the qualified
+   v2 resource consumer and unchanged native05 witnessed factory. The real
+   pending capacity receipt rejects before any driver creation. Synthetic
+   positive/fault sessions restore paths, factory, budget and scope lock; they
+   are not actual three-slot financial qualification. Revision02 wall 0.406 s,
+   peak RSS 32.445 MiB; exact fixture scratch copied before cleanup, input/source
+   pins and reserve PASS. Result SHA256
+   `525779ddb9f293cdd926a2a786f23955ec37d662ab068391cb3e35d13ac140e0`;
+   cleanup `a54d4ab571f1583b6eee84989884b1637db46bcb9bb545bb4af9cd836137ae95`.
+   Actual source-bound panel inventory/finalization proof and HASH closure are
+   still required; no new financial worker/reservation/activation. See
+   [queue proof](../docs/mode5/M5_11_1_NATIVE_PANEL_QUEUE.md).
    **Native03 Closed-Custody Receipt (2026-10-11):** host/session and source
    review passes for the actual cap event, not final financial qualification.
    HMA/HASH journals contain 77,568/80,419 valid sequential rows and returned
