@@ -57,8 +57,11 @@ original closures, zero financial execution/global patch. Retained numeric
 measurement also PASS: five fixtures, two accounts/eight dependent views, twenty
 exact finite original comparisons and unchanged independent tolerances. HASH1
 is slightly profitable but utility negative; VWAP1 remains valid no-trade with
-undefined Sharpe/PSR. Fresh versioned inventory admission remains pending; old
-inventory/rejections are not rewritten. Actual new queue admission
+undefined Sharpe/PSR. Fresh v2 inventory now admits both exact requests: seven
+qualified reuse, one active HASH2 and 376 eligible fresh targets. Eight focused
+cases and actual lineage/source/numeric proof PASS; old inventory/rejections
+are not rewritten. The new schema rejects through the old consumer; a new
+explicit queue binding is pending. Actual original queue admission
 rejects pending HASH capacity before any reservation/factory/worker. These are
 work/custody proofs, not completed scientific panels or new economic evidence.
 New wrapper/observer qualification totals 107 passing source tests, including
@@ -30664,6 +30667,24 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    reserve; focused wrong-lineage/alias/active/COMPLETE/source/numeric/undefined
    fixtures, actual proof verification and own-only cleanup precede admission.
    No finance, account deserialization, numeric rerun, source edit or worker.
+   **Inventory37 Receipt (2026-10-11):** final revision02 PASS: exactly two
+   historical/current-reporting promotions, seven qualified COMPLETE/one ACTIVE/
+   376 fresh, original 384 requests and old rejected attempts unchanged. Eight
+   focused authority/lineage/numeric/undefined/alias/duplicate/COMPLETE/ACTIVE
+   cases PASS; actual old consumer rejects the v2 schema. Public target admission
+   is pure after verified-document fingerprint; altered/unverified documents
+   fail. Existing qualified Git blob reads remain confined to the isolated35
+   namespace, with no new process/RNG/finance/numeric/owner/runtime authority.
+   Available terminal and metric limits remain INCOMPLETE, not silently green.
+   Wall 55.199 s/peak RSS 164.023 MiB; cleanup PASS, zero scratch/deletion,
+   2,085,736 bytes retained before receipt, 125 protected pins unchanged; main
+   verifies 122 unique source/input/result pins without producer rerun. First
+   PASS and pre-registration failure retained. Inventory SHA256
+   `24f501ec9ac6aa390eb684545148210ea8a729b010cb87383a0ac89bee8c4b7e`;
+   result `2fedd33e73d22719b2ec8d3dad9cadb4b841f6171eca3057402d8f15d87f0c13`;
+   cleanup `4dd0f17189b379f4384c779a98db817a420e7e7cc0396ea4e5b61373feb72226`.
+   Old inventories and sealed queue32 remain unchanged; no new queue or worker.
+   See [v2 inventory](../docs/mode5/M5_11_1_NATIVE_PANEL_QUEUE.md#explicit-v2-reuse-inventory).
    **Future Queue38 Entry:** after Inventory37 actual qualification, bind its
    explicit v2 verifier/typed target admission into an isolated copy of the
    already qualified future queue32 entry. Preserve the original queue worker,

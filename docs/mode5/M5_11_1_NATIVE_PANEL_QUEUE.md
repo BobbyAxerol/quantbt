@@ -171,6 +171,58 @@ current reporting proofs explicitly, preserving all original attempts and
 unknown fields. It cannot silently rewrite old FAIL or turn these two points
 into complete 128-configuration panels, full terminal parity or a winning recipe.
 
+### Explicit V2 Reuse Inventory
+
+That admission now passes in a separately sealed v2 inventory. It verifies the
+original 384-request inventory, exact amendment35 checkpoints, numeric36
+NPZ/cell/ledger lineage, unchanged preferences/tolerances and every available
+source/output authority. Only HASH1 and VWAP1 gain an additional explicit
+historical-execution/current-reporting reuse proof. Their rejected original
+attempt records, all other requests and ACTIVE HASH2 remain unchanged.
+
+| Alpha | Qualified Reuse | Active | Eligible Fresh Work |
+| --- | ---: | ---: | ---: |
+| HMA | 2 | 0 | 126 |
+| HASH | 2 | 1 | 125 |
+| VWAP | 3 | 0 | 125 |
+| Total | 7 | 1 | 376 |
+
+There are **377 incomplete financial candidates**, including the one live
+candidate; 376 are eligible fresh work. Old censored attempts stay retained and
+are not counted as completed candidates. Completed no-trade VWAP still lacks
+selection support; available-oracle-fields lifecycle qualification does not
+become full native-only terminal parity. No current-source financial execution,
+additional metric availability, full-panel completion or recipe promotion is
+asserted by the new reuse proof.
+
+Eight targeted wrong-lineage/authority/numeric/undefined/alias/duplicate/active/
+COMPLETE cases PASS. The old consumer actually rejects the explicit v2 schema.
+The selected v2 consumer admits targets only after an exact verified-document
+fingerprint; changes to the document or an unverified namespace fail closed.
+This keeps target admission pure after verification, not a numeric rerun or
+an arbitrary source-hash exception. Source witnesses use the exact already
+sealed Git blobs in an isolated namespace, with no new process/RNG authority.
+
+The first passing revision remains sealed; revision02 adds the two-argument
+verified-document admission interface without modifying it. Final actual proof:
+**55.199 s**, peak RSS **164.023 MiB**, zero financial/numeric execution, process,
+account deserialization, worker or queue activation. Cleanup PASS, zero scratch/
+deletion; 2,085,736 retained bytes before receipt, 125 protected pins unchanged.
+Main checks 122 unique registered source/input/result pins without rerunning
+the producer. Available space decreases 2,093,056 bytes during concurrent work;
+no recovered-space gain is claimed. The pre-registration failure remains.
+
+Final inventory SHA256:
+`24f501ec9ac6aa390eb684545148210ea8a729b010cb87383a0ac89bee8c4b7e`.
+Result SHA256:
+`2fedd33e73d22719b2ec8d3dad9cadb4b841f6171eca3057402d8f15d87f0c13`.
+Cleanup SHA256:
+`4dd0f17189b379f4384c779a98db817a420e7e7cc0396ea4e5b61373feb72226`.
+
+The sealed queue32 remains unchanged and does not consume v2 yet. An explicit
+new binding and source handoff are required; pending real capacity cannot be
+replaced with a synthetic PASS or inferred from seven unrelated COMPLETE cells.
+
 The actual new entry revalidates the inventory and its sources/closed proofs,
 then matches three missing targets to the unchanged original financial requests:
 HMA2, HASH3 and VWAP3. It excludes qualified COMPLETE candidates, the live HASH2
