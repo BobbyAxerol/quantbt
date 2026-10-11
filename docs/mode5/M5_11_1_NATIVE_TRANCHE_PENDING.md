@@ -1,12 +1,46 @@
 # M5-11.1 Native Tranche Pending
 
-Current status: **NATIVE03_CENSORED / FULL_NATIVE_PANELS_UNFINISHED**.
-Fresh native04 wrapper qualification is PASS; actual cold registration and
-host-supervised launch remain separately gated. HMA1/HASH2 are fresh attempts,
+Current status: **NATIVE04_RUNNING / FULL_NATIVE_PANELS_UNFINISHED**.
+Fresh native04 wrapper qualification and actual cold registration PASS;
+the exact host-supervised tranche has launched. HMA1/HASH2 are fresh attempts,
 not resumes; completed VWAP1 is retained and the next request is VWAP2. The
 original guard, six-hour caps, 4-GiB store budget, three independent slots,
 financial sources and complete 2021-2023 accounts remain unchanged. Neither
 dependency prototype nor the unqualified 16-GiB queue is activated.
+
+## Native04 Live Prefix
+
+Cold registration binds all 273 tools modules and the unchanged native gate,
+driver, original dependency guard and new passive signature observer. Three
+fresh cell requests are HMA1/HASH2/VWAP2; the store inventory is 515,779,667 bytes
+under the unchanged four-GiB cap. Registration calls no account; cleanup PASS
+with zero disposable scratch. Register result SHA256:
+`168e894ab701c0dda64f215768c5513a4d9554feaaf1178c388430078d8f54a5`.
+
+At the sealed **2026-10-11 04:47:07 UTC** capture, the exact supervisor
+PID3523492 and all three worker PID/start/session identities verify live before
+and after read-only journal capture. This is actual liveness, not a state-file
+assumption; the supervisor owns the registered caps and worker custody.
+
+| Returned Prefix Work | HMA1 | HASH2 | VWAP2 |
+| --- | ---: | ---: | ---: |
+| Returned owner passes | 24 | 27 | 26 |
+| Returned account-bars | 630,720 | 709,560 | 683,280 |
+| Complete signature pairs | 24 | 27 | 25 |
+| Financial result qualified | No | No | No |
+
+The last three pairs per captured prefix have changing full command/result
+hashes, actual feedback count one below returned fills and zero unmapped
+feedback. They show advancing feedback in these windows, not a final account,
+absence of cycles elsewhere or an estimate of remaining passes/time. Unreturned
+hash work is unknown, not zero. This observation executes no financial call,
+hash callback, signal, restart or source mutation. Capture SHA256:
+`46bd07a6949add7be083c19d76d85d14cf02c5cf7bbf3395d6443e5a06a720d0`.
+
+Cleanup PASS_NO_SCRATCH_CREATED; active caches, environments and all historical
+failed/censored attempts remain. The full 128-point native panels and later
+scientific gates stay open. The original native03 closed disposition below is
+historical and is not rewritten by this fresh run.
 
 The registration-only note below is historical and unchanged. The later native03
 tranche launched after the retained covariance closure and qualified native

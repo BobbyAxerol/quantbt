@@ -16,6 +16,20 @@ COMPLETE-only proof correctly rejects HMA's missing final result; its FAIL and
 cleanup PASS are retained. First-three COMPLETE capacity review and future
 16-GiB queue activation remain pending; the old live/source-freeze checkpoint
 below is historical. Compiler counts are work lower bounds, not a convergence ETA.
+Native04 is now running as a fresh instrumented four-GiB tranche, not a
+continuation of the capped accounts. Supervisor PID3523492 and exact worker
+sessions were host-verified live; HMA1/HASH2 restart with original requests and
+VWAP2 advances the panel without repeating COMPLETE VWAP1. At the sealed
+2026-10-11 04:47:07 UTC prefix, returned passes are 24/27/26, complete signature
+pairs 24/27/25. The last three pairs in each prefix have changing full hashes
+and feedback_count one below returned fills, with zero unmapped feedback;
+convergence is unconfirmed. Original guard/FrozenPins remain active; the faster
+epoch prototype fails strict authorization semantics and is NOT_ACTIVATED.
+New wrapper/observer qualification totals 107 passing source tests, including
+eight wrapper and ten driver-pattern cases; this is not 107 economic trials.
+The six-hour caps, three independent worker slots, one numeric thread, original
+128 configurations/alpha and three-year accounts remain. Actual continuous
+provider/studies/forward and the original 16-GiB capacity gate remain open.
 See [selector controls](../docs/mode5/M5_11_1_SELECTOR_ONLY.md),
 [bounded dossiers](../docs/mode5/M5_11_1_BOUNDED_DOSSIERS.md),
 [native custody](../docs/mode5/M5_11_1_NATIVE_TRANCHE_PENDING.md),
@@ -30270,6 +30284,26 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    Result SHA256 `45cc88cf82cd3258b3c54b750c2164d8e61f5cf6a9ce61e69c69328c450c5920`.
    Actual cold registration is a separate entry: no financial completion,
    worker authorization or 16-GiB capacity promotion follows from these tests.
+   **Native04 Actual Registration And Live Receipt (2026-10-11):** source-bound
+   cold registration verifies all 273 tools modules, unchanged qualified native
+   gate, original driver/guard/dependency witness and exact current observer
+   proofs. Three fresh cells register HMA1/HASH2/VWAP2; store retained inventory
+   is 515,779,667 bytes under four GiB. Cleanup PASS with no disposable scratch;
+   no financial call occurs during registration. Result SHA256
+   `168e894ab701c0dda64f215768c5513a4d9554feaaf1178c388430078d8f54a5`.
+   Main launches only the exact controlled supervisor: PID3523492/start66205899,
+   boot d6aee699-ddd5-42a4-a89d-c7c9c6004597 and pid namespace4026531836.
+   Worker PID/start identities are HMA3523502/66206470, HASH3523508/66206661,
+   VWAP3523526/66206827, each in its own process group/session under that parent.
+   Read-only 04:47:07 UTC capture verifies exact live identities before/after,
+   seals complete journal prefixes and adds zero account/callback/hash/signal.
+   Returned passes 24/27/26, bars 630,720/709,560/683,280; paired signatures
+   24/27/25. Last pairs differ and observed feedback trails fills by one with
+   no unmapped feedback. This shows advancing feedback in those prefixes,
+   not whole-run convergence, final economics, cycle absence or ETA. Capture
+   SHA256 `46bd07a6949add7be083c19d76d85d14cf02c5cf7bbf3395d6443e5a06a720d0`.
+   Cleanup PASS_NO_SCRATCH_CREATED; active caches and all historical attempts
+   remain. No prototype/16-GiB queue/CI/push/release/publication is activated.
    **Native03 Closed-Custody Receipt (2026-10-11):** host/session and source
    review passes for the actual cap event, not final financial qualification.
    HMA/HASH journals contain 77,568/80,419 valid sequential rows and returned
