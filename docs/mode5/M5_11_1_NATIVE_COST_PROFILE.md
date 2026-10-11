@@ -74,3 +74,41 @@ HMA prefix SHA256:
 `84ceff6d59d2611e3d5fc2a16dbe95982d5f3418bceee38169195e6e96a715b3`.
 HASH prefix SHA256:
 `2c1916db08640c1a4d35088d83a322a5040eee331a689fcf7c2faf5beab89f79`.
+
+## Cold Traversal Disposition
+
+The separately registered directory-descriptor prototype is
+**NOT_BENEFICIAL / NOT_QUALIFIED** and is not activated. There was one matched
+experiment with ten verify calls per arm in alternating order, unchanged guard
+frequency, full entry/exit hashes and original nondependency verification.
+
+| Measured Cold Work | Original Guard | Prototype |
+| --- | ---: | ---: |
+| Ten verify calls, total | 5.598815 s | 33.169713 s |
+| Verify-call median | 514.934 ms | 3,271.315 ms |
+| Entry + own ten calls + exit | 9.005985 s | 36.678042 s |
+
+The prototype reduced descriptor opens but added 2,641,950 ancestry stat checks;
+total verify work was 5.92x slower. Its extra namespace-binding checks can also
+produce stronger faults than the original, so static cold fixtures are not
+universal semantic equivalence or financial parity. No benchmark was rerun to
+obtain a positive result, and neither implementation claims a namespace lock.
+
+Exact production filtering reconciles **1,635 guarded dependencies + 130
+nondependency records = 1,765 witness pins**. The 1,761 eligible-inventory count
+has a different scope; it is not the guarded count. No subset was chosen for
+speed. Tests PASS: 29 original fixtures on the original class, the same 29
+fixture bodies on the prototype, and 28 additional fixtures. These are separate
+implementation scopes, not 86 distinct scientific hypotheses.
+
+Source/witness checks and actual matched timings remain retained. Main review
+verified 1,785 unique pins, including original registrations and the completed
+handoff. Cleanup PASS removed only the registered owned scratch; current owned
+receipt bytes total 1,435,726, within the registered 64-MiB retained budget and
+5-GiB reserve. Original guards, active financial workers and environments are
+unchanged. This rejects one prototype, not all possible custody optimizations.
+
+Handoff SHA256:
+`13070609603d8361a663a30847b1f99e500982466cdf5a97b1aa8de6b89b0797`.
+Matched measurement SHA256:
+`e2f3b7d23126d4983f714fa733a5aa3b9ed1d46590f4ea382d09fbe8efdb55da`.

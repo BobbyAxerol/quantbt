@@ -29905,6 +29905,24 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    [partial cost profile](../docs/mode5/M5_11_1_NATIVE_COST_PROFILE.md). The isolated
    future custody prototype is IN_PROGRESS, not activated; original live sources,
    six-hour clocks, capacity and formal-study gates remain unchanged.
+   **Cold Traversal Disposition (2026-10-11):** the isolated prospective prototype
+   is NOT_BENEFICIAL / NOT_QUALIFIED, not activated. One registered alternating
+   matched experiment retains all 1,765 witness records: production filter 1,635
+   declared dependencies plus 130 original full-hash nondependencies; eligible
+   inventory 1,761 is a distinct scope. Ten verify calls total 5.598815 seconds
+   original versus 33.169713 prototype; full own entry/calls/exit 9.005985 versus
+   36.678042 seconds. Fewer opens did not offset 2,641,950 added ancestry stat
+   checks. Extra namespace binding faults are stricter than original behavior,
+   so do not claim universal equivalence or financial parity. Fixture scopes
+   PASS separately: original 29, same 29 on prototype, focused 28; no rerun for
+   positive timing. Main verifies 1,785 unique original/source/output pins.
+   Handoff SHA256
+   `13070609603d8361a663a30847b1f99e500982466cdf5a97b1aa8de6b89b0797`;
+   cleanup/reserve PASS, only registered scratch removed, 1,435,726 owned receipt
+   bytes, no finance/source/live guard/worker/queue change. See the
+   [retained negative result](../docs/mode5/M5_11_1_NATIVE_COST_PROFILE.md#cold-traversal-disposition).
+   Keep original guard and native03 clocks. This closes the narrow cold experiment,
+   not full panels, actual output/capacity review, sampler or formal/forward gates.
    **First-Three Capacity Review Entry:** prepare a small read-only producer for
    the qualified future-queue policy's existing capacity-review schema. It may
    run only after collector result/cleanup PASS, each exact original session is
