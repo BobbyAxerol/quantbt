@@ -29868,6 +29868,27 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    records per-matrix measured/missing scope. Original live HMA/HASH workers and
    their clocks/contracts remain unchanged; native panels, matched samplers,
    actual formal studies and prefix-forward validation are still unfinished.
+   **Native Custody Cost Review Entry (2026-10-11):** the current native03 journal
+   shows repeated dependency/source verification materially exceeding execution
+   pass time. Register a bounded, read-only prefix timing reduction and isolated
+   cold directory-traversal prototype for future workers, not a new financial
+   compiler or a performance retrofit of alpha logic. Preserve all live sources,
+   worker epochs, requests, market/account/alpha contracts and six-hour caps.
+   Timing snapshots must retain exact complete journal prefixes, nested-stage
+   semantics, returned-pass/account-bar lower bounds and unfinished-stage masks;
+   never sum nested timers or infer convergence/remaining runtime. Prototype may
+   reuse descriptor traversal only if exact path ancestry, no-symlink/regular-file,
+   inode/stat/race, PID lifetime, fault latch, full entry/exit dependency hashing
+   and nondependency full-hash checks remain fail-closed at every original guard
+   call. Do not skip guard calls, recache mutated files, change science or patch a
+   live owner. Use actual original witness pins plus focused mutation/rename/
+   symlink/descriptor cleanup fixtures; compare ten verify calls per arm under
+   the same unchanged witness, one worker and no finance/RNG/engine imports.
+   Register before execution: timing reduction 64 MiB retained/zero scratch;
+   cold prototype 32 MiB scratch/64 MiB retained, both with 5 GiB reserve. Preserve
+   original/failed receipts, verify source pins and exact owned cleanup. Cold
+   PASS, if any, is not financial parity, launch permission or a native kernel
+   speedup; no next-tranche activation before its actual capacity/source gates.
    **First-Three Capacity Review Entry:** prepare a small read-only producer for
    the qualified future-queue policy's existing capacity-review schema. It may
    run only after collector result/cleanup PASS, each exact original session is
