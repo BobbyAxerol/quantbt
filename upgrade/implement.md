@@ -43,6 +43,10 @@ Original FAIL and unused flattened-margin metadata remain explicit. A new cold
 retry-capacity contract admits those exact two requests, with HASH still missing;
 12 fixtures PASS. Old native03 capacity FAIL and all censored attempts remain.
 The versioned consumer/three-slot/disk gate is still open; no policy activation.
+The pending v2 consumer now rejects forged/missing/changed-origin capacity before
+factory calls; seven focused cases PASS with original four-GiB fixture restore.
+The isolated strict custody repair passes 103 cold tests, but measured verifies
+are slower, so it is NOT_ACTIVATED; original live guard/source remain unchanged.
 New wrapper/observer qualification totals 107 passing source tests, including
 eight wrapper and ten driver-pattern cases; this is not 107 economic trials.
 The six-hour caps, three independent worker slots, one numeric thread, original
@@ -30462,6 +30466,37 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    Historical native03 resource review is preserved; explicit v2 consumer,
    third closed proof and conservative disk admission remain required before
    the future queue. See [resource-only report](../docs/mode5/M5_11_1_RETRY_CAPACITY.md).
+   **Retry Capacity Consumer Entry (2026-10-11):** bind the qualified v2 request
+   review into a new private custody-scope implementation. Reuse the qualified
+   original budget loader, per-cell constants, fresh-driver factory, worker/thread
+   ownership, fail latch, restore and disk checks. Only the versioned capacity
+   admission changes: recompute exact source-bound review from its baseline and
+   selected closed proofs, then compare the complete sealed payload. Literal
+   native03 attempt names cannot stand in for original request identity. Keep
+   the v1 budget-envelope format unchanged but require explicit new consumer
+   identity and v2 review; historical v1 review is not reclassified. Actual
+   PENDING and tampered status/slot documents must fail before any driver factory,
+   leaving resource/financial state untouched. Register five minutes, 16-MiB
+   owned fixture scratch/32-MiB retained/512-MiB RSS and 5-GiB reserve. The current
+   HASH worker, old policy/launcher/source and all receipts remain unchanged.
+   No three-slot PASS, queue preparation/launch, sixteen-GiB activation, account,
+   original object signature, unpickle or source integration is implied by
+   pending-consumer tests. Future launcher selection must explicitly pin this
+   consumer and its qualified parent/helpers; no silent in-place monkeypatch.
+   **Retry Capacity Consumer Receipt (2026-10-11):** revision02 passes seven
+   cold source cases. Pending/forged PASS/forged empty roster/legacy review/
+   unapproved same-byte baseline or gate copies all fail before factory calls.
+   One original four-GiB synthetic ModuleType resource scope restores its exact
+   original budget object and closes normally; no account/financial driver.
+   The full review is recomputed and anchored to the preregistered native04
+   baseline and native gate, rather than a later self-declared origin. Earlier
+   consumer source/result remain retained. Wall 9.609 s, peak RSS 36.926 MiB;
+   cleanup PASS preserves all copied fixtures/source/receipts and removes only
+   exact inactive owned fixture scratch. Result SHA256
+   `3c5306da9e9ea5e6308ab12daef372140ea104453c6c36c52709299aa37159c6`.
+   This is pending-consumer behavior, not actual three-slot COMPLETE admission
+   or launcher/policy activation; HASH and explicit future source selection
+   remain required. Original/current scientific and resource state is unchanged.
    **Strict Custody Repair Experiment Entry (2026-10-11):** independently repair
    the rejected epoch16 prototype's missing per-path ancestor-read authorization
    in a fresh ignored source/evidence lane. Preserve the original guard, prior
@@ -30475,6 +30510,21 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    financial-object hashing, worker signals, source edits or activation. A
    successful local experiment is still not permission to switch live workers;
    future integration needs explicit versioned source/entry/exit/custody proof.
+   **Strict Custody Repair Receipt (2026-10-11):** three exact real ancestor-read
+   revocation cases reproduce the prior rejected prototype FAIL. Fresh repair
+   repeats authorization on each original path stamp; 103 cold tests PASS/no
+   failures/errors/skips, 34 exact permission outcomes per arm match type/errno/
+   args/filename/fault/FD counts. All 733 frozen pins unchanged. The sole
+   preregistered alternating ten-verify custody sample is adverse: original
+   4.746 s vs repair 6.990 s; entry+verify+exit 8.560 s vs 10.115 s. No retiming,
+   engine, account, financial-object hashes, live source edits or worker actions.
+   Actual cold wall 131.917 s, peak RSS 32.297 MiB; cleanup PASS removes exact
+   new inactive scratch, observed free gain 4,096 bytes, retaining old failures
+   and active caches. Result SHA256
+   `201a55180c694e1d898b186c40b73fd1973dff95badb71a3aaecfcf5844bab89`.
+   COLD_PARITY_PASS/PERFORMANCE_ADVERSE/NOT_ACTIVATED, not universal race or
+   worker qualification. Keep the original guard; no prior unsafe speed claim.
+   See [bounded experiment](../docs/mode5/M5_11_1_STRICT_CUSTODY_REPAIR.md).
    **Native03 Closed-Custody Receipt (2026-10-11):** host/session and source
    review passes for the actual cap event, not final financial qualification.
    HMA/HASH journals contain 77,568/80,419 valid sequential rows and returned

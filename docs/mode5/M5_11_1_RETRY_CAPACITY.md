@@ -61,3 +61,32 @@ M5-11.1 remains IN_PROGRESS. The complete original 128-point native panels,
 required probes/dossiers, economic sampler-only experiments, separate 256-query
 studies and prefix-rebuilt forward remain required. No remote qualification,
 publication or economic superiority follows from this resource-only proof.
+
+## Explicit Pending Consumer
+
+A separate private v2 consumer now reuses the qualified original budget loader,
+fresh-driver ownership, fault latch, restore and conservative space checks.
+The v1 budget-envelope format is unchanged; v2 capacity admission is explicit.
+Complete reviews are recomputed from their original registrations and proofs;
+the entire sealed payload must agree. The baseline/native gate are additionally
+anchored to the preregistered native04 origin, not supplied by a later caller.
+
+Revision02 passes seven focused cold cases: pending, forged PASS, forged empty
+missing roster, legacy review schema, byte-identical unapproved baseline/gate
+copies, and unchanged four-GiB synthetic factory/restore. All six rejection
+cases stop before factory calls or resource mutation. The synthetic baseline
+case creates one ModuleType fixture, not a financial driver/account. Earlier
+consumer output/source remains retained; the hardening is a fresh revision.
+
+Actual consumer wall **9.609 s**, peak RSS **36.926 MiB**. Cleanup PASS preserves
+source/receipts and copied fixtures, deleting only the registered inactive
+fixture scratch. No active policy/launcher or financial source is changed.
+Result SHA256:
+`3c5306da9e9ea5e6308ab12daef372140ea104453c6c36c52709299aa37159c6`.
+Cleanup SHA256:
+`d4c5b280cc2cd0234e3776badce9642fd75d1c42a947a1cc7809f61c76ac4692`.
+
+This closes pending-consumer fail-closed behavior, **not** actual three-slot
+qualification. HASH's closed checkpoint and explicit future launcher/policy
+source selection still gate activation. The historical native03 review and
+old queue remain unchanged; no runtime quietly substitutes this implementation.
