@@ -30664,6 +30664,25 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    reserve; focused wrong-lineage/alias/active/COMPLETE/source/numeric/undefined
    fixtures, actual proof verification and own-only cleanup precede admission.
    No finance, account deserialization, numeric rerun, source edit or worker.
+   **Future Queue38 Entry:** after Inventory37 actual qualification, bind its
+   explicit v2 verifier/typed target admission into an isolated copy of the
+   already qualified future queue32 entry. Preserve the original queue worker,
+   financial compiler, native05 fresh-driver hook, v2 request-bound resource
+   consumer, source guard, six-hour/three-slot/one-thread limits and explicit
+   finalize/activation protocol. This is a missing-work/source admission change,
+   not a new execution engine, checkpoint adopter or accounting bridge. Include
+   every loaded helper and exact inventory proof/registration in required source
+   pins; v1/forged/unqualified inventory, wrong original request, bool/int alias,
+   duplicate, COMPLETE and ACTIVE targets fail before reservation/factory. Reuse
+   existing queue/session tests; add only focused v2-binding cases and actual
+   original-roster integration. Pending HASH capacity must still reject before
+   destination creation, not be replaced with synthetic PASS. Explicit source
+   handoff and real closed capacity/disk review remain required before finance.
+   Register ten minutes, one thread, 16-MiB scratch/32-MiB retained, 512-MiB RSS,
+   5-GiB reserve; source snapshots, retained failures and owned cleanup. Do not
+   modify sealed queue32/inventory33/37/amendment35/measurement36 sources, live
+   worker, public QuantBT or private alpha. No new worker, simulation or launch
+   until the existing three-COMPLETE-slot and conservative free-space gate pass.
    **Native03 Closed-Custody Receipt (2026-10-11):** host/session and source
    review passes for the actual cap event, not final financial qualification.
    HMA/HASH journals contain 77,568/80,419 valid sequential rows and returned
