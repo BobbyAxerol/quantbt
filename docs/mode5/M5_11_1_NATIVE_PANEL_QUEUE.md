@@ -78,6 +78,44 @@ Cleanup SHA256:
 
 ## Actual Queue Admission
 
+### Closed-Account Source Amendment
+
+The original inventory above remains sealed. A separate exact witness now
+qualifies the two rejected historical HASH1/VWAP1 checkpoints. Of their
+1,462/2,530 checked original pins respectively, the only admitted drift is the
+reviewed `snapshots.py` immutable-storage repair. Its before/after hashes,
+archived original bytes, full committed blobs and unchanged AST outside the
+storage helper match the approved repair. The existing 862-case reporting
+regression and cleanup receipts are verified, not rerun or counted as new tests.
+
+Twelve focused exact-witness/adverse tests PASS, zero failures/errors/skips.
+The original checkpoint/result validator executes unchanged in an isolated
+namespace with only this typed single-path witness. Global validators, engine,
+alpha, market, account, native artifact, original receipts and source are not
+modified. Full output manifests, request identities, counts and clean original
+child/closure receipts verify. The original FAIL remains retained. An unrelated
+pin, stale transition or changed authority is not exempted.
+
+Historical lifecycle qualification remains **available-oracle-fields only**.
+HASH1 has 1,138 fills and VWAP1 has zero fills; no missing terminal field or
+economic support is invented. Each original result reports three completed
+account passes/78,840 bars; these are stored work counts, not new executions.
+This witness does not assert a financial re-execution on current source.
+
+Wall **7.327 s**, peak RSS **31.348 MiB**; **zero financial executions**.
+Cleanup PASS removes only empty owned fixture scratch, retains 17,587 bytes
+before its receipt and verifies all ten registered authority/input pins. Actual
+available space decreases 61,440 bytes; no reclaimed-space gain is claimed.
+Result SHA256:
+`148fcdbe9f487576338afb40639f3783127c111c82035cefb7c54b7c49be9ebe`.
+Cleanup SHA256:
+`0343e25f63b051b71f2969b00efb8c407d2ab8185b6eff26c2c9412e5f01e3ba`.
+
+Independent current-reporting reduction of the retained account paths remains
+a separate required proof. The original inventory is not rewritten, two new
+reuse admissions are not yet claimed, and no queue or financial worker is
+activated by this source witness alone.
+
 The actual new entry revalidates the inventory and its sources/closed proofs,
 then matches three missing targets to the unchanged original financial requests:
 HMA2, HASH3 and VWAP3. It excludes qualified COMPLETE candidates, the live HASH2

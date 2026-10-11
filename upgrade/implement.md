@@ -51,8 +51,11 @@ Future queue32's new v2 consumer/native05 binding passes ten focused tests and
 actual missing-roster integration. Inventory33 reconciles all 384 original
 requests: five qualified reuse, two closed but source-rejected COMPLETE requests,
 one active HASH2 and 376 eligible fresh targets. The two old COMPLETE accounts
-remain protected from rerun; their reporting-source amendment needs a separate
-exact disposition, not a hash-ignore exception. Actual new queue admission
+remain protected from rerun. Their exact reporting-source amendment now PASS:
+twelve focused tests, both unchanged historical checkpoint validators and clean
+original closures, zero financial execution/global patch. A separate retained
+numeric measurement and fresh inventory disposition remain pending; the old
+inventory is not rewritten. Actual new queue admission
 rejects pending HASH capacity before any reservation/factory/worker. These are
 work/custody proofs, not completed scientific panels or new economic evidence.
 New wrapper/observer qualification totals 107 passing source tests, including
@@ -30588,6 +30591,44 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    restore old bytes into live shared paths, deserialize accounts or repeat
    financial execution merely to get current pins. An explicit source-dependent
    historical/current measurement disposition must precede inventory refresh.
+   **Source Amendment35 And Retained Measurement36 Entry (2026-10-11):** resolve
+   only the two closed HASH1/VWAP1 requests whose existing reuse validator rejects
+   the reviewed reporting snapshot repair. Pin exact before/after Git blobs for
+   commit `63fbcf4ab5fb4b64af07b0bba004287e6d910b9d`; verify that the sole admitted
+   source delta is immutable storage ancestry, not financial execution or metric
+   formulas. Preserve the original checkpoint/Candidate/receipt bytes and FAIL.
+   Use an isolated validator namespace with a typed exact single-path amendment
+   witness; do not patch global jobs/FrozenPins, edit shared source, deserialize
+   accounts, change native/alpha/market/account/RNG or repeat simulation. Verify
+   all remaining original source/data/artifact pins, whole output manifests,
+   exact counts, source/error/closure receipts and available original lifecycle
+   certification. Independently reduce the two retained account paths under the
+   same approved whole/annual metric contracts and tolerances. Historical run
+   provenance and current reporting qualification stay separately named; old
+   COMPLETE under old source is not a claim of re-execution under new source.
+   Register cold lane35: ten minutes, one thread, 16-MiB scratch/32-MiB retained,
+   512-MiB RSS/5-GiB reserve. Register numeric lane36: ten minutes, one numeric
+   thread, 16-MiB scratch/64-MiB retained, 1-GiB RSS/5-GiB reserve. Reuse existing
+   reducers/oracles; focused amendment/adverse cases, actual protected-file
+   checks and cleanup receipts precede an explicitly versioned inventory refresh.
+   No recipe, selector, science threshold, future worker or queue activation.
+   **Source Amendment35 Receipt (2026-10-11):** PASS for both exact historical
+   HASH1/VWAP1 requests. All 1,462/2,530 original pins respectively reconcile;
+   only the committed snapshot storage repair is admitted through archived old
+   bytes, exact current source and the already qualified 862-case regression.
+   Twelve focused witness/adverse tests PASS, zero failures/errors/skips. Whole
+   output manifests, original checkpoint/result/request/count/closure checks
+   and available lifecycle certificates verify unchanged. Original FAIL remains;
+   no current-source financial re-execution or missing terminal parity is claimed.
+   Wall 7.327 s, peak RSS 31.348 MiB, zero financial calls/deserialization/builds/
+   source edits/global patches/launches. Cleanup PASS deletes only empty owned
+   fixture scratch; 17,587 bytes retained before receipt, ten registered authority
+   pins unchanged, 5-GiB reserve holds, free space decreases 61,440 bytes. Result
+   SHA256 `148fcdbe9f487576338afb40639f3783127c111c82035cefb7c54b7c49be9ebe`;
+   cleanup `0343e25f63b051b71f2969b00efb8c407d2ab8185b6eff26c2c9412e5f01e3ba`.
+   Retained numeric proof36 and a new versioned inventory remain separate pending
+   gates; neither COMPLETE account is rerun or silently admitted to old inventory.
+   See [source amendment](../docs/mode5/M5_11_1_NATIVE_PANEL_QUEUE.md#closed-account-source-amendment).
    **Native03 Closed-Custody Receipt (2026-10-11):** host/session and source
    review passes for the actual cap event, not final financial qualification.
    HMA/HASH journals contain 77,568/80,419 valid sequential rows and returned
