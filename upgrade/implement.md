@@ -16,15 +16,19 @@ COMPLETE-only proof correctly rejects HMA's missing final result; its FAIL and
 cleanup PASS are retained. First-three COMPLETE capacity review and future
 16-GiB queue activation remain pending; the old live/source-freeze checkpoint
 below is historical. Compiler counts are work lower bounds, not a convergence ETA.
-Native04 is now running as a fresh instrumented four-GiB tranche, not a
-continuation of the capped accounts. Supervisor PID3523492 and exact worker
-sessions were host-verified live; HMA1/HASH2 restart with original requests and
-VWAP2 advances the panel without repeating COMPLETE VWAP1. At the sealed
-2026-10-11 04:47:07 UTC prefix, returned passes are 24/27/26, complete signature
-pairs 24/27/25. The last three pairs in each prefix have changing full hashes
-and feedback_count one below returned fills, with zero unmapped feedback;
-convergence is unconfirmed. Original guard/FrozenPins remain active; the faster
-epoch prototype fails strict authorization semantics and is NOT_ACTIVATED.
+Native04 has now closed at the unchanged six-hour tranche cap on
+2026-10-11 10:42:49 UTC. HMA1 and VWAP2 are COMPLETE with retained financial
+checkpoints: 1,874/123 account passes, including one Python oracle each.
+HASH2 is CENSORED after 2,052 returned passes; no final account/checkpoint exists.
+All owned children are reaped and exact original handles are absent. A disjoint
+cold proof revalidates both COMPLETE checkpoints and their full original
+signature certificates; 12 targeted fixtures PASS, earlier fixture FAIL retained.
+HMA/VWAP fills are 1,871/120, development returns -10.1576%/-1.2182%, accounting
+residual zero; these are individual configurations, not a full-panel result.
+See [closed checkpoints](../docs/mode5/M5_11_1_NATIVE04_CLOSED_CHECKPOINTS.md).
+The sealed 04:47 live prefixes remain historical. Original guard/FrozenPins were
+unchanged; the faster epoch prototype fails strict authorization semantics and
+is NOT_ACTIVATED. Reuse COMPLETE cells, never restart them or resume HASH midway.
 New wrapper/observer qualification totals 107 passing source tests, including
 eight wrapper and ten driver-pattern cases; this is not 107 economic trials.
 The six-hour caps, three independent worker slots, one numeric thread, original
@@ -30304,6 +30308,38 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
    SHA256 `46bd07a6949add7be083c19d76d85d14cf02c5cf7bbf3395d6443e5a06a720d0`.
    Cleanup PASS_NO_SCRATCH_CREATED; active caches and all historical attempts
    remain. No prototype/16-GiB queue/CI/push/release/publication is activated.
+   **Native04 Closed Signature Proof Entry (2026-10-11):** while the exact
+   three financial workers remain live, prepare a disjoint ignored cold-path
+   checker for their eventual COMPLETE checkpoints. Delegate checkpoint/source/
+   output inventory verification to the existing jobs reuse contract. Reconcile
+   the sealed original feedback_iterations certificate with every actual
+   journal pair, native/Python returned-pass roster and observer summary; require
+   the original consecutive identical hashes, full mapped feedback and no
+   pending/faulted signature at exit. Do not rehash financial objects, unpickle,
+   execute accounts, publish/adopt checkpoints, modify active src/tools, change
+   fixed-point rules or label a live/CENSORED cell COMPLETE. Register five
+   minutes, one thread, 16 MiB scratch/32 MiB retained, 5 GiB reserve. Test cold
+   valid/empty-fill, incomplete, mismatch, cycle, counter and custody cases;
+   retain failures and clean only exact inactive fixture scratch. This is a
+   supplement to existing numerical/lifecycle qualification, not new economics.
+   **Native04 Closed Signature Receipt (2026-10-11):** actual supervisor returns
+   INCOMPLETE/TRANCHE_TIME_CAP with zero errors/retries and all owned children
+   reaped. HMA1/VWAP2 finish with exit0, COMPLETE receipts and retained financial
+   checkpoints; HASH2 has exit-9, CENSORED receipt and no checkpoint. Twelve
+   pure fixtures and actual checkpoint/certificate/journal reconciliation PASS
+   in revision02; the original fixture-construction FAIL remains retained.
+   Existing jobs reuse rechecks every registered source/output/receipt pin;
+   1,873/122 native signature pairs plus one Python account each reconcile.
+   Final actual feedback is fully mapped at original consecutive fixed points.
+   No replay, unpickle, additional object signature, adoption or checkpoint
+   publication occurs. Wall 8.714 s, peak process RSS 154.578 MiB; cleanup PASS
+   removes exact empty fixture scratch, preserving old/active/shared resources.
+   Result SHA256 `bb7eef250a6bfe6d030cdfba4e1ba542bba40862a4b210a623efccb1b83067f8`.
+   Two original requests are now reusable, not full 128-point panels; HASH's
+   2,052 returned passes/53,926,560 bars remain censored lower bounds. See the
+   [closed economics/cost report](../docs/mode5/M5_11_1_NATIVE04_CLOSED_CHECKPOINTS.md).
+   M5-11.1 remains IN_PROGRESS, first-three capacity/16-GiB gate unfulfilled,
+   M5-11.2/11.3 NOT_RUN. No CI/push/merge/release/publication.
    **Native03 Closed-Custody Receipt (2026-10-11):** host/session and source
    review passes for the actual cap event, not final financial qualification.
    HMA/HASH journals contain 77,568/80,419 valid sequential rows and returned

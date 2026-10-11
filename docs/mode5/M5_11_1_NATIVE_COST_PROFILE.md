@@ -4,6 +4,11 @@ Status: **PASS_READ_ONLY_PREFIX_PROFILE / CAPPED_CONFIGURATIONS_INCOMPLETE**.
 Authority: [native custody cost review](../../upgrade/implement.md#mode5-m5-11-1)
 and the guide's [actual work accounting](../../upgrade/QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#49-multi-hypothesis-empirical-battery-giữ-năm-chiều-làm-rõ-mỗi-phép-thử).
 
+Current follow-up: the fresh instrumented native04 tranche has closed with
+[two COMPLETE checkpoints and censored HASH2](M5_11_1_NATIVE04_CLOSED_CHECKPOINTS.md).
+Its actual final signature reconciliation and costs are separate from the
+historical native03 prefixes and capped work below. Full panels remain open.
+
 ## Observed Work
 
 At **2026-10-11 01:07:37 UTC**, both original worker identities were live before
