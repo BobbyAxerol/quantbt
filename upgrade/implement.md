@@ -31778,6 +31778,36 @@ failure remains; no finance, native build, environment or remote action ran.
 Full public study/final-account proof and private alpha dependencies/preload
 remain separate gates. See [scope, receipts and cleanup](../docs/mode5/M5_11_CONTINUOUS_EVENT_PROVIDER.md).
 
+**Registered Native Probe Execution (2026-10-12):** the frozen cold planner
+produces 348 missing exact requests: HMA 132 (65 selection / 67 held), HASH 112
+(56 / 56), VWAP 104 (52 / 52). Start with minimum execution index 0 per alpha,
+two isolated workers maximum, one numeric thread each. Retain full 2020 preload
+and continuous 2021--2023 accounts, unchanged original compiler/native artifact,
+one final native call and zero fresh Python oracle calls per bulk probe; inherited
+control coverage remains explicitly limited. Each fresh worker needs an external
+sealed exact request/role/source/resource authorization before import/execution.
+Initial three-probe tranche: <=1800 seconds per probe, <=3 hours total,
+<=2 GiB RSS per worker, <=32 MiB worker financial evidence, <=2 GiB aggregate
+evidence and >=5 GiB disk reserve; pause admission of further workers below
+1 GiB available host memory. Record actual peaks and elapsed work before the
+remaining missing-only tranche; do not infer an unmeasured three-worker budget.
+Preserve all failures/censored results, immutable source/artifact/market pins,
+dated fills/campaigns, terminal/compiler/accounting checks and owned-process
+reap receipts. No build, new environment, public action or alpha-source edit.
+The cold-01 operational 32-MiB aggregate retention failure stays FAIL; a separately
+registered <=64-MiB cold custody closeout may verify its unchanged outputs
+without rerunning diagnostics or relabelling that original receipt. This changes
+only future operational custody, not geometry, rights, metrics or scientific
+gates. Six matrix manifests do not certify unmeasured cells or approve a recipe.
+
+**Native Probe Planning Checkpoint (2026-10-12):** 48 focused tests PASS in
+119.27 seconds; exact 348 requests and all six explicit-status matrix assemblies
+are frozen. Original cold-01 resource FAIL is retained. New registered 64-MiB
+cold custody verifies 1,577 source/artifact pins and the same existing plans,
+without diagnostic recomputation or financial execution; cleanup PASS. The
+financial sample tranche is separately registered, not certified by cold tests.
+See [scope, counts, exact receipts and limitations](../docs/mode5/M5_11_1_NATIVE_PROBE_PLAN.md).
+
 <a id="mode5-m5-11-2"></a>
 ### Phase M5-11.2 - Actual Adaptive Calibration And Selector Comparisons
 
