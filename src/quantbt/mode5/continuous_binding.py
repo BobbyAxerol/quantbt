@@ -4,6 +4,7 @@ from dataclasses import asdict
 
 from ..optimization.parameter_space import NormalizedSearchSpace, ParameterSpec
 from .continuous import ContinuousAccountContract, CONTINUOUS_POLICY
+from .continuous_scope import ContinuousAccountScope
 from .diagnostics.access import AccessWitness
 from .dossier.records import Record
 from .geometry.schema import EffectiveGeometry, OrderedConstraint
@@ -101,7 +102,7 @@ class ContinuousMode5Calibration(Mode5Calibration):
         space = NormalizedSearchSpace(param_ranges)
         if space.specs != c.geometry.specs:
             raise ValueError("sampler dimensions/order differ from original effective geometry")
-        if (int(index[0].value) != c.start_ns
-                or int(index[-1].value)+c.metrics.data["bar_interval_ns"] != c.stop_ns):
-            raise ValueError("one exact complete development account required")
+        ContinuousAccountScope.from_contract(c, index)
+        if engine.config.fold_account_policy != "carry_position":
+            raise NotImplementedError("continuous calibration requires carry_position inside a fresh account")
 

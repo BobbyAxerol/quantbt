@@ -10,6 +10,7 @@ from .continuous import ContinuousAccountReducer, ContinuousExecutionWitness
 from .continuous_binding import ContinuousMode5Calibration
 from .continuous_producer import qualify_producer, validate_result
 from .continuous_retention import ContinuousAccountRetention
+from .continuous_scope import ContinuousAccountScope
 from .diagnostics.identity import digest
 from .dossier.records import Record
 from .evaluation import Mode5MetricPolicy
@@ -148,6 +149,7 @@ class PublicContinuousMode5Runtime(PublicMode5Runtime):
         if not isinstance(calibration, ContinuousMode5Calibration):
             raise TypeError("explicit continuous calibration required")
         super().__init__(engine, calibration, data, index, param_ranges)
+        self.scope = ContinuousAccountScope.from_contract(calibration.continuous_contract, index)
         self.policy = engine.scorer.mode5_metric_policy
         if not isinstance(self.policy, ContinuousMode5MetricPolicy):
             raise TypeError("original scorer must bind continuous observation retention")
@@ -155,7 +157,8 @@ class PublicContinuousMode5Runtime(PublicMode5Runtime):
         self.metadata.update(schema="quantbt.mode5.public_run.continuous.v1",
             environment_account_policy="CONTINUOUS_PATH_ATTRIBUTION", annual_account_resets=0,
             financial_scope="one_original_scorer_account_per_effective_query",
-            native_feedback_passes="original financial provider; not inferred from scorer-call count")
+            native_feedback_passes="original financial provider; not inferred from scorer-call count",
+            account_scope=self.scope.metadata())
         self.whole_observations = {}
         self.continuous_observations = {}
         self.account_observations = {}
@@ -164,7 +167,8 @@ class PublicContinuousMode5Runtime(PublicMode5Runtime):
         from time import perf_counter
         from ..walkforward import _slice_output_to_test
         started = perf_counter()
-        idx = self.index
+        self.scope.require_full_index(self.index)
+        idx = self.scope.scored_index
         fold = replace(folds[0], train_index=idx, test_index=idx,
             train_start=idx[0], train_end=idx[-1], test_start=idx[0], test_end=idx[-1],
             cutoff_timestamp=idx[-1], account_policy="carry_position")
@@ -260,6 +264,7 @@ class PublicContinuousMode5Runtime(PublicMode5Runtime):
         self.whole_observations.clear()
         self.continuous_observations.clear()
         self.account_observations.clear()
+        self.scope = None
         if self.policy is not None:
             self.policy.request = self.policy._producer = self.policy._producer_execution = None
             self.policy = None

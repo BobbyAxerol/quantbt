@@ -1108,7 +1108,14 @@ class WalkForwardEngine:
                 calendar_contract=self.config.calendar_contract,
                 calendar_plan=calendar_plan,
             )
-            folds = self.build_folds(idx)
+            account_index = idx
+            if self.config.mode5_calibration is not None:
+                from .mode5.continuous_binding import ContinuousMode5Calibration
+                from .mode5.continuous_scope import ContinuousAccountScope
+                if isinstance(self.config.mode5_calibration, ContinuousMode5Calibration):
+                    account_index = ContinuousAccountScope.from_contract(
+                        self.config.mode5_calibration.continuous_contract, idx).scored_index
+            folds = self.build_folds(account_index)
             self._mode5_runtime = None
             if self.config.mode5_calibration is not None:
                 from .mode5.continuous_binding import ContinuousMode5Calibration
@@ -1185,7 +1192,7 @@ class WalkForwardEngine:
             )
             result = self._run_aligned(
                 data_for_strategy=data_for_strategy,
-                idx=idx,
+                idx=account_index,
                 folds=folds,
                 params=params,
                 param_ranges=param_ranges,

@@ -31683,6 +31683,31 @@ default, native build or remote action changed. Cleanup: no scratch/deletions.
 Actual preload qualification and full five-alpha diagnostics remain separate
 ordered gates, not waived by these synthetic/software tests.
 
+**Next Registered Scope Hook:** a focused immutable continuous-account calendar
+descriptor separates the sealed full market/preload prefix from its scored
+account suffix. Existing prepared context keeps the full permitted calendar;
+only the explicit continuous binding builds the full-sample fold and final
+account on the scored suffix. Legacy/default routes remain unchanged. Qualify
+preload-required, missing/future-bar, source/role, final-vs-query accounting and
+runtime-retention cases before any original-alpha 256-query study. Reuse the
+single-thread 600-second/32-MiB software lane and current environment; no native
+build, scratch deletion or relaxed scientific thresholds. Retain the preceding
+71-test receipt and append exact new source pins rather than rewriting it.
+
+**Required Preload Scope Checkpoint (2026-10-12):**
+`continuous-preload13` passes 136 tests in 26.62 seconds pytest / 27.874 seconds
+controller. Actual synthetic public query, final endpoint and direct accounts
+match; full prepared preload, scored-only fold/output and legacy paths pass.
+The prior 135-pass/one-fixture-failure receipt remains; only the fixture's error
+expectation changed, not the fail-closed clock guard. Helper sidecar adds 63
+passing calendar/rights/immutability tests; it makes no financial qualification
+claim. Exact additive preload source amendment and cleanup receipts are linked
+in [the provider report](../docs/mode5/M5_11_CONTINUOUS_PROVIDER.md#required-preload-checkpoint).
+All children reaped, no new build/environment/scratch/deletions. Full native
+execution aggregates are recorded in [the tranche report](../docs/mode5/M5_11_1_FINAL_NATIVE_TRANCHE.md);
+source admission/probes/dossiers and actual adaptive/forward studies still retain
+their ordered gates. No remote, release or economic improvement is claimed.
+
 <a id="mode5-m5-11-2"></a>
 ### Phase M5-11.2 - Actual Adaptive Calibration And Selector Comparisons
 

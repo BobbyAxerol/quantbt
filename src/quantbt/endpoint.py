@@ -3851,6 +3851,15 @@ class QuantBTEndpoint:
         stitched = wf_result.oos_output
         if stitched is None:
             raise ValueError("walk-forward strategy produced no OOS output")
+        if wf_config.mode5_calibration is not None:
+            from .mode5.continuous_binding import ContinuousMode5Calibration
+            from .mode5.continuous_scope import ContinuousAccountScope
+            if isinstance(wf_config.mode5_calibration, ContinuousMode5Calibration):
+                scope = ContinuousAccountScope.from_contract(
+                    wf_config.mode5_calibration.continuous_contract, data.index)
+                scope.require_scored_index(stitched.index)
+                data = _slice_wf_data_to_index(data, scope.scored_index)
+                datetime_index = scope.scored_index
         account_policy = str(wf_result.metadata.get("fold_account_policy", "carry_position"))
         account_plan = dict(wf_result.metadata.get("account_execution_plan", {}) or {})
         if account_policy == "reset_flat":

@@ -39,10 +39,16 @@ from quantbt.walkforward import WalkForwardEngine, WalkForwardFold
 from public_fixtures import market, public_setup
 
 
-def continuous_setup(tmp_path, *, strategy=None, frame=None, ranges=None, trials=6):
+def continuous_setup(tmp_path, *, strategy=None, frame=None, ranges=None, trials=6, preload_days=0):
     frame = market(32) if frame is None else frame
     frame = frame.copy()
     frame.index = pd.date_range("2020-12-16", periods=len(frame), freq="h", tz="UTC")
+    scored = frame
+    if preload_days:
+        preload = market(preload_days)
+        preload.index = pd.date_range(frame.index[0]-pd.Timedelta(days=preload_days),
+            periods=len(preload), freq="h", tz="UTC")
+        frame = pd.concat([preload, frame])
     options = dict(frame=frame, ranges=ranges, trials=trials, two_windows=True)
     if strategy is not None:
         options["strategy"] = strategy
@@ -51,8 +57,8 @@ def continuous_setup(tmp_path, *, strategy=None, frame=None, ranges=None, trials
     access = old.access
     witness = AccessWitness("development-1", "synthetic", int(frame.index[0].value),
         int(frame.index[-1].value)+step, access.cutoff_ns)
-    windows = tuple(CalibrationWindow(str(year), int(frame.index[frame.index.year == year][0].value),
-        int(frame.index[frame.index.year == year][-1].value), witness) for year in sorted(set(frame.index.year)))
+    windows = tuple(CalibrationWindow(str(year), int(scored.index[scored.index.year == year][0].value),
+        int(scored.index[scored.index.year == year][-1].value), witness) for year in sorted(set(scored.index.year)))
     ref = old.reference
     reference = FrozenReference(ref.reference_id, tuple(w.environment_id for w in windows),
         ref.values, ref.weights, ref.channel, ref.revision)
@@ -151,6 +157,43 @@ def test_public_no_selection_retains_actual_account_buffers_after_cleanup(tmp_pa
     assert all(not e.observations.equity.flags.writeable for _, e in retained.entries)
 
 
+def test_public_preload_is_strategy_history_not_scored_account(tmp_path):
+    import numpy as np
+    endpoint, frame, ranges, calibration = continuous_setup(tmp_path, preload_days=31)
+    before = frame.copy(deep=True)
+    result = endpoint.backtest(data=frame, param_ranges=ranges)
+    wf = result.metadata["walk_forward_result"]
+    scope = wf.metadata["mode5_diagnostics_first"]["account_scope"]
+    scored = frame.loc[frame.index >= pd.Timestamp(calibration.continuous_contract.start_ns, tz="UTC")]
+    assert scope["preload_bars"] == 31*24
+    assert scope["scored_bars"] == len(scored)
+    assert scope["preload_account_execution"] is False
+    assert wf.metadata["prepared_wfo_context"]["bars"] == len(frame)
+    assert wf.oos_output.index.equals(scored.index)
+    assert wf.folds[0].train_index.equals(scored.index)
+    assert result.equity.index.equals(scored.index)
+    pd.testing.assert_frame_equal(frame, before)
+    selected = [a for _, a in wf.mode5_continuous_accounts.entries
+        if a.request.role == "formal_search" and a.request.point.params == wf.params]
+    assert selected
+    for account in selected:
+        assert account.request.warmup_start_ns == int(frame.index[0].value)
+        np.testing.assert_array_equal(account.observations.times_ns, scored.index.asi8)
+        np.testing.assert_array_equal(account.observations.equity, result.equity.to_numpy())
+    signal = endpoint.config.strategy_class(frame, wf.params, scored.index, scored.index, wf.folds[0])
+    direct = QuantBTEndpoint.pct_equity(initial_capital=20000., fee=.0005, slippage=.0001,
+        alloc_per_trade=.5, leverage=1., use_funding=False, symbols=["ETHUSDT"])
+    expected = direct.backtest(data=scored, signal=signal)
+    np.testing.assert_array_equal(result.equity.to_numpy(), expected.equity.to_numpy())
+
+
+def test_public_preload_cannot_be_silently_dropped(tmp_path):
+    endpoint, frame, ranges, calibration = continuous_setup(tmp_path, preload_days=31)
+    scored = frame.loc[frame.index >= pd.Timestamp(calibration.continuous_contract.start_ns, tz="UTC")]
+    with pytest.raises(PermissionError, match="preload is not optional"):
+        endpoint.backtest(data=scored, param_ranges=ranges)
+
+
 def test_future_suffix_never_enters_calibration_request(tmp_path):
     endpoint, frame, ranges, calibration = continuous_setup(tmp_path)
     future = pd.concat([frame, frame.iloc[-1:].set_axis(pd.DatetimeIndex([frame.index[-1]+pd.Timedelta(hours=1)]))])
@@ -242,6 +285,7 @@ def _controller(evaluation):
     original = SimpleNamespace(space=NormalizedSearchSpace({"period": (2, 20, 1)}), strategy_identity="controller")
     runtime = object.__new__(PublicContinuousMode5Runtime)
     runtime.index, runtime.data, runtime.study = index, frame, None
+    runtime.scope = SimpleNamespace(scored_index=index, require_full_index=lambda actual: None)
     runtime.rows, runtime.candidates, runtime.locals, runtime.params, runtime.observations = [], {}, {}, {}, {}
     runtime.whole_observations, runtime.continuous_observations, runtime.account_observations = {}, {}, {}
     runtime.metadata, runtime.evaluation_seconds = {}, 0.

@@ -150,3 +150,33 @@ supersedes the exact current-source pins without changing the earlier amendment
 or receipt. No finance research, build, environment or deletion is added. The
 failed preflight lane `continuous-retention11` used a nonexistent test filename;
 no child or test ran there, and the lane is retained rather than reused.
+
+## Required Preload Checkpoint
+
+The explicit continuous binding now separates its immutable full market prefix
+from the scored account suffix. The shared prepared context retains the full
+permitted data; folds, scorer observations, stitched output and the final account
+use only the exact sealed scored calendar. Preload is neither executed as account
+history nor omitted from strategy warm-up. Other bindings keep their behavior.
+
+`continuous-preload13` passes **136 tests** in 26.62 seconds (27.874 seconds
+including the registered controller). The real synthetic endpoint fixture checks
+query account versus final account versus direct backtest equality, unchanged
+input and full prepared history. Calendar gaps, missing preload, future suffixes,
+rights, immutable retention and original public reset-flat/sampler paths are
+covered. This is software qualification, not original-alpha study evidence.
+
+| Receipt | SHA256 |
+| --- | --- |
+| `continuous-preload13/result.json` | `f6f1591a7cf6dd6554ed2489156f88e9718a16d90d3186b42b50dfbcf3c0fb94` |
+| `continuous-preload13/registration.json` | `c55cf6f484a63d6842d8dca21fd50e4c44d35e5055cb999858c560259e9c2b46` |
+| `continuous-preload13/tests.log` | `c6a2ba345417cc40640822d1b3212b3ace50ef83c957f8d2c343e57fa694411f` |
+| `continuous-preload13/cleanup.json` | `a89c0c4387345bd885ecf87e4ecc879a5919487bd4f06df111e050a844fc024e` |
+
+The preceding `continuous-preload12` receipt retains its 135 passing tests and
+one failed fixture expectation. The guard correctly rejected an incomplete
+1-nanosecond clock; only that expectation changed, not validation or economics.
+The [preload source amendment](evidence/m5-11-continuous-preload-source-amendment.json)
+adds exact current pins while preserving prior amendments. All workers were
+reaped, sources unchanged, no scratch/environment/build/deletion added. Actual
+five-alpha source qualification, probes and 256-query studies remain separate.
