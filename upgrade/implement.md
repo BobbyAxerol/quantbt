@@ -65,8 +65,12 @@ original-provider 119-prefix cold proof PASSes in 331.407 controller seconds /
 with 256 COMPLETE / 256 unique executed points and exact selected/direct parity.
 The 137 remaining trials plus selected audit are fresh; 119 inherited accounts
 are not recounted as new finance. Challenger attempt-01 fails RAM admission
-before worker creation; its receipt is retained. Attempt-02 now prepares/runs
-the sealed 256-attempt floor arm serially, with unchanged bounds and methodology.
+before worker creation; its receipt is retained. Attempt-02 closes FAIL before
+any trial: the private environment-floor binding incorrectly declares a local
+reference scale. The public selector correctly rejects that inconsistent input.
+All workers are reaped, original source is unchanged and owned scratch cleaned.
+Correct only this wiring in a new private adapter revision; do not weaken the
+public contract, overwrite old bindings/seals or rerun the completed raw arm.
 Neither an intermediate checkpoint nor a completed freeze certifies the pair.
 See
 [current preparation](../docs/mode5/M5_11_2_RSI_PROVIDER_PREPARATION.md#source-07-dossier-preparation).
@@ -32129,7 +32133,7 @@ is not execution or a waiver of those gates.
 <a id="mode5-m5-11-2"></a>
 ### Phase M5-11.2 - Actual Adaptive Calibration And Selector Comparisons
 
-**Status:** RSI RAW_256_AND_AUDIT_PASS / FLOOR_256_IN_PROGRESS (2026-10-12);
+**Status:** RSI RAW_256_AND_AUDIT_PASS / FLOOR_BINDING_REPAIR_REQUIRED (2026-10-12);
 the original resource-stopped 119-prefix FAIL is retained. Source-07 provider,
 actual dossier preparation and runner freeze PASS separately. Owner approved
 RSI first while keeping SC/HMA/HASH/VWAP annual gates and NO_SUPPORTED status.
@@ -32298,6 +32302,30 @@ selected final/direct paths are byte-identical. Floor attempt-01 fails conservat
 RAM admission before finance (FAIL retained); fresh attempt-02 now runs the
 unchanged original sealed floor arm. Native B2/dossier, sampler-only, prefix
 forward and M5-12 gates remain distinct. See [actual report and receipts](../docs/mode5/M5_11_2_RSI_PROVIDER_PREPARATION.md#actual-raw-baseline-completion).
+
+**Floor Binding Repair Entry (2026-10-12):** attempt-02 terminates before
+search with `local scale only belongs to local/unified formulas`. The private
+`study_dossier.py` supplies scale 1 to `environment_floor_mean_v1`, despite
+declaring no local ID/probes. Keep that exact failed source and all old seals;
+create a separate corrected adapter with scale `None` and cold SelectionPlan
+validation before journal/search. Rebind context/dossier/plan with original
+source-07 provider, actual qualification, full geometry, metrics, annual gates,
+original recipe and rights; add a new pre-search seal rather than altering one.
+The correction changes no formula/coefficient or financial execution. Reuse
+completed raw256 only through its closed source-bound receipt; sampler-only
+and fixed-forward remain separate gates. Original financial/scorer/optimizer
+owners and public package source must stay unchanged.
+**Tests / Resources / Cleanup:** serial cold actual assembly <=1800 seconds,
+<=2-GiB RSS, <=512-MiB retained, <=64-MiB scratch; serial actual floor after
+cold repair PASS <=21600 seconds, <=2-GiB RSS, <=4-GiB retained, <=192-MiB
+scratch. One worker/thread, >=5-GiB disk reserve, >=256 free inodes,
+launch RAM >=worker cap +1-GiB host floor. Assert only the inactive local scale
+changes; immutable old binding, all family contracts, context/source/rights,
+zero cold finance and no pre-search RNG. Check the actual SelectionPlan, not
+just dummy records. Preserve failed attempt `1fdc800f1b17db7207f18428492fd914c596190a3963833e2acb832f76e0b929`
+and cleanup `132de491d5f3a1a58924bf7a1362b3263fa7e6bbbeed2076ecaea5f52e2ec586`:
+243.923 seconds / 1,565.657-MiB peak, no terminal trials and no completed child
+receipt. Stop/reap before cleaning only registered scratch. No CI/release.
 
 <a id="mode5-m5-11-3"></a>
 ### Phase M5-11.3 - Multi-Origin Fixed-Policy Transfer And Economic Qualification
