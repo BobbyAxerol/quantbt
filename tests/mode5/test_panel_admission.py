@@ -14,6 +14,8 @@ from tools.mode5_diagnostics.evidence import FrozenBuffer
 from tools.mode5_diagnostics.identity import canonical, digest
 from tools.mode5_research import panel_admission as a, panels, selector_checkpoint
 from tools.mode5_research.recovery_cells import RecoveryCell, RECOVERY_SCHEMA, RECOVERY_STATUS
+from tools.mode5_research.early_admission import (EarlyCell, EARLY_CONTROL_SCHEMA, QUALIFIED_ACCESS_SCHEMA,
+                                                OWNER_LIMITATIONS, ACCESS_LIMITATIONS)
 
 CUTOFF = panels._ns("2026-10-12")
 UTILITY = panels.UtilityPolicy("public_cold_fixture", 1., 1.)
@@ -74,7 +76,7 @@ def synthetic_panel():
 
 
 def certificate(cell):
-    schema = RECOVERY_SCHEMA if type(cell) is RecoveryCell else a.ORIGINAL_SCHEMA
+    schema = a._schema(cell)
     return a.ReaderCertification(schema, a.reader_cell_identity(cell), ALPHA_SOURCE, ECONOMICS)
 
 
@@ -185,6 +187,60 @@ class PanelAdmissionTests(unittest.TestCase):
             subject["candidate_environment_rows"][4].update(update)
             with self.subTest(update=update), self.assertRaises(ValueError):
                 selector_checkpoint.grid_for(subject)
+
+    def early_cell(self, schema):
+        cell = self.cells[1]
+        refs = dict(cell.provenance.evidence_refs)
+        if schema == EARLY_CONTROL_SCHEMA:
+            refs.update(owner=digest("pinned_original_owner"), derived_campaigns=digest(cell.campaigns_json),
+                        derived_fills=digest(cell.fills_json))
+            status, role = a._SCHEMAS[schema]
+            limitations, origin, native, feedback, normal = OWNER_LIMITATIONS, "SEALED_OWNER_DERIVED", 4, 2, 2
+        else:
+            names = ("cell", "request", "resources", "analysis", "access", "recovery_registration",
+                     "qualified_receipt", "supervisor_receipt", "native_artifact", "source.finance_driver")
+            refs.update({k: digest("pinned_qualified_"+k) for k in names})
+            refs["source.alpha_source"] = ALPHA_SOURCE
+            status, role = a._SCHEMAS[schema]
+            limitations = ACCESS_LIMITATIONS + ("Original terminal audit: NOT_CERTIFIED",
+                                               "Original cold account verification: SOURCE_QUALIFIED")
+            origin, native, feedback, normal = "ORIGINAL_SUPERVISOR_JSON", 2, None, None
+        provenance = replace(cell.provenance, data_role=role, evidence_refs=tuple(sorted(refs.items())))
+        return EarlyCell(provenance, cell.start_ns, cell.stop_ns, cell.contract, cell.observations, cell.buffers,
+            cell.campaigns_json, cell.fills_json, cell.original_metrics_json, status, None,
+            schema, limitations, origin, native, 1, feedback, normal)
+
+    def test_older_readers_keep_missing_snapshot_access_and_ledger_limits(self):
+        for schema in (EARLY_CONTROL_SCHEMA, QUALIFIED_ACCESS_SCHEMA):
+            cells = list(self.cells)
+            cells[1] = self.early_cell(schema)
+            result = self.admit(cells, certifications=self.recertified(cells))
+            grid = selector_checkpoint.grid_for(result)
+            row = result["candidate_environment_rows"][4]
+            self.assertEqual(len(grid), 512)
+            self.assertEqual(row["source_reader_schema"], schema)
+            self.assertEqual(row["compute_status"], cells[1].compute_status)
+            self.assertEqual(row["provenance"]["data_role"], cells[1].provenance.data_role)
+            self.assertIsNone(row["recovery_account_calls"])
+            self.assertEqual(row["early_account_witness"]["source_limitations"], list(cells[1].source_limitations))
+            self.assertEqual(row["oracle_coverage"], "RETAINED_ORIGINAL_PYTHON_CONTROL_NO_NEW_EXECUTION")
+
+    def test_older_schema_cannot_hide_missing_snapshot_or_borrow_fresh_oracle(self):
+        cells = list(self.cells)
+        cells[1] = self.early_cell(EARLY_CONTROL_SCHEMA)
+        result = self.admit(cells, certifications=self.recertified(cells))
+        original = result["candidate_environment_rows"][4]
+        for key, value in (("source_limitations", []), ("ledger_origin", "ORIGINAL_JSON"),
+                           ("native_account_calls", 0), ("native_feedback_calls", None),
+                           ("python_oracle_calls", 0)):
+            row = deepcopy(original)
+            row["early_account_witness"][key] = value
+            with self.subTest(key=key), self.assertRaises(ValueError):
+                selector_checkpoint.metric(row, "net_return")
+        for update in (dict(oracle_coverage="FRESH_ORIGINAL_PYTHON_CONTROL"),
+                       dict(recovery_account_calls=[2, 2, 1]), dict(compute_status="PASS")):
+            with self.subTest(update=update), self.assertRaises(ValueError):
+                selector_checkpoint.metric(deepcopy(original) | update, "net_return")
 
     def test_duplicate_missing_orphan_and_untyped_cells_reject(self):
         for cells in (self.cells[:-1], self.cells[:-1]+(self.cells[0],), self.cells+(self.cells[0],), ("PASS",)*128):

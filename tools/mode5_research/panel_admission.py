@@ -21,6 +21,8 @@ from tools.mode5_statistics.contracts import MetricValue
 from . import panels
 from .probe_views import row_metadata
 from .recovery_cells import RecoveryCell, RECOVERY_SCHEMA, RECOVERY_STATUS
+from .early_admission import (EarlyCell, EARLY_CONTROL_SCHEMA, QUALIFIED_ACCESS_SCHEMA,
+                              OWNER_LIMITATIONS, ACCESS_LIMITATIONS)
 
 PANEL_SCHEMA = "source_admitted_continuous_panel_v1"
 ORIGINAL_SCHEMA = "panels.load_cell_v1"
@@ -30,7 +32,10 @@ START, STOP = panels._ns("2021-01-01"), panels._ns("2024-01-01")
 _SCHEMAS = {
     ORIGINAL_SCHEMA: ("PASS", "REVIEWED_EXPLORATORY_DEVELOPMENT"),
     RECOVERY_SCHEMA: (RECOVERY_STATUS, "DEVELOPMENT_REVIEWED_RETROSPECTIVE"),
+    EARLY_CONTROL_SCHEMA: (RECOVERY_STATUS, "DEVELOPMENT_REVIEWED_RETROSPECTIVE"),
+    QUALIFIED_ACCESS_SCHEMA: ("PASS", "REVIEWED_EXPLORATORY_DEVELOPMENT"),
 }
+_TYPES = (panels.VerifiedCell, RecoveryCell, EarlyCell)
 _RAW_METRICS = {
     "net_return": "account.total_return", "drawdown": "drawdown.max_depth",
     "sharpe": "period.sharpe", "daily_mean_return": "period.mean_arithmetic",
@@ -63,13 +68,16 @@ class ReaderCertification:
 
 def reader_cell_identity(cell):
     """Capture the immutable reader output, not a financial execution certificate."""
-    _require(type(cell) in (panels.VerifiedCell, RecoveryCell), "existing typed reader output required")
-    return digest(dict(provenance=asdict(cell.provenance), contract=cell.contract.identity,
+    _require(type(cell) in _TYPES, "existing typed reader output required")
+    payload = dict(provenance=asdict(cell.provenance), contract=cell.contract.identity,
         observations=cell.observations.identity if cell.observations is not None else None,
         start=cell.start_ns, stop=cell.stop_ns, status=cell.compute_status, reason=cell.reason,
         buffers=[(b.name, b.dtype, b.shape, sha256(b.data).hexdigest()) for b in cell.buffers],
         campaigns=cell.campaigns_json, fills=cell.fills_json, original_metrics=cell.original_metrics_json,
-        account_calls=_calls(cell)))
+        account_calls=_calls(cell))
+    if type(cell) is EarlyCell:
+        payload["early"] = _early(cell)
+    return digest(payload)
 
 
 def _calls(cell):
@@ -77,10 +85,23 @@ def _calls(cell):
             if type(cell) is RecoveryCell else None)
 
 
+def _early(cell):
+    if type(cell) is not EarlyCell:
+        return None
+    return dict(source_limitations=list(cell.source_limitations), ledger_origin=cell.ledger_origin,
+        native_account_calls=cell.native_account_calls, python_oracle_calls=cell.python_oracle_calls,
+        native_feedback_calls=cell.native_feedback_calls, normal_native_calls=cell.normal_native_calls)
+
+
+def _schema(cell):
+    return (cell.reader_schema if type(cell) is EarlyCell else
+            RECOVERY_SCHEMA if type(cell) is RecoveryCell else ORIGINAL_SCHEMA)
+
+
 def _validate_cell(cell, certification, proposal, design, cutoff_ns):
-    _require(type(cell) in (panels.VerifiedCell, RecoveryCell)
+    _require(type(cell) in _TYPES
              and isinstance(certification, ReaderCertification), "source-admitted cell and certificate required")
-    schema = RECOVERY_SCHEMA if type(cell) is RecoveryCell else ORIGINAL_SCHEMA
+    schema = _schema(cell)
     _require(certification.reader_schema == schema
              and certification.cell_identity == reader_cell_identity(cell), "reader certification differs from subject")
     raw_status, role = _SCHEMAS[schema]
@@ -103,22 +124,31 @@ def _validate_cell(cell, certification, proposal, design, cutoff_ns):
     _require(len(refs) == len(p.evidence_refs) and all(_sha(v) for v in refs.values()),
              "unique exact source/data/result digests required")
     required = {"paths", "design", "development_data"}
-    required |= ({"cell", "request", "registration", "resources", "analysis", "execution_budget", "access",
-                  "source.alpha_source", "source.finance_driver"} if schema == ORIGINAL_SCHEMA else
-                 {"result", "worker_registration", "original_registration", "economic_config", "native_gate",
-                  "campaigns", "fills"})
+    required |= {
+        ORIGINAL_SCHEMA: {"cell", "request", "registration", "resources", "analysis", "execution_budget", "access",
+                          "source.alpha_source", "source.finance_driver"},
+        RECOVERY_SCHEMA: {"result", "worker_registration", "original_registration", "economic_config", "native_gate",
+                          "campaigns", "fills"},
+        EARLY_CONTROL_SCHEMA: {"result", "worker_registration", "original_registration", "economic_config", "native_gate",
+                               "owner", "derived_campaigns", "derived_fills"},
+        QUALIFIED_ACCESS_SCHEMA: {"cell", "request", "original_registration", "economic_config", "resources", "analysis",
+                                  "access", "campaigns", "fills", "recovery_registration", "qualified_receipt",
+                                  "supervisor_receipt", "native_artifact", "source.alpha_source", "source.finance_driver"},
+    }[schema]
     _require(required <= refs.keys(), "reader source/economics/result lineage incomplete")
-    if schema == RECOVERY_SCHEMA:
+    if schema != ORIGINAL_SCHEMA:
         approved = {v for k, v in refs.items() if k.startswith("approved_source_")}
         _require(certification.alpha_source_digest in approved
                  and refs["economic_config"] == certification.economic_config_digest,
                  "approved control alpha/economics differ")
-        calls = _calls(cell)
-        _require(all(type(n) is int for n in calls) and calls[0] >= 1 and calls[2] in (0, 1)
-                 and calls[1] == 1 + calls[2], "recovery oracle/account-call coverage differs")
-        _require(p.execution_id == refs["result"]
-                 and p.actual_route == "incremental_actual_feedback_boundary_full_hash_v1",
-                 "recovery result/route authority differs")
+        if schema == RECOVERY_SCHEMA:
+            calls = _calls(cell)
+            _require(all(type(n) is int for n in calls) and calls[0] >= 1 and calls[2] in (0, 1)
+                     and calls[1] == 1 + calls[2], "recovery oracle/account-call coverage differs")
+        if schema in {RECOVERY_SCHEMA, EARLY_CONTROL_SCHEMA}:
+            _require(p.execution_id == refs["result"]
+                     and p.actual_route == "incremental_actual_feedback_boundary_full_hash_v1",
+                     "recovery result/route authority differs")
     else:
         _require(refs["source.alpha_source"] == certification.alpha_source_digest,
                  "original alpha source differs from approved lineage")
@@ -162,7 +192,7 @@ def validate_panel_row(row):
     _require(row["reader_certification_id"] == digest(asdict(certification)),
              "source/economic reader certification differs")
     refs = dict(row["provenance"]["evidence_refs"])
-    if certification.reader_schema == RECOVERY_SCHEMA:
+    if certification.reader_schema != ORIGINAL_SCHEMA:
         _require(refs.get("economic_config") == certification.economic_config_digest
                  and certification.alpha_source_digest in
                     {v for k, v in refs.items() if k.startswith("approved_source_")}, "recovery source/economic lineage differs")
@@ -208,15 +238,42 @@ def validate_panel_row(row):
     else:
         _require(all(by_id["mode5.panel."+k].value is None for k in _RAW_METRICS),
                  "unavailable raw authority cannot supply defined metrics")
-    if row["source_reader_schema"] == ORIGINAL_SCHEMA:
+    schema = row["source_reader_schema"]
+    if schema == ORIGINAL_SCHEMA:
         _require(row["oracle_coverage"] == ORIGINAL_ORACLE and row["recovery_account_calls"] is None,
                  "original reader does not supply recovery oracle coverage")
-    else:
+    elif schema == RECOVERY_SCHEMA:
         calls = row["recovery_account_calls"]
         _require(isinstance(calls, list) and len(calls) == 3 and all(type(n) is int for n in calls)
                  and calls[0] >= 1 and calls[2] in (0, 1) and calls[1] == 1+calls[2]
                  and row["oracle_coverage"] == ("FRESH_ORIGINAL_PYTHON_CONTROL" if calls[2] else
                      "INHERITED_CONTROL_SOURCE_APPROVAL_NO_FRESH_PYTHON_ORACLE"), "recovery oracle coverage masked")
+    else:
+        early = row.get("early_account_witness")
+        _require(row["recovery_account_calls"] is None
+                 and row["oracle_coverage"] == "RETAINED_ORIGINAL_PYTHON_CONTROL_NO_NEW_EXECUTION"
+                 and isinstance(early, dict) and set(early) == {"source_limitations", "ledger_origin",
+                    "native_account_calls", "python_oracle_calls", "native_feedback_calls", "normal_native_calls"},
+                 "older reader authority cannot borrow modern source/oracle coverage")
+        _require(type(early["native_account_calls"]) is int and early["native_account_calls"] >= 1
+                 and type(early["python_oracle_calls"]) is int and early["python_oracle_calls"] == 1,
+                 "older actual account-call coverage differs")
+        if schema == EARLY_CONTROL_SCHEMA:
+            _require(early["source_limitations"] == list(OWNER_LIMITATIONS)
+                     and early["ledger_origin"] == "SEALED_OWNER_DERIVED"
+                     and type(early["native_feedback_calls"]) is int and early["native_feedback_calls"] >= 1
+                     and early["normal_native_calls"] == 2
+                     and early["native_account_calls"] == early["native_feedback_calls"]+2,
+                     "early source snapshots, ledgers or feedback counts misrepresented")
+        else:
+            limitations = early["source_limitations"]
+            _require(len(limitations) == 4 and limitations[:2] == list(ACCESS_LIMITATIONS)
+                     and limitations[2].startswith("Original terminal audit: ")
+                     and limitations[3].startswith("Original cold account verification: ")
+                     and early["ledger_origin"] == "ORIGINAL_SUPERVISOR_JSON"
+                     and early["native_account_calls"] == 2 and early["native_feedback_calls"] is None
+                     and early["normal_native_calls"] is None,
+                     "qualified original missing-access/terminal limitations masked")
     return row
 
 
@@ -246,7 +303,7 @@ def admit_panel(cells, *, original_design, original_design_digest, certification
     _require(len(set(ids)) == 128 and len({digest(r["effective"]) for r in proposals}) == 128,
              "128 unique original candidate/effective identities required")
     cells = tuple(cells)
-    _require(all(type(c) in (panels.VerifiedCell, RecoveryCell) for c in cells), "typed source-admitted cells required")
+    _require(all(type(c) in _TYPES for c in cells), "typed source-admitted cells required")
     indexed = {c.provenance.candidate_id: c for c in cells}
     _require(len(cells) == len(indexed) == 128 and set(indexed) == set(ids)
              and set(certifications) == set(ids), "missing/duplicate/orphan cells or reader certificates")
@@ -275,8 +332,9 @@ def admit_panel(cells, *, original_design, original_design_digest, certification
                 reader_cell_identity=cert.cell_identity,
                 reader_certification_id=digest(asdict(cert)), alpha_source_digest=cert.alpha_source_digest,
                 economic_config_digest=cert.economic_config_digest,
-                oracle_coverage=cell.oracle_coverage if type(cell) is RecoveryCell else ORIGINAL_ORACLE,
-                recovery_account_calls=list(_calls(cell)) if type(cell) is RecoveryCell else None)
+                oracle_coverage=cell.oracle_coverage if type(cell) in (RecoveryCell, EarlyCell) else ORIGINAL_ORACLE,
+                recovery_account_calls=list(_calls(cell)) if type(cell) is RecoveryCell else None,
+                early_account_witness=_early(cell))
             rows.append(validate_panel_row(row))
     return json.loads(canonical(dict(schema=PANEL_SCHEMA, analysis_compute_status="PASS",
         original_design_digest=original_design_digest, cutoff_ns=cutoff_ns,

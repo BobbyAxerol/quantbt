@@ -30,8 +30,8 @@ native feedback calls and 216 final normal-native calls. Each submits the full
 internal kernel iterations or independent financial observations.
 
 Cold closeout verified 5,185 source/artifact/output pins in **5.584 s**, adding
-zero financial executions. The source-owned accounts still need complete cold
-panel admission and the registered probes/matrices/dossiers before downstream
+zero financial executions. The accounts subsequently passed [complete cold
+panel admission](M5_11_1_NATIVE_PANEL_ADMISSION.md). Registered probes/matrices/dossiers remain necessary before downstream
 search and forward claims. Negative results do not establish absence of alpha
 edge; neither do the profitable configurations establish method improvement.
 

@@ -31708,6 +31708,29 @@ execution aggregates are recorded in [the tranche report](../docs/mode5/M5_11_1_
 source admission/probes/dossiers and actual adaptive/forward studies still retain
 their ordered gates. No remote, release or economic improvement is claimed.
 
+**Full Native Cold Admission Checkpoint (2026-10-12):** all 384 native accounts
+and 1,536 dependent whole/annual views are source-admitted, with older-schema
+limitations preserved. Independent review checks 1,175 pins; the focused
+regression passes 47 tests / 59 subtests in 109.644 seconds. No financial rerun,
+source/economics change or remote action occurred. All five panels contain 640
+executed discovery accounts; registered probes/stress/matrices/dossiers remain.
+See [counts, exact receipts and cleanup](../docs/mode5/M5_11_1_NATIVE_PANEL_ADMISSION.md).
+
+**Registered Raw-Control Interface Work:** the incumbent raw whole-account
+Sharpe arm needs a distinct sealed control ledger, not a renamed floor/tail
+formula or a sort of challenger outputs. A focused research consumer may reuse
+the existing sampler bridge and ordered ask/tell runner, accepting only typed,
+source-bound continuous account evaluations from an independently qualified
+provider. Raw-control eligibility (finite whole Sharpe) and common annual
+quality eligibility must be reported separately; no additional estimator,
+financial engine, public endpoint or implicit recipe activation is authorized.
+Unit fixtures are software checks, not the 256-query financial study. Register
+the controlled one-worker/one-thread test lane, source pins, <=600-second/
+32-MiB evidence budget and >=5-GiB reserve before execution; preserve failures,
+close/reap the worker and retain exact evidence. Formal execution still follows
+full dossier and recipe entry gates. Guide references: [metric units](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#51-metriccontract-trước-công-thức-tối-ưu),
+[comparison levels](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#49-multi-hypothesis-empirical-battery-giữ-năm-chiều-làm-rõ-mỗi-phép-thử).
+
 <a id="mode5-m5-11-2"></a>
 ### Phase M5-11.2 - Actual Adaptive Calibration And Selector Comparisons
 
