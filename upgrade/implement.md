@@ -31912,6 +31912,43 @@ pinned before private/numeric imports. Cleanup only its registered inactive
 scratch after preserving actual paths, ledger, failures and receipt. This
 qualification is not a 256-trial study, held-forward result or recommendation.
 
+**Private Source Lookup Amendment (2026-10-12):** cold source-01 is retained as
+custody only; it never launched finance. Replace the private helper's quadratic
+resolved-path lookup with an immutable, duplicate-checked derived index, retaining
+every full source hash/origin/roster verification and fail-closed symlink checks.
+Register a fresh source seal and bounded stdlib mutation tests before financial
+qualification. One software worker/thread, <=600 seconds, <=64-MiB retained,
+>=5-GiB reserve, no new environment/build or disposable scratch. Source preparation
+and financial-tranche metadata preparation briefly overlapped; both performed
+zero finance/imports and reaped. Preserve that scheduling deviation and use
+strictly serial software preparation from here, rather than claim exclusive
+software-slot compliance for the overlap. The three financial workers and their
+original controls remain unchanged; no scientific thresholds or rights change.
+Before actual qualification, also bind all ten original metric settings, force
+source-only private/numeric imports with `-B` and an empty owned bytecode prefix,
+and supervise the qualifier externally for wall/RSS/disk limits and guaranteed
+failure/reap receipts. Existing installed caches are retained, not deleted.
+
+**Closed-Probe Cold Queue Registration (2026-10-12):** after full financial
+tranche/cleanup closure, the Main-owned orchestration may process only the exact
+not-yet-admitted identities in tranches 02--05. Each external release binds one
+fresh <=6-account cold registration and the verified closed software lane;
+retain the original unchanged reader, source/role checks and 600-second/64-MiB
+per-batch limits. Queue ceiling <=6 hours / <=4-GiB combined retained outputs,
+one software worker/thread, >=5-GiB reserve and >=1-GiB available-RAM floor
+beyond measured 780-MiB cold peak. Checkpoint/reap every batch; stop on any
+failed resource, source, authority or normalization gate. No finance, replay,
+new estimator, build or environment; no active partial tranche is admitted.
+Cold matrices/dossiers keep zero annual-eligible native scopes and missing
+annual-local/stress/forward masks. No result-dependent retry or role promotion.
+
+**RSI Preparation Checkpoint (2026-10-12):** eight stdlib lookup/mutation checks
+PASS in 0.012 seconds; current source-03 custody PASS in 5.077 seconds, zero
+financial imports or executions. All ten metric settings, source-only loading
+and external qualifier supervision are prepared. Financial parity, recipe and
+real 256-attempt studies remain NOT_RUN; preparation does not certify them.
+See [scope, exact pins, cleanup and scheduling disclosure](../docs/mode5/M5_11_2_RSI_PROVIDER_PREPARATION.md).
+
 **Native B1/B3 Cold Checkpoint (2026-10-12):** the shared cold reducer passes
 29 tests (324.64 seconds; controller 326.583 seconds) without financial imports
 or executions. Actual reduction of all 384 native discovery accounts takes
