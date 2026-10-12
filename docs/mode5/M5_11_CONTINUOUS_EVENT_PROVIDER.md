@@ -1,6 +1,6 @@
 # M5-11 Continuous Event Provider Checkpoint
 
-**PRODUCER/REGRESSION SOFTWARE PASS; FULL PUBLIC STUDY PROOF PENDING.**
+**PRODUCER/REGRESSION AND SYNTHETIC PUBLIC STUDY PASS; PRIVATE-ALPHA STUDY PENDING.**
 Authority: [registered integration](../../upgrade/implement.md#mode5-m5-11-continuous-admission-20261012)
 and guide [route boundary](../../upgrade/QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#24-financial-boundary-và-route-qualification).
 
@@ -39,8 +39,35 @@ Main `continuous-event18` passed **111 tests in 17.63 s**, controller 18.885 s:
 continuous reducer/legacy public runtime/source boundaries and original columnar
 margin retention. `continuous-event17` failed before collection because the
 operator passed a receipt JSON to pytest; no test/finance ran in that lane.
-Full public continuous callback/command search, final/direct replay and private
-alpha qualification still require their own proofs.
+The subsequent synthetic public study checkpoint below qualifies actual
+continuous callback/command query/final/direct dispatch. Private alpha
+dependencies, preload permissions and 256-query studies still require their
+own evidence.
+
+## Synthetic Public Study Checkpoint
+
+`test_continuous_event_runtime.py` passes **44 tests in 9.10 s**, covering ten
+logical cases across callback/command tapes and Python/Rust. The actual public
+Mode 5 study uses 31 days of preload and 32 scored days crossing a year boundary,
+four attempts and at least two distinct effective candidates. Each complete
+query has one original financial account; the selected audit, final account and
+independent direct-endpoint check are separate explicit executions.
+
+Selected query/final/direct equity, returns, positions, closes, fees, funding,
+margin, diagnostics, fills and retained lifecycle reports match. Tests observe
+next-open fills, quantity rounding, fee/slippage/funding, margin rejection,
+pending terminal order and a carried terminal position. Annual views retain
+prior actual equity and positions, rather than resetting at the year boundary.
+Full preload is consumed but not financially scored. Missing preload and
+future suffixes fail before execution. Fresh callback instances do not share
+mutable strategy state; retained two-column margin is detached and immutable
+after deepcopy and after mutation of a mutable original result.
+
+The first attempt retained a fixture `min_notional` failure, and the second
+retained an obsolete report-name assumption. Only test fixtures/expectations
+were corrected; no financial/core code changed to make them pass. Aggregate
+test execution was 24.252 s. Synthetic coverage is not private-alpha financial
+qualification, independent economic evidence or the registered 256-query run.
 
 ## Source And Evidence
 
@@ -58,6 +85,9 @@ dependencies, permitted warmup or financial parity for all strategies.
 | `continuous-event18/registration.json` | `454847402dbf3eb269f0d8222cdc155816eada205cec46ad66ff8d11b9764703` |
 | `continuous-event18/tests.log` | `706b1af5ffe238f0be2e8c4a376737de8bc29db56814765335f1f9373de9e41c` |
 | `continuous-event18/cleanup.json` | `2925ead5610600d70b3e34d2e96c0ede55eecff1dbb7f756b5f2ebb2bda0ace5` |
+| `continuous-event-runtime20/pytest03-receipt.json` | `d635677519dd9b9d282a78b5582c3f46b6913a7caae55f82b9ad4c8727b6940a` |
+| `continuous-event-runtime20/pytest03.log` | `f18bf4c4338346293d1eb719236573de77d497e16c56f4ffdbc3c400087f4d83` |
+| `continuous-event-runtime20/cleanup-receipt.json` | `346f8a47b22c469366501d54605c3e65390bd267be90fd6b35e7d2779ce685d4` |
 
 ## Cleanup And Remaining Gate
 
@@ -67,3 +97,6 @@ receipt bundle was also retained in the private repository lane; original temp
 receipts remain. Free space stays above the 5-GiB reserve. No source alpha,
 economic contract, scientific threshold, CI/push/publication or deployment
 changed. Actual formal search still follows full diagnostics and recipe gates.
+The public-study receipt bundle is retained unchanged in private
+`continuous-event-runtime20` (316,167 bytes); 328 existing source pins and the
+additive amendment chain remain unchanged. All owned test workers are reaped.

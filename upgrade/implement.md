@@ -31808,6 +31808,35 @@ without diagnostic recomputation or financial execution; cleanup PASS. The
 financial sample tranche is separately registered, not certified by cold tests.
 See [scope, counts, exact receipts and limitations](../docs/mode5/M5_11_1_NATIVE_PROBE_PLAN.md).
 
+**Measured Probe Capacity / Remaining Tranches:** the initial three original
+accounts PASS compiler/terminal/accounting with residual 0. Wall times including
+source authorization: HMA 110.30s, HASH 72.13s, VWAP 54.13s; maximum RSS
+686.90 MiB, retained aggregate 16,103,864 bytes. Original owner finance times
+remain separately recorded; authorization/planning overhead is not called
+simulation time. The remaining 345 exact requests may be split into <=128-cell
+append-only tranches, at most three one-thread workers under the already
+approved initial three-worker ceiling. Before each launch require available
+memory >=1 GiB plus the measured maximum RSS times the worker count, >=5 GiB
+disk safety beyond <=2 GiB incremental retained outputs, <=1800s per request
+and <=3h per tranche. Deterministic request order and per-cell checkpoints;
+no completed role/request may be rerun. Pause new launches below memory floor,
+retain and reap on any worker/compiler/closure failure. Reuse the exact original
+driver/preparation/artifact and append a new supervisor source rather than
+editing the initial sealed controller. Exact cold-view admission is required
+before treating the tranche as measured diagnostic matrices. No resources or
+dates are reduced to satisfy an economic gate.
+
+**Continuous Public Event Study Checkpoint (2026-10-12):** 44 tests PASS in
+9.10 seconds across original callback/command and Python/Rust public Mode 5
+studies; at least two effective query vectors, full preload, one account/query,
+explicit selected audit and query/final/direct accounting parity. Cross-year
+carry, pending/rejected terminal lifecycle, no replay, missing/future preload
+guards and immutable columnar margin PASS. Two fixture/report-name failures
+are retained; no core/financial changes were required. All workers reaped,
+328 protected existing pins unchanged, no scratch/deletion/build/environment.
+This is synthetic public dispatch, not private-alpha dependencies or the actual
+256-query economic study. See [report and exact receipts](../docs/mode5/M5_11_CONTINUOUS_EVENT_PROVIDER.md#synthetic-public-study-checkpoint).
+
 <a id="mode5-m5-11-2"></a>
 ### Phase M5-11.2 - Actual Adaptive Calibration And Selector Comparisons
 
