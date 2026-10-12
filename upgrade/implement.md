@@ -69,8 +69,11 @@ before worker creation; its receipt is retained. Attempt-02 closes FAIL before
 any trial: the private environment-floor binding incorrectly declares a local
 reference scale. The public selector correctly rejects that inconsistent input.
 All workers are reaped, original source is unchanged and owned scratch cleaned.
-Correct only this wiring in a new private adapter revision; do not weaken the
-public contract, overwrite old bindings/seals or rerun the completed raw arm.
+The new private cold repair now PASSes actual SelectionPlan, full geometry,
+source07, formula, annual gates and advice checks with zero finance/RNG.
+Original bindings/seals remain immutable; corrected context/plan has fresh seals.
+Repaired financial attempt-01 fails RAM admission before launch; attempt-02
+now runs serially without rerunning the completed raw arm or weakening a gate.
 Neither an intermediate checkpoint nor a completed freeze certifies the pair.
 See
 [current preparation](../docs/mode5/M5_11_2_RSI_PROVIDER_PREPARATION.md#source-07-dossier-preparation).
@@ -27585,7 +27588,7 @@ Every phase below inherits this mandatory resource registration/cleanup exit.
 | [M5-10](#mode5-m5-10) | Public opt-in integration/runtime reuse | M5-09 plus current source map | M5T-091..100 | COMPLETE_LOCAL_PUBLIC_OPT_IN / TECHNICALLY_VALID |
 | [M5-11](#mode5-m5-11) | Formal calibration and scoped economics | M5-10 plus authorized adequate data | M5T-101..110 | REOPENED_RESEARCH_COVERAGE; original finite pilot preserved |
 | [M5-11.1](#mode5-m5-11-1) | Broad five-alpha diagnostics and renewed dossier | M5-11 scope review; registered data/design/resource protocol | M5T-041..060 / 071..090 | IN_PROGRESS; 640 discovery accounts and 348 probes closed/cold-admitted; native B2/dossier assembly pending |
-| [M5-11.2](#mode5-m5-11-2) | Actual adaptive formal search and selector comparisons | Reviewed M5-11.1 dossier; new sealed plans | M5T-091..103 / EH-01..05 | RSI raw256/audit PASS; inactive floor-binding scale repair/cold reseal IN_PROGRESS; sampler-only actual studies NOT_RUN |
+| [M5-11.2](#mode5-m5-11-2) | Actual adaptive formal search and selector comparisons | Reviewed M5-11.1 dossier; new sealed plans | M5T-091..103 / EH-01..05 | RSI raw256/audit and repaired cold PASS; corrected floor256 IN_PROGRESS; sampler-only actual studies NOT_RUN |
 | [M5-11.3](#mode5-m5-11-3) | Multi-origin fixed-policy transfer and economic qualification | Frozen M5-11.2 outputs and prefix studies | M5T-101..110 / EH-06..12 | APPROVED; expanded forward tests NOT_RUN |
 | [M5-12](#mode5-m5-12) | Local qualification/docs/handoff | M5-01..11 dispositions reviewed | M5T-111..120 | NOT_STARTED |
 
@@ -32133,7 +32136,7 @@ is not execution or a waiver of those gates.
 <a id="mode5-m5-11-2"></a>
 ### Phase M5-11.2 - Actual Adaptive Calibration And Selector Comparisons
 
-**Status:** RSI RAW_256_AND_AUDIT_PASS / FLOOR_BINDING_REPAIR_REQUIRED (2026-10-12);
+**Status:** RSI RAW_256_AND_AUDIT_PASS / REPAIRED_COLD_PASS / FLOOR_256_IN_PROGRESS (2026-10-12);
 the original resource-stopped 119-prefix FAIL is retained. Source-07 provider,
 actual dossier preparation and runner freeze PASS separately. Owner approved
 RSI first while keeping SC/HMA/HASH/VWAP annual gates and NO_SUPPORTED status.

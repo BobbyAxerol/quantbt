@@ -333,6 +333,25 @@ a new estimator or permission to weaken an eligibility gate. Fresh seals are
 required because the binding identity changed. Actual repaired cold and then
 256-attempt challenger remain separately supervised gates.
 
+Actual cold repair now PASSes: full original eight-dimensional geometry,
+source07 provider, annual gates, advice and formula/coefficient are unchanged.
+Only binding/context lineage and fresh pre-search seals change. The real
+SelectionPlan accepts the corrected environment-only binding; no finance,
+search or RNG draws occur. Wall time 384.398 seconds / peak 1,522.383 MiB;
+all source pins verify at exit, worker reaped and owned scratch removed.
+
+| Repaired Cold Receipt | SHA-256 |
+|---|---|
+| Actual cold repair | `ad4e17708fcbf8078b75c6eba3208729ecf8f20b81021205285885dc0af60856` |
+| Parent | `6288380064cb2f81b775768d645b63ff84578f76cd10146e9b6a39568df68f40` |
+| Cleanup | `b1ee6c219b9d53126998de8d101749c27f3d4bfd27f3f11975048a8af9aaf4be` |
+
+Financial attempt-01 fails the conservative 3-GiB available-RAM launch check
+before worker creation. FAIL `15d7f17df9eb82e8a63e38a07c746fa83fc238dd781f25fc6fa87f5590de5c2c`
+is preserved. After host capacity becomes sufficient, attempt-02 enters the
+unchanged original public challenger owner under the repaired, newly sealed
+binding. It is IN_PROGRESS, not a completed study or a forward verdict.
+
 ## Sampler-Only Preparation
 
 An inert private B5 protocol proposes the four existing compatible families:
