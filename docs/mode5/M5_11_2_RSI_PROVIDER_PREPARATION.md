@@ -94,8 +94,9 @@ execute finance or begin search.
 
 ## Remaining Gates
 
-Sealed study recipe, two separate real studies, sampler-only comparisons and
-prefix-forward economics remain pending. Actual financial qualification does
+The sealed recipe and qualified runner freeze now PASS; two separate real
+studies are IN_PROGRESS. Sampler-only comparisons and prefix-forward economics
+remain pending. Actual financial qualification does
 not replace them. Native probe admission/batteries retain their own
 ordered gates. See the [unified plan](../../upgrade/implement.md#mode5-m5-11-ordered-execution-20261012)
 and [detailed guide](../../upgrade/QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#phase-m5-11--formal-calibration-pilot-independent-checks-và-economic-inference).
@@ -129,3 +130,33 @@ supervised worker is reaped and registered inactive scratch removed.
 The final source-qualified runner freeze and actual studies retain separate
 registered gates. This preparation is not a 256-attempt search result, sampler
 ranking, forward-performance claim or publication certificate.
+
+## Actual Study Freeze And Entry
+
+The source-07 runner freeze passes in 243.886 seconds / 1,554.398 MiB, with
+zero financial executions and zero search attempts. It binds the actual
+context/dossier/recipe and reviewed-development rights, with source custody
+verified at entry and exit. The worker is reaped and registered scratch removed.
+
+The separate actual pair is now running: 256 raw whole-Sharpe attempts followed
+by 256 canonical annual-floor attempts. Both use seed 731, inherited univariate
+TPE, full original effective geometry, 2020 preload and a single continuous
+2021--2023 account per executed vector. There is no imported old-panel warm
+start or early stopping. Duplicates, rejected/failed/pruned attempts and actual
+account paths remain visible; 256 labels alone will not certify unique coverage.
+Selected vectors require fresh replay and direct original-engine accounting.
+
+One financial worker/thread is externally bounded to six hours, 2-GiB RSS,
+4-GiB retained evidence and 192-MiB owned scratch, with a 5-GiB disk reserve
+and 1-GiB available host-memory floor. Any stopped run retains its checkpoints
+and negative result; this is not an exact mid-study continuation promise.
+
+| Receipt | SHA-256 |
+|---|---|
+| Actual runner freeze-01 | `ec1124274afc7d4867d80de02c9d856dcf65196d800e0488cf6e662df1b120cc` |
+| Freeze supervisor | `3a427ad22eb0a3d6313438e0389d71a2965153227327aa9413d4f89ee7a815e2` |
+| Actual pair registration | `690bf71ba9c17c4b7e7d8fc241cc98fbe2756068488a947eb04252386cf26c02` |
+
+This records entry, not completed studies or a winning recipe. No forward
+tape was opened by these registrations. Remaining comparisons, economics and
+local package qualification keep their ordered gates.

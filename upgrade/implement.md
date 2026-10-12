@@ -46,7 +46,14 @@ The source-06 cold schema failure is retained; the corrected source-07 passes
 seven annual-selector oracle tests and a new two-account qualifier. Actual
 context/dossier/recipe preparation passes in 279.833 seconds / 1,555.840 MiB
 with eligibility unchanged at 3/128 and zero financial/search invocations.
-Runner freeze and actual studies retain separate gates. See
+The source-qualified runner freeze also passes in 243.886 seconds / 1,554.398 MiB,
+with zero finance/search. The separately supervised actual RSI pair is now
+IN_PROGRESS: 256 raw-Sharpe attempts followed by 256 annual-floor attempts,
+with unchanged full geometry and explicit per-trial/account checkpoints.
+Closed cold queue checkpoint-01 admits six further accounts / 24 dependent
+views without financial replay; the separately provisioned full queue is live.
+Neither an intermediate checkpoint nor a completed freeze certifies the pair.
+See
 [current preparation](../docs/mode5/M5_11_2_RSI_PROVIDER_PREPARATION.md#source-07-dossier-preparation).
 Probes/batteries/dossiers and M5-11.2/11.3 remain scientifically incomplete;
 M5-12 is approved in the ordered local scope but has not started.
@@ -31976,6 +31983,11 @@ failed resource, source, authority or normalization gate. No finance, replay,
 new estimator, build or environment; no active partial tranche is admitted.
 Cold matrices/dossiers keep zero annual-eligible native scopes and missing
 annual-local/stress/forward masks. No result-dependent retry or role promotion.
+The first actual six-account cold batch completed in 167.791 controller seconds,
+with observed child peak 919.570 MiB, higher than the initial 780-MiB provisioning
+estimate. Future Main queue launches reserve a conservative 1-GiB cold estimate
+beyond the unchanged 1-GiB host floor. This changes only resource admission;
+scientific gates, reader semantics and first-batch receipts remain unchanged.
 Before the first batch, run six stdlib queue-resource/consumed-skip fixtures in
 one source-pinned cold worker, <=600 seconds / <=64-MiB retained, using only its
 registered temporary scratch and a source-only bytecode prefix; retain test and
@@ -32034,7 +32046,10 @@ removed, no environment/build deletion. See
 <a id="mode5-m5-11-2"></a>
 ### Phase M5-11.2 - Actual Adaptive Calibration And Selector Comparisons
 
-**Status:** APPROVED / NOT_RUN; execution follows M5-11.1, not current winners.
+**Status:** RSI ACTUAL_STUDIES_IN_PROGRESS (2026-10-12); source-07 provider,
+actual dossier preparation and runner freeze PASS separately. Owner approved
+RSI first while keeping SC/HMA/HASH/VWAP annual gates and NO_SUPPORTED status.
+Native diagnostic cold closure remains in progress in its separate slot.
 **Goal:** exercise actual Mode5 search and selection on meaningful search budgets
    after diagnostics, distinguishing selector-only from end-to-end effects.
 **Entry:** reviewed new dossier for each scope, researcher-approved recipe and
@@ -32087,6 +32102,18 @@ and [M511.01..03](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#phase-m
    launch, reuse immutable market/compatible paths and clean only ignored scratch.
 **Commit/Rollback:** plan seals, verified public-study chunks, selected audit;
    keep old Mode5 and all finite-pilot records independently reproducible.
+
+**Actual Pair Entry Receipt (2026-10-12):** after source-07 actual/direct account
+qualification and real dossier preparation, freeze-01 binds the unchanged full
+domain, 2020 preload, continuous 2021--2023 score tape, eligible recipe and
+access/source identities. It takes 243.886 seconds / 1,554.398 MiB and executes
+zero finance/search. The externally registered study pair then launches only
+the approved RSI scope: 256 attempts/arm, seed 731, inherited univariate TPE,
+no old-panel warm start or early stopping. Actual terminal trial rows and full
+account checkpoints are retained as they complete; partial progress does not
+satisfy coverage, selection, replay or economic gates. Sampler-only comparison
+and prefix-forward evidence remain separate. No CI or publication.
+See [freeze, bounds and current status](../docs/mode5/M5_11_2_RSI_PROVIDER_PREPARATION.md#actual-study-freeze-and-entry).
 
 <a id="mode5-m5-11-3"></a>
 ### Phase M5-11.3 - Multi-Origin Fixed-Policy Transfer And Economic Qualification
