@@ -32456,6 +32456,20 @@ and its source-linked proof pass; constructor-only proof does not cover the
 backend loaded during real CMA-ES sampling. Keep all prior proofs scoped to their
 tested bytes, reap and clean only registered scratch after verification.
 
+**B5 Reviewed Revision Software Receipt:** a disjoint V2 revision closes the
+six review checks and all 32 inherited fixture contracts: 38 stdlib tests PASS
+in 0.834 seconds / 28.285-MiB peak RSS. Receipt
+`337aa07c49ee1cb6049a896e1f39e917a1aa319543b249f1020694ae47eab0d7`;
+cleanup `ee09925444e26818c2f111b4006729e5647c6ad5c4b28dffb90dec4984b2f9fc`.
+The proof now pins the actual dispatch driver/controller/Main/custody sources.
+Tests cover original freeze scope, complete prerequisite roster, externally
+sealed numeric-backend roster and import origin, live competing-owner rejection,
+and stale source-linked proof rejection. All eight source pins stay unchanged;
+child reaped and only exact registered scratch removed. No scientific/provider
+imports or finance occur. This is software-entry qualification, not actual
+CMA-ES draws, a completed B5 arm or economic evidence. Actual launch still waits
+for the current floor owner to close and Main's host-aware admission/census.
+
 **Owner-Approved IDE/Cache Maintenance (2026-10-12):** the owner permits
 stopping the exact Pylance language server and unused notebooks; never stop the
 extension host, research worker, collectors or other services. Host census finds

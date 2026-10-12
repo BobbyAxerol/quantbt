@@ -480,3 +480,25 @@ There are zero numerical/provider imports or financial executions. Receipt
 all six source pins remain unchanged, worker reaped and owned scratch removed.
 Actual three fresh 256-attempt arms remain NOT_RUN. Factory and software PASS
 are not evidence of sampler coverage or an economic winner.
+
+### Reviewed Dispatch Revision
+
+A separate V2 revision addresses six prelaunch review findings while retaining
+the original source07 and passed helper bytes. The additional checks reconcile
+the original frozen scope without adding a schema field, retain the complete
+live qualification/context/control roster, seal the lazily loaded CMA-ES backend
+separately, and bind loaded origins and source lifetime to that exact manifest.
+The Main caller verifies live competing research owners and requires its
+dispatched source bytes to match the tested registration.
+
+All 38 stdlib fixtures PASS in 0.834 seconds / 28.285-MiB peak RSS; eight source
+pins are unchanged. The child is reaped and only its registered scratch removed.
+There are no scientific/provider imports, finance or RNG draws in this proof.
+Receipt `337aa07c49ee1cb6049a896e1f39e917a1aa319543b249f1020694ae47eab0d7`;
+cleanup `ee09925444e26818c2f111b4006729e5647c6ad5c4b28dffb90dec4984b2f9fc`.
+
+This supersedes neither the original 32-fixture receipt's historical scope nor
+the requirement for actual sampler studies. All three fresh arms remain NOT_RUN;
+their registrations and serial launch require a closed floor owner and the
+original resource admission. The [IDE/cache maintenance note](../maintenance/M5_11_IDE_CACHE_MAINTENANCE.md)
+records owner-approved headroom recovery without changing scientific contracts.
