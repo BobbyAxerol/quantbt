@@ -350,7 +350,13 @@ Financial attempt-01 fails the conservative 3-GiB available-RAM launch check
 before worker creation. FAIL `15d7f17df9eb82e8a63e38a07c746fa83fc238dd781f25fc6fa87f5590de5c2c`
 is preserved. After host capacity becomes sufficient, attempt-02 enters the
 unchanged original public challenger owner under the repaired, newly sealed
-binding. It is IN_PROGRESS, not a completed study or a forward verdict.
+binding. It closes on REGISTERED_RESOURCE_GATE after 49 COMPLETE checkpoints,
+885.206 seconds / 1,337.023-MiB peak. It has no completed child or selected audit;
+all retained checkpoints remain and in-flight work is UNKNOWN. Parent
+`5a34c18fc9a94def1ed214a303df6e31dbd0fa5880c6b6b0c44827d491344aad`, cleanup
+`4e163efbbc4da4f6ffdae0411102e322dcd1c4f846cb24f391d1ccd83c68ac1e`.
+Worker reaped and only owned scratch removed. The generic resource reason lacks
+an exact trigger snapshot; peak alone is not evidence that the worker cap failed.
 
 ## Sampler-Only Preparation
 
@@ -396,3 +402,48 @@ cleanup `23dc06141facf349d285b7abe0ef806f1da94432b4db5aaa3a2dc905b27e840f`.
 Seven registered source pins are unchanged, all children reaped and only owned
 scratch removed. Source07/current challenger and original passed helpers remain
 untouched. No financial or scientific imports, CI, publication or sampler ranking.
+
+### Actual Scope And Raw256 Metadata Admission
+
+The qualification observation and actual study use distinct original access
+policies and consequently different contract identities. V3 preserves a failed
+negative-test diagnostic; V4 admits the independently registered actual scope
+without substituting qualification scope. All 23 stdlib fixtures PASS in 7.704
+seconds / 34.457-MiB peak. Original V2/V3 sources and receipts remain immutable.
+V4 receipt `00c8e275720ceec1ffe9cd63051bf3a7b98a7d94c5f34e770f6d0f341dc8c761`;
+cleanup `f593ba59398cd15ae5e487e74ce6e9461e6d1a68f825e1c23bc0e97e4e64ea55`.
+
+Read-only admission then checks the actual six input records, all 256 ordered
+trial JSON, 257 account metadata JSON and closed recovery/direct receipts. It
+PASSes in 1.873 seconds / 67.426-MiB peak with no finance, numerical imports,
+pickle loading or RNG. The raw256 study has 256 unique finite-score eligible
+points and 125 common-annual-quality eligible points; these are distinct gates.
+It correctly retains 119 inherited versus 137 new trial accounts, fresh selected/
+direct audits and old in-flight UNKNOWN, rather than calling reused accounts new.
+
+| Actual Admission | SHA-256 |
+|---|---|
+| Child | `0ef0217848931b79ed920c0eb8a561b667577c658e306d0724a8a0af5a784632` |
+| Parent | `980bd5e0e9a0315455cddcb49bd9b271067148b024549f7df9fe0b6f472cf00e` |
+| Cleanup | `c69c18d42da3dbf16c5e1b42d889702f8075d8904aeb53673faea31285d3060e` |
+
+All workers are reaped; original input hashes are unchanged, and only registered
+scratch is removed. This is actual stored-metadata consistency and legacy reuse
+eligibility, not qualification of fresh sampler studies, forward transfer or
+economic improvement. Real shared constructor preflight is registered next.
+
+### Real Shared Factory Preflight
+
+All four real shared constructors PASS the actual eight-dimensional domain
+and original recipe defaults in 31.595 seconds / 188.680-MiB peak. They resolve
+to TPESampler (legacy or multivariate/group), CmaEsSampler and scrambled-Sobol
+QMCSampler respectively. Zero study creation, suggestions, financial executions
+or sampling draws occur. Source07 custody verifies 9,302 full hashes at entry/
+exit with zero mutations; worker reaped and only exact owned scratch removed.
+
+Child `ec1e7e293c53c7cdf660ae1da919342e6dd40d4af11fa512c2c61fe873becf9c`;
+parent `8d16fb88a42c252e3e8ef3d9e4712fc6027a130b5a5f66ea27ac08189de50418`;
+cleanup `059481605036543897cfd50cbaacc1630696e895092ab64423987dacf80f66a5`.
+This is constructor compatibility, not completed B5 arms or evidence of which
+sampler is best. Actual relative proposals/fallback and unique-work coverage
+must come from the registered 256-attempt studies, not these constructors.

@@ -73,7 +73,11 @@ The new private cold repair now PASSes actual SelectionPlan, full geometry,
 source07, formula, annual gates and advice checks with zero finance/RNG.
 Original bindings/seals remain immutable; corrected context/plan has fresh seals.
 Repaired financial attempt-01 fails RAM admission before launch; attempt-02
-now runs serially without rerunning the completed raw arm or weakening a gate.
+is resource-stopped after 49 COMPLETE checkpoints, not a completed 256-query
+challenger. Worker reaped and exact scratch removed; its FAIL and in-flight
+UNKNOWN are retained. No raw256 finance is repeated or scientific gate weakened.
+The actual raw256 metadata admission closes with 125 common-annual-quality
+eligible points, separate from its 256 finite-score eligible raw-control points.
 Neither an intermediate checkpoint nor a completed freeze certifies the pair.
 See
 [current preparation](../docs/mode5/M5_11_2_RSI_PROVIDER_PREPARATION.md#source-07-dossier-preparation).
@@ -27588,7 +27592,7 @@ Every phase below inherits this mandatory resource registration/cleanup exit.
 | [M5-10](#mode5-m5-10) | Public opt-in integration/runtime reuse | M5-09 plus current source map | M5T-091..100 | COMPLETE_LOCAL_PUBLIC_OPT_IN / TECHNICALLY_VALID |
 | [M5-11](#mode5-m5-11) | Formal calibration and scoped economics | M5-10 plus authorized adequate data | M5T-101..110 | REOPENED_RESEARCH_COVERAGE; original finite pilot preserved |
 | [M5-11.1](#mode5-m5-11-1) | Broad five-alpha diagnostics and renewed dossier | M5-11 scope review; registered data/design/resource protocol | M5T-041..060 / 071..090 | IN_PROGRESS; 640 discovery accounts and 348 probes closed/cold-admitted; native B2/dossier assembly pending |
-| [M5-11.2](#mode5-m5-11-2) | Actual adaptive formal search and selector comparisons | Reviewed M5-11.1 dossier; new sealed plans | M5T-091..103 / EH-01..05 | RSI raw256/audit and repaired cold PASS; corrected floor256 IN_PROGRESS; sampler-only actual studies NOT_RUN |
+| [M5-11.2](#mode5-m5-11-2) | Actual adaptive formal search and selector comparisons | Reviewed M5-11.1 dossier; new sealed plans | M5T-091..103 / EH-01..05 | RSI raw256/audit/metadata and repaired cold PASS; floor partial49 resource-stopped; sampler-only actual studies NOT_RUN |
 | [M5-11.3](#mode5-m5-11-3) | Multi-origin fixed-policy transfer and economic qualification | Frozen M5-11.2 outputs and prefix studies | M5T-101..110 / EH-06..12 | APPROVED; expanded forward tests NOT_RUN |
 | [M5-12](#mode5-m5-12) | Local qualification/docs/handoff | M5-01..11 dispositions reviewed | M5T-111..120 | NOT_STARTED |
 
@@ -32136,7 +32140,7 @@ is not execution or a waiver of those gates.
 <a id="mode5-m5-11-2"></a>
 ### Phase M5-11.2 - Actual Adaptive Calibration And Selector Comparisons
 
-**Status:** RSI RAW_256_AND_AUDIT_PASS / REPAIRED_COLD_PASS / FLOOR_256_IN_PROGRESS (2026-10-12);
+**Status:** RSI RAW_256_AND_AUDIT_PASS / REPAIRED_COLD_PASS / FLOOR_PARTIAL49_RESOURCE_STOPPED (2026-10-12);
 the original resource-stopped 119-prefix FAIL is retained. Source-07 provider,
 actual dossier preparation and runner freeze PASS separately. Owner approved
 RSI first while keeping SC/HMA/HASH/VWAP annual gates and NO_SUPPORTED status.
@@ -32317,6 +32321,69 @@ doubles are covered. Receipt
 cleanup `23dc06141facf349d285b7abe0ef806f1da94432b4db5aaa3a2dc905b27e840f`.
 All owned children reaped, only registered scratch removed and seven source
 pins unchanged. This does not certify actual sampler construction or studies.
+
+**Actual Scope Review / V3 Entry:** the qualified observation contract and actual
+raw study legitimately have different AccessPolicy identities. The source-bound
+closed raw receipt supplies the actual study contract; never replace it with
+the qualification-scope contract or change stored financial evidence to align
+them. Keep passed V2 files immutable and test a separate V3 adapter against
+the fourteen legacy actual-schema fixtures plus three explicit scope cases,
+with the same six protocol fixtures and registered tiny software bounds above.
+MAIN supplies the actual source-qualified contract identity independently;
+this metadata check grants no financial or selection authority. Only after
+actual stored inputs/rows and real factory preflight pass may new B5 arms run.
+
+**V4 / Actual JSON Admission Entry:** V3 retains a failing fixture receipt solely
+because the earlier contract-rejection diagnostic fires before the expected
+independent-ID diagnostic. A separate V4 keeps both diagnostic identities; all
+23 stdlib fixtures PASS. Preserve original V2/V3 bytes/receipts. Next register
+the completed original raw256's exact six inputs, 256 trial JSON and 257 account
+metadata JSON, closed recovery parent/cleanup and independently recorded scope
+identities. Read only those JSON bytes (no pickle/market/scientific imports),
+using the same 60-second / 128-MiB one-worker bounds and <=8-MiB output/scratch.
+Normalize counts/selected/direct refs and verify input bytes before/after; this
+read-only metadata proof is not a finance launch or sampler qualification.
+Actual real factory and fresh arms remain serial, after current floor closure.
+
+**Actual JSON Receipt:** V4's 23 fixtures PASS; original six inputs plus 256
+terminal trial JSON / 257 original account metadata JSON then PASS real read-only
+admission in 1.873 seconds / 67.426-MiB peak, with zero finance/imports/RNG.
+All 256 raw trials are COMPLETE and unique, 125 common annual-quality eligible;
+119 inherited and 137 new trial accounts remain distinct. Selected/direct audit
+and old in-flight UNKNOWN reconcile. Child
+`0ef0217848931b79ed920c0eb8a561b667577c658e306d0724a8a0af5a784632`,
+parent `980bd5e0e9a0315455cddcb49bd9b271067148b024549f7df9fe0b6f472cf00e`,
+cleanup `c69c18d42da3dbf16c5e1b42d889702f8075d8904aeb53673faea31285d3060e`.
+Workers reaped, original inputs unchanged and only registered scratch removed.
+
+**Floor Partial Stop (2026-10-12):** corrected attempt-02 stops after 885.206
+seconds / 1,337.023-MiB peak, with 49 COMPLETE trial/account checkpoints.
+Parent FAIL `5a34c18fc9a94def1ed214a303df6e31dbd0fa5880c6b6b0c44827d491344aad`,
+cleanup `4e163efbbc4da4f6ffdae0411102e322dcd1c4f846cb24f391d1ccd83c68ac1e`.
+The parent records REGISTERED_RESOURCE_GATE, not an exact trigger snapshot;
+do not manufacture that missing telemetry or certify the incomplete child.
+Own worker is reaped; preserve all completed checkpoints and unretained in-flight
+UNKNOWN. No selected/final audit or complete challenger verdict exists yet.
+
+**Real Shared Factory Entry:** after financial slot closure, register a serial
+zero-finance preflight using the closed actual metadata proof, unchanged source07
+and real four shared sampler constructors. Bound 600 seconds / 1-GiB RSS /
+128-MiB retained and scratch, one worker/thread, launch >=2-GiB available RAM,
+>=5-GiB disk reserve. Verify all source hashes at entry/exit, loaded origins,
+full normalized geometry/default kwargs and zero study/suggestion/RNG/finance.
+Constructor compatibility is not observed sampling qualification. Preserve
+failure logs and reap before cleaning exact scratch; no CI/publication.
+
+**Real Shared Factory Receipt:** all four original shared recipes accept the
+full actual eight-dimensional numeric domain/default kwargs in 31.595 seconds /
+188.680-MiB peak. No studies, suggestions, finance or sampling draws occur.
+Source07 entry/exit verifies 9,302 full hashes with zero mutations; worker reaped
+and only owned scratch removed. Child
+`ec1e7e293c53c7cdf660ae1da919342e6dd40d4af11fa512c2c61fe873becf9c`,
+parent `8d16fb88a42c252e3e8ef3d9e4712fc6027a130b5a5f66ea27ac08189de50418`,
+cleanup `059481605036543897cfd50cbaacc1630696e895092ab64423987dacf80f66a5`.
+Actual sampled behavior, fallback/unique coverage and fresh B5 256-attempt arms
+remain pending. Constructor compatibility does not settle sampler quality.
 
 **Actual RSI Raw256 Closure (2026-10-12):** 256 COMPLETE / 256 unique effective
 executions, fresh selected-query/direct exact parity for all available financial
