@@ -236,6 +236,31 @@ only their owned inactive scratch; source/receipt hashes remain intact.
 | Initial failed fixture attempt | `1e3e525351ea40f07e81f9b4b19bbbc0808d110a9f840db7a4744c06a1e19e64` |
 | Fourteen tests plus syntax | `4f10238db08d5be230fb6214084ce225fec3314fc1ecb06e070a20e49dc110b8` |
 
-The separately registered actual source-07 cold replay is IN_PROGRESS. Software
-fixtures do not qualify its 119 real accounts, a completed 256-attempt study,
-challenger, sampler comparison or forward economics.
+Software fixtures do not qualify real accounts, a completed 256-attempt study,
+challenger, sampler comparison or forward economics. The actual cold proof below
+has a separate source-bound receipt.
+
+## Actual Durable-Prefix Cold Proof
+
+The fresh original source-07 provider/control now PASSes replay of all 119
+externally pinned original account observations. Requested/effective vectors,
+ask/tell terminal states, values and semantic sampler attributes match exactly.
+The run stops before the first new financial dispatch: zero scorer/direct
+calls, 119 inherited account deliveries. The dry boundary is not a scientific
+trial. Original interrupted in-flight work remains UNKNOWN, never counted as 0.
+
+Controller time is 331.407 seconds, peak RSS 276.047 MiB. Original source custody
+verifies at entry/exit; the worker is reaped and only its registered inactive
+scratch is removed. The old FAIL and all original checkpoint bytes stay intact.
+
+| Receipt | SHA-256 |
+|---|---|
+| Actual 119-prefix zero-finance proof | `4b52dfd1844899d88f678f331b266056051f9ccffdc8ff4fda6b5966743285ce` |
+| Supervising parent | `de23c4c6b79c09a2340bc096b57b6da7966f129075ae628444b067fd6c743156` |
+| Cleanup | `c1e86b564581dc50f3248446924338850049d100e55dcf33e9d3edc692574185` |
+
+A separately registered actual worker is IN_PROGRESS: replay the unchanged
+119-prefix, finish the original remaining 137 attempts, then run fresh selected
+and direct accounting audits. It inherits this exact manifest, full geometry,
+seed and budget. No completed 256-attempt, challenger or forward verdict is
+certified until its actual receipt closes.

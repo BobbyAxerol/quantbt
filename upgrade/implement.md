@@ -59,7 +59,9 @@ and the supervisor FAIL/cleanup remain preserved. Cold queue-03 has now PASSed,
 consuming the remaining 315 accounts in 9,542.600 controller seconds and reaping
 all owned workers; previous 33 accounts are reused, zero finance repeated.
 Recovery software checks PASS 14 tests plus syntax. The separately registered
-original-provider 119-prefix cold proof is IN_PROGRESS; no fresh finance yet.
+original-provider 119-prefix cold proof PASSes in 331.407 controller seconds /
+276.047-MiB peak RSS with zero fresh scorer calls. The actual completion worker
+is now IN_PROGRESS, inheriting that exact manifest and original 256 mandate.
 Neither an intermediate checkpoint nor a completed freeze certifies the pair.
 See
 [current preparation](../docs/mode5/M5_11_2_RSI_PROVIDER_PREPARATION.md#source-07-dossier-preparation).
@@ -32239,6 +32241,17 @@ floor (3 GiB available for the registered 2-GiB worker and 1-GiB reserve), not a
 identity/explicit-override negatives and RAM boundary fixtures to the stdlib lane;
 the original provider/control, scientific thresholds and trial/RNG contracts are
 unchanged. Preserve the pre-review private controller source and all failures.
+
+**Actual Recovery Cold Proof (2026-10-12):** 119 original typed account deliveries
+reproduce the original shared-sampler requested/effective points, terminal states,
+objective values and semantic attributes exactly. Zero original scorer/direct
+invocations occur; the explicit dry 120th proposal boundary is not a scientific
+trial. Controller PASS: 331.407 seconds / 276.047-MiB peak; source custody entry/
+exit verified and exact owned scratch removed only after reaping. Child receipt
+`4b52dfd1844899d88f678f331b266056051f9ccffdc8ff4fda6b5966743285ce`, parent
+`de23c4c6b79c09a2340bc096b57b6da7966f129075ae628444b067fd6c743156`.
+The separate remaining-attempt actual worker now runs serially. This proof does
+not replace 256-attempt coverage, fresh selected/direct audits or forward tests.
 
 <a id="mode5-m5-11-3"></a>
 ### Phase M5-11.3 - Multi-Origin Fixed-Policy Transfer And Economic Qualification
