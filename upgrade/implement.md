@@ -23,9 +23,11 @@ The exact remaining native local design has 348 probes. Its first three actual
 accounts PASS original compiler, terminal lifecycle and fixed-fill accounting
 (residual 0); their controller/cleanup are closed. A separately registered
 three disjoint missing-only tranches (108, 108 and 112 requests) were registered
-under measured host-memory limits. Tranches 02/03 (108 each) have completed and
-reaped; tranche 04 and the final 17-HMA-probe tranche 05 retain their own bounded
-execution. Each is sealed for one financial worker and one numeric thread.
+under measured host-memory limits. Tranches 02/03/04/05 (108/108/112/17) have
+completed and reaped, joining the previous three-account sample for all 348
+financial probes. Each was sealed for one financial worker and one numeric
+thread. Cold normalization/B2 remain distinct pending gates, not financial
+replays. See [financial closeout](../docs/mode5/M5_11_1_NATIVE_PROBE_CLOSEOUT.md).
 Cold probe admission passes 86 tests and consumes all 12 dependent views from
 the first three actual accounts, without financial replay or role promotion.
 All prior censored/failed receipts remain historical. Continuous original-event
