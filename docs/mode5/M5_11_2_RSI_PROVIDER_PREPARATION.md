@@ -447,3 +447,19 @@ cleanup `059481605036543897cfd50cbaacc1630696e895092ab64423987dacf80f66a5`.
 This is constructor compatibility, not completed B5 arms or evidence of which
 sampler is best. Actual relative proposals/fallback and unique-work coverage
 must come from the registered 256-attempt studies, not these constructors.
+
+### Current Operational Boundary
+
+Corrected floor attempt02 retains 49 COMPLETE trial/account checkpoints but no
+completed study or selected audit. The frozen public continuous owner has no
+exact retained-query resume hook; do not inject scalar trials or patch execution
+to claim continuation. A fresh unchanged 256-attempt attempt would compare its
+first49 vectors/states/objectives exactly and count any repeated work separately.
+Attempt03 does not launch: available RAM 3,083,665,408 bytes is below the existing
+3-GiB conservative admission. Parent
+`84976d366a3b0a919db84b23c1c01f7dacae19ad9ed278ca16fa54e666aed161`; cleanup
+`4d6a0db233c9e807205c1fae38abdbc0cd7e1179786373ff762ee8defdcf14bb`.
+No added financial execution or scratch deletion occurs. Keep old in-flight work
+UNKNOWN. No IDE/kernel/collector service is stopped without owner permission.
+The complete baseline/raw metadata/factory proofs remain valid for their own
+scopes; they do not close challenger, sampler-only, prefix-forward or M5-12.

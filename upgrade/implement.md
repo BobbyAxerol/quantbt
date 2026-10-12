@@ -32385,6 +32385,28 @@ cleanup `059481605036543897cfd50cbaacc1630696e895092ab64423987dacf80f66a5`.
 Actual sampled behavior, fallback/unique coverage and fresh B5 256-attempt arms
 remain pending. Constructor compatibility does not settle sampler quality.
 
+**Registered Fresh Floor Restart:** the public continuous study has no exact
+retained-query resume hook in this frozen owner. Do not inject synthetic Optuna
+trials, patch its scorer/runtime or relabel replay as fresh coverage. Preserve the
+49 stopped trial/account checkpoints as separate completed work; start the exact
+same sealed 256-attempt arm fresh, keeping all original bounds/source/seed/domain/
+objective. Parent compares first49 requested vectors, terminal states and values
+to their old externally pinned records; mismatch stops before scientific claims.
+This deliberately repeats those 49 executions, not the completed raw256 study;
+count the sunk/repeated work separately and retain old in-flight UNKNOWN. A new
+append-only supervisor records actual resource-trigger telemetry; it changes no
+financial/optimizer code or scientific budget/gate. Launch only with >=3-GiB
+available RAM and no concurrent heavy cold/finance; cap and cleanup remain above.
+
+**Restart Admission Receipt:** fresh attempt03 FAILs before worker creation:
+available RAM 3,083,665,408 bytes is below the unchanged 3-GiB launch budget.
+Parent `84976d366a3b0a919db84b23c1c01f7dacae19ad9ed278ca16fa54e666aed161`,
+cleanup `4d6a0db233c9e807205c1fae38abdbc0cd7e1179786373ff762ee8defdcf14bb`.
+Zero added finance; no scratch created/deleted, old 49 checkpoints retained.
+No unrelated IDE/kernel/collector service is stopped without owner permission.
+Continue only bounded inert/software work while operational headroom is unsettled;
+do not reduce RAM safety/scientific thresholds or count the study as completed.
+
 **Actual RSI Raw256 Closure (2026-10-12):** 256 COMPLETE / 256 unique effective
 executions, fresh selected-query/direct exact parity for all available financial
 streams and liquidation. Inherit 119 completed accounts, add 137 new trial
