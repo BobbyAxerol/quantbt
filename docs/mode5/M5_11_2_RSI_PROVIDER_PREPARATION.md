@@ -99,3 +99,33 @@ prefix-forward economics remain pending. Actual financial qualification does
 not replace them. Native probe admission/batteries retain their own
 ordered gates. See the [unified plan](../../upgrade/implement.md#mode5-m5-11-ordered-execution-20261012)
 and [detailed guide](../../upgrade/QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#phase-m5-11--formal-calibration-pilot-independent-checks-và-economic-inference).
+
+## Source-07 Dossier Preparation
+
+Cold preparation-01 failed before search because the adapter expected a `values`
+field for floor/tail components; only the Pareto component schema carries that
+field. That failure, its source-06 adapter bytes and cleanup remain retained.
+The corrected reader uses the existing annual-selector independent oracle for
+floor/tail scores and keeps Pareto's actual annual-vector check. Seven stdlib
+schema/oracle checks pass, including rejection of changed scores, eligibility,
+selected candidate and Pareto front; no financial modules or accounts execute.
+
+Source-07 then passes another original/direct two-account qualification in
+107.844 seconds / 311.965 MiB, under exactly the same scientific contracts.
+The actual cold context, re-bound dossier and eligible recipe preparation passes
+in 279.833 seconds / 1,555.840 MiB, retaining 44,361,377 bytes before receipts.
+Eligibility is still 3/128. There are zero search attempts or financial queries
+in preparation; governance contains dossier/plan seals only. The externally
+supervised worker is reaped and registered inactive scratch removed.
+
+| Receipt | SHA-256 |
+|---|---|
+| Annual schema/oracle checks | `3ad261c7b9a51da481a13f34f9e314c5cc7f5eb684e3003eec0ed7b5d55cee06` |
+| Source-07 manifest | `a2191f29c2008b635c7691ef3186a0bab2877c0f89eb5b2a772b0ff17c4f8ff9` |
+| Actual qualification-03 | `2f4ac2d1494d00ae11d4c37c5ad67f39b79bb392f69fbf8e45f4ac7eb27144a9` |
+| Cold preparation-02 | `23f6470845994ffc45ba02ebaca46e7fada12c5a0c8b7dba4d49cad9c7f37e72` |
+| Preparation supervisor | `1c596d59aa00ca2793d6429368835fabedc06516c72745ee7c3d733b582b6cd9` |
+
+The final source-qualified runner freeze and actual studies retain separate
+registered gates. This preparation is not a 256-attempt search result, sampler
+ranking, forward-performance claim or publication certificate.

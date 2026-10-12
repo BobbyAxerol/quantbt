@@ -42,6 +42,12 @@ financial parity and three prefix guards in 111.760 seconds / 311.559 MiB.
 Its explicit source lifetime passes eleven stdlib tamper/ownership tests; source
 hashes remain required at entry/exit, with unchanged data/rights/RNG/accounting.
 Cold actual-context/recipe preparation is separately supervised before search.
+The source-06 cold schema failure is retained; the corrected source-07 passes
+seven annual-selector oracle tests and a new two-account qualifier. Actual
+context/dossier/recipe preparation passes in 279.833 seconds / 1,555.840 MiB
+with eligibility unchanged at 3/128 and zero financial/search invocations.
+Runner freeze and actual studies retain separate gates. See
+[current preparation](../docs/mode5/M5_11_2_RSI_PROVIDER_PREPARATION.md#source-07-dossier-preparation).
 Probes/batteries/dossiers and M5-11.2/11.3 remain scientifically incomplete;
 M5-12 is approved in the ordered local scope but has not started.
 
@@ -31970,6 +31976,10 @@ failed resource, source, authority or normalization gate. No finance, replay,
 new estimator, build or environment; no active partial tranche is admitted.
 Cold matrices/dossiers keep zero annual-eligible native scopes and missing
 annual-local/stress/forward masks. No result-dependent retry or role promotion.
+Before the first batch, run six stdlib queue-resource/consumed-skip fixtures in
+one source-pinned cold worker, <=600 seconds / <=64-MiB retained, using only its
+registered temporary scratch and a source-only bytecode prefix; retain test and
+cleanup receipts. This validates orchestration, not the cold financial rows.
 
 **Actual RSI Cold Freeze And Study Resource Registration (2026-10-12):** after
 source-06 two-account qualification, prepare the actual bound context and renew
