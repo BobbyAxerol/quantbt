@@ -31988,6 +31988,22 @@ with observed child peak 919.570 MiB, higher than the initial 780-MiB provisioni
 estimate. Future Main queue launches reserve a conservative 1-GiB cold estimate
 beyond the unchanged 1-GiB host floor. This changes only resource admission;
 scientific gates, reader semantics and first-batch receipts remain unchanged.
+Queue-02 closes another 24 accounts / 96 dependent views, then stops before the
+next launch because the conservative RAM preflight is unavailable. Its FAIL and
+PASS cleanup/reaping remain retained; this is not full queue completion. The
+queue's old exception receipt leaves `remaining=[]` despite an incomplete scope.
+Before any missing-only resumption, fix only future orchestration reporting to
+keep inspected offsets and uninspected tranches visible on gate failure; archive
+the old exact controller bytes and add two stdlib early/inspected-stop cases to
+the six existing fixtures. Same <=600-second / <=64-MiB software budget, zero
+finance, >=5-GiB reserve and owned scratch only. Do not lower memory/scientific
+gates or rerun complete accounts. Resume full cold work after finance releases
+RAM; all completed batches remain reusable through their verified closures.
+The future-controller reporting repair passes eight stdlib fixtures, including
+disk-preflight and inspected-RAM stops; source/cleanup PASS, no finance/imports.
+Current actual cold coverage is 33/348 accounts / 132/1,392 dependent views,
+including the original sample and both missing-only checkpoints. See
+[retained stop and exact counts](../docs/mode5/M5_11_1_NATIVE_PROBE_CLOSEOUT.md#cold-admission-checkpoints).
 Before the first batch, run six stdlib queue-resource/consumed-skip fixtures in
 one source-pinned cold worker, <=600 seconds / <=64-MiB retained, using only its
 registered temporary scratch and a source-only bytecode prefix; retain test and

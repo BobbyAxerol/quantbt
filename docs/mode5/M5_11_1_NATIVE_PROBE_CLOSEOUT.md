@@ -54,6 +54,41 @@ step. The unchanged common-annual mandate still gives zero eligible native
 discovery configurations; the owner approved keeping that result and running
 the eligible RSI matched study first, not manufacturing native eligibility.
 
+## Cold Admission Checkpoints
+
+The first missing-only cold checkpoint passes six accounts / 24 dependent views
+in 167.791 controller seconds, with a measured 919.570-MiB child peak. Together
+with the previous three-account sample, it does not close the full probe panel.
+The later queue closes another four six-account batches: 24 accounts / 96 views.
+It then stops **before** the next launch because the conservative RAM preflight
+is unavailable. Its FAIL receipt and PASS cleanup remain retained; all owned
+children are reaped, exact sources stay unchanged and zero finance is repeated.
+At this checkpoint 33/348 accounts and 132/1,392 views are cold-admitted.
+The remaining 315 accounts require cold consumption, not new backtests.
+
+The initial provisioning estimate was 780 MiB. Future cold launches conservatively
+reserve 1 GiB beyond the unchanged 1-GiB available host-memory floor. Work will
+resume after the active RSI finance study releases RAM; no memory or scientific
+gate is lowered to turn the resource stop into PASS.
+
+The stopped controller's old exception record incorrectly leaves `remaining=[]`;
+its explicit FAIL still prevents completion certification. Original bytes and
+receipt remain retained. The future private controller now tracks inspected
+offsets and uninspected tranches on errors. Eight stdlib fixtures pass, including
+disk-preflight and inspected-RAM stops; they run no finance or account reader.
+Only registered inactive test scratch is removed.
+
+| Receipt | SHA-256 |
+|---|---|
+| First six-account checkpoint | `02a8385009173e6a30e6e20df3500b96172bc9a0c3f5f025e2786e48176cf01b` |
+| Resource-stopped queue-02 | `d601cc813603f78b4994c005dcc44617348f8cc403cc3551ca1ab33e424e1c21` |
+| Queue-02 cleanup | `40b7fb3738c1abea1a9c3ce79189284c61bcb9c0173ba50f43514ea60469f9b8` |
+| Eight future queue fixtures | `4016c0756f664e18cb4c382e3582b9c42012393fddfcd16bc865f2711665f50c` |
+
+Controller time includes source checks, normalization and process supervision;
+it is not financial kernel throughput. These checkpoints do not establish B2
+or full dossier completion, annual-local eligibility or economic improvement.
+
 See the [ordered plan](../../upgrade/implement.md#mode5-m5-11-ordered-execution-20261012),
 [fixed-panel report](M5_11_1_NATIVE_BATTERIES.md) and
 [guide sections 4.5/4.9](../../upgrade/QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#49-multi-hypothesis-empirical-battery-giữ-năm-chiều-làm-rõ-mỗi-phép-thử).
