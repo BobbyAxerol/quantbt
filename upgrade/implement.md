@@ -16,13 +16,17 @@ The last missing 216 discovery requests have closed, not merely been queued.
 The exact remaining native local design has 348 probes. Its first three actual
 accounts PASS original compiler, terminal lifecycle and fixed-fill accounting
 (residual 0); their controller/cleanup are closed. A separately registered
-two disjoint missing-only 108-request tranches are active under measured
-host-memory limits, each sealed for one financial worker and one numeric thread.
+three disjoint missing-only tranches (108, 108 and 112 requests) are active under
+measured host-memory limits, each sealed for one financial worker and one numeric thread.
 Cold probe admission passes 86 tests and consumes all 12 dependent views from
 the first three actual accounts, without financial replay or role promotion.
 All prior censored/failed receipts remain historical. Continuous original-event
 public studies pass 44 synthetic tests, including full preload and selected
 query/final/direct accounting; this is not the actual 256-query alpha study.
+Native B1/B3 reductions now consume all three 128-account panels; HMA, HASH and
+VWAP each have zero common annual-eligible candidates under the unchanged gates.
+Their 18 matrix containers verify with explicit missing masks, not invented
+measurements. B2 waits for source-admitted probes; B4/B5 remain NOT_RUN.
 Probes/batteries/dossiers and M5-11.2/11.3 remain scientifically incomplete;
 M5-12 is approved in the ordered local scope but has not started.
 
@@ -31869,6 +31873,21 @@ concurrency remains <=3 financial workers plus one software worker. Retain the
 same <=3-hour tranche / 1800-second probe / 2-GiB aggregate / 5-GiB reserve
 limits and exact request/source rights. The final 17 HMA probes require their
 own later registration; no completed request is repeated.
+
+**Native B1/B3 Cold Checkpoint (2026-10-12):** the shared cold reducer passes
+29 tests (324.64 seconds; controller 326.583 seconds) without financial imports
+or executions. Actual reduction of all 384 native discovery accounts takes
+227.506 seconds, peaks at 780.30 MiB and retains 36,468,529 bytes under its
+64-MiB budget. Eighteen matrix containers verify; masks preserve missing probes,
+stress, uncertainty and forward evidence. HMA/HASH/VWAP each have 0/128 common
+annual-eligible candidates, so full annual floor/tail/Pareto assessments remain
+NO_SUPPORTED_CONFIGURATION_ON_REGISTERED_PANEL. This does not prove absent
+alpha edge and does not authorize changing annual gates or recommendation status.
+Whole-path raw selection, leave-one-year-out diagnostics and bounded local
+analysis keep separate rights. B2 is incomplete; B4/B5 are NOT_RUN. Software and
+cold workers are reaped; exact sources unchanged; owned registered test scratch
+removed, no environment/build deletion. See
+[scope, receipts and interpretation](../docs/mode5/M5_11_1_NATIVE_BATTERIES.md).
 
 <a id="mode5-m5-11-2"></a>
 ### Phase M5-11.2 - Actual Adaptive Calibration And Selector Comparisons
