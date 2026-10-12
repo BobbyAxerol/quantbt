@@ -32059,6 +32059,29 @@ cold workers are reaped; exact sources unchanged; owned registered test scratch
 removed, no environment/build deletion. See
 [scope, receipts and interpretation](../docs/mode5/M5_11_1_NATIVE_BATTERIES.md).
 
+**Dossier / Prefix Contract Preparation Entry (2026-10-12):** before the inert
+native dossier assembler consumes the final cold probes, repair two review
+findings: arm its total deadline before source bootstrap and bind admitted
+probe content/lineage into context identity. No reducer/formula/annual gate is
+changed; retain the earlier helper bytes. Four stdlib lifecycle/context fixtures
+and seven synthetic prefix fixtures run serially in the idle software slot,
+one worker/thread, <=60 seconds per suite, <=128-MiB RSS, <=8-MiB combined
+retained output / owned scratch, >=5-GiB reserve and >=1-GiB available-RAM floor.
+External Main supervision records source pins, status and reap/cleanup; no
+alpha/data/financial import, account execution, recipe seal or study is allowed.
+Prefix fixtures cover poisoned future suffix projection, actual attempt roster,
+failed/pruned retention, lineage tampering, no-selection/transplant rejection and
+unsupported carry. Synthetic PASS does not qualify actual prefix finance or
+replace fresh diagnostics/dossier/search at each proposed origin.
+The first serial proof preserves seven prefix PASS tests; native assembler
+bootstrap fails on an unmatched list bracket in the inert template, before
+any dossier/account reader or finance. Failed logs/source bytes and cleanup are
+retained. Correct that syntax only and repeat the same two stdlib suites in a
+fresh lane; no source qualification or economic PASS is inferred from fixtures.
+Corrected serial proof passes seven prefix and four native dossier stdlib tests;
+source/cleanup PASS, all owned children reaped, zero finance/imports. See
+[contracts, original failure and remaining gates](../docs/mode5/M5_11_3_PREFIX_CONTRACT_PREPARATION.md).
+
 <a id="mode5-m5-11-2"></a>
 ### Phase M5-11.2 - Actual Adaptive Calibration And Selector Comparisons
 
