@@ -47,9 +47,14 @@ seven annual-selector oracle tests and a new two-account qualifier. Actual
 context/dossier/recipe preparation passes in 279.833 seconds / 1,555.840 MiB
 with eligibility unchanged at 3/128 and zero financial/search invocations.
 The source-qualified runner freeze also passes in 243.886 seconds / 1,554.398 MiB,
-with zero finance/search. The separately supervised actual RSI pair is now
-IN_PROGRESS: 256 raw-Sharpe attempts followed by 256 annual-floor attempts,
+with zero finance/search. The separately supervised actual RSI pair entered
+execution: 256 raw-Sharpe attempts followed by 256 annual-floor attempts,
 with unchanged full geometry and explicit per-trial/account checkpoints.
+It was resource-stopped at 119 retained baseline trials/accounts when the
+registered host-memory floor failed during overlapping cold work. No final
+child receipt exists; in-flight work is UNKNOWN, not zero. The 256-query gate
+is not met and the challenger is NOT_RUN. All retained checkpoints/source/logs
+and the supervisor FAIL/cleanup remain preserved. Cold queue-03 now runs alone.
 Closed cold queue checkpoint-01 admits six further accounts / 24 dependent
 views without financial replay; the separately provisioned full queue is live.
 Neither an intermediate checkpoint nor a completed freeze certifies the pair.
@@ -32096,7 +32101,7 @@ source/cleanup PASS, all owned children reaped, zero finance/imports. See
 <a id="mode5-m5-11-2"></a>
 ### Phase M5-11.2 - Actual Adaptive Calibration And Selector Comparisons
 
-**Status:** RSI ACTUAL_STUDIES_IN_PROGRESS (2026-10-12); source-07 provider,
+**Status:** RSI RESOURCE_STOPPED_PARTIAL_119 (2026-10-12); source-07 provider,
 actual dossier preparation and runner freeze PASS separately. Owner approved
 RSI first while keeping SC/HMA/HASH/VWAP annual gates and NO_SUPPORTED status.
 Native diagnostic cold closure remains in progress in its separate slot.
@@ -32164,6 +32169,26 @@ account checkpoints are retained as they complete; partial progress does not
 satisfy coverage, selection, replay or economic gates. Sampler-only comparison
 and prefix-forward evidence remain separate. No CI or publication.
 See [freeze, bounds and current status](../docs/mode5/M5_11_2_RSI_PROVIDER_PREPARATION.md#actual-study-freeze-and-entry).
+
+**Actual Resource Stop / Recovery Entry (2026-10-12):** supervisor-studies-01
+stops on the registered available-host-RAM floor after 3,049.944 seconds; peak
+child RSS 1,554.777 MiB remains below its 2-GiB cap. The 119 durable baseline
+terminal rows and 119 accounts are retained, no root completion or selected
+audit is certified and unretained in-flight work stays UNKNOWN. Overlapping
+finance/cold execution did not leave adequate aggregate peak headroom on this
+host; subsequent actual finance and cold normalization are serial. Preserve
+the original FAIL and exact source-qualified runner, not a 119-trial substitute.
+Before any financial resumption, allow only a disjoint private original-query
+replay adapter and stdlib fixtures: replay the same source-qualified 119-prefix
+ask/tell sequence with seed 731 / full geometry / original 256 budget, compare
+every actual requested/effective vector, state and value, and verify externally
+pinned typed immutable account/source/request identities. No original optimizer,
+scorer, financial runtime, formulas or RNG draws are patched. Any mismatch stops
+before finance. Old/new completed and interrupted-unknown counts remain separate;
+this is recovery from a durable boundary, not exact in-flight recovery or a
+new-study warm start. Register cold proof and actual restart separately after
+the current software slot closes; do not rerun 119 completed finance accounts
+or synthesize a completed study. No scientific gate or public/release scope changes.
 
 <a id="mode5-m5-11-3"></a>
 ### Phase M5-11.3 - Multi-Origin Fixed-Policy Transfer And Economic Qualification

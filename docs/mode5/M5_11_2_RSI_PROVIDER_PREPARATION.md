@@ -94,8 +94,9 @@ execute finance or begin search.
 
 ## Remaining Gates
 
-The sealed recipe and qualified runner freeze now PASS; two separate real
-studies are IN_PROGRESS. Sampler-only comparisons and prefix-forward economics
+The sealed recipe and qualified runner freeze now PASS; the real pair is
+RESOURCE_STOPPED_PARTIAL at 119 retained baseline trials/accounts. The 256-query
+gate and challenger remain unfulfilled. Sampler-only comparisons and prefix-forward economics
 remain pending. Actual financial qualification does
 not replace them. Native probe admission/batteries retain their own
 ordered gates. See the [unified plan](../../upgrade/implement.md#mode5-m5-11-ordered-execution-20261012)
@@ -138,7 +139,7 @@ zero financial executions and zero search attempts. It binds the actual
 context/dossier/recipe and reviewed-development rights, with source custody
 verified at entry and exit. The worker is reaped and registered scratch removed.
 
-The separate actual pair is now running: 256 raw whole-Sharpe attempts followed
+The separate actual pair entered execution: 256 raw whole-Sharpe attempts followed
 by 256 canonical annual-floor attempts. Both use seed 731, inherited univariate
 TPE, full original effective geometry, 2020 preload and a single continuous
 2021--2023 account per executed vector. There is no imported old-panel warm
@@ -160,3 +161,30 @@ and negative result; this is not an exact mid-study continuation promise.
 This records entry, not completed studies or a winning recipe. No forward
 tape was opened by these registrations. Remaining comparisons, economics and
 local package qualification keep their ordered gates.
+
+## Actual Resource Stop
+
+The actual supervisor stops after 3,049.944 seconds because available host RAM
+falls below its registered 1-GiB floor during overlapping cold normalization.
+Observed financial-child peak is 1,554.777 MiB, below its 2-GiB per-child cap.
+Aggregate peak headroom was insufficient for that concurrent schedule on this
+host. The remaining actual jobs are therefore serial; unrelated services are
+not stopped and memory/scientific floors are not lowered.
+
+Exactly 119 durable baseline trial rows and 119 account checkpoints remain.
+No completed child result or selected audit is present. The retired in-flight
+attempt/account work is **UNKNOWN**, not zero; partial trials do not substitute
+for 256 or permit a challenger/forward-benefit claim. The original supervisor
+FAIL and cleanup survive; all owned finance children are reaped and only its
+registered inactive scratch was removed.
+
+| Receipt | SHA-256 |
+|---|---|
+| Resource-stopped actual supervisor | `bbf20be8473aec0b2d496853074d694a5d77a0f0365e4ee25fe8570aecea3ab3` |
+
+Recovery must first verify the original durable proposal/observation prefix and
+immutable source/request/account identities through the shared sampler owner.
+No frozen optimizer/financial runtime or formulas may be patched. Replayed old
+evidence and new finance need separate actual counts; neither an exact in-flight
+continuation nor a completed study is promised before that proof. Do not delete
+passed evidence or silently restart completed accounts to fill the budget.
