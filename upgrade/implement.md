@@ -2,7 +2,15 @@
 
 ## Current Mode 5 Diagnostics-First Upgrade - M5-11.1 Broad Diagnostics
 
-**Current Action (2026-10-11):** performance-only incremental recovery completed
+**Current Action (2026-10-12, Asia/Saigon):** owner approves ordered local closure
+of M5-11.1, M5-11.2, M5-11.3 and M5-12. Execute missing accounts and complete
+their diagnostic/probe consumers first; then qualify the versioned continuous
+provider and sealed 256-query studies, prefix-forward economics and final local
+artifacts. Read [ordered execution](#mode5-m5-11-ordered-execution-20261012).
+No CI, push, merge, tag, live trading or publication is authorized. Mathematical
+thresholds, alpha sources, previous receipts and negative evidence stay intact.
+
+**Previous Completed Tranche (2026-10-11):** performance-only incremental recovery completed
 its registered 45-minute tranche; all owned workers are reaped. See
 [incremental recovery](#mode5-m5-11-incremental-recovery) and the
 [final runtime report](../docs/mode5/M5_11_INCREMENTAL_RECOVERY.md#final-tranche-receipt).
@@ -29456,7 +29464,10 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
 <a id="mode5-m5-11-1"></a>
 ### Phase M5-11.1 - Broad Five-Alpha Diagnostics And Renewed Dossier
 
-**Status:** APPROVED / PARTIAL / EXECUTION_TRANCHE_CLOSED. Owner subsequently
+**Status:** APPROVED / PARTIAL / ORDERED_LOCAL_COMPLETION_AUTHORIZED (2026-10-12).
+   Latest approval resumes missing-only execution and subsequent approved gates;
+   the following owner-bounded receipts retain their historical budgets.
+   Owner previously
    limited execution to a one-hour closeout: reuse completed work, retain every
    receipt and do not repeat expensive unsuccessful attempts. Remaining broad
    execution is DEFERRED_OWNER_TIME_BOUND, not PASS; the original 128-effective-
@@ -31570,6 +31581,67 @@ release and publication remain off.
 paths and current environment; remove only registered inactive scratch after
 checks. Commit focused tooling/tests and report/plan; no CI/push/release.
 
+<a id="mode5-m5-11-ordered-execution-20261012"></a>
+#### M5-11.1 Through M5-12 - Owner-Approved Ordered Local Completion
+
+**Status:** APPROVED / IN_PROGRESS; owner approval 2026-10-12 (Asia/Saigon).
+**Goal:** complete the existing registered research, not replace missing studies
+with more software fixtures or reduce dates/trials to manufacture completion.
+**Guide:** [financial boundary](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#24-financial-boundary-và-route-qualification),
+[six matrices](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#43-sáu-ma-trận-derived-bắt-buộc-trong-dossier),
+[comparison levels](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#49-multi-hypothesis-empirical-battery-giữ-năm-chiều-làm-rõ-mỗi-phép-thử),
+[cache/resources](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#72-computationoutput-plan-và-cache),
+[M5-11](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#phase-m5-11--formal-calibration-pilot-independent-checks-và-economic-inference)
+and [M5-12](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#phase-m5-12--qualification-docs-reproducibility-và-handoff).
+**Sequence / To-Do:**
+1. Reverify the sealed missing-only inventory (216 requests); preserve 424
+   completed discovery accounts and all censored attempts. Complete the original
+   128-effective-point native panels with the qualified incremental compiler,
+   actual fills and unchanged account/terminal contracts. Register each new
+   append-only tranche before launch; no completed candidate is rerun.
+2. Explicitly admit original and recovery schemas through the verified shared
+   account/annual-view consumers. Reconstruct full panel matrices, register
+   outcome-independent probe designs after identifying development-only centers,
+   retain selection versus held-local-validation rights, run missing probes and
+   regenerate dossiers. Missing/stress/undefined cells keep explicit masks.
+3. Qualify a versioned continuous-account provider: one financial development
+   account per effective candidate, annual views without reset, raw whole-path
+   Sharpe distinct from robust utility, original geometry/constraints, shared
+   ask/tell ordering and final selected-vector audit. Do not relabel public V1
+   reset-flat observations. Seal each approved recipe before its 256-query actual
+   baseline/challenger study. Compatible sampler-only comparisons keep objective,
+   selector and budgets constant; no recipe is chosen by forward outcomes.
+4. Freeze the resulting procedure/vectors; evaluate long registered forward
+   horizons and origin-specific prefix diagnostics/search. Keep all reviewed
+   history exploratory, preserve costs/account continuity and mutation tests,
+   report absolute forward quality separately from decay/IS reduction. Keep
+   negative, null and NO_SELECTION outcomes; no outcome-driven rescue search.
+5. After research dispositions, run affected regression, exact local wheel/
+   sdist consumers, privacy/reproduction/docs and M5-12 handoff. Reuse the exact
+   compatible native artifact unless its source/capability changed. No public
+   publication or platform receipt is inferred from local qualification.
+**Registered Initial Resources:** reuse current controlled tooling/native;
+   20.96 GiB available at prior closeout, >=5 GiB safety reserve and inode check.
+   Missing-panel tranche: <=3 isolated financial workers, one numeric thread
+   each, <=3 hours/tranche, <=30 minutes/candidate, <=2 GiB RSS/candidate,
+   <=2 GiB retained outputs, zero new build/environment/scratch. One additional
+   bounded software-test worker may use the fourth CPU. Preserve exact active
+   driver/core source pins; sidecar work uses disjoint new modules until worker
+   closure. Later probes/studies get their own pre-outcome work/resource receipts
+   from measured runtime, not an unbounded factorial sweep or hidden deadline.
+**Tests / Exit Gates:** exact missing roster and source/artifact/data identity;
+   per-candidate original compiler, native lifecycle/terminal and independent
+   fixed-fill accounting; approved control Python parity; cold tamper/role/
+   cutoff/no-future tests; ordered query/continuation and selected audit;
+   prefix-future mutation, paired measurements and final installed proof.
+   Complete each stage before its dependent scientific execution. Technical
+   completion and economic benefit remain separate dispositions; report every
+   actual unmet gate rather than marking a capped attempt complete.
+**Cleanup / Commit:** checkpoint every completed result, stop/reap owned workers
+   at each boundary, retain all sources/alphas/data/logs/artifacts/receipts;
+   delete only registered inactive reproducible scratch. Commit each coherent
+   verified change; leave unrelated user files untouched. No push/CI/release.
+
 <a id="mode5-m5-11-2"></a>
 ### Phase M5-11.2 - Actual Adaptive Calibration And Selector Comparisons
 
@@ -31697,7 +31769,8 @@ and [8.2..8.4 claim limits](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.
 <a id="mode5-m5-12"></a>
 ### Phase M5-12 - Local Package Qualification, Regression, Docs And Handoff
 
-**Status:** NOT_STARTED; owner implementation approval PENDING; gates NOT_RUN.
+**Status:** APPROVED / NOT_STARTED; owner local implementation approval
+2026-10-12 (Asia/Saigon); entry follows reviewed M5-11 dispositions, gates NOT_RUN.
 **Goal:** deliver a reproducible privacy-safe local package and honest capability/
    scientific handoff covering the whole approved program before release approval.
 **Entry:** M5-01..11 reviewed dispositions, no blocking technical debt for claimed
