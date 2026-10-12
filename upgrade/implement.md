@@ -32098,6 +32098,24 @@ Corrected serial proof passes seven prefix and four native dossier stdlib tests;
 source/cleanup PASS, all owned children reaped, zero finance/imports. See
 [contracts, original failure and remaining gates](../docs/mode5/M5_11_3_PREFIX_CONTRACT_PREPARATION.md).
 
+**Native Dossier Controller Entry (2026-10-12):** prepare a disjoint private
+stdlib-only controller while the cold queue retains its exclusive software
+slot. It must not import the financial runtime or execute during that queue.
+After all 348 registered accounts have four independently admitted views,
+register each alpha separately against the exact original catalog, preference,
+plan, financial closure and cold PASS/cleanup receipts. Preserve source roles;
+only the current diagnostic analysis frontier may advance, not selection rights
+or historical evidence maturity. One cold worker/thread, <=600 seconds,
+<=2-GiB RSS and <=64-MiB retained output per alpha; >=5-GiB disk reserve and
+>=1-GiB available-host-RAM floor plus a conservative 1-GiB launch estimate.
+Bind all actual src/tools and private assembler/controller bytes before launch.
+Supervise and reap the worker, preserve failure receipts and delete no evidence.
+Verify original B1/B3, zero common annual eligibility, all six matrices,
+selection/held-probe rights and context content identity. B4/B5 and unauthorized
+annual-local measurements stay explicitly pending; no cold dossier alone
+certifies adaptive search, transfer or economic benefit. Controller preparation
+is not execution or a waiver of those gates.
+
 <a id="mode5-m5-11-2"></a>
 ### Phase M5-11.2 - Actual Adaptive Calibration And Selector Comparisons
 
@@ -32189,6 +32207,25 @@ this is recovery from a durable boundary, not exact in-flight recovery or a
 new-study warm start. Register cold proof and actual restart separately after
 the current software slot closes; do not rerun 119 completed finance accounts
 or synthesize a completed study. No scientific gate or public/release scope changes.
+
+**Recovery Proof / Run Separation:** first register stdlib mutation/order/count
+fixtures for the inert adapter, one worker/thread, <=60 seconds / <=128-MiB RSS
+and <=8-MiB output/scratch. Then a fresh original-provider cold proof uses the
+same source-07 seal, qualification, observation binding, original control seal,
+full geometry and inherited sampler. It may deliver exactly the 119 pinned
+terminal accounts through unchanged ask/tell; the next callback is stopped
+before finance. Any dry proposal/failed boundary remains explicitly software
+proof, not a completed scientific trial or a changed search budget. Cold proof
+requires zero original scorer invocations and exact requested/effective vectors,
+states, values and semantic sampler attributes (elapsed proposal timing is not
+an RNG identity). <=1800 seconds / <=2-GiB RSS / <=512-MiB retained / <=64-MiB
+owned scratch. Only after this proof may a separately registered fresh actual
+owner replay that prefix and finish the remaining 137 attempts under the
+original 256-attempt mandate. Final selected audit/direct accounting stay fresh.
+Reconcile retained historical account invocations plus measured new completed
+invocations against the returned account roster; preserve interrupted work as
+UNKNOWN. Keep the original runner/provider/optimizer untouched, serial with
+cold work, and retain all evidence before exact owned scratch cleanup.
 
 <a id="mode5-m5-11-3"></a>
 ### Phase M5-11.3 - Multi-Origin Fixed-Policy Transfer And Economic Qualification

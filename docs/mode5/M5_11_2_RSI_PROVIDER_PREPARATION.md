@@ -188,3 +188,29 @@ No frozen optimizer/financial runtime or formulas may be patched. Replayed old
 evidence and new finance need separate actual counts; neither an exact in-flight
 continuation nor a completed study is promised before that proof. Do not delete
 passed evidence or silently restart completed accounts to fill the budget.
+
+## Registered Recovery Protocol
+
+The new private adapter uses the unchanged `RawWholeControl` and shared
+`WfoSamplerStudy`: reproduce the 119 original proposals and ordered tells from
+seed 731, compare requested/effective vectors, terminal states, values and
+semantic sampler attributes, then deliver only externally pinned typed account
+observations. Proposal elapsed time is telemetry, not an RNG identity. The
+original source-07 provider, observation binding, control seal and 256-attempt
+budget remain required; no `add_trial`-only reconstruction or new-study warm
+start is substituted.
+
+The registered stages are separate:
+
+1. Stdlib mutation/order/count fixtures, with no provider or financial imports.
+2. A fresh source-bound cold prefix proof, with zero original scorer calls.
+   Its explicit dry boundary is not a scientific trial or completed study.
+3. Only after that proof, a separately supervised actual completion of the
+   missing attempts, with fresh selected-vector and direct accounting audits.
+
+Historical accounts, new completed invocations and interrupted unknown work
+stay separate. The original accounting/scorer/optimizer are untouched. Cold
+proof and financial completion run serially with probe normalization; retained
+failures are not converted into PASS. These are **registered, not yet executed**
+recovery stages. No completed recovery, challenger or forward benefit is claimed.
+See the [ordered plan and entry gates](../../upgrade/implement.md#mode5-m5-11-2).
