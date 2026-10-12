@@ -67,9 +67,13 @@ At this checkpoint 33/348 accounts and 132/1,392 views are cold-admitted.
 The remaining 315 accounts require cold consumption, not new backtests.
 
 The initial provisioning estimate was 780 MiB. Future cold launches conservatively
-reserve 1 GiB beyond the unchanged 1-GiB available host-memory floor. Work will
-resume after the active RSI finance study releases RAM; no memory or scientific
-gate is lowered to turn the resource stop into PASS.
+reserve 1 GiB beyond the unchanged 1-GiB available host-memory floor. The next
+missing-only queue may wait for this capacity within its unchanged six-hour
+total deadline, without dispatching another batch while RAM is insufficient.
+Ten stdlib fixtures PASS, including backpressure, unchanged host-floor/deadline
+rejection and exact remaining-scope reporting. Actual capacity-admission time
+is reported separately. No memory or scientific gate is lowered to turn the
+resource stop into PASS; the stopped queue retains its original FAIL.
 
 The stopped controller's old exception record incorrectly leaves `remaining=[]`;
 its explicit FAIL still prevents completion certification. Original bytes and
@@ -84,6 +88,7 @@ Only registered inactive test scratch is removed.
 | Resource-stopped queue-02 | `d601cc813603f78b4994c005dcc44617348f8cc403cc3551ca1ab33e424e1c21` |
 | Queue-02 cleanup | `40b7fb3738c1abea1a9c3ce79189284c61bcb9c0173ba50f43514ea60469f9b8` |
 | Eight future queue fixtures | `4016c0756f664e18cb4c382e3582b9c42012393fddfcd16bc865f2711665f50c` |
+| Ten backpressure/remaining-scope fixtures | `061cfbf7e9fbda94ca41759c83d5b0ec1d331075203f761c24a458551c2df4bc` |
 
 Controller time includes source checks, normalization and process supervision;
 it is not financial kernel throughput. These checkpoints do not establish B2

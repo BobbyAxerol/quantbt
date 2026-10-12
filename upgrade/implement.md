@@ -32004,6 +32004,17 @@ disk-preflight and inspected-RAM stops; source/cleanup PASS, no finance/imports.
 Current actual cold coverage is 33/348 accounts / 132/1,392 dependent views,
 including the original sample and both missing-only checkpoints. See
 [retained stop and exact counts](../docs/mode5/M5_11_1_NATIVE_PROBE_CLOSEOUT.md#cold-admission-checkpoints).
+For the next missing-only queue, allow resource backpressure before launch:
+wait for >=2-GiB available RAM while keeping the >=1-GiB host floor, unchanged
+six-hour total deadline, <=600-second / <=64-MiB batch, disk/inode/source gates
+and zero-finance scope. Preserve queue-02 FAIL and all closed batches. Two new
+stdlib cases verify waiting makes no admission/dispatch and a gate/deadline
+failure still stops; repeat the eight existing cases in a fresh <=600-second /
+<=64-MiB software lane. Report waiting separately from actual cold work. No
+mathematical/financial resource cap is lowered and no completed account reruns.
+The ten-case future queue proof PASS and cleanup/reap PASS; queue-03 is
+registered with these unchanged caps and actual verified missing-only reuse.
+Its live status is not a completed probe-admission or scientific certificate.
 Before the first batch, run six stdlib queue-resource/consumed-skip fixtures in
 one source-pinned cold worker, <=600 seconds / <=64-MiB retained, using only its
 registered temporary scratch and a source-only bytecode prefix; retain test and
