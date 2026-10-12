@@ -32294,6 +32294,30 @@ owned worker reaped and only its inactive scratch removed. Actual four-recipe
 compatibility, matching source/input records, new arm registrations and
 256-attempt studies remain NOT_RUN. See [sampler preparation](../docs/mode5/M5_11_2_RSI_PROVIDER_PREPARATION.md#sampler-only-preparation).
 
+**Actual Sampler Adapter Review / V2 Entry (2026-10-12):** the actual raw-control
+seal digest includes the registered schema/objective/eligibility/tie-break;
+hashing its dataclass fields alone is not that identity. Preserve the original
+passed proposal helper/receipt and add a separate adapter/protocol revision.
+Register 20 stdlib fixtures (six protocol, fourteen actual-schema) with the
+same 60-second / 128-MiB / one-thread / 8-MiB output and scratch bounds above.
+Only synthetic metadata and explicit factory doubles are allowed in this slot;
+no scientific/provider imports, study or finance. Check actual recovery schema,
+256 ordered rows, all eight numeric coordinates, selected/direct audit closure,
+and inherited119 versus fresh137 counts. Admit actual stored source/qualification/
+checkpoint metadata separately after fixtures; shared real factory construction
+and fresh sampler arms remain later serial gates. Missing exact fallback counts
+stay UNKNOWN, not zero. Source07 runtime/files remain untouched while its actual
+floor worker runs. Cleanup exact registered scratch after reaping; keep failures.
+
+**V2 Software Receipt:** all 20 stdlib fixtures PASS in 7.998 controller seconds
+/ 33.922-MiB peak RSS; zero scientific imports/finance. Actual control digest,
+recovery account counts, schema/state/source tampering and explicit factory
+doubles are covered. Receipt
+`b868f26a325b223bf6141349d5e33a731364295f2b77a929a8fac66c893d1605`,
+cleanup `23dc06141facf349d285b7abe0ef806f1da94432b4db5aaa3a2dc905b27e840f`.
+All owned children reaped, only registered scratch removed and seven source
+pins unchanged. This does not certify actual sampler construction or studies.
+
 **Actual RSI Raw256 Closure (2026-10-12):** 256 COMPLETE / 256 unique effective
 executions, fresh selected-query/direct exact parity for all available financial
 streams and liquidation. Inherit 119 completed accounts, add 137 new trial

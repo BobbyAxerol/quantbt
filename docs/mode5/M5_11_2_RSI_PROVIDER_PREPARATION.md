@@ -376,3 +376,23 @@ evidence retained. Real source-record binding, shared factory compatibility,
 distinct pre-outcome arm registrations and the actual sampler studies remain
 NOT_RUN. A single paired seed does not make adaptive points identical or provide
 independent replications. See [guide comparison levels](../../upgrade/QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#49-multi-hypothesis-empirical-battery-giữ-năm-chiều-làm-rõ-mỗi-phép-thử).
+
+### Actual Metadata Adapter V2
+
+The initial proposal helper/receipt above stays historical. Review identifies
+that the actual raw-control seal digest includes schema/objective/eligibility/
+tie-break in addition to dataclass fields. A separate V2 adapter now checks that
+actual digest and admits original raw256 recovery and ordinary baseline-result
+schemas explicitly, without reading pickle or importing the financial owner.
+Its 20 synthetic stdlib fixtures PASS in 7.998 controller seconds / 33.922-MiB
+peak RSS: six protocol and fourteen actual-schema tests. Tampering, scope,
+ordered states, selected/direct closure and inherited119/fresh137 reconciliation
+are tested; real shared factory compatibility and sampler studies are NOT_RUN.
+Factory doubles are software tests, not evidence of actual sampler behavior.
+Fallback counts unavailable from the original observer stay UNKNOWN, not zero.
+
+Receipt `b868f26a325b223bf6141349d5e33a731364295f2b77a929a8fac66c893d1605`;
+cleanup `23dc06141facf349d285b7abe0ef806f1da94432b4db5aaa3a2dc905b27e840f`.
+Seven registered source pins are unchanged, all children reaped and only owned
+scratch removed. Source07/current challenger and original passed helpers remain
+untouched. No financial or scientific imports, CI, publication or sampler ranking.
