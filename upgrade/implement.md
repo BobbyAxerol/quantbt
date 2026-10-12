@@ -27585,7 +27585,7 @@ Every phase below inherits this mandatory resource registration/cleanup exit.
 | [M5-10](#mode5-m5-10) | Public opt-in integration/runtime reuse | M5-09 plus current source map | M5T-091..100 | COMPLETE_LOCAL_PUBLIC_OPT_IN / TECHNICALLY_VALID |
 | [M5-11](#mode5-m5-11) | Formal calibration and scoped economics | M5-10 plus authorized adequate data | M5T-101..110 | REOPENED_RESEARCH_COVERAGE; original finite pilot preserved |
 | [M5-11.1](#mode5-m5-11-1) | Broad five-alpha diagnostics and renewed dossier | M5-11 scope review; registered data/design/resource protocol | M5T-041..060 / 071..090 | IN_PROGRESS; 640 discovery accounts and 348 probes closed/cold-admitted; native B2/dossier assembly pending |
-| [M5-11.2](#mode5-m5-11-2) | Actual adaptive formal search and selector comparisons | Reviewed M5-11.1 dossier; new sealed plans | M5T-091..103 / EH-01..05 | RSI raw256/audit PASS; floor256 IN_PROGRESS; sampler-only actual studies NOT_RUN |
+| [M5-11.2](#mode5-m5-11-2) | Actual adaptive formal search and selector comparisons | Reviewed M5-11.1 dossier; new sealed plans | M5T-091..103 / EH-01..05 | RSI raw256/audit PASS; inactive floor-binding scale repair/cold reseal IN_PROGRESS; sampler-only actual studies NOT_RUN |
 | [M5-11.3](#mode5-m5-11-3) | Multi-origin fixed-policy transfer and economic qualification | Frozen M5-11.2 outputs and prefix studies | M5T-101..110 / EH-06..12 | APPROVED; expanded forward tests NOT_RUN |
 | [M5-12](#mode5-m5-12) | Local qualification/docs/handoff | M5-01..11 dispositions reviewed | M5T-111..120 | NOT_STARTED |
 
@@ -32326,6 +32326,19 @@ just dummy records. Preserve failed attempt `1fdc800f1b17db7207f18428492fd914c59
 and cleanup `132de491d5f3a1a58924bf7a1362b3263fa7e6bbbeed2076ecaea5f52e2ec586`:
 243.923 seconds / 1,565.657-MiB peak, no terminal trials and no completed child
 receipt. Stop/reap before cleaning only registered scratch. No CI/release.
+
+**Native Dossier Integration Findings (2026-10-12):** cold assembly attempt-01
+includes a superseded sample receipt; a new controller selects only the exact
+already-admitted sample03, preserving all old receipts. Attempt-02 then exposes
+a real unit-schema mismatch in the shared battery consumer: it requires daily
+sample counts for net return/drawdown/utility that are actually bar observations;
+Sharpe and daily ES are daily observations. Do not rewrite stored metrics or
+relax sample support. Add focused positive/negative fixtures and correct that
+consumer only after the source-07 financial slot closes, followed by new source
+custody/regression qualification. Preserve source07 and all actual account paths;
+no financial rerun is needed merely to reduce their existing observations.
+The three native B2/dossiers remain pending this integration gate, not complete
+after their 348 accounts have executed. No alpha/data/economic gate changes.
 
 <a id="mode5-m5-11-3"></a>
 ### Phase M5-11.3 - Multi-Origin Fixed-Policy Transfer And Economic Qualification

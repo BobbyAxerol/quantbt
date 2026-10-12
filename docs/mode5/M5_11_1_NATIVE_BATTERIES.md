@@ -67,3 +67,19 @@ cold-01/cleanup.json      0b81f6e6b75564d71ace23cedbf085b5ccd951cc57ce3f2ce804df
 The private lane is `upgrade/local/mode5_upgrade_v1/m5-11-1/native-batteries01`.
 This is local scientific/technical evidence, not an installed-package, remote,
 independent-forward or release certificate.
+
+## Probe Integration Checkpoint
+
+All 348 native probes and 1,392 dependent views are now source-admitted, without
+repeating finance. Actual dossier assembly still exposes a consumer mismatch:
+net return, drawdown and utility carry bar sample counts; Sharpe and daily ES
+carry daily sample counts. The battery consumer currently requires days for
+all five, so assembly correctly remains incomplete rather than rewriting the
+stored observations. This is input-schema integration, not a financial parity
+failure or evidence that the alpha lacks edge. Focused sample-unit tests and a
+source-qualified consumer correction are registered in the unified plan.
+
+The first cold attempt also included a superseded sample receipt; the corrected
+controller selects the exact admitted sample03 and preserves the old failure.
+Both attempts are closed, original sources unchanged, zero financial execution
+and no disposable scratch created/deleted. Actual B2/dossier gate remains open.

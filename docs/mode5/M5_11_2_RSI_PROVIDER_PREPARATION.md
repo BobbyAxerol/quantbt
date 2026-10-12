@@ -310,10 +310,28 @@ not a financial kernel benchmark or the wall time of all original 256 accounts.
 
 Floor attempt-01 was blocked at RAM admission before a financial worker existed;
 its FAIL `eaa22d6c9b392f5e96747e2034d1d50e609a131238bd7562b362caed6b064c93`
-and cleanup remain. A fresh attempt-02 passes admission and is IN_PROGRESS,
-using the exact previously sealed floor recipe, source, mandate and copied
-governance journal bytes. No RAM floor, financial cap or mathematical gate was
-lowered. Other services are untouched.
+and cleanup remain. Attempt-02 passes admission but closes FAIL before any trial:
+the private adapter declares a local scale for an environment-only formula.
+The public contract correctly rejects it. Parent FAIL is
+`1fdc800f1b17db7207f18428492fd914c596190a3963833e2acb832f76e0b929`;
+cleanup `132de491d5f3a1a58924bf7a1362b3263fa7e6bbbeed2076ecaea5f52e2ec586`.
+243.923 seconds / 1,565.657-MiB peak; original sources unchanged, worker reaped,
+only registered inactive scratch removed. No RAM floor, financial cap or
+mathematical gate was lowered. Other services are untouched.
+
+### Cold Binding Repair
+
+A new private correction module changes only the inactive
+`local_reference_scale` from 1 to `None`; the original faulty adapter and seals
+remain immutable. Five stdlib mutation/scope fixtures PASS, source-only syntax
+checks PASS, zero finance. Software receipt
+`38ada6b5de1fac7a32da633bbf3045449c97e87effefe28572f4e25bf22408aa`.
+Actual cold preparation rebuilds context/dossier/plan with original source07,
+qualification, full domain, annual gates and original formula/coefficient.
+It validates the real SelectionPlan before sealing or searching; this is not
+a new estimator or permission to weaken an eligibility gate. Fresh seals are
+required because the binding identity changed. Actual repaired cold and then
+256-attempt challenger remain separately supervised gates.
 
 ## Sampler-Only Preparation
 
