@@ -22,8 +22,10 @@ The last missing 216 discovery requests have closed, not merely been queued.
 The exact remaining native local design has 348 probes. Its first three actual
 accounts PASS original compiler, terminal lifecycle and fixed-fill accounting
 (residual 0); their controller/cleanup are closed. A separately registered
-three disjoint missing-only tranches (108, 108 and 112 requests) are active under
-measured host-memory limits, each sealed for one financial worker and one numeric thread.
+three disjoint missing-only tranches (108, 108 and 112 requests) were registered
+under measured host-memory limits. Tranches 02/03 (108 each) have completed and
+reaped; tranche 04 and the final 17-HMA-probe tranche 05 retain their own bounded
+execution. Each is sealed for one financial worker and one numeric thread.
 Cold probe admission passes 86 tests and consumes all 12 dependent views from
 the first three actual accounts, without financial replay or role promotion.
 All prior censored/failed receipts remain historical. Continuous original-event
@@ -33,6 +35,11 @@ Native B1/B3 reductions now consume all three 128-account panels; HMA, HASH and
 VWAP each have zero common annual-eligible candidates under the unchanged gates.
 Their 18 matrix containers verify with explicit missing masks, not invented
 measurements. B2 waits for source-admitted probes; B4/B5 remain NOT_RUN.
+RSI's source-06 actual two-account qualification passes exact inherited/direct
+financial parity and three prefix guards in 111.760 seconds / 311.559 MiB.
+Its explicit source lifetime passes eleven stdlib tamper/ownership tests; source
+hashes remain required at entry/exit, with unchanged data/rights/RNG/accounting.
+Cold actual-context/recipe preparation is separately supervised before search.
 Probes/batteries/dossiers and M5-11.2/11.3 remain scientifically incomplete;
 M5-12 is approved in the ordered local scope but has not started.
 
@@ -31928,6 +31935,26 @@ Before actual qualification, also bind all ten original metric settings, force
 source-only private/numeric imports with `-B` and an empty owned bytecode prefix,
 and supervise the qualifier externally for wall/RSS/disk limits and guaranteed
 failure/reap receipts. Existing installed caches are retained, not deleted.
+The original two-account RSI control measured 338.633 MiB RSS / 11.510 seconds
+controller. Initial qualifier launch reserves a conservative 1-GiB estimated
+peak beyond the unchanged 1-GiB host floor; the 2-GiB hard RSS cap and continuous
+host-floor monitor remain unchanged. This measured provisioning revision affects
+only future resource admission, never accounting, estimator or scientific gates.
+
+**Measured Source-Custody Lifetime Amendment (2026-10-12):** actual RSI provider
+qualification-01 PASS: two original financial accounts, exact inherited/direct
+parity and three pre-financial prefix guards; 154.240 seconds / 307.676 MiB RSS.
+The original control was 11.510 seconds, exposing repeated source-custody work,
+not an engine regression. Before 256-attempt studies, allow an explicit one-process
+immutable-source lease: full expected SHA verification at entry and exit; every
+reuse checks resolved path, device/inode, mode, size, mtime and ctime; any mutation
+fails closed even if bytes are restored. Data hashes, permission/cutoff checks,
+RNG, geometry, account/strategy state and mathematical gates are never cached
+by this lease. Register focused stdlib tamper/nesting/lifetime tests, a fresh
+source seal and two-account qualification; retain qualification-01 unchanged.
+Reuse the current one-worker/thread/600-second/64-MiB software lane, >=5-GiB
+reserve and owned-only scratch cleanup. This is private custody preparation,
+not a new scientific method, public default, source-status override or recipe.
 
 **Closed-Probe Cold Queue Registration (2026-10-12):** after full financial
 tranche/cleanup closure, the Main-owned orchestration may process only the exact
@@ -31942,12 +31969,40 @@ new estimator, build or environment; no active partial tranche is admitted.
 Cold matrices/dossiers keep zero annual-eligible native scopes and missing
 annual-local/stress/forward masks. No result-dependent retry or role promotion.
 
+**Actual RSI Cold Freeze And Study Resource Registration (2026-10-12):** after
+source-06 two-account qualification, prepare the actual bound context and renew
+the three-eligible RSI dossier without any financial query. One software worker/
+thread, <=1800 seconds, <=2-GiB RSS, <=512-MiB retained and <=64-MiB owned
+scratch. A separate cold freeze seals the same recipe/rights/source before search.
+The externally supervised actual pair may then run only RSI, 256 attempts per
+arm, seed 731, inherited univariate TPE, no warm start or early stopping, original
+2020 preload/continuous 2021--2023 accounts. One financial worker/thread, <=6
+hours, <=2-GiB RSS, <=4-GiB retained and <=192-MiB owned scratch; global financial
+workers remain <=3. Every launch reserves >=1-GiB RAM beyond a conservative
+1-GiB launch estimate and >=5-GiB free bytes beyond incremental outputs. Record
+every actual ask/tell, duplicate, failure, account path and selected direct audit;
+checkpointed interruption is not an exact-resume or completed-study certificate.
+Preserve all old accounts, receipts and failures. Remove only each registered,
+inactive scratch after process reap. No native rebuild, new environment, remote
+action, additional alpha eligibility or forward-data access is authorized here.
+
 **RSI Preparation Checkpoint (2026-10-12):** eight stdlib lookup/mutation checks
 PASS in 0.012 seconds; current source-03 custody PASS in 5.077 seconds, zero
 financial imports or executions. All ten metric settings, source-only loading
 and external qualifier supervision are prepared. Financial parity, recipe and
 real 256-attempt studies remain NOT_RUN; preparation does not certify them.
 See [scope, exact pins, cleanup and scheduling disclosure](../docs/mode5/M5_11_2_RSI_PROVIDER_PREPARATION.md).
+
+**Actual RSI Source-06 Checkpoint (2026-10-12):** eleven stdlib immutable-source
+lifetime tests PASS. The supervised original two-account qualification passes
+in 111.760 seconds / 311.559 MiB: exact inherited/direct financial paths and
+three rejected invalid prefixes before additional finance. Full source entry/
+exit hashes pass; data hashes, rights, RNG, full geometry and account semantics
+are unchanged. Qualification-01 and earlier cold seals remain dated historical
+receipts. Owned workers are reaped and only registered scratch removed. This
+qualifies the provider, not a completed 256-attempt study, forward benefit or
+automatic recipe recommendation. Current receipts are linked in the same
+[preparation report](../docs/mode5/M5_11_2_RSI_PROVIDER_PREPARATION.md#current-actual-qualification).
 
 **Native B1/B3 Cold Checkpoint (2026-10-12):** the shared cold reducer passes
 29 tests (324.64 seconds; controller 326.583 seconds) without financial imports
