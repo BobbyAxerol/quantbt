@@ -10,6 +10,22 @@ artifacts. Read [ordered execution](#mode5-m5-11-ordered-execution-20261012).
 No CI, push, merge, tag, live trading or publication is authorized. Mathematical
 thresholds, alpha sources, previous receipts and negative evidence stay intact.
 
+**Current Completed Work (2026-10-12):** all 640 discovery accounts are executed;
+the 384 native accounts and 1,536 dependent whole/annual views are source-admitted.
+The last missing 216 discovery requests have closed, not merely been queued.
+The exact remaining native local design has 348 probes. Its first three actual
+accounts PASS original compiler, terminal lifecycle and fixed-fill accounting
+(residual 0); their controller/cleanup are closed. A separately registered
+two disjoint missing-only 108-request tranches are active under measured
+host-memory limits, each sealed for one financial worker and one numeric thread.
+Cold probe admission passes 86 tests and consumes all 12 dependent views from
+the first three actual accounts, without financial replay or role promotion.
+All prior censored/failed receipts remain historical. Continuous original-event
+public studies pass 44 synthetic tests, including full preload and selected
+query/final/direct accounting; this is not the actual 256-query alpha study.
+Probes/batteries/dossiers and M5-11.2/11.3 remain scientifically incomplete;
+M5-12 is approved in the ordered local scope but has not started.
+
 **Previous Completed Tranche (2026-10-11):** performance-only incremental recovery completed
 its registered 45-minute tranche; all owned workers are reaped. See
 [incremental recovery](#mode5-m5-11-incremental-recovery) and the
@@ -31836,6 +31852,23 @@ are retained; no core/financial changes were required. All workers reaped,
 328 protected existing pins unchanged, no scratch/deletion/build/environment.
 This is synthetic public dispatch, not private-alpha dependencies or the actual
 256-query economic study. See [report and exact receipts](../docs/mode5/M5_11_CONTINUOUS_EVENT_PROVIDER.md#synthetic-public-study-checkpoint).
+
+**Native Probe Cold Admission Checkpoint (2026-10-12):** the versioned reader
+passes 86 tests in 415.11 seconds; the three actual closed sample accounts yield
+12 admitted whole/annual views in 91.220 seconds with no financial replay. Exact
+external plan/authorization/control approval, closed supervisor/cleanup, source,
+account, metric and support checks preserve selection/held rights and inherited
+Python-oracle limitations. Protected hashes unchanged; owned children reaped,
+only owned registered test scratch cleaned; no build/install/remote action.
+See [exact receipts and remaining gates](../docs/mode5/M5_11_1_NATIVE_PROBE_ADMISSION.md).
+The two disjoint 108-request financial tranches remain active. A further
+missing-only tranche may cover HMA indices 73--114, HASH 73--111 and VWAP
+73--103 (112 requests), with one financial worker/thread, provided measured
+host memory leaves >=1 GiB plus the observed 689.13-MiB worker peak and global
+concurrency remains <=3 financial workers plus one software worker. Retain the
+same <=3-hour tranche / 1800-second probe / 2-GiB aggregate / 5-GiB reserve
+limits and exact request/source rights. The final 17 HMA probes require their
+own later registration; no completed request is repeated.
 
 <a id="mode5-m5-11-2"></a>
 ### Phase M5-11.2 - Actual Adaptive Calibration And Selector Comparisons
