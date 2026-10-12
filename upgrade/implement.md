@@ -53,15 +53,20 @@ execution: 256 raw-Sharpe attempts followed by 256 annual-floor attempts,
 with unchanged full geometry and explicit per-trial/account checkpoints.
 It was resource-stopped at 119 retained baseline trials/accounts when the
 registered host-memory floor failed during overlapping cold work. No final
-child receipt exists; in-flight work is UNKNOWN, not zero. The 256-query gate
-is not met and the challenger is NOT_RUN. All retained checkpoints/source/logs
+child receipt exists for that retired attempt; in-flight work is UNKNOWN, not
+zero. At that checkpoint the 256-query gate was unmet and challenger NOT_RUN.
+All retained checkpoints/source/logs
 and the supervisor FAIL/cleanup remain preserved. Cold queue-03 has now PASSed,
 consuming the remaining 315 accounts in 9,542.600 controller seconds and reaping
 all owned workers; previous 33 accounts are reused, zero finance repeated.
 Recovery software checks PASS 14 tests plus syntax. The separately registered
 original-provider 119-prefix cold proof PASSes in 331.407 controller seconds /
-276.047-MiB peak RSS with zero fresh scorer calls. The actual completion worker
-is now IN_PROGRESS, inheriting that exact manifest and original 256 mandate.
+276.047-MiB peak RSS with zero fresh scorer calls. Actual completion now closes
+with 256 COMPLETE / 256 unique executed points and exact selected/direct parity.
+The 137 remaining trials plus selected audit are fresh; 119 inherited accounts
+are not recounted as new finance. Challenger attempt-01 fails RAM admission
+before worker creation; its receipt is retained. Attempt-02 now prepares/runs
+the sealed 256-attempt floor arm serially, with unchanged bounds and methodology.
 Neither an intermediate checkpoint nor a completed freeze certifies the pair.
 See
 [current preparation](../docs/mode5/M5_11_2_RSI_PROVIDER_PREPARATION.md#source-07-dossier-preparation).
@@ -27575,8 +27580,8 @@ Every phase below inherits this mandatory resource registration/cleanup exit.
 | [M5-09](#mode5-m5-09) | Dossier, advisory and sealed plan | M5-08/08.1 reviewed exit | M5T-081..090 | COMPLETE_LOCAL_DOSSIER_GOVERNANCE |
 | [M5-10](#mode5-m5-10) | Public opt-in integration/runtime reuse | M5-09 plus current source map | M5T-091..100 | COMPLETE_LOCAL_PUBLIC_OPT_IN / TECHNICALLY_VALID |
 | [M5-11](#mode5-m5-11) | Formal calibration and scoped economics | M5-10 plus authorized adequate data | M5T-101..110 | REOPENED_RESEARCH_COVERAGE; original finite pilot preserved |
-| [M5-11.1](#mode5-m5-11-1) | Broad five-alpha diagnostics and renewed dossier | M5-11 scope review; registered data/design/resource protocol | M5T-041..060 / 071..090 | PARTIAL / DEFERRED_OWNER_TIME_BOUND; execution tranche closed, broad target incomplete |
-| [M5-11.2](#mode5-m5-11-2) | Actual adaptive formal search and selector comparisons | Reviewed M5-11.1 dossier; new sealed plans | M5T-091..103 / EH-01..05 | APPROVED; formal expanded studies NOT_RUN |
+| [M5-11.1](#mode5-m5-11-1) | Broad five-alpha diagnostics and renewed dossier | M5-11 scope review; registered data/design/resource protocol | M5T-041..060 / 071..090 | IN_PROGRESS; 640 discovery accounts and 348 probes closed/cold-admitted; native B2/dossier assembly pending |
+| [M5-11.2](#mode5-m5-11-2) | Actual adaptive formal search and selector comparisons | Reviewed M5-11.1 dossier; new sealed plans | M5T-091..103 / EH-01..05 | RSI raw256/audit PASS; floor256 IN_PROGRESS; sampler-only actual studies NOT_RUN |
 | [M5-11.3](#mode5-m5-11-3) | Multi-origin fixed-policy transfer and economic qualification | Frozen M5-11.2 outputs and prefix studies | M5T-101..110 / EH-06..12 | APPROVED; expanded forward tests NOT_RUN |
 | [M5-12](#mode5-m5-12) | Local qualification/docs/handoff | M5-01..11 dispositions reviewed | M5T-111..120 | NOT_STARTED |
 
@@ -32124,10 +32129,11 @@ is not execution or a waiver of those gates.
 <a id="mode5-m5-11-2"></a>
 ### Phase M5-11.2 - Actual Adaptive Calibration And Selector Comparisons
 
-**Status:** RSI RESOURCE_STOPPED_PARTIAL_119 (2026-10-12); source-07 provider,
+**Status:** RSI RAW_256_AND_AUDIT_PASS / FLOOR_256_IN_PROGRESS (2026-10-12);
+the original resource-stopped 119-prefix FAIL is retained. Source-07 provider,
 actual dossier preparation and runner freeze PASS separately. Owner approved
 RSI first while keeping SC/HMA/HASH/VWAP annual gates and NO_SUPPORTED status.
-Native diagnostic cold closure remains in progress in its separate slot.
+Native cold admission is closed; native B2/dossier assembly remains pending.
 **Goal:** exercise actual Mode5 search and selection on meaningful search budgets
    after diagnostics, distinguishing selector-only from end-to-end effects.
 **Entry:** reviewed new dossier for each scope, researcher-approved recipe and
@@ -32280,6 +32286,18 @@ separately. Receipt `0132a6946d010b7c73610520a8965f1c4ffb36d0daae9ba85e48ef87563
 owned worker reaped and only its inactive scratch removed. Actual four-recipe
 compatibility, matching source/input records, new arm registrations and
 256-attempt studies remain NOT_RUN. See [sampler preparation](../docs/mode5/M5_11_2_RSI_PROVIDER_PREPARATION.md#sampler-only-preparation).
+
+**Actual RSI Raw256 Closure (2026-10-12):** 256 COMPLETE / 256 unique effective
+executions, fresh selected-query/direct exact parity for all available financial
+streams and liquidation. Inherit 119 completed accounts, add 137 new trial
+accounts plus one fresh selected query and one direct control; old interrupted
+work stays UNKNOWN. Recovery controller 4,227.342 seconds / 485.652-MiB peak,
+all workers reaped, original source verified and only owned scratch removed.
+Receipt `a182aa8b7cf3c7bbdb030787946c6a8bf6a533a9f7e308c09a5248c46474f932`;
+selected final/direct paths are byte-identical. Floor attempt-01 fails conservative
+RAM admission before finance (FAIL retained); fresh attempt-02 now runs the
+unchanged original sealed floor arm. Native B2/dossier, sampler-only, prefix
+forward and M5-12 gates remain distinct. See [actual report and receipts](../docs/mode5/M5_11_2_RSI_PROVIDER_PREPARATION.md#actual-raw-baseline-completion).
 
 <a id="mode5-m5-11-3"></a>
 ### Phase M5-11.3 - Multi-Origin Fixed-Policy Transfer And Economic Qualification

@@ -94,9 +94,10 @@ execute finance or begin search.
 
 ## Remaining Gates
 
-The sealed recipe and qualified runner freeze now PASS; the real pair is
-RESOURCE_STOPPED_PARTIAL at 119 retained baseline trials/accounts. The 256-query
-gate and challenger remain unfulfilled. Sampler-only comparisons and prefix-forward economics
+The sealed recipe and qualified runner freeze PASS. Raw baseline now closes
+256/256 unique attempts and exact selected/direct accounting parity after
+source-bound recovery; the retired 119-prefix failure remains preserved.
+The sealed annual-floor arm is IN_PROGRESS. Sampler-only comparisons and prefix-forward economics
 remain pending. Actual financial qualification does
 not replace them. Native probe admission/batteries retain their own
 ordered gates. See the [unified plan](../../upgrade/implement.md#mode5-m5-11-ordered-execution-20261012)
@@ -259,11 +260,60 @@ scratch is removed. The old FAIL and all original checkpoint bytes stay intact.
 | Supervising parent | `de23c4c6b79c09a2340bc096b57b6da7966f129075ae628444b067fd6c743156` |
 | Cleanup | `c1e86b564581dc50f3248446924338850049d100e55dcf33e9d3edc692574185` |
 
-A separately registered actual worker is IN_PROGRESS: replay the unchanged
+At that checkpoint a separately registered actual worker entered execution: replay the unchanged
 119-prefix, finish the original remaining 137 attempts, then run fresh selected
 and direct accounting audits. It inherits this exact manifest, full geometry,
 seed and budget. No completed 256-attempt, challenger or forward verdict is
-certified until its actual receipt closes.
+certified until its actual receipt closes. Its completed receipt follows below.
+
+## Actual Raw Baseline Completion
+
+The actual raw whole-Sharpe baseline now PASSes 256 COMPLETE attempts and 256
+unique effective/executed points. All requested points use the original full
+domain and seed, with no imported old panel, early stopping or annual resets.
+The 119 durable accounts are replay deliveries; only the remaining 137 trial
+accounts and one selected-query audit are fresh scorer invocations. Together
+with one fresh direct control this is 258 known completed account invocations
+over the complete baseline, not 258 new invocations in recovery. Interrupted
+old in-flight work stays UNKNOWN.
+
+Selected trial 174 has a fresh original-query audit and direct BacktestEngine
+control. Equity, returns, positions, fees, funding, margin and liquidation match
+exactly; retained final/direct NPZ files have the same SHA-256. Source custody
+verifies at entry/exit. The worker is reaped and registered inactive scratch
+removed; original sources, accounts, trial ledgers and failed attempts remain.
+
+| Development Measurement | Value |
+|---|---:|
+| Scored sample | 2021--2023, 26,280 hourly bars / 1,095 complete days |
+| Preload | Full 2020, 8,784 hourly bars |
+| Initial / final equity | 20,000.00 / 107,539.323150 |
+| Net return | +437.696616% |
+| Raw whole-account Sharpe | 2.662810 |
+| Max drawdown | 11.043554% |
+| 2021 / 2022 / 2023 annual Sharpe | 3.613515 / 2.259809 / 2.002796 |
+| 2021 / 2022 / 2023 annual net return | +137.714258% / +68.469594% / +34.264297% |
+| Accepted fills / closed campaigns | Original RSI ledger unavailable; not inferred |
+| Recovery controller wall time / peak RSS | 4,227.342 seconds / 485.652 MiB |
+
+These are searched **development** results, not independent forward performance
+or evidence that a challenger improves decay. Runtime includes exact replay,
+source custody, all new query/checkpoint work and selected/direct audit; it is
+not a financial kernel benchmark or the wall time of all original 256 accounts.
+
+| Receipt | SHA-256 |
+|---|---|
+| Completed original raw study | `a182aa8b7cf3c7bbdb030787946c6a8bf6a533a9f7e308c09a5248c46474f932` |
+| Supervising parent | `f992dedd24bf4535cac8fb969e387f0598bdae90c8816f4df6d2afce20ce4662` |
+| Cleanup | `f72a46694c8e523d8aabccaf4879e442b36fe8fdf8adcc7ea34686e783175486` |
+| Exact selected final/direct paths | `40ae232eeedace14a71e3afb02a83a7d6b675050c958611e5fa890e730b36cdb` |
+
+Floor attempt-01 was blocked at RAM admission before a financial worker existed;
+its FAIL `eaa22d6c9b392f5e96747e2034d1d50e609a131238bd7562b362caed6b064c93`
+and cleanup remain. A fresh attempt-02 passes admission and is IN_PROGRESS,
+using the exact previously sealed floor recipe, source, mandate and copied
+governance journal bytes. No RAM floor, financial cap or mathematical gate was
+lowered. Other services are untouched.
 
 ## Sampler-Only Preparation
 
