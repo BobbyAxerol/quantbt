@@ -94,6 +94,29 @@ Controller time includes source checks, normalization and process supervision;
 it is not financial kernel throughput. These checkpoints do not establish B2
 or full dossier completion, annual-local eligibility or economic improvement.
 
+## Complete Cold Probe Admission
+
+Queue-03 now PASSes its exact requested queue: the remaining 315 accounts are
+consumed in 53 serial batches, while the 33 previously admitted accounts remain
+reused. All 348 registered probe accounts and 1,392 dependent whole/annual views
+are now source-admitted. Zero financial executions are repeated; request roles,
+metric gates, original compiler/oracle coverage and account calls are unchanged.
+
+Controller wall time is 9,542.600 seconds, including 1.458 seconds waiting for
+capacity. Its measured output set is 143,540,780 bytes. All owned children are
+reaped, source pins verify unchanged, and cleanup PASSes with no disposable
+scratch/deletion. Free bytes after closure are 19,093,676,032; this is retained
+research work, not claimed disk recovery or engine throughput.
+
+| Receipt | SHA-256 |
+|---|---|
+| Complete cold queue | `9f40c21e17d8ce8cdaa0f21eccbb69e25501485e90bc1d86b886ffc560bcfe22` |
+| Queue cleanup | `36c728bf481fc431632d54a155cd158ecec10a7b8853804110924ed2b0810f0d` |
+
+B2/matrices/dossier assembly must still consume this complete roster and verify
+the original B1/B3 results unchanged. Admission is not annual-local selection
+authorization, full scientific completion, forward evidence or economic benefit.
+
 See the [ordered plan](../../upgrade/implement.md#mode5-m5-11-ordered-execution-20261012),
 [fixed-panel report](M5_11_1_NATIVE_BATTERIES.md) and
 [guide sections 4.5/4.9](../../upgrade/QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#49-multi-hypothesis-empirical-battery-giữ-năm-chiều-làm-rõ-mỗi-phép-thử).

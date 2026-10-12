@@ -211,6 +211,31 @@ The registered stages are separate:
 Historical accounts, new completed invocations and interrupted unknown work
 stay separate. The original accounting/scorer/optimizer are untouched. Cold
 proof and financial completion run serially with probe normalization; retained
-failures are not converted into PASS. These are **registered, not yet executed**
-recovery stages. No completed recovery, challenger or forward benefit is claimed.
+failures are not converted into PASS. At registration these stages had not run;
+the current execution checkpoint below distinguishes their outcomes. No completed
+recovery, challenger or forward benefit is claimed before its actual receipt.
 See the [ordered plan and entry gates](../../upgrade/implement.md#mode5-m5-11-2).
+
+## Recovery Software Checkpoint
+
+Fourteen stdlib tests and syntax now PASS, with no provider, pickle account or
+financial imports/executions. They cover changed vectors/terminal state/value,
+prefix ordering, fresh selected audit, inherited-versus-new/unknown work counts,
+live-parent boundaries, exact proved-manifest inheritance and conservative RAM
+admission. The first attempt's missing fixture callback and FAIL remain retained;
+only that fixture was repaired, not the actual replay/accounting behavior.
+
+Financial launches require the registered 2-GiB RSS cap plus 1-GiB host reserve
+available before dispatch. Completion/floor inherit the cold proof's exact
+manifest; a timestamped substitute is rejected. The source-qualified original
+financial owners and scientific gates stay unchanged. Tests reaped and removed
+only their owned inactive scratch; source/receipt hashes remain intact.
+
+| Receipt | SHA-256 |
+|---|---|
+| Initial failed fixture attempt | `1e3e525351ea40f07e81f9b4b19bbbc0808d110a9f840db7a4744c06a1e19e64` |
+| Fourteen tests plus syntax | `4f10238db08d5be230fb6214084ce225fec3314fc1ecb06e070a20e49dc110b8` |
+
+The separately registered actual source-07 cold replay is IN_PROGRESS. Software
+fixtures do not qualify its 119 real accounts, a completed 256-attempt study,
+challenger, sampler comparison or forward economics.

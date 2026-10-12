@@ -26,8 +26,9 @@ three disjoint missing-only tranches (108, 108 and 112 requests) were registered
 under measured host-memory limits. Tranches 02/03/04/05 (108/108/112/17) have
 completed and reaped, joining the previous three-account sample for all 348
 financial probes. Each was sealed for one financial worker and one numeric
-thread. Cold normalization/B2 remain distinct pending gates, not financial
-replays. See [financial closeout](../docs/mode5/M5_11_1_NATIVE_PROBE_CLOSEOUT.md).
+thread. Cold normalization now closes all 348 accounts / 1,392 dependent views;
+B2/dossier assembly remains a separate pending gate, not a financial replay.
+See [financial closeout](../docs/mode5/M5_11_1_NATIVE_PROBE_CLOSEOUT.md).
 Cold probe admission passes 86 tests and consumes all 12 dependent views from
 the first three actual accounts, without financial replay or role promotion.
 All prior censored/failed receipts remain historical. Continuous original-event
@@ -54,9 +55,11 @@ It was resource-stopped at 119 retained baseline trials/accounts when the
 registered host-memory floor failed during overlapping cold work. No final
 child receipt exists; in-flight work is UNKNOWN, not zero. The 256-query gate
 is not met and the challenger is NOT_RUN. All retained checkpoints/source/logs
-and the supervisor FAIL/cleanup remain preserved. Cold queue-03 now runs alone.
-Closed cold queue checkpoint-01 admits six further accounts / 24 dependent
-views without financial replay; the separately provisioned full queue is live.
+and the supervisor FAIL/cleanup remain preserved. Cold queue-03 has now PASSed,
+consuming the remaining 315 accounts in 9,542.600 controller seconds and reaping
+all owned workers; previous 33 accounts are reused, zero finance repeated.
+Recovery software checks PASS 14 tests plus syntax. The separately registered
+original-provider 119-prefix cold proof is IN_PROGRESS; no fresh finance yet.
 Neither an intermediate checkpoint nor a completed freeze certifies the pair.
 See
 [current preparation](../docs/mode5/M5_11_2_RSI_PROVIDER_PREPARATION.md#source-07-dossier-preparation).
@@ -32226,6 +32229,16 @@ Reconcile retained historical account invocations plus measured new completed
 invocations against the returned account roster; preserve interrupted work as
 UNKNOWN. Keep the original runner/provider/optimizer untouched, serial with
 cold work, and retain all evidence before exact owned scratch cleanup.
+
+**Recovery Supervisor Review (2026-10-12):** a read-only second review identified
+two operational guards before any replay execution. Financial phases must inherit
+the exact manifest from the successful cold proof, never silently create a new
+timestamped inventory. Launch admission is conservatively RSS cap plus host RAM
+floor (3 GiB available for the registered 2-GiB worker and 1-GiB reserve), not a
+1-GiB estimate below measured original preparation peaks. Add pre-import manifest
+identity/explicit-override negatives and RAM boundary fixtures to the stdlib lane;
+the original provider/control, scientific thresholds and trial/RNG contracts are
+unchanged. Preserve the pre-review private controller source and all failures.
 
 <a id="mode5-m5-11-3"></a>
 ### Phase M5-11.3 - Multi-Origin Fixed-Policy Transfer And Economic Qualification
