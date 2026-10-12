@@ -31741,6 +31741,43 @@ Finite raw-control and common annual eligibility remain distinct. No actual
 No build/environment/scratch/deletion; worker reaped, hashes retained. See
 [scope, failures and exact receipts](../docs/mode5/M5_11_2_RAW_CONTROL_SOFTWARE.md).
 
+**Registered Native Probe Ingestion:** selection/held probe outputs keep their
+own planned request/role/design; they may not be forged into neutral broad-panel
+rows to satisfy an old reader. A focused cold reader must verify the external
+plan, per-probe launch authorization, actual original-owner result/source pins
+and resources, then reuse existing source/account/annual reducers. Preserve
+compiler/terminal/oracle coverage, dated ledgers and fixed-fill reconciliation;
+no strategy, financial runtime or pickle import is permitted. Register one
+software worker/thread, <=600 seconds, <=32 MiB evidence, >=5 GiB reserve;
+reuse tooling, retain failures and exact cleanup. This implements the already
+approved missing-probe reuse scope, not new geometry, estimators or selection
+rights. Guide: [probe rights](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#453-diagnostic-domain-không-bị-ép-nhỏ-chỉ-để-rẻ),
+[cache authorization](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#72-computationoutput-plan-và-cache).
+
+**Registered Continuous Event Integration:** reuse the original WFO endpoint
+scorer and execution-window dispatcher for explicit v3-next-open callback and
+command routes (Python/Rust), under the same continuous-account observation
+binding. Preserve full preload and all columns of original financial streams;
+do not flatten multi-column margin into an invented scalar. No public default,
+engine, clock, accounting or scientific threshold changes. The sidecar provider
+has passed 360 synthetic source/config/account/lifecycle tests; that alone does
+not qualify private alpha dependencies or whole-study dispatch. Main integration
+must verify actual public queries, selected final/direct accounts, retention,
+future/preload guards and legacy routes, with an exact additive source amendment.
+Register one worker/thread, <=600 seconds, <=32 MiB retained evidence, >=5 GiB
+reserve, no build/environment/disposable scratch; retain failures and reaped
+cleanup before committing. Guide: [actual routes](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#24-financial-boundary-và-route-qualification),
+[shared architecture](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#71-module-layout-mở-rộng-layer-nghiên-cứu-không-tạo-financial-kernel).
+
+**Continuous Event Producer Checkpoint (2026-10-12):** the explicit original
+v3-next-open callback/command sidecar passes 360 source/config/lifecycle tests;
+main integration passes 111 reducer/legacy/source-boundary tests in 18.885
+seconds. Columnar margin remains immutable and aligned, with no scalar rebuild.
+Exact additive amendment retains all prior manifests. The no-test operator
+failure remains; no finance, native build, environment or remote action ran.
+Full public study/final-account proof and private alpha dependencies/preload
+remain separate gates. See [scope, receipts and cleanup](../docs/mode5/M5_11_CONTINUOUS_EVENT_PROVIDER.md).
+
 <a id="mode5-m5-11-2"></a>
 ### Phase M5-11.2 - Actual Adaptive Calibration And Selector Comparisons
 

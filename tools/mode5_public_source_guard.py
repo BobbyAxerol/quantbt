@@ -6,7 +6,7 @@ import subprocess
 
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "docs/mode5/evidence/m5-10-source-amendment.json"
-CONTINUOUS = ROOT / "docs/mode5/evidence/m5-11-continuous-preload-source-amendment.json"
+CONTINUOUS = ROOT / "docs/mode5/evidence/m5-11-continuous-event-source-amendment.json"
 
 
 def without_continuous(source, name):

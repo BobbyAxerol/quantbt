@@ -106,6 +106,41 @@ def test_reuse_original_whole_policy_observation_without_calling_it_again():
     assert actual.whole.data["utility"] == Record.of(row).data["utility"]
 
 
+@pytest.mark.parametrize("operation", [deepcopy, lambda x: pickle.loads(pickle.dumps(x))])
+def test_original_columnar_margin_retained_without_flattening_or_scalar_reconstruction(operation):
+    f = fixture()
+    result, index = f[4], f[3]
+    result.margin = pd.DataFrame({"used": np.arange(len(index), dtype=float),
+        "maintenance": np.arange(len(index), dtype=float)*.01}, index=index)
+    account = observe(f)
+    stream = next(s for s in account.streams if s.name == "margin")
+    assert stream.values.shape == (len(index), 2)
+    np.testing.assert_array_equal(stream.values, result.margin.to_numpy())
+    retained = operation(account)
+    copied = next(s for s in retained.streams if s.name == "margin")
+    assert retained.identity == account.identity
+    np.testing.assert_array_equal(copied.values, stream.values)
+    with pytest.raises(ValueError):
+        copied.values[-1, 1] = -1.
+    result.margin.iloc[-1, 1] = -1.
+    assert copied.values[-1, 1] != -1.
+
+
+@pytest.mark.parametrize("bad", [np.zeros((0, 2)), np.zeros((3, 0)), np.zeros((3, 1, 1)),
+                                 np.array([[np.nan, 1.]])])
+def test_columnar_stream_rejects_missing_nonfinite_or_unknown_dimensions(bad):
+    from quantbt.mode5.continuous import ContinuousStream
+    with pytest.raises(ValueError, match="original scalar or columnar"):
+        ContinuousStream("margin", bad)
+
+
+def test_columnar_stream_cannot_drop_account_calendar_rows():
+    f = fixture()
+    f[4].margin = np.zeros((len(f[3])-1, 2))
+    with pytest.raises(ValueError, match="not aligned"):
+        observe(f)
+
+
 def test_original_mode5_metric_units_and_component_semantics_are_unchanged():
     f = fixture()
     c, policy, _, index, result, _ = f

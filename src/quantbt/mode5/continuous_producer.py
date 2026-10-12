@@ -13,10 +13,12 @@ from .dossier.records import Record
 def producer_records(config, strategy):
     """Describe the executed provider, not a backend supplied by a researcher.
 
-    This initial public binding certifies the original pct-equity scorer only.
-    Other financial routes need their own matched producer qualification; they
-    cannot borrow this witness just because they also return equity.
+    Each admitted route retains its own matched producer qualification; it
+    cannot borrow another route's witness just because both return equity.
     """
+    if config.mode in {"native_event_strategy", "orders"}:
+        from .event_producer import producer_records as event_records
+        return event_records(config, strategy)
     if (config.mode != "pct_equity" or config.backend != "legacy"
             or str(config.target_runtime).lower() == "rust"):
         raise NotImplementedError("continuous public producer qualification is legacy pct_equity only")
@@ -44,6 +46,9 @@ def qualify_producer(scorer, strategy, contract):
     from ..endpoint import _WalkForwardEndpointScorer
     if type(scorer) is not _WalkForwardEndpointScorer:
         raise TypeError("original public endpoint scorer required; no self-certified execution witness")
+    if scorer.score_config.mode in {"native_event_strategy", "orders"}:
+        from .event_producer import qualify_producer as qualify_event
+        return qualify_event(scorer, strategy, contract)
     source, execution = producer_records(scorer.score_config, strategy)
     if source != contract.source or execution != contract.execution:
         raise ValueError("actual producer source/backend/clock/economics differs from continuous binding")
@@ -52,6 +57,9 @@ def qualify_producer(scorer, strategy, contract):
 
 def validate_result(result, execution, config):
     """Reconcile original legacy result fields without replay or metadata edits."""
+    if execution.data["route"] in {"native_event_strategy", "orders"}:
+        from .event_producer import validate_result as validate_event
+        return validate_event(result, execution, config)
     if execution.data["route"] != "pct_equity" or execution.data["backend"] != "legacy":
         raise NotImplementedError("unqualified continuous result producer")
     expected = dict(hedge_type="%_equity", fee_oneway=float(config.fee)/2,

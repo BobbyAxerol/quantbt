@@ -17,7 +17,7 @@ from ..metrics.report_contracts import ReportingContractV1, ReportingCoverageV1
 from ..metrics.reporting import AccountObservations, reduce_account
 from ..metrics.reporting.drawdown import scan_drawdown
 from ..metrics.reporting.inputs import frozen_array
-from ..metrics.reporting.snapshots import SnapshotValue
+from ..metrics.reporting.snapshots import SnapshotValue, immutable_storage
 from .diagnostics.access import AccessPolicy, AccessWitness
 from .diagnostics.identity import digest
 from .dossier.records import Record
@@ -206,7 +206,11 @@ class ContinuousStream(SnapshotValue):
     def __post_init__(self):
         if self.name not in {"positions", "fees", "funding", "margin", "turnover"}:
             raise ValueError("unknown actual financial stream")
-        object.__setattr__(self, "values", frozen_array(self.values, np.float64))
+        array = np.ascontiguousarray(self.values, dtype=np.float64)
+        if (array.ndim not in (1, 2) or not array.size
+                or not np.isfinite(array).all()):
+            raise ValueError("finite nonempty original scalar or columnar financial stream required")
+        object.__setattr__(self, "values", immutable_storage(array))
 
 
 @dataclass(frozen=True)
@@ -224,7 +228,8 @@ class ContinuousAccountEvaluation(SnapshotValue):
                 or not isinstance(self.observations, AccountObservations) or not isinstance(self.whole, Record)
                 or type(self.streams) is not tuple or type(self.annual_views) is not tuple
                 or any(not isinstance(r, Record) for r in self.annual_views)
-                or any(not isinstance(s, ContinuousStream) or s.values.shape != self.observations.equity.shape for s in self.streams)
+                or any(not isinstance(s, ContinuousStream)
+                       or s.values.shape[0] != len(self.observations.equity) for s in self.streams)
                 or len({s.name for s in self.streams}) != len(self.streams)
                 or self.execution.request_identity != self.request.identity):
             raise ValueError("complete detached continuous evaluation required")
@@ -360,7 +365,7 @@ class ContinuousAccountReducer:
             if array.ndim == 2 and array.shape[1] == 1:
                 array = array[:, 0]
             stream = ContinuousStream(name, array)
-            if stream.values.shape != times.shape:
+            if stream.values.shape[0] != len(times):
                 raise ValueError("financial stream not aligned with actual marks")
             streams.append(stream)
         self._require_ledgers(campaign_ledger, fill_ledger, obs)
