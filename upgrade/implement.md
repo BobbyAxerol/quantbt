@@ -32426,6 +32426,21 @@ Six source pins are unchanged, the owned child is reaped and only its registered
 inactive scratch is removed. This qualifies the inert entry/controller, not a
 fresh sampler study, selected audit, forward transfer or economic benefit.
 
+**Actual B5 Main Entry:** after the current floor owner closes, an explicit
+Main caller seals all three fresh default-recipe registrations together before
+any new sampler outcome, then supervises them serially. Reuse only the closed
+raw256 control, fixed source07/full eight-dimensional domain, 2020 preload and
+continuous 2021--2023 score tape, finite whole-account Sharpe, 256 attempts and
+seed731. No warm start, early stopping, forward selection or source mutation.
+Each arm retains the original 6-hour / 2-GiB RSS / 4-GiB retained / 192-MiB
+scratch caps, one financial worker and numeric thread, >=3-GiB launch RAM and
+>=5-GiB disk reserve beyond outputs/scratch. Observe actual work and annual
+quality separately; unavailable fallback/visited-bar counters remain UNKNOWN.
+Main must explicitly close competing actual/cold owners before launch; halt the
+sequence on failure, preserve its partial records and do not silently resume or
+edit a registration after outcomes. Cleanup/reap each owned group before the
+next arm. This registered execution does not presume any sampler/economic winner.
+
 **Actual RSI Raw256 Closure (2026-10-12):** 256 COMPLETE / 256 unique effective
 executions, fresh selected-query/direct exact parity for all available financial
 streams and liquidation. Inherit 119 completed accounts, add 137 new trial
