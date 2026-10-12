@@ -79,6 +79,17 @@ UNKNOWN are retained. No raw256 finance is repeated or scientific gate weakened.
 The actual raw256 metadata admission closes with 125 common-annual-quality
 eligible points, separate from its 256 finite-score eligible raw-control points.
 Neither an intermediate checkpoint nor a completed freeze certifies the pair.
+**Latest Inspected Floor State:** repaired attempt04 has now completed 256
+COMPLETE / 256 unique points, selected replay and exact original-direct audit.
+Its inner study receipt is valid; 127 trial candidates pass the declared
+annual-quality selection gates. The outer wrapper fails only while serializing
+a pandas Timestamp into its strict JSON writer, leaving a partial outer JSON.
+Supervisor `6458c2ddd12d3fbce7cf8263baffc55b64fbd84a83648e51cd9c24cb985954c9`
+remains FAIL_RETAINED, not PASS. All workers are reaped and cleanup passes.
+Preserve the completed inner receipt/checkpoints and old failures; cold
+source-bound receipt recovery is required, not another 256-trial financial run.
+No RSI worker remains active. The unchanged-source B5 arms, native B2/dossiers,
+prefix-forward economics and M5-12 remain pending.
 See
 [current preparation](../docs/mode5/M5_11_2_RSI_PROVIDER_PREPARATION.md#source-07-dossier-preparation).
 Probes/batteries/dossiers and M5-11.2/11.3 remain scientifically incomplete;
@@ -27592,7 +27603,7 @@ Every phase below inherits this mandatory resource registration/cleanup exit.
 | [M5-10](#mode5-m5-10) | Public opt-in integration/runtime reuse | M5-09 plus current source map | M5T-091..100 | COMPLETE_LOCAL_PUBLIC_OPT_IN / TECHNICALLY_VALID |
 | [M5-11](#mode5-m5-11) | Formal calibration and scoped economics | M5-10 plus authorized adequate data | M5T-101..110 | REOPENED_RESEARCH_COVERAGE; original finite pilot preserved |
 | [M5-11.1](#mode5-m5-11-1) | Broad five-alpha diagnostics and renewed dossier | M5-11 scope review; registered data/design/resource protocol | M5T-041..060 / 071..090 | IN_PROGRESS; 640 discovery accounts and 348 probes closed/cold-admitted; native B2/dossier assembly pending |
-| [M5-11.2](#mode5-m5-11-2) | Actual adaptive formal search and selector comparisons | Reviewed M5-11.1 dossier; new sealed plans | M5T-091..103 / EH-01..05 | RSI raw256/audit/metadata and repaired cold PASS; floor partial49 resource-stopped; sampler-only actual studies NOT_RUN |
+| [M5-11.2](#mode5-m5-11-2) | Actual adaptive formal search and selector comparisons | Reviewed M5-11.1 dossier; new sealed plans | M5T-091..103 / EH-01..05 | Raw256 PASS; floor256/selected/direct inner receipt complete, outer serialization FAIL retained; sampler-only actual studies NOT_RUN |
 | [M5-11.3](#mode5-m5-11-3) | Multi-origin fixed-policy transfer and economic qualification | Frozen M5-11.2 outputs and prefix studies | M5T-101..110 / EH-06..12 | APPROVED; expanded forward tests NOT_RUN |
 | [M5-12](#mode5-m5-12) | Local qualification/docs/handoff | M5-01..11 dispositions reviewed | M5T-111..120 | NOT_STARTED |
 
@@ -32140,7 +32151,8 @@ is not execution or a waiver of those gates.
 <a id="mode5-m5-11-2"></a>
 ### Phase M5-11.2 - Actual Adaptive Calibration And Selector Comparisons
 
-**Status:** RSI RAW_256_AND_AUDIT_PASS / REPAIRED_COLD_PASS / FLOOR_PARTIAL49_RESOURCE_STOPPED (2026-10-12);
+**Status:** RSI RAW_256_AND_AUDIT_PASS / REPAIRED_COLD_PASS /
+FLOOR_256_INNER_AUDIT_COMPLETE_OUTER_SERIALIZATION_FAIL;
 the original resource-stopped 119-prefix FAIL is retained. Source-07 provider,
 actual dossier preparation and runner freeze PASS separately. Owner approved
 RSI first while keeping SC/HMA/HASH/VWAP annual gates and NO_SUPPORTED status.
@@ -32548,6 +32560,21 @@ custody/regression qualification. Preserve source07 and all actual account paths
 no financial rerun is needed merely to reduce their existing observations.
 The three native B2/dossiers remain pending this integration gate, not complete
 after their 348 accounts have executed. No alpha/data/economic gate changes.
+
+**Latest Floor Completion Inspection:** actual04's durable inner result records
+256 COMPLETE / 256 unique effective points, 257 original scorer accounts,
+one final endpoint account and one direct control (259 known invocations).
+Selected final/direct NPZ bytes match exactly. Parent wall time 4,278.266
+seconds / 1,656.262-MiB peak RSS; no resource-stop reason is recorded. It fails
+after finance when `supervise_replay.write` receives the unnormalized Timestamp
+from the returned in-memory outcome; the original inner writer had already
+produced valid JSON. Do not repair or relabel historical bytes. Cold recovery
+must verify retained pins and source/exit custody, normalize only the outer
+receipt representation and create a separate receipt. B5's closed-floor gate
+remains blocked until that recovery is certified; no financial rerun is needed
+merely to rewrite the wrapper. The original failed 49-prefix and repeated work
+remain separate. Inspection verifies 259 retained terminal-trial/result/path
+pins without replay. See [completed financial work and open wrapper gate](../docs/mode5/M5_11_2_RSI_PROVIDER_PREPARATION.md#floor-256-financial-work-and-open-outer-receipt-gate).
 
 <a id="mode5-m5-11-3"></a>
 ### Phase M5-11.3 - Multi-Origin Fixed-Policy Transfer And Economic Qualification

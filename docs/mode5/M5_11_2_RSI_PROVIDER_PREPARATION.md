@@ -97,8 +97,10 @@ execute finance or begin search.
 The sealed recipe and qualified runner freeze PASS. Raw baseline now closes
 256/256 unique attempts and exact selected/direct accounting parity after
 source-bound recovery; the retired 119-prefix failure remains preserved.
-The sealed annual-floor arm is IN_PROGRESS. Sampler-only comparisons and prefix-forward economics
-remain pending. Actual financial qualification does
+The annual-floor arm has completed its 256-query inner study and direct audit,
+but the outer wrapper fails JSON serialization; its supervising receipt remains
+FAIL_RETAINED. Sampler-only comparisons and prefix-forward economics remain
+pending. Actual financial qualification does
 not replace them. Native probe admission/batteries retain their own
 ordered gates. See the [unified plan](../../upgrade/implement.md#mode5-m5-11-ordered-execution-20261012)
 and [detailed guide](../../upgrade/QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#phase-m5-11--formal-calibration-pilot-independent-checks-và-economic-inference).
@@ -502,3 +504,69 @@ the requirement for actual sampler studies. All three fresh arms remain NOT_RUN;
 their registrations and serial launch require a closed floor owner and the
 original resource admission. The [IDE/cache maintenance note](../maintenance/M5_11_IDE_CACHE_MAINTENANCE.md)
 records owner-approved headroom recovery without changing scientific contracts.
+
+## Floor 256 Financial Work And Open Outer Receipt Gate
+
+Corrected attempt04 has completed 256 COMPLETE / 256 unique effective proposals
+on the original 2020 preload and continuous 2021--2023 scoring contract. Its
+durable inner receipt is valid JSON and records `SELECTED_REPLAY_VERIFIED`,
+127 annual-quality eligible trial candidates and original-direct exact parity.
+There are 257 original scorer observations, one final endpoint account and one
+direct account, 259 known completed invocations. The old interrupted attempt's
+49 terminal trials are preserved as repeated work, not new unique coverage.
+
+The run nevertheless remains **outer-gate FAIL_RETAINED**. After the financial
+owner returned, the wrapper's strict JSON writer encountered a pandas Timestamp
+in the in-memory outcome, leaving a partial outer file. The original inner
+writer had already serialized its receipt successfully. This is a private
+receipt-export defect, not evidence of a missing trial or an accounting mismatch.
+Do not rewrite the failed file or turn its supervisor green. Cold, source-bound
+receipt recovery and exit-custody verification remain required before B5 launch;
+another financial study is not needed just to re-export that receipt.
+
+### Development Measurements
+
+Both columns are searched IS results, **not forward evidence**. Meta learning
+is not activated in this comparison: it evaluates the Mode5 annual-floor
+objective/selection against raw whole-account Sharpe.
+
+| Measurement | Raw-Sharpe control | Annual-floor challenger |
+|---|---:|---:|
+| Trial attempts / unique executed points | 256 / 256 | 256 / 256 |
+| Annual-quality eligible trial points | 125 | 127 |
+| Initial equity | 20,000.00 | 20,000.00 |
+| Final equity | 107,539.32 | 67,641.40 |
+| Net return | +437.70% | +238.21% |
+| Raw whole-account Sharpe | 2.662810 | 2.016013 |
+| Max drawdown | 11.043554% | 11.390214% |
+| 2021 annual Sharpe | 3.613515 | 1.788073 |
+| 2022 annual Sharpe | 2.259809 | 2.223280 |
+| 2023 annual Sharpe | 2.002796 | 2.167990 |
+| Selected paths versus original direct owner | Exact | Exact |
+
+The challenger has lower whole-IS Sharpe and growth, and does not improve minimum
+annual raw Sharpe. Its different annual pattern does not establish robust future
+edge. The floor formula ranks its declared utility/normalization components,
+not simply minimum raw Sharpe. No decay or forward-quality improvement can be
+concluded until the registered forward comparisons run.
+
+### Operational And Evidence State
+
+The actual04 parent measured 4,278.266 seconds (71.304 minutes) and 1,656.262-MiB
+peak RSS. No resource-stop reason is recorded; all owned workers are reaped and
+registered scratch is removed. This full challenger duration is not an
+apples-to-apples speed comparison with the raw control's missing-only recovery.
+Read-only inspection verifies 259 retained terminal-trial/inner-result/path pins
+without financial replay. Fills/closed campaigns remain unavailable in the
+original RSI ledger; no position-regime count is relabelled as those units.
+
+| Retained Record | SHA-256 |
+|---|---|
+| Valid inner result | `8f847c07dab24cce3bc77197fb999a2016386595d796daf135a9dd5cebf09a26` |
+| Exact selected final/direct paths | `69d251233e4d28969d34c75833a3e79b910ce59fd910056c59b7c790330015bd` |
+| Failed supervising parent | `6458c2ddd12d3fbce7cf8263baffc55b64fbd84a83648e51cd9c24cb985954c9` |
+| Cleanup only | `bb5cd449794f9b404028063c371e58ca2797c60084f397bf937d0a4f897ff249` |
+
+No research worker remains active. Three fresh sampler-only arms, native B2/
+dossier integration, prefix-forward economics and M5-12 qualification have not
+been completed. No additional study, CI or release was launched by this review.
