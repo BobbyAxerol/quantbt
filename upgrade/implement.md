@@ -31654,6 +31654,35 @@ This is not public financial dispatch or a new actual adaptive study; native
 panel/probe completion, full source admission, dossiers and downstream research
 retain their ordered gates. Earlier failed assertions and receipts remain intact.
 
+**Current Additive Dispatch Checkpoint (2026-10-12):**
+`continuous-public10` passes 69 tests including actual synthetic continuous
+public dispatch, original V1 reset-flat studies, inherited samplers and boundary/
+lifecycle mutation tests. Opt-in producer is source-qualified legacy pct-equity
+only; other producers fail explicitly. Whole-account Sharpe, annual means,
+undefined annual views and actual/proposed sampler identities stay distinct.
+The exact reviewed source amendment is additive with parent `1507eec`; prior
+manifests/receipts are untouched. Pre-hook source bytes and failures are retained.
+This is not the 256-trial alpha study or a waiver of original preload/rights.
+See [scope and receipts](../docs/mode5/M5_11_CONTINUOUS_PROVIDER.md#continuous-public-dispatch-checkpoint).
+The missing-only tranche has now executed all 216 requests (72 per native alpha),
+4092.284 seconds, zero fresh bulk Python-oracle runs; all children reaped.
+Tranche result/cleanup hashes are
+`b6aa47c5929ebf26100fcf8533287946b50dd711b540c855ac11697d4b5f0e3b` /
+`acb9dae884ebd005763e04a4cb3da8e92d11e9b28f33c420459551c1b2b05e6d`.
+Full source admission, probes/matrices/dossiers and dependent scientific studies
+remain ordered gates; 216 financial PASS rows alone do not close M5-11.1.
+
+**Immutable Query Retention Checkpoint (2026-10-12):**
+`continuous-retention11a` passes 71 tests (26.71 seconds pytest, 28.057 seconds
+controller), including result/failure ownership after runtime close and
+deepcopy/pickle immutability. Returned typed accounts are available for later
+analysis; JSON carries refs instead of mutable buffers. Historical source
+amendments and failed lanes are retained; a new exact retention amendment
+records the current bytes. No scientific formula, financial execution, public
+default, native build or remote action changed. Cleanup: no scratch/deletions.
+Actual preload qualification and full five-alpha diagnostics remain separate
+ordered gates, not waived by these synthetic/software tests.
+
 <a id="mode5-m5-11-2"></a>
 ### Phase M5-11.2 - Actual Adaptive Calibration And Selector Comparisons
 

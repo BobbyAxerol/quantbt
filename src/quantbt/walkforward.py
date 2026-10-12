@@ -847,6 +847,7 @@ class WalkForwardResult:
     candidate_table: pd.DataFrame = field(default_factory=pd.DataFrame)
     best_trial: Optional[Dict[str, Any]] = None
     metadata: Dict[str, Any] = field(default_factory=dict)
+    mode5_continuous_accounts: Any = None
 
     @property
     def oos_positions(self) -> Optional[StrategyOutput]:
@@ -1110,10 +1111,15 @@ class WalkForwardEngine:
             folds = self.build_folds(idx)
             self._mode5_runtime = None
             if self.config.mode5_calibration is not None:
+                from .mode5.continuous_binding import ContinuousMode5Calibration
+                from .mode5.continuous_runtime import PublicContinuousMode5Runtime
                 from .mode5.runtime import PublicMode5Runtime
                 if params is not None or not param_ranges:
                     raise ValueError("diagnostics-first Mode5 requires sealed optimizing ranges")
-                self._mode5_runtime = PublicMode5Runtime(self, self.config.mode5_calibration,
+                runtime = (PublicContinuousMode5Runtime
+                    if isinstance(self.config.mode5_calibration, ContinuousMode5Calibration)
+                    else PublicMode5Runtime)
+                self._mode5_runtime = runtime(self, self.config.mode5_calibration,
                     data_for_strategy, idx, param_ranges)
             if self._meta_runtime is not None:
                 self._meta_runtime.validate_market(data_for_strategy, idx, folds)
@@ -1189,6 +1195,8 @@ class WalkForwardEngine:
             if self._meta_runtime is not None:
                 self._meta_runtime.finalize(result)
             if self._mode5_runtime is not None:
+                if isinstance(self._mode5_runtime, PublicContinuousMode5Runtime):
+                    result.mode5_continuous_accounts = self._mode5_runtime.detach_account_retention()
                 result.metadata["mode5_diagnostics_first"] = self._mode5_runtime.metadata
             if prepared_context is not None and prepared_context._witness_owners:
                 prepared_context.validate_source(data_for_strategy)

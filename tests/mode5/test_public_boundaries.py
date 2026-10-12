@@ -199,6 +199,23 @@ def test_reviewed_source_guard_rejects_unreviewed_bytes():
         without_public_additions(source + b"\n# unreviewed mutation\n", name)
 
 
+def test_continuous_amendment_preserves_parent_and_rejects_unreviewed_modules():
+    import json
+    import subprocess
+    from tools.mode5_public_source_guard import ROOT, CONTINUOUS, without_continuous
+    amendment = json.loads(CONTINUOUS.read_text())
+    for name in amendment["existing"]:
+        source = (ROOT / name).read_bytes()
+        parent = subprocess.check_output(["git", "show", amendment["entry"]+":"+name], cwd=ROOT)
+        assert without_continuous(source, name) == parent
+        assert without_continuous(parent, name) == parent
+    for name in amendment["new"]:
+        source = (ROOT / name).read_bytes()
+        assert without_continuous(source, name) == b""
+        with pytest.raises(AssertionError, match="unreviewed Mode5 public bytes"):
+            without_continuous(source + b"\n# unreviewed mutation\n", name)
+
+
 def test_returned_full_sample_cannot_execute_outside_development_witness(tmp_path):
     e, frame, ranges, _ = public_setup(tmp_path)
     extra = frame.iloc[[-1]].copy()

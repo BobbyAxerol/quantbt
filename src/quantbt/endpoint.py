@@ -5000,8 +5000,13 @@ class _WalkForwardEndpointScorer:
         self.meta_metric_support = bool(meta_metric_support)
         self.mode5_metric_policy = None
         if wf_config is not None and wf_config.mode5_calibration is not None:
+            from .mode5.continuous_binding import ContinuousMode5Calibration
+            from .mode5.continuous_runtime import ContinuousMode5MetricPolicy
             from .mode5.evaluation import Mode5MetricPolicy
-            self.mode5_metric_policy = Mode5MetricPolicy(wf_config.mode5_calibration)
+            policy = (ContinuousMode5MetricPolicy
+                if isinstance(wf_config.mode5_calibration, ContinuousMode5Calibration)
+                else Mode5MetricPolicy)
+            self.mode5_metric_policy = policy(wf_config.mode5_calibration)
         if config.wfo_execution_config is not None:
             self.meta_account_authority = "existing_execution_endpoint_continuous_account"
         self._meta_witness = None
