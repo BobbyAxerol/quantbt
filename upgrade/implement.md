@@ -31642,6 +31642,18 @@ and [M5-12](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#phase-m5-12--
    delete only registered inactive reproducible scratch. Commit each coherent
    verified change; leave unrelated user files untouched. No push/CI/release.
 
+<a id="mode5-m5-11-continuous-admission-20261012"></a>
+**Ordered Completion Checkpoint (2026-10-12):** cold continuous-account reducer
+and explicit original/recovery panel consumers implemented and verified.
+`continuous-cold04` passes 79 tests / 46 subtests (one unwired public study
+deselected); `continuous-legacy05` passes 42 stdlib legacy-selector tests.
+Original source status/roles/oracle coverage, metric formulas and annual
+thresholds are unchanged. Cleanup PASS with zero scratch/deletion. See
+[scope, exact receipts and remaining gates](../docs/mode5/M5_11_CONTINUOUS_PROVIDER.md).
+This is not public financial dispatch or a new actual adaptive study; native
+panel/probe completion, full source admission, dossiers and downstream research
+retain their ordered gates. Earlier failed assertions and receipts remain intact.
+
 <a id="mode5-m5-11-2"></a>
 ### Phase M5-11.2 - Actual Adaptive Calibration And Selector Comparisons
 

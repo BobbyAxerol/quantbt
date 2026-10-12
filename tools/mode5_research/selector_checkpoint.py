@@ -1,7 +1,8 @@
-"""Stdlib-only, append-only selector replay over sealed development evidence.
+"""Append-only selector replay over sealed development evidence.
 
-This adapter never imports QuantBT or opens a financial runtime. Registration
-records present custody, not a retroactive execution or untouched-OOS seal.
+Legacy rows stay stdlib-only. Explicit recovery admission lazily invokes the
+shared cold row validator, never a financial runtime. Registration records
+present custody, not retroactive execution or untouched-OOS certification.
 """
 
 import argparse
@@ -112,6 +113,14 @@ def register(parent, lane):
     return write_new(lane / "registration_01.json", registration)
 
 
+def compute_pass(row):
+    if "panel_admission_schema" in row:
+        from tools.mode5_research.panel_admission import validate_panel_row
+        validate_panel_row(row)
+        return row["analysis_compute_status"] == "PASS"
+    return row["compute_status"] == "PASS"
+
+
 def metric(row, name):
     matches = [m for m in row["metrics"] if m["metric_id"] == "mode5.panel." + name]
     if len(matches) != 1:
@@ -119,7 +128,7 @@ def metric(row, name):
     m = matches[0]
     if m["unit"] != ("ratio" if name == "sharpe" else "decimal_return"):
         raise ValueError("metric units differ")
-    if m["status"] != "VALID" or row["compute_status"] != "PASS":
+    if m["status"] != "VALID" or not compute_pass(row):
         if m["value"] is not None or not m["reason"]:
             raise ValueError("undefined metric needs null and reason")
         return None
@@ -129,6 +138,7 @@ def metric(row, name):
 
 
 def grid_for(result):
+    admitted = result.get("schema") == "source_admitted_continuous_panel_v1"
     ids = result["candidate_ids"]
     if len(ids) != 128 or len(set(ids)) != 128:
         raise ValueError("exact original 128 candidate roster required")
@@ -137,8 +147,13 @@ def grid_for(result):
         key = (row["provenance"]["candidate_id"], row["environment_id"])
         if key in grid or key[0] not in ids or key[1] not in ENVIRONMENTS:
             raise ValueError("duplicate/unexpected candidate/environment")
+        if admitted:
+            if not compute_pass(row):
+                raise ValueError("completed explicitly admitted analysis required")
+        elif "panel_admission_schema" in row:
+            raise ValueError("admitted row requires its versioned panel envelope")
         if (row["clean_oos"] is not False or row["estimand_id"] != "CONTINUOUS_PATH_ATTRIBUTION"
-                or row["provenance"]["data_role"] != "REVIEWED_EXPLORATORY_DEVELOPMENT"):
+                or (not admitted and row["provenance"]["data_role"] != "REVIEWED_EXPLORATORY_DEVELOPMENT")):
             raise ValueError("reviewed continuous development only")
         expected_days = 1095 if key[1] == "whole_path" else 365
         if row["calendar_days"] != expected_days or row["actual_bar_count"] != expected_days*24:
@@ -159,7 +174,7 @@ def gates(row, preferences):
     utility, dd = metric(row, "economic_utility"), metric(row, "drawdown")
     return dict(risk=dd is not None and 0 <= dd <= preferences["risk_drawdown_max"],
         quality=utility is not None and utility > preferences["quality_utility_strictly_greater_than"],
-        days=row["compute_status"] == "PASS" and row["calendar_days"] >= preferences["minimum_daily_count"])
+        days=compute_pass(row) and row["calendar_days"] >= preferences["minimum_daily_count"])
 
 
 def outcome(grid, cid, preferences):

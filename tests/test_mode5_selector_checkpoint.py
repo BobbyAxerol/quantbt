@@ -314,9 +314,16 @@ class CustodyControls(unittest.TestCase):
                 checkpoint.write_new(path, dict(status="PASS"))
             self.assertEqual(checkpoint.read(record), dict(status="FAIL"))
 
-    def test_import_surface_is_stdlib_only(self):
+    def test_legacy_imports_are_stdlib_and_recovery_validator_is_lazy(self):
         allowed = {"argparse", "datetime", "hashlib", "json", "math", "os", "pathlib", "subprocess", "sys"}
-        imports = [n for n in ast.walk(ast.parse(SOURCE.read_text())) if isinstance(n, (ast.Import, ast.ImportFrom))]
+        tree = ast.parse(SOURCE.read_text())
+        cold = [n for n in ast.walk(tree) if isinstance(n, ast.ImportFrom)
+                and n.module == "tools.mode5_research.panel_admission"]
+        self.assertEqual(len(cold), 1)
+        owner = next(n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == "compute_pass")
+        self.assertIn(cold[0], list(ast.walk(owner)))
+        self.assertEqual([n.name for n in cold[0].names], ["validate_panel_row"])
+        imports = [n for n in ast.walk(tree) if isinstance(n, (ast.Import, ast.ImportFrom)) and n not in cold]
         names = {name.name.split(".")[0] for n in imports for name in n.names} - {"datetime", "timezone", "Path"}
         modules = {n.module.split(".")[0] for n in imports if isinstance(n, ast.ImportFrom)}
         self.assertFalse((names | modules)-allowed)
