@@ -32441,6 +32441,51 @@ sequence on failure, preserve its partial records and do not silently resume or
 edit a registration after outcomes. Cleanup/reap each owned group before the
 next arm. This registered execution does not presume any sampler/economic winner.
 
+**B5 Prelaunch Review Hold:** no actual sampler arm has been registered or run.
+The unexecuted driver compares an extra `schema` field with the original frozen
+scope, lacks separate CMA-ES backend custody and omits several original live
+prerequisite checks. The Main entry also needs a live exclusive-owner census and
+fixture-to-dispatched-source linkage. Preserve these reviewed files and create
+a disjoint revision; do not alter source07 or the running floor owner. Register
+38 bounded stdlib fixtures (32 inherited contracts plus six review corrections),
+60 seconds / 128-MiB RSS / 8-MiB retained and scratch, one worker/thread,
+>=5-GiB reserve and >=1-GiB host floor. Add externally sealed backend source pins
+and loaded-origin/lifetime checks without modifying any sampler default, RNG,
+objective or financial code. Actual launch remains blocked until this revision
+and its source-linked proof pass; constructor-only proof does not cover the
+backend loaded during real CMA-ES sampling. Keep all prior proofs scoped to their
+tested bytes, reap and clean only registered scratch after verification.
+
+**Owner-Approved IDE/Cache Maintenance (2026-10-12):** the owner permits
+stopping the exact Pylance language server and unused notebooks; never stop the
+extension host, research worker, collectors or other services. Host census finds
+no Jupyter kernel/server to reset. Verify PID/start identity before signalling
+Pylance; retain process/resource and before/after cleanup receipts. Review only
+`rust/target/debug/incremental` and `/root/.cache/ipython/numba_cache` as
+reproducible caches: reject symlinks, active file/maps/cwd references, source07
+pins and any runtime/library artifact. Keep virtualenvs, offline dependencies,
+installed extensions, notebook files, all scientific evidence and exact
+wheel/sdist/native artifacts. No Linux page-cache dropping or broad cache prune.
+Maintenance is operational, not a scientific/phase PASS; current floor study
+and its original execution/scoring/RNG/accounting contracts remain unchanged.
+Bound the maintenance helper to two minutes / 128-MiB RSS / 4-MiB retained;
+register exact deletions and preserve hashes before action, measure actual disk
+and RAM changes, then verify the protected worker still runs.
+
+**Maintenance Receipt:** Pylance was reset via an identity-checked SIGTERM;
+its automatically restarted replacement is temporarily SIGSTOP-paused. No
+Jupyter kernel/server was active and no notebook file was changed. Only the two
+reviewed cache paths above were removed after host FD/maps/cwd/source-pin checks:
+151,236,608 bytes (144.230 MiB) actual immediate filesystem improvement.
+Available RAM rose from 2,343,555,072 to 4,483,686,400 bytes after reset;
+after automatic reanalysis and pause it was 3,726,635,008 bytes. This is host
+headroom, not a worker-RSS optimization claim. Original source/artifact hashes,
+extension-host identity and floor worker identity are unchanged. Operational
+receipt `551d7027747c1dcb49296e65e8e42f93d93f56a72022b0788b4724317692e47b`;
+pause receipt `c998c62c143b62d2f690a4ce8f11b264ce9bab5999316e768b3e0c641f9782c4`.
+The system-Python compatibility failure before any action is retained separately.
+See [maintenance note](../docs/maintenance/M5_11_IDE_CACHE_MAINTENANCE.md).
+
 **Actual RSI Raw256 Closure (2026-10-12):** 256 COMPLETE / 256 unique effective
 executions, fresh selected-query/direct exact parity for all available financial
 streams and liquidation. Inherit 119 completed accounts, add 137 new trial
