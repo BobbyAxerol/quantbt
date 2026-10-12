@@ -463,3 +463,20 @@ No added financial execution or scratch deletion occurs. Keep old in-flight work
 UNKNOWN. No IDE/kernel/collector service is stopped without owner permission.
 The complete baseline/raw metadata/factory proofs remain valid for their own
 scopes; they do not close challenger, sampler-only, prefix-forward or M5-12.
+
+### B5 Dispatch Software Verification
+
+The inert private driver delegates finance to the original `_baseline` and
+restores the original typed dossier. Its controller requires externally sealed
+three-arm registrations, exact closed factory/metadata receipts, a live Main
+parent and an explicitly free actual slot. It never dispatches the retained
+legacy control again or grants B5/forward qualification itself.
+
+All 32 stdlib fixtures PASS in 0.706 seconds / 28.555-MiB peak RSS, covering
+scope/proof tampering, original interface, pre-import isolation, conservative
+resource admission, owned process identity/reaping and exact scratch cleanup.
+There are zero numerical/provider imports or financial executions. Receipt
+`0ce774ef53c7b09b258cd2de8ab4d86421c6b91f211ba91b1198d2d5ffe8da44`;
+all six source pins remain unchanged, worker reaped and owned scratch removed.
+Actual three fresh 256-attempt arms remain NOT_RUN. Factory and software PASS
+are not evidence of sampler coverage or an economic winner.

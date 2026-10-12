@@ -32407,6 +32407,25 @@ No unrelated IDE/kernel/collector service is stopped without owner permission.
 Continue only bounded inert/software work while operational headroom is unsettled;
 do not reduce RAM safety/scientific thresholds or count the study as completed.
 
+**B5 Dispatch Software Entry (2026-10-12):** verify the new inert private
+driver/controller with 32 stdlib fixtures before any fresh sampler arm. Finance
+must delegate to the unchanged original `_baseline`; restore the original typed
+dossier rather than re-freezing it. Check three-arm preregistration, exact closed
+factory/metadata proofs, live parent/argv/thread isolation, original scope,
+resource admission and owned-group reaping/cleanup. Bound this software slot to
+60 seconds / 128-MiB RSS / 8-MiB retained and scratch, one worker/thread,
+>=5-GiB disk reserve and >=1-GiB host floor. No scientific imports, actual
+study, finance or sampler-quality claim. Preserve failed fixtures; delete only
+the exact registered inactive scratch after reaping. Original source07 stays
+unchanged until its financial owners have closed.
+
+**B5 Dispatch Software Receipt:** all 32 stdlib fixtures PASS in 0.706 seconds /
+28.555-MiB peak RSS; zero scientific imports or finance. Receipt
+`0ce774ef53c7b09b258cd2de8ab4d86421c6b91f211ba91b1198d2d5ffe8da44`.
+Six source pins are unchanged, the owned child is reaped and only its registered
+inactive scratch is removed. This qualifies the inert entry/controller, not a
+fresh sampler study, selected audit, forward transfer or economic benefit.
+
 **Actual RSI Raw256 Closure (2026-10-12):** 256 COMPLETE / 256 unique effective
 executions, fresh selected-query/direct exact parity for all available financial
 streams and liquidation. Inherit 119 completed accounts, add 137 new trial
