@@ -9,6 +9,12 @@ provider and sealed 256-query studies, prefix-forward economics and final local
 artifacts. Read [ordered execution](#mode5-m5-11-ordered-execution-20261012).
 No CI, push, merge, tag, live trading or publication is authorized. Mathematical
 thresholds, alpha sources, previous receipts and negative evidence stay intact.
+**Current Research Disposition (2026-10-12):** after the complete panel showed
+three common annual-eligible RSI candidates but zero for SC/HMA/HASH/VWAP,
+the owner explicitly approved keeping every gate and running RSI's matched
+256-attempt baseline/challenger first. Other scopes retain NO_SUPPORTED for
+this mandate; their measured diagnostics and probes still complete. No eligible
+recipe status, alpha edge, threshold or automatic research override is inferred.
 
 **Current Completed Work (2026-10-12):** all 640 discovery accounts are executed;
 the 384 native accounts and 1,536 dependent whole/annual views are source-admitted.
@@ -31873,6 +31879,38 @@ concurrency remains <=3 financial workers plus one software worker. Retain the
 same <=3-hour tranche / 1800-second probe / 2-GiB aggregate / 5-GiB reserve
 limits and exact request/source rights. The final 17 HMA probes require their
 own later registration; no completed request is repeated.
+
+**Final Missing HMA Probe Registration (2026-10-12):** after a financial slot
+is released, tranche-05 may execute only HMA local indices 115--131 (17 frozen
+requests). Before launch verify no index is already complete, preserve exact
+plan/role/source pins, and measure >=1 GiB available-RAM reserve beyond the
+observed 689.54-MiB worker peak. One worker/thread, global <=3 financial plus
+one software worker, <=3-hour tranche, <=1800 seconds/probe, <=2-GiB retained,
+>=5-GiB free-byte reserve. Reap/checkpoint each outcome; no source changes,
+new build/environment, deleted evidence or unregistered retry.
+
+**Actual RSI Provider Preparation Registration (2026-10-12):** use new private
+modules under `upgrade/local/mode5_upgrade_v1/m5-11-2/formal01`, keeping original
+alpha/economics/full ordered geometry, source/numeric/native custody and supplied
+full 2020--2023 prefix. Cold setup/syntax/source verification: one worker/thread,
+<=600 seconds, <=64-MiB retained, no financial import before externally pinned
+sources, no build/environment/scratch or deletion, >=5-GiB reserve. Finance
+qualification and 256-attempt arms require separate sealed source/route/control/
+budget receipts before execution. Plan-free raw observation authority is not a
+dummy CalibrationPlan; challenger retains its genuine eligible dossier seal.
+
+**Actual RSI Financial Qualification Registration (2026-10-12):** after a
+financial slot is free, reuse the original first discovery point for one
+source-bound observation and one direct original BacktestEngine control. Compare
+the complete retained original equity/positions/returns path and all available
+direct fee/funding/margin fields exactly. Score only 2021--2023; preserve 2020
+preload, one continuous fresh account and original raw/annual metric authorities.
+Reject missing preload/end and a synthetic future suffix before financial calls.
+One worker/thread, <=1800 seconds, <=2-GiB RSS, <=64-MiB retained, <=192-MiB
+owned JIT/report scratch, >=5-GiB free-byte reserve; source manifest externally
+pinned before private/numeric imports. Cleanup only its registered inactive
+scratch after preserving actual paths, ledger, failures and receipt. This
+qualification is not a 256-trial study, held-forward result or recommendation.
 
 **Native B1/B3 Cold Checkpoint (2026-10-12):** the shared cold reducer passes
 29 tests (324.64 seconds; controller 326.583 seconds) without financial imports
