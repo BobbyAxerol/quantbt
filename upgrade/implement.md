@@ -32253,6 +32253,34 @@ exit verified and exact owned scratch removed only after reaping. Child receipt
 The separate remaining-attempt actual worker now runs serially. This proof does
 not replace 256-attempt coverage, fresh selected/direct audits or forward tests.
 
+**Sampler-Only Preparation Entry (2026-10-12):** prepare only an inert private
+B5 cohort validator and stdlib fixtures while the actual RSI pair retains its
+existing owner. Proposed matched family: inherited univariate TPE control,
+multivariate/group TPE, CMA-ES and scrambled Sobol, all existing shared recipes
+with unchanged public constructor defaults, full static eight-dimensional domain,
+256 attempts / seed 731, original raw whole-account Sharpe and finite-score
+eligibility. Annual-quality eligibility is a separate observation, not silently
+substituted for the raw control. Reuse the control only after its complete source-
+bound actual query/audit receipt closes; no other warm start or learned state.
+Pin source/qualification/binding/data/economics/metric/dossier/access identities
+and distinct arm registrations. Register at most one extra stdlib-only worker,
+60 seconds / 128-MiB RSS / 8-MiB retained and scratch, one numeric thread,
+>=5-GiB disk reserve and >=1-GiB host floor; no financial imports/execution.
+Original private helper bytes and failed tests remain. This preparation is NOT
+sampler qualification/execution; actual compatibility, fallback/unique-work and
+separately supervised study gates still precede B5 conclusions. One paired seed
+does not imply equal points, independent replications or a universal winner.
+
+**Sampler-Only Software Checkpoint:** five stdlib protocol tests PASS in
+0.513 controller seconds, with zero scientific/provider imports or finance.
+External record tampering, full eight-dimensional geometry, qualified raw
+contract/seal identity, attempt order/counts and legacy-reuse audit closure
+are covered. Raw-score and common-annual quality eligibility are reported
+separately. Receipt `0132a6946d010b7c73610520a8965f1c4ffb36d0daae9ba85e48ef875633bacf`;
+owned worker reaped and only its inactive scratch removed. Actual four-recipe
+compatibility, matching source/input records, new arm registrations and
+256-attempt studies remain NOT_RUN. See [sampler preparation](../docs/mode5/M5_11_2_RSI_PROVIDER_PREPARATION.md#sampler-only-preparation).
+
 <a id="mode5-m5-11-3"></a>
 ### Phase M5-11.3 - Multi-Origin Fixed-Policy Transfer And Economic Qualification
 

@@ -264,3 +264,28 @@ A separately registered actual worker is IN_PROGRESS: replay the unchanged
 and direct accounting audits. It inherits this exact manifest, full geometry,
 seed and budget. No completed 256-attempt, challenger or forward verdict is
 certified until its actual receipt closes.
+
+## Sampler-Only Preparation
+
+An inert private B5 protocol proposes the four existing compatible families:
+legacy univariate TPE, multivariate/group TPE, CMA-ES and scrambled Sobol. Hold
+the original raw whole-account Sharpe objective/selector, full static numeric
+domain, source/data/economics/metric/access identities, dates and 256-attempt /
+seed-731 budget fixed; vary only the shared sampler recipe. Do not confuse this
+with the annual-floor baseline/challenger contrast or choose recipes by forward
+scores. The actual legacy study may be reused only after its full source-bound
+query and selected/direct audit close; other arms inherit no learned state.
+
+Five synthetic stdlib protocol tests PASS in 0.513 controller seconds. They
+cover bytes/schema/order/scope tampering, full original dimension and contract/
+seal identities, unchanged recipe defaults, all-attempt count reconciliation,
+duplicates and the explicit legacy-audit reuse boundary. Finite raw-score and
+annual-quality eligibility remain separate measurements. There are zero
+provider/scientific imports or financial executions, and no sampler ranking.
+
+Receipt: `0132a6946d010b7c73610520a8965f1c4ffb36d0daae9ba85e48ef875633bacf`.
+Worker reaped; only its registered inactive scratch removed, all source and
+evidence retained. Real source-record binding, shared factory compatibility,
+distinct pre-outcome arm registrations and the actual sampler studies remain
+NOT_RUN. A single paired seed does not make adaptive points identical or provide
+independent replications. See [guide comparison levels](../../upgrade/QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#49-multi-hypothesis-empirical-battery-giữ-năm-chiều-làm-rõ-mỗi-phép-thử).
