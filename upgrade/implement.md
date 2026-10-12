@@ -31731,6 +31731,16 @@ close/reap the worker and retain exact evidence. Formal execution still follows
 full dossier and recipe entry gates. Guide references: [metric units](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#51-metriccontract-trước-công-thức-tối-ưu),
 [comparison levels](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#49-multi-hypothesis-empirical-battery-giữ-năm-chiều-làm-rõ-mỗi-phép-thử).
 
+**Raw-Control Software Checkpoint (2026-10-12):** the separate original
+whole-account Sharpe control reuses the existing sampler/ordered study and
+accepts only exact typed continuous observations. Ten tests PASS in 8.19 seconds
+pytest / 9.650 seconds controller; four earlier metadata failures remain sealed.
+Shared portable serialization fixed those failures without changing mathematics.
+Finite raw-control and common annual eligibility remain distinct. No actual
+256-query alpha study, independent provider approval or deployment is implied.
+No build/environment/scratch/deletion; worker reaped, hashes retained. See
+[scope, failures and exact receipts](../docs/mode5/M5_11_2_RAW_CONTROL_SOFTWARE.md).
+
 <a id="mode5-m5-11-2"></a>
 ### Phase M5-11.2 - Actual Adaptive Calibration And Selector Comparisons
 
