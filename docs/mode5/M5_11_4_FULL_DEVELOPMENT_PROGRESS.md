@@ -49,6 +49,15 @@ guardian failure paths 27 and static-figure masks/pixels nine: 385 focused tests
 across these distinct shards. This software count is not financial coverage.
 The privacy-default cold-reader example also preserves snapshot/RNG state.
 
+The private cold assembler passes 51 tests and reads back all five actual
+January-start pilot profiles with 156 unchanged source bindings. Five concise
+decision summaries retain units, adverse values, source semantics, missing
+work and named next questions. The separate cold plotter generated 31 private
+figures in 15.99 seconds; all passed dimension/nonblank-pixel checks. Their
+missing masks are deliberate: this selected pilot stage contains five
+qualified cells and 1,214 NOT_RUN, not the current growing bulk inventory.
+These figures perform zero finance/search and are not phase certification.
+
 ## Retained Failures And Custody
 
 The initial common-readiness lane is a different scoring convention. Its five
@@ -91,6 +100,12 @@ lane: actual SC decision audits are about 34 MiB per account. The five-GiB
 reserve, worker/RSS limits, scientific roster, seeds, roles and metrics remain
 unchanged. Existing tooling/native binary is reused. Final cleanup is pending
 while financial workers use the registered scratch; no evidence is disposable.
+
+After lossless report deduplication, the pilot-based full-stage projection is
+343 MiB, not a guaranteed bound. The owner approved increasing only the cold
+report cap from 256 to 512 MiB. The total 8-GiB retained allowance and 5-GiB
+free-space reserve remain unchanged. The prospective resource amendment does
+not change science or relabel old 256-MiB receipts.
 
 A new append-only source archiver has five passing synthetic failure-path
 tests, including mutation during copying and refusal to overwrite an archive.

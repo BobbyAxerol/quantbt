@@ -33669,6 +33669,13 @@ versions readable; preserve original alpha/core contracts and all attempts.
   remains billed; missing costs are not reported as zero. Five-alpha cold
   summaries/figures and broad terminal readback remain actual output gates,
   not implied by this software progress note.
+- Five concise actual pilot profiles now pass cold readback with 156 unchanged
+  source bindings; private assembly tests are 51 PASS. The cold plotter produces
+  31 masked, nonblank private figures with zero finance/search. Pilot coverage
+  remains five qualified / 1,214 NOT_RUN, not the live bulk inventory. Owner
+  approved a prospective cold-report cap of 512 MiB after a 343-MiB projection;
+  total retention remains 8 GiB and disk reserve 5 GiB. Old reports/amendments
+  remain sealed and science is unchanged.
 
 <a id="mode5-m5-11-5"></a>
 ### Phase M5-11.5 - Diagnostic-Guided Mode 5 Calibration And Decision Qualification
