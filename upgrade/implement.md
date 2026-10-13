@@ -33129,7 +33129,10 @@ public rounded tables against full-precision observed summaries, actual
 endpoint/direct counts, the unchanged seven-contrast inference contract,
 source/input entry/exit checks and fixed-vector parity. Retained readback/
 sanitized JSON <=8 MiB, no new scratch or environment; preserve >=5 GiB free
-disk and all logs/failed receipts. Zero financial, optimizer, sampler and RNG
+disk and all logs/failed receipts. The fresh retained readback output is
+`upgrade/private/mode5_upgrade_v1/m5-11-3/readback03/actual01/result.json`;
+its ignored standard-library reader is `upgrade/local/mode5_upgrade_v1/m5-11-3/readback03/check.js`.
+Zero financial, optimizer, sampler and RNG
 work; no new deletion beyond the original supervisors' registered inactive
 scratch. Record actual resource change, missing proof/support and privacy;
 this cold receipt cannot certify an unexecuted full-procedure mutation or
