@@ -16,8 +16,10 @@ original-provider qualification and supervised cleanup PASS. The 2023 freeze
 and separate zero-finance 2025 freeze recovery PASS; the failed aggregate stays
 FAIL_RETAINED. The new prefix2023 raw/floor studies close 256 attempts each,
 with exact selected/direct accounting and supervised cleanup PASS. Prefix2025
-studies are executing serially through unchanged owners; annual forward remains
-pending. No full-procedure mutation or economic promotion is inferred.
+also closes both original 256-attempt studies with exact accounting and cleanup;
+the serial closure is PASS and every financial child is reaped. Annual2023/2025
+forward remains pending. No full-procedure mutation or economic promotion is
+inferred.
 This does not certify full diagnostics or whole-procedure mutation. See
 [forward report](../docs/mode5/M5_11_3_FORWARD_REPORT.md). Frozen inference
 registration keeps reviewed-history and dependent-origin limitations explicit.
@@ -33052,6 +33054,24 @@ cleanup `f6887ed1db7b512de7778807abad9ea4afcb477d221d1ebbec1ad55b3490150c`.
 Keep `ACTUAL_PREFIX_STUDIES_RETAINED_NOT_FUTURE_QUALIFIED`, incomplete full
 diagnostics and `full_fit_search_mutation=NOT_RUN` explicit. Prefix2025 remains
 in progress; actual annual2023/2025 comparisons follow separate admission.
+
+**Actual Prefix2025 / Serial Study Closure:** both new original 256-attempt
+studies and selected/direct replay PASS, with the same measured 517 account
+invocations as prefix2023. Thus all four new prefix arms execute 1,024 attempts
+and 1,034 observed account invocations, not independent evidence replications.
+Source/evidence/generated-artifact entry/exit checks and original supervisor
+PASS in 11,222.656 seconds / 1,607.39 MiB peak worker RSS. All children are
+reaped, without resource stop or cleanup error; only exact inactive study
+scratch is removed (+40,960 observed free bytes). Studies SHA256
+`67222ba7e4fc6e7e2eca7799e552edd4d75f786e446cace73c0868df167ca796`;
+supervisor `5cbbde401bffb970cf1508e8d9b9e70ceba14dbd43fb1e0deb19fe1e45f2e614`;
+cleanup `b85acac1341782d39aeb674690655b665c542b470b0d37d514c0540d62f31e15`.
+The serial closure is `PASS_SERIAL_PREFIX_STUDIES_ONLY`, 21,765.484 seconds,
+SHA256 `ec82936ab7c05243154aefe49f093f4487745567c2aabbd6e65d902adce41fc3`.
+It explicitly preserves the old aggregate FAIL, bounded diagnostics and full
+fit/search/rank mutation NOT_RUN. Original source/59-Python bodies, RNG,
+objective, thresholds and actual old accounts remain unchanged. Continue only
+through separately qualified metadata and original annual financial owners.
 
 **Actual Primary Receipt (2026-10-13, Asia/Saigon):** five frozen vectors and ten
 original/direct forward accounts complete with exact accounting and fixed-signal

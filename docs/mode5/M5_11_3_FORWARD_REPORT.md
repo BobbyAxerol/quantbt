@@ -228,3 +228,27 @@ cleanup:
 `f6887ed1db7b512de7778807abad9ea4afcb477d221d1ebbec1ad55b3490150c`.
 The serial prefix2025 studies and actual annual2023/2025 forward comparisons
 remain pending at this checkpoint. The retained failed aggregate is unchanged.
+
+### Current Prefix2025 / Serial Search Closure
+
+Both 2025 original study arms subsequently close 256 attempts and exact
+selected/direct accounting. Measured work is again 514 original scorer,
+two direct and one final-endpoint accounts, 517 total. All four prefix arms
+therefore execute 1,024 attempts and 1,034 account invocations. The actual
+per-origin data/source/evidence and generated-artifact custody PASS; these
+counts do not substitute for independent origins or missing campaign support.
+
+Prefix2025 supervision PASSes in 11,222.656 s at 1,607.39 MiB peak RSS, all
+children reaped, no resource stop/error. Exact inactive scratch cleanup has
++40,960 observed free bytes. Serial closure PASSes in 21,765.484 s, preserving
+the earlier aggregate FAIL and all original finance. Full diagnostics and
+fit/search/rank future-mutation qualification remain explicitly NOT_RUN.
+
+2025 studies SHA-256:
+`67222ba7e4fc6e7e2eca7799e552edd4d75f786e446cace73c0868df167ca796`;
+supervisor:
+`5cbbde401bffb970cf1508e8d9b9e70ceba14dbd43fb1e0deb19fe1e45f2e614`;
+cleanup:
+`b85acac1341782d39aeb674690655b665c542b470b0d37d514c0540d62f31e15`;
+serial closure:
+`ec82936ab7c05243154aefe49f093f4487745567c2aabbd6e65d902adce41fc3`.
