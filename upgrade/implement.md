@@ -32900,6 +32900,17 @@ unchanged original runner; finance, trials, objective, order and RNG stay raw.
 Run current software, then repeat cold actual-lineage admission and keep its
 source/resource/cleanup receipt before new prefix finance.
 
+**Historical Graph Role Correction:** cold attempt02 remains FAIL_RETAINED
+with zero finance after detecting conflicting historical source declarations.
+Retain those source-freeze manifests and zero-finance software cleanup receipts,
+but do not rebind their old mutable Python/source bodies as current authority.
+Current sealed source and software rosters remain explicitly fully verified;
+financial artifacts, logs and unknown conflicts remain mandatory hash checks.
+Read pinned fill/order-event JSON arrays in the evidence graph with the same
+size/SHA/duplicate-key guards; metadata readers remain object-only. Register
+fresh software and retain this transport-only failure before actual annual
+forward integration. No account/metric/selection/RNG or science changes.
+
 **Actual Primary Receipt (2026-10-13, Asia/Saigon):** five frozen vectors and ten
 original/direct forward accounts complete with exact accounting and fixed-signal
 suffix mutation parity. Software qualification passes 207 tests/17 isolated
