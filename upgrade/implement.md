@@ -33652,6 +33652,19 @@ versions readable; preserve original alpha/core contracts and all attempts.
   process/phase certificate. Current focused tests: 181 public + 43 private
   admission + 78 custody = 302 PASS. Full measurement remains IN_PROGRESS.
   [Current progress, limitations and custody](../docs/mode5/M5_11_4_FULL_DEVELOPMENT_PROGRESS.md).
+- Expanded public calendar/report/effective-geometry shard: 228 PASS. Private
+  admission 43, custody 78, guardian failure paths 27 and static-figure masks/
+  pixels nine PASS (385 distinct focused tests before cold-assembly tests).
+  A privacy-default cold-reader example renders retained snapshots with zero
+  finance/search and unchanged RNG. A v3 companion closes a pre-handler setup
+  failure in the old monitor; the running v2 is not edited mid-run.
+- Work billing separates registered primary diagnostic cells from native
+  feedback/admission, final account, repeat-native and Python parity/oracle
+  passes. Source-derived full-calendar pass counts are not physical inner
+  kernel visits or independent observations. Reused and failed/censored work
+  remains billed; missing costs are not reported as zero. Five-alpha cold
+  summaries/figures and broad terminal readback remain actual output gates,
+  not implied by this software progress note.
 
 <a id="mode5-m5-11-5"></a>
 ### Phase M5-11.5 - Diagnostic-Guided Mode 5 Calibration And Decision Qualification
