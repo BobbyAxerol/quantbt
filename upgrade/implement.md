@@ -32911,6 +32911,20 @@ size/SHA/duplicate-key guards; metadata readers remain object-only. Register
 fresh software and retain this transport-only failure before actual annual
 forward integration. No account/metric/selection/RNG or science changes.
 
+Cold actual-lineage attempt03 closes `PASS_COLD_ACTUAL_LINEAGE_ONLY`: 7,353
+pinned JSON artifacts / 14,908 protected paths, 59.555 seconds, 380.57 MiB
+peak RSS and zero finance. Result SHA256:
+`635daaef746593a8d287b8642d5de9043aec64a103cc8ec2b7bc05e7de934fa2`.
+No scratch was created or removed. Keep attempt02 failure
+`abd6b294faaca647c35d41a204b341a0ab5b0b27f9804e27176103fce6efc2f1`.
+This proves transport/custody admission only. Before expensive new-prefix
+panels, register the actual annual2024 forward adapter with the original
+recovered calibration, exact selected development accounts and frozen vectors.
+Run four original/direct accounts under the existing one-worker/one-thread,
+3,600-second / 2-GiB worker / 1-GiB output / 192-MiB scratch / 5-GiB reserve
+budget, including current-PID ownership and reviewed cleanup. It cannot add
+trials, choose a new vector or replace whole-procedure mutation certification.
+
 **Actual Primary Receipt (2026-10-13, Asia/Saigon):** five frozen vectors and ten
 original/direct forward accounts complete with exact accounting and fixed-signal
 suffix mutation parity. Software qualification passes 207 tests/17 isolated
