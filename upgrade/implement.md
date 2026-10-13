@@ -33637,10 +33637,21 @@ versions readable; preserve original alpha/core contracts and all attempts.
   pilot is a separately supervised financial step; its status is not implied by
   these software checks. Reuse qualified native binary and existing tooling;
   no build, push, CI, version change or publication.
-- Resource caps: four workers maximum, pilot two, one numeric thread each,
-  2 GiB RSS per worker, 2 GiB additional retained evidence and >=5 GiB reserve.
+- Resource caps: four workers maximum, pilot two, bulk three, one numeric thread
+  each, 2 GiB RSS per worker and >=5 GiB reserve. Storage-only budget02 raises
+  the retained allowance from 2 to 8 GiB after observing ~34 MiB SC audit files;
+  profiles, calendar, designs, RNG, scientific gates and worker ceiling unchanged.
   Pilot original index zero per alpha, 1,800-second per-cell cap. Preserve
   incomplete/failed cells, measure pilot cost before bulk scheduling.
+- January-start pilot: five actual accounts PASS in 226.32 supervised seconds,
+  each 59,280 bars and separate flat-warmup/accounting checks. First bulk stopped
+  to close three custody-test findings; fifteen completed financial outputs
+  retained, only its clean eight-cell tranche qualifies. Replacement lane reuses
+  thirteen qualified cells including the five pilots, retains seven unqualified
+  outputs and requests 1,206 missing cells. Completed finance is not a completed
+  process/phase certificate. Current focused tests: 181 public + 43 private
+  admission + 78 custody = 302 PASS. Full measurement remains IN_PROGRESS.
+  [Current progress, limitations and custody](../docs/mode5/M5_11_4_FULL_DEVELOPMENT_PROGRESS.md).
 
 <a id="mode5-m5-11-5"></a>
 ### Phase M5-11.5 - Diagnostic-Guided Mode 5 Calibration And Decision Qualification
