@@ -32887,6 +32887,19 @@ Test exact/mismatched recovery, count/boolean tampering, original-failure
 preservation and separation of historical declarations from current runtime
 authority before sealing the next source. Do not repeat historical256 finance.
 
+**Final Transport Preflight:** retain cold lineage attempt01 as stopped/FAIL
+(`15646c00aeb6347689307934fe934cad7121fc860d2ddd17c7d30aa631d89b8c`),
+with zero financial calls and no scratch. Replace repeated whole-graph pin
+canonicalization by an incremental path index; retain exact conflict rejection
+and terminal full SHA verification. Explicitly admit original large dossier/
+`study.json` up to 64 MiB at handoff, without increasing metadata or RSS gates.
+Use the original shared `wire` conversion for actual outcome export, readback
+and decision identity so Timestamp/tuple portability cannot repeat the old
+outer-wrapper failure. This is the same serialization contract used by the
+unchanged original runner; finance, trials, objective, order and RNG stay raw.
+Run current software, then repeat cold actual-lineage admission and keep its
+source/resource/cleanup receipt before new prefix finance.
+
 **Actual Primary Receipt (2026-10-13, Asia/Saigon):** five frozen vectors and ten
 original/direct forward accounts complete with exact accounting and fixed-signal
 suffix mutation parity. Software qualification passes 207 tests/17 isolated
