@@ -6,8 +6,10 @@
 M5-11.1/11.2/11.3 continuation below, including three new matched sampler arms
 and registered forward/origin work. Source08 custody and original/direct
 provider qualification and current context/recipe freeze PASS. Three fresh
-256-attempt arms are registered and running serially; their software custody
-gate passes 16 tests. Primary/prefix forward has not started. Frozen inference
+256-attempt arms are complete with exact selected/direct parity and reaped,
+closed cleanup. Cold matched-budget comparison PASSes without new finance;
+see [actual sampler report](../docs/mode5/M5_11_2_MATCHED_SAMPLER_REPORT.md).
+Primary/prefix forward has not started. Frozen inference
 registration keeps reviewed-history and dependent-origin limitations explicit.
 See [registered continuation](#mode5-m5-11-2). No CI or publication.
 
@@ -27633,7 +27635,7 @@ Every phase below inherits this mandatory resource registration/cleanup exit.
 | [M5-10](#mode5-m5-10) | Public opt-in integration/runtime reuse | M5-09 plus current source map | M5T-091..100 | COMPLETE_LOCAL_PUBLIC_OPT_IN / TECHNICALLY_VALID |
 | [M5-11](#mode5-m5-11) | Formal calibration and scoped economics | M5-10 plus authorized adequate data | M5T-101..110 | REOPENED_RESEARCH_COVERAGE; original finite pilot preserved |
 | [M5-11.1](#mode5-m5-11-1) | Broad five-alpha diagnostics and renewed dossier | M5-11 scope review; registered data/design/resource protocol | M5T-041..060 / 071..090 | Broad accounts and bounded native B2/dossiers technically PASS; 640 discovery accounts, 348 native probes; scientific limitations retained |
-| [M5-11.2](#mode5-m5-11-2) | Actual adaptive formal search and selector comparisons | Reviewed M5-11.1 dossier; new sealed plans | M5T-091..103 / EH-01..05 | Raw256 PASS; floor256 selected/direct and reviewed cold receipt recovery PASS; historical outer FAIL retained; sampler-only actual studies NOT_RUN |
+| [M5-11.2](#mode5-m5-11-2) | Actual adaptive formal search and selector comparisons | Reviewed M5-11.1 dossier; new sealed plans | M5T-091..103 / EH-01..05 | Raw256/floor256 audited and recovered; selector-only complete; three new sampler256 arms and cold matched comparison PASS; historical failures retained |
 | [M5-11.3](#mode5-m5-11-3) | Multi-origin fixed-policy transfer and economic qualification | Frozen M5-11.2 outputs and prefix studies | M5T-101..110 / EH-06..12 | APPROVED; expanded forward tests NOT_RUN |
 | [M5-12](#mode5-m5-12) | Local qualification/docs/handoff | M5-01..11 dispositions reviewed | M5T-111..120 | NOT_STARTED |
 
@@ -32184,6 +32186,24 @@ is not execution or a waiver of those gates.
 
 <a id="mode5-m5-11-2"></a>
 ### Phase M5-11.2 - Actual Adaptive Calibration And Selector Comparisons
+
+**Current Actual Closeout (2026-10-13, Asia/Saigon):** all three new raw-objective
+sampler arms completed 256 trials and exact selected/direct audits. Each has
+258 observed account invocations, reaped ownership and PASS_CLEANUP_ONLY.
+Cold B5 comparison passes against retained legacy raw256; no old finance is
+rerun. Selected development Sharpe is 2.39967 / 1.69246 / 1.85112 for
+multivariate/group TPE / CMA-ES / Sobol, below legacy control 2.66281 on this
+one tape/seed. This does not choose a new recipe or claim general superiority.
+See [cost, evidence and interpretation](../docs/mode5/M5_11_2_MATCHED_SAMPLER_REPORT.md).
+Actual prefix studies and forward remain separate M5-11.3 work.
+
+**Forward Software Operational Registration:** attempts01/02 are retained
+FAIL_RETAINED records (fixture import isolation / 180-second software deadline),
+with zero financial calls and reaped cleanup. The next software-only attempt
+registers 1,800 seconds total, 512-MiB RSS, 32-MiB retained logs, 8-MiB owned
+scratch, one worker/thread, >=5-GiB disk reserve and >=1-GiB host RAM floor.
+This operational budget amendment changes no objective, estimator, threshold,
+candidate, account path or forward gate. It must pass before new dispatch.
 
 **Current Ordered Continuation (2026-10-13, Asia/Saigon):** owner approves
 closing M5-11.1, selector-only plus three NEW 256-attempt sampler arms in
