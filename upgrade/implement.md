@@ -32855,6 +32855,20 @@ Operational budgets and serial one-worker/one-thread ownership remain unchanged.
 Retain exact sources, successful/failed accounts and receipts; remove only
 inactive attempt-owned scratch after verification and record actual resources.
 
+**Pre-Search Receipt Admission Correction:** attempt02 was stopped by Main
+during prefix qualification after read-only review found a 16-MiB reader limit
+below the retained original floor receipt's 29,335,269 bytes. Its stopped
+receipt `f89cdcd2ceb05ae6ed834fd67991fc33c77cc5348343ec4f6177573ca15ce431`
+remains FAIL_RETAINED; the owned child is reaped, no panel/search is certified
+and exact attempt-owned scratch is removed. Use one explicit 64-MiB research
+receipt bound across study/annual-forward consumers; metadata retains its
+8-MiB limit, SHA/size/lifetime checks remain mandatory and 64-MiB+1 rejects.
+This is transport admission, not metric/support/economic gate relaxation.
+Run the bounded-reader fixtures and current source qualification before a
+fresh final source seal and new financial attempt. Keep the existing 2-GiB
+worker RSS, 512-MiB parent RSS and 4-GiB retained-output budgets; resource stops
+remain failures. No historical receipt is edited or relabeled.
+
 **Actual Primary Receipt (2026-10-13, Asia/Saigon):** five frozen vectors and ten
 original/direct forward accounts complete with exact accounting and fixed-signal
 suffix mutation parity. Software qualification passes 207 tests/17 isolated
