@@ -33003,6 +33003,20 @@ Original per-origin study resources remain 21,600 seconds / 2-GiB worker RSS /
 4-GiB retained / 192-MiB scratch / 5-GiB reserve / one financial worker/thread.
 No earlier successful finance is repeated and no full-mutation PASS inferred.
 
+**Annual Handoff Preparation:** origins2023/2025 must use their actual new
+selected typed account checkpoints and fixed birth vectors, not truncate a
+longer equity tape. Qualify any extra Main metadata code separately; keep all
+Source09 financial code byte-identical. Prepare a zero-finance market/calendar
+identity witness with the original CSV parsing and `_complete_data_hash` /
+attrs identity policy before annual execution. This reads only the declared
+complete preload-plus-forward calendar, makes no strategy/account/optimizer
+call, and cannot choose params or a recipe. Register one serial cold worker,
+600 seconds / 2-GiB RSS / 32-MiB retained / 24-MiB scratch / 5-GiB reserve /
+1-GiB available-memory floor and exact fresh witness/scratch paths. Verify
+source/input pins at entry and exit, retain logs/failed receipts and remove
+only reaped owned scratch. Annual forward itself keeps its previously
+registered four-account / 3,600-second budget and original accounting owner.
+
 **Actual Primary Receipt (2026-10-13, Asia/Saigon):** five frozen vectors and ten
 original/direct forward accounts complete with exact accounting and fixed-signal
 suffix mutation parity. Software qualification passes 207 tests/17 isolated
