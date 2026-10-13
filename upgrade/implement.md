@@ -32839,6 +32839,22 @@ prefix-forward economics, installed artifacts and release are NOT certified here
 <a id="mode5-m5-11-3"></a>
 ### Phase M5-11.3 - Multi-Origin Fixed-Policy Transfer And Economic Qualification
 
+**Prefix Harness Correction (2026-10-13, Asia/Saigon):** first Source09
+controller is FAIL_RETAINED, not qualified. Preparation passed; prefix2023
+stopped at the pre-panel future-suffix projection check. A synthetic all-NaN
+row coerced integer volume to float, changing the exact permitted-prefix hash.
+Keep the original failure and supervision receipts (`bf0b0256eb2d07f99aae230e8e85ba556b15f5248f44183cf2f76d33961166d9`
+and `6ba072c6d40644b4208e716a37bda6324a7d0766dbe0b37dbaa2c0bab352fbc5`).
+All owned children are reaped and only their registered scratch was removed.
+Correct only synthetic suffix construction, preserving original prefix dtypes,
+values, attrs and hashes; add mixed float/int/unsigned-volume fixture coverage.
+No original market, alpha, metric, objective, geometry, RNG or threshold changes.
+Requalify current software and seal a fresh source/attempt before new finance;
+never relabel the failed attempt PASS or transplant its partial qualification.
+Operational budgets and serial one-worker/one-thread ownership remain unchanged.
+Retain exact sources, successful/failed accounts and receipts; remove only
+inactive attempt-owned scratch after verification and record actual resources.
+
 **Actual Primary Receipt (2026-10-13, Asia/Saigon):** five frozen vectors and ten
 original/direct forward accounts complete with exact accounting and fixed-signal
 suffix mutation parity. Software qualification passes 207 tests/17 isolated
