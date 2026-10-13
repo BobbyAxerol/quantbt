@@ -112,6 +112,21 @@ included in the public export. Detailed actual research reports stay in the
 ignored private evidence lane. This phase does not change public backtest/WFO
 endpoints or activate the subsequent formal calibration phase.
 
+A runnable [cold-reader example](../../examples/mode5_researcher_report_cold.py)
+accepts the retained report JSON, not a strategy module:
+
+```bash
+python examples/mode5_researcher_report_cold.py --report /private/report.json
+python examples/mode5_researcher_report_cold.py --report /private/report.json --format json
+# Explicit private inspection only; never publish this output.
+python examples/mode5_researcher_report_cold.py --report /private/report.json --private
+```
+
+The default output is redacted. This example validates the snapshot's internal
+contracts and renders it deterministically; it does not replace a fresh
+`report.verify(catalog)` check against original evidence and access permissions.
+It performs zero financial evaluations, optimizer proposals or model fitting.
+
 ## Verification Map
 
 | Requirement | Focused Verification |

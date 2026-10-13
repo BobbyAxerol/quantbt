@@ -156,6 +156,33 @@ def test_absent_views_are_explicit_not_zero_or_positive(retained):
     assert "-0.3" in report.to_markdown()
 
 
+def test_cold_example_defaults_to_redaction_and_preserves_snapshot_and_rng(retained):
+    from examples.mode5_researcher_report_cold import render_snapshot
+
+    dossier, catalog = retained
+    report = ResearcherReport.read(dossier, catalog, views=views(catalog))
+    payload = report.to_json()
+    rng = random.getstate()
+    public = render_snapshot(payload)
+    assert public == report.to_markdown(public=True)
+    assert SECRET not in public and PARAM not in public
+    assert str(PRIVATE_NUMBER) not in public
+    assert render_snapshot(payload, private=True) == report.to_markdown()
+    assert render_snapshot(payload, output_format="json") == report.to_json(public=True)
+    assert report.to_json() == payload and random.getstate() == rng
+
+
+def test_cold_example_requires_explicit_known_output_policy(retained):
+    from examples.mode5_researcher_report_cold import render_snapshot
+
+    dossier, catalog = retained
+    payload = ResearcherReport.read(dossier, catalog).to_json()
+    with pytest.raises(ValueError, match="privacy policy"):
+        render_snapshot(payload, private=1)
+    with pytest.raises(ValueError, match="markdown/json"):
+        render_snapshot(payload, output_format="pickle")
+
+
 def test_immutable_input_determinism_and_cold_roundtrip(retained):
     dossier, catalog = retained
     supplied = views(catalog)
