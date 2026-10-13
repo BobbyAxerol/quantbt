@@ -32869,6 +32869,24 @@ fresh final source seal and new financial attempt. Keep the existing 2-GiB
 worker RSS, 512-MiB parent RSS and 4-GiB retained-output budgets; resource stops
 remain failures. No historical receipt is edited or relabeled.
 
+**Recovered Lineage Consumer Correction:** annual2024 must accept the already
+reviewed `PASS_COLD_RECOVERED_FLOOR_256` receipt, not try to parse the retained
+partial outer JSON as a successful financial-owner receipt. Bind its exact
+inner result/vector, 256 unique trials, 259 observed account invocations and
+selected/direct parity; require zero new finance/search/RNG and retain the
+original parent FAIL and `NOT_DURABLE` worker-exit label. The exact certified
+partial JSON stays hash-protected but is not parsed. Historical source/test
+declaration bodies are provenance, not a demand that today's files match old
+hashes; keep their manifest/receipt/log hashes and all financial artifact
+references. Actual current Source08/09 bodies and current software/code roster
+remain independently fully verified. This closes consumer transport/custody
+compatibility only, not original worker-exit or independent-OOS certification.
+Attempt03 was stopped before panel completion and remains FAIL_RETAINED
+(`c6bf0421782e2f7a36c2baff19891e7e1679f35e8287cd742582e54c50aa07a9`).
+Test exact/mismatched recovery, count/boolean tampering, original-failure
+preservation and separation of historical declarations from current runtime
+authority before sealing the next source. Do not repeat historical256 finance.
+
 **Actual Primary Receipt (2026-10-13, Asia/Saigon):** five frozen vectors and ten
 original/direct forward accounts complete with exact accounting and fixed-signal
 suffix mutation parity. Software qualification passes 207 tests/17 isolated
