@@ -111,3 +111,22 @@ Private alpha source, names/values, market data, prose and provenance are not
 included in the public export. Detailed actual research reports stay in the
 ignored private evidence lane. This phase does not change public backtest/WFO
 endpoints or activate the subsequent formal calibration phase.
+
+## Verification Map
+
+| Requirement | Focused Verification |
+|---|---|
+| M5D-01 calendar/readiness | `tests/mode5/test_full_development_scope.py`; private warmup admission tests and actual five-alpha controls |
+| M5D-02 exact reuse/no hidden finance | Scope tests, cold-report tests, private source/output/control/process custody tests |
+| M5D-03 parameter semantics and multi-metric effects | Existing geometry schema tests plus `test_geometry_finite_panel.py`; actual source-bound private parameter rows |
+| M5D-04 sensitivity design/estimator | `test_geometry_estimators.py`, `test_geometry_trajectory.py`; actual structured-row completion remains separate |
+| M5D-05 causal/descriptive rights | `test_full_scope_views.py` future-suffix mutation and explicit namespace tests |
+| M5D-06 continuous PnL/cost attribution | Daily/annual baseline, bankruptcy, unknown states, rank reversal, held-pool and finite-panel regret tests |
+| M5D-07 local geometry/coverage | Existing neighbor/landscape tests and actual registered signed/grid/branch/coupled ledgers |
+| M5D-08 stress accounting | Scenario-isolation admission tests; actual matched fee reruns required, not implied by stubs |
+| M5D-09 exact report values/privacy | `test_researcher_report.py` reference binding, tamper, null/mask, deterministic cold read and public redaction |
+| M5D-10 real five-alpha output | Private assembly cold tests plus actual generated dossiers, work bills, final readback and cleanup receipt |
+
+Software coverage does not substitute for completed market experiments. Each
+retained report names executed, failed, unqualified and missing observations;
+synthetic fixtures cannot close the actual five-alpha dossier gate.
