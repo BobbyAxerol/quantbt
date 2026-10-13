@@ -33073,6 +33073,24 @@ fit/search/rank mutation NOT_RUN. Original source/59-Python bodies, RNG,
 objective, thresholds and actual old accounts remain unchanged. Continue only
 through separately qualified metadata and original annual financial owners.
 
+**New-Origin Historical Opaque Admission Correction:** annual2023 admission01
+fails before controller/financial output creation: the unchanged annual sidecar
+recursively parses the previously certified 17,424,514-byte partial outer JSON
+from a historical failed owner. Keep its registration/error and the original
+failure; do not repeat any study. The existing annual2024 opaque handling is
+year-specific. Add a separately qualified Main-scoped metadata-walk compatibility
+adapter for origins2023/2025, admitting only the exact cold-recovered historical
+partial pin after the original recovery validator and Source09 membership/hash
+checks. Keep that file in Source09/full protected hashes and signatures; omit
+only its traversal as successful JSON metadata, not its bytes or provenance.
+Restore the original walker on every success/failure; the fresh original
+financial worker receives no runtime override. All Source09/59 code bodies,
+original financial worker/driver/supervisor, accounts and scientific gates stay
+unchanged. Test exact opaque admission, unknown/mismatched pins failing closed,
+restoration on exceptions, immutable old FAIL/NOT_DURABLE and zero financial
+dispatch in fixtures; requalify new metadata before a fresh annual registration.
+Record this as pre-launch failure, not an executed or passing forward account.
+
 **Actual Primary Receipt (2026-10-13, Asia/Saigon):** five frozen vectors and ten
 original/direct forward accounts complete with exact accounting and fixed-signal
 suffix mutation parity. Software qualification passes 207 tests/17 isolated
