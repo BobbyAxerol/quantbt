@@ -2,7 +2,13 @@
 
 ## Current Mode 5 Diagnostics-First Upgrade - M5-11.1 Broad Diagnostics
 
-**Current Narrowed Action (2026-10-13, Asia/Saigon):** both owner-approved
+**Current Continuation (2026-10-13, Asia/Saigon):** owner now approves the ordered
+M5-11.1/11.2/11.3 continuation below, including three new matched sampler arms
+and registered forward/origin work. Source08 custody and original/direct
+provider qualification PASS; current context/recipe freeze precedes finance.
+See [registered continuation](#mode5-m5-11-2). No CI or publication.
+
+**Previous Narrowed Action (2026-10-13, Asia/Saigon):** both owner-approved
 integration gaps are CLOSED: completed challenger receipt recovery from
 immutable terminal evidence, and corrected native B2 observation counts with
 three rebuilt dossiers. Reviewed receipt recovery passes 37 tests;
@@ -32176,12 +32182,49 @@ is not execution or a waiver of those gates.
 <a id="mode5-m5-11-2"></a>
 ### Phase M5-11.2 - Actual Adaptive Calibration And Selector Comparisons
 
+**Current Ordered Continuation (2026-10-13, Asia/Saigon):** owner approves
+closing M5-11.1, selector-only plus three NEW 256-attempt sampler arms in
+M5-11.2, then frozen 2024--2025 and registered prefix/origin work in M5-11.3.
+Reuse the closed B2/unit/dossier and recovered challenger receipts; do not
+rerun completed panels or raw/floor256 accounts. Original source07 is historical:
+its only changed pinned file is the reviewed native B2 count consumer. Freeze
+a new append-only source generation, qualify its original provider/control,
+and explicitly rebind actual observation/context/dossier authority before new
+finance. Never relabel the old failed supervisor or mutate old seals.
+
+**Execution / Tests / Budget Before Launch:** source inventory and exact
+provider/direct control precede cold preparation and recipe freeze. Serial
+sampler arms use unchanged eight-dimensional numeric domain, continuous
+2021--2023 account with 2020 preload, seed731, original raw whole Sharpe,
+finite-score selection, no warm start or performance early stop. Recipes are
+inherited multivariate/group TPE, CMA-ES and scrambled Sobol, 256 attempts
+each; legacy raw256 is receipt reuse only. Register all arms before outcomes,
+report attempted/complete/unique/annual-quality/fallback counts distinctly.
+Use one actual worker, one numeric thread, 2-GiB RSS cap, 6-hour cap per arm,
+4-GiB retained cap per arm, 192-MiB owned scratch, >=5-GiB disk reserve,
+>=1-GiB host available-RAM floor and >=3-GiB launch admission. Cold/source
+steps retain their existing separately registered limits; no concurrent
+financial owner. Test source/receipt/schema/units and new orchestration on
+stdlib fixtures before finance. Verify selected/direct accounting and full
+source hashes at entry/exit; do not report unknown native/fallback counts as
+zero. Register forward inference/family and exact prefix boundaries before
+opening forward outcomes; no recipe retune after forward.
+
+**Cleanup / Exit:** retain registrations, immutable source generations,
+trial/account checkpoints, raw paths, failures, logs and terminal receipts.
+Delete only each registered ignored inactive scratch after owned process
+reaping and preserved-pin verification. Commit verified coherent chunks.
+No CI, push, merge, tag, publication, deployment or M5-12 execution in this
+continuation. Technical PASS, bounded scientific outcome and limitations are
+reported separately; required work not run remains NOT_RUN.
+
 **Status:** RSI RAW_256_AND_AUDIT_PASS / REPAIRED_COLD_PASS /
 FLOOR_256_AUDIT_AND_COLD_RECEIPT_RECOVERY_PASS;
 the original resource-stopped 119-prefix FAIL is retained. Source-07 provider,
 actual dossier preparation and runner freeze PASS separately. Owner approved
 RSI first while keeping SC/HMA/HASH/VWAP annual gates and NO_SUPPORTED status.
-Native cold admission is closed; native B2/dossier assembly remains pending.
+Native cold admission and all three bounded native B2/dossiers are closed;
+scientific eligibility/coverage limits remain distinct from technical PASS.
 **Goal:** exercise actual Mode5 search and selection on meaningful search budgets
    after diagnostics, distinguishing selector-only from end-to-end effects.
 **Entry:** reviewed new dossier for each scope, researcher-approved recipe and

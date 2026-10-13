@@ -618,6 +618,40 @@ consumer source revision. It must not treat the old FAIL supervisor as PASS or
 use this local recovery as forward/economic qualification. Sampler-only studies,
 prefix-forward comparisons and M5-12 remain distinct pending work.
 
-No research worker remains active. Three fresh sampler-only arms, native B2/
+At that cold-review checkpoint no research worker remained active. Three fresh sampler-only arms, native B2/
 dossier integration, prefix-forward economics and M5-12 qualification have not
 been completed. No additional study, CI or release was launched by this review.
+
+## Source08 Ordered Continuation
+
+Owner approves three fresh matched 256-attempt sampler arms, then registered
+forward/prefix work. Closed raw/floor256 and all B2 dossiers are retained, not
+re-executed. The source07 comparison identifies exactly one modified old pin:
+the reviewed native B2 metric-count consumer. Financial runtime, alpha,
+scorer and dependencies are byte-identical. New source08 includes the current
+consumer and cold-recovery tool; the old source07 qualification remains historical.
+
+Current source custody manifest SHA256:
+`e6f45ebb34450d91aae17765e934c2efe23a0e9f4c91dbe2f1bdf0502fc37802`.
+Actual original/direct provider qualification PASSes in **109.149 seconds**,
+with **311.688 MiB** peak worker RSS and exact retained/direct accounting.
+Child `dafdf6e871f0b77f9522bc84efb8b096d02eb1c789e59ec5e7de24596a2c1a78`;
+parent `585681da79224ddb1931c53e5f934c5beee1aaca487452ba8b284233aacbc40f`.
+Owned worker is reaped and its exact scratch cleaned; two control executions
+are qualification work, not new trials or a replay of either completed study.
+
+The source08 serial driver delegates to the unchanged original `_baseline`,
+scorer, shared samplers and direct-audit owner. **12 synthetic stdlib fixtures
+PASS** for source deltas, environment/native drift, exact recipes/budget,
+chronology, disjoint scratch and worker arguments. There are zero financial
+calls in that fixture lane; SHA256
+`a23cb1c91196b95ea915629dce132eb2799c764801e4e92cda8855104c0c1e11`.
+This does not qualify actual arms. Current context/recipe freeze and all three
+externally registered arms must close before B5/forward claims.
+
+The [common-panel selector-only checkpoint](M5_11_1_SELECTOR_ONLY.md#common-eligibility-control)
+remains usable: original 128 points, shared annual eligibility, raw/floor/Pareto
+choose the same RSI candidate; lower-tail differs. Bounded local coverage uses
+different support/eligibility and is not a full-panel local ranking. Do not
+relabel independent adaptive raw/floor studies as a selector-only contrast.
+No CI, push, release, PyPI upload or deployment is authorized.
