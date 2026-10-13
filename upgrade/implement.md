@@ -32925,6 +32925,21 @@ Run four original/direct accounts under the existing one-worker/one-thread,
 budget, including current-PID ownership and reviewed cleanup. It cannot add
 trials, choose a new vector or replace whole-procedure mutation certification.
 
+**Annual2024 Closed Receipt:** four original/direct accounts PASS exact
+accounting and fixed-signal prefix checks, without new search. Development
+raw/floor Sharpe stays 2.66281/2.01601; complete 2024 forward Sharpe is
+-0.12725/1.96208 and final equity is 19,291.31/27,696.76. Decay change is
+-2.73613; +9.89053-bps/day mean change has family-seven CI
+[-6.89309,+29.21918], so economics remains INCONCLUSIVE. This overlapping
+single origin and unavailable fills/campaigns do not certify independent OOS.
+Current software14 closes 221 tests/18 suites; software12/13 failures stay
+retained with zero finance and closed cleanup. Annual supervision is PASS,
+430.569 seconds / 1,427.05 MiB worker RSS, all children reaped, no resource
+stop and exact inactive scratch removed. See the [annual result and exact
+receipt hashes](../docs/mode5/M5_11_3_FORWARD_REPORT.md#annual-2024-integration).
+Proceed to a fresh Source09 seal for actual 2023/2025 prefix diagnostics and
+studies; do not rewrite this successful 2024 calibration/forward lineage.
+
 **Actual Primary Receipt (2026-10-13, Asia/Saigon):** five frozen vectors and ten
 original/direct forward accounts complete with exact accounting and fixed-signal
 suffix mutation parity. Software qualification passes 207 tests/17 isolated

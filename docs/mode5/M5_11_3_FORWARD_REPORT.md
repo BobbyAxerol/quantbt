@@ -105,11 +105,55 @@ and excluded from Git/package artifacts. No CI, push or release occurs.
 
 ## Remaining Registered Work
 
+### Annual 2024 Integration
+
+Annual 2024 is now technically closed using the exact original 2021--2023
+selected vectors and development accounts. No calibration/search is repeated.
+The scored window is [2024-01-01,2025-01-01), all 366 UTC days, with 2020
+indicator preload and an explicit fresh 20,000 account for each vector.
+
+| Frozen Arm | Development Sharpe | Annual Forward Sharpe | IS Minus Forward | Final Equity | Net Return |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Raw whole-Sharpe | 2.66281 | -0.12725 | 2.79006 | 19,291.31 | -3.54% |
+| Annual-floor | 2.01601 | 1.96208 | 0.05394 | 27,696.76 | +38.48% |
+
+Measured decay change is -2.73613: development Sharpe is lower by 0.64680
+and forward Sharpe is higher by 2.08933. Mean net improvement is +9.89053
+bps/day; the registered family-seven interval is [-6.89309,+29.21918]
+bps/day. Forward-Sharpe change interval is [-1.32942,+5.61646]; decay-change
+interval is [-6.61351,+0.99963]. Verdict remains INCONCLUSIVE, not a changed
+recipe or threshold. This is one origin and overlaps the primary two-year
+forward. Missing fill/campaign support remains explicit; dates already reviewed
+do not become independent OOS.
+
+Four actual original/direct accounts, source/input exit checks and fixed-signal
+future perturbations pass. The new source-only harness passes 221 tests across
+18 isolated suites. Source/transport fixture failures remain retained and have
+zero finance. Supervisor closes PASS in 430.569 s at 1,427.05 MiB peak worker
+RSS, including the full retained-lineage verification, not a kernel benchmark.
+All children are reaped; only registered inactive scratch is removed. The
+synthetic volume perturbation emits an existing pandas dtype FutureWarning;
+it does not change original market/account inputs and tested prefix signals
+still match. No full fit/search/rank mutation is certified by this run.
+
+Annual result SHA-256:
+`7f365290b3606d30f62c1bd8649093fa778b4a169932ae61327d4e56ae22ad37`;
+supervision:
+`21ca442dfcb5a70e47f9436b1538e9fd2a712a25350374d3a95a1e488fd9476a`;
+cleanup:
+`b7b7950c695340abebd13a01c8b1d524a70f1332d0231d8316df60d68c40e5b6`.
+Current software receipt:
+`b12643d1c41779b47659dc1e39a2c5163c13e0fc1d4518a6ec37aa076a4f2794`;
+software cleanup:
+`751edfae71c99acb64880a8ed296621256a7146cde8cd61812f7fba0be85acc0`.
+
+### Pending Prefix Work
+
 - Rebuild actual 2023/2025 prefix diagnostics and permitted recipes; do not
   transplant the 2024 dossier or import future objective values.
 - Execute each actual 256-trial prefix raw study and eligible floor study;
   preserve real DEFER/NO_SELECTION if the unchanged gate fails.
-- Run the registered complete-year 2023/2024/2025 fresh-account comparisons,
+- Run the remaining registered complete-year 2023/2025 fresh-account comparisons,
   keeping overlap/dependence and actual per-pair origin counts explicit.
 - Keep full fit/search/rank future-mutation certification separate from the
   already-passing projection and fixed-signal mutation checks.
