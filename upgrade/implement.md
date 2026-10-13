@@ -14,7 +14,8 @@ registered family-adjusted economics remains INCONCLUSIVE. Both new bounded
 prefix panels close 128 accounts each (20/3 eligible at 2023/2025), with
 original-provider qualification and supervised cleanup PASS. The 2023 freeze
 and separate zero-finance 2025 freeze recovery PASS; the failed aggregate stays
-FAIL_RETAINED. New 256-attempt prefix studies and annual forward remain pending.
+FAIL_RETAINED. New 256-attempt prefix studies are executing serially through
+the unchanged original owners; annual forward remains pending.
 This does not certify full diagnostics or whole-procedure mutation. See
 [forward report](../docs/mode5/M5_11_3_FORWARD_REPORT.md). Frozen inference
 registration keeps reviewed-history and dependent-origin limitations explicit.
@@ -33016,6 +33017,23 @@ call, and cannot choose params or a recipe. Register one serial cold worker,
 source/input pins at entry and exit, retain logs/failed receipts and remove
 only reaped owned scratch. Annual forward itself keeps its previously
 registered four-account / 3,600-second budget and original accounting owner.
+
+**New Handoff Qualification Registration:** qualify the isolated `annual02`
+metadata coordinator and `market02` witness in separate serial stdlib fixture
+workers, only after all current financial children close. Each fixture lane
+has zero finance, one software worker/thread, a 600-second total cap, 512-MiB
+RSS, 32-MiB retained and 24-MiB scratch caps, 5-GiB disk reserve and 1-GiB
+host-memory floor. Keep the original Source09/59-Python/software14 financial
+authority unchanged; new transport sources have a separate fixture receipt,
+not a replacement financial seal. Test both annual origins, genuine complete
+NO_SELECTION versus failed/partial/deferred studies, exact selected raw/floor
+checkpoint query IDs, typed account pins, failed aggregate preservation,
+market-witness hash/calendar binding and current-PID/zero-query metadata.
+Calendar-only fixtures prohibit account/search calls; actual witnesses remain
+a distinct zero-finance run. Keep every log/failure/source pin, reap all workers
+before deleting only each registered exact scratch. The original per-origin
+annual supervisor remains the only financial dispatcher; no new financial
+engine, bootstrap estimator, RNG, objective or full-mutation PASS is introduced.
 
 **Actual Primary Receipt (2026-10-13, Asia/Saigon):** five frozen vectors and ten
 original/direct forward accounts complete with exact accounting and fixed-signal
