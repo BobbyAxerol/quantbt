@@ -5,7 +5,7 @@
 **Current owner-requested planning amendment:** register exactly two additional
 phases before M5-12: [M5-11.4](#mode5-m5-11-4), full-development diagnostics and
 the researcher decision dossier; then [M5-11.5](#mode5-m5-11-5), diagnostic-guided
-recipe handoff and actual static Mode 5 calibration qualification. Both are
+recipe handoff and actual static Mode 5 calibration qualification.
 M5-11.4 is APPROVED / IN_PROGRESS under the owner's 2026-10-13 instruction;
 M5-11.5 remains PLANNED / IMPLEMENTATION_NOT_APPROVED.
 The requested current-calibration scope is 2020 through the latest verified
@@ -27432,7 +27432,8 @@ version or release. Current M5-11 work and its measured limits are recorded in
 the [broad diagnostics](#mode5-m5-11-1), [search/selection](#mode5-m5-11-2)
 and [forward/economics](#mode5-m5-11-3) sections. The owner-requested
 [full-development amendment](#mode5-full-development-decision-amendment) adds
-M5-11.4/11.5 as PLANNED / IMPLEMENTATION_NOT_APPROVED; M5-12 remains NOT_STARTED
+M5-11.4 as APPROVED / IN_PROGRESS and M5-11.5 as PLANNED /
+IMPLEMENTATION_NOT_APPROVED; M5-12 remains NOT_STARTED
 and awaits their reviewed dispositions. Preserve all historical study receipts.
 Read the
 [M5-01 exit review](../docs/mode5/M5_01_EXIT_REVIEW.md) and
@@ -27678,7 +27679,7 @@ Every phase below inherits this mandatory resource registration/cleanup exit.
 | [M5-11.1](#mode5-m5-11-1) | Broad five-alpha diagnostics and renewed dossier | M5-11 scope review; registered data/design/resource protocol | M5T-041..060 / 071..090 | Broad accounts and bounded native B2/dossiers technically PASS; 640 discovery accounts, 348 native probes; scientific limitations retained |
 | [M5-11.2](#mode5-m5-11-2) | Actual adaptive formal search and selector comparisons | Reviewed M5-11.1 dossier; new sealed plans | M5T-091..103 / EH-01..05 | Raw256/floor256 audited and recovered; selector-only complete; three new sampler256 arms and cold matched comparison PASS; historical failures retained |
 | [M5-11.3](#mode5-m5-11-3) | Multi-origin fixed-policy transfer and economic qualification | Frozen M5-11.2 outputs and prefix studies | M5T-101..110 / EH-06..12 | Registered bounded diagnostics, four prefix256 studies, primary and annual2023/2024/2025 accounts COMPLETE; original/direct accounting, custody and cleanup PASS; all economics INCONCLUSIVE; full-procedure mutation NOT_RUN, broader diagnostic disposition pending |
-| [M5-11.4](#mode5-m5-11-4) | Full 2020--2026 development profiling, missing diagnostics and readable researcher dossier | Separate phase approval; exact data/readiness and reuse inventory | M5D-01..10; guide M5T-031..090 | PLANNED / IMPLEMENTATION_NOT_APPROVED |
+| [M5-11.4](#mode5-m5-11-4) | Full 2020--2026 development profiling, missing diagnostics and readable researcher dossier | Owner approved; exact data/readiness and reuse inventory | M5D-01..10; guide M5T-031..090 | APPROVED / IN_PROGRESS |
 | [M5-11.5](#mode5-m5-11-5) | Evidence-guided sampler/selector decisions, static calibration and measured handoff | Reviewed M5-11.4 dossiers; separate phase approval | M5C-01..10; guide M5T-061..110 | PLANNED / IMPLEMENTATION_NOT_APPROVED |
 | [M5-12](#mode5-m5-12) | Local qualification/docs/handoff | M5-01..11 plus M5-11.4/11.5 dispositions reviewed | M5T-111..120 | NOT_STARTED; waits for supplementary decision-support scope |
 
@@ -33430,8 +33431,9 @@ automatic recipe router, alpha rewrite, release version or deployment action.
 Read-only provider inventory finds BTC/ETH hourly data from 2020-01-01 through
 2026-10-06 02:00 UTC; the last complete day is 2026-10-05. No pre-2020 input is
 available from this local provider. Per-alpha/common-candidate readiness and
-the exact unsupported initial prefix must be measured and retained; no complete
-2020-start certificate is implied. Current disk has about 16 GiB available,
+the exact unready initial prefix remain measured source witnesses. Owner approved
+scoring from 2020-01-01 with original strategy warmup flat, separately disclosed;
+this approval is not a completed-account certificate. Current disk has about 16 GiB available,
 with at least 5 GiB reserved; use existing tooling/native artifacts and bounded
 independent workers. Freeze exact counts/paths in the private registration
 before financial launch. Scope stays diagnostics; M5-11.5 is not activated.
@@ -33604,6 +33606,41 @@ remove only inactive reproducible scratch after hash verification.
 sanitized evidence summaries and plan progress; local commits only.
 **Rollback:** disable new diagnostic views/renderer and keep previous dossier
 versions readable; preserve original alpha/core contracts and all attempts.
+
+**Implementation Progress (2026-10-13 UTC; not an exit receipt):**
+- Readiness/scope inventory is sealed before financial outcomes. ETH/BTC end
+  at 2026-10-06 exclusive; available prehistory starts 2020-01-01. Owner
+  approved January 1 scoring with original per-candidate warmup flat and
+  disclosed separately. Append-only `registration-Jan1.json` / `work-Jan1.json`
+  bind 59,280 bars / 2,470 complete UTC days for every alpha. Original common
+  readiness witnesses remain retained; no pre-2020 history is manufactured.
+  The five-cell old-convention pilot passed; the interrupted old panel retained
+  ten additional completed cells. Those fifteen accounts are not January-start
+  financial evidence. The interrupted parent has no closed supervision receipt;
+  host process readback found no surviving research workers. No other service
+  was stopped. New full accounts, not concatenation, are required.
+- Registered work has 640 full-scope discovery cells, 249 signed/grid/category/
+  coupled probes at two outcome-blind centers, ten actual 2x-fee stress cells
+  and 320 RSI independent A/B/cross cells (N=32, D=8). This is 1,219 planned
+  cells, not 1,219 completed accounts. Old accounts remain immutable and do not
+  supply new full-span financial results. No optimization study is launched.
+- New estimator bindings pass independent additive/interacting/constant,
+  complete-row/branch/convergence and joint-resampling oracles. Ordinary-panel
+  associations remain conditional finite-panel screening, not global Sobol.
+  Global decomposition for the other four alphas is NOT_RUN, not zero effect.
+- Cold report reader validates six views, immutable source values and masks,
+  deterministic rendering, adverse/null rows and public redaction. Daily state
+  attribution preserves continuous PnL/cost and causal/descriptive namespaces.
+- Focused main suite: 172 PASS before the seven added structured-completion
+  tests, 179 PASS including them; geometry plus focused regressions: 155 PASS. Private
+  current-scope adapter: 24 PASS with zero finance in tests. Actual full-span
+  pilot is a separately supervised financial step; its status is not implied by
+  these software checks. Reuse qualified native binary and existing tooling;
+  no build, push, CI, version change or publication.
+- Resource caps: four workers maximum, pilot two, one numeric thread each,
+  2 GiB RSS per worker, 2 GiB additional retained evidence and >=5 GiB reserve.
+  Pilot original index zero per alpha, 1,800-second per-cell cap. Preserve
+  incomplete/failed cells, measure pilot cost before bulk scheduling.
 
 <a id="mode5-m5-11-5"></a>
 ### Phase M5-11.5 - Diagnostic-Guided Mode 5 Calibration And Decision Qualification
