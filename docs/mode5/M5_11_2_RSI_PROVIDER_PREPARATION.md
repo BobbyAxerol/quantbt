@@ -507,6 +507,10 @@ records owner-approved headroom recovery without changing scientific contracts.
 
 ## Floor 256 Financial Work And Open Outer Receipt Gate
 
+**Current disposition:** the historical export failure below is retained, but
+the separate [cold recovery](#cold-receipt-recovery-without-financial-replay)
+now closes the receipt integration gap. The old supervisor is not relabelled.
+
 Corrected attempt04 has completed 256 COMPLETE / 256 unique effective proposals
 on the original 2020 preload and continuous 2021--2023 scoring contract. Its
 durable inner receipt is valid JSON and records `SELECTED_REPLAY_VERIFIED`,
@@ -566,6 +570,53 @@ original RSI ledger; no position-regime count is relabelled as those units.
 | Exact selected final/direct paths | `69d251233e4d28969d34c75833a3e79b910ce59fd910056c59b7c790330015bd` |
 | Failed supervising parent | `6458c2ddd12d3fbce7cf8263baffc55b64fbd84a83648e51cd9c24cb985954c9` |
 | Cleanup only | `bb5cd449794f9b404028063c371e58ca2797c60084f397bf937d0a4f897ff249` |
+
+## Cold Receipt Recovery Without Financial Replay
+
+Final reviewed revision06 passes 37 focused fixtures and actual cold recovery.
+It verifies all 785 retained artifact pins and 4,650 original financial source
+pins at entry/exit, 256 ordered COMPLETE checkpoints, 256 unique effective
+executions, their immutable account links, the original selected vector and
+the byte-identical selected/direct NPZ containers. All 259 original account
+invocations remain historical; recovery adds **zero accounts, trials or RNG
+draws**. No pickle is loaded and no alpha/provider/optimizer is invoked.
+
+The new receipt has `PASS_COLD_RECOVERED_FLOOR_256`, with 127 eligible trials.
+It explicitly records that the original worker's outer exit receipt was not
+durable: source custody is freshly checked by the cold reader, not retroactively
+invented. All historical FAIL and partial JSON bytes remain unchanged.
+
+Checkpoint rows precede the runtime's terminal display-Sharpe reconciliation.
+Recovery verifies the exact original enrichment from retained annual/whole
+observations, including the one-ULP difference between trial NumPy addition and
+terminal Python 3.12 compensated summation. Objective, components, params,
+metrics and gates do not change; no relaxed numeric tolerance is introduced.
+Nested date/Timestamp export is tested, nonfinite/unsupported values rejected,
+and output publication is atomic and refuses overwriting historical receipts.
+
+| Proof | Result |
+|---|---|
+| Recovery fixtures | 37 passed; 18.384 s controller / 182.512 MiB peak RSS |
+| Actual cold recovery | 10.561 s controller / 368.359 MiB peak RSS |
+| Recovered receipt SHA-256 | `e4b86ba2faf6a88b429a4a3fb39a3bf5fea7b3dc2fe8e85c271e04afc37062d0` |
+| Controller SHA-256 | `26f6e90076733eab4efd8e9a7e3456aa3d2976000faf992c56965b8db3aa7ffe` |
+| Cleanup SHA-256 | `0f0f814baada0ec142ad2eead11c0274ea77ed1bf59965e46613a4c0be7b7e1e` |
+
+Earlier cold attempts remain separately scoped with cleanup and source
+snapshots. Revision04 PASS (`2819f4adced80fba6d3b97cd624432637f847aac57536e8b4ab05937af81fdba`)
+is retained; review then strengthened canonical params/geometry digests,
+sidecar/outcome/request/account-roster linkage, selected-trial replay linkage,
+complete input exit checks and directory fsync. Revision05's fixture failure
+is retained and corrected before final proof. They repeated no financial work.
+All owners are reaped; only exact
+registered pytest scratch and its internal `current` links are removed. Evidence,
+logs, source and environments remain. Net filesystem delta for revision04 is
+-90,112 bytes for final revision06 after retaining receipts, not a disk saving.
+
+Sampler-only B5 must explicitly bind this new recovery receipt and its current
+consumer source revision. It must not treat the old FAIL supervisor as PASS or
+use this local recovery as forward/economic qualification. Sampler-only studies,
+prefix-forward comparisons and M5-12 remain distinct pending work.
 
 No research worker remains active. Three fresh sampler-only arms, native B2/
 dossier integration, prefix-forward economics and M5-12 qualification have not

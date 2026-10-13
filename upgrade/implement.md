@@ -2,6 +2,13 @@
 
 ## Current Mode 5 Diagnostics-First Upgrade - M5-11.1 Broad Diagnostics
 
+**Current Narrowed Action (2026-10-13, Asia/Saigon):** close only the two
+owner-approved integration gaps: recover the completed challenger outer receipt
+from immutable terminal evidence, then correct native B2 metric observation
+counts and rebuild three dossiers. No new trial, account, sampler arm, forward
+study, CI or release is part of this action. Historical FAIL/partial receipts
+remain unchanged. See [registered cold closure](#mode5-two-gap-cold-closure).
+
 **Current Action (2026-10-12, Asia/Saigon):** owner approves ordered local closure
 of M5-11.1, M5-11.2, M5-11.3 and M5-12. Execute missing accounts and complete
 their diagnostic/probe consumers first; then qualify the versioned continuous
@@ -88,7 +95,13 @@ Supervisor `6458c2ddd12d3fbce7cf8263baffc55b64fbd84a83648e51cd9c24cb985954c9`
 remains FAIL_RETAINED, not PASS. All workers are reaped and cleanup passes.
 Preserve the completed inner receipt/checkpoints and old failures; cold
 source-bound receipt recovery is required, not another 256-trial financial run.
-No RSI worker remains active. The unchanged-source B5 arms, native B2/dossiers,
+**Current receipt closure (2026-10-13):** separate cold revision04 PASSes all
+785 retained pins, 4,650 original source pins and 256 ordered COMPLETE trials;
+selected/direct bytes and original metrics stay unchanged. 29 fixtures pass;
+recovery adds no finance/search/RNG. Final reviewed recovered receipt
+`e4b86ba2faf6a88b429a4a3fb39a3bf5fea7b3dc2fe8e85c271e04afc37062d0`;
+historical supervisor remains FAIL. No RSI worker remains active. B5 arms
+must explicitly rebind the current consumer/recovered receipt; native B2/dossiers,
 prefix-forward economics and M5-12 remain pending.
 See
 [current preparation](../docs/mode5/M5_11_2_RSI_PROVIDER_PREPARATION.md#source-07-dossier-preparation).
@@ -32575,6 +32588,104 @@ remains blocked until that recovery is certified; no financial rerun is needed
 merely to rewrite the wrapper. The original failed 49-prefix and repeated work
 remain separate. Inspection verifies 259 retained terminal-trial/result/path
 pins without replay. See [completed financial work and open wrapper gate](../docs/mode5/M5_11_2_RSI_PROVIDER_PREPARATION.md#floor-256-financial-work-and-open-outer-receipt-gate).
+
+<a id="mode5-two-gap-cold-closure"></a>
+#### M5-11 Cold Closure - Challenger Receipt And Native B2 Units
+
+**Status:** APPROVED / IN_PROGRESS; two integration fixes only.
+**Goal:** certify completed financial work without repeating 256 trials, and
+consume bar/daily observations with their existing units, rights and gates.
+**Detailed Guide:** [5.1 metric contracts](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#51-metriccontract-trước-công-thức-tối-ưu),
+[4.9 batteries](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#49-multi-hypothesis-empirical-battery-giữ-năm-chiều-làm-rõ-mỗi-phép-thử),
+[7.2 evidence reuse](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#72-computationoutput-plan-và-cache),
+[7.3 resources](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#73-resource-plan-và-tốc-độ-không-làm-hỏng-methodology)
+and [M511.02/03/06](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#phase-m5-11--formal-calibration-pilot-independent-checks-và-economic-inference).
+**To-Do / Tests:**
+1. Before changing public sources, verify the closed source07 manifest, exact
+   failed parent/log/cleanup and complete inner result; verify all retained
+   checkpoints, ordered 256 COMPLETE states, distinct effective points and
+   selected-query/direct account parity. Recover into a disjoint receipt with
+   explicit zero new financial/search/RNG invocations. Reject missing, modified,
+   truncated or inconsistent evidence. Never relabel the old FAIL as PASS.
+2. Add focused receipt recovery/export fixtures, including nested datetime
+   normalization, atomic output, terminal-budget/identity/count discrepancies
+   and custody failure. Do not import a financial provider to recover JSON.
+3. Correct only native probe consumer expectations: utility/net return/drawdown
+   use actual bar counts; Sharpe/daily ES use daily counts. Positive fixtures
+   preserve exact views; negative fixtures reject both swapped units for every
+   environment and role. Retain original support/eligibility thresholds.
+4. Use a new assembler/source revision for HMA/HASH/VWAP, consuming all 348
+   already admitted probes and their 128-account discovery panels. Verify B1/B3,
+   all six matrices, role separation, unchanged metrics and negative decisions;
+   no account replay or held-probe promotion. Preserve failed assembly lanes.
+5. Reconcile current plan/reports, record exact proof/cleanup hashes and commit
+   each verified coherent change. Old source07 stays a historical financial
+   qualification; any future B5 launch must bind the new consumer revision and
+   the recovered floor receipt explicitly rather than reuse stale source seals.
+**Resources / Cleanup:** reuse the retained tooling environment; serial cold
+receipt recovery <=1800 seconds / 1-GiB RSS / 64-MiB retained; focused fixtures
+<=300 seconds / 1-GiB RSS / 32-MiB retained; serial dossier assembly <=1800
+seconds / 2-GiB RSS / 512-MiB retained per alpha. One numeric thread, >=1-GiB
+host memory floor and >=5-GiB disk reserve. Exact disposable scratch is only
+`upgrade/local/mode5_upgrade_v1/m5-11-2/receipt-recovery01/scratch` and
+`upgrade/local/mode5_upgrade_v1/m5-11-1/unit-closure01/scratch`; register any
+additional owned child scratch before launch. Retain all source, prior/fresh
+evidence, logs, receipts, dependencies and artifacts. Reap owners, verify hashes,
+then remove only reviewed inactive scratch and record actual disk delta.
+**Exit Gate:** separate recovered receipt PASS with immutable originals and
+exact selected/direct parity; corrected count regression PASS; three native
+B2/dossiers rebuilt and independently verified with unchanged scientific gates.
+No claim that sampler-only, prefix-forward or M5-12 is complete.
+
+**Cold Attempt-01 Disposition:** 24 synthetic fixtures pass, but actual cold
+recovery correctly refuses literal early/terminal row equality: the existing
+runtime enriches three display Sharpe fields after search. Revision 02 must
+reproduce that exact enrichment from retained whole/annual observations, while
+requiring every objective/component/params/account field unchanged. No financial
+rerun or gate relaxation. Preserve attempt-01 FAIL and source snapshots; its
+cleanup also explicitly removes only pytest-owned `current` links within its
+registered disposable scratch. Register revision-02 scratch at the same relative
+`receipt-recovery02/scratch`, with the original time/RSS/disk budget unchanged.
+Revision-02 retains 27 passing fixtures and one failing error-order assertion;
+no actual recovery/finance launched. Its source snapshots and cleanup remain.
+Revision-03 checks ordered trial identity before display enrichment and uses
+`receipt-recovery03/scratch` with the same budget, without relaxing either check.
+Revision-03 passes all 28 fixtures but detects original one-ULP display
+differences: the trial's three-value NumPy mean is left-to-right, while terminal
+Python 3.12 `sum` is compensated. Revision-04 reproduces both exact original
+operations (no tolerance change), adds a witnessed three-value fixture and uses
+`receipt-recovery04/scratch` under the same budget. Original metrics stay intact;
+all recovery failures and source snapshots remain retained with cleanup.
+
+**Receipt Gap Exit:** revision04 closes the cold recovery gate: 29 fixtures
+PASS (11.363 controller seconds / 88.082-MiB peak RSS), actual recovery PASS
+(9.352 seconds / 231.461-MiB peak). All 785 retained pins and 4,650 financial
+source pins verify at cold entry/exit; 256 ordered trials/unique points and
+original selected/direct bytes agree. Original worker exit-custody serialization
+was not durable and is not invented; the cold reader explicitly rechecks source.
+Recovered receipt `2819f4adced80fba6d3b97cd624432637f847aac57536e8b4ab05937af81fdba`,
+controller `4a5d602db85f449646c79934faf0f7ff9ce7dea4ef3af0b445a6b938fc3b15bd`,
+cleanup `3ff04baf9ba5387843c1aef8af47ab074f8844142bad759419a0be04a05d0209`.
+Historical FAIL/partial files unchanged, zero fresh financial/search/RNG work,
+owners reaped and only registered scratch removed. Native count gap is next.
+**Independent Review Hardening:** before final handoff, revision05 also verifies
+canonical effective-vector/geometry digests, complete sidecar/outcome/request
+identity and account-retention roster, selected-trial/replay linkage and every
+entry input again at exit. Atomic publication fsyncs the directory. This does
+not indicate corruption of revision04's actual inputs or add financial work.
+Register `receipt-recovery05/scratch` with the same bounded resource/cleanup plan.
+Revision05 retains 36 PASS / one error-order assertion failure with cleanup;
+no actual recovery launched. Revision06 tests identity order before canonical
+digest validation; register `receipt-recovery06/scratch`, unchanged budget.
+**Final Receipt Gap Gate:** reviewed revision06 PASSes all 37 fixtures
+(18.384 controller seconds / 182.512-MiB peak) and actual cold proof
+(10.561 seconds / 368.359-MiB peak). Recovery
+`e4b86ba2faf6a88b429a4a3fb39a3bf5fea7b3dc2fe8e85c271e04afc37062d0`,
+controller `26f6e90076733eab4efd8e9a7e3456aa3d2976000faf992c56965b8db3aa7ffe`,
+cleanup `0f0f814baada0ec142ad2eead11c0274ea77ed1bf59965e46613a4c0be7b7e1e`.
+All historical FAIL/PASS bytes retained; source07's 4,650 pins and original
+785 artifacts verify. No new accounts/trials/RNG. Scoped scratch removed and
+all workers reaped. Old source07 is not certification of the next consumer edit.
 
 <a id="mode5-m5-11-3"></a>
 ### Phase M5-11.3 - Multi-Origin Fixed-Policy Transfer And Economic Qualification
