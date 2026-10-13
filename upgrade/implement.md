@@ -32831,15 +32831,18 @@ rebuild the complete allowed-prefix procedure for origins2023/2025.
 Register seven mean-return contrasts: primary floor versus raw, three primary
 raw-objective sampler versus legacy contrasts, and annual-origin floor versus
 raw at each of 2023/2024/2025. Keep the existing paired circular-block producer,
-7-day blocks, 1,024 draws, seed731, 99% family confidence, Bonferroni family
+7-day blocks, **16,384 draws** (owner-approved amendment before new forward
+outcomes on 2026-10-13), seed731, 99% family confidence, Bonferroni family
 size7, 0.5-bps net account/day business hurdle, 365-day minimum and measured
 30-fill/20-closed-campaign support where available. Per-horizon calls honestly
 have one origin; do not feed pooled/overlapping paths as three independent
 origins. Report development/forward quality separately from decay, with
 fixed-path intervals only. At this expanded family the expected draws per
-extreme tail are <1: disclose Monte-Carlo resolution and keep inferential
-promotion INCONCLUSIVE where resolution/support is inadequate. Do not silently
-change the approved draw count/estimator, fill missing RSI ledger support,
+extreme tail were <1 with the historical 1,024 draws; the approved 16,384
+draws give approximately 11.7 draws per extreme tail. Report Monte-Carlo
+resolution and keep inferential promotion INCONCLUSIVE where support is
+inadequate. Preserve historical inference receipts; do not change the
+estimator, fill missing RSI ledger support,
 retune params or treat retrospective reviewed history as untouched OOS.
 Register each prefix's exact diagnostics/probes/search resources and source
 qualification before financial launch. Software adapters alone do not close
