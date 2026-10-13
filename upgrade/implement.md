@@ -32957,6 +32957,33 @@ fit-search mutation certification. The 2023 plan freeze, 2025 panel/freeze,
 new 256-attempt prefix studies and remaining annual forward are still pending.
 No gate, market, alpha, source code, RNG or scientific recipe is changed.
 
+**Source09 Attempt04 Freeze-Only Recovery Registration:** both actual prefix
+panels are now closed: 128/128 each, eligibility 20/128 at origin2023 and 3/128
+at origin2025. Their original-provider qualification, source/input exit checks,
+supervision and exact scratch cleanup PASS. The aggregate controller remains
+FAIL_RETAINED (`6906dec1539473c6bf01202f4a8e3e844e9979664907e819a617097b536c0bc4`):
+its final 2025 freeze tries to read the 12,945,373-byte dossier through the
+default 8-MiB metadata reader. No search or forward was launched; every owned
+child is reaped and the failed freeze scratch is removed. Preserve that failure
+and every completed financial account. Diagnostic2025 SHA256
+`6948a2b1ffe5596141d898e4cb7c455b1eb41336df9b2b5d77da448ee9234671`;
+supervision/cleanup `e8c26a10025788c508ad73a700e5d16fd57fc071f94646b06e4b58feb33bcd2f`;
+failed-freeze supervision `0cd95a7b31529f67a85e00c9552ac51e17d6e62524a59296e04d9432a9069b43`.
+
+Recover only the missing cold freeze, with an explicit 64-MiB dossier read,
+unchanged canonical plan/reason, original governance calls and zero queries,
+accounts, optimizer instances or RNG draws. Leave every Source09 Python/body
+and receipt byte unchanged; qualify any new transport coordinator separately
+and preserve its explicit lineage to the failed aggregate, not a fabricated
+PASS for that aggregate. Reuse the original query/financial owners and original
+supervision/cleanup APIs for later separately authorized prefix studies. Before
+launch, register one worker/thread, a 600-second / 2-GiB cold-freeze cap,
+192-MiB scratch cap, 5-GiB disk reserve, 1-GiB host-memory floor, exact fresh
+output paths and cleanup inventory. Test oversized valid dossiers, unchanged
+default metadata bounds, pin/role/plan/custody mismatch, zero-work recovery,
+historical FAIL retention and current-PID slots. Do not rerun either 128-account
+panel or alter math/gates to repair a JSON transport failure.
+
 **Actual Primary Receipt (2026-10-13, Asia/Saigon):** five frozen vectors and ten
 original/direct forward accounts complete with exact accounting and fixed-signal
 suffix mutation parity. Software qualification passes 207 tests/17 isolated

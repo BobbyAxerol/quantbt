@@ -159,11 +159,25 @@ the registered inactive scratch is removed. Diagnostic SHA-256:
 supervision and cleanup SHA-256:
 `840c1599261199748641ed9e0823742e0731802f2bfbac93e8594b4620bf591d`.
 This is bounded raw/annual-floor evidence, not full geometry/probe certification
-or diagnostics-fit/search/rank mutation qualification. The 2025 panel and both
-plan freezes are not certified by this checkpoint.
+or diagnostics-fit/search/rank mutation qualification.
 
-- Complete the actual 2025 prefix panel and freeze both permitted recipes;
-  do not transplant the 2024 dossier or import future objective values.
+The 2025 panel subsequently closes 128/128 accounts and 3/128 eligible, with
+original-provider qualification and source/input entry/exit checks. Its stage
+supervision and cleanup PASS; diagnostic SHA-256:
+`6948a2b1ffe5596141d898e4cb7c455b1eb41336df9b2b5d77da448ee9234671`;
+supervision/cleanup:
+`e8c26a10025788c508ad73a700e5d16fd57fc071f94646b06e4b58feb33bcd2f`.
+The 2023 freeze also passes, but the final 2025 freeze rejects its 12,945,373-byte
+dossier at the default 8-MiB metadata-reader bound. The aggregate remains
+FAIL_RETAINED; all owned workers are reaped and failed scratch is cleaned.
+Aggregate SHA-256:
+`6906dec1539473c6bf01202f4a8e3e844e9979664907e819a617097b536c0bc4`.
+This is a transport failure, not missing financial accounts or an economic gate
+failure. Register a cold-only, source-preserving recovery; do not repeat either
+completed panel or relabel the failed aggregate as PASS.
+
+- Recover the missing 2025 cold plan freeze from its actual closed panel;
+  preserve the successful 2023 freeze and original Source09 hashes.
 - Execute each actual 256-trial prefix raw study and eligible floor study;
   preserve real DEFER/NO_SELECTION if the unchanged gate fails.
 - Run the remaining registered complete-year 2023/2025 fresh-account comparisons,
