@@ -655,3 +655,42 @@ choose the same RSI candidate; lower-tail differs. Bounded local coverage uses
 different support/eligibility and is not a full-panel local ranking. Do not
 relabel independent adaptive raw/floor studies as a selector-only contrast.
 No CI, push, release, PyPI upload or deployment is authorized.
+
+## Current Freeze And Serial Studies
+
+The source08 actual preparation and freeze are closed, with zero financial
+or search dispatch. Freeze takes **251.403 seconds**, reuses the actual
+three-eligible RSI diagnostic decision, and does not import old observations
+as optimizer trials. Current freeze child
+`d28465ecbabe826950d6085d4cfe98096682adf256e8c2523ddfa73846bda779`;
+parent `b3b28ba6d2b044f6cc72f8d90395b8c01260ed4df4a31dcb35fe92aeab12d20e`.
+Owned scratch is cleaned after source entry/exit verification and worker reaping.
+
+The first source08 metadata preflight fails before financial import because
+the retained raw-control parent has a different, valid recovery-specific status.
+That failed preflight remains immutable, SHA256
+`acccc6a565cb90c19fe11395556864b39bbf0c387be6cedbd0377a2eb14b1235`.
+The append-only dispatcher correction admits that exact completed recovery
+receipt, not its failed predecessor. Review also adds explicit custody of the
+unchanged original financial-owner code and inherited control pins, including
+live checks. Final generation passes **16 stdlib-only fixtures**, SHA256
+`958545a3687b6f806ebc5ab6bd54a638171d41065716c4ddadec8dec6b6793b9`.
+Real metadata preflight for all three arms passes with zero finance, SHA256
+`c977f55d2b8d12233e5373662f2878985b8da44497cd17f45e83818476818d23`.
+
+All three new arms are now externally registered for sequential execution:
+multivariate/group TPE, CMA-ES and scrambled Sobol, each **256 attempts**, seed731,
+same original raw whole-account Sharpe, full static numeric geometry, economics,
+development dates and selection. Early stopping and warm starts remain absent.
+Startup, independent/relative calls, integer projection, collisions and completed
+versus failed/pruned work must be read from the actual sampler ledger.
+Registration is not completion; financial receipts and cleanup precede B5 claims.
+The historical raw study contains reused accounts and is not a matched fresh
+wall-time baseline for the three fresh arms.
+
+Forward is separately preregistered in the [unified plan](../../upgrade/implement.md#mode5-m5-11-3).
+All vectors must freeze before forward values are opened. Its family includes
+primary floor/raw, three secondary sampler contrasts and three annual-origin
+contrasts. Reviewed historical data, overlapping horizons, explicit fresh
+accounts, absent accepted-fill/campaign support and finite bootstrap-tail
+resolution remain visible. No forward-driven recipe choice is permitted.

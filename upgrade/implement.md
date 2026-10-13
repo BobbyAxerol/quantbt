@@ -5,7 +5,10 @@
 **Current Continuation (2026-10-13, Asia/Saigon):** owner now approves the ordered
 M5-11.1/11.2/11.3 continuation below, including three new matched sampler arms
 and registered forward/origin work. Source08 custody and original/direct
-provider qualification PASS; current context/recipe freeze precedes finance.
+provider qualification and current context/recipe freeze PASS. Three fresh
+256-attempt arms are registered and running serially; their software custody
+gate passes 16 tests. Primary/prefix forward has not started. Frozen inference
+registration keeps reviewed-history and dependent-origin limitations explicit.
 See [registered continuation](#mode5-m5-11-2). No CI or publication.
 
 **Previous Narrowed Action (2026-10-13, Asia/Saigon):** both owner-approved
@@ -32812,6 +32815,35 @@ prefix-forward economics, installed artifacts and release are NOT certified here
 
 <a id="mode5-m5-11-3"></a>
 ### Phase M5-11.3 - Multi-Origin Fixed-Policy Transfer And Economic Qualification
+
+**Current Inference Registration Before Forward (2026-10-13, Asia/Saigon):**
+keep the registered annual-floor legacy-TPE recipe as primary challenger,
+raw whole-Sharpe legacy-TPE as primary baseline. The three new raw-objective
+sampler arms are separate secondary contrasts; no forward-driven sampler or
+recipe choice. Primary scored development is [2021-01-01,2024-01-01), forward
+[2024-01-01,2026-01-01). Annual origins retain development from 2021 through
+the origin (2023/2024/2025), then that complete UTC forward year. All use 2020
+indicator preload, original economics, frozen effective vectors and explicit
+fresh forward accounts; no emulated continuous carry or annual account resets.
+Reuse origin2024 calibration only through qualified identical-scope lineage;
+rebuild the complete allowed-prefix procedure for origins2023/2025.
+
+Register seven mean-return contrasts: primary floor versus raw, three primary
+raw-objective sampler versus legacy contrasts, and annual-origin floor versus
+raw at each of 2023/2024/2025. Keep the existing paired circular-block producer,
+7-day blocks, 1,024 draws, seed731, 99% family confidence, Bonferroni family
+size7, 0.5-bps net account/day business hurdle, 365-day minimum and measured
+30-fill/20-closed-campaign support where available. Per-horizon calls honestly
+have one origin; do not feed pooled/overlapping paths as three independent
+origins. Report development/forward quality separately from decay, with
+fixed-path intervals only. At this expanded family the expected draws per
+extreme tail are <1: disclose Monte-Carlo resolution and keep inferential
+promotion INCONCLUSIVE where resolution/support is inadequate. Do not silently
+change the approved draw count/estimator, fill missing RSI ledger support,
+retune params or treat retrospective reviewed history as untouched OOS.
+Register each prefix's exact diagnostics/probes/search resources and source
+qualification before financial launch. Software adapters alone do not close
+actual prefix diagnostics, dossier, search or forward gates.
 
 **Status:** APPROVED / NOT_RUN; execution follows M5-11.2, no independent-forward
    certification promised.
