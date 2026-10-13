@@ -9,7 +9,10 @@ provider qualification and current context/recipe freeze PASS. Three fresh
 256-attempt arms are complete with exact selected/direct parity and reaped,
 closed cleanup. Cold matched-budget comparison PASSes without new finance;
 see [actual sampler report](../docs/mode5/M5_11_2_MATCHED_SAMPLER_REPORT.md).
-Primary/prefix forward has not started. Frozen inference
+Primary 2024--2025 forward PASSes original/direct accounting for ten accounts;
+registered family-adjusted economics remains INCONCLUSIVE. New 2023/2025
+prefix diagnostics are in progress, not certified. See
+[forward report](../docs/mode5/M5_11_3_FORWARD_REPORT.md). Frozen inference
 registration keeps reviewed-history and dependent-origin limitations explicit.
 See [registered continuation](#mode5-m5-11-2). No CI or publication.
 
@@ -27636,7 +27639,7 @@ Every phase below inherits this mandatory resource registration/cleanup exit.
 | [M5-11](#mode5-m5-11) | Formal calibration and scoped economics | M5-10 plus authorized adequate data | M5T-101..110 | REOPENED_RESEARCH_COVERAGE; original finite pilot preserved |
 | [M5-11.1](#mode5-m5-11-1) | Broad five-alpha diagnostics and renewed dossier | M5-11 scope review; registered data/design/resource protocol | M5T-041..060 / 071..090 | Broad accounts and bounded native B2/dossiers technically PASS; 640 discovery accounts, 348 native probes; scientific limitations retained |
 | [M5-11.2](#mode5-m5-11-2) | Actual adaptive formal search and selector comparisons | Reviewed M5-11.1 dossier; new sealed plans | M5T-091..103 / EH-01..05 | Raw256/floor256 audited and recovered; selector-only complete; three new sampler256 arms and cold matched comparison PASS; historical failures retained |
-| [M5-11.3](#mode5-m5-11-3) | Multi-origin fixed-policy transfer and economic qualification | Frozen M5-11.2 outputs and prefix studies | M5T-101..110 / EH-06..12 | APPROVED; expanded forward tests NOT_RUN |
+| [M5-11.3](#mode5-m5-11-3) | Multi-origin fixed-policy transfer and economic qualification | Frozen M5-11.2 outputs and prefix studies | M5T-101..110 / EH-06..12 | Primary 2024--2025 accounting PASS; economics INCONCLUSIVE; actual 2023/2025 prefix diagnostics in progress; annual studies/forward remain pending |
 | [M5-12](#mode5-m5-12) | Local qualification/docs/handoff | M5-01..11 dispositions reviewed | M5T-111..120 | NOT_STARTED |
 
 Respect the guide dependency graph. M5-05 and independent M5-06 preparation
@@ -32836,6 +32839,19 @@ prefix-forward economics, installed artifacts and release are NOT certified here
 <a id="mode5-m5-11-3"></a>
 ### Phase M5-11.3 - Multi-Origin Fixed-Policy Transfer And Economic Qualification
 
+**Actual Primary Receipt (2026-10-13, Asia/Saigon):** five frozen vectors and ten
+original/direct forward accounts complete with exact accounting and fixed-signal
+suffix mutation parity. Software qualification passes 207 tests/17 isolated
+workers. Primary supervision and reviewed cleanup PASS in 118.312 seconds /
+327.26 MiB. Annual-floor forward equity is 26,926.69 versus raw 19,894.62;
+forward Sharpe 0.93789 versus 0.05875. Measured decay improves 2.60406 ->
+1.07812, partly from lower IS and partly from higher forward quality. All four
+family-adjusted paired comparisons remain INCONCLUSIVE; no recipe is chosen
+using these outcomes and no missing ledger support is invented.
+See [results, uncertainty, custody and pending gates](../docs/mode5/M5_11_3_FORWARD_REPORT.md).
+Actual new-prefix diagnostics/search/forward and full fit/search/rank mutation
+remain required separately; this is not whole-phase or independent-OOS PASS.
+
 **Current Inference Registration Before Forward (2026-10-13, Asia/Saigon):**
 keep the registered annual-floor legacy-TPE recipe as primary challenger,
 raw whole-Sharpe legacy-TPE as primary baseline. The three new raw-objective
@@ -32868,7 +32884,8 @@ Register each prefix's exact diagnostics/probes/search resources and source
 qualification before financial launch. Software adapters alone do not close
 actual prefix diagnostics, dossier, search or forward gates.
 
-**Status:** APPROVED / NOT_RUN; execution follows M5-11.2, no independent-forward
+**Status:** IN_PROGRESS / PRIMARY_FORWARD_ACCOUNTING_PASS / ECONOMICS_INCONCLUSIVE;
+   new prefix work follows M5-11.2, no independent-forward
    certification promised.
 **Goal:** test the entire diagnostic -> recipe -> search -> selection procedure
    over long forward horizons, not just bootstrap one already chosen curve.
