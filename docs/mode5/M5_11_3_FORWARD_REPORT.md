@@ -2,9 +2,11 @@
 
 ## Current Scope
 
-Primary forward execution is complete and technically qualified. New-prefix
-diagnostics/search and annual-origin forward work remain separate, unfinished
-gates. This report must not be read as completion of M5-11.3 or M5-12.
+Primary forward execution, both new-prefix studies and annual 2023/2024 are
+complete within their declared bounded contracts. Annual 2025 is running
+serially; full-procedure mutation and complete prefix diagnostics remain
+unfinished gates. This report must not be read as completion of M5-11.3 or
+M5-12. Historical checkpoint paragraphs below retain their original timing.
 
 Both Source09 actual bounded prefix panels now complete 128 accounts each,
 with 20/3 annual-eligible candidates at origins 2023/2025. The 2023 freeze
@@ -21,7 +23,8 @@ supervision/cleanup:
 `00ac877b1774d93fbbcdd1a1d501ac396ecac5279eb8e39bf409862fb2e1080d`.
 Observed free-space change is -24,576 bytes, not a claimed net cleanup saving.
 New per-prefix studies/annual forward and full fit/search/rank mutation remain
-separate work; bounded raw/floor diagnostics are not complete geometry/probes.
+separate work at that historical recovery checkpoint; bounded raw/floor
+diagnostics are not complete geometry/probes.
 
 The five effective vectors are the actual selected outputs of the registered
 256-trial studies. They are frozen before opening forward outcomes. Scored
@@ -67,7 +70,7 @@ seeing forward outcomes; annual-floor remains the preregistered primary.
 All comparisons use the original paired circular-block estimator, 7-day
 blocks, seed 731, approved 16,384 draws, family size seven, 99% family
 confidence and 0.5-bps net account/day business hurdle. The seven contrasts
-include the still-pending three annual-origin comparisons. No family members
+include all three registered annual-origin comparisons. No family members
 are removed after results. Confidence intervals below concern fixed paths,
 not sampler/recipe-selection uncertainty or independent replications.
 
@@ -252,3 +255,52 @@ cleanup:
 `b85acac1341782d39aeb674690655b665c542b470b0d37d514c0540d62f31e15`;
 serial closure:
 `ec82936ab7c05243154aefe49f093f4487745567c2aabbd6e65d902adce41fc3`.
+
+### Annual 2023 Integration
+
+The new prefix studies select only on complete 2021--2022 development;
+forward is [2023-01-01,2024-01-01), all 365 UTC days. Original indicator
+preload starts in 2020; each frozen vector opens a fresh 20,000 account.
+Neither the later full-development winner nor an equity slice substitutes
+for this actual new-prefix calibration and annual account.
+
+| Frozen Arm | Development Sharpe | Annual Forward Sharpe | IS Minus Forward | Final Equity | Net Return | Max Drawdown |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Raw whole-Sharpe | 2.90069 | -0.13474 | 3.03543 | 19,481.58 | -2.59% | 10.81% |
+| Annual-floor | 2.69713 | 0.97774 | 1.71940 | 22,922.12 | +14.61% | 13.73% |
+
+Decay change is -1.31604: IS Sharpe falls by 0.20356 while measured forward
+Sharpe rises by 1.11248. Lower IS contributes about 15.5% of this descriptive
+decomposition, not the entire apparent improvement. Higher forward return
+does not imply lower drawdown: annual-floor has greater measured drawdown here.
+
+Paired net mean change is +4.53229 bps/day; family-seven 99% fixed-path
+interval is [-2.92226,+15.45703] bps/day. Forward-Sharpe change interval is
+[-0.75621,+3.66093] and decay-change interval is [-4.31159,+1.15589].
+All 16,384 draws are valid. Economics remains INCONCLUSIVE; unavailable
+fills/campaigns and per-pair one-origin support are not invented or pooled.
+This reviewed historical year is not an independent untouched OOS.
+
+Four actual original/direct accounts and every available financial array
+match exactly. Mutating the July-and-later suffix leaves earlier fixed-vector
+signals unchanged. Source and evidence entry/exit checks PASS. Separately
+qualified metadata transport passes 11 zero-finance fixtures; all 59 original
+financial bodies remain unchanged. The exact historical partial outer JSON
+is byte/hash-protected but not traversed as successful metadata. Both failed
+pre-launch admissions remain retained, with zero financial execution.
+
+Original supervision: PASS, 692.353 s / 733.70 MiB worker peak RSS, all children
+reaped, no error/resource stop. Only exact inactive registered scratch is
+removed; immediate free-space increase is 258,048 bytes, not total retained
+research size. Result SHA-256:
+`57adfa88aaaff211817a16fccc8861ee429927f4257db9146910893fdd7d582e`;
+supervisor:
+`d5a35637dd42f5662e81786486b2189059e2ba8b37465f22a835e211767cda67`;
+cleanup:
+`f1f466e687ab560941c374cf2b6f95d5eb4d14b2a242026554b019a8e9d5314c`;
+current separate metadata qualification:
+`9f8c6a9e806e86f1a54144ef19392f908278bace20fa32f0166c7ca8b8c1b110`.
+
+Annual 2025 follows serially through the same original financial owner.
+Neither this account proof nor fixed-signal mutation certifies full
+diagnostics/fit/search/rank future-mutation or complete geometry/probes.

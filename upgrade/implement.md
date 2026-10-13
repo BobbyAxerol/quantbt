@@ -17,9 +17,11 @@ and separate zero-finance 2025 freeze recovery PASS; the failed aggregate stays
 FAIL_RETAINED. The new prefix2023 raw/floor studies close 256 attempts each,
 with exact selected/direct accounting and supervised cleanup PASS. Prefix2025
 also closes both original 256-attempt studies with exact accounting and cleanup;
-the serial closure is PASS and every financial child is reaped. Annual2023/2025
-forward remains pending. No full-procedure mutation or economic promotion is
-inferred.
+the serial closure is PASS and every study child is reaped. Annual2023 now
+closes four original/direct accounts with exact parity, fixed-signal mutation
+checks and supervised cleanup PASS; annual2025 is dispatched serially under
+the unchanged resource/inference contract. No full-procedure mutation or
+economic promotion is inferred.
 This does not certify full diagnostics or whole-procedure mutation. See
 [forward report](../docs/mode5/M5_11_3_FORWARD_REPORT.md). Frozen inference
 registration keeps reviewed-history and dependent-origin limitations explicit.
@@ -27648,7 +27650,7 @@ Every phase below inherits this mandatory resource registration/cleanup exit.
 | [M5-11](#mode5-m5-11) | Formal calibration and scoped economics | M5-10 plus authorized adequate data | M5T-101..110 | REOPENED_RESEARCH_COVERAGE; original finite pilot preserved |
 | [M5-11.1](#mode5-m5-11-1) | Broad five-alpha diagnostics and renewed dossier | M5-11 scope review; registered data/design/resource protocol | M5T-041..060 / 071..090 | Broad accounts and bounded native B2/dossiers technically PASS; 640 discovery accounts, 348 native probes; scientific limitations retained |
 | [M5-11.2](#mode5-m5-11-2) | Actual adaptive formal search and selector comparisons | Reviewed M5-11.1 dossier; new sealed plans | M5T-091..103 / EH-01..05 | Raw256/floor256 audited and recovered; selector-only complete; three new sampler256 arms and cold matched comparison PASS; historical failures retained |
-| [M5-11.3](#mode5-m5-11-3) | Multi-origin fixed-policy transfer and economic qualification | Frozen M5-11.2 outputs and prefix studies | M5T-101..110 / EH-06..12 | Primary and annual2024 accounting PASS; economics INCONCLUSIVE; actual 2023/2025 bounded diagnostics/freeze PASS with preserved aggregate FAIL; new prefix studies/annual forward pending |
+| [M5-11.3](#mode5-m5-11-3) | Multi-origin fixed-policy transfer and economic qualification | Frozen M5-11.2 outputs and prefix studies | M5T-101..110 / EH-06..12 | Primary and annual2023/2024 accounting PASS; economics INCONCLUSIVE; actual 2023/2025 bounded diagnostics/freeze and four new 256-attempt studies PASS with preserved aggregate FAIL; annual2025 dispatched, full-procedure mutation NOT_RUN |
 | [M5-12](#mode5-m5-12) | Local qualification/docs/handoff | M5-01..11 dispositions reviewed | M5T-111..120 | NOT_STARTED |
 
 Respect the guide dependency graph. M5-05 and independent M5-06 preparation
@@ -33095,6 +33097,28 @@ Admission02 also fails closed before dispatch: the partial is an externally
 recovered historical artifact, not a direct Source09 member. Preserve this
 guard failure and register its exact recovered pin explicitly; do not infer
 manifest membership or weaken the fixed partial SHA/size/recovery validator.
+
+**Annual2023 Closed Receipt (2026-10-14, Asia/Saigon):** the separately
+qualified metadata coordinator passes 11 zero-finance fixtures; the original
+Source09 supervisor/worker executes four fresh original/direct accounts.
+Scored development is the complete 2021--2022 prefix and forward is all 365
+UTC days of 2023, with original 2020 indicator preload. Raw/annual-floor
+development Sharpe is 2.90069/2.69713; forward Sharpe is -0.13474/0.97774
+and final equity is 19,481.58/22,922.12. Decay improves 3.03543 -> 1.71940;
+forward mean change is +4.53229 bps/day with family-seven interval
+[-2.92226,+15.45703]. Economics remains INCONCLUSIVE; no forward outcome
+chooses a new recipe or loosens support. Exact original/direct accounting,
+fixed-signal July suffix mutation and source/input entry/exit custody PASS.
+Full diagnostics/fit/search/rank mutation remains NOT_RUN, not failed or
+implicitly certified. Original supervision PASSes in 692.353 seconds / 733.70
+MiB peak RSS, all children reaped, no error/resource stop. Only registered
+inactive scratch is removed (+258,048 observed free bytes). Actual result
+SHA256 `57adfa88aaaff211817a16fccc8861ee429927f4257db9146910893fdd7d582e`;
+supervisor `d5a35637dd42f5662e81786486b2189059e2ba8b37465f22a835e211767cda67`;
+cleanup `f1f466e687ab560941c374cf2b6f95d5eb4d14b2a242026554b019a8e9d5314c`.
+Keep both pre-launch admission failures and the exact original partial FAIL.
+Annual2025 uses the unchanged original financial owners and separately
+qualified same metadata sources; no repeated calibration or evidence edits.
 
 **Actual Primary Receipt (2026-10-13, Asia/Saigon):** five frozen vectors and ten
 original/direct forward accounts complete with exact accounting and fixed-signal
