@@ -33676,6 +33676,13 @@ versions readable; preserve original alpha/core contracts and all attempts.
   approved a prospective cold-report cap of 512 MiB after a 343-MiB projection;
   total retention remains 8 GiB and disk reserve 5 GiB. Old reports/amendments
   remain sealed and science is unchanged.
+- A prospective supervisor closes complete-payload/custody pinning and setup
+  failure paths (127 new zero-finance tests). Its optional per-alpha grouping
+  only changes scheduling, not fixed candidates/requests/RNG. Larger retained
+  payloads are checked every 60 seconds and unconditionally at both boundaries;
+  smaller bindings each five-second tick. It uses the same worker/resource
+  caps and a remaining-retention preflight. The live supervisor stays unchanged;
+  the new helper is for the next missing-only lane, not a retroactive receipt.
 
 <a id="mode5-m5-11-5"></a>
 ### Phase M5-11.5 - Diagnostic-Guided Mode 5 Calibration And Decision Qualification

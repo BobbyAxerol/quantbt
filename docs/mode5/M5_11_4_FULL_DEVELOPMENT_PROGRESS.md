@@ -114,6 +114,18 @@ unavailable older harness. Its disposable test directory is separately recorded
 as `.maturin/mode5-m5114/attempt-01/archive-tests`; removal awaits inactivity and
 protected-hash verification with the other registered scratch.
 
+The prospective v2 supervisor passes 127 dedicated cold tests. It freezes
+deduplicated account/custody pins, checks smaller bindings each five-second tick
+and complete payloads every 60 seconds plus launch/terminal. This is sampled
+integrity verification, not a continuous-write guarantee. Per-alpha group-size
+overrides preserve the cell roster and finance requests; the next lane can keep
+HMA/HASH in single-cell groups and fast arms in groups of eight. Available-memory
+admission no longer double-counts live RSS; the same 2-GiB worker cap, 512-MiB
+stop floor, four-worker ceiling and disk limits remain. Disk preflight counts
+remaining, not already consumed, retained-root allowance. It is not patched
+into the running supervisor. The v2 test XML is retained privately; its exact
+inactive scratch is `.maturin/mode5-m5114/attempt-01/panel-v2-tests`.
+
 See the [unified plan](../../upgrade/implement.md#mode5-m5-11-4),
 [reporting contract](FULL_DEVELOPMENT_DIAGNOSTICS_V1.md) and
 [detailed guide](../../upgrade/QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#chapter-4).
