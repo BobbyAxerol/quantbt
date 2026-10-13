@@ -14,8 +14,10 @@ registered family-adjusted economics remains INCONCLUSIVE. Both new bounded
 prefix panels close 128 accounts each (20/3 eligible at 2023/2025), with
 original-provider qualification and supervised cleanup PASS. The 2023 freeze
 and separate zero-finance 2025 freeze recovery PASS; the failed aggregate stays
-FAIL_RETAINED. New 256-attempt prefix studies are executing serially through
-the unchanged original owners; annual forward remains pending.
+FAIL_RETAINED. The new prefix2023 raw/floor studies close 256 attempts each,
+with exact selected/direct accounting and supervised cleanup PASS. Prefix2025
+studies are executing serially through unchanged owners; annual forward remains
+pending. No full-procedure mutation or economic promotion is inferred.
 This does not certify full diagnostics or whole-procedure mutation. See
 [forward report](../docs/mode5/M5_11_3_FORWARD_REPORT.md). Frozen inference
 registration keeps reviewed-history and dependent-origin limitations explicit.
@@ -33034,6 +33036,22 @@ a distinct zero-finance run. Keep every log/failure/source pin, reap all workers
 before deleting only each registered exact scratch. The original per-origin
 annual supervisor remains the only financial dispatcher; no new financial
 engine, bootstrap estimator, RNG, objective or full-mutation PASS is introduced.
+
+**Actual Prefix2023 Studies Closed:** both original study arms complete their
+256 attempts; raw selection and public annual-floor selected replay both PASS
+exact independent-direct accounting. Actual root counters are 514 original
+scorer, two direct-owner and one final-endpoint account invocations: 517 total,
+not 517 independent samples or inferred native passes. Source, evidence and
+generated-artifact entry/exit custody checks PASS. Original per-origin
+supervision closes in 10,444.796 seconds / 974.22 MiB peak worker RSS, all
+children reaped, no resource stop/error. Only registered inactive scratch is
+removed, with +966,656 observed free bytes. Actual studies result SHA256
+`bf3df9c1b479e93b9cc40564f7c3169b10bd8d4e10d784d4be2b78857d7b039a`;
+supervisor `4b99b27db1a52103561ca79fa837132eacee5a813e93ed235e8f37823d7f00ee`;
+cleanup `f6887ed1db7b512de7778807abad9ea4afcb477d221d1ebbec1ad55b3490150c`.
+Keep `ACTUAL_PREFIX_STUDIES_RETAINED_NOT_FUTURE_QUALIFIED`, incomplete full
+diagnostics and `full_fit_search_mutation=NOT_RUN` explicit. Prefix2025 remains
+in progress; actual annual2023/2025 comparisons follow separate admission.
 
 **Actual Primary Receipt (2026-10-13, Asia/Saigon):** five frozen vectors and ten
 original/direct forward accounts complete with exact accounting and fixed-signal

@@ -203,3 +203,28 @@ completed panel or relabel the failed aggregate as PASS.
   already-passing projection and fixed-signal mutation checks.
 - Review scientific scope and incomplete proof limits before M5-12. No local
   receipt substitutes for later installed-artifact, remote or public gates.
+
+### Current Prefix2023 Search Checkpoint
+
+The new allowed-prefix2023 raw and annual-floor studies are now complete,
+256 attempts each, with no old panel imported as trials or forward-driven
+choice. Both selected vectors pass exact original/direct accounting. Measured
+work is 514 original scorer invocations, two direct accounts and one final
+endpoint account, 517 in total; this is a work count, not independent sample
+support. Source, evidence and generated-artifact custody close at entry/exit.
+
+Original supervision PASSes in 10,444.796 s at 974.22 MiB peak RSS; all owned
+children are reaped, with no resource stop or cleanup error. Only the registered
+inactive study scratch is removed, with +966,656 observed free bytes. Params,
+typed accounts, logs, journals and failures remain retained privately. The
+per-origin result remains bounded study evidence, not full diagnostics,
+fit/search/rank future-mutation qualification or economic promotion.
+
+Studies receipt SHA-256:
+`bf3df9c1b479e93b9cc40564f7c3169b10bd8d4e10d784d4be2b78857d7b039a`;
+supervisor:
+`4b99b27db1a52103561ca79fa837132eacee5a813e93ed235e8f37823d7f00ee`;
+cleanup:
+`f6887ed1db7b512de7778807abad9ea4afcb477d221d1ebbec1ad55b3490150c`.
+The serial prefix2025 studies and actual annual2023/2025 forward comparisons
+remain pending at this checkpoint. The retained failed aggregate is unchanged.
