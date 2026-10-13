@@ -8,7 +8,7 @@ and the four disjoint missing-only tranches account for the complete design.
 The 640 discovery accounts remain retained separately. No completed account was
 rerun merely to fill a progress table, and no annual accounting reset was added.
 
-This closes **financial execution**, not complete cold admission, B2 matrices,
+That checkpoint closes **financial execution**, not complete cold admission, B2 matrices,
 sampler response, forward transfer or the overall scientific phase. Selection
 and held local-validation probes retain distinct rights. Bounded whole-path
 local evidence is not annual-local or independent temporal OOS evidence.
@@ -44,7 +44,7 @@ the registered ignored lanes. Only registered inactive scratch is eligible for
 cleanup; no source, environment or scientific evidence is removed. No net
 filesystem saving is inferred from overlapping worker writes.
 
-## Next Scientific Steps
+## Next Steps At The Financial Checkpoint
 
 Cold normalization must verify the exact closed financial/cleanup lineage and
 source/role identity before those probes enter B2/matrices/dossiers. The first
@@ -120,3 +120,19 @@ authorization, full scientific completion, forward evidence or economic benefit.
 See the [ordered plan](../../upgrade/implement.md#mode5-m5-11-ordered-execution-20261012),
 [fixed-panel report](M5_11_1_NATIVE_BATTERIES.md) and
 [guide sections 4.5/4.9](../../upgrade/QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#49-multi-hypothesis-empirical-battery-giữ-năm-chiều-làm-rõ-mỗi-phép-thử).
+
+## Current Dossier Integration Exit
+
+The [count-corrected B2/dossier closure](M5_11_1_NATIVE_BATTERIES.md#current-b2-and-dossier-closure)
+now consumes all 348 accounts / 1,392 views and verifies three actual dossiers
+and 18 matrix inventories. Seventy-one count/role regression tests PASS;
+independent readback verifies 1,787 pins and unchanged source view records,
+preferences and B1/B3. No completed probe or discovery account is rerun.
+All supervisors and cleanup receipts PASS; failed assembly evidence remains.
+
+This closes the former B2 consumer integration gap. Bounded local decisions
+remain NO_SELECTION and common annual eligibility remains zero for these
+three native panels. Annual-local and whole-128 local support are not granted;
+actual B5 sampler response, independent prefix-forward economics and package
+qualification remain separate work. No alpha-edge rejection, retune, CI or
+release is inferred from this technical exit.

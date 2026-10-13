@@ -85,6 +85,12 @@ proof. Resume domain work only after disk and evidence checks are complete.
 
 ## Recorded Cleanup
 
+The [M5-11 cold-gap receipt](maintenance/M5_11_COLD_GAP_CLEANUP.md) records
+registered fixture scratch removal, preserved failed/completed receipts and
+three retained source-bound dossiers. Final readback verifies 1,787 pins and
+1,392 original probe view records; no finance is repeated. Remaining free space
+is capacity, not net savings from the intentionally retained evidence.
+
 The [M5-11.1 owner-stopped tranche receipt](maintenance/M5_11_1_TRANCHE_CLEANUP.md)
 records exact research-worker stop/reap custody and inactive HASH Numba-cache
 removal, 2,777 retained pin checks and 1.40 MiB observed filesystem recovery.

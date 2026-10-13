@@ -2,14 +2,18 @@
 
 ## Current Mode 5 Diagnostics-First Upgrade - M5-11.1 Broad Diagnostics
 
-**Current Narrowed Action (2026-10-13, Asia/Saigon):** close only the two
-owner-approved integration gaps: recover the completed challenger outer receipt
-from immutable terminal evidence, then correct native B2 metric observation
-counts and rebuild three dossiers. No new trial, account, sampler arm, forward
-study, CI or release is part of this action. Historical FAIL/partial receipts
-remain unchanged. See [registered cold closure](#mode5-two-gap-cold-closure).
+**Current Narrowed Action (2026-10-13, Asia/Saigon):** both owner-approved
+integration gaps are CLOSED: completed challenger receipt recovery from
+immutable terminal evidence, and corrected native B2 observation counts with
+three rebuilt dossiers. Reviewed receipt recovery passes 37 tests;
+count regression passes 71; three dossiers and 18 matrices verify all 348
+native probes / 1,392 dependent views. Final cold readback PASSes 1,787 pins,
+unchanged original views, B1/B3/preferences and the recovered receipt chain.
+No new trial, account, sampler arm, forward study, CI or release occurred.
+Historical FAIL/partial receipts remain unchanged.
+See [registered cold closure](#mode5-two-gap-cold-closure).
 
-**Current Action (2026-10-12, Asia/Saigon):** owner approves ordered local closure
+**Broader Ordered Authorization (2026-10-12, Asia/Saigon):** owner approves ordered local closure
 of M5-11.1, M5-11.2, M5-11.3 and M5-12. Execute missing accounts and complete
 their diagnostic/probe consumers first; then qualify the versioned continuous
 provider and sealed 256-query studies, prefix-forward economics and final local
@@ -23,7 +27,7 @@ the owner explicitly approved keeping every gate and running RSI's matched
 this mandate; their measured diagnostics and probes still complete. No eligible
 recipe status, alpha edge, threshold or automatic research override is inferred.
 
-**Current Completed Work (2026-10-12):** all 640 discovery accounts are executed;
+**Retained Completion Chronology (2026-10-12):** all 640 discovery accounts are executed;
 the 384 native accounts and 1,536 dependent whole/annual views are source-admitted.
 The last missing 216 discovery requests have closed, not merely been queued.
 The exact remaining native local design has 348 probes. Its first three actual
@@ -95,18 +99,22 @@ Supervisor `6458c2ddd12d3fbce7cf8263baffc55b64fbd84a83648e51cd9c24cb985954c9`
 remains FAIL_RETAINED, not PASS. All workers are reaped and cleanup passes.
 Preserve the completed inner receipt/checkpoints and old failures; cold
 source-bound receipt recovery is required, not another 256-trial financial run.
-**Current receipt closure (2026-10-13):** separate cold revision04 PASSes all
+**Current receipt closure (2026-10-13):** reviewed cold revision06 PASSes all
 785 retained pins, 4,650 original source pins and 256 ordered COMPLETE trials;
-selected/direct bytes and original metrics stay unchanged. 29 fixtures pass;
+selected/direct bytes and original metrics stay unchanged. 37 fixtures pass;
 recovery adds no finance/search/RNG. Final reviewed recovered receipt
 `e4b86ba2faf6a88b429a4a3fb39a3bf5fea7b3dc2fe8e85c271e04afc37062d0`;
 historical supervisor remains FAIL. No RSI worker remains active. B5 arms
-must explicitly rebind the current consumer/recovered receipt; native B2/dossiers,
-prefix-forward economics and M5-12 remain pending.
+must explicitly rebind the current consumer/recovered receipt. Native B2/dossiers
+now PASS their bounded technical scope; prefix-forward economics and M5-12
+remain pending.
 See
 [current preparation](../docs/mode5/M5_11_2_RSI_PROVIDER_PREPARATION.md#source-07-dossier-preparation).
-Probes/batteries/dossiers and M5-11.2/11.3 remain scientifically incomplete;
-M5-12 is approved in the ordered local scope but has not started.
+Bounded probe/battery/dossier integration is verified, with zero common annual
+eligible HMA/HASH/VWAP configurations and NO_SELECTION retained. Annual-local,
+whole-128 local, independent forward and whole-procedure superiority are not
+qualified by this closure. Actual B5 sampler studies, M5-11.3 and M5-12 remain
+separate work; this action does not automatically launch them.
 
 **Previous Completed Tranche (2026-10-11):** performance-only incremental recovery completed
 its registered 45-minute tranche; all owned workers are reaped. See
@@ -27615,7 +27623,7 @@ Every phase below inherits this mandatory resource registration/cleanup exit.
 | [M5-09](#mode5-m5-09) | Dossier, advisory and sealed plan | M5-08/08.1 reviewed exit | M5T-081..090 | COMPLETE_LOCAL_DOSSIER_GOVERNANCE |
 | [M5-10](#mode5-m5-10) | Public opt-in integration/runtime reuse | M5-09 plus current source map | M5T-091..100 | COMPLETE_LOCAL_PUBLIC_OPT_IN / TECHNICALLY_VALID |
 | [M5-11](#mode5-m5-11) | Formal calibration and scoped economics | M5-10 plus authorized adequate data | M5T-101..110 | REOPENED_RESEARCH_COVERAGE; original finite pilot preserved |
-| [M5-11.1](#mode5-m5-11-1) | Broad five-alpha diagnostics and renewed dossier | M5-11 scope review; registered data/design/resource protocol | M5T-041..060 / 071..090 | IN_PROGRESS; 640 discovery accounts and 348 probes closed/cold-admitted; native B2/dossier assembly pending |
+| [M5-11.1](#mode5-m5-11-1) | Broad five-alpha diagnostics and renewed dossier | M5-11 scope review; registered data/design/resource protocol | M5T-041..060 / 071..090 | Broad accounts and bounded native B2/dossiers technically PASS; 640 discovery accounts, 348 native probes; scientific limitations retained |
 | [M5-11.2](#mode5-m5-11-2) | Actual adaptive formal search and selector comparisons | Reviewed M5-11.1 dossier; new sealed plans | M5T-091..103 / EH-01..05 | Raw256 PASS; floor256 selected/direct and reviewed cold receipt recovery PASS; historical outer FAIL retained; sampler-only actual studies NOT_RUN |
 | [M5-11.3](#mode5-m5-11-3) | Multi-origin fixed-policy transfer and economic qualification | Frozen M5-11.2 outputs and prefix studies | M5T-101..110 / EH-06..12 | APPROVED; expanded forward tests NOT_RUN |
 | [M5-12](#mode5-m5-12) | Local qualification/docs/handoff | M5-01..11 dispositions reviewed | M5T-111..120 | NOT_STARTED |
@@ -29563,6 +29571,10 @@ source/data/plan identity and resource/cleanup receipts; safe summaries only.
 ### Phase M5-11.1 - Broad Five-Alpha Diagnostics And Renewed Dossier
 
 **Status:** APPROVED / PARTIAL / ORDERED_LOCAL_COMPLETION_AUTHORIZED (2026-10-12).
+   Current bounded integration gate (2026-10-13): native B2/dossiers PASS with
+   all 348 probes and 18 verified matrix containers. No account replay, metric
+   rewrite or scientific promotion. Read [two-gap closure](#mode5-two-gap-cold-closure);
+   earlier execution/coverage checkpoints below remain historical.
    Latest approval resumes missing-only execution and subsequent approved gates;
    the following owner-bounded receipts retain their historical budgets.
    Owner previously
@@ -32592,7 +32604,7 @@ pins without replay. See [completed financial work and open wrapper gate](../doc
 <a id="mode5-two-gap-cold-closure"></a>
 #### M5-11 Cold Closure - Challenger Receipt And Native B2 Units
 
-**Status:** APPROVED / IN_PROGRESS; two integration fixes only.
+**Status:** COMPLETED / TWO_INTEGRATION_GATES_PASS (2026-10-13); no wider phase claim.
 **Goal:** certify completed financial work without repeating 256 trials, and
 consume bar/daily observations with their existing units, rights and gates.
 **Detailed Guide:** [5.1 metric contracts](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#51-metriccontract-trước-công-thức-tối-ưu),
@@ -32724,6 +32736,36 @@ Workers reaped, only registered scratch removed; all failure evidence retained.
 Actual three-alpha dossier assembly is the remaining gate for this scoped
 closure. New assembly binds the corrected source, complete unit registration,
 log/JUnit/cleanup evidence and source pins at entry/exit, not merely a PASS label.
+**Final Cold Readback Registration:** after the three supervised dossiers close,
+run one stdlib-only cross-record check in `cold-closeout01`, <=600 seconds,
+<=1-GiB RSS, <=32-MiB retained output, >=5-GiB disk reserve and >=1-GiB host
+memory floor. No scratch, environment, account, sampler, numeric runtime or
+financial source import. Verify the immutable original/recovered receipt chain,
+current unit backing evidence, exported probe rows against their original view
+files, unchanged B1/B3/preferences, all 18 matrix inventories and separate probe
+rights. Recheck input pins at exit; preserve its registration/result/cleanup and
+all historical failures. This readback is not prefix-forward/release qualification.
+**Actual Native Gate:** serial HMA03 / HASH01 / VWAP01 all PASS supervised
+source-bound dossier assembly. Coverage is 132/112/104 original probe accounts,
+528/448/416 dependent views and six matrices each. B2 is MEASURED_BOUNDED_LOCAL;
+each local selection remains NO_SELECTION. B1/B3, raw-Sharpe control, original
+preferences/annual gates and probe roles are exact; no metric or account changes.
+Controller seconds / peak MiB are HMA 217.450/998.828, HASH 183.316/943.586,
+VWAP 173.718/937.027. These are cold verification costs, not kernel benchmarks.
+All owners reaped and every cleanup PASSes; dossiers retain 163,162,614 bytes
+before terminal receipts, within the preregistered per-alpha retention budget.
+Current proof/report: [native B2 and dossiers](../docs/mode5/M5_11_1_NATIVE_BATTERIES.md#current-b2-and-dossier-closure).
+**Final Readback Exit:** PASS in 8.197 seconds / 415.355-MiB peak, 1,787 distinct
+input/source/artifact pins verified at exit, all 1,392 exported view records
+exactly matching their original admitted inputs, no fresh finance/search/RNG.
+Result `6d144915988e5340a312983c8d265636a6a97dcaee4aa42400db32dfed23598c`,
+cleanup `662cdde8dba383e40c0bd230ddfb3aa578871cc93289877eb1cd9440d13bcbe3`.
+Only registered inactive pytest scratch was deleted. Original failed/partial
+receipts, source snapshots, logs, evidence and current tooling remain retained.
+See [scoped cleanup inventory](../docs/maintenance/M5_11_COLD_GAP_CLEANUP.md).
+Available disk at final exit is 18,370,412,544 bytes; this is remaining capacity,
+not claimed net cleanup savings. Both requested gaps are CLOSED. Actual B5,
+prefix-forward economics, installed artifacts and release are NOT certified here.
 
 <a id="mode5-m5-11-3"></a>
 ### Phase M5-11.3 - Multi-Origin Fixed-Policy Transfer And Economic Qualification
