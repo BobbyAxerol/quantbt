@@ -33120,6 +33120,22 @@ Keep both pre-launch admission failures and the exact original partial FAIL.
 Annual2025 uses the unchanged original financial owners and separately
 qualified same metadata sources; no repeated calibration or evidence edits.
 
+**Terminal Cold Readback Registration:** after annual2025 and its parent
+return/reap, use one bounded stdlib-only evidence reader, maximum 600 seconds
+and 512 MiB RSS, to verify the immutable Source09 manifest, original 59-body
+software14 roster, current metadata source qualification, actual primary/
+annual results and their supervisor/retained-output/cleanup pins. Cross-check
+public rounded tables against full-precision observed summaries, actual
+endpoint/direct counts, the unchanged seven-contrast inference contract,
+source/input entry/exit checks and fixed-vector parity. Retained readback/
+sanitized JSON <=8 MiB, no new scratch or environment; preserve >=5 GiB free
+disk and all logs/failed receipts. Zero financial, optimizer, sampler and RNG
+work; no new deletion beyond the original supervisors' registered inactive
+scratch. Record actual resource change, missing proof/support and privacy;
+this cold receipt cannot certify an unexecuted full-procedure mutation or
+replace M5-12/artifact/remote/public qualification. Do not rewrite any sealed
+receipt or source body to repair report metadata.
+
 **Actual Primary Receipt (2026-10-13, Asia/Saigon):** five frozen vectors and ten
 original/direct forward accounts complete with exact accounting and fixed-signal
 suffix mutation parity. Software qualification passes 207 tests/17 isolated
