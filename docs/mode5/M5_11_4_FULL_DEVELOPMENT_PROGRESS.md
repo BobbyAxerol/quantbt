@@ -132,3 +132,47 @@ See the [unified plan](../../upgrade/implement.md#mode5-m5-11-4),
 Actual private records, parameters and account paths stay outside public/package
 artifacts. Descriptive diagnostics inform a next experiment, not automatic
 recipe routing or independent forward validation.
+
+## Storage Review And Stopped Lane
+
+The owner approved a prospective total ceiling of 10 GiB, then requested an
+actual storage review and cleanup before further launch. This ceiling is not
+current consumption. The January-start attempt occupies about 2.3 GiB at this
+readback; its running registration remained the original 8-GiB revision.
+Per-bar decision JSON dominates, followed by repeated source snapshots and
+overlapping cold reports. One closed SC audit of 34,070,729 bytes compresses
+losslessly to 2,866,928 bytes at gzip level 3 (11.88x); this is an in-memory
+round-trip measurement, not an applied storage change or recovered disk.
+Changing representation must preserve exact evidence and pin/consumer
+compatibility. No audit is truncated and no original evidence is deleted.
+
+During this review the agent mistakenly added a cleanup rule to `AGENTS.md`,
+which was itself a pinned launch input. The supervisor detected its changed
+hash and stopped `panel-Jan1-02`. Original bytes were restored exactly to
+SHA-256 `bbfe9a1a0446e0e3e4d6549079fef74fab67a82519345409fe2d05eee460c0bf`.
+No financial source, alpha, calendar, candidate, metric or RNG was changed.
+The original parent remains `PARTIAL_OR_FAILED_RETAINED`, not retrospectively
+PASS. Both guardians completed `PASS_REUSE_INTEGRITY_ONLY` for the thirteen
+previously reused records; every owned worker was reaped.
+
+The stopped lane retains 172 returned passing financial records. Independent
+cold custody readback admits 168 with clean terminal group witnesses: RSI 40,
+SC 32, HMA 32, HASH 32 and VWAP 32. Four HMA records lack clean terminal process
+custody and remain unqualified. A HASH timeout and incomplete in-flight outputs
+remain retained; their absent work cannot be reported as zero. All 37 current
+launch pins now match, but restoring them does not rewrite the stop history.
+This readback performs zero finance and does not certify the full roster.
+
+The cleanup inventory is restricted to three superseded installed consumers
+and six inactive registered fixture directories. Current regression tooling,
+the still-referenced G01 consumer, native artifact, primary environment,
+original sources, account evidence and historical receipts remain protected.
+The new cleanup rule lives in the runbook/plan, not a live pinned source. No
+additional financial lane is launched during this storage review.
+
+Actual cleanup now passes: three obsolete consumers and seven inactive fixture
+directories removed; 8,779 protected files and nine artifact references checked
+unchanged. Observed available space rises by 1.661 GiB to 14.419 GiB. The
+attempt retains 2.335 GiB of logical evidence, not 10 GiB. The cleanup helper
+passes 23 tests; no evidence representation has yet been changed. See the
+[exact inventory, preservation and storage review](../maintenance/M5_11_4_STORAGE_REVIEW_CLEANUP.md).

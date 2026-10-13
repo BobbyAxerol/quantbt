@@ -33683,6 +33683,44 @@ versions readable; preserve original alpha/core contracts and all attempts.
   smaller bindings each five-second tick. It uses the same worker/resource
   caps and a remaining-retention preflight. The live supervisor stays unchanged;
   the new helper is for the next missing-only lane, not a retroactive receipt.
+- **Storage review before further launch (owner instruction 2026-10-13):**
+  10 GiB is an approved maximum prospective retained allowance, not actual
+  usage or a target to consume. The live lane remains pinned to its original
+  8-GiB registration. Before another financial lane, inspect actual retained
+  bytes, duplicate source/report payloads and available disk; clean reviewed
+  inactive test scratch and obsolete installed consumers first. Do not edit a
+  running source, truncate audits, delete scientific evidence or shorten the
+  calendar to satisfy storage. Eligible candidates are the exact `consumer`
+  directories under `.maturin/qms08/e03-package-v2`, `c04-package-v1` and
+  `e05-package-v3`, only after host process/FD/maps checks, artifact/receipt
+  retention and current-source pin verification. Keep `release-regression-v1`,
+  the still-referenced G01 regression consumer, project environment, active
+  Numba cache and qualified native binary. Remove only registered inactive
+  M5-11.4 test-fixture directories; retain their test XML and helper sources.
+  The focused cleanup helper's own `storage-review-tests` fixture directory is
+  also registered for removal after its test process terminates; retain both
+  original and updated XML receipts outside that disposable directory.
+  Record logical versus allocated bytes, verified preservation and actual
+  filesystem delta. A storage-only future change must preserve exact bytes,
+  accounting, designs, roles, RNG and downstream hash/readback compatibility;
+  an unverified compression estimate is not reclaimed disk or a PASS receipt.
+- **Operational stop during that review:** adding the rule to pinned
+  `AGENTS.md` was an agent error. The parent guard stopped `panel-Jan1-02`;
+  original AGENTS bytes were restored exactly. Keep its failed/partial parent
+  receipt unchanged. Both reuse guardians terminate PASS for thirteen earlier
+  records. Of 172 returned passing financial records, independent zero-finance
+  custody readback admits 168 clean group witnesses; four HMA records remain
+  unqualified, and timeout/in-flight work stays retained. All 37 current launch
+  pins match after restoration, not retroactively throughout execution. No new
+  financial lane is opened during cleanup. The runbook now requires between-
+  lane cleanup; do not edit any pinned governance file mid-run either.
+- **Cleanup result:** three obsolete consumers and seven registered inactive
+  fixture roots removed after host audits. The helper passes 23 tests; 8,779
+  protected files and nine artifact references remain exact. Observed available
+  space increases 1.661 GiB to 14.419 GiB. Current retained evidence is 2.335 GiB;
+  journals/source/report duplication remains a storage opportunity, not an
+  already applied compression or a completed phase. Old failures and the four
+  unqualified records remain retained. [Exact cleanup and remaining work](../docs/maintenance/M5_11_4_STORAGE_REVIEW_CLEANUP.md).
 
 <a id="mode5-m5-11-5"></a>
 ### Phase M5-11.5 - Diagnostic-Guided Mode 5 Calibration And Decision Qualification

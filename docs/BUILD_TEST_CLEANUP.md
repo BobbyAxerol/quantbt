@@ -22,6 +22,12 @@ The [unified plan](../upgrade/implement.md#mandatory-buildtest-cleanup-gate) and
    isolated financial/config/RNG state and exact installed artifacts.
 5. Check active host processes before deleting a cache or virtualenv. Sandbox
    process listings can hide host processes. Never kill unrelated services.
+6. For checkpointed research, do this review between lanes as well as at phase
+   exit. Clean completed test-fixture scratch and superseded consumers before
+   admitting another lane. Distinguish the retained ceiling from current usage;
+   inspect duplicate snapshots, verbose per-bar JSON and repeated reports
+   before increasing the allowance. Do not treat a larger allowance as the
+   solution to unexamined storage duplication.
 
 ## Retain
 
@@ -84,6 +90,13 @@ fresh output lane. A partially installed consumer is never a passing package
 proof. Resume domain work only after disk and evidence checks are complete.
 
 ## Recorded Cleanup
+
+The [M5-11.4 between-lane review](maintenance/M5_11_4_STORAGE_REVIEW_CLEANUP.md)
+removes three obsolete consumers and seven inactive fixture roots, verifies
+8,779 protected files and nine artifact references, and records a 1.661-GiB
+observed available-space increase. It distinguishes current 2.335-GiB evidence
+from the prospective 10-GiB ceiling, retains the failed/partial parent and all
+account evidence, and does not certify full diagnostic coverage.
 
 The [M5-11.3 forward receipt](maintenance/M5_11_3_FORWARD_CLEANUP.md) records
 the closed serial prefix studies and all three annual forward owners, exact
