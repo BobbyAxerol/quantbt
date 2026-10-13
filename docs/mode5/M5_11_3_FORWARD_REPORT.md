@@ -6,6 +6,23 @@ Primary forward execution is complete and technically qualified. New-prefix
 diagnostics/search and annual-origin forward work remain separate, unfinished
 gates. This report must not be read as completion of M5-11.3 or M5-12.
 
+Both Source09 actual bounded prefix panels now complete 128 accounts each,
+with 20/3 annual-eligible candidates at origins 2023/2025. The 2023 freeze
+passes; the final 2025 JSON-reader failure is recovered cold without repeating
+either panel. The old aggregate remains FAIL_RETAINED, never relabelled PASS.
+The recovery passes 17 separate transport fixtures, preserves all 59 sealed
+Python bodies and produces a byte-identical plan
+(`b886d6ee1e9685d5e0f361ab1fc25c5cc9a2936db6f344523b91d422c112f93f`).
+Actual original query/governance freeze: 228.527 seconds / 431.12 MiB peak RSS,
+zero account/optimizer/RNG calls, all children reaped, no error/resource stop,
+exact registered scratch removed. Recovery closure SHA256:
+`d8198a54e316a6636cc0faea659561d3d5c1b80c95973c014e267b4b791ca89b`;
+supervision/cleanup:
+`00ac877b1774d93fbbcdd1a1d501ac396ecac5279eb8e39bf409862fb2e1080d`.
+Observed free-space change is -24,576 bytes, not a claimed net cleanup saving.
+New per-prefix studies/annual forward and full fit/search/rank mutation remain
+separate work; bounded raw/floor diagnostics are not complete geometry/probes.
+
 The five effective vectors are the actual selected outputs of the registered
 256-trial studies. They are frozen before opening forward outcomes. Scored
 development is 2021--2023 (1,095 UTC days); scored forward is 2024--2025

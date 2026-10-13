@@ -10,10 +10,12 @@ provider qualification and current context/recipe freeze PASS. Three fresh
 closed cleanup. Cold matched-budget comparison PASSes without new finance;
 see [actual sampler report](../docs/mode5/M5_11_2_MATCHED_SAMPLER_REPORT.md).
 Primary 2024--2025 forward PASSes original/direct accounting for ten accounts;
-registered family-adjusted economics remains INCONCLUSIVE. The new 2023
-bounded prefix panel closes 128 accounts / 20 eligible, with original-provider
-qualification and supervised cleanup PASS; plan freeze and 2025 remain in
-progress. This does not certify full diagnostics or search/forward. See
+registered family-adjusted economics remains INCONCLUSIVE. Both new bounded
+prefix panels close 128 accounts each (20/3 eligible at 2023/2025), with
+original-provider qualification and supervised cleanup PASS. The 2023 freeze
+and separate zero-finance 2025 freeze recovery PASS; the failed aggregate stays
+FAIL_RETAINED. New 256-attempt prefix studies and annual forward remain pending.
+This does not certify full diagnostics or whole-procedure mutation. See
 [forward report](../docs/mode5/M5_11_3_FORWARD_REPORT.md). Frozen inference
 registration keeps reviewed-history and dependent-origin limitations explicit.
 See [registered continuation](#mode5-m5-11-2). No CI or publication.
@@ -27641,7 +27643,7 @@ Every phase below inherits this mandatory resource registration/cleanup exit.
 | [M5-11](#mode5-m5-11) | Formal calibration and scoped economics | M5-10 plus authorized adequate data | M5T-101..110 | REOPENED_RESEARCH_COVERAGE; original finite pilot preserved |
 | [M5-11.1](#mode5-m5-11-1) | Broad five-alpha diagnostics and renewed dossier | M5-11 scope review; registered data/design/resource protocol | M5T-041..060 / 071..090 | Broad accounts and bounded native B2/dossiers technically PASS; 640 discovery accounts, 348 native probes; scientific limitations retained |
 | [M5-11.2](#mode5-m5-11-2) | Actual adaptive formal search and selector comparisons | Reviewed M5-11.1 dossier; new sealed plans | M5T-091..103 / EH-01..05 | Raw256/floor256 audited and recovered; selector-only complete; three new sampler256 arms and cold matched comparison PASS; historical failures retained |
-| [M5-11.3](#mode5-m5-11-3) | Multi-origin fixed-policy transfer and economic qualification | Frozen M5-11.2 outputs and prefix studies | M5T-101..110 / EH-06..12 | Primary 2024--2025 accounting PASS; economics INCONCLUSIVE; actual 2023/2025 prefix diagnostics in progress; annual studies/forward remain pending |
+| [M5-11.3](#mode5-m5-11-3) | Multi-origin fixed-policy transfer and economic qualification | Frozen M5-11.2 outputs and prefix studies | M5T-101..110 / EH-06..12 | Primary and annual2024 accounting PASS; economics INCONCLUSIVE; actual 2023/2025 bounded diagnostics/freeze PASS with preserved aggregate FAIL; new prefix studies/annual forward pending |
 | [M5-12](#mode5-m5-12) | Local qualification/docs/handoff | M5-01..11 dispositions reviewed | M5T-111..120 | NOT_STARTED |
 
 Respect the guide dependency graph. M5-05 and independent M5-06 preparation
@@ -32983,6 +32985,23 @@ output paths and cleanup inventory. Test oversized valid dossiers, unchanged
 default metadata bounds, pin/role/plan/custody mismatch, zero-work recovery,
 historical FAIL retention and current-PID slots. Do not rerun either 128-account
 panel or alter math/gates to repair a JSON transport failure.
+
+**Freeze-Only Recovery Closed:** separate transport qualification passes 17
+stdlib-only fixtures with zero finance, sealed original code unchanged and
+closed exact-scratch cleanup. The actual original query/governance freeze
+closes PASS in 228.527 seconds / 431.12 MiB peak RSS, all children reaped,
+no resource stop/error. New plan SHA256 equals the pre-failure plan exactly:
+`b886d6ee1e9685d5e0f361ab1fc25c5cc9a2936db6f344523b91d422c112f93f`.
+Recovery closure `d8198a54e316a6636cc0faea659561d3d5c1b80c95973c014e267b4b791ca89b`;
+supervision/cleanup `00ac877b1774d93fbbcdd1a1d501ac396ecac5279eb8e39bf409862fb2e1080d`.
+Zero account/query/optimizer/RNG work; original aggregate remains FAIL_RETAINED.
+The exact inactive recovery scratch is removed; observed filesystem change
+is -24,576 free bytes, not a claimed saving. Proceed only through a fresh
+explicit recovery-aware Main request to the unchanged original prefix-study
+owners/supervisor. Preserve source09/59 code bodies and both 128-account panels.
+Original per-origin study resources remain 21,600 seconds / 2-GiB worker RSS /
+4-GiB retained / 192-MiB scratch / 5-GiB reserve / one financial worker/thread.
+No earlier successful finance is repeated and no full-mutation PASS inferred.
 
 **Actual Primary Receipt (2026-10-13, Asia/Saigon):** five frozen vectors and ten
 original/direct forward accounts complete with exact accounting and fixed-signal
