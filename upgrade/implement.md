@@ -33080,8 +33080,9 @@ from a historical failed owner. Keep its registration/error and the original
 failure; do not repeat any study. The existing annual2024 opaque handling is
 year-specific. Add a separately qualified Main-scoped metadata-walk compatibility
 adapter for origins2023/2025, admitting only the exact cold-recovered historical
-partial pin after the original recovery validator and Source09 membership/hash
-checks. Keep that file in Source09/full protected hashes and signatures; omit
+partial pin after the original recovery validator and explicit external
+recovery/source/body/hash checks. Bind that referenced partial explicitly in
+Main's full protected hashes and signatures; omit
 only its traversal as successful JSON metadata, not its bytes or provenance.
 Restore the original walker on every success/failure; the fresh original
 financial worker receives no runtime override. All Source09/59 code bodies,
@@ -33090,6 +33091,10 @@ unchanged. Test exact opaque admission, unknown/mismatched pins failing closed,
 restoration on exceptions, immutable old FAIL/NOT_DURABLE and zero financial
 dispatch in fixtures; requalify new metadata before a fresh annual registration.
 Record this as pre-launch failure, not an executed or passing forward account.
+Admission02 also fails closed before dispatch: the partial is an externally
+recovered historical artifact, not a direct Source09 member. Preserve this
+guard failure and register its exact recovered pin explicitly; do not infer
+manifest membership or weaken the fixed partial SHA/size/recovery validator.
 
 **Actual Primary Receipt (2026-10-13, Asia/Saigon):** five frozen vectors and ten
 original/direct forward accounts complete with exact accounting and fixed-signal
