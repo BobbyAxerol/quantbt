@@ -85,6 +85,12 @@ proof. Resume domain work only after disk and evidence checks are complete.
 
 ## Recorded Cleanup
 
+The [M5-11.3 forward receipt](maintenance/M5_11_3_FORWARD_CLEANUP.md) records
+the closed serial prefix studies and all three annual forward owners, exact
+inactive scratch removal, protected source/account retention and terminal
+readback of 7,948 pins. No financial rerun, environment deletion, service stop
+or broad cache cleanup occurs; adverse economics and failed receipts remain.
+
 The [M5-11 cold-gap receipt](maintenance/M5_11_COLD_GAP_CLEANUP.md) records
 registered fixture scratch removal, preserved failed/completed receipts and
 three retained source-bound dossiers. Final readback verifies 1,787 pins and

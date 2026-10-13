@@ -17,11 +17,14 @@ and separate zero-finance 2025 freeze recovery PASS; the failed aggregate stays
 FAIL_RETAINED. The new prefix2023 raw/floor studies close 256 attempts each,
 with exact selected/direct accounting and supervised cleanup PASS. Prefix2025
 also closes both original 256-attempt studies with exact accounting and cleanup;
-the serial closure is PASS and every study child is reaped. Annual2023 now
-closes four original/direct accounts with exact parity, fixed-signal mutation
-checks and supervised cleanup PASS; annual2025 is dispatched serially under
-the unchanged resource/inference contract. No full-procedure mutation or
-economic promotion is inferred.
+the serial closure is PASS and every study child is reaped. All three annual
+origins (2023/2024/2025) now close four original/direct accounts each, with
+exact accounting, fixed-signal mutation and supervised cleanup PASS. Together
+with the primary two-year run, 22 forward account invocations are complete.
+The terminal cold reader verifies 7,948 distinct pins, including the immutable
+original 59-body roster. Annual-floor improves measured decay in 2023/2024,
+but worsens it in 2025; all registered fixed-path comparisons remain
+INCONCLUSIVE. No full-procedure mutation or economic promotion is inferred.
 This does not certify full diagnostics or whole-procedure mutation. See
 [forward report](../docs/mode5/M5_11_3_FORWARD_REPORT.md). Frozen inference
 registration keeps reviewed-history and dependent-origin limitations explicit.
@@ -27650,7 +27653,7 @@ Every phase below inherits this mandatory resource registration/cleanup exit.
 | [M5-11](#mode5-m5-11) | Formal calibration and scoped economics | M5-10 plus authorized adequate data | M5T-101..110 | REOPENED_RESEARCH_COVERAGE; original finite pilot preserved |
 | [M5-11.1](#mode5-m5-11-1) | Broad five-alpha diagnostics and renewed dossier | M5-11 scope review; registered data/design/resource protocol | M5T-041..060 / 071..090 | Broad accounts and bounded native B2/dossiers technically PASS; 640 discovery accounts, 348 native probes; scientific limitations retained |
 | [M5-11.2](#mode5-m5-11-2) | Actual adaptive formal search and selector comparisons | Reviewed M5-11.1 dossier; new sealed plans | M5T-091..103 / EH-01..05 | Raw256/floor256 audited and recovered; selector-only complete; three new sampler256 arms and cold matched comparison PASS; historical failures retained |
-| [M5-11.3](#mode5-m5-11-3) | Multi-origin fixed-policy transfer and economic qualification | Frozen M5-11.2 outputs and prefix studies | M5T-101..110 / EH-06..12 | Primary and annual2023/2024 accounting PASS; economics INCONCLUSIVE; actual 2023/2025 bounded diagnostics/freeze and four new 256-attempt studies PASS with preserved aggregate FAIL; annual2025 dispatched, full-procedure mutation NOT_RUN |
+| [M5-11.3](#mode5-m5-11-3) | Multi-origin fixed-policy transfer and economic qualification | Frozen M5-11.2 outputs and prefix studies | M5T-101..110 / EH-06..12 | Registered bounded diagnostics, four prefix256 studies, primary and annual2023/2024/2025 accounts COMPLETE; original/direct accounting, custody and cleanup PASS; all economics INCONCLUSIVE; full-procedure mutation NOT_RUN, broader diagnostic disposition pending |
 | [M5-12](#mode5-m5-12) | Local qualification/docs/handoff | M5-01..11 dispositions reviewed | M5T-111..120 | NOT_STARTED |
 
 Respect the guide dependency graph. M5-05 and independent M5-06 preparation
@@ -33139,6 +33142,59 @@ this cold receipt cannot certify an unexecuted full-procedure mutation or
 replace M5-12/artifact/remote/public qualification. Do not rewrite any sealed
 receipt or source body to repair report metadata.
 
+**Cold Readback Admission Amendment:** first reader exits FAIL before success
+output creation, with zero finance and no scratch. Its repo-only read guard
+rejects the nine exact external dependency pins already in immutable Source09
+(TA files from the preserved pool environment and the pinned interpreter).
+Retain the observed error separately; admit only the exact external names
+from the hash-verified original manifest, preserving size/SHA/realpath and
+stable-file checks. No external writes, source/runtime change or finance
+replay. Use fresh `readback03/actual02/result.json`, never relabel the failed
+admission; all previous readback resource/retention/cleanup limits stay fixed.
+
+**Annual2025 / Terminal Measurement Closure (2026-10-14, Asia/Saigon):** four
+actual original/direct accounts PASS exact accounting, fixed-signal mutation
+and source/input entry/exit checks. Complete development is 2021--2024;
+complete forward is all 365 UTC days of 2025, with original 2020 indicator
+preload and explicit fresh accounts. Raw/annual-floor development Sharpe is
+1.99886/1.69190; forward Sharpe 1.31341/-0.44303, equity 27,017.47/18,586.49.
+Decay worsens 0.68545 -> 2.13493, despite IS Sharpe lower by 0.30696;
+forward Sharpe is lower by 1.75643. Net mean change is -10.83970 bps/day,
+family-seven interval [-33.66781,+9.31709]. All 16,384 draws are valid;
+verdict remains INCONCLUSIVE, not evidence of a stable advantage or zero edge.
+No recipe/params/seed/gate is changed after this adverse outcome. Original
+supervision PASSes in 791.976 seconds / 1,091.04 MiB peak RSS, all children
+reaped, no resource stop/error. Exact inactive scratch cleanup increases
+observed free space by 212,992 bytes. Result SHA256
+`23b07e787097492eb28cbb2f2781baca01bf5f2fd86ca185c3b24044ce69746c`;
+supervisor `f0ac0c9505dbb49ea9278c0d41268fdb8e3b9efd08ad87327370b2388d3df159`;
+cleanup `d8bddcb6e9b78274074dfca98d38a2d459a613382549e42434d79f6a1d4d0e63`.
+
+The separate terminal cold readback PASSes 7,948 unique pins / 4,703 original
+manifest pins / 59 original code bodies in 5.917 seconds / 71.73 MiB, with
+zero financial/query/optimizer/RNG work and no scratch/deletion. All primary
+and annual measured summaries and available accounting match their actual
+artifacts; source/private strategy data and all failures remain retained.
+Readback SHA256 `4641aa7de4f03be86fb07d020dc8d71598031bdb532c0410979e0c017fb96c73`.
+See [complete comparison and interpretation](../docs/mode5/M5_11_3_FORWARD_REPORT.md#annual-2025-integration),
+[sanitized numeric seal](../docs/mode5/evidence/m5-11-3-bounded-forward.json)
+and [cleanup inventory](../docs/maintenance/M5_11_3_FORWARD_CLEANUP.md).
+
+All registered bounded measurements are now executed: actual prefix-rebuilt
+raw/floor panels, frozen plans, four new 256-attempt studies, primary forward
+and three annual forward comparisons. This discharges allowed-prefix rebuild
+for the fixed researcher-chosen raw/floor scope, not blanket learned-pipeline
+M5T-103 qualification. Learned geometry/probes/reference fits are explicit
+non-gates for that bounded recipe; complete-pipeline claims still need those
+measurements or approved partial disposition. Actual full-procedure future
+mutation through diagnostics, applicable fits, recipe, search and ranking
+remains NOT_RUN. Preserve this stronger planned test separately from passing
+projection/fixed-signal checks. Three nominal annual origins are dependent
+historical observations, not three independent replications; each original
+paired interval is one origin, not a joint selection-uncertainty certificate.
+No unavailable fill/campaign ledger is fabricated. M5-12 remains NOT_STARTED
+pending reviewed scientific/partial disposition; no CI or release action.
+
 **Actual Primary Receipt (2026-10-13, Asia/Saigon):** five frozen vectors and ten
 original/direct forward accounts complete with exact accounting and fixed-signal
 suffix mutation parity. Software qualification passes 207 tests/17 isolated
@@ -33184,9 +33240,9 @@ Register each prefix's exact diagnostics/probes/search resources and source
 qualification before financial launch. Software adapters alone do not close
 actual prefix diagnostics, dossier, search or forward gates.
 
-**Status:** IN_PROGRESS / PRIMARY_FORWARD_ACCOUNTING_PASS / ECONOMICS_INCONCLUSIVE;
-   new prefix work follows M5-11.2, no independent-forward
-   certification promised.
+**Status:** REGISTERED_BOUNDED_MEASUREMENTS_COMPLETE / ACCOUNTING_CUSTODY_CLEANUP_PASS /
+   ECONOMICS_INCONCLUSIVE / WHOLE_PROCEDURE_PROOF_PENDING; not whole-phase
+   completion, no independent-forward certification promised.
 **Goal:** test the entire diagnostic -> recipe -> search -> selection procedure
    over long forward horizons, not just bootstrap one already chosen curve.
 **Entry:** M5-11.1/11.2 reviewed scope and frozen actual outputs, complete prefix

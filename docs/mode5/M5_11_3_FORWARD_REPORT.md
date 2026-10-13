@@ -2,11 +2,13 @@
 
 ## Current Scope
 
-Primary forward execution, both new-prefix studies and annual 2023/2024 are
-complete within their declared bounded contracts. Annual 2025 is running
-serially; full-procedure mutation and complete prefix diagnostics remain
+Primary forward execution, all four new-prefix studies and annual 2023/2024/
+2025 are complete within their declared bounded contracts. Full-procedure
+future mutation and broader complete-prefix diagnostic disposition remain
 unfinished gates. This report must not be read as completion of M5-11.3 or
 M5-12. Historical checkpoint paragraphs below retain their original timing.
+The [machine-readable numeric seal](evidence/m5-11-3-bounded-forward.json)
+records the current scope, results, inference and exact terminal receipt hashes.
 
 Both Source09 actual bounded prefix panels now complete 128 accounts each,
 with 20/3 annual-eligible candidates at origins 2023/2025. The 2023 freeze
@@ -167,7 +169,11 @@ Current software receipt:
 software cleanup:
 `751edfae71c99acb64880a8ed296621256a7146cde8cd61812f7fba0be85acc0`.
 
-### Pending Prefix Work
+### Historical Prefix Checkpoints
+
+The recovery/search TODOs in this checkpoint are subsequently executed below.
+Current pending scientific gates are listed in the final joint-reading section,
+not inferred from this retained chronology.
 
 The actual 2023 bounded panel now closes 128 panel accounts, plus its original
 qualification scorer and independent direct account. Exactly 20/128 candidates
@@ -301,6 +307,76 @@ cleanup:
 current separate metadata qualification:
 `9f8c6a9e806e86f1a54144ef19392f908278bace20fa32f0166c7ca8b8c1b110`.
 
-Annual 2025 follows serially through the same original financial owner.
+At the 2023 checkpoint, annual 2025 follows serially through the same owner;
+its actual closure is recorded next.
 Neither this account proof nor fixed-signal mutation certifies full
 diagnostics/fit/search/rank future-mutation or complete geometry/probes.
+
+### Annual 2025 Integration
+
+Both arms are selected by actual new 256-attempt studies on complete
+2021--2024 development. Forward is [2025-01-01,2026-01-01), all 365 UTC days,
+with original 2020 preload and separate fresh 20,000 accounts. No primary
+two-year equity slice or previously selected 2024 params stand in for this run.
+
+| Frozen Arm | Development Sharpe | Annual Forward Sharpe | IS Minus Forward | Final Equity | Net Return | Max Drawdown |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Raw whole-Sharpe | 1.99886 | 1.31341 | 0.68545 | 27,017.47 | +35.09% | 12.73% |
+| Annual-floor | 1.69190 | -0.44303 | 2.13493 | 18,586.49 | -7.07% | 16.52% |
+
+The challenger is materially worse descriptively here. Decay change is
++1.44948, not an improvement: lower IS by 0.30696 is outweighed by lower
+forward Sharpe by 1.75643. Net mean change is -10.83970 bps/day, family-seven
+interval [-33.66781,+9.31709] bps/day. Forward-Sharpe change interval is
+[-5.73834,+1.87163]; decay-change interval is [-2.52827,+5.90982]. All
+16,384 draws are valid. Registered verdict remains INCONCLUSIVE; a wide
+interval does not cancel the adverse measured account path.
+
+Four actual original/direct accounts match exactly, including every available
+financial array. Fixed-vector July suffix mutation and source/evidence
+entry/exit checks PASS. Original supervisor: PASS, 791.976 s / 1,091.04 MiB
+peak RSS; all children reaped, no resource stop/error. Registered scratch
+alone is removed, with +212,992 observed free bytes. Result SHA-256:
+`23b07e787097492eb28cbb2f2781baca01bf5f2fd86ca185c3b24044ce69746c`;
+supervisor:
+`f0ac0c9505dbb49ea9278c0d41268fdb8e3b9efd08ad87327370b2388d3df159`;
+cleanup:
+`d8bddcb6e9b78274074dfca98d38a2d459a613382549e42434d79f6a1d4d0e63`.
+
+### Joint Reading And Remaining Gates
+
+Annual-floor improves measured forward quality/decay in 2023 and 2024,
+but worsens both in 2025. This rejects a blanket descriptive claim that the
+same recipe dominates at every registered origin. It does not establish
+absence of alpha edge or justify a post-hoc recipe, gate, range or seed change.
+The five-arm primary tape still shows encouraging fixed-vector results, but
+it cannot hide this prefix-rebuilt counter-evidence.
+
+The three nominal annual origins rebuild their permitted development scopes;
+2024 legitimately reuses the identical already-qualified calibration scope.
+They share research history and market regimes; the primary 2024--2025 tape
+overlaps two annual windows. Do not stitch annual fresh-account equity into
+one continuous-account curve or count overlapping comparisons as independent.
+Each original paired interval has one origin. No pooled recipe-selection or
+whole-procedure confidence interval has been claimed.
+
+All 22 actual forward account invocations are complete: ten primary plus
+twelve annual (endpoint/direct pairs). This is work, not independent sample
+support. Separate terminal readback verifies 7,948 unique pins, including
+4,703 original source-manifest pins and the original 59-body software roster,
+in 5.917 s / 71.73 MiB. It runs zero financial/query/optimizer/RNG work,
+creates no scratch and deletes nothing. Readback SHA-256:
+`4641aa7de4f03be86fb07d020dc8d71598031bdb532c0410979e0c017fb96c73`.
+Its failed first repo-only admission is retained; only the exact nine
+manifest-bound external dependencies are admitted by the corrected reader.
+See [cleanup and retention](../maintenance/M5_11_3_FORWARD_CLEANUP.md).
+
+Fixed raw/floor allowed-prefix rebuild is measured, not just declared. However,
+full future-data mutation while the actual diagnostics, applicable fits,
+recipe/search/rank procedure executes remains NOT_RUN. Complete learned
+geometry, active/held probes and reference/environment-fit certification is
+outside the bounded fixed-recipe experiment. Those layers require execution
+or an explicit reviewed partial disposition before broader claims/M5-12.
+Unavailable fills/closed campaigns remain unavailable. Reviewed history is
+not untouched OOS, even if a future-mutation experiment later passes.
+No economic/deployment promotion, CI, push, tag, release or publication occurs.
