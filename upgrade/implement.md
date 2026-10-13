@@ -6,7 +6,8 @@
 phases before M5-12: [M5-11.4](#mode5-m5-11-4), full-development diagnostics and
 the researcher decision dossier; then [M5-11.5](#mode5-m5-11-5), diagnostic-guided
 recipe handoff and actual static Mode 5 calibration qualification. Both are
-PLANNED / IMPLEMENTATION_NOT_APPROVED. This amendment authorizes planning only.
+M5-11.4 is APPROVED / IN_PROGRESS under the owner's 2026-10-13 instruction;
+M5-11.5 remains PLANNED / IMPLEMENTATION_NOT_APPROVED.
 The requested current-calibration scope is 2020 through the latest verified
 complete data in 2026, with an explicit scored calendar and minimum sufficient
 prehistory/readiness. Do not reserve all of 2020 as warmup by convention or
@@ -33425,7 +33426,15 @@ automatic recipe router, alpha rewrite, release version or deployment action.
 <a id="mode5-m5-11-4"></a>
 ### Phase M5-11.4 - Full-Development Diagnostics And Researcher Decision Dossier
 
-**Status:** PLANNED / IMPLEMENTATION_NOT_APPROVED; planning authorized only.
+**Status:** APPROVED / IN_PROGRESS; owner implementation approval 2026-10-13.
+Read-only provider inventory finds BTC/ETH hourly data from 2020-01-01 through
+2026-10-06 02:00 UTC; the last complete day is 2026-10-05. No pre-2020 input is
+available from this local provider. Per-alpha/common-candidate readiness and
+the exact unsupported initial prefix must be measured and retained; no complete
+2020-start certificate is implied. Current disk has about 16 GiB available,
+with at least 5 GiB reserved; use existing tooling/native artifacts and bounded
+independent workers. Freeze exact counts/paths in the private registration
+before financial launch. Scope stays diagnostics; M5-11.5 is not activated.
 **Goal:** give all five alphas a reproducible, readable profile over the requested
 2020--2026 development: which effective dimensions matter to which outcomes,
 where performance/risk is strong or weak, what local/state/stress evidence says,
