@@ -107,3 +107,14 @@ def test_missing_pairs_and_constant_outcome_keep_nulls_and_support():
     out = finite_panel_environment_comparison(["a", "b"], ["x", "y"], [[1., np.nan], [1., 2.]])
     row = next(r for r in out["pairs"] if r["left"] == "x" and r["right"] == "y")
     assert row["spearman"] is None and row["common_candidates"] == 1
+
+
+def test_regret_uses_finite_panel_and_preserves_adverse_and_missing_outcomes():
+    out = finite_panel_environment_comparison(["a", "b"], ["x", "y"],
+        [[-1., 2.], [-3., np.nan]])
+    first, second = out["regret"]
+    assert first["environments"][0]["finite_panel_benchmark"] == -1.
+    assert first["max_regret"] == 0. and first["complete"]
+    assert second["environments"][0]["regret"] == 2.
+    assert second["environments"][1]["regret"] is None
+    assert second["max_regret"] is None and not second["complete"]

@@ -169,5 +169,21 @@ def finite_panel_environment_comparison(candidate_ids, environment_ids, utilitie
         else:
             leave_out.append(dict(omitted=name, candidate_id=None, held_utility=None,
                 status="NO_FINITE_KEPT_POOL"))
-    return dict(pairs=pairs, leave_out=leave_out,
+    regret = []
+    for i, candidate_id in enumerate(candidate_ids):
+        observations = []
+        for j, environment_id in enumerate(environment_ids):
+            finite = np.isfinite(x[:, j])
+            benchmark = float(x[finite, j].max()) if finite.any() else None
+            available = bool(np.isfinite(x[i, j])) and benchmark is not None
+            observations.append(dict(environment=environment_id,
+                finite_panel_benchmark=benchmark,
+                finite_candidates=int(finite.sum()),
+                regret=float(benchmark-x[i, j]) if available else None,
+                status="OBSERVED" if available else "MISSING_OUTCOME"))
+        complete = all(r["regret"] is not None for r in observations)
+        regret.append(dict(candidate_id=candidate_id, environments=observations,
+            max_regret=max(r["regret"] for r in observations) if complete else None,
+            complete=complete, benchmark_scope="registered finite panel, not global optimum"))
+    return dict(pairs=pairs, leave_out=leave_out, regret=regret,
         independent_oos=False, sampler_advantage=False, whole_path_from_year_mean=False)
