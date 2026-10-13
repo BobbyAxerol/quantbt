@@ -34,6 +34,23 @@ def test_bankrupt_returns_are_not_zero_imputed_for_conditional_statistics():
     assert out["whole_pnl"] == pytest.approx(-110., abs=1e-12)
 
 
+def test_flat_warmup_stays_in_calendar_and_keeps_original_account_baseline():
+    raw = account(days=20)
+    warmup = 5 * 24
+    raw["equity"][:warmup] = 100.
+    raw["positions"][:warmup] = 0.
+    raw["fees"][:warmup] = 0.
+    obs = DailyObservations.from_account(raw, initial_capital=100.)
+    np.testing.assert_array_equal(obs.returns.array()[:5], np.zeros(5))
+    assert len(obs.times.array()) == 20
+    labels = np.r_[np.full(5, -1), np.zeros(15, dtype=int)]
+    output = obs.attribute(labels)
+    unready = output["rows"][0]
+    assert unready["days"] == 5
+    assert unready["pnl"] == unready["fees"] == unready["exposed_bars"] == 0
+    assert output["grouped_pnl"] == pytest.approx(raw["equity"][-1] - 100.)
+
+
 def test_incomplete_day_clock_does_not_get_annualized_as_full_day():
     raw = {k: v[:-1] for k, v in account().items()}
     with pytest.raises(ValueError, match="complete hourly"):
