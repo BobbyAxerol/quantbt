@@ -15,6 +15,12 @@ coupled probes, ten matched actual fee stresses and 320 independent RSI
 A/B/cross cells. These **1,219 planned cells are not completed accounts**.
 No optimizer study, subsequent M5-11.5 activation, CI, push or release occurs.
 
+The owner subsequently approved continuing checkpointed tranches until the
+registered coverage is complete, rather than closing a partial pilot. A lane
+wall limit remains an operational stop, not permission to reduce the roster or
+call the phase complete. The next lane must request only missing or unqualified
+cells and preserve all previous process/output custody.
+
 A diagnostic cell is also not an engine-call count. RSI retains a primary and
 legacy parity run; SC's fixed-fill reconciliation is not another simulation.
 Native feedback/admission, final owner, repeat-native control and Python oracle
@@ -85,6 +91,13 @@ lane: actual SC decision audits are about 34 MiB per account. The five-GiB
 reserve, worker/RSS limits, scientific roster, seeds, roles and metrics remain
 unchanged. Existing tooling/native binary is reused. Final cleanup is pending
 while financial workers use the registered scratch; no evidence is disposable.
+
+A new append-only source archiver has five passing synthetic failure-path
+tests, including mutation during copying and refusal to overwrite an archive.
+It does not change running financial sources or retrospectively certify the
+unavailable older harness. Its disposable test directory is separately recorded
+as `.maturin/mode5-m5114/attempt-01/archive-tests`; removal awaits inactivity and
+protected-hash verification with the other registered scratch.
 
 See the [unified plan](../../upgrade/implement.md#mode5-m5-11-4),
 [reporting contract](FULL_DEVELOPMENT_DIAGNOSTICS_V1.md) and

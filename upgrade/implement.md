@@ -33608,6 +33608,10 @@ sanitized evidence summaries and plan progress; local commits only.
 versions readable; preserve original alpha/core contracts and all attempts.
 
 **Implementation Progress (2026-10-13 UTC; not an exit receipt):**
+- Owner approved continuing checkpointed tranches to complete the registered
+  full coverage; no partial-pilot disposition was selected. Lane wall caps do
+  not reduce the 128-point discovery panels, probes or structured design. Fresh
+  lanes reuse only exact qualified outputs and keep prior failures/custody.
 - Readiness/scope inventory is sealed before financial outcomes. ETH/BTC end
   at 2026-10-06 exclusive; available prehistory starts 2020-01-01. Owner
   approved January 1 scoring with original per-candidate warmup flat and
