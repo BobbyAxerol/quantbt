@@ -149,8 +149,21 @@ software cleanup:
 
 ### Pending Prefix Work
 
-- Rebuild actual 2023/2025 prefix diagnostics and permitted recipes; do not
-  transplant the 2024 dossier or import future objective values.
+The actual 2023 bounded panel now closes 128 panel accounts, plus its original
+qualification scorer and independent direct account. Exactly 20/128 candidates
+meet the unchanged annual eligibility gate. Source/input entry and exit checks,
+supervision and cleanup PASS in 2,491.243 s at 521.42 MiB peak worker RSS.
+All owned children are reaped; no resource stop or cleanup error occurs; only
+the registered inactive scratch is removed. Diagnostic SHA-256:
+`f5dead544dbb3c7874b5ae5e9728b92f064c3983c8dfc159257abbf30abbf0f3`;
+supervision and cleanup SHA-256:
+`840c1599261199748641ed9e0823742e0731802f2bfbac93e8594b4620bf591d`.
+This is bounded raw/annual-floor evidence, not full geometry/probe certification
+or diagnostics-fit/search/rank mutation qualification. The 2025 panel and both
+plan freezes are not certified by this checkpoint.
+
+- Complete the actual 2025 prefix panel and freeze both permitted recipes;
+  do not transplant the 2024 dossier or import future objective values.
 - Execute each actual 256-trial prefix raw study and eligible floor study;
   preserve real DEFER/NO_SELECTION if the unchanged gate fails.
 - Run the remaining registered complete-year 2023/2025 fresh-account comparisons,

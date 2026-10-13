@@ -10,8 +10,10 @@ provider qualification and current context/recipe freeze PASS. Three fresh
 closed cleanup. Cold matched-budget comparison PASSes without new finance;
 see [actual sampler report](../docs/mode5/M5_11_2_MATCHED_SAMPLER_REPORT.md).
 Primary 2024--2025 forward PASSes original/direct accounting for ten accounts;
-registered family-adjusted economics remains INCONCLUSIVE. New 2023/2025
-prefix diagnostics are in progress, not certified. See
+registered family-adjusted economics remains INCONCLUSIVE. The new 2023
+bounded prefix panel closes 128 accounts / 20 eligible, with original-provider
+qualification and supervised cleanup PASS; plan freeze and 2025 remain in
+progress. This does not certify full diagnostics or search/forward. See
 [forward report](../docs/mode5/M5_11_3_FORWARD_REPORT.md). Frozen inference
 registration keeps reviewed-history and dependent-origin limitations explicit.
 See [registered continuation](#mode5-m5-11-2). No CI or publication.
@@ -32939,6 +32941,21 @@ stop and exact inactive scratch removed. See the [annual result and exact
 receipt hashes](../docs/mode5/M5_11_3_FORWARD_REPORT.md#annual-2024-integration).
 Proceed to a fresh Source09 seal for actual 2023/2025 prefix diagnostics and
 studies; do not rewrite this successful 2024 calibration/forward lineage.
+
+**Prefix2023 Panel Checkpoint (2026-10-13, Asia/Saigon):** attempt04 closes
+`PASS_BOUNDED_ACTUAL_PREFIX_DIAGNOSTICS`, 128 panel accounts plus one actual
+qualification scorer and one independent direct account; 20/128 candidates
+meet the unchanged annual eligibility gate. Source/input entry and exit
+checks pass. The stage supervisor closes PASS in 2,491.243 seconds / 521.42
+MiB peak worker RSS, all children reaped, no resource stop or cleanup error;
+only its exact inactive scratch is removed. Diagnostic SHA256
+`f5dead544dbb3c7874b5ae5e9728b92f064c3983c8dfc159257abbf30abbf0f3`;
+supervision/cleanup SHA256
+`840c1599261199748641ed9e0823742e0731802f2bfbac93e8594b4620bf591d`.
+This is the actual bounded raw/annual-floor panel, not full geometry/probe/
+fit-search mutation certification. The 2023 plan freeze, 2025 panel/freeze,
+new 256-attempt prefix studies and remaining annual forward are still pending.
+No gate, market, alpha, source code, RNG or scientific recipe is changed.
 
 **Actual Primary Receipt (2026-10-13, Asia/Saigon):** five frozen vectors and ten
 original/direct forward accounts complete with exact accounting and fixed-signal
