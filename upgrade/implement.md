@@ -27616,7 +27616,7 @@ Every phase below inherits this mandatory resource registration/cleanup exit.
 | [M5-10](#mode5-m5-10) | Public opt-in integration/runtime reuse | M5-09 plus current source map | M5T-091..100 | COMPLETE_LOCAL_PUBLIC_OPT_IN / TECHNICALLY_VALID |
 | [M5-11](#mode5-m5-11) | Formal calibration and scoped economics | M5-10 plus authorized adequate data | M5T-101..110 | REOPENED_RESEARCH_COVERAGE; original finite pilot preserved |
 | [M5-11.1](#mode5-m5-11-1) | Broad five-alpha diagnostics and renewed dossier | M5-11 scope review; registered data/design/resource protocol | M5T-041..060 / 071..090 | IN_PROGRESS; 640 discovery accounts and 348 probes closed/cold-admitted; native B2/dossier assembly pending |
-| [M5-11.2](#mode5-m5-11-2) | Actual adaptive formal search and selector comparisons | Reviewed M5-11.1 dossier; new sealed plans | M5T-091..103 / EH-01..05 | Raw256 PASS; floor256/selected/direct inner receipt complete, outer serialization FAIL retained; sampler-only actual studies NOT_RUN |
+| [M5-11.2](#mode5-m5-11-2) | Actual adaptive formal search and selector comparisons | Reviewed M5-11.1 dossier; new sealed plans | M5T-091..103 / EH-01..05 | Raw256 PASS; floor256 selected/direct and reviewed cold receipt recovery PASS; historical outer FAIL retained; sampler-only actual studies NOT_RUN |
 | [M5-11.3](#mode5-m5-11-3) | Multi-origin fixed-policy transfer and economic qualification | Frozen M5-11.2 outputs and prefix studies | M5T-101..110 / EH-06..12 | APPROVED; expanded forward tests NOT_RUN |
 | [M5-12](#mode5-m5-12) | Local qualification/docs/handoff | M5-01..11 dispositions reviewed | M5T-111..120 | NOT_STARTED |
 
@@ -32165,7 +32165,7 @@ is not execution or a waiver of those gates.
 ### Phase M5-11.2 - Actual Adaptive Calibration And Selector Comparisons
 
 **Status:** RSI RAW_256_AND_AUDIT_PASS / REPAIRED_COLD_PASS /
-FLOOR_256_INNER_AUDIT_COMPLETE_OUTER_SERIALIZATION_FAIL;
+FLOOR_256_AUDIT_AND_COLD_RECEIPT_RECOVERY_PASS;
 the original resource-stopped 119-prefix FAIL is retained. Source-07 provider,
 actual dossier preparation and runner freeze PASS separately. Owner approved
 RSI first while keeping SC/HMA/HASH/VWAP annual gates and NO_SUPPORTED status.
@@ -32686,6 +32686,44 @@ cleanup `0f0f814baada0ec142ad2eead11c0274ea77ed1bf59965e46613a4c0be7b7e1e`.
 All historical FAIL/PASS bytes retained; source07's 4,650 pins and original
 785 artifacts verify. No new accounts/trials/RNG. Scoped scratch removed and
 all workers reaped. Old source07 is not certification of the next consumer edit.
+
+**Native Unit Revision Entry:** receipt owner is closed before editing the
+public consumer. Apply the reviewed count-only patch and synthetic fixture
+correction; stored observations/reader/financial source remain unchanged. Run
+the 29 inherited native battery fixtures plus 42 exact bar/day/role regressions
+serially. The inherited suite previously took 324.64 seconds, so register a
+1200-second / 2-GiB RSS / 32-MiB retained software cap before execution rather
+than misclassifying that known cost as a 300-second gate. One numeric thread,
+>=1-GiB host floor, >=5-GiB reserve; exact scratch `unit-closure01/scratch`.
+No mathematical gate or evidence support budget changes. Assembly uses new
+`native_dossier_v3.py` / `run_dossier_v3.py` sources with the corrected consumer
+hash; old reducers/controllers/receipts remain immutable.
+**Software Scratch Estimate Amendment:** measured pytest fixture scratch is
+105 MiB during the inherited suite, above the initial 64-MiB estimate. Retain
+that original registration; issue an explicit supplementary operational
+allocation of 512 MiB before the remaining unit tests, with >=5-GiB reserve
+and unchanged wall/RSS/scientific gates. This is not a claim that the original
+64-MiB estimate passed. The final assembly must bind both receipts and cleanup;
+do not modify a live sealed controller or discard fixture/test evidence.
+**Native Unit Revision-01 Disposition:** 68 fixtures PASS, three FAIL in
+551.30 seconds. The two new positive fixtures compare pre-JSON tuples against
+sealed lists; use the existing canonical `Record` representation and separately
+assert no mutation of the original in-memory input. The inherited import guard
+also requires the original cold namespace/deny-import harness; the first
+controller omitted it. Do not weaken the no-runtime-import assertion. Original
+failure/log/cleanup and exact test/consumer source snapshots remain retained.
+Revision02 preregisters `unit-closure02/scratch` at 512 MiB, checks that budget
+during execution, and loads the existing cold guard before the same 71 tests.
+Wall/RSS/numeric/scientific gates remain unchanged; zero financial execution.
+**Native Unit Software Gate:** revision02 PASSes all 71 fixtures in 523.78
+seconds pytest. Count-only source remains qualified; exact inputs, roles,
+original gates and metrics are unchanged. Result
+`ae55dffd3246f11971a1f25c52c217d91db71b0603533e5a164dad3e4ec8ace7`,
+cleanup `e7b9bac462a3e8097222c6a2d432f1c2adfa4379b7c54ea4c0e40246065c446c`.
+Workers reaped, only registered scratch removed; all failure evidence retained.
+Actual three-alpha dossier assembly is the remaining gate for this scoped
+closure. New assembly binds the corrected source, complete unit registration,
+log/JUnit/cleanup evidence and source pins at entry/exit, not merely a PASS label.
 
 <a id="mode5-m5-11-3"></a>
 ### Phase M5-11.3 - Multi-Origin Fixed-Policy Transfer And Economic Qualification

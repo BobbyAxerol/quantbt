@@ -137,7 +137,9 @@ def _load(catalog, refs):
                     "original full continuous probe calendar/lineage required")
             for name in ("economic_utility", "drawdown", "sharpe", "net_return", "daily_loss_es"):
                 metric = _metric(value, name, probe=True)
-                require(metric.sample_count == days, "actual metric observation days differ")
+                count_key = "calendar_days" if name in ("sharpe", "daily_loss_es") else "actual_bar_count"
+                require(metric.sample_count == value[count_key],
+                        f"actual {name} metric observation count differs from {count_key}")
                 if name == "economic_utility" and metric.value is not None:
                     parts = dict(metric.components)
                     require(all(parts.get(k) == v for k, v in UTILITY.items()),

@@ -67,6 +67,14 @@ class Fixture(fixture_owner.Fixture):
                 value["provenance"].update(candidate_id=request["candidate_id"], design_id=request["design_id"],
                     execution_id=digest("public_synthetic_probe_"+str(execution["index"])), data_role=request["role"])
                 value["metrics"][0].update(value=.08)
+                for metric in value["metrics"]:
+                    if metric["metric_id"] in ("mode5.panel.economic_utility", "mode5.panel.net_return",
+                                               "mode5.panel.drawdown"):
+                        metric["sample_count"] = value["actual_bar_count"]
+                for metric in value["raw_account_metrics"]["metrics"]:
+                    if metric["metric_id"] in ("reporting.account.total_return",
+                                               "reporting.drawdown.max_depth"):
+                        metric["sample_count"] = value["actual_bar_count"]
                 rows.append(dict(execution_index=execution["index"], environment_id=env,
                     request=request, request_sha256=execution["request_sha256"], role=request["role"], value=value,
                     annual_local_authorized=False, clean_oos=False, analysis_compute_status="PASS"))
