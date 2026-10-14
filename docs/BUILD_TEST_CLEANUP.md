@@ -91,6 +91,14 @@ proof. Resume domain work only after disk and evidence checks are complete.
 
 ## Recorded Cleanup
 
+The [M5-11.6 native transaction receipt](maintenance/M5_11_6_NATIVE_TRANSACTION_CLEANUP.md)
+records one incremental offline build, 12 bounded saved controls, exact inactive
+six-file JIT-cache removal, 540 protected hashes and 72 host processes reviewed.
+Candidate/original native binaries, source copies and every failed/passing
+receipt remain. The observed free-space delta is negative 40 KiB after receipt
+writes/host activity, not a claimed saving. A later owner-isolation guard has its
+own source/test amendment; no long WFO, environment removal or release occurs.
+
 The [M5-11.6 performance receipt](maintenance/M5_11_6_PERFORMANCE_CLEANUP.md)
 records 16 completed matched account controls, 1,819 protected files verified,
 71 host processes reviewed, exact inactive JIT/test scratch removal and 1.43 MiB

@@ -1,5 +1,10 @@
 # M5-11.6 Bounded Performance Closure
 
+The historical pass below is retained unchanged. The later
+[native transaction follow-up](M5_11_6_NATIVE_TRANSACTION_CLOSURE.md) implements
+and locally qualifies its previously missing HMA session boundary. Neither
+receipt completes or launches the long M5-11.6 research.
+
 ## Disposition
 
 The owner-approved performance pass implements trial/final output separation,

@@ -34842,11 +34842,40 @@ preserve scientific receipts/accounts and verify hashes/free bytes after cleanup
 - Exact-prefix implementation note: a committed native prefix retains exact
   account/lifecycle bytes and referenced integer-ID/name pairs in immutable
   tuple links. Only views from the same native owner and matching stop may
-  reuse that exact certificate object. Foreign/different certificates retain
-  full field comparisons. This removes repeated dense-prefix reads, not
+  reuse that exact certificate object. Switching native owners fails closed;
+  different certificates/ordinary views retain full field comparisons.
+  This removes repeated dense-prefix reads, not
   accounting checks, and authorizes neither approximate hashes nor mutable
   account reuse. Tests include read-only byte-backed paths and false/foreign
   certificate fallback. Dense outputs remain available for cold final audit.
+
+**Native Transaction Readiness Receipt (2026-10-14, local only):**
+- PERF-HMA-SESSION implementation/bounded parity gate is now PASS: canonical
+  FullSession current-bar transactions, typed integer-ID feedback, exact owned
+  immutable-prefix reuse and one prepared session. Original replay remains a
+  selectable reference; alpha/public endpoint/default semantics are unchanged.
+- 63 Rust core + 179 native/compiler/lifecycle + 119 private-source unit cases
+  PASS (361 disjoint cases). All 12 saved controls match original objective,
+  observations, commands, account paths and lifecycle buffers exactly; each
+  includes a separate original final audit. Failed/earlier receipts remain.
+  Matched controls retain their `b838d86` source pins; the final `ea96380`
+  cross-owner rejection guard is separately regression-qualified, not a
+  relabelled financial rerun or a change to the same-owner numerical path.
+- Against the already-optimized replay control, two-sample median seconds:
+  HMA 32.755 -> 16.551 (1.98x); HASH 3.991 -> 3.213 (1.24x);
+  VWAP 4.949 -> 3.405 (1.45x). HMA replaces 1,923 full-tape compiler executions
+  with one session and zero full-tape replays; 18,167 native bar steps include
+  623 current-bar re-steps, not 18,167 complete backtests.
+- Peak process RSS is nearly flat for HMA; HASH/VWAP increase about 9--10 MiB.
+  Partial host/control overlap and two-sample limits are disclosed. Do not
+  advertise a universal RSS improvement, p95 SLA or precise 57-fold ETA.
+- One candidate extension was built offline without replacing the original
+  wheel/environment. No optimizer/new proposals, long queue, CI/push/version
+  change, merge or release occurred. **Await owner launch approval**; this
+  receipt does not close M5-11.6 long/mature/no-leakage/economic gates or start
+  M5-11.7/M5-12. Fresh source-bound admission is required before research.
+- [Measured native contract and report](../docs/mode5/M5_11_6_NATIVE_TRANSACTION_CLOSURE.md)
+  and [exact cleanup custody](../docs/maintenance/M5_11_6_NATIVE_TRANSACTION_CLEANUP.md).
 
 <a id="mode5-m5-11-7"></a>
 ### Phase M5-11.7 - Mode 4/5 Complete Researcher Reports And Decision Qualification
