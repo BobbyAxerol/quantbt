@@ -29,6 +29,20 @@ calendar visit counters are source-derived accounting-pass units, not physical
 inner-kernel steps or independent samples. Missing/censored costs remain unknown
 or explicitly lower-bounded; retries remain billed rather than erased by reuse.
 
+## Missing-Only Continuation
+
+On October 14, cold custody readback admits **181 current-scope cells**:
+RSI 49; each other alpha 33. The next execution requests the exact 1,038
+missing cells of the unchanged 1,219-cell roster. Eleven earlier unqualified
+outputs remain stored, excluded from coverage, and billed as prior work.
+
+The already-approved 10-GiB total retained ceiling is registered prospectively,
+with a 5-GiB free-space reserve. HASH's earlier 1,800-second timeout is retained;
+new missing-only lanes permit 7,200 seconds per cell and 14,400 seconds per
+lane. HMA/HASH now have individual terminal groups, avoiding group-wide loss
+of custody on interruption. Numeric methods, sources, data, roles, parameters,
+seeds, accounting and gates are unchanged. No new search or release is opened.
+
 ## Verified So Far
 
 - Cold public scope, attribution, report and sensitivity tests: 181 pass.

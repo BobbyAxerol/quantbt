@@ -33722,6 +33722,33 @@ versions readable; preserve original alpha/core contracts and all attempts.
   already applied compression or a completed phase. Old failures and the four
   unqualified records remain retained. [Exact cleanup and remaining work](../docs/maintenance/M5_11_4_STORAGE_REVIEW_CLEANUP.md).
 
+**Missing-only continuation (2026-10-14; registered before finance):**
+- Cold custody inventory verifies **181 / 1,219** reusable current-scope cells:
+  RSI 49; SC/HMA/HASH/VWAP 33 each. Eleven earlier returned outputs remain
+  unqualified and retained; they are not counted or force-promoted. The next
+  lane requests the exact **1,038 missing** cells, without a new candidate or
+  optimizer study. Prior partial/failed receipts remain unchanged.
+- Append-only budget03 applies the already approved **10-GiB retained ceiling**,
+  not a target. Actual current payload remains about 2.335 GiB; at least 5 GiB
+  disk reserve, 2-GiB worker RSS and one numeric thread remain mandatory. The
+  exact registration diff changes storage only; all profiles, cell requests,
+  roles, structured design, metrics and RNG match budget02.
+- A HASH cell hit the former 1,800-second deadline. Register prospective
+  **7,200 seconds/cell and 14,400 seconds/lane**, preserving the timeout and
+  incomplete visit bill. HMA/HASH use one-cell terminal groups; other alphas
+  retain groups of eight. At most four workers; existing missing-only v2
+  supervisor owns scheduling and fresh mutable state. No pinned source or
+  governance file may be edited while a lane runs.
+- Registration preparation had an incorrect cleanup receipt basename after
+  scope/work were sealed. Its pre-finance failure is retained; a separate
+  continuation manifest binds the correct immutable cleanup receipt. No
+  finance occurred and neither original registration was overwritten.
+- Reuse current qualified native/tooling and small caches. Temporary focused
+  tests use only `continuation03-tests` and `budget03-tests` under the existing
+  ignored scratch root; retain XML and source snapshots, review inactivity,
+  remove those fixtures after completion. Final cold assembly must reconcile
+  actual complete coverage, work/custody and five dossiers before phase PASS.
+
 <a id="mode5-m5-11-5"></a>
 ### Phase M5-11.5 - Diagnostic-Guided Mode 5 Calibration And Decision Qualification
 
