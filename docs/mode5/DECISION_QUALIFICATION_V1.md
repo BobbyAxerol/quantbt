@@ -128,5 +128,6 @@ forward quality or a universal edge guarantee.
 
 See [public calibration](PUBLIC_CALIBRATION_V1.md),
 [full-development diagnostics](FULL_DEVELOPMENT_DIAGNOSTICS_V1.md),
+[actual five-alpha worksheets and matched RSI studies](M5_11_5_DECISION_QUALIFICATION_REPORT.md),
 [M5-11.5 plan](../../upgrade/implement.md#mode5-m5-11-5) and
 [guide comparison levels](../../upgrade/QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#49-multi-hypothesis-empirical-battery-giữ-năm-chiều-làm-rõ-mỗi-phép-thử).

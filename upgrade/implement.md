@@ -2,16 +2,20 @@
 
 ## Current Mode 5 Diagnostics-First Upgrade - Full-Development Decision Support
 
-**Current owner-requested planning amendment:** register exactly two additional
+**Current owner-approved supplementary scope:** exactly two additional
 phases before M5-12: [M5-11.4](#mode5-m5-11-4), full-development diagnostics and
 the researcher decision dossier; then [M5-11.5](#mode5-m5-11-5), diagnostic-guided
 recipe handoff and actual static Mode 5 calibration qualification.
 M5-11.4 is COMPLETE / TECHNICALLY_VALID after the 2026-10-14 full registered
 coverage, guarded readback and cleanup; scientific status is DESCRIPTIVE_ONLY.
 Read the [final report](../docs/mode5/M5_11_4_FULL_DEVELOPMENT_REPORT.md).
-M5-11.5 is APPROVED / IN_PROGRESS under the owner's 2026-10-14 instruction.
-Formal study mandates/recipes must be sealed prospectively; approval to implement
-does not silently replace the old 365-day or annual-quality preferences.
+M5-11.5 is COMPLETE_LOCAL_REGISTERED_C01_C08 after the owner's 2026-10-14
+instruction: five current worksheets, three separately sealed RSI 256-proposal
+studies, all-768 independent measurement readback, actual paired current/historical
+prefix proofs, 2,596 current-source test nodes and final scratch cleanup PASS.
+Read the [decision qualification report](../docs/mode5/M5_11_5_DECISION_QUALIFICATION_REPORT.md).
+Prospective owner-approved mandate revisions preserve the old 365-day and
+annual-quality receipts; no scientific estimator is silently replaced.
 The requested current-calibration scope is 2020 through the latest verified
 complete data in 2026, with an explicit scored calendar and minimum sufficient
 prehistory/readiness. Do not reserve all of 2020 as warmup by convention or
@@ -21,8 +25,8 @@ Earlier 2021--2023 studies remain valid for their registered question and retain
 their negative/positive evidence. They do not certify this larger scope.
 The new phases prioritize quantitative and qualitative decision support;
 fill/ledger expansion is parked at the owner's request. Existing numerical,
-financial and information-rights checks remain. M5-12 waits for the reviewed
-new dispositions; no new study, build, CI or publication starts with this edit.
+financial and information-rights checks remain. M5-12 remains NOT_STARTED and
+waits for review of these dispositions; no build, CI or publication starts here.
 
 **Completed bounded continuation record (2026-10-13, Asia/Saigon):** owner approved the ordered
 M5-11.1/11.2/11.3 continuation below, including three new matched sampler arms
@@ -27436,8 +27440,8 @@ version or release. Current M5-11 work and its measured limits are recorded in
 the [broad diagnostics](#mode5-m5-11-1), [search/selection](#mode5-m5-11-2)
 and [forward/economics](#mode5-m5-11-3) sections. The owner-requested
 [full-development amendment](#mode5-full-development-decision-amendment) adds
-M5-11.4 as COMPLETE / TECHNICALLY_VALID (DESCRIPTIVE_ONLY) and M5-11.5 as APPROVED /
-IN_PROGRESS; M5-12 remains NOT_STARTED
+M5-11.4 as COMPLETE / TECHNICALLY_VALID (DESCRIPTIVE_ONLY) and M5-11.5 as
+COMPLETE_LOCAL_REGISTERED_C01_C08; M5-12 remains NOT_STARTED
 and awaits their reviewed dispositions. Preserve all historical study receipts.
 Read the
 [M5-01 exit review](../docs/mode5/M5_01_EXIT_REVIEW.md) and
@@ -27682,10 +27686,10 @@ Every phase below inherits this mandatory resource registration/cleanup exit.
 | [M5-11](#mode5-m5-11) | Formal calibration and scoped economics | M5-10 plus authorized adequate data | M5T-101..110 | REOPENED_RESEARCH_COVERAGE; original finite pilot preserved |
 | [M5-11.1](#mode5-m5-11-1) | Broad five-alpha diagnostics and renewed dossier | M5-11 scope review; registered data/design/resource protocol | M5T-041..060 / 071..090 | Broad accounts and bounded native B2/dossiers technically PASS; 640 discovery accounts, 348 native probes; scientific limitations retained |
 | [M5-11.2](#mode5-m5-11-2) | Actual adaptive formal search and selector comparisons | Reviewed M5-11.1 dossier; new sealed plans | M5T-091..103 / EH-01..05 | Raw256/floor256 audited and recovered; selector-only complete; three new sampler256 arms and cold matched comparison PASS; historical failures retained |
-| [M5-11.3](#mode5-m5-11-3) | Multi-origin fixed-policy transfer and economic qualification | Frozen M5-11.2 outputs and prefix studies | M5T-101..110 / EH-06..12 | Registered bounded diagnostics, four prefix256 studies, primary and annual2023/2024/2025 accounts COMPLETE; original/direct accounting, custody and cleanup PASS; all economics INCONCLUSIVE; full-procedure mutation NOT_RUN, broader diagnostic disposition pending |
+| [M5-11.3](#mode5-m5-11-3) | Multi-origin fixed-policy transfer and economic qualification | Frozen M5-11.2 outputs and prefix studies | M5T-101..110 / EH-06..12 | Registered bounded accounts and accounting COMPLETE; economics INCONCLUSIVE retained; actual bounded 2023-prefix procedure qualified separately in M5-11.5, broader learned-router claim remains unqualified |
 | [M5-11.4](#mode5-m5-11-4) | Full 2020--2026 development profiling, missing diagnostics and readable researcher dossier | All 1,219 cells; five dossiers; guarded/daily readback and cleanup PASS | M5D-01..10; guide M5T-031..090 | COMPLETE / TECHNICALLY_VALID; DESCRIPTIVE_ONLY |
-| [M5-11.5](#mode5-m5-11-5) | Evidence-guided sampler/selector decisions, static calibration and measured handoff | Phase approved 2026-10-14; prospective mandate/recipe seals required | M5C-01..10; guide M5T-061..110 | APPROVED / IN_PROGRESS |
-| [M5-12](#mode5-m5-12) | Local qualification/docs/handoff | M5-01..11 plus M5-11.4/11.5 dispositions reviewed | M5T-111..120 | NOT_STARTED; waits for supplementary decision-support scope |
+| [M5-11.5](#mode5-m5-11-5) | Evidence-guided sampler/selector decisions, static calibration and measured handoff | Source-bound mandates/plans, five worksheets, three RSI256 studies, paired original-prefix proof and cleanup | M5C-01..10; guide M5T-061..110 | COMPLETE_LOCAL_REGISTERED_C01_C08; reviewed development, not independent OOS |
+| [M5-12](#mode5-m5-12) | Local qualification/docs/handoff | M5-01..11 plus M5-11.4/11.5 dispositions reviewed | M5T-111..120 | NOT_STARTED; awaits reviewed supplementary handoff |
 
 Respect the guide dependency graph. M5-05 and independent M5-06 preparation
 may overlap only by explicit owner approval after M5-04; M5-06 exit still needs
@@ -33868,7 +33872,8 @@ versions readable; preserve original alpha/core contracts and all attempts.
 <a id="mode5-m5-11-5"></a>
 ### Phase M5-11.5 - Diagnostic-Guided Mode 5 Calibration And Decision Qualification
 
-**Status:** APPROVED / IN_PROGRESS; owner implementation approval 2026-10-14.
+**Status:** COMPLETE_LOCAL_REGISTERED_C01_C08; owner implementation approval
+2026-10-14. Final source-bound closure and limits are recorded below.
 M5-11.4 full coverage and guarded/cold/daily proofs are the current entry evidence.
 Do not reinterpret earlier deferred plans or partial-year support as eligible
 formal search authority. New preferences require prospective named registration.
@@ -34158,13 +34163,94 @@ legacy replay, original science versions and all failure/negative evidence stay.
 - Both new phases require separate implementation approval. M5-12 entry waits
   for reviewed dispositions; no scientific or economic gate is declared PASS.
 
+**Final C01--C08 closure (2026-10-14, Asia/Saigon; supersedes current status,
+not historical receipts):**
+
+| Package | Current terminal disposition / private receipt |
+|---|---|
+| C01 | Five mandate-v2 worksheets; actual formal outcomes joined in `worksheets05/receipt.json` |
+| C02 | Three source-qualified pre-search dossiers/plans/journals in `formal-freeze02/` and `registration-formal-studies02.json` |
+| C03 | Same-panel comparisons for five alphas; `selector-comparison03/receipt.json`; SAM limited to its one authorized selection center |
+| C04 | Raw/TPE, floor/TPE and floor/CMA-ES each complete 256 unique proposals, zero pruned/failed; raw wrapper recovered cold, not rerun |
+| C05 | One actual fixed dictionary per RSI arm, original/direct equity diff 0, whole and seven continuous annual views reconciled |
+| C06 | Public/private `DecisionReport`, synthetic full workflow, actual five-alpha/study reports and current cold render benchmark |
+| C07 | Paired current-2026 and historical-2023 actual diagnostic/search/rank suffix guards PASS; 16 proposals and 96 actual Parzen fits per lane |
+| C08 | 2,596 current-source passing nodes, auxiliary legacy/private shards, all-768 measurement readback, cost/claim review and final cleanup |
+
+- Reused original M5-11.4 finance; no new 128-point diagnostic rerun or old
+  256-trial rerun to reconstruct a report. Five-panel eligibility is RSI100,
+  SC124, HMA0, HASH15 and VWAP9 of128 under the explicit whole-quality mandate.
+  HMA is bounded NO_SELECTION, not proof of no edge. SC/HASH/VWAP have panel
+  decisions but no unrun formal-sampler study is claimed for them.
+- New full-development RSI arms are separately frozen, seed731, 256 proposals
+  each, sequential exact, no early stop. Scope is Jan1 2020--Oct6 2026 exclusive,
+  59,280 hourly bars /2,470 daily returns, original warmup flat and partial2026
+  278days. Three actual selected dicts remain private, with no annual switching.
+- Raw/floor-TPE/floor-CMA final equity is 253,606.82/126,069.53/117,754.75 from
+  20,000; whole Sharpe1.83494/1.33306/1.46129; whole DD19.23%/22.20%/16.66%;
+  annual U floor -0.078908/0.060312/0.007975. Primary floor/TPE improves its
+  declared annual-floor target, not total return/Sharpe/drawdown universally.
+  CMA is not declared superior from a single seed. See full precision private
+  `closure-analysis01.json` and the [sanitized report](../docs/mode5/M5_11_5_DECISION_QUALIFICATION_REPORT.md).
+- Formal work bill:768 proposals,771 original-scorer accounts including three
+  selected audits,2 final-public accounts and3 direct accounts =776 completed
+  account invocations. These are not native internal passes or independent
+  statistical samples. Independent cold NumPy readback verifies all768 saved
+  accounts /5,376 annual views, actual objectives, daily units, carried baselines,
+  ES/U and common eligibility; zero new finance/RNG,54.94seconds.
+- Preserve raw wrapper FAIL_RETAINED after256 completed trials. Its lossless
+  terminal checkpoint recovery issues no new proposal; lost sampler wall
+  telemetry stays null and exact persisted continuation is not invented.
+  Earlier unstable callable fingerprint/source-pin and cosmetic-axis failures
+  remain; the pinned delegating adapter preserves original alpha/engine bytes.
+- Historical2023 uses only original exported2020--2022,2020 signal preload,
+  continuous2021--2022 score, original strict365-day/annual-U preference and
+  unchanged floor reference. Reverify128 original accounts and fresh original/
+  direct execution with equity diff0 before paired search. No2026 dossier,
+  mandate, prior or threshold is transplanted. Paired current-prefix and
+  historical proofs take213.82s/477.37s respectively; actual post-startup TPE
+  fits, observations, chosen dict, RNG, ask/tell and accounting match.
+- This closes the registered fixed-schema, researcher-chosen floor procedure,
+  not a learned geometry/environment model, new active/held probe design or
+  automatic recipe router historical claim. Those unused broader capabilities
+  remain explicitly UNQUALIFIED; old M5-11.3 failures/limits stay immutable.
+  Proof is retrospective software causality, not a backdated published decision
+  or independent forward evidence. Old seven economic contrasts/inference and
+  negative2025 results remain unchanged; unavailable new future is not invented.
+- Current-source regression union covers82 files /2,596 passing collected nodes:
+  reuse2,283 exact terminal node passes; execute313 remaining nodes in the final
+  isolated continuation. Earlier interrupted/failed XML remains FAIL_RETAINED,
+  not a fictitious clean single run. Additional retained legacy shard140,
+  worksheets127, prefix55 and historical52 checks overlap; do not add these
+  counts as independent evidence. Boundary/guard targeted shard337PASS admits
+  exact approved committed adapters and rejects unreviewed bytes.
+- Reuse the qualified unchanged native artifact and matching retained tooling;
+  plot-only tests use the existing project environment with matplotlib. No
+  dependency environment or native rebuild. This source-local union is not
+  installed-current-source wheel/sdist or manylinux/public qualification.
+- Prospective isolated fixtures use256MiB per file after the initial64MiB
+  overrun was stopped; that earlier resource gate stays failed. Final cleanup
+  verifies4,402 protected files,170 host PIDs and zero active FD/maps/cwd/exe
+  references, then removes only closure-tests/qualification01/studies01.
+  Final observed recovery5.18MiB, leaving6.38GiB available; earlier exact
+  source03 cleanup recovered219.49MiB and test cleanup20.69MiB. Source,
+  scientific accounts/failures/XML/artifacts and current/offline environments
+  stay; private retained phase about864MiB within1GiB. See
+  [operational receipt](../docs/maintenance/M5_11_5_DECISION_CLEANUP.md).
+- Terminal private `phase-exit01.json` binds original receipts, current
+  source/tests/docs, scoped claims and cleanup. No blocking technical gap in
+  the claimed registered C01--C08 path. M5-12 remains NOT_STARTED for separate
+  local wheel/sdist/privacy/program qualification; remote CI and publication
+  remain unapproved. No push, merge, tag, version change, release or PyPI.
+
 <a id="mode5-m5-12"></a>
 ### Phase M5-12 - Local Package Qualification, Regression, Docs And Handoff
 
 **Status:** APPROVED / NOT_STARTED; owner local implementation approval
 2026-10-12 (Asia/Saigon); entry follows reviewed M5-11 and supplemental
-M5-11.4/11.5 dispositions, gates NOT_RUN. The two new phases require their own
-implementation approval; earlier M5-12 approval does not launch them.
+M5-11.4/11.5 dispositions, gates NOT_RUN. The two supplemental phases now
+have separately approved local closure; this C01--C08 request does not launch
+M5-12 or any CI, release or publication.
 **Goal:** deliver a reproducible privacy-safe local package and honest capability/
    scientific handoff covering the whole approved program before release approval.
 **Entry:** M5-01..11 including M5-11.4/11.5 reviewed dispositions, no blocking technical debt for claimed

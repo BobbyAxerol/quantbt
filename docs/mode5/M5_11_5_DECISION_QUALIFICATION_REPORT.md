@@ -1,7 +1,7 @@
 # M5-11.5 Diagnostic-Guided Decision Qualification
 
 Date: October 14, 2026 (Asia/Saigon).
-Status: **REGISTERED FULL-DEVELOPMENT STUDIES COMPLETE; FINAL C07/C08 REVIEW OPEN**.
+Status: **COMPLETE_LOCAL_REGISTERED_C01_C08**.
 No release, installed-current-source package certification or independent OOS
 claim follows from this report.
 
@@ -50,6 +50,26 @@ missing evidence, researcher preferences and actual study outcomes. Compatible
 CMA-ES is not a sampler recommendation by alpha name. HMA's bounded NO_SELECTION
 does not establish absence of edge outside the registered candidate panel.
 
+## Work-Package Disposition
+
+| Work Package | Completed Registered Scope |
+| --- | --- |
+| C01 | Five current-mandate worksheets, joined to actual formal study outcomes where executed |
+| C02 | Three separately source-qualified RSI dossiers, plans and journals sealed before search |
+| C03 | Five-alpha same-pool selector/component comparisons; SAM's one-center evidence limit retained |
+| C04 | Three new, separate 256-proposal RSI studies; no blanket five-alpha sampler experiment |
+| C05 | Actual selected fixed dictionaries, continuous full-account replay, direct and annual attribution controls |
+| C06 | Cold public/private decision reader, synthetic workflow and actual five-alpha/study explanations |
+| C07 | Actual current-prefix and historical-2023 fixed-recipe diagnostic/search/rank suffix-mutation proofs |
+| C08 | Current-source test union, scope/cost/negative-evidence reconciliation and registered scratch cleanup |
+
+The claimed historical path is the registered fixed-schema, researcher-selected
+floor recipe. A learned geometry, new active/held probe design, fitted market
+environment classifier or automatic recipe router is **not** certified by that
+proof. Those unused broader capabilities are explicit, not silently substituted
+by the smaller actual procedure. No blocking technical gap remains for the
+registered path; M5-12 is still a separate package qualification phase.
+
 ## Actual Matched Studies
 
 Before search, source-qualified dossiers and explicit plans were sealed for
@@ -92,6 +112,15 @@ execute 768 proposals, 771 original scorer accounts including selected audits,
 two final public endpoint accounts and three direct accounts: **776 completed
 account invocations**, not internal native passes or independent observations.
 
+An independent cold reader verifies **all 768 saved candidate accounts**, not
+only the three winners: request/parameter identities, original hourly equity
+returns and drawdown, daily aggregation, fractional tail utility, seven carried
+annual baselines, support and the actual objective. Its 5,376 annual views use
+the original tolerance, preserve all states, and execute zero new accounts or
+sampler draws. The first ten TPE startup proposals match across the two TPE
+arms exactly. Readback takes 54.94 seconds; this is certification cost, not
+another financial study.
+
 ## Cost And Recovery
 
 | Work | Observed Time | Peak Process RSS |
@@ -131,6 +160,29 @@ not a release latency threshold. No finance, search, reduction or RNG draw is in
 these timers. No claim of equal reporting cost at different retained ledger
 sizes is made. Default public exports redact private vectors and source prose.
 
+## Actual Procedure And Future-Mutation Checks
+
+| Registered Procedure | Diagnostic Evidence | New Public Search Per Lane | Actual TPE Fits Per Lane | Paired Outcome |
+| --- | --- | ---: | ---: | --- |
+| Current 2026 development prefix | 503 source/role-qualified original RSI accounts and probes; matrices, reference, advice and dossier/plan rebuilt | 16 proposals | 96 | PASS; 213.82 s, 1,837.73 MiB peak RSS |
+| Historical decision prefix at January 1, 2023 | 128 original prefix accounts independently reduced; current-source original/direct qualification and bounded matrices/dossier/plan rebuilt | 16 proposals | 96 | PASS; 477.37 s, 644.98 MiB peak RSS |
+
+Each row has independently reset control and forbidden-future-suffix lanes.
+The suffix is cut before conversion, hashing or attribute access. The historical
+provider has only the exported 2020--2022 tape: 2020 is signal preload and the
+2021--2022 account is continuous. It keeps the original strict 365-day, annual
+positive-U mandate, not the later 2026 whole-quality preference. The 128-account
+readback plus one new original scorer and one direct account qualify that
+provider, with equity difference exactly zero, before either lane starts.
+
+The paired comparisons preserve actual observations, chosen dictionaries,
+plan/diagnostic identities, gates, RNG state, ordered ask/tell and all 96 observed
+Parzen fits per lane. TPE genuinely leaves its ten-proposal startup phase;
+this is not a fixed-signal mutation or a fit inferred from the budget. No
+financial execution or sampler is replaced by a reporting surrogate. It is a
+retrospective software causality proof, not a claim that a decision was published
+in 2023, a learned automatic router was tested, or reviewed history is new OOS.
+
 ## Qualification Boundaries
 
 - The retained legacy broad test failures were traced to an older installed
@@ -142,15 +194,25 @@ sizes is made. Default public exports redact private vectors and source prose.
   import assertion. It was interrupted after test scratch exceeded its original
   estimate. Its resource gate is **FAIL_RETAINED**, not retroactively PASS.
   Remaining nodes are qualified in bounded fresh workers with fixture cleanup.
+  The terminal current-source union is **2,596 passing collected nodes** across
+  82 Mode 5, metrics and provider files: 2,283 exact terminal node passes are
+  reused and 313 remaining nodes are executed in the last continuation. Earlier
+  failed XML is not rewritten or presented as a clean all-pass single run.
 - The cold-import assertion now measures reducer import attempts, including
   attempts to use already-loaded financial dependencies, instead of confusing
   SDK initialization with the reducer. It is not disabled and does not certify
   the entire SDK's import footprint as zero.
-- The current-prefix procedural test rebuilds verified matrices/reference,
-  selector advice, dossier/plan and an actual adaptive TPE study while a forbidden
-  suffix changes. It is distinct from a historical-2023 procedure and the
-  256-proposal economic studies. Broader historical fit/search/probe proof must
-  be measured or explicitly disposed, not replaced by a fixed-signal assertion.
+- Three stale MET guard failures now recognize only the exact approved
+  continuous-adapter amendment, with arbitrary additional source bytes still
+  rejected; the targeted boundary/guard shard has 337 passes. A missing optional
+  plotting dependency in the minimal tooling environment was resolved by using
+  the existing project plotting environment, not skipping the test, installing
+  another environment or changing financial behavior. Both environments use
+  current source; this is not installed-current-artifact pair certification.
+- Separate worksheet, current-prefix and historical-prefix synthetic shards
+  have 127, 55 and 52 passes. They overlap broader checks and are not added up
+  as independent evidence. Actual finance and paired procedural proofs above
+  remain necessary; synthetic helpers alone do not certify real-alpha economics.
 - Preserve the seven old forward contrasts, 16,384-draw inference and adverse
   results under their original registrations. Reviewed 2020--2026 selection does
   not become independent OOS. New economic forward authority needs a valid
@@ -164,9 +226,19 @@ Key receipts: `selector-comparison03/receipt.json`, `worksheets05/receipt.json`,
 `original-qualification05.json`, `formal-freeze02/`,
 `formal-studies02/floor-tpe/result.json`, `formal-studies02/floor-cma/result.json`,
 `raw-recovery01/result.json`, `closure-analysis01.json`,
-`render-benchmark03.json` and `legacy-closure02.xml`.
+`account-readback01.json`, `render-benchmark03.json`, `legacy-closure02.xml`,
+`c07-current01/result.json`, `c07-historical02/result.json`,
+`isolated-regression07.json`, `cleanup-final01.json` and `phase-exit01.json`.
 Private strategy sources, parameter dictionaries and observations are not
-published or package resources. Final C07/C08 receipts and cleanup are required
-before a whole-phase exit claim. M5-12 remains the separate installed-current-
+published or package resources. The missing historical finance-module source
+pin failed before financial dispatch, remains FAIL_RETAINED, and was recovered
+under a fresh registration with the exact already-qualified producer hash.
+
+Final [cleanup](../maintenance/M5_11_5_DECISION_CLEANUP.md) removes only three
+registered inactive scratch roots, checks 4,402 protected files and all host
+PID/FD/maps references, preserves accounts/failures/environments and leaves
+6.38 GiB available. Current private evidence is about 864 MiB, below the 1-GiB
+incremental ceiling; no large new environment or native rebuild was created.
+M5-12 remains the separate installed-current-
 source wheel/sdist, regression, privacy and package handoff gate. No CI, push,
 merge, tag, version bump or publication is performed here.

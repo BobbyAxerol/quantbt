@@ -130,6 +130,13 @@ scientific/input limits, not silently completed measurements.
 for owner review. M5-12 still waits for the reviewed supplementary dispositions.
 No CI, push, merge, tag, version change or publication occurs here.
 
+Current follow-up: the separately approved
+[M5-11.5 decision qualification](M5_11_5_DECISION_QUALIFICATION_REPORT.md)
+now closes registered C01--C08 with current worksheets, three formal RSI arms
+and bounded original-prefix procedural proofs. The planning status above is
+this phase's historical handoff, not the current M5-11.5 status. M5-12 has not
+started; no historical receipt or independent-OOS claim is changed.
+
 See the [unified phase](../../upgrade/implement.md#mode5-m5-11-4),
 [reporting contract](FULL_DEVELOPMENT_DIAGNOSTICS_V1.md) and
 [authoritative guide](../../upgrade/QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#chapter-4).

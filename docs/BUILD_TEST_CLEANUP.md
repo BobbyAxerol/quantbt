@@ -91,6 +91,13 @@ proof. Resume domain work only after disk and evidence checks are complete.
 
 ## Recorded Cleanup
 
+The [M5-11.5 decision receipt](maintenance/M5_11_5_DECISION_CLEANUP.md) removes
+three exact inactive scratch roots after all financial and test workers exit,
+verifies 4,402 protected files and 170 host PIDs, and retains every account,
+failed receipt, artifact and current environment. Its final 5.18-MiB observed
+recovery is separate from earlier fixture cleanup and from retained scientific
+evidence. No installed-package or economic certification follows from cleanup.
+
 The [M5-11.4 between-lane review](maintenance/M5_11_4_STORAGE_REVIEW_CLEANUP.md)
 removes three obsolete consumers and seven inactive fixture roots, verifies
 8,779 protected files and nine artifact references, and records a 1.661-GiB

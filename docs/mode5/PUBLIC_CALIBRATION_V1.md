@@ -40,8 +40,11 @@ future economic studies. See the
    A `DEFER_CALIBRATION` plan grants zero search authority.
 
 Diagnostic evidence/approvals are inputs, not created by the runtime helper.
-The five M5-09 real plans remain deferred; synthetic software fixtures do not
-change them. JSON recipes should use
+The five historical M5-09 plans remain deferred; synthetic fixtures do not
+change them. Separately sealed full-development RSI plans now have
+[actual matched study and decision evidence](M5_11_5_DECISION_QUALIFICATION_REPORT.md);
+they do not retroactively activate an old plan or qualify every alpha.
+JSON recipes should use
 `NormalizedSearchSpace(ranges).portable_ranges()` **before sealing** to retain
 numeric distribution kinds and conditional/fixed coordinates. A JSON numeric
 list is not silently reinterpreted as a `(low, high, step)` distribution.
