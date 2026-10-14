@@ -11,6 +11,7 @@ from .continuous_binding import ContinuousMode5Calibration
 from .continuous_producer import qualify_producer, validate_result
 from .continuous_retention import ContinuousAccountRetention
 from .continuous_scope import ContinuousAccountScope
+from .continuous_eligibility import WholeAccountEligibility
 from .diagnostics.identity import digest
 from .dossier.records import Record
 from .evaluation import Mode5MetricPolicy
@@ -159,6 +160,8 @@ class PublicContinuousMode5Runtime(PublicMode5Runtime):
             financial_scope="one_original_scorer_account_per_effective_query",
             native_feedback_passes="original financial provider; not inferred from scorer-call count",
             account_scope=self.scope.metadata())
+        if "eligibility_policy" in calibration.binding.data["continuous"]:
+            self.metadata["eligibility_policy"] = calibration.binding.data["continuous"]["eligibility_policy"]
         self.whole_observations = {}
         self.continuous_observations = {}
         self.account_observations = {}
@@ -185,6 +188,9 @@ class PublicContinuousMode5Runtime(PublicMode5Runtime):
         if tuple(v["environment_id"] for v in observations) != tuple(w.environment_id for w in self.calibration.windows):
             raise ValueError("continuous view roster differs from sealed selector environments")
         self.whole_observations[digest(params)] = row["whole"]
+        eligibility = self.calibration.binding.data["continuous"].get("eligibility_policy")
+        if eligibility is not None:
+            observations = WholeAccountEligibility.read(eligibility).project(row["whole"], observations)
         if self.calibration.binding.data["continuous"]["quality_floor_comparison"] == "strict_greater_v1":
             floor = self.calibration.binding.data["metrics"]["min_utility"]
             observations = tuple({**v, "quality_pass": v["utility"]["value"] is not None

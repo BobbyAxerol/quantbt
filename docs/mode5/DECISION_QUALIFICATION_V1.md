@@ -87,6 +87,32 @@ observations as continuous annual attribution.
 
 ## Scientific Interpretation
 
+### Whole-Account Quality Mandate
+
+For an explicitly approved continuous calibration, freeze the optional policy:
+
+```python
+from quantbt.mode5.continuous_eligibility import WholeAccountEligibility
+
+binding = continuous_calibration_binding(
+    eligibility_policy=WholeAccountEligibility(),
+    **frozen_binding_inputs,
+)
+```
+
+This versioned policy requires original whole-account quality and finite whole
+Sharpe, plus whole/annual risk and annual support. Negative annual utility is
+retained for floor/tail ranking, not automatically disqualified. Its presence
+changes the binding/context identity and must precede a newly sealed plan.
+Omitting it preserves the previous all-environment quality contract and binding
+bytes. It never changes returns, equity, costs, drawdown or an estimator.
+
+The separate raw research control can seal the same policy. Both controls retain
+measured numeric feedback and enforce the declared eligibility at final selection;
+gate-excluded complete observations are not relabelled as execution failures or
+erased from the work bill. Compare selector-only on the same eligible panel,
+sampler-only under the same objective/policy, and combined recipes separately.
+
 Diagnostics precede a prospectively sealed `CalibrationPlan`. Selector-only
 comparisons use the same qualified pool; sampler-only studies freeze objective,
 selector, domain, budget and data; end-to-end recipes require separately declared

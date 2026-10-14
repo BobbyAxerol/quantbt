@@ -39,7 +39,7 @@ from quantbt.walkforward import WalkForwardEngine, WalkForwardFold
 from public_fixtures import market, public_setup
 
 
-def continuous_setup(tmp_path, *, strategy=None, frame=None, ranges=None, trials=6, preload_days=0):
+def continuous_setup(tmp_path, *, strategy=None, frame=None, ranges=None, trials=6, preload_days=0, eligibility_policy=None):
     frame = market(32) if frame is None else frame
     frame = frame.copy()
     frame.index = pd.date_range("2020-12-16", periods=len(frame), freq="h", tz="UTC")
@@ -69,7 +69,7 @@ def continuous_setup(tmp_path, *, strategy=None, frame=None, ranges=None, trials
     binding = continuous_calibration_binding(geometry=geometry,
         source=source, execution=execution,
         witness=witness, windows=windows, reference=reference, sampler=SamplerConfig(**original["sampler"]),
-        metrics=original["metrics"], selection=original["selection"], batch_size=1)
+        metrics=original["metrics"], selection=original["selection"], batch_size=1, eligibility_policy=eligibility_policy)
     context = calibration_context(data=frame, strategy=endpoint.config.strategy_class,
         execution_config=execution_config, param_ranges=ranges, binding=binding)
     d = old.dossier.record.data

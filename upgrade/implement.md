@@ -34099,6 +34099,20 @@ legacy replay, original science versions and all failure/negative evidence stay.
   of 256 proposals, seed 731. A bounded schema-valid shortlist, not four-by-five
   blanket experiments. Full-development comparisons are calibration, not OOS.
 
+**Reviewed mandate revision (2026-10-14 UTC, after selector-only v1):**
+- Owner approves `m5115.full_development_whole_quality_180d.v2`: whole-account
+  U >= 0 and finite whole Sharpe for matched controls; annual U may be negative
+  and remains in floor/tail ranking. Keep >=180 daily observations per annual
+  view and DD <=50% whole/annual, original estimator/ranges/panel/seed/budget.
+- The first mandate is preserved: all-year U>=0 admitted only inactive SC/HMA
+  cohorts and a mostly inactive VWAP cohort. Do not relabel those outcomes as
+  evidence of edge or silently replace the historical constraints.
+- Add an explicit versioned whole-account eligibility contract to the existing
+  continuous binding and raw research control; absence preserves prior hashes
+  and semantics. No endpoint, simulator, reducer, sampler or private alpha rewrite.
+- Register revised comparisons before reading them; finance still requires a
+  separately sealed source-qualified plan, control and measured resource budget.
+
 **Two-Phase Planning Verification (2026-10-13, UTC; historical):**
 - Documentation link/anchor gate PASS for this plan and the authoritative guide;
   `git diff --check` PASS. Corrected one stale historical-receipt anchor without

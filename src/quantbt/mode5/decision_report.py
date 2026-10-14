@@ -19,6 +19,7 @@ from ..optimization.meta_selection.common import wire
 from .diagnostics.identity import digest
 from .dossier.records import Record
 from .selection.contracts import Channel, Formula
+from .continuous_eligibility import WholeAccountEligibility
 
 
 SCHEMA = "quantbt.mode5.decision_report.v1"
@@ -69,7 +70,7 @@ def _observation(row: dict) -> dict:
         "metric_contract_status null_reason finance raw_sharpe utility psr net_return "
         "max_drawdown daily_loss_es daily_count partial_days closed_records closed_record_unit "
         "support_pass risk_pass quality_pass liquidated initial_capital final_equity "
-        "campaign_count fill_count campaign_support_status fill_support_status")
+        "campaign_count fill_count campaign_support_status fill_support_status environment_quality_diagnostic quality_pass_basis")
     if "finance" in retained:
         identities = _pick(retained["finance"], "equity positions fees funding margin")
         if any(not isinstance(value, str) or not value or len(value) > 256 for value in identities.values()):
@@ -83,7 +84,7 @@ def _snapshot(metadata: Mapping[str, Any]) -> dict:
         "runtime_binding_identity validation_claim chronology decision selection_decision_id "
         "selected_params_digest optimizer_schedule batch_size candidate_sequence_equivalent_to_sequential "
         "trial_reports compute_bill environment_account_policy final_account_policy financial_scope "
-        "annual_account_resets meta_learning_activated automatic_routing deployment_authorized advisory_shortlist")
+        "annual_account_resets meta_learning_activated automatic_routing deployment_authorized advisory_shortlist eligibility_policy")
     m["trial_ledger"] = []
     for row in metadata["trial_ledger"]:
         retained = _pick(row, "trial_id state candidate_id requested_params effective_params evaluation_ref "
@@ -130,6 +131,8 @@ def _validate(m: dict, params: dict | None) -> None:
     if m.get("validation_claim") != "none_full_sample_calibration" or any(
             m.get(k) is not False for k in ("meta_learning_activated", "automatic_routing", "deployment_authorized")):
         raise ValueError("existing descriptive calibration authority required")
+    if "eligibility_policy" in m:
+        WholeAccountEligibility.read(m["eligibility_policy"])
     rows, sampler = m["trial_ledger"], m["sampler"]
     by_trial = {r["trial_id"]: r for r in rows}
     if len(by_trial) != len(rows) or any(type(n) is not int for n in by_trial):
@@ -292,6 +295,8 @@ def _public(private: dict) -> dict:
     runtime = _pick(m, "schema status validation_claim optimizer_schedule") | _public_numbers(m,
         "batch_size candidate_sequence_equivalent_to_sequential annual_account_resets meta_learning_activated "
         "automatic_routing deployment_authorized")
+    if "eligibility_policy" in m:
+        runtime["eligibility_policy"] = m["eligibility_policy"]
     # Public enums are allowlisted; arbitrary supplied prose, IDs and recipe knobs stay private.
     for key, allowed in {"optimizer_schedule": {"sequential_exact", "fixed_batch"}}.items():
         if key in runtime and runtime[key] not in allowed:
@@ -415,7 +420,7 @@ class DecisionReport:
 
         sections = {
             "Summary and Scope": data["summary"] | _pick(m, "status validation_claim account_scope "
-                "environment_account_policy final_account_policy financial_scope annual_account_resets"),
+                "environment_account_policy final_account_policy financial_scope annual_account_resets eligibility_policy"),
             "Actual Sampler Provenance": {k: v for k, v in m["sampler"].items() if k != "rows"},
             "Frozen Selection and Tradeoffs": {k: v for k, v in (d or {"decision": None}).items()
                                               if k not in {"component_rows", "evidence_refs"}},

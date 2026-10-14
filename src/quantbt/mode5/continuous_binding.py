@@ -5,6 +5,7 @@ from dataclasses import asdict
 from ..optimization.parameter_space import NormalizedSearchSpace, ParameterSpec
 from .continuous import ContinuousAccountContract, CONTINUOUS_POLICY
 from .continuous_scope import ContinuousAccountScope
+from .continuous_eligibility import WholeAccountEligibility
 from .diagnostics.access import AccessWitness
 from .dossier.records import Record
 from .geometry.schema import EffectiveGeometry, OrderedConstraint
@@ -28,7 +29,7 @@ def restore_geometry(value):
 
 
 def continuous_calibration_binding(*, geometry, source, execution, witness,
-                                   quality_floor_comparison="greater_or_equal_v1", **kwargs):
+                                   quality_floor_comparison="greater_or_equal_v1", eligibility_policy=None, **kwargs):
     """Freeze the original scorer authority; this is not execution qualification."""
     if (not isinstance(geometry, EffectiveGeometry) or not isinstance(source, Record)
             or not isinstance(execution, Record) or not isinstance(witness, AccessWitness)):
@@ -40,11 +41,16 @@ def continuous_calibration_binding(*, geometry, source, execution, witness,
     if quality_floor_comparison not in {"greater_or_equal_v1", "strict_greater_v1"}:
         raise ValueError("explicit versioned quality-floor comparison required")
     step = kwargs["metrics"]["bar_interval_ns"]
-    return Record.of({**legacy, "schema": SCHEMA, "continuous": dict(
+    continuous = dict(
         account_policy=CONTINUOUS_POLICY, geometry=geometry.metadata(), source=source.data,
         execution=execution.data, witness=asdict(witness),
         start_ns=min(w.start_ns for w in windows), stop_ns=max(w.end_ns for w in windows)+step,
-        quality_floor_comparison=quality_floor_comparison)})
+        quality_floor_comparison=quality_floor_comparison)
+    if eligibility_policy is not None:
+        if not isinstance(eligibility_policy, WholeAccountEligibility) or quality_floor_comparison != "greater_or_equal_v1":
+            raise ValueError("typed prospective whole-account eligibility requires its declared comparison")
+        continuous["eligibility_policy"] = eligibility_policy.metadata()
+    return Record.of({**legacy, "schema": SCHEMA, "continuous": continuous})
 
 
 class ContinuousMode5Calibration(Mode5Calibration):
@@ -72,8 +78,13 @@ class ContinuousMode5Calibration(Mode5Calibration):
         object.__setattr__(common, "binding", Record.of(projection))
         Mode5Calibration.validate_binding(common)
         c = b["continuous"]
-        if set(c) != {"account_policy", "geometry", "source", "execution", "witness", "start_ns", "stop_ns",
-                      "quality_floor_comparison"}:
+        fields = {"account_policy", "geometry", "source", "execution", "witness", "start_ns", "stop_ns", "quality_floor_comparison"}
+        if "eligibility_policy" in c:
+            WholeAccountEligibility.read(c["eligibility_policy"])
+            if c["quality_floor_comparison"] != "greater_or_equal_v1":
+                raise ValueError("whole-account eligibility comparison differs from its policy")
+            fields.add("eligibility_policy")
+        if set(c) != fields:
             raise ValueError("complete continuous policy fields required")
         if c["quality_floor_comparison"] not in {"greater_or_equal_v1", "strict_greater_v1"}:
             raise ValueError("unbound quality-floor comparison")

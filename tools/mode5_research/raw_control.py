@@ -12,6 +12,7 @@ import optuna
 
 from quantbt.mode5.continuous import ContinuousAccountEvaluation, ContinuousObservationRequest
 from quantbt.mode5.continuous_runtime import _GeometryBridge
+from quantbt.mode5.continuous_eligibility import WholeAccountEligibility
 from quantbt.mode5.diagnostics.identity import digest
 from quantbt.mode5.dossier.records import Record
 from quantbt.optimization.study_schedule import run_ordered_study
@@ -48,6 +49,7 @@ class RawControlSeal:
     budget: int
     seed: int
     batch_size: int = 1
+    eligibility_policy: Record | None = None
 
     def __post_init__(self):
         for name in ("contract_identity", "dossier_identity", "provider_qualification_identity",
@@ -59,12 +61,18 @@ class RawControlSeal:
         if (type(self.budget) is not int or self.budget < 1 or type(self.seed) is not int
                 or type(self.batch_size) is not int or self.batch_size < 1):
             raise ValueError("explicit query budget, seed and observation schedule required")
+        if self.eligibility_policy is not None:
+            WholeAccountEligibility.read(self.eligibility_policy)
 
     @property
     def identity(self):
         from dataclasses import asdict
-        return digest(dict(schema=SCHEMA, **asdict(self), objective="original_raw_whole_account_sharpe",
-            eligibility="finite_whole_sharpe_only", tie_break="candidate_id_lexicographic_v1"))
+        values = asdict(self)
+        if self.eligibility_policy is None:
+            values.pop("eligibility_policy")
+        return digest(dict(schema=SCHEMA, **values, objective="original_raw_whole_account_sharpe",
+            eligibility="finite_whole_sharpe_only" if self.eligibility_policy is None else "matched_whole_quality_annual_risk_support_v1",
+            tie_break="candidate_id_lexicographic_v1"))
 
 
 class RawWholeControl:
@@ -120,6 +128,9 @@ class RawWholeControl:
                     score=score, annual_quality_eligibility=all(v.data["quality_pass"] for v in account.annual_views),
                     finance_account_calls=account.execution.financial_execution_count,
                     internal_execution_counts_status="UNAVAILABLE" if account.execution.internal_execution_counts is None else "RECORDED")
+                if self.seal.eligibility_policy is not None:
+                    policy = WholeAccountEligibility.read(self.seal.eligibility_policy)
+                    row["declared_common_eligibility"] = policy.eligible(account.whole.data, (v.data for v in account.annual_views))
                 if score is None:
                     row.update(state="PRUNED", reason="UNDEFINED_WHOLE_SHARPE")
                     raise optuna.TrialPruned("UNDEFINED_WHOLE_SHARPE")
@@ -145,17 +156,20 @@ class RawWholeControl:
         return self.metadata()
 
     def metadata(self):
-        complete = [r for r in self.rows if r["state"] == "COMPLETE"]
+        complete = [r for r in self.rows if r["state"] == "COMPLETE" and r.get("declared_common_eligibility", True)]
+        terminal_complete = sum(r["state"] == "COMPLETE" for r in self.rows)
         selected = min(complete, key=lambda r: (-r["score"], r["candidate_id"])) if complete else None
         queried = {r["candidate_id"] for r in self.rows if r["evaluation_ref"] is not None and r["candidate_id"] is not None}
         return Record.of(wire(dict(schema=SCHEMA, seal_identity=self.seal.identity,
             objective="original_raw_whole_account_sharpe", unit="annualized_ratio",
-            eligibility="finite_whole_sharpe_only_not_common_annual_quality",
+            eligibility="finite_whole_sharpe_only_not_common_annual_quality" if self.seal.eligibility_policy is None else "matched_whole_quality_annual_risk_support_v1",
+            **({} if self.seal.eligibility_policy is None else dict(eligibility_policy=self.seal.eligibility_policy.data,
+                eligible_complete_rows=len(complete), gate_excluded_complete_rows=terminal_complete-len(complete))),
             selected_trial=None if selected is None else selected["trial_id"],
             selected_candidate=None if selected is None else selected["candidate_id"],
             status="NO_SELECTION" if selected is None else "CONTROL_SELECTED_NOT_DEPLOYMENT",
             query_attempts=0 if self.study is None else len(self.study.trials),
-            unique_executed_candidates=len(queried), complete_rows=len(complete),
+            unique_executed_candidates=len(queried), complete_rows=terminal_complete,
             study_budget_complete=self.study is not None and len(self.study.trials) == self.seal.budget,
             trial_ledger=self.rows, sampler=None if self.study is None else self.bridge.metadata(self.study),
             financial_provider_qualification="EXTERNAL_PREREQUISITE_NOT_ISSUED_BY_THIS_CONSUMER",

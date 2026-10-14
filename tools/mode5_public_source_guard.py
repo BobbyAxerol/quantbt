@@ -9,9 +9,30 @@ MANIFEST = ROOT / "docs/mode5/evidence/m5-10-source-amendment.json"
 CONTINUOUS = ROOT / "docs/mode5/evidence/m5-11-continuous-event-source-amendment.json"
 DECISION_REPORT = ROOT / "docs/mode5/evidence/m5-11-5-decision-report-source-amendment.json"
 REPORT_HARDENING = ROOT / "docs/mode5/evidence/m5-11-5-decision-report-hardening-source-amendment.json"
+WHOLE_ELIGIBILITY = ROOT / "docs/mode5/evidence/m5-11-5-whole-eligibility-source-amendment.json"
+
+
+def without_whole_eligibility(source, name):
+    m = json.loads(WHOLE_ELIGIBILITY.read_text())
+    prior = m["prior_amendment"]
+    if sha256((ROOT / prior["path"]).read_bytes()).hexdigest() != prior["sha256"]:
+        raise AssertionError("whole eligibility parent amendment changed")
+    if name in m["existing"]:
+        before = subprocess.check_output(["git", "show", m["entry"]+":"+name], cwd=ROOT)
+        if source == before:
+            return source
+        if sha256(source).hexdigest() != m["existing"][name]:
+            raise AssertionError("unreviewed Mode5 public bytes: "+name)
+        return before
+    if name in m["new"]:
+        if sha256(source).hexdigest() != m["new"][name]:
+            raise AssertionError("unreviewed Mode5 public bytes: "+name)
+        return b""
+    return source
 
 
 def without_decision_report(source, name):
+    source = without_whole_eligibility(source, name)
     hardening = json.loads(REPORT_HARDENING.read_text())
     prior = hardening["prior_amendment"]
     if sha256((ROOT / prior["path"]).read_bytes()).hexdigest() != prior["sha256"]:
@@ -113,12 +134,20 @@ def prior_names(names, entry):
     m = json.loads(MANIFEST.read_text())
     continuous = json.loads(CONTINUOUS.read_text())
     reports = json.loads(DECISION_REPORT.read_text())
+    whole = json.loads(WHOLE_ELIGIBILITY.read_text())
     result = set(names)
     new = set(m["new_mode5"]) | {n for n in m["reporting"] if n.startswith("src/quantbt/metrics/")} | {"src/quantbt/optimization/sampler_space.py"}
     for name in set(names) & (set(m["mode5"]) | set(m["reporting"]) | set(m["sampler_helper"])
             | set(continuous["existing"]) | set(continuous["new"])
-            | set(reports["existing"]) | set(reports["new"])):
+            | set(reports["existing"]) | set(reports["new"])
+            | set(whole["existing"]) | set(whole["new"])):
         source = (ROOT / name).read_bytes()
+        if name in whole["new"]:
+            without_whole_eligibility(source, name)
+            old = subprocess.run(["git", "show", entry+":"+name], cwd=ROOT, capture_output=True)
+            if old.returncode != 0:
+                result.remove(name)
+                continue
         if name in reports["new"]:
             without_decision_report(source, name)
             old = subprocess.run(["git", "show", entry+":"+name], cwd=ROOT, capture_output=True)
