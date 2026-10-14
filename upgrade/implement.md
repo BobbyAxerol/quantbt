@@ -34113,6 +34113,36 @@ legacy replay, original science versions and all failure/negative evidence stay.
 - Register revised comparisons before reading them; finance still requires a
   separately sealed source-qualified plan, control and measured resource budget.
 
+**C01--C08 closure execution register (2026-10-14, Asia/Saigon):**
+- Owner requests completion of the remaining work packages. Use the minimum
+  discriminating RSI three-arm design: raw-whole-Sharpe/TPE legacy control,
+  environment-floor-mean/TPE legacy and environment-floor-mean/CMA-ES, each
+  256 proposals, seed 731, sequential exact scheduling, no early stopping.
+  Freeze source-bound dossiers/plans and the independent raw control before
+  financial dispatch. The common whole-account eligibility revision is unchanged.
+- All five alphas receive current worksheets, original-panel selector comparisons
+  and explicit study dispositions. New formal RSI evidence does not qualify
+  sampler superiority for SC/HASH/VWAP or turn HMA's bounded NO_SELECTION into
+  a general statement about edge. Do not launch a four-by-five study grid.
+- Before study dispatch, extend the original/direct RSI qualification to every
+  common returned stream and annual attribution, including exact metric units.
+  Preserve the earlier qualification and failed access-witness receipt.
+- Complete actual permitted-prefix diagnostic/search/rank future-mutation proof
+  for any historical-causal claim; distinguish its procedural budget from the
+  256-proposal full-development economic experiments. Existing future/negative
+  economics remain immutable and no independent OOS is asserted here.
+- Investigate all six retained legacy regression failures with exact source and
+  native capability evidence. No tolerance relaxation, guard weakening or hidden
+  test exclusion. Full installed package/platform gates remain M5-12.
+- Reuse the current project environment and native artifact. New scratch roots:
+  `.maturin/mode5-m5115/attempt-01/closure-tests` and
+  `.maturin/mode5-m5115/attempt-01/studies01`; qualification01 remains registered.
+  Preserve the 1-GiB incremental retained ceiling, 64-MiB scratch ceiling and
+  5-GiB free-space reserve. Register source pins, per-study wall/RSS and retained
+  estimates before launch; checkpoint terminal trials without redundant per-bar
+  JSON. Clean exact inactive scratch after retaining source-bound receipts.
+- No CI, push, merge, new native build, tag, version change or publication.
+
 **Two-Phase Planning Verification (2026-10-13, UTC; historical):**
 - Documentation link/anchor gate PASS for this plan and the authoritative guide;
   `git diff --check` PASS. Corrected one stale historical-receipt anchor without
