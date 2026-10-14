@@ -33773,6 +33773,41 @@ versions readable; preserve original alpha/core contracts and all attempts.
   retain both failed/passing XML and exact helper snapshots, and never remove
   active finance/cache or source evidence. Full measurement remains in progress.
 
+**Terminal continuation readback (2026-10-14; before the next lane):**
+- `panel-Jan1-04` reaches its 14,400-second operational boundary; all workers
+  are reaped and current source pins remain exact. Its partial parent and
+  terminal-custody warning remain historical, not promoted. Cold readback
+  admits 995 of the original 1,219 cells: RSI 487, SC 148, HMA 87, HASH 89,
+  VWAP 184. The next continuation retains the exact 224 missing-cell bill.
+- Ten original RSI cells fail metric export after nonpositive equity; the
+  old helper reduces before storing the raw account. Follow the guide's
+  already-specified bankruptcy/null policy and existing cold consumers,
+  rather than discarding these outcomes or inventing finite period returns.
+  Prospective process-local retention leaves every successful original
+  reduction unchanged, stores raw arrays and invalid-day masks, and retains
+  unavailable period Sharpe/ES/utility/PSR as null with reasons. No estimator,
+  alpha, engine, fee, calendar, RNG, gate or scientific cell is changed.
+  A complete-row sensitivity channel with undefined inputs remains unavailable;
+  no imputation, row deletion or numeric-parity claim from matching nulls.
+  Actual finance and cold readback must validate this source-only extension.
+- Retention has 56 synthetic passing tests; exact worker dispatch has nine;
+  final full-stage readback has fifteen. These are separate zero-finance
+  checks, not actual coverage or phase certification. Register the new helper
+  identities in append-only work provenance before any worker activation.
+- Cleanup review02 removes six exact inactive fixture directories, checks
+  25,016 protected files and records a 96.51-MiB observed available-space gain.
+  Old failed test XML, source snapshots, accounts, logs and artifacts remain.
+  Register new disposable `continuation03-tests` and `bankruptcy04-tests`
+  under `.maturin/mode5-m5114/attempt-01`; retain receipts outside scratch.
+- The next lane uses 28,800 seconds overall, preserving 7,200 seconds/cell,
+  four single-thread workers, 2-GiB RSS/worker, 10-GiB total retention,
+  512-MiB cold-report output and at least 5-GiB disk reserve. This prospective
+  operational change avoids cutting another long native account at four
+  hours; it is not a scientific threshold change or an open-ended run.
+  Reuse all 995 admitted accounts, and bill failures/censoring separately.
+  No phase exit before full actual coverage, five source-bound dossiers,
+  terminal readback, privacy and final cleanup. M5-11.5 remains unapproved.
+
 <a id="mode5-m5-11-5"></a>
 ### Phase M5-11.5 - Diagnostic-Guided Mode 5 Calibration And Decision Qualification
 

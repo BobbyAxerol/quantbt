@@ -2,6 +2,42 @@
 
 Status: **IN_PROGRESS**, not a phase exit or economic promotion receipt.
 
+## Current Terminal Readback (October 14)
+
+`panel-Jan1-04` closes at its registered four-hour boundary, without a changed
+source pin. It retains 814 new passing cells and ten failed metric exports;
+three unfinished native workers are stopped and reaped. Its partial parent
+and terminal-custody teardown warning remain unchanged. Both source/reuse
+integrity checks pass their own scope, not the financial phase.
+
+Independent cold readback admits **995 / 1,219** original cells: RSI 487,
+SC 148, HMA 87, HASH 89 and VWAP 184. Exactly **224** cells remain, including
+the ten RSI reporting failures. Eleven older unqualified outputs stay retained.
+No passing account is rerun to reproduce a report or make an old parent PASS.
+
+Those ten failures are the exact error `period return after nonpositive equity
+is undefined`. The old financial helper derives returns before saving arrays.
+The [guide's existing bankruptcy policy](../../upgrade/QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#chapter-5)
+and existing cold consumers require retaining adverse accounts and undefined
+statistics, rather than silently dropping them. A separate prospective private
+wrapper returns successful reductions unchanged; only that verified daily-close
+failure is retained with original account return/drawdown, null period metrics,
+explicit reasons and an invalid-day mask. It neither clips account equity nor
+changes the estimator, original engine, calendar, alpha, RNG or candidate roster.
+Complete-row sensitivity estimators must keep any affected channel unavailable;
+null agreement is not numeric parity. Fifty-six synthetic tests pass, and the
+new worker dispatch has nine passing zero-finance tests. Actual financial
+activation/readback is still required; this software receipt does not supply it.
+
+Between-lane cleanup removes six exact inactive fixture roots, verifies 25,016
+protected files and observes **96.51 MiB** additional available space. All XML,
+failed receipts, exact helper snapshots, accounts, current tooling and native
+artifacts remain. The prospective next lane uses the same 7,200-second cell
+cap, at most four single-thread workers and all existing RSS/storage limits;
+an eight-hour lane boundary avoids another artificial interruption of long
+native accounts. This operational cap does not reduce the roster or allow a
+partial phase exit. Final five-alpha dossiers, readback and cleanup remain due.
+
 ## Approved Scope
 
 The owner approved a January 1, 2020 scoring start. Every alpha uses the same
