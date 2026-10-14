@@ -94,7 +94,8 @@ def assert_protected(path, expected_hash):
 
 def assert_protected_bytes(path, expected_hash, current):
     current = without_reviewed_amendments(current, path, expected_hash)
-    from tools.mode5_public_source_guard import without_mode5_public
+    from tools.mode5_public_source_guard import without_continuous, without_mode5_public
+    current = without_continuous(current, path)
     current = without_mode5_public(current, path)
     if hashlib.sha256(current).hexdigest() == expected_hash:
         return
