@@ -9,7 +9,9 @@ recipe handoff and actual static Mode 5 calibration qualification.
 M5-11.4 is COMPLETE / TECHNICALLY_VALID after the 2026-10-14 full registered
 coverage, guarded readback and cleanup; scientific status is DESCRIPTIVE_ONLY.
 Read the [final report](../docs/mode5/M5_11_4_FULL_DEVELOPMENT_REPORT.md).
-M5-11.5 remains PLANNED / IMPLEMENTATION_NOT_APPROVED.
+M5-11.5 is APPROVED / IN_PROGRESS under the owner's 2026-10-14 instruction.
+Formal study mandates/recipes must be sealed prospectively; approval to implement
+does not silently replace the old 365-day or annual-quality preferences.
 The requested current-calibration scope is 2020 through the latest verified
 complete data in 2026, with an explicit scored calendar and minimum sufficient
 prehistory/readiness. Do not reserve all of 2020 as warmup by convention or
@@ -27434,8 +27436,8 @@ version or release. Current M5-11 work and its measured limits are recorded in
 the [broad diagnostics](#mode5-m5-11-1), [search/selection](#mode5-m5-11-2)
 and [forward/economics](#mode5-m5-11-3) sections. The owner-requested
 [full-development amendment](#mode5-full-development-decision-amendment) adds
-M5-11.4 as COMPLETE / TECHNICALLY_VALID (DESCRIPTIVE_ONLY) and M5-11.5 as PLANNED /
-IMPLEMENTATION_NOT_APPROVED; M5-12 remains NOT_STARTED
+M5-11.4 as COMPLETE / TECHNICALLY_VALID (DESCRIPTIVE_ONLY) and M5-11.5 as APPROVED /
+IN_PROGRESS; M5-12 remains NOT_STARTED
 and awaits their reviewed dispositions. Preserve all historical study receipts.
 Read the
 [M5-01 exit review](../docs/mode5/M5_01_EXIT_REVIEW.md) and
@@ -27682,7 +27684,7 @@ Every phase below inherits this mandatory resource registration/cleanup exit.
 | [M5-11.2](#mode5-m5-11-2) | Actual adaptive formal search and selector comparisons | Reviewed M5-11.1 dossier; new sealed plans | M5T-091..103 / EH-01..05 | Raw256/floor256 audited and recovered; selector-only complete; three new sampler256 arms and cold matched comparison PASS; historical failures retained |
 | [M5-11.3](#mode5-m5-11-3) | Multi-origin fixed-policy transfer and economic qualification | Frozen M5-11.2 outputs and prefix studies | M5T-101..110 / EH-06..12 | Registered bounded diagnostics, four prefix256 studies, primary and annual2023/2024/2025 accounts COMPLETE; original/direct accounting, custody and cleanup PASS; all economics INCONCLUSIVE; full-procedure mutation NOT_RUN, broader diagnostic disposition pending |
 | [M5-11.4](#mode5-m5-11-4) | Full 2020--2026 development profiling, missing diagnostics and readable researcher dossier | All 1,219 cells; five dossiers; guarded/daily readback and cleanup PASS | M5D-01..10; guide M5T-031..090 | COMPLETE / TECHNICALLY_VALID; DESCRIPTIVE_ONLY |
-| [M5-11.5](#mode5-m5-11-5) | Evidence-guided sampler/selector decisions, static calibration and measured handoff | Reviewed M5-11.4 dossiers; separate phase approval | M5C-01..10; guide M5T-061..110 | PLANNED / IMPLEMENTATION_NOT_APPROVED |
+| [M5-11.5](#mode5-m5-11-5) | Evidence-guided sampler/selector decisions, static calibration and measured handoff | Phase approved 2026-10-14; prospective mandate/recipe seals required | M5C-01..10; guide M5T-061..110 | APPROVED / IN_PROGRESS |
 | [M5-12](#mode5-m5-12) | Local qualification/docs/handoff | M5-01..11 plus M5-11.4/11.5 dispositions reviewed | M5T-111..120 | NOT_STARTED; waits for supplementary decision-support scope |
 
 Respect the guide dependency graph. M5-05 and independent M5-06 preparation
@@ -33866,7 +33868,10 @@ versions readable; preserve original alpha/core contracts and all attempts.
 <a id="mode5-m5-11-5"></a>
 ### Phase M5-11.5 - Diagnostic-Guided Mode 5 Calibration And Decision Qualification
 
-**Status:** PLANNED / IMPLEMENTATION_NOT_APPROVED; starts after reviewed M5-11.4.
+**Status:** APPROVED / IN_PROGRESS; owner implementation approval 2026-10-14.
+M5-11.4 full coverage and guarded/cold/daily proofs are the current entry evidence.
+Do not reinterpret earlier deferred plans or partial-year support as eligible
+formal search authority. New preferences require prospective named registration.
 **Goal:** turn the diagnostic dossier into an explainable researcher-chosen
 Mode 5 recipe and one evaluated fixed parameter dictionary over the full allowed
 development. Demonstrate which decisions diagnostics change, separate search
@@ -34045,7 +34050,42 @@ scientific summaries; no CI, push, merge, tag, version bump or publication.
 **Rollback:** remove the new opt-in/report extension or pin the prior recipe;
 legacy replay, original science versions and all failure/negative evidence stay.
 
-**Two-Phase Planning Verification (2026-10-13, UTC):**
+**Phase-entry execution register (2026-10-14 UTC):**
+- Continue on `feat/mode5-diagnostics-first`; preserve the unrelated untracked
+  old specification. No CI, push, merge, version change, native rebuild or publish.
+- Reuse final M5-11.4 source-bound panels/probes/matrices/dossiers. No rerun
+  of its 1,219 financial cells, old 256-trial studies or seven forward contrasts
+  merely to reconstruct reports. All five get readable recipe/decision output.
+- New private append-only evidence root:
+  `upgrade/private/mode5_upgrade_v1/m5-11-5/attempt-01`; ignored local adapters
+  stay in the matching `upgrade/local/` phase directory. No alpha source, real
+  parameter dictionaries or financial observations enter Git/package resources.
+- Entry disk: about 7.24 GiB available, approximately 5.52 million free inodes.
+  Bound incremental retained output to 1 GiB and reproducible scratch to 64 MiB,
+  retaining at least 5 GiB disk reserve. Reuse existing regression/project
+  environments, original producer artifacts and prepared market ownership.
+  Prospective finance registration must refine peak evidence/RSS/wall budgets
+  before launch, rather than counting trial labels as executions.
+- Exact registered disposable root:
+  `.maturin/mode5-m5115/attempt-01/tests`; private immutable XML/logs/receipts
+  are outside scratch. Pure report tests may run with no cache/disk fixtures.
+  Cleanup uses reviewed inactive roots, hash/host checks, and an exit receipt.
+- Implement additive cold decision explanations over actual existing runtime
+  metadata, not a replacement optimizer or simulator. Verify null/NO_SELECTION,
+  gate/runner-up provenance, objective/raw-Sharpe units, mutation and privacy.
+  Preserve all scientific formulas, sampler RNG and financial ownership.
+- The seven annual views include partial 2026 (278 days). Owner clarification
+  requested before finance: retain the old 365-day mandate (which cannot qualify
+  that view), or register a new 180-day full-scope research mandate, preserving
+  estimator, DD 50%, U>=0 and declaring day-weighted/partial-year conventions.
+  Do not choose this preference after seeing selector/search outcomes.
+- Next: register same-pool selector/component comparisons, derive five measured
+  compatibility worksheets, seal explicitly approved eligible recipes, and run
+  only the minimum purpose-bound 256-proposal studies. Actual prefix procedure
+  tests and economic rights remain separately scoped; no independent-OOS claim
+  follows from full-development selection.
+
+**Two-Phase Planning Verification (2026-10-13, UTC; historical):**
 - Documentation link/anchor gate PASS for this plan and the authoritative guide;
   `git diff --check` PASS. Corrected one stale historical-receipt anchor without
   changing the receipt itself.
