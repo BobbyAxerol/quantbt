@@ -8,9 +8,20 @@ ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "docs/mode5/evidence/m5-10-source-amendment.json"
 CONTINUOUS = ROOT / "docs/mode5/evidence/m5-11-continuous-event-source-amendment.json"
 DECISION_REPORT = ROOT / "docs/mode5/evidence/m5-11-5-decision-report-source-amendment.json"
+REPORT_HARDENING = ROOT / "docs/mode5/evidence/m5-11-5-decision-report-hardening-source-amendment.json"
 
 
 def without_decision_report(source, name):
+    hardening = json.loads(REPORT_HARDENING.read_text())
+    prior = hardening["prior_amendment"]
+    if sha256((ROOT / prior["path"]).read_bytes()).hexdigest() != prior["sha256"]:
+        raise AssertionError("report hardening parent amendment changed")
+    if name in hardening["existing"]:
+        before = subprocess.check_output(["git", "show", hardening["entry"]+":"+name], cwd=ROOT)
+        if source != before:
+            if sha256(source).hexdigest() != hardening["existing"][name]:
+                raise AssertionError("unreviewed Mode5 public bytes: "+name)
+            source = before
     m = json.loads(DECISION_REPORT.read_text())
     prior = m["prior_amendment"]
     if sha256((ROOT / prior["path"]).read_bytes()).hexdigest() != prior["sha256"]:

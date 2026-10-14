@@ -50,6 +50,46 @@ def test_readable_markdown_keeps_each_trial_and_component_in_separate_rows():
     assert SECRET not in text
 
 
+@pytest.mark.parametrize("field", ["eligible", "pareto_front"])
+def test_gate_prose_cannot_leak_through_default_public_views(field):
+    metadata, params = runtime_metadata(pareto=field == "pareto_front")
+    decision = metadata["decision"]
+    chosen = decision["chosen_candidate"]
+    row = next(r for r in decision["component_rows"] if r["candidate_id"] == chosen)
+    row[field] = SECRET
+    for trial in metadata["trial_ledger"]:
+        if trial.get("candidate_id") == chosen and trial.get("components") is not None:
+            trial["components"][field] = SECRET
+    decision["component_hash"] = digest(decision["component_rows"])
+    metadata["selection_decision_id"] = digest(decision)
+    with pytest.raises(ValueError, match="explicit boolean"):
+        DecisionReport.read(metadata, selected_params=params)
+
+
+@pytest.mark.parametrize("field,value", [("raw_sharpe", 7.), ("net_return", -.99), ("max_drawdown", .99),
+    ("daily_count", 1), ("risk_pass", False), ("support_pass", False), ("quality_pass", False), ("final_equity", 1.)])
+def test_selected_audit_every_retained_measure_matches_original_trial(field, value):
+    metadata, params = runtime_metadata()
+    metadata["selected_audit"][0][field] = value
+    with pytest.raises(ValueError, match="selected audit differs"):
+        DecisionReport.read(metadata, selected_params=params)
+
+
+def test_nested_finance_paths_are_not_retained_or_reloadable():
+    metadata, params = runtime_metadata()
+    for trial in metadata["trial_ledger"]:
+        for observation in trial.get("observations", ()):
+            observation["finance"]["daily_returns"] = [1.] * 20_000
+    for observation in metadata["selected_audit"]:
+        observation["finance"]["daily_returns"] = [1.] * 20_000
+    report = DecisionReport.read(metadata, selected_params=params)
+    retained = report.to_dict(private=True)
+    assert "daily_returns" not in report.to_json(private=True)
+    retained["runtime"]["selected_audit"][0]["finance"]["daily_returns"] = [1., 2.]
+    with pytest.raises(ValueError, match="bounded runtime snapshot"):
+        DecisionReport.from_json(json.dumps(retained))
+
+
 def runtime_metadata(*, continuous=False, no_selection=False, incumbent=False, pareto=False, local=False, tail=False):
     params = [{SECRET: n, "branch": SECRET} for n in (11, 22, 33, 44)]
     p = panel(((-.3, .5), (.05, .15), (.8, .9), (None, None)),

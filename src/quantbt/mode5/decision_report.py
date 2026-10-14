@@ -65,11 +65,17 @@ def _public_observation(row: dict, index: int) -> dict:
 
 
 def _observation(row: dict) -> dict:
-    return _pick(row, "environment_id start_ns stop_ns account_policy metric_contract "
+    retained = _pick(row, "environment_id start_ns stop_ns account_policy metric_contract "
         "metric_contract_status null_reason finance raw_sharpe utility psr net_return "
         "max_drawdown daily_loss_es daily_count partial_days closed_records closed_record_unit "
         "support_pass risk_pass quality_pass liquidated initial_capital final_equity "
         "campaign_count fill_count campaign_support_status fill_support_status")
+    if "finance" in retained:
+        identities = _pick(retained["finance"], "equity positions fees funding margin")
+        if any(not isinstance(value, str) or not value or len(value) > 256 for value in identities.values()):
+            raise ValueError("bounded scalar financial identities required; account paths are not report metadata")
+        retained["finance"] = identities
+    return retained
 
 
 def _snapshot(metadata: Mapping[str, Any]) -> dict:
@@ -212,6 +218,8 @@ def _validate(m: dict, params: dict | None) -> None:
     if len(evidence) != len(d["evidence_refs"]) or set(evidence) != set(parts):
         raise ValueError("decision evidence roster differs from actual pool")
     for cid, part in parts.items():
+        if type(part["eligible"]) is not bool or ("pareto_front" in part and type(part["pareto_front"]) is not bool):
+            raise ValueError("explicit boolean eligibility and Pareto membership required")
         if (part["params_digest"] != cid or part["score"] != evaluated[cid]["objective"]
                 or any(part[k] != evaluated[cid]["components"][k] for k in ("eligible", "reasons", "components"))
                 or any(part[k] != d[k] for k in ("formula_identity", "reference_identity", "plan_identity"))):
@@ -242,9 +250,7 @@ def _validate(m: dict, params: dict | None) -> None:
             raise ValueError("selected actual dictionary/decision/replay binding mismatch")
         audit = m.get("selected_audit")
         observed = evaluated[chosen]["observations"]
-        if not audit or len(audit) != len(observed) or any(
-                any(a.get(k) != b.get(k) for k in ("finance", "utility", "psr"))
-                for a, b in zip(audit, observed, strict=True)):
+        if not audit or audit != observed:
             raise ValueError("selected audit differs from actual selected observations")
     else:
         raise ValueError("explicit SELECTED or NO_SELECTION decision required")
