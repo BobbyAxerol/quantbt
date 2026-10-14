@@ -1,13 +1,18 @@
 """Typed WFO windows delegate to existing execution, never to signal accounting."""
 
-from dataclasses import dataclass, field, replace
-from typing import Callable
+from copy import deepcopy
+from dataclasses import dataclass, field, fields, replace
+from types import MappingProxyType
+from typing import TYPE_CHECKING, Any, Callable, Mapping
 
 import numpy as np
 import pandas as pd
 
 from .core.intrabar_session import IntrabarSessionTape
 from .core.orders import OrderCommand
+
+if TYPE_CHECKING:
+    from .walkforward import WalkForwardFold
 
 
 EXECUTION_ROUTES = frozenset({"intrabar", "event_driven", "order_commands", "delivery_arbitrage"})
@@ -94,6 +99,114 @@ class WfoExecutionWindow:
         return replace(self, index=index,
             intent=None if self.intent is None else self.intent.loc[index].copy(),
             session=session, commands=tuple(c for c in self.commands if pd.Timestamp(c.timestamp) in index))
+
+
+def _assembly_index(index):
+    if (not isinstance(index, pd.DatetimeIndex) or index.tz is None
+            or not index.is_unique or not index.is_monotonic_increasing):
+        raise ValueError("execution assembly requires an exact aware chronological index")
+    values = np.frombuffer(index.asi8.tobytes(), dtype=np.int64)
+    array = pd.array(values, dtype=index.dtype, copy=False)
+    return pd.DatetimeIndex(array, name=index.name, copy=False)
+
+
+def _assembly_params(value):
+    if isinstance(value, Mapping):
+        return MappingProxyType({k: _assembly_params(v) for k, v in value.items()})
+    if isinstance(value, (list, tuple)):
+        return tuple(_assembly_params(v) for v in value)
+    if isinstance(value, (set, frozenset)):
+        return frozenset(_assembly_params(v) for v in value)
+    if isinstance(value, np.ndarray):
+        if value.dtype.hasobject:
+            raise TypeError("execution assembly params cannot contain object arrays")
+        return np.frombuffer(value.tobytes(), dtype=value.dtype).reshape(value.shape)
+    return deepcopy(value)
+
+
+@dataclass(frozen=True, eq=False)
+class WfoExecutionAssemblyRequest:
+    """Final-only adapter input, after every selection and observer evaluation.
+
+    An execution strategy may opt in with ``assemble_wfo_execution(request)``.
+    Applied parameter containers and fold calendars are detached read-only
+    snapshots; ``index`` is the entire final account calendar, including
+    non-OOS bars. ``windows``
+    are generated diagnostic OOS payload snapshots, not an authorized final
+    state handoff. ``data`` is an ordinary detached strategy-data copy supplied
+    only at final assembly, never a new selection/observer input.
+
+    The caller owns its actual-feedback compiler and boundary semantics. Return
+    an ordinary same-route, exact-full-index WfoExecutionWindow, not positions
+    or diagnostic callback parts. QuantBT executes that window once through the
+    existing final account path. No selection, labels, RNG or diagnostic account
+    is replayed here. Additive WalkForwardResult metadata
+    ``wfo_execution_assembly`` records this request schema, final-only scope and
+    the hook's module/qualified name as ``adapter_identity`` when available;
+    it is not a source hash certificate.
+    """
+
+    route: str
+    index: pd.DatetimeIndex
+    folds: tuple["WalkForwardFold", ...]
+    params_by_fold: Mapping[int, Mapping[str, Any]]
+    windows: tuple[WfoExecutionWindow, ...]
+    data: pd.DataFrame | dict[str, pd.DataFrame] = field(repr=False)
+    schema: str = "wfo-execution-assembly-request-v1"
+
+    def __post_init__(self):
+        from .walkforward import WalkForwardFold
+
+        index = _assembly_index(self.index)
+        folds, windows = tuple(self.folds), tuple(self.windows)
+        if (self.schema != "wfo-execution-assembly-request-v1"
+                or self.route not in EXECUTION_ROUTES or not len(index)
+                or not folds or len(folds) != len(windows)
+                or any(not isinstance(f, WalkForwardFold) for f in folds)):
+            raise ValueError("execution assembly requires a registered route/schema and matching folds/windows")
+        fold_ids = [f.fold_id for f in folds]
+        if (not isinstance(self.params_by_fold, Mapping) or len(set(fold_ids)) != len(fold_ids)
+                or set(self.params_by_fold) != set(fold_ids)
+                or any(not isinstance(p, Mapping) for p in self.params_by_fold.values())):
+            raise ValueError("execution assembly requires applied params for exactly every fold")
+        previous_end = None
+        for fold, window in zip(folds, windows):
+            if (not isinstance(window, WfoExecutionWindow) or window.route != self.route
+                    or not window.index.equals(fold.test_index)
+                    or len(window.index.difference(index))
+                    or fold.test_start != window.index[0] or fold.test_end != window.index[-1]):
+                raise ValueError("execution assembly requires same-route windows on exact fold/final indexes")
+            if previous_end is not None and window.index[0] <= previous_end:
+                raise ValueError("execution assembly folds/windows must be chronological and disjoint")
+            previous_end = window.index[-1]
+        object.__setattr__(self, "index", index)
+        object.__setattr__(self, "folds", tuple(replace(f, **{
+            item.name: _assembly_index(getattr(f, item.name)) for item in fields(f)
+            if isinstance(getattr(f, item.name), pd.DatetimeIndex)}) for f in folds))
+        object.__setattr__(self, "params_by_fold", _assembly_params(self.params_by_fold))
+        object.__setattr__(self, "windows", tuple(replace(w,
+            index=_assembly_index(w.index), intent=None if w.intent is None else w.intent.copy(deep=True),
+            session=deepcopy(w.session), commands=deepcopy(w.commands)) for w in windows))
+        object.__setattr__(self, "data", deepcopy(self.data))
+
+
+def assemble_final_execution(strategy, **kwargs):
+    """Invoke only the opted-in final hook; never substitute diagnostic parts."""
+    assembler = strategy.assemble_wfo_execution
+    if not callable(assembler):
+        raise TypeError("assemble_wfo_execution must be callable")
+    request = WfoExecutionAssemblyRequest(**kwargs)
+    output = assembler(request)
+    if not isinstance(output, WfoExecutionWindow):
+        raise TypeError("final execution assembly must return WfoExecutionWindow, not positions/signals")
+    output = replace(output)  # Revalidate mutable payloads before final execution.
+    if output.route != request.route or not output.index.equals(request.index):
+        raise ValueError("final execution assembly must preserve route and exact full final index")
+    if output.route == "event_driven" and (output.parts or not callable(output.strategy_factory)):
+        raise ValueError("final callback assembly requires a final strategy_factory without diagnostic parts")
+    module, name = getattr(assembler, "__module__", None), getattr(assembler, "__qualname__", None)
+    return output, {"wfo_execution_assembly": dict(schema=request.schema, scope="final_only",
+        adapter_identity=f"{module}.{name}" if module and name else None)}
 
 
 def stitch_execution_windows(outputs, index):

@@ -143,6 +143,47 @@ quotes for asynchronous markets. Session IDs must be stable absolute identities,
 not reset-local counters at every fold. Warm-up supplies past feature history;
 diagnostic accounts do not inherit warm-up positions.
 
+## Stateful Strategy Final Assembly
+
+The default stitch preserves the engine account and concatenates the supplied
+commands or callback windows. A strategy whose commands were compiled from
+independent flat accounts needs an additional check: those commands may assume
+the wrong inventory, campaign or pending-order state when used together.
+Similarly, a new callback child must handle carried inventory from the actual
+execution context; its pristine internal state does not contain previous fills.
+
+An adapter can opt in by implementing `assemble_wfo_execution(request)` on the
+same strategy callable used by `walk_forward`. QuantBT calls it once after all
+fold decisions and label observers, before the ordinary final financial run.
+The `WfoExecutionAssemblyRequest` in `quantbt.wfo_execution` provides detached,
+read-only applied parameter containers and fold calendars, the complete final
+calendar, generated windows and a detached copy of the strategy data. The final
+calendar can include flat bars before the first OOS fold; consult the fold
+windows before permitting any strategy action.
+
+Return an ordinary `WfoExecutionWindow` with the same route and exact complete
+index. A callback assembly returns one fresh final `strategy_factory`, without
+reusing the diagnostic callback parts. An order assembly supplies its complete
+schedule-aware tape. The existing endpoint continues to own fills, fees, margin
+and accounting. Diagnostics and selection retain their original inputs and RNG.
+
+The adapter owns actual-feedback compilation and strategy-state continuity.
+Orders originating at the previous fold's last close must retain their original
+activation time, including next-open activation in the next fold. Held-position
+protection, pending fills, amendments, residual inventory and cooldown must be
+qualified against the original strategy. Returning a full-index tape alone is
+not that qualification, and concatenating flat-account diagnostic tapes does not
+establish it. Any financial compiler work must appear in the adapter's work bill;
+the final endpoint's own replay counter is not a whole-study execution counter.
+
+Additive WFO metadata `wfo_execution_assembly` identifies `final_only`, the
+request schema and callable name. That name is not a source hash certificate.
+Without the opt-in method, legacy stitching is unchanged. Invalid output routes,
+partial calendars, position proxies and diagnostic callback parts are rejected.
+Current long-horizon private alpha admission is tracked in
+[M5-11.6](../../upgrade/implement.md#mode5-m5-11-6); synthetic integration tests
+do not certify those private strategy bindings or their economics.
+
 ## Quarterly Expiry And Roll
 
 `DeliveryContract(symbol, expires_at, flatten_at, source_id)` explicitly supplies

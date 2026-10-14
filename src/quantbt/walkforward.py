@@ -1341,6 +1341,15 @@ class WalkForwardEngine:
             full_index=idx,
             fill_value=self.config.fill_value,
         )
+        from .wfo_execution import EXECUTION_ROUTES, assemble_final_execution
+        assembly_metadata = {}
+        if (self.config.target_mode in EXECUTION_ROUTES
+                and getattr(self.strategy, "assemble_wfo_execution", None) is not None):
+            stitched, assembly_metadata = assemble_final_execution(
+                self.strategy, route=self.config.target_mode, index=idx, folds=folds,
+                params_by_fold=params_by_fold or {f.fold_id: chosen_params for f in folds},
+                windows=outputs, data=data_for_strategy,
+            )
         fold_table = _fold_table(folds)
         boundary_table = _fold_boundary_table(
             stitched,
@@ -1423,6 +1432,7 @@ class WalkForwardEngine:
             best_trial=_trial_to_dict(selected_record),
             metadata={
                 **self.config.metadata,
+                **assembly_metadata,
                 "engine": "walk_forward_phase49a" if schedule != "global" else "walk_forward_phase4",
                 "split_mode": str(self.config.split_mode),
                 "split_frequency": self.config.split_frequency,
