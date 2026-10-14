@@ -6,6 +6,7 @@ use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyType};
 use std::sync::Arc;
 
+mod feedback_session;
 mod prepared_evaluation;
 #[cfg(feature = "qms-numeric-candidate")]
 mod qms_numeric;
@@ -9760,6 +9761,8 @@ fn _quantbt_native(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<prepared_evaluation::NativePreparedEvaluationRuntimeCore>()?;
     module.add_class::<prepared_evaluation::NativePreparedEvaluationMatrixCore>()?;
     module.add_class::<NativeExecutionTemplateCore>()?;
+    module.add_class::<feedback_session::NativeFeedbackSessionCore>()?;
+    module.add_class::<feedback_session::FeedbackStepCore>()?;
     module.add_class::<NativeExecutionRequestCore>()?;
     module.add_class::<NativePackageScenarioBatchCore>()?;
     module.add_class::<NativeTargetExecutionRequestCore>()?;

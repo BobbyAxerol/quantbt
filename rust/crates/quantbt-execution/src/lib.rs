@@ -932,7 +932,7 @@ impl NativeExecutionTemplateV1 {
         })
     }
 
-    fn fresh_session(&self) -> Result<FullSession, String> {
+    pub fn fresh_session(&self) -> Result<FullSession, String> {
         let mut session = FullSession::new_window(
             self.market.clone(),
             self.market_start,

@@ -34839,6 +34839,14 @@ preserve scientific receipts/accounts and verify hashes/free bytes after cleanup
 - Exit: source-bound local parity and bounded measured controls PASS, or an
   explicit retained failure; readiness is reported for owner approval, never
   interpreted as permission to start the registered long studies.
+- Exact-prefix implementation note: a committed native prefix retains exact
+  account/lifecycle bytes and referenced integer-ID/name pairs in immutable
+  tuple links. Only views from the same native owner and matching stop may
+  reuse that exact certificate object. Foreign/different certificates retain
+  full field comparisons. This removes repeated dense-prefix reads, not
+  accounting checks, and authorizes neither approximate hashes nor mutable
+  account reuse. Tests include read-only byte-backed paths and false/foreign
+  certificate fallback. Dense outputs remain available for cold final audit.
 
 <a id="mode5-m5-11-7"></a>
 ### Phase M5-11.7 - Mode 4/5 Complete Researcher Reports And Decision Qualification

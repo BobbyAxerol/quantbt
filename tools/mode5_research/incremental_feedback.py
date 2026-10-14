@@ -9,6 +9,8 @@ from dataclasses import dataclass
 
 import numpy as np
 
+from tools.mode5_research.feedback_prefix import CommittedFeedbackPrefix
+
 
 @dataclass(frozen=True)
 class FeedbackEvent:
@@ -37,11 +39,27 @@ class IncrementalFeedbackCompiler:
         self.execution_calls = 0
         self.bar_steps = 0
         self.bar_retries = 0
+        self._transactional = getattr(execute,"feedback_protocol",None) == "current-bar-transaction-v1"
+        if self._transactional and not all(callable(getattr(execute,name,None))
+                for name in ("begin_bar","commit_bar")):
+            raise TypeError("complete versioned feedback transaction protocol required")
 
     @staticmethod
     def _prefix_unchanged(before, after, bar):
         if before is None:
             return
+        a = getattr(before,"prefix_certificate",None)
+        b = getattr(after,"prefix_certificate",None)
+        if callable(a) and callable(b):
+            from tools.mode5_research.transactional_feedback import _FeedbackView
+
+            left,right = a(bar),b(bar)
+            if (type(before) is _FeedbackView and type(after) is _FeedbackView
+                    and before.owner is after.owner
+                    and before.path_offset == after.path_offset
+                    and type(left) is CommittedFeedbackPrefix and left is right
+                    and left.stop == max(0,bar-getattr(before,"path_offset",0))):
+                return
         stop = max(0, bar - getattr(before, "path_offset", 0))
         for key in before.paths:
             if not np.array_equal(before.paths[key][:stop], after.paths[key][:stop]):
@@ -57,6 +75,11 @@ class IncrementalFeedbackCompiler:
         executed_commands = None
         for bar in range(self.binding.start, self.binding.stop):
             self.safe_point()
+            begin = getattr(self.execute, "begin_bar", None) if self._transactional else None
+            if callable(begin):
+                updated = begin(bar, executed_commands or ())
+                self._prefix_unchanged(feedback, updated, bar)
+                feedback = updated
             checkpoint = self.binding.snapshot()
             previous_events = () if feedback is None else feedback.events_at(bar)
             for retry in range(self.max_bar_retries):
@@ -79,6 +102,9 @@ class IncrementalFeedbackCompiler:
                 previous_events = current_events
             else:
                 raise RuntimeError("same-bar actual feedback did not stabilize")
+            commit = getattr(self.execute, "commit_bar", None) if self._transactional else None
+            if callable(commit):
+                commit(bar)
         if feedback is None:
             feedback = self.execute(())
             self.execution_calls += 1
