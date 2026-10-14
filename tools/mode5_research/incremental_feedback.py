@@ -53,6 +53,9 @@ class IncrementalFeedbackCompiler:
         if callable(a) and callable(b):
             from tools.mode5_research.transactional_feedback import _FeedbackView
 
+            if (type(before) is _FeedbackView and type(after) is _FeedbackView
+                    and before.owner is not after.owner):
+                raise AssertionError("committed native feedback owner changed")
             left,right = a(bar),b(bar)
             if (type(before) is _FeedbackView and type(after) is _FeedbackView
                     and before.owner is after.owner

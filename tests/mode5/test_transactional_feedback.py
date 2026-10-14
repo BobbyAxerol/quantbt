@@ -1024,3 +1024,28 @@ def test_native_prefix_certificate_is_exact_owned_and_keeps_full_fallback(prepar
         assert executor._path_cache is not None
     finally:
         executor.close()
+
+
+@requires_transaction
+@pytest.mark.parametrize("same_names", [False, True])
+def test_native_compiler_cannot_splice_different_session_owners(prepared, same_names):
+    packed_left, packed_right = prepared(), prepared()
+    owners = [
+        TransactionalTapeFeedback(packed, index=packed.index, start=0, symbol="X")
+        for packed in (packed_left, packed_right)
+    ]
+    try:
+        for slot, owner in enumerate(owners):
+            name = "same" if same_names else f"different-{slot}"
+            commands = (order(owner.index, 1, name),)
+            owner.begin_bar(0, commands)
+            owner.commit_bar(0)
+            owner.begin_bar(1, commands)
+            owner.commit_bar(1)
+        with pytest.raises(AssertionError, match="native feedback owner changed"):
+            IncrementalFeedbackCompiler._prefix_unchanged(
+                owners[0].current, owners[1].current, 2
+            )
+    finally:
+        for owner in owners:
+            owner.close()
