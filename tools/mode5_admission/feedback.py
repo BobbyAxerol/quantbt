@@ -5,6 +5,7 @@ from __future__ import annotations
 import numpy as np
 
 from quantbt import OrderCommand, OrderSide, OrderType, quantize_signed_quantity
+from quantbt.wfo_execution import _CallbackCalendarCursor
 
 
 class UnsupportedFinancialBinding(NotImplementedError):
@@ -50,6 +51,7 @@ class BarCloseBinding:
         self.fill_feedback_count = 0
         self.preflight_rejections = []
         self.entry_capacity = 0.
+        self._calendar = _CallbackCalendarCursor(index)
 
     def initialize(self, context):
         self.adapter.prepare()
@@ -57,7 +59,11 @@ class BarCloseBinding:
         return ()
 
     def on_bar_close(self, context):
-        offset = int(self.index.get_indexer([context.timestamp])[0])
+        if self._calendar.index is not self.index:
+            self._calendar = _CallbackCalendarCursor(self.index)
+        offset = self._calendar.locate(context.timestamp)
+        if offset is None:
+            offset = int(self.index.get_indexer([context.timestamp])[0])
         if offset < 0:
             raise ValueError("engine callback is outside the registered feature calendar")
         for fill in context.fills_this_bar:
@@ -77,8 +83,13 @@ class BarCloseBinding:
                 self.adapter.state.pending_exit = False
                 if self.adapter.state.position == 0.:
                     self.entry_capacity = 0.
-        np.testing.assert_allclose(self.adapter.state.position, context.positions[self.symbol],
-                                   rtol=0, atol=1e-12, err_msg="strategy actual-fill feedback mismatch")
+        actual, expected = self.adapter.state.position, context.positions[self.symbol]
+        scalar_match = (type(actual) in (float, np.float64) and type(expected) in (float, np.float64)
+            and (actual == expected or abs(float(actual) - float(expected)) <= 1e-12
+                 or (actual != actual and expected != expected)))
+        if not scalar_match:
+            np.testing.assert_allclose(actual, expected, rtol=0, atol=1e-12,
+                                       err_msg="strategy actual-fill feedback mismatch")
         if offset < self.score_start_bar:
             raise ValueError("financial run must exclude feature-only preload")
         decision = self.adapter.on_bar_close(offset)

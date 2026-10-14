@@ -246,6 +246,47 @@ def stitch_execution_windows(outputs, index):
     return WfoExecutionWindow(route, index, intent=intent, session=session, parts=parts)
 
 
+def _callback_timestamp_ns(timestamp):
+    if isinstance(timestamp, pd.Timestamp) and timestamp.tzinfo is not None:
+        try:
+            return timestamp.value
+        except OverflowError:
+            pass
+    return None
+
+
+class _CallbackCalendarCursor:
+    """Exact lookup on validated calendars; None requests the pandas fallback."""
+
+    def __init__(self, index):
+        self.index = index
+        self.values = None
+        if (type(index) is pd.DatetimeIndex and len(index) and index.tz is not None
+                and getattr(index.dtype, "unit", "ns") == "ns"
+                and index.is_unique and index.is_monotonic_increasing and not index.hasnans):
+            self.values = index.asi8
+        self.next = 0
+        self.previous = -1
+
+    def locate(self, timestamp):
+        if self.values is None:
+            return None
+        value = _callback_timestamp_ns(timestamp)
+        if value is None:
+            return None
+        values, offset = self.values, self.next
+        if offset < len(values) and values[offset] == value:
+            pass
+        elif self.previous >= 0 and values[self.previous] == value:
+            return self.previous
+        else:
+            offset = int(np.searchsorted(values, value))
+            if offset == len(values) or values[offset] != value:
+                return -1
+        self.previous, self.next = offset, offset + 1
+        return offset
+
+
 class _FoldCallbacks:
     """Switch alpha instances, not execution/account/order state, at a close."""
 
@@ -253,14 +294,40 @@ class _FoldCallbacks:
         self.parts = window.parts or (window,)
         self.current = None
         self.child = None
+        self._calendar = None
+        self._part_cursor = 0
+        self._starts = self._ends = None
+        if all(isinstance(p, WfoExecutionWindow)
+               and _CallbackCalendarCursor(p.index).values is not None for p in self.parts):
+            starts = np.asarray([p.index.asi8[0] for p in self.parts], dtype=np.int64)
+            ends = np.asarray([p.index.asi8[-1] for p in self.parts], dtype=np.int64)
+            if np.all(starts[1:] > ends[:-1]):
+                self._starts, self._ends = starts, ends
+
+    def _part_at(self, timestamp):
+        value = _callback_timestamp_ns(timestamp) if self._starts is not None else None
+        if value is None:
+            return next((p for p in self.parts if p.index[0] <= timestamp <= p.index[-1]), None)
+        slot = self._part_cursor
+        if not self._starts[slot] <= value <= self._ends[slot]:
+            slot = int(np.searchsorted(self._starts, value, side="right")) - 1
+            if slot < 0 or value > self._ends[slot]:
+                return None
+        self._part_cursor = slot
+        return self.parts[slot]
 
     def on_bar_close(self, context):
-        part = next((p for p in self.parts if p.index[0] <= context.timestamp <= p.index[-1]), None)
+        part = self._part_at(context.timestamp)
         if part is None:
             return ()
-        local = replace(context, bar_index=int(part.index.get_loc(context.timestamp)))
+        calendar = self._calendar if part is self.current else _CallbackCalendarCursor(part.index)
+        offset = calendar.locate(context.timestamp)
+        if offset is None or offset < 0:
+            offset = int(part.index.get_loc(context.timestamp))
+        local = replace(context, bar_index=offset)
         if part is not self.current:
             self.current, self.child = part, part.strategy_factory()
+            self._calendar = calendar
             if not callable(getattr(self.child, "on_bar_close", None)):
                 raise TypeError("strategy_factory must return the event_driven callback protocol")
             initial = getattr(self.child, "initialize", lambda c: ())(local)
@@ -270,7 +337,10 @@ class _FoldCallbacks:
     def finalize(self, context):
         if self.child is None:
             return ()
-        local = replace(context, bar_index=int(self.current.index.get_indexer([context.timestamp])[0]))
+        offset = self._calendar.locate(context.timestamp)
+        if offset is None:
+            offset = int(self.current.index.get_indexer([context.timestamp])[0])
+        local = replace(context, bar_index=offset)
         return getattr(self.child, "finalize", lambda c: ())(local)
 
 
