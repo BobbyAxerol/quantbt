@@ -1,7 +1,12 @@
 # M5-11.4 Storage Review And Cleanup
 
-Date: 2026-10-13 UTC. Status: **PASS_CLEANUP_ONLY**, not a completed diagnostic
-phase, financial qualification or economic promotion.
+Current update: October 14, 2026 UTC. Final cleanup **PASS_CLEANUP_ONLY**;
+the separately certified diagnostic phase is now **COMPLETE / TECHNICALLY_VALID**.
+Read the [final phase report](../mode5/M5_11_4_FULL_DEVELOPMENT_REPORT.md).
+Cleanup itself is not financial qualification or economic promotion.
+
+The October 13 inventory and stopped-lane receipt below remain historical and
+unchanged. The final cleanup is recorded separately at the end of this document.
 
 ## Review Before Launch
 
@@ -97,7 +102,7 @@ Inventory SHA-256:
 Cleanup receipt SHA-256:
 `0d5bdb3286e43053ced839b0bcabbd19c01fcb47b3e7c78978e048e648eba294`.
 
-## Operational Stop And Remaining Work
+## Historical Operational Stop And Remaining Work
 
 The agent mistakenly edited pinned `AGENTS.md` during this review. The
 supervisor correctly stopped the lane; its original bytes were restored
@@ -106,6 +111,43 @@ admits 168 clean terminal-group records out of 172 returned passing financial
 records; four remain unqualified. Both guardians verify the thirteen earlier
 reused records. See [the progress report](../mode5/M5_11_4_FULL_DEVELOPMENT_PROGRESS.md#storage-review-and-stopped-lane).
 
-M5-11.4 remains incomplete. Full registered coverage, source-compatible future
+At this historical checkpoint M5-11.4 remained incomplete. Full registered coverage, source-compatible future
 storage/scheduling and the final five-alpha dossier are not implied by this
 cleanup receipt. No push, CI, release or subsequent research phase occurred.
+
+## Final Phase Cleanup (October 14)
+
+The completed financial lane, guarded dossier readback and figure rendering
+finish before exit. The final inventory has no disputed or unread external pins.
+Host command/cwd/executable/FD/maps checks confirm the exact scratch roots are
+inactive. FD-relative removal deletes only:
+
+- `.maturin/mode5-m5114/attempt-01/daily05-tests`
+- `.maturin/mode5-m5114/attempt-01/catalog06-tests`
+- `.maturin/mode5-m5114/attempt-01/pytest`
+- `.maturin/mode5-m5114/attempt-01/budget03-tests`
+
+Before/after checks preserve **33,528 protected files**, including scientific
+outputs, failures, source archives, current source, test XML and launch bindings.
+Four host inactivity audits pass. Source state is unchanged across removal.
+The source-guard/phase-report tests use no cache or disk fixtures; their
+retained XML does not create another disposable environment.
+
+| Measure | Result |
+|---|---:|
+| Apparent allocation of removed roots | 8,060,928 bytes / 7.688 MiB |
+| Observed available-space increase | 7,135,232 bytes / 6.805 MiB |
+| Available after cleanup | 7,775,477,760 bytes / 7.241 GiB |
+| Minimum reserve | 5 GiB |
+| Retained attempt | About 8.8 GiB; approved ceiling 10 GiB |
+
+The observed delta is not attributed entirely to deletion on a shared host.
+This final deletion is additional to the prior 1.661-GiB consumer cleanup and
+96.51-MiB between-lane fixture cleanup; it does not delete any financial evidence.
+The remaining roughly 3.8-MiB scratch parent contains retained Numba/Matplotlib
+caches, not full build/consumer environments. No unrelated service is stopped.
+
+Private exact inventory/receipt: `storage-review03/` in the original M5-11.4
+attempt. The final phase report binds the cleanup receipt, guarded full-stage
+proof and daily-return proof by exact hashes. All historical cleanup, failed
+assembly and interrupted-lane receipts remain stored.

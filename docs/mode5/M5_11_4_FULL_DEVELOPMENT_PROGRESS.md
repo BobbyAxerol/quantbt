@@ -1,8 +1,25 @@
 # M5-11.4 Full-Development Progress
 
-Status: **IN_PROGRESS**, not a phase exit or economic promotion receipt.
+Current status: **COMPLETE / TECHNICALLY_VALID**. Scientific status:
+**DESCRIPTIVE_ONLY**, not economic promotion or independent OOS.
 
-## Current Terminal Readback (October 14)
+## Final Closure (October 14)
+
+All **1,219/1,219** original cells are qualified: 128 discovery configurations
+per alpha, 249 probes, ten actual fee stresses and 320 RSI structured cells.
+The final lane completes 224 missing cells and reuses 995 exact accounts;
+all owned workers are reaped and current financial/source pins remain exact.
+Five full dossiers, five shorter decision worksheets and 31 figures are complete.
+Both guarded full-stage readback and independent daily-return readback PASS;
+final cleanup verifies 33,528 protected files and removes four inactive roots.
+
+See the [final report](M5_11_4_FULL_DEVELOPMENT_REPORT.md) for coverage, proof,
+resource and scientific limits. Full private `report.md`/`report.json` are in
+`upgrade/private/mode5_upgrade_v1/m5-11-4/attempt-01/final-report10/`.
+M5-11.5 remains unapproved. The records below describe earlier checkpoints;
+their stopped/partial/failed receipts remain historical, not promoted.
+
+## Historical Terminal Readback (Before Final Continuation)
 
 `panel-Jan1-04` closes at its registered four-hour boundary, without a changed
 source pin. It retains 814 new passing cells and ten failed metric exports;
@@ -150,7 +167,7 @@ v2 failure witness. The running v2 already passed initialization and is not
 edited mid-run. Final readback must still verify both terminal custody and
 source/output pins; a guardian integrity receipt is not phase certification.
 
-## Remaining Measurement
+## Historical Remaining Measurement
 
 Full discovery/probe/stress/structured coverage and five actual cold-read
 dossiers remain required. Unmeasured rows stay visible; a pilot cannot close

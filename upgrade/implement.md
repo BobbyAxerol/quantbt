@@ -6,7 +6,9 @@
 phases before M5-12: [M5-11.4](#mode5-m5-11-4), full-development diagnostics and
 the researcher decision dossier; then [M5-11.5](#mode5-m5-11-5), diagnostic-guided
 recipe handoff and actual static Mode 5 calibration qualification.
-M5-11.4 is APPROVED / IN_PROGRESS under the owner's 2026-10-13 instruction;
+M5-11.4 is COMPLETE / TECHNICALLY_VALID after the 2026-10-14 full registered
+coverage, guarded readback and cleanup; scientific status is DESCRIPTIVE_ONLY.
+Read the [final report](../docs/mode5/M5_11_4_FULL_DEVELOPMENT_REPORT.md).
 M5-11.5 remains PLANNED / IMPLEMENTATION_NOT_APPROVED.
 The requested current-calibration scope is 2020 through the latest verified
 complete data in 2026, with an explicit scored calendar and minimum sufficient
@@ -27432,7 +27434,7 @@ version or release. Current M5-11 work and its measured limits are recorded in
 the [broad diagnostics](#mode5-m5-11-1), [search/selection](#mode5-m5-11-2)
 and [forward/economics](#mode5-m5-11-3) sections. The owner-requested
 [full-development amendment](#mode5-full-development-decision-amendment) adds
-M5-11.4 as APPROVED / IN_PROGRESS and M5-11.5 as PLANNED /
+M5-11.4 as COMPLETE / TECHNICALLY_VALID (DESCRIPTIVE_ONLY) and M5-11.5 as PLANNED /
 IMPLEMENTATION_NOT_APPROVED; M5-12 remains NOT_STARTED
 and awaits their reviewed dispositions. Preserve all historical study receipts.
 Read the
@@ -27679,7 +27681,7 @@ Every phase below inherits this mandatory resource registration/cleanup exit.
 | [M5-11.1](#mode5-m5-11-1) | Broad five-alpha diagnostics and renewed dossier | M5-11 scope review; registered data/design/resource protocol | M5T-041..060 / 071..090 | Broad accounts and bounded native B2/dossiers technically PASS; 640 discovery accounts, 348 native probes; scientific limitations retained |
 | [M5-11.2](#mode5-m5-11-2) | Actual adaptive formal search and selector comparisons | Reviewed M5-11.1 dossier; new sealed plans | M5T-091..103 / EH-01..05 | Raw256/floor256 audited and recovered; selector-only complete; three new sampler256 arms and cold matched comparison PASS; historical failures retained |
 | [M5-11.3](#mode5-m5-11-3) | Multi-origin fixed-policy transfer and economic qualification | Frozen M5-11.2 outputs and prefix studies | M5T-101..110 / EH-06..12 | Registered bounded diagnostics, four prefix256 studies, primary and annual2023/2024/2025 accounts COMPLETE; original/direct accounting, custody and cleanup PASS; all economics INCONCLUSIVE; full-procedure mutation NOT_RUN, broader diagnostic disposition pending |
-| [M5-11.4](#mode5-m5-11-4) | Full 2020--2026 development profiling, missing diagnostics and readable researcher dossier | Owner approved; exact data/readiness and reuse inventory | M5D-01..10; guide M5T-031..090 | APPROVED / IN_PROGRESS |
+| [M5-11.4](#mode5-m5-11-4) | Full 2020--2026 development profiling, missing diagnostics and readable researcher dossier | All 1,219 cells; five dossiers; guarded/daily readback and cleanup PASS | M5D-01..10; guide M5T-031..090 | COMPLETE / TECHNICALLY_VALID; DESCRIPTIVE_ONLY |
 | [M5-11.5](#mode5-m5-11-5) | Evidence-guided sampler/selector decisions, static calibration and measured handoff | Reviewed M5-11.4 dossiers; separate phase approval | M5C-01..10; guide M5T-061..110 | PLANNED / IMPLEMENTATION_NOT_APPROVED |
 | [M5-12](#mode5-m5-12) | Local qualification/docs/handoff | M5-01..11 plus M5-11.4/11.5 dispositions reviewed | M5T-111..120 | NOT_STARTED; waits for supplementary decision-support scope |
 
@@ -33427,13 +33429,20 @@ automatic recipe router, alpha rewrite, release version or deployment action.
 <a id="mode5-m5-11-4"></a>
 ### Phase M5-11.4 - Full-Development Diagnostics And Researcher Decision Dossier
 
-**Status:** APPROVED / IN_PROGRESS; owner implementation approval 2026-10-13.
+**Status:** COMPLETE / TECHNICALLY_VALID; scientific status DESCRIPTIVE_ONLY.
+Owner implementation approval 2026-10-13; full exit 2026-10-14.
+All 1,219 original cells qualify, including 128 discovery configurations per
+alpha; five source-bound dossiers, five decision worksheets and 31 figures
+are complete. Guarded full-stage/daily-return proofs and final cleanup PASS.
+See the [final report](../docs/mode5/M5_11_4_FULL_DEVELOPMENT_REPORT.md).
+
+**Historical entry inventory (retained):**
 Read-only provider inventory finds BTC/ETH hourly data from 2020-01-01 through
 2026-10-06 02:00 UTC; the last complete day is 2026-10-05. No pre-2020 input is
 available from this local provider. Per-alpha/common-candidate readiness and
 the exact unready initial prefix remain measured source witnesses. Owner approved
 scoring from 2020-01-01 with original strategy warmup flat, separately disclosed;
-this approval is not a completed-account certificate. Current disk has about 16 GiB available,
+this approval alone was not a completed-account certificate. Entry disk had about 16 GiB available,
 with at least 5 GiB reserved; use existing tooling/native artifacts and bounded
 independent workers. Freeze exact counts/paths in the private registration
 before financial launch. Scope stays diagnostics; M5-11.5 is not activated.
@@ -33807,6 +33816,52 @@ versions readable; preserve original alpha/core contracts and all attempts.
   Reuse all 995 admitted accounts, and bill failures/censoring separately.
   No phase exit before full actual coverage, five source-bound dossiers,
   terminal readback, privacy and final cleanup. M5-11.5 remains unapproved.
+
+**Final closure (2026-10-14 UTC; supersedes checkpoint status, not receipts):**
+- `panel-Jan1-05` completes all 224 missing cells and exactly reuses the 995
+  admitted accounts. All owned groups are reaped, zero missing/failed cells,
+  and current launch/source pins remain exact. The final lane closes in
+  15,046.94 seconds. Earlier partial parents, the rules-mutation stop and
+  unqualified outputs remain historical; no old failure is relabeled PASS.
+- Coverage: RSI 503, SC 148, HMA 199, HASH 185, VWAP 184 = 1,219/1,219.
+  All five retain 128 discovery accounts, January 1 scoring, original flat
+  warmup and 2026-10-06 exclusive end: 59,280 hours / 2,470 complete UTC days.
+  Full-year and partial-2026 attribution preserves each continuous account.
+- Cold stage `profiles-Jan1-budget03-cold-02` has all six matrix views per
+  alpha, five typed JSON/Markdown dossiers and five decision summaries.
+  `figures-Jan1-budget03-cold-02` has 31 source-bound private figures with
+  explicit masks, no interpolation, hash/pixel and actual visual checks.
+- Independent daily-return readback PASSes all 1,219 stored arrays:
+  2,986,960 numeric account-day matches and 23,970 undefined days across ten
+  bankrupt accounts. Matching nulls are not numeric parity; no imputation or
+  dropping required structured rows. Return/DD/exposure RSI structured channels
+  remain complete; affected Sharpe/utility/tail and absent cost channels stay
+  unavailable. Other four global designs remain unregistered, not zero effects.
+- The final guarded cold verifier preserves all original numerical/report
+  gates, keys exact relation tables without relaxing values or chronology,
+  releases duplicate decoded analyses, and verifies executed helper hashes
+  before/after. `full-stage-readback09` checks 14,777 pins; daily proof checks
+  14,778. Independent static review's source-stability finding is closed.
+  Failed order/memory receipts remain. No finance/search is repeated for reports.
+- Final cold outputs are 181.79 MiB within 512 MiB; assembly RSS 685.43 MiB
+  within 768 MiB; guarded readback RSS 464.49 MiB; figure rendering 18.49 seconds.
+  Selected primary/feedback/final-native/oracle/unknown costs remain distinct.
+  This is a research bill, not an engine speedup or scientific independence claim.
+- Final cleanup `storage-review03` removes four exact inactive fixture roots,
+  verifies 33,528 protected files and records 6.805 MiB observed free-space
+  gain, leaving 7.241 GiB available. All source, accounts, failures, XML,
+  artifacts and necessary offline/current tooling remain. Retained attempt
+  is about 8.8 GiB, below the approved 10-GiB ceiling. No broad cache prune.
+- Private Appendix-D `final-report10/report.md` and `report.json` contain
+  the five-alpha numeric interpretation, support, all scientific limits,
+  work/reuse bill, exact proof/test identities, requirements and handoff.
+  Public [sanitized report](../docs/mode5/M5_11_4_FULL_DEVELOPMENT_REPORT.md)
+  excludes private alpha/parameter/account content. Scope has no remaining
+  blocking implementation gap; research uncertainty is not turned into a
+  sampler/selector winner, automatic route, no-edge verdict or economic promotion.
+- M5-11.5 inputs are ready for owner review but implementation remains
+  unapproved. M5-12 waits for the reviewed supplementary dispositions.
+  No CI, push, merge, tag, version change or publication in this closure.
 
 <a id="mode5-m5-11-5"></a>
 ### Phase M5-11.5 - Diagnostic-Guided Mode 5 Calibration And Decision Qualification
