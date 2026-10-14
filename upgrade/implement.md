@@ -34802,6 +34802,44 @@ preserve scientific receipts/accounts and verify hashes/free bytes after cleanup
   CI, push, version or release occurred. M5-11.6 long/mature/economic gates,
   M5-11.7 and M5-12 remain unfinished/unactivated as documented above.
 
+**Owner-Approved Native Transaction Closure / Await Research Launch Approval:**
+- The owner now authorizes source/runtime changes, including the missing native
+  transaction boundary, to close PERF-HMA-SESSION. Keep the three verified
+  performance patches; no repeated optimizer, long queue or research launch
+  before the owner reviews readiness. Public endpoints and alpha sources stay
+  unchanged; no publication/version/CI/push is authorized.
+- Extend the existing FullSession with one session-local, current-bar checkpoint,
+  retry, commit and abort. Share immutable market ownership, copy only bounded
+  mutable account/live-order/index state, and reject nested/out-of-order/stale
+  operations. Reset/close discard the transaction. Do not reset account state,
+  delay protections or create another matching/accounting implementation.
+- Add a narrow typed PyO3 feedback session from the existing execution template.
+  Return exact integer-ID fill/event columns and all numeric account fields.
+  Preserve bar-zero/static-tape timing, parent/OCO, amendments, quantity filters,
+  expiry, funding, margin, liquidation, fill reasons/ambiguity and residuals.
+- Reuse the existing feedback compiler's decision snapshot and stabilization
+  loop, but advance one native session and retry only the current transaction.
+  Verify prior command/account/event prefixes, preserve final audit and retain
+  the original replay compiler as an explicit reference/unsupported fallback.
+  Fail closed when the transactional capability is requested but unavailable.
+- Tests: native rollback versus clean execution, invalid transaction lifecycle,
+  reset/abort, same-bar stop/TP, partial ladder, amend/cancel/OCO/reject/funding/
+  margin/liquidation; differential generic and original private alpha controls;
+  exact saved objectives/observation hashes and independent final audit. Measure
+  native sessions/steps/full-tape runs, wall/RSS, not just callback counts.
+- Resource amendment: reuse existing offline Cargo release target/current
+  Python tools. Allow one incremental native build, <=512 MiB additional build
+  scratch, <=128 MiB retained source/binary/control evidence and >=5 GiB disk
+  reserve after forecast; one build thread, <=2 GiB process RSS, no new env.
+  Roots: `.maturin/mode5-m5116/transaction-v1` for reviewed scratch and
+  `upgrade/private/mode5_upgrade_v1/m5-11-6/attempt-01/transaction-v1` for retained
+  custody. Preserve the previous exact native artifact and every earlier receipt.
+  Inventory build deltas and remove only reviewed inactive reproducible scratch
+  after host process/FD/maps and hash checks. Stop before exceeding the budget.
+- Exit: source-bound local parity and bounded measured controls PASS, or an
+  explicit retained failure; readiness is reported for owner approval, never
+  interpreted as permission to start the registered long studies.
+
 <a id="mode5-m5-11-7"></a>
 ### Phase M5-11.7 - Mode 4/5 Complete Researcher Reports And Decision Qualification
 

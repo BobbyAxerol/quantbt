@@ -8,6 +8,9 @@
 
 use std::sync::Arc;
 
+mod transaction;
+use transaction::BarTransaction;
+
 use crate::execution_model::{
     ExecutionClockStateV1, ExecutionModelPlanV1, ExecutionModelV1, FillCostInputV1, FillDecisionV1,
     LiquidityLedgerV1, MarketBarViewV1, OrderTouchViewV1,
@@ -1017,6 +1020,7 @@ pub struct FullSession {
     matching_scan_count: u64,
     relationship_scan_count: u64,
     last_bar: Option<usize>,
+    bar_transaction: Option<Box<BarTransaction>>,
     pub compaction_count: u64,
     pub terminal_orders_removed: u64,
 }
@@ -1121,6 +1125,7 @@ impl FullSession {
             matching_scan_count: 0,
             relationship_scan_count: 0,
             last_bar: None,
+            bar_transaction: None,
             compaction_count: 0,
             terminal_orders_removed: 0,
         })
@@ -1141,6 +1146,7 @@ impl FullSession {
     }
 
     pub fn reset(&mut self) {
+        self.bar_transaction = None;
         self.positions.fill(0.0);
         self.equity = self.initial_capital;
         self.liquidated = false;
@@ -1188,6 +1194,7 @@ impl FullSession {
     /// and callback coordinates without copying or replaying the tape prefix
     /// whose zero-position accounting cannot affect the fresh account.
     pub fn begin_fresh_at(&mut self, bar: usize) -> Result<(), String> {
+        self.ensure_no_bar_transaction()?;
         if bar >= self.n_bars() {
             return Err("fresh session start is outside the full prepared market tape".to_owned());
         }
@@ -1238,7 +1245,7 @@ impl FullSession {
                 "unsupported native-event contract code {contract_code}"
             ));
         }
-        if self.last_bar.is_some() {
+        if self.last_bar.is_some() || self.bar_transaction.is_some() {
             return Err("event contract cannot change after execution has started".to_owned());
         }
         self.event_contract_code = contract_code;
@@ -1254,7 +1261,7 @@ impl FullSession {
     /// intentionally rejected mid-run so one account trace can never mix
     /// cost/liquidity semantics across bars.
     pub fn set_execution_model(&mut self, model: ExecutionModelPlanV1) -> Result<(), String> {
-        if self.last_bar.is_some() {
+        if self.last_bar.is_some() || self.bar_transaction.is_some() {
             return Err("execution model cannot change after execution has started".to_owned());
         }
         self.execution_model = model;
@@ -1270,7 +1277,7 @@ impl FullSession {
     /// Freeze the standard metric policy before execution. Report formatting
     /// remains outside the session; this only controls native online scalars.
     pub fn set_metric_contract(&mut self, contract: MetricContractV2) -> Result<(), String> {
-        if self.last_bar.is_some() {
+        if self.last_bar.is_some() || self.bar_transaction.is_some() {
             return Err("metric contract cannot change after execution has started".to_owned());
         }
         // Reconstruct through the validated constructor so literal callers
@@ -2407,6 +2414,14 @@ impl FullSession {
         materialize_rows: bool,
         buffers: &mut StepBuffers,
     ) -> Result<FullStepResult, String> {
+        if self
+            .active_bar_transaction()
+            .is_some_and(|transaction_bar| transaction_bar != bar)
+        {
+            return Err(
+                "commit or abort the current bar transaction before another bar".to_owned(),
+            );
+        }
         buffers.clear();
         let mut counters = StepCounters::default();
         let collect_details = output_mask & (OUTPUT_FILLS | OUTPUT_EVENTS) != 0;
@@ -3206,6 +3221,7 @@ impl FullSession {
         command_count: usize,
         profile: StaticOutputProfile,
     ) -> Result<StaticTapeOutput, String> {
+        self.ensure_no_bar_transaction()?;
         if ptr.len() != self.n_bars() + 1
             || ptr.first().copied().unwrap_or(-1) != 0
             || ptr.last().copied().unwrap_or(-1) != command_count as i64
@@ -3408,6 +3424,7 @@ impl FullSession {
         tape: &CommandTapeV5,
         requirements: OutputRequirementsV1,
     ) -> Result<NativeExecutionOutputV1, String> {
+        self.ensure_no_bar_transaction()?;
         requirements.validate()?;
         if tape.bars() != self.n_bars() {
             return Err("typed command tape bars do not match prepared market".to_owned());
@@ -3589,6 +3606,7 @@ impl FullSession {
     where
         F: FnMut(usize, &FullSession, &mut Vec<OrderCommandV5>) -> Result<(), String>,
     {
+        self.ensure_no_bar_transaction()?;
         requirements.validate()?;
         let n_bars = self.n_bars();
         let n_symbols = self.market.n_symbols;
