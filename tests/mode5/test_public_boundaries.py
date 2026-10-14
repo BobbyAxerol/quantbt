@@ -222,3 +222,22 @@ def test_returned_full_sample_cannot_execute_outside_development_witness(tmp_pat
     extra.index = extra.index + pd.Timedelta(hours=1)
     with pytest.raises(PermissionError, match="development witnesses"):
         e.backtest(data=pd.concat([frame, extra]), param_ranges=ranges)
+
+
+def test_decision_report_amendment_preserves_parent_and_exact_source_only():
+    import json
+    import subprocess
+    from tools.mode5_public_source_guard import (
+        ROOT, DECISION_REPORT, without_decision_report, prior_names,
+    )
+    amendment = json.loads(DECISION_REPORT.read_text())
+    for name in amendment["existing"]:
+        parent = subprocess.check_output(["git", "show", amendment["entry"]+":"+name], cwd=ROOT)
+        assert without_decision_report((ROOT / name).read_bytes(), name) == parent
+        assert without_decision_report(parent, name) == parent
+    for name in amendment["new"]:
+        assert without_decision_report((ROOT / name).read_bytes(), name) == b""
+        assert name not in prior_names({name}, amendment["entry"])
+    for name in set(amendment["existing"]) | set(amendment["new"]):
+        with pytest.raises(AssertionError, match="unreviewed Mode5 public bytes"):
+            without_decision_report((ROOT / name).read_bytes()+b"\n# unreviewed mutation\n", name)

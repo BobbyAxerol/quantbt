@@ -7,6 +7,26 @@ import subprocess
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "docs/mode5/evidence/m5-10-source-amendment.json"
 CONTINUOUS = ROOT / "docs/mode5/evidence/m5-11-continuous-event-source-amendment.json"
+DECISION_REPORT = ROOT / "docs/mode5/evidence/m5-11-5-decision-report-source-amendment.json"
+
+
+def without_decision_report(source, name):
+    m = json.loads(DECISION_REPORT.read_text())
+    prior = m["prior_amendment"]
+    if sha256((ROOT / prior["path"]).read_bytes()).hexdigest() != prior["sha256"]:
+        raise AssertionError("decision report parent amendment changed")
+    if name in m["existing"]:
+        before = subprocess.check_output(["git", "show", m["entry"]+":"+name], cwd=ROOT)
+        if source == before:
+            return source
+        if sha256(source).hexdigest() != m["existing"][name]:
+            raise AssertionError("unreviewed Mode5 public bytes: "+name)
+        return before
+    if name in m["new"]:
+        if sha256(source).hexdigest() != m["new"][name]:
+            raise AssertionError("unreviewed Mode5 public bytes: "+name)
+        return b""
+    return source
 
 
 def without_continuous(source, name):
@@ -15,9 +35,11 @@ def without_continuous(source, name):
         before = subprocess.check_output(["git", "show", m["entry"]+":"+name], cwd=ROOT)
         if source == before:
             return source
+        source = without_decision_report(source, name)
         if sha256(source).hexdigest() != m["existing"][name]:
             raise AssertionError("unreviewed Mode5 public bytes: "+name)
         return before
+    source = without_decision_report(source, name)
     if name in m["new"]:
         if sha256(source).hexdigest() != m["new"][name]:
             raise AssertionError("unreviewed Mode5 public bytes: "+name)
@@ -79,11 +101,19 @@ def without_public_additions(source, name):
 def prior_names(names, entry):
     m = json.loads(MANIFEST.read_text())
     continuous = json.loads(CONTINUOUS.read_text())
+    reports = json.loads(DECISION_REPORT.read_text())
     result = set(names)
     new = set(m["new_mode5"]) | {n for n in m["reporting"] if n.startswith("src/quantbt/metrics/")} | {"src/quantbt/optimization/sampler_space.py"}
     for name in set(names) & (set(m["mode5"]) | set(m["reporting"]) | set(m["sampler_helper"])
-            | set(continuous["existing"]) | set(continuous["new"])):
+            | set(continuous["existing"]) | set(continuous["new"])
+            | set(reports["existing"]) | set(reports["new"])):
         source = (ROOT / name).read_bytes()
+        if name in reports["new"]:
+            without_decision_report(source, name)
+            old = subprocess.run(["git", "show", entry+":"+name], cwd=ROOT, capture_output=True)
+            if old.returncode != 0:
+                result.remove(name)
+                continue
         if name in continuous["new"]:
             without_continuous(source, name)
             old = subprocess.run(["git", "show", entry+":"+name], cwd=ROOT, capture_output=True)
