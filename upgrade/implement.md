@@ -34692,6 +34692,45 @@ preserve scientific receipts/accounts and verify hashes/free bytes after cleanup
   origin. A long-horizon budget and explicit custody/recovery scope still need
   sealing. No automatic long queue, M5-11.7, M5-12, CI, push or release occurs.
 
+**Owner-Requested Pre-Long-Queue Performance Investigation:**
+- Before admitting a long run, analyze existing four-alpha generation journals,
+  real worker elapsed times and source call paths. Separate preparation/tape
+  generation, actual-feedback replay, endpoint execution, reporting, meta
+  observation and orchestration. A residual is not automatically meta cost.
+- If the existing journals cannot attribute the residual, permit at most two
+  isolated, already-selected IS controls: the saved HMA and SC native anchors,
+  original 2020--2021 window and original public IS evaluator/scorer. No new
+  sampler proposals, selection, future labels or full optimizer rerun. Count
+  these as profiling evaluations, not new independent economic evidence.
+- Use a new ignored `performance-review01` receipt lane and new helper only;
+  retain all prior pins/failures. Observe the actual compiler, scorer and
+  reporting calls without changing their outputs. Instrumented wall time is
+  not an uninstrumented performance benchmark. Verify the original objective
+  and metric observation identity after each control.
+- Single process/thread, per-control deadline 240 seconds, total supervision
+  600 seconds, process RSS cap 2 GiB, available RAM floor 512 MiB, incremental
+  retained ceiling 16 MiB, no new environment/build or disposable scratch;
+  preserve at least 5 GiB disk free. Record cleanup/no-deletion custody.
+- Investigate repeated full-IS scoring when `is_subperiods=1`, repeated native
+  full-history execution inside feedback compilation, mandatory audit/report
+  construction and disabled prepared/exact reuse. Do not remove shards/panels,
+  shorten horizons, lower trial counts or change alpha/accounting/RNG to make
+  the workload faster. Findings are an optimization proposal, not permission
+  to silently change scientific semantics or launch the long queue.
+- Review completed: existing timing attribution plus two bounded IS profiles
+  reproduce original objectives and exact observation hashes. HMA makes 1,923
+  full native feedback executions in one control; both controls score the
+  whole IS twice, and SC audit also performs two static oracle runs. Repeated
+  prefix projection, audit traces and per-bar pandas/testing machinery are
+  material costs; ordinary metric reports are approximately 10 ms, and TPE
+  consumed only 1.1--3.6 seconds per original 128-attempt study. No mature Ridge
+  fit occurred in that tranche. Keep these cost categories distinct.
+- Read the [measured bottleneck report](../docs/mode5/M5_11_6_PERFORMANCE_REVIEW.md)
+  before admitting more financial work. The private closeout verifies 962 pins;
+  retained profiling output is about 1.21 MiB, no disposable scratch was created
+  and no deletion/build/env was needed. No production performance patch,
+  scientific change, speedup claim or long-queue launch follows from this review.
+
 <a id="mode5-m5-11-7"></a>
 ### Phase M5-11.7 - Mode 4/5 Complete Researcher Reports And Decision Qualification
 

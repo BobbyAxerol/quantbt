@@ -188,6 +188,12 @@ Mode 5 evidence root. They retain ordered trials, observations, history,
 selected paths and exact identities, not an exact full-WFO restart checkpoint.
 No long queue was launched automatically.
 
+The owner's subsequent [performance review](M5_11_6_PERFORMANCE_REVIEW.md)
+finds repeated full-tape feedback execution, duplicate whole-IS scoring and
+audit/oracle/callback overhead. It reuses existing timings and two bounded
+original IS controls, with exact metric-observation matches. No performance
+patch or speedup is claimed; the long queue remains unlaunched.
+
 The [cleanup receipt](../maintenance/M5_11_6_TRANCHE_CLEANUP.md) preserves all
 evidence and removes only six inactive test/JIT cache files and their empty
 directories. No environment, dependency, market tape or native artifact was
