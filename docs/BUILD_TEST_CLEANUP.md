@@ -91,6 +91,13 @@ proof. Resume domain work only after disk and evidence checks are complete.
 
 ## Recorded Cleanup
 
+The [M5-11.6 performance receipt](maintenance/M5_11_6_PERFORMANCE_CLEANUP.md)
+records 16 completed matched account controls, 1,819 protected files verified,
+71 host processes reviewed, exact inactive JIT/test scratch removal and 1.43 MiB
+observed recovery. Source snapshots, every financial/failure receipt and the
+current environment/native artifact remain. Full-tape HMA replay and the long
+research phase are not certified as closed by this cleanup.
+
 The [M5-11.6 bounded-tranche receipt](maintenance/M5_11_6_TRANCHE_CLEANUP.md)
 records four reaped 128-attempt studies, terminal cold readback, exact inactive
 JIT-cache removal and 1,743 protected files unchanged. The no-delete preflight

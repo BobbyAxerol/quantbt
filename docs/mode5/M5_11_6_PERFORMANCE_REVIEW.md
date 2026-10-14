@@ -9,6 +9,11 @@ or publication was launched. Original alpha sources and financial code remain
 unchanged. Read the [phase plan](../../upgrade/implement.md#mode5-m5-11-6) and
 [first-origin qualification](M5_11_6_MODE4_REPORT.md).
 
+**Subsequent implementation:** the [bounded performance closure](M5_11_6_PERFORMANCE_CLOSURE.md)
+records the later authorized patches and matched controls. This review's
+profiling numbers and original observations remain historical; HMA's persistent
+transactional-session work is still explicitly open in that follow-up.
+
 **Conclusion:** the research bindings and audit-heavy trial path contain
 substantial avoidable work. It is not justified to launch the full experiment
 unchanged or attribute its cost principally to TPE/Ridge or indicator math.

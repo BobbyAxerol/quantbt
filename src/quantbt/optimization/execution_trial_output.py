@@ -11,7 +11,7 @@ def execution_trial_config(config, *, route, metadata):
         raise ValueError("execution_trial_output must be endpoint or account_paths_v1")
     if route not in {"event_driven", "order_commands"}:
         raise ValueError("account_paths_v1 requires event_driven or order_commands WFO")
-    if config.audit_mode == "dual_run_sampled":
+    if config.audit_mode in {"dual_run_sampled", "sampled"}:
         raise ValueError("account_paths_v1 cannot remove sampled-oracle RNG consumption")
     # Standard retains account paths, fills and callback inputs, but does not
     # build public canonical traces. Independent final audit is still caller-owned.

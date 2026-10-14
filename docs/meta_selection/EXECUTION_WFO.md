@@ -299,3 +299,36 @@ The nondefault policy changes admissibility and is bound into meta-family
 compatibility, so histories from another policy are not silently mixed. Default
 families, valid-input objectives, sampler ordering, strategy RNG and accounts
 remain unchanged. Native/off and active comparisons must use the same policy.
+
+## Trial Output And Exact Full-IS Reuse
+
+Execution WFO defaults to its supplied financial endpoint's output/audit policy.
+For qualified `event_driven` and `order_commands` studies, the opt-in metadata
+below separates transient scoring from the unchanged final financial audit:
+
+```python
+optimization_config = {
+    # Other objective/selection/sampler settings stay unchanged.
+    "metadata": {
+        "execution_trial_output": "account_paths_v1",
+        "deterministic_is_shard_reuse": "no_rng_v1",
+    },
+}
+```
+
+`account_paths_v1` retains standard account paths, fills and strategy callback
+inputs. Trial scoring uses single-pass/native-trace execution without building
+the public canonical audit trace or replaying the static oracle on every trial.
+It does not change the backend, sizing, clock, costs or final endpoint config.
+The selected final result still uses the original audit settings. Independent
+financial parity checks are required before choosing this policy for a binding.
+Sampled-oracle mode is rejected because omitting its RNG draws is not equivalent.
+This policy is not a scalar placeholder and is not certified for other routes.
+
+`no_rng_v1` is an explicit qualification by the caller: scoring the same output
+on the same calendar must be pure, context-independent, deterministic and consume
+no RNG or externally visible mutable state. Do not declare it for an arbitrary
+unqualified callback. It permits physical reuse of the exact full-IS shard when
+`is_subperiods=1`, preserving the logical shard, statistics and metric evidence.
+It does not cache approximate candidates, merge folds, skip trials or reuse a
+mutable financial account. Without qualification, historical scoring remains.

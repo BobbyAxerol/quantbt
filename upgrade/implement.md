@@ -34769,6 +34769,39 @@ preserve scientific receipts/accounts and verify hashes/free bytes after cleanup
   Register exact scratch, preserve failed evidence and verify cleanup custody.
   No long queue launch follows automatically from the bounded performance proof.
 
+**Performance Implementation / Bounded Verification Receipt:**
+- Local source changes implement explicit trial account-path retention versus
+  final audit, qualified exact full-IS shard reuse, validated callback cursors,
+  equivalent position guards and exact encoded prefix/slot reuse. Defaults and
+  public endpoint names remain unchanged. Original alpha sources are untouched.
+- 404 focused cases PASS: 161 prefix/cursor/compiler/reuse, 128 public financial/
+  lifecycle/mature regressions, two additional mature cases with the new output/
+  reuse settings, and 113 original private binding/carry/guard/isolation units.
+  Mature controls fit/rank on >=12 available origins, preserve decisions and
+  original measurement/accounting, and exclude future OHLCV/funding mutations.
+- Sixteen actual saved-anchor controls PASS on original 2020--2021 ETH IS:
+  exact objective, logical shard statistics, observation hash, account paths,
+  fills and liquidation state. Median evaluation seconds, two samples per arm:
+  SC 43.888 -> 2.939; HMA 61.248 -> 35.561; HASH 16.896 -> 5.157;
+  VWAP 16.898 -> 6.231. Peak process RSS falls on all four controls. No new
+  proposals or 128-trial reruns; these are not whole-57-fold timing forecasts.
+  Early samples had host/JIT contention; retain ranges and measurement limits.
+- **PERF-HMA-SESSION remains OPEN:** 1,923 full native feedback replays and 55
+  same-bar retries remain on the saved control. The installed session has no
+  current-bar transactional checkpoint/restore; do not advertise one-session
+  ownership or delay original fill-relative protection. A native transactional
+  extension and its full lifecycle/accounting corpus are required to remove
+  that remaining work. This receipt does not certify that unimplemented path.
+- SC remains a next-open callback binding; HMA/HASH/VWAP use native order-command
+  tapes with their actual-fill semantics. Generic intrabar/vectorized targets
+  have not been substituted without timing/sizing/ladder/amendment equivalence.
+- [Measured implementation report](../docs/mode5/M5_11_6_PERFORMANCE_CLOSURE.md)
+  and [cleanup custody](../docs/maintenance/M5_11_6_PERFORMANCE_CLEANUP.md).
+  Preserve the previous failed tranche, pre-change snapshots and the zero-work
+  coordinator preflight failure. No long background queue, new Rust build,
+  CI, push, version or release occurred. M5-11.6 long/mature/economic gates,
+  M5-11.7 and M5-12 remain unfinished/unactivated as documented above.
+
 <a id="mode5-m5-11-7"></a>
 ### Phase M5-11.7 - Mode 4/5 Complete Researcher Reports And Decision Qualification
 
