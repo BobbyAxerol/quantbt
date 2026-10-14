@@ -92,14 +92,15 @@ checkpoint. No such capability is claimed by this report.
 
 ## Coverage And Remaining Work
 
-The latest successful source-qualified suites cover 321 distinct tests:
+The earlier admission receipts cover 321 distinct tests:
 141 protocol/arithmetic/resource cases, 19 final assembly, 22 original boundary
 contracts, 81 execution/meta lifecycle and incremental-feedback regressions,
 44 scheduled binding tests, eight lifecycle/schema tests and six tranche
 configuration/receipt tests. The expanded 141-case suite supersedes its earlier
 65-case receipt; those are not counted twice. Failed intermediate assembly
-tests are retained and not counted as successful evidence. Cold configuration
-checks and actual financial controls above are reported separately.
+tests are retained and not counted as successful evidence. These historical
+receipts are not a complete regression certificate for every subsequent source
+revision. Cold checks and actual financial controls are reported separately.
 
 The first tranche stopped after a VWAP proposal emitted a non-positive limit
 price. Completed-attempt logs show SC 23, HMA 15, HASH 51 and VWAP 50; none is
@@ -124,13 +125,78 @@ tests and ten rerun mature event/W3 default-path regression cases. The last ten
 are existing tests under the changed source, not ten new unique tests. A real
 reproduction under the new guard identifies the exact same invalid price and
 timestamp; that is a classification proof, not a valid economic account.
-The next 128-trial attempt must use a separately sealed source lane and retain
-the first failure unchanged.
+The replacement uses a separately sealed source lane and retains the first
+failure unchanged.
+
+## Completed First-Origin Tranche
+
+All four replacement studies completed through the public WFO endpoint on
+2026-10-14 UTC. Each searched January 2020 through December 2021, then applied
+the selected parameters to January 2022. Each actually attempted **128 trials**,
+with seed 731, no warm start or early stop and sequential adaptive asks. Four
+independent alpha workers ran with the registered thread/resource limits.
+
+| Alpha | COMPLETE / PRUNED | Forward fills | Final equity, from 20,000 | Elapsed, s | Peak RSS, MiB |
+|---|---:|---:|---:|---:|---:|
+| SC | 128 / 0 | 3 | 19,978.31 | 3,529.38 | 478.93 |
+| HMA | 127 / 1 | 53 | 20,422.30 | 4,556.65 | 478.27 |
+| HASH | 124 / 4 | 28 | 20,187.50 | 1,600.35 | 471.78 |
+| VWAP | 127 / 1 | 4 | 20,089.60 | 1,627.89 | 473.49 |
+
+There were **512 attempted / 506 complete / six pruned** proposals. Five
+prunes are the original parameter constraints; one is VWAP trial 50 under the
+approved non-positive-price policy. No failed trial was converted into a valid
+account. The 579 generation calls include 578 completed generations and that
+one retained invalid generation; these counts are not the number of internal
+compiler passes or additional optimization proposals. The parent queue took
+4,562.03 seconds, including all worker exits. These are end-to-end research
+costs, not engine-only speed benchmarks or whole-57-fold timing estimates.
+
+Independent daily-close reduction of the saved first forward account agrees
+with each native-anchor observation at the frozen `1e-12` readback tolerance.
+The initial account is flat before January 2022. IS has 730 daily returns and
+January forward has 30, following the existing excluded-first-day convention.
+
+| Alpha | Selected raw IS Sharpe | Raw January forward Sharpe | Observer VALID / NO_VARIANCE |
+|---|---:|---:|---:|
+| SC | 2.221342 | -0.292663 | 10 / 6 |
+| HMA | 2.286953 | 4.717707 | 15 / 1 |
+| HASH | 2.147329 | 2.051204 | 16 / 0 |
+| VWAP | 1.809482 | 6.005045 | 10 / 6 |
+
+These Sharpe values use 365-day annualization, including the short January
+sample; they do not establish stable annual performance. In particular, SC
+and VWAP have very few forward fills. All four decisions correctly report
+`META_SUPPORT_INSUFFICIENT`, zero mature origins and zero model fits. The
+selected parameters equal the native anchor. This qualifies cold-start
+mechanics, not meta efficacy, mature no-leakage or the remaining continuous
+57-fold accounts. No meta-on/off speedup or R/Q improvement is claimed.
+
+The cold closeout verifies all 363 registered source pins, data/schema/native
+identity, actual sampler states, pruning exclusions and applied parameters.
+All 139 terminal attempts preceding the original stop match logged parameters,
+objectives or constraint-pruning reasons. VWAP trial 50 has the same sampled
+coordinates but changes explicitly from fatal failure to typed PRUNED. This
+prefix check is not a substitute for the unrun public off/shadow parity gate.
+Eight cold-reader and ten prefix-reader tests pass. Cold closeout itself took
+0.95 seconds / 78.12 MiB, without any new financial evaluation.
+
+Private terminal references are
+`m5-11-6/attempt-01/first-origin-v2-queue01/result.json` and
+`m5-11-6/attempt-01/cold-first-tranche-close01/receipt.json` beneath the ignored
+Mode 5 evidence root. They retain ordered trials, observations, history,
+selected paths and exact identities, not an exact full-WFO restart checkpoint.
+No long queue was launched automatically.
+
+The [cleanup receipt](../maintenance/M5_11_6_TRANCHE_CLEANUP.md) preserves all
+evidence and removes only six inactive test/JIT cache files and their empty
+directories. No environment, dependency, market tape or native artifact was
+removed. The phase remains **IN_PROGRESS**.
 
 Still required for phase closure:
 
-- Complete the bounded 128-trial tranche and review its actual runtime,
-  dispositions, selected account paths and observation units.
+- Seal a whole-study budget from the measured tranche and horizon pilots;
+  current first-origin costs are not a measured full-horizon p95 or exact ETA.
 - Admit and execute the registered chronological studies, with real mature
   fit/rank, exact same-pool checks and future-mutation tests per binding.
 - Reconstruct selected continuous accounts independently, measure R/Q and its

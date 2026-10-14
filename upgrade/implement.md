@@ -8,7 +8,10 @@ qualification, then [M5-11.7](#mode5-m5-11-7), complete Mode 4/5 researcher
 decision reporting. M5-11.6 is APPROVED / IN_PROGRESS after the owner's
 2026-10-14 implementation instruction; M5-11.7 stays PROPOSED / NOT_STARTED.
 M5-11.6 first qualifies original-route fold boundaries and measured resources
-before admitting its registered long financial queue.
+before admitting its registered long financial queue. Its four first-origin
+128-attempt studies and cold readback are complete; the 57-fold studies and
+mature-meta economic/causality qualification are not yet executed. See the
+[current admission report](../docs/mode5/M5_11_6_MODE4_REPORT.md).
 The [new scope, reuse and protocol contract](#mode45-supplementary-contract)
 preserves completed scientific evidence and prevents duplicate search.
 
@@ -27451,9 +27454,10 @@ the [broad diagnostics](#mode5-m5-11-1), [search/selection](#mode5-m5-11-2)
 and [forward/economics](#mode5-m5-11-3) sections. The owner-requested
 [full-development amendment](#mode5-full-development-decision-amendment) adds
 M5-11.4 as COMPLETE / TECHNICALLY_VALID (DESCRIPTIVE_ONLY) and M5-11.5 as
-COMPLETE_LOCAL_REGISTERED_C01_C08. The subsequent owner planning request adds
-[M5-11.6](#mode5-m5-11-6) and [M5-11.7](#mode5-m5-11-7), both PROPOSED /
-NOT_STARTED; M5-12 awaits these reviewed dispositions as well. Preserve all
+COMPLETE_LOCAL_REGISTERED_C01_C08. The subsequent owner request adds
+[M5-11.6](#mode5-m5-11-6), now APPROVED / IN_PROGRESS, and
+[M5-11.7](#mode5-m5-11-7), still PROPOSED / NOT_STARTED. M5-12 awaits these
+reviewed dispositions as well. Preserve all
 historical study receipts; no earlier completion status is reopened by this plan.
 Read the
 [M5-01 exit review](../docs/mode5/M5_01_EXIT_REVIEW.md) and
@@ -34657,6 +34661,36 @@ preserve scientific receipts/accounts and verify hashes/free bytes after cleanup
   params, strategy seeds and financial buffers match; opt-in config and family
   identity differ deliberately. The real stopped point is classified with the
   identical negative price/time, without an economic-account PASS claim.
+
+**Completed Bounded-Tranche Receipt (2026-10-14, UTC; not phase exit):**
+- Separately registered `first-origin-v2`: four public causal Mode 4 studies,
+  each with 128 attempted slots, IS 2020--2021 and January 2022 forward.
+  Source/data/alpha/native pins remain unchanged during execution. All four
+  workers exit zero and are reaped; parent wall time 4,562.03 seconds.
+- Actual totals: 512 attempted / 506 COMPLETE / six PRUNED. HMA has one and
+  HASH four original constraint rejections; VWAP trial 50 is the one approved
+  typed-price rejection. Its original failed generation remains in custody.
+  The original stopped tranche and its pre-change source remain untouched.
+- Final equities from 20,000: SC 19,978.31; HMA 20,422.30; HASH 20,187.50;
+  VWAP 20,089.60. These are first-month cold-start accounts, not full registered
+  paths, meta improvement claims or comparisons with Mode 5 BTC studies.
+- Cold closeout PASS: 363 source pins plus original data/schema/native identity,
+  all trial dispositions, selected/applied parameters and first-forward daily
+  Sharpe independently reduced from saved account paths. IS has 730 and forward
+  30 daily-return samples. Eight reader and ten prefix tests PASS; 139 prior
+  terminal log rows match, with VWAP 50's explicit new disposition checked
+  separately. Logs/generation counts do not certify complete execution traces.
+- All decisions correctly fall back with `META_SUPPORT_INSUFFICIENT`: zero
+  mature origins, zero model fits. Undefined observer metrics stay typed and
+  excluded from finite learning labels. Public off/shadow full-pool/RNG checks,
+  actual-binding mature future mutation and the 57-fold economics remain open.
+- No financial account was rerun to construct the terminal cold receipt.
+  Compact sufficient outputs and failures are retained under ignored local/
+  private roots. Read the [tranche report](../docs/mode5/M5_11_6_MODE4_REPORT.md)
+  and [cleanup receipt](../docs/maintenance/M5_11_6_TRANCHE_CLEANUP.md).
+- Whole-study admission is not inferred from a neutral pilot or this first
+  origin. A long-horizon budget and explicit custody/recovery scope still need
+  sealing. No automatic long queue, M5-11.7, M5-12, CI, push or release occurs.
 
 <a id="mode5-m5-11-7"></a>
 ### Phase M5-11.7 - Mode 4/5 Complete Researcher Reports And Decision Qualification

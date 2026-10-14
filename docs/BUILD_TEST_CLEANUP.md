@@ -91,6 +91,13 @@ proof. Resume domain work only after disk and evidence checks are complete.
 
 ## Recorded Cleanup
 
+The [M5-11.6 bounded-tranche receipt](maintenance/M5_11_6_TRANCHE_CLEANUP.md)
+records four reaped 128-attempt studies, terminal cold readback, exact inactive
+JIT-cache removal and 1,743 protected files unchanged. The no-delete preflight
+failure remains retained. Actual available-space recovery is 124 KiB; no source,
+financial evidence, current environment or native artifact is removed. The
+57-fold research phase and mature-meta gates remain open.
+
 The [M5-11.5 decision receipt](maintenance/M5_11_5_DECISION_CLEANUP.md) removes
 three exact inactive scratch roots after all financial and test workers exit,
 verifies 4,402 protected files and 170 host PIDs, and retains every account,
