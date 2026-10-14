@@ -5,8 +5,10 @@
 **Current planning request (2026-10-14, UTC):** add exactly two further phases
 before M5-12: [M5-11.6](#mode5-m5-11-6), four-alpha chronological Mode 4
 qualification, then [M5-11.7](#mode5-m5-11-7), complete Mode 4/5 researcher
-decision reporting. Both are PROPOSED / NOT_STARTED and require separate owner
-implementation approval. This request authorizes plan edits only, not studies.
+decision reporting. M5-11.6 is APPROVED / IN_PROGRESS after the owner's
+2026-10-14 implementation instruction; M5-11.7 stays PROPOSED / NOT_STARTED.
+M5-11.6 first qualifies original-route fold boundaries and measured resources
+before admitting its registered long financial queue.
 The [new scope, reuse and protocol contract](#mode45-supplementary-contract)
 preserves completed scientific evidence and prevents duplicate search.
 
@@ -27699,7 +27701,7 @@ Every phase below inherits this mandatory resource registration/cleanup exit.
 | [M5-11.3](#mode5-m5-11-3) | Multi-origin fixed-policy transfer and economic qualification | Frozen M5-11.2 outputs and prefix studies | M5T-101..110 / EH-06..12 | Registered bounded accounts and accounting COMPLETE; economics INCONCLUSIVE retained; actual bounded 2023-prefix procedure qualified separately in M5-11.5, broader learned-router claim remains unqualified |
 | [M5-11.4](#mode5-m5-11-4) | Full 2020--2026 development profiling, missing diagnostics and readable researcher dossier | All 1,219 cells; five dossiers; guarded/daily readback and cleanup PASS | M5D-01..10; guide M5T-031..090 | COMPLETE / TECHNICALLY_VALID; DESCRIPTIVE_ONLY |
 | [M5-11.5](#mode5-m5-11-5) | Evidence-guided sampler/selector decisions, static calibration and measured handoff | Source-bound mandates/plans, five worksheets, three RSI256 studies, paired original-prefix proof and cleanup | M5C-01..10; guide M5T-061..110 | COMPLETE_LOCAL_REGISTERED_C01_C08; reviewed development, not independent OOS |
-| [M5-11.6](#mode5-m5-11-6) | Four-alpha long-horizon Mode 4 native/meta comparison | Separate approval; source/route/maturity/budget registration | M4X-01..10; QMS guide sections 5..8/14 | PROPOSED / NOT_STARTED; no financial authorization |
+| [M5-11.6](#mode5-m5-11-6) | Four-alpha long-horizon Mode 4 native/meta comparison | Owner approval; source/route/maturity/budget registration | M4X-01..10; QMS guide sections 5..8/14 | APPROVED / IN_PROGRESS; actual-route and resource admission before long studies |
 | [M5-11.7](#mode5-m5-11-7) | Complete Mode 4/5 decision, participation and fragility reports | Separate approval; M5-11.6 dispositions and existing sealed Mode 5 evidence | M45R-01..10; guide M5T-031..090/101..110 | PROPOSED / NOT_STARTED; cold-first evidence reuse |
 | [M5-12](#mode5-m5-12) | Local qualification/docs/handoff | M5-01..11 plus M5-11.4..11.7 dispositions reviewed | M5T-111..120 | NOT_STARTED; awaits reviewed supplementary handoff |
 
@@ -34324,9 +34326,10 @@ evaluations, cache hits, failures and source-compatible reused tests explicitly.
 <a id="mode5-m5-11-6"></a>
 ### Phase M5-11.6 - Four-Alpha Long-Horizon Mode 4 And Meta Qualification
 
-**Status:** PROPOSED / NOT_STARTED. Owner approves this phase before adapter
-changes, pilots or financial launch. The concrete protocol below is a proposal
-for that approval, not a claim that these studies have already run.
+**Status:** APPROVED / IN_PROGRESS. Owner implementation approval 2026-10-14
+(Asia/Saigon). The protocol below is approved for this phase; financial launch
+still requires its actual-route and resource admission. No studies have been
+claimed complete by this status update. M5-11.7 and M5-12 are not activated.
 **Goal:** execute sufficiently long, adequately searched Mode 4 WFO on all four
 new alphas, with matched native/meta selection, correct maturity and actual
 account execution. Explain improvement, deterioration, inactivity or uncertainty
@@ -34349,11 +34352,11 @@ Also read Mode 5 [3 alpha contracts](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_
 [5.8 inference](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#58-statistical-inference-và-phép-kiểm-có-ý-nghĩa-kinh-tế-không)
 and [7.5 reuse levels](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#75-targeted-tests-bốn-alpha-không-mặc-định-chạy-lại-t1t2).
 
-**Proposed Frozen Research Protocol:**
+**Approved Research Protocol To Seal Before Outcomes:**
 
-| Item | Registered design to implement after approval |
+| Item | Registered design |
 |---|---|
-| Cells | SC, HMA, HASH and VWAP; existing ETHUSDT 1h source snapshot, one instrument/timeframe per alpha; no favorable symbol search |
+| Cells | SC, HMA, HASH and VWAP; ETHUSDT 1h as explicitly confirmed by the owner on 2026-10-14 after source reconciliation; new cells relative to their original BTCUSDT Mode 5 evidence; no favorable symbol search |
 | Data | Same verified 2020-01-01 to 2026-10-06 exclusive snapshot used in M5-11.4/11.5; seal actual availability, gaps and complete-bar cutoff |
 | IS | Expanding from 2020-01-01; first decision at 2022-01-01 uses two years, later IS grows through the permitted cutoff; original readiness bars remain flat and are counted separately |
 | OOS | Monthly, 2022-01-01 to 2026-10-01 exclusive: 57 complete calendar folds and 1,734 days; partial October is excluded from the primary fold experiment and explicitly shown as unused |
@@ -34525,6 +34528,103 @@ or store verbose per-bar JSON by default. If compact sufficient evidence still
 exceeds the cap, report the measured requirement rather than dropping requested
 history or proof. Clean reviewed inactive reproducible scratch between tranches,
 preserve scientific receipts/accounts and verify hashes/free bytes after cleanup.
+
+**Execution Entry / Budget Inventory (2026-10-14, Asia/Saigon):**
+- Work on `feat/mode5-diagnostics-first`; preserve the owner's unrelated `x -`
+  historical bullet and untracked superseded spec. Source baseline `2c92a83`.
+- Initial host availability: about 4.1 GiB RAM, no swap, 6.4 GiB free disk and
+  5.52 million free inodes. Use one worker and an initial 2 GiB process cap;
+  the proposed 8 GiB ceiling is not available RAM authorization. Existing
+  qualified native artifact/tool environment is reused; no new build/env.
+- Source reconciliation: all four original full-development profiles use
+  BTCUSDT; the RSI profile supplies the retained ETHUSDT snapshot. The owner
+  explicitly chose ETHUSDT 1h after this was disclosed. Bind each original
+  alpha/config/schema to that existing ETH tape and create new execution
+  identities. Do not reuse BTC account outputs as ETH evidence or call the
+  cross-mode comparison a same-instrument experiment. Indicators, account costs,
+  sizes and constraints retain their declared original research conventions;
+  this does not certify live ETH exchange-specific instrument settings.
+- New private registration/proof roots:
+  `upgrade/private/mode5_upgrade_v1/m5-11-6/attempt-01` and
+  `upgrade/local/mode5_upgrade_v1/m5-11-6/attempt-01` (ignored).
+  Initial retained cap 32 MiB for cold/source and route admission, test scratch
+  `.maturin/mode5-m5116/attempt-01/tests` <=64 MiB. Register a separate forecast
+  before horizon pilots and the long queue; preserve the 5 GiB disk reserve.
+- First admission checks the real flat-only original alpha bindings under
+  continuous WFO fold changes. Fresh diagnostic correctness does not certify
+  final stitched strategy state or actual-feedback tapes. A failed boundary
+  witness is retained and blocks economic launch until an equivalent original
+  state handoff is qualified; do not spend the long-study budget on that path.
+- Source inspection identified a narrow required adapter seam: an explicitly
+  opted-in final-only assembly request after all fold selections/observers,
+  returning the existing WfoExecutionWindow and existing financial execution.
+  Diagnostic accounts, native/meta decisions, mathematical contracts and public
+  endpoint arguments stay owned by their current code. The seam carries a frozen
+  applied schedule; its user binding must preserve pending old-close commands,
+  active protections and actual-fill-derived strategy state. Generic fixtures
+  can certify the seam, but all four real bindings still require independent
+  boundary witnesses before economic admission. No generic engine/state-machine
+  replacement or equivalence claim follows from this addition alone.
+- Before exit, reap owned workers and audit exact inactive scratch against host
+  cwd/exe/FD/maps; preserve source/data/artifacts/results and report actual
+  reclaimed bytes. A no-scratch admission receives an explicit no-deletion
+  cleanup receipt rather than broad cache pruning.
+
+**Owner-Directed Tranche / Concurrency Amendment (2026-10-14):**
+- The owner requests a small real tranche first, checked for failures and useful
+  output before admitting the long background queue. Keep 128 attempted trials
+  per fold and the registered 57-fold target; a partial tranche is not phase
+  completion or mature-meta economic qualification.
+- Permit up to four independent alpha processes on four CPU workers. Each
+  Optuna study remains sequential, with the existing seed derivation and one
+  BLAS/Numba/OMP thread. Never parallelize adaptive TPE asks/tells or share
+  mutable accounts/history across alphas to use the additional workers.
+- Four-worker admission is conditional on measured aggregate RAM, not four
+  times the original 2-GiB process ceiling. Keep at least 512 MiB available RAM,
+  an aggregate owned-worker RSS guard of 3 GiB for the initial controls and
+  the existing 5-GiB disk reserve. Reduce concurrency or stop owned workers
+  with retained failure receipts if headroom is insufficient; do not stop
+  unrelated kernels or services. Freeze a separate measured long-run envelope.
+- Reuse twelve completed original-account horizon pilots, four actual
+  non-vacuous strategy-state carry witnesses and existing source-qualified
+  tests. Do not rerun them for reporting. First verify the new final-assembly
+  seam through fixed-params public WFO, then admit the 128-trial tranche.
+  These fixed-params checks have zero Optuna trials and zero meta fits, and
+  cannot stand in for the scheduled study or its economic evidence.
+- Metric admission keeps the existing public Mode 4 WFO endpoint/full-report
+  raw-Sharpe definition (365 trading days), including its initial-day sample
+  convention. The earlier Mode 5 research reducer includes the first day
+  against initial capital and is a different reporting contract. Do not
+  change either estimator to make cross-mode numbers equal. Reconcile each
+  observation to its own source sample/count/status; retain typed undefined
+  raw observations separately from native objective-compatibility zeros.
+  Existing saved account arrays can verify this without repeating finance.
+
+**Initial Admission Receipt / 128-Trial Tranche (2026-10-14 UTC):**
+- Twelve neutral-point horizon pilots completed on the new ETH cells. Four
+  real non-vacuous inventory-carry controls passed; constant original-account
+  equity/positions/fees/funding/margin differences are zero. The initial flat
+  VWAP boundary remains documented and is not substituted for the separate
+  non-vacuous witness.
+- Four fixed-parameter public WFO controls passed, running concurrently with
+  peak RSS 426-432 MiB per worker. Their valid API is `none` / `global` / zero
+  trials; an earlier invalid per-fold/zero-trial harness failure is retained.
+  They do not qualify per-fold search or mature meta.
+- Current focused proof: 141 protocol/resource cases, 19 assembly, 22 original
+  boundary, 81 lifecycle/meta/incremental regressions, 44 scheduled binding,
+  eight lifecycle/schema and six tranche preflight tests. Earlier versions of
+  the same tests are historical receipts, not extra coverage.
+- Register and run one 128-trial public origin per alpha: IS 2020-2021,
+  forward January 2022. Active starts with its own empty history and must
+  report native fallback, not a fitted economic claim. Keep per-alpha trial,
+  constraint, sampler, observation and final-account receipts. No change to
+  the 57-fold target, estimator, native selector or maturity threshold.
+- `first-origin01` remains a bounded initial tranche, not long-queue admission.
+  Existing Mode 4 reuse cannot recover a complete interrupted WFO; do not
+  advertise progress journals as exact continuation. Matched off/shadow,
+  mature real fit/rank, future-mutation, account reconstruction and R/Q gates
+  remain open until their actual studies execute.
+- [Current sanitized admission report](../docs/mode5/M5_11_6_MODE4_REPORT.md).
 
 <a id="mode5-m5-11-7"></a>
 ### Phase M5-11.7 - Mode 4/5 Complete Researcher Reports And Decision Qualification

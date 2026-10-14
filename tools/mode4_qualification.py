@@ -130,6 +130,18 @@ def phase_registration(*, route_witnesses=None, budget=None):
 
     Generic correctness PASS cannot replace actual inventory-carry witnesses or
     earliest/middle/latest horizon measurements for every registered alpha.
+    This gate admits only the long study, never an initial tranche. Explicit
+    budget_scope/timing_scope must be long_study/full_search respectively;
+    legacy receipts without those labels retain their existing interpretation.
+    Pilot p50 extrapolation cannot supply a missing full-search p95 witness.
+
+    Legacy one-worker budgets need no extra fields. Concurrent budgets declare
+    independent_alpha_processes=True, unique worker_alpha_ids, and integer
+    adaptive_study_jobs=1. The existing RSS forecast bounds every worker;
+    forecast_overhead_rss_bytes includes coordinator, serialization and monitor
+    overhead. The aggregate is bounded by 3 GiB plus 512 MiB available headroom.
+    Supplying any concurrency field requires the complete declaration even for
+    one worker. These are receipt checks, not a process supervisor.
     """
     routes, b, blockers = route_witnesses or {}, budget or {}, []
     for alpha in PROTOCOL.alpha_ids:
@@ -144,15 +156,20 @@ def phase_registration(*, route_witnesses=None, budget=None):
     pilots = b.get("horizon_witnesses", {})
     if not all(all(_pin(pilots.get(a, {}).get(h)) for h in horizons) for a in PROTOCOL.alpha_ids):
         blockers.append("FOUR_ALPHA_HORIZON_MEASUREMENTS_REQUIRED")
+    if b.get("budget_scope", "long_study") != "long_study":
+        blockers.append("WHOLE_STUDY_BUDGET_SCOPE_REQUIRED")
+    if b.get("timing_scope", "full_search") != "full_search":
+        blockers.append("FULL_SEARCH_TIMING_EVIDENCE_REQUIRED")
     timings = ("p50_seconds", "p95_seconds", "forecast_seconds", "wall_limit_seconds")
     sizes = ("measured_peak_rss_bytes", "forecast_peak_rss_bytes", "rss_limit_bytes", "available_ram_bytes",
              "measured_peak_disk_bytes", "forecast_scratch_bytes", "forecast_retained_bytes", "free_disk_bytes", "thread_limit")
     measured = (b.get("status") == "MEASURED" and _pin(b.get("measurement_identity"))
-                and type(b.get("workers")) is int and b["workers"] == 1
+                and type(b.get("workers")) is int and 1 <= b["workers"] <= 4
                 and type(b.get("proposal_slots")) is int and b["proposal_slots"] == PROTOCOL.proposal_slots
                 and b.get("includes_auxiliary_work") is True
                 and all(_finite(b.get(k)) and b[k] > 0 for k in timings)
-                and all(type(b.get(k)) is int and b[k] > 0 for k in sizes))
+                and all(type(b.get(k)) is int and b[k] > 0 for k in sizes)
+                and b["thread_limit"] == 1)
     if not measured:
         blockers.append("MEASURED_WHOLE_RUN_BUDGET_REQUIRED")
     elif not (b["p50_seconds"] <= b["p95_seconds"] <= b["forecast_seconds"] <= b["wall_limit_seconds"]
@@ -161,5 +178,24 @@ def phase_registration(*, route_witnesses=None, budget=None):
               and b["forecast_scratch_bytes"] <= 256 * 1024**2 and b["forecast_retained_bytes"] <= 1024**3
               and b["free_disk_bytes"] >= 5 * 1024**3 + b["forecast_scratch_bytes"] + b["forecast_retained_bytes"]):
         blockers.append("RESOURCE_ENVELOPE_EXCEEDED")
+    concurrency_fields = ("independent_alpha_processes", "worker_alpha_ids", "adaptive_study_jobs",
+                          "forecast_overhead_rss_bytes")
+    if b.get("workers", 1) != 1 or any(k in b for k in concurrency_fields):
+        alphas = b.get("worker_alpha_ids")
+        declared = (type(b.get("workers")) is int and 1 <= b["workers"] <= 4
+                    and b.get("independent_alpha_processes") is True
+                    and type(b.get("adaptive_study_jobs")) is int and b["adaptive_study_jobs"] == 1
+                    and isinstance(alphas, (tuple, list)) and len(alphas) == b["workers"]
+                    and all(isinstance(a, str) and a in PROTOCOL.alpha_ids for a in alphas)
+                    and len(set(alphas)) == len(alphas)
+                    and type(b.get("forecast_overhead_rss_bytes")) is int
+                    and b["forecast_overhead_rss_bytes"] > 0)
+        if not declared:
+            blockers.append("INDEPENDENT_ALPHA_CONCURRENCY_BUDGET_REQUIRED")
+        elif measured:
+            aggregate = b["workers"] * b["forecast_peak_rss_bytes"] + b["forecast_overhead_rss_bytes"]
+            if (aggregate > 3 * 1024**3 or aggregate + 512 * 1024**2 > b["available_ram_bytes"]):
+                if "RESOURCE_ENVELOPE_EXCEEDED" not in blockers:
+                    blockers.append("RESOURCE_ENVELOPE_EXCEEDED")
     return dict(phase="M5-11.6", proposal_slots=PROTOCOL.proposal_slots,
                 long_launch_admitted=not blockers, blockers=blockers, economic_winner_claim=False)

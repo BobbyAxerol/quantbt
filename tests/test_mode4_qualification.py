@@ -119,6 +119,156 @@ def admission_inputs():
     return routes, budget
 
 
+def concurrent_admission_inputs(workers=4):
+    routes, budget = admission_inputs()
+    budget.update(workers=workers, independent_alpha_processes=True,
+        worker_alpha_ids=list(Mode4Protocol().alpha_ids[:workers]), adaptive_study_jobs=1,
+        measured_peak_rss_bytes=512 * 1024**2, forecast_peak_rss_bytes=512 * 1024**2,
+        forecast_overhead_rss_bytes=128 * 1024**2,
+        budget_scope="long_study", timing_scope="full_search")
+    return routes, budget
+
+
+def test_legacy_one_worker_budget_and_result_remain_unchanged():
+    routes, budget = admission_inputs()
+    before = deepcopy(budget)
+    assert phase_registration(route_witnesses=routes, budget=budget) == dict(
+        phase="M5-11.6", proposal_slots=29184, long_launch_admitted=True,
+        blockers=[], economic_winner_claim=False)
+    assert budget == before
+
+
+@pytest.mark.parametrize("workers", (1, 2, 3, 4))
+def test_independent_alpha_workers_fit_one_aggregate_envelope(workers):
+    routes, budget = concurrent_admission_inputs(workers)
+    before = deepcopy(budget)
+    result = phase_registration(route_witnesses=routes, budget=budget)
+    assert result["long_launch_admitted"] and not result["blockers"]
+    assert budget == before
+
+
+@pytest.mark.parametrize("workers", (0, -1, 5, True, False, 2.0, "4", None))
+def test_worker_count_requires_an_integer_between_one_and_four(workers):
+    routes, budget = concurrent_admission_inputs()
+    budget["workers"] = workers
+    assert not phase_registration(route_witnesses=routes, budget=budget)["long_launch_admitted"]
+
+
+@pytest.mark.parametrize("workers", (1, 2, 3, 4))
+@pytest.mark.parametrize("field", ("independent_alpha_processes", "worker_alpha_ids", "adaptive_study_jobs",
+                                 "forecast_overhead_rss_bytes"))
+def test_extended_worker_budget_requires_every_concurrency_field(workers, field):
+    routes, budget = concurrent_admission_inputs(workers)
+    del budget[field]
+    result = phase_registration(route_witnesses=routes, budget=budget)
+    assert "INDEPENDENT_ALPHA_CONCURRENCY_BUDGET_REQUIRED" in result["blockers"]
+    assert not result["long_launch_admitted"]
+
+
+@pytest.mark.parametrize("field,value", [
+    ("independent_alpha_processes", False), ("independent_alpha_processes", 1),
+    ("adaptive_study_jobs", 0), ("adaptive_study_jobs", 2),
+    ("adaptive_study_jobs", True), ("adaptive_study_jobs", 1.0),
+    ("forecast_overhead_rss_bytes", None), ("forecast_overhead_rss_bytes", 0),
+    ("forecast_overhead_rss_bytes", -1), ("forecast_overhead_rss_bytes", True),
+    ("forecast_overhead_rss_bytes", 1.0), ("forecast_overhead_rss_bytes", "1024"),
+    ("worker_alpha_ids", []), ("worker_alpha_ids", ["A-SC"]),
+    ("worker_alpha_ids", ["A-SC", "A-SC", "A-HASH", "A-VWAP"]),
+    ("worker_alpha_ids", ["A-SC", "A-HMA", "A-HASH", "A-RSI"]),
+    ("worker_alpha_ids", ["A-SC", "A-HMA", "A-HASH", []]),
+    ("worker_alpha_ids", "A-SC"), ("worker_alpha_ids", None),
+])
+def test_parallel_tpe_missing_overhead_and_nonindependent_rosters_fail(field, value):
+    routes, budget = concurrent_admission_inputs()
+    budget[field] = value
+    result = phase_registration(route_witnesses=routes, budget=budget)
+    assert "INDEPENDENT_ALPHA_CONCURRENCY_BUDGET_REQUIRED" in result["blockers"]
+    assert not result["long_launch_admitted"]
+
+
+@pytest.mark.parametrize("workers", (1, 4))
+@pytest.mark.parametrize("value", (0, 2, True, 1.0))
+def test_one_numeric_thread_per_process_is_required(workers, value):
+    routes, budget = concurrent_admission_inputs(workers)
+    budget["thread_limit"] = value
+    assert not phase_registration(route_witnesses=routes, budget=budget)["long_launch_admitted"]
+
+
+@pytest.mark.parametrize("field,value", [
+    ("measured_peak_rss_bytes", 513 * 1024**2),
+    ("forecast_peak_rss_bytes", 2 * 1024**3 + 1),
+    ("rss_limit_bytes", 2 * 1024**3 + 1),
+])
+def test_concurrent_budget_preserves_per_process_rss_checks(field, value):
+    routes, budget = concurrent_admission_inputs()
+    budget[field] = value
+    assert "RESOURCE_ENVELOPE_EXCEEDED" in phase_registration(route_witnesses=routes, budget=budget)["blockers"]
+
+
+def test_exact_aggregate_and_headroom_boundaries_are_inclusive():
+    routes, budget = concurrent_admission_inputs()
+    budget["forecast_peak_rss_bytes"] = (3 * 1024**3 - budget["forecast_overhead_rss_bytes"]) // 4
+    budget["available_ram_bytes"] = 3 * 1024**3 + 512 * 1024**2
+    assert phase_registration(route_witnesses=routes, budget=budget)["long_launch_admitted"]
+    budget["forecast_overhead_rss_bytes"] += 1
+    assert "RESOURCE_ENVELOPE_EXCEEDED" in phase_registration(route_witnesses=routes, budget=budget)["blockers"]
+
+
+@pytest.mark.parametrize("workers", (1, 2, 3, 4))
+def test_overhead_and_available_ram_headroom_are_never_omitted(workers):
+    routes, budget = concurrent_admission_inputs(workers)
+    budget["rss_limit_bytes"] = budget["forecast_peak_rss_bytes"]
+    aggregate = workers * budget["forecast_peak_rss_bytes"] + budget["forecast_overhead_rss_bytes"]
+    budget["available_ram_bytes"] = aggregate + 512 * 1024**2
+    assert phase_registration(route_witnesses=routes, budget=budget)["long_launch_admitted"]
+    budget["available_ram_bytes"] -= 1
+    assert "RESOURCE_ENVELOPE_EXCEEDED" in phase_registration(route_witnesses=routes, budget=budget)["blockers"]
+
+
+def test_four_workers_do_not_authorize_four_times_the_process_limit():
+    routes, budget = concurrent_admission_inputs()
+    budget.update(forecast_peak_rss_bytes=2 * 1024**3, available_ram_bytes=16 * 1024**3)
+    assert "RESOURCE_ENVELOPE_EXCEEDED" in phase_registration(route_witnesses=routes, budget=budget)["blockers"]
+
+
+@pytest.mark.parametrize("field,value,blocker", [
+    ("budget_scope", "initial_tranche", "WHOLE_STUDY_BUDGET_SCOPE_REQUIRED"),
+    ("timing_scope", "neutral_horizon_pilots", "FULL_SEARCH_TIMING_EVIDENCE_REQUIRED"),
+    ("timing_scope", "p50_only_forecast", "FULL_SEARCH_TIMING_EVIDENCE_REQUIRED"),
+    ("timing_scope", "exploratory_p95", "FULL_SEARCH_TIMING_EVIDENCE_REQUIRED"),
+])
+@pytest.mark.parametrize("workers", (1, 4))
+def test_initial_tranche_and_pilot_statistics_do_not_admit_long_search(workers, field, value, blocker):
+    routes, budget = concurrent_admission_inputs(workers)
+    budget[field] = value
+    result = phase_registration(route_witnesses=routes, budget=budget)
+    assert blocker in result["blockers"] and not result["long_launch_admitted"]
+
+
+@pytest.mark.parametrize("missing", (False, True))
+def test_twelve_horizon_receipts_and_p50_cannot_supply_missing_search_p95(missing):
+    routes, budget = concurrent_admission_inputs()
+    assert sum(len(horizons) for horizons in budget["horizon_witnesses"].values()) == 12
+    if missing:
+        del budget["p95_seconds"]
+    else:
+        budget["p95_seconds"] = None
+    before = deepcopy(budget)
+    result = phase_registration(route_witnesses=routes, budget=budget)
+    assert "MEASURED_WHOLE_RUN_BUDGET_REQUIRED" in result["blockers"]
+    assert not result["long_launch_admitted"] and budget == before
+
+
+def test_multiworker_envelope_does_not_bypass_carry_or_horizon_admission():
+    routes, budget = concurrent_admission_inputs()
+    del routes["A-HMA"]
+    del budget["horizon_witnesses"]["A-HASH"]["2026-09"]
+    result = phase_registration(route_witnesses=routes, budget=budget)
+    assert "A-HMA:ACTUAL_ROUTE_CARRY_NOT_QUALIFIED" in result["blockers"]
+    assert "FOUR_ALPHA_HORIZON_MEASUREMENTS_REQUIRED" in result["blockers"]
+    assert not result["long_launch_admitted"]
+
+
 def test_generic_pass_and_one_alpha_pass_do_not_admit_financial_launch():
     assert not phase_registration()["long_launch_admitted"]
     routes, budget = admission_inputs()
