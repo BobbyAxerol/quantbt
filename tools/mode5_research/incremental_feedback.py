@@ -46,7 +46,10 @@ class IncrementalFeedbackCompiler:
         for key in before.paths:
             if not np.array_equal(before.paths[key][:stop], after.paths[key][:stop]):
                 raise AssertionError(f"committed account prefix changed: {key}")
-        if before.events_before(bar) != after.events_before(bar):
+        compare = getattr(before, "same_events_before", None)
+        unchanged = (compare(after, bar) if compare is not None else
+                     before.events_before(bar) == after.events_before(bar))
+        if not unchanged:
             raise AssertionError("committed lifecycle prefix changed")
 
     def run(self):

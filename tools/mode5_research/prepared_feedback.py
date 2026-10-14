@@ -16,10 +16,32 @@ class LazyEngineFeedback:
                        "initial_margin", "maintenance_margin")}
         self.metadata = {c.order_id: c.metadata for c in commands}
         self.ids = np.asarray(audit.id_values, dtype=object)
+        # Only immutable, one-to-one string mappings certify encoded identity.
+        names = audit.id_values
+        self.id_namespace = names if (type(names) is tuple and
+            all(type(name) is str for name in names) and len(set(names)) == len(names)) else None
         self.cache = {}
 
-    def _names(self, codes):
+    def _names(self, codes, *, encoded=False):
+        if encoded and not np.any(codes >= len(self.ids)):
+            # Every negative code means None, irrespective of its sentinel value.
+            return np.maximum(codes.astype(np.int64, copy=False), -1).tobytes()
         return tuple(None if int(code) < 0 else self.ids[int(code)] for code in codes)
+
+    def same_events_before(self, other, bar):
+        shared = False
+        if type(self) is LazyEngineFeedback and type(other) is LazyEngineFeedback:
+            left, right = self.id_namespace, other.id_namespace
+            if left is not None and right is not None:
+                stop = min(len(left), len(right))
+                shared = (left[:stop] == right[:stop]
+                    and tuple(self.ids) == left and tuple(other.ids) == right
+                    and all(getattr(feedback.audit, key).dtype.kind in "iu"
+                        for feedback in (self, other)
+                        for key in ("event_order_id", "event_target_id", "fill_order_id")))
+        if shared:
+            return self.events_before(bar, encoded_ids=True) == other.events_before(bar, encoded_ids=True)
+        return self.events_before(bar) == other.events_before(bar)
 
     def events_at(self, bar):
         if bar in self.cache:
@@ -50,7 +72,7 @@ class LazyEngineFeedback:
         self.cache[bar] = tuple(events)
         return self.cache[bar]
 
-    def events_before(self, bar):
+    def events_before(self, bar, *, encoded_ids=False):
         a, local = self.audit, bar-self.path_offset
         events = a.event_bar < local
         fills = a.fill_bar < local
@@ -58,10 +80,11 @@ class LazyEngineFeedback:
         liquidity = None if a.fill_order_type is None else a.fill_order_type[fills].tobytes()
         return (tuple(getattr(a, key)[events].tobytes() for key in
                      ("event_bar", "event_kind", "event_status", "event_symbol", "event_reject_code")),
-                self._names(a.event_order_id[events]), self._names(a.event_target_id[events]),
+                self._names(a.event_order_id[events], encoded=encoded_ids),
+                self._names(a.event_target_id[events], encoded=encoded_ids),
                 tuple(getattr(a, key)[fills].tobytes() for key in
                      ("fill_bar", "fill_symbol", "fill_side", "fill_qty", "fill_price", "fill_fee")),
-                self._names(a.fill_order_id[fills]), semantic, liquidity)
+                self._names(a.fill_order_id[fills], encoded=encoded_ids), semantic, liquidity)
 
 
 class CachedTapeRows:
@@ -76,6 +99,9 @@ class CachedTapeRows:
         self.backend, self.runner = backend, runner
         self.index, self.symbol, self.constraints = index, symbol, constraints
         self.rows, self.ids = {}, {}
+        self.id_namespace = ()
+        self._selected_names = []
+        self._selected = np.empty(0, dtype=np.int64)
         self.compiled_rows = 0
         self.bars = np.empty(0, dtype=np.int64)
         self.codes = np.empty((0, 16), dtype=np.int64)
@@ -97,8 +123,9 @@ class CachedTapeRows:
         names = [c.order_id for c in commands]
         if any(not name for name in names) or len(set(names)) != len(names):
             raise ValueError("cached research tape requires unique explicit order IDs")
-        fresh = tuple(c for c in commands if c.order_id not in self.rows or
-                      (self.rows[c.order_id][0] is not c and self.rows[c.order_id][0] != c))
+        rows = self.rows
+        fresh = tuple(c for c in commands if c.order_id not in rows or
+                      (rows[c.order_id][0] is not c and rows[c.order_id][0] != c))
         if fresh:
             effective, preflight = self.backend._apply_command_quantity_constraints(idx=self.index,
                 commands=fresh, closes=self.runner.market_arrays.closes, symbol_list=[self.symbol],
@@ -123,8 +150,20 @@ class CachedTapeRows:
                 self.bars[slot], self.codes[slot], self.values[slot], self.expiry[slot] = (
                     compiled.command_bar[row], code, values[row], expiry[row])
                 self.compiled_rows += 1
-        selected = np.fromiter((self.rows[c.order_id][1] for c in commands), dtype=np.int64,
-                               count=len(commands))
+        # Slots never move; prove the complete retained ID order on every call.
+        # Changed commands still compile above, even when their slots are reused.
+        selected = self._selected
+        if names != self._selected_names:
+            shared = min(len(names), len(self._selected_names))
+            if names[:shared] == self._selected_names[:shared]:
+                selected = selected[:shared]
+            else:
+                shared, selected = 0, selected[:0]
+            if len(names) > shared:
+                suffix = np.fromiter((rows[name][1] for name in names[shared:]),
+                                     dtype=np.int64, count=len(names)-shared)
+                selected = np.concatenate((selected, suffix))
+            self._selected_names, self._selected = names, selected
         bars = self.bars[selected]
         if np.any(bars[1:] < bars[:-1]):
             raise ValueError("cached research tape requires stable chronological commands")
@@ -133,7 +172,10 @@ class CachedTapeRows:
         expiry = self.expiry[selected]
         codes[:, 12] = np.arange(len(selected), dtype=np.int64)
         ptr = np.cumsum(np.bincount(bars+1, minlength=len(self.index)+1), dtype=np.int64)
-        return ptr, codes, values, expiry, tuple(self.ids)
+        names = tuple(self.ids)
+        if names != self.id_namespace:
+            self.id_namespace = names
+        return ptr, codes, values, expiry, self.id_namespace
 
     def execute(self, commands):
         ptr, codes, values, expiry, ids = self.pack(commands)
