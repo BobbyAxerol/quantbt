@@ -5006,6 +5006,9 @@ class _WalkForwardEndpointScorer:
         self.config = config
         self.target_mode = str(target_mode).lower().strip()
         self.score_config = _walkforward_scoring_config(config, self.target_mode)
+        from .optimization.execution_trial_output import execution_trial_config
+        self._execution_trial_config = execution_trial_config(self.score_config,
+            route=self.target_mode, metadata={} if wf_config is None else wf_config.metadata)
         self.symbols = None if symbols is None and config.symbols is None else list(symbols or config.symbols or [])
         self.wf_config = wf_config
         self.market_data = market_data
@@ -5128,6 +5131,13 @@ class _WalkForwardEndpointScorer:
         contract = self._native_prepared_wfo.wfo_execution_reuse_contract()
         return None if contract is None else dict(contract)
 
+    def deterministic_is_shard_reuse_contract(self):
+        """Opt-in purity declaration, never inferred from an opaque callback."""
+        metadata = {} if self.wf_config is None else self.wf_config.metadata
+        if metadata.get("deterministic_is_shard_reuse") != "no_rng_v1":
+            return None
+        return {"schema": "deterministic-is-shard-reuse-v1", "no_rng": True}
+
     def score_batch(self, tasks: Sequence[Dict[str, object]]) -> list[Dict[str, float]]:
         """Score one candidate's fold/shard batch without changing WFO selection.
 
@@ -5237,6 +5247,8 @@ class _WalkForwardEndpointScorer:
         meta["prepared_full_market_entries"] = len(self._single_full_market_cache)
         meta["prepared_scoring_report_level"] = self.prepared_scoring_report_level
         meta["use_scalar_trial_scoring"] = self.use_scalar_trial_scoring
+        meta["execution_trial_output"] = ({} if self.wf_config is None
+            else self.wf_config.metadata).get("execution_trial_output", "endpoint")
         if self._native_prepared_wfo is not None:
             meta["native_prepared_wfo"] = self._native_prepared_wfo.metadata()
         meta["available"] = (
@@ -5287,7 +5299,8 @@ class _WalkForwardEndpointScorer:
 
     def _score_fallback(self, data, output, index, report_level=None):
         self._stats["fallback_runs"] += 1
-        score_config = self.score_config if report_level is None else replace(self.score_config, report_level=report_level)
+        score_config = (self._execution_trial_config if report_level is None
+            else replace(self.score_config, report_level=report_level))
         temp = QuantBTEndpoint(score_config)
         sliced_data = _slice_wf_data_to_index(data, index)
         symbol_list = self._symbol_list(output)

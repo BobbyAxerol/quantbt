@@ -34731,6 +34731,44 @@ preserve scientific receipts/accounts and verify hashes/free bytes after cleanup
   and no deletion/build/env was needed. No production performance patch,
   scientific change, speedup claim or long-queue launch follows from this review.
 
+**Owner-Approved Performance Closure Before Long Queue (2026-10-14):**
+- Implement the measured bottleneck fixes before admitting background work.
+  Preserve 128 attempted trials, all 57 folds, full history, objective, shard
+  statistics, ordered RNG/ask/tell, actual-fill feedback and financial checks.
+  This is performance work inside M5-11.6, not M5-11.7/12 activation.
+- Reconcile each original alpha to its actual clock, sizing, protection and
+  state contract. Prefer an existing simpler endpoint only after differential
+  proof; similar signals do not qualify vectorized/intrabar equivalence.
+  SC requires observation-close quantity and next-open execution. HMA needs
+  same-bar actual-fill gap/protection handling; HASH has partial ladder and
+  cooldown state; VWAP has actual-fill targets and delayed protection amendments.
+- Separate transient trial output from the final audit. Keep numeric account
+  paths and actual feedback needed for meta measurement; defer public canonical
+  trace/static shadow reconstruction only through explicit qualified settings.
+  Final selected-account audit and independent equivalence controls remain.
+- Reuse a full-IS shard score only under an explicit deterministic contract,
+  identical output/calendar/account/seed and preserved logical statistics.
+  Arbitrary callbacks and unknown state/RNG must retain reference behavior.
+- Remove per-bar pandas lookup/testing-framework overhead using validated
+  calendar cursors and equivalent numerical guards, including offset/gap and
+  repeated-call negative tests. Optimize exact stable-ID prefix comparisons
+  and tape packing without removing committed-prefix accounting/lifecycle checks.
+- Assess existing persistent native session boundaries for feedback compilation.
+  Never delay fill-relative protection or replace actual fills with assumptions.
+  If a session cannot rewind/reprocess the current fill transaction, retain the
+  reference path and state the remaining native boundary limitation explicitly.
+- Before edits, retain a source-bound baseline for the affected files and old
+  receipts. Qualify generic negative cases and actual four-alpha controls,
+  matching account buffers, fills/events, observation hashes and objectives.
+  Benchmark bounded original/new controls without rerunning 128-trial studies;
+  count physical executions and report residual replay costs honestly.
+- Budget: reuse the current Python environment and native binary; no build,
+  CI, push or release. New retained baseline/test/control output <=128 MiB,
+  disposable scratch <=64 MiB, >=5 GiB free disk, >=512 MiB available RAM,
+  at most four independent single-thread workers within 3 GiB aggregate RSS.
+  Register exact scratch, preserve failed evidence and verify cleanup custody.
+  No long queue launch follows automatically from the bounded performance proof.
+
 <a id="mode5-m5-11-7"></a>
 ### Phase M5-11.7 - Mode 4/5 Complete Researcher Reports And Decision Qualification
 
