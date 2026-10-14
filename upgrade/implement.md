@@ -34085,6 +34085,20 @@ legacy replay, original science versions and all failure/negative evidence stay.
   tests and economic rights remain separately scoped; no independent-OOS claim
   follows from full-development selection.
 
+**Prospective scientific mandate approval (2026-10-14 UTC):**
+- Owner approved the full-scope 180-day protocol before new comparisons/search:
+  original 128 points and unchanged ranges; seven annual environments including
+  partial 2026 (278 complete days); day-count weights; at least 180 daily returns
+  per environment, DD <= 50%, U >= 0. No estimator change, no row dropping and
+  no removal of adverse years. Old 365-day/strict-positive receipts stay intact.
+- Named mandate `m5115.full_development_partial_year_180d.v1`; private immutable
+  `registration-mandate01.json` records approval/cutoff before execution. The
+  prior pending registration is historical, not overwritten into a PASS.
+- Run selector-only on all five unchanged panels/probes first; only original
+  hard-eligible cohorts may enter separately sealed baseline/challenger studies
+  of 256 proposals, seed 731. A bounded schema-valid shortlist, not four-by-five
+  blanket experiments. Full-development comparisons are calibration, not OOS.
+
 **Two-Phase Planning Verification (2026-10-13, UTC; historical):**
 - Documentation link/anchor gate PASS for this plan and the authoritative guide;
   `git diff --check` PASS. Corrected one stale historical-receipt anchor without
