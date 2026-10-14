@@ -10,6 +10,7 @@ final market simulation to existing QuantBT endpoints.
 
 from __future__ import annotations
 
+from copy import deepcopy
 from dataclasses import dataclass, field
 import hashlib
 import json
@@ -58,6 +59,7 @@ from .strategies.wfo_prepared import (
 from .optimization.callbacks import SingleObjectiveEarlyStopping as _OptimizationEarlyStopping
 from .optimization.space import stable_params_key, suggest_params as _optimization_suggest_params
 from .optimization.config import SamplerConfig
+from .optimization.exact_is_reuse import qualifies_exact_is_shard_reuse
 from .optimization.samplers import build_sampler
 
 try:  # optional acceleration; Python/NumPy baseline remains available
@@ -2081,6 +2083,13 @@ class WalkForwardEngine:
         is_scores = []
         score_tasks = []
         fold_work = []
+        exact_is_shard_aliases = {}
+        reuse_full_is_shard = (
+            self.config.scoring_backend == "endpoint"
+            and self.config.optimization_mode in {"mode_4_is_only_robust", "mode_5_full_robust"}
+            and self.config.is_subperiods == 1
+            and qualifies_exact_is_shard_reuse(self.scorer)
+        )
         for fold in folds:
             is_output = self._call_strategy_for_indices(
                 data=data,
@@ -2102,6 +2111,8 @@ class WalkForwardEngine:
                     if len(shard_index) < 2:
                         continue
                     shard_tasks.append((shard_id, shard_index, len(score_tasks)))
+                    if reuse_full_is_shard and shard_index.equals(fold.train_index):
+                        exact_is_shard_aliases[len(score_tasks)] = is_task
                     score_tasks.append(
                         (
                             _slice_output_to_test(is_output, shard_index),
@@ -2122,6 +2133,7 @@ class WalkForwardEngine:
             adaptive_optimizer=True,
             execution_seed=execution_seed,
             study_id=study_id,
+            exact_is_shard_aliases=exact_is_shard_aliases,
         )
         for fold, is_task, shard_tasks in fold_work:
             is_metrics = scored[is_task]
@@ -2660,6 +2672,7 @@ class WalkForwardEngine:
         adaptive_optimizer: bool,
         execution_seed: Optional[int] = None,
         study_id: int = 0,
+        exact_is_shard_aliases: Optional[Mapping[int, int]] = None,
     ) -> list[Dict[str, float]]:
         """Score a batch while attaching an explicit optimizer interaction scope.
 
@@ -2678,6 +2691,10 @@ class WalkForwardEngine:
             "study_id": int(study_id),
         }
         try:
+            if exact_is_shard_aliases:
+                return self._score_strategy_outputs_batch(
+                    data, tasks, exact_is_shard_aliases=exact_is_shard_aliases,
+                )
             return self._score_strategy_outputs_batch(data, tasks)
         finally:
             self._wfo_execution_scope = previous
@@ -2686,6 +2703,8 @@ class WalkForwardEngine:
         self,
         data,
         tasks: Sequence[tuple[StrategyOutput, pd.DatetimeIndex, WalkForwardFold, Dict[str, Any], str]],
+        *,
+        exact_is_shard_aliases: Optional[Mapping[int, int]] = None,
     ) -> list[Dict[str, float]]:
         """Score ordered WFO fold/shard work without changing its formulas.
 
@@ -2710,6 +2729,10 @@ class WalkForwardEngine:
         else:
             missing_positions = tuple(range(len(entries)))
 
+        # Only evaluate_params_is supplies same-candidate, same-fold aliases.
+        # Keep the separate terminal reuse runtime's accounting unchanged.
+        aliases = dict(exact_is_shard_aliases or {}) if reuse_lookup is None else {}
+        physical_positions = tuple(position for position in missing_positions if position not in aliases)
         endpoint_batch = (
             getattr(self.scorer, "score_batch", None)
             if self.config.scoring_backend == "endpoint" and self.scorer is not None
@@ -2717,7 +2740,7 @@ class WalkForwardEngine:
         )
         accepts_prepared_window = callable(endpoint_batch)
         payloads = []
-        for position in missing_positions:
+        for position in physical_positions:
             output, index, fold, params, context = entries[position]
             scoring_data = (
                 data
@@ -2764,8 +2787,14 @@ class WalkForwardEngine:
             if reuse_runtime is not None and reuse_lookup is not None:
                 reuse_runtime.mark_batch_failure(reuse_lookup)
             raise
-        if len(scored_misses) != len(missing_positions):
+        if len(scored_misses) != len(physical_positions):
             raise RuntimeError("walk-forward scorer returned a metric row count different from its task batch")
+        if aliases:
+            physical_metrics = dict(zip(physical_positions, scored_misses, strict=True))
+            scored_misses = [
+                deepcopy(physical_metrics[aliases[position]]) if position in aliases else physical_metrics[position]
+                for position in missing_positions
+            ]
 
         metrics: list[Dict[str, float] | None]
         if reuse_lookup is None:
