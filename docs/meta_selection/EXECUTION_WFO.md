@@ -276,3 +276,26 @@ $$
 Synthetic on/off receipts test software and expose actual costs; they are not
 registered real-market R/Q confidence or deployment evidence. Read the
 [current coverage](CURRENT_ROUTE_REVIEW.md) before choosing release scope.
+
+## Invalid Price Trials
+
+Default WFO behavior remains fail-fast. Causal Mode 4 execution routes may
+explicitly set
+`optimization_config={"invalid_execution_intent_policy": "prune_nonpositive_price_v1"}`.
+A strategy adapter must identify a finite non-positive requested limit/stop/
+amend price and raise `quantbt.core.wfo_failures.NonPositiveExecutionPrice`
+with its value, field, order type and aware timestamp. QuantBT does not infer
+this disposition by matching arbitrary `ValueError` text.
+
+Only the current IS optimizer handles this typed failure as a pruned attempted
+trial. It records `NON_POSITIVE_EXECUTION_PRICE` and the original invalid value;
+no order is repaired, no objective of zero is fabricated, and the row cannot
+become an eligible meta candidate or label. Unknown errors, NaN/inf and resource
+failures remain fatal. A forward-realization failure cannot prune/reselect a
+parameter set after observing its OOS performance. Observer failures keep their
+existing publication/status handling.
+
+The nondefault policy changes admissibility and is bound into meta-family
+compatibility, so histories from another policy are not silently mixed. Default
+families, valid-input objectives, sampler ordering, strategy RNG and accounts
+remain unchanged. Native/off and active comparisons must use the same policy.

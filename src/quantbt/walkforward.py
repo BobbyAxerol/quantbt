@@ -27,6 +27,7 @@ from .core.performance_contracts import (
     compile_walkforward_computation_plan,
 )
 from .core.wfo_evaluation import WfoExecutionReuseRuntimeV1
+from .core.wfo_failures import nonpositive_price_cause
 from .core.wfo_preparation import (
     PreparedWfoWindowRegistryV1,
     PreparedWfoWindowV1,
@@ -610,6 +611,14 @@ class WalkForwardConfig:
         if schedule != "global" and self.optuna_trials <= 0:
             raise ValueError("per-fold optimization schedules require optuna_trials > 0")
         object.__setattr__(self, "optimization_schedule", schedule)
+
+        invalid_intent = self.metadata.get("invalid_execution_intent_policy", "raise")
+        if invalid_intent not in {"raise", "prune_nonpositive_price_v1"}:
+            raise ValueError("invalid_execution_intent_policy must be raise or prune_nonpositive_price_v1")
+        if invalid_intent != "raise" and (
+                schedule != "per_fold_causal" or opt_mode != "mode_4_is_only_robust"
+                or self.target_mode not in {"intrabar", "event_driven", "order_commands", "delivery_arbitrage"}):
+            raise NotImplementedError("non-positive-price pruning requires causal Mode 4 execution WFO")
 
         calendar_contract = str(self.calendar_contract).lower().strip()
         if calendar_contract not in {"exact_v2", "intersection_v2", "legacy_v1"}:
@@ -1845,12 +1854,13 @@ class WalkForwardEngine:
             if not hasattr(self, "_sampler_studies"):
                 self._sampler_studies = []
 
-        def rejected_record(trial, params, reason):
+        def rejected_record(trial, params, reason, *, failure=None):
             trial.set_user_attr("qms_rejection_reason", reason)
             records.append(WalkForwardTrialRecord(trial_id=int(trial.number), params=dict(params),
                 objective=-np.inf, mean_is_sharpe=0.0, mean_oos_sharpe=0.0, mean_decay=0.0,
                 std_decay=0.0, fold_metrics=[], pruned=True,
-                selection_metadata={"reason": reason, "state": "PRUNED"}))
+                selection_metadata={"reason": reason, "state": "PRUNED",
+                    **({"invalid_execution_intent": failure} if failure is not None else {})}))
             raise optuna.TrialPruned(reason)
 
         def objective(trial):
@@ -1876,24 +1886,32 @@ class WalkForwardEngine:
             if bridge and self.config.parameter_constraints is not None:
                 if not bridge.constraints(trial, self.config.parameter_constraints(dict(params))):
                     rejected_record(trial, params, "PARAMETER_CONSTRAINT")
-            if self.config.optimization_mode == "mode_2_sbb":
-                record = self.evaluate_params_sbb(
-                    data=data,
-                    folds=folds,
-                    params=params,
-                    trial_id=trial.number,
-                    execution_seed=study_seed,
-                    study_id=study_identifier,
-                )
-            else:
-                record = self.evaluate_params_is(
-                    data=data,
-                    folds=folds,
-                    params=params,
-                    trial_id=trial.number,
-                    execution_seed=study_seed,
-                    study_id=study_identifier,
-                )
+            try:
+                if self.config.optimization_mode == "mode_2_sbb":
+                    record = self.evaluate_params_sbb(
+                        data=data,
+                        folds=folds,
+                        params=params,
+                        trial_id=trial.number,
+                        execution_seed=study_seed,
+                        study_id=study_identifier,
+                    )
+                else:
+                    record = self.evaluate_params_is(
+                        data=data,
+                        folds=folds,
+                        params=params,
+                        trial_id=trial.number,
+                        execution_seed=study_seed,
+                        study_id=study_identifier,
+                    )
+            except Exception as error:
+                failure = nonpositive_price_cause(error)
+                if (self.config.metadata.get("invalid_execution_intent_policy", "raise")
+                        != "prune_nonpositive_price_v1" or failure is None):
+                    raise
+                trial.set_user_attr("invalid_execution_intent", failure.metadata())
+                rejected_record(trial, params, failure.reason, failure=failure.metadata())
             if bridge:
                 if not np.isfinite(record.objective):
                     rejected_record(trial, params, "NONFINITE_OBJECTIVE")
@@ -2982,7 +3000,7 @@ class WalkForwardEngine:
         # invalidation. They must not seed a causal fold because appending a
         # later bar would otherwise change an already-completed fold.
         run_id = hashlib.sha256(
-            f"{_config_hash(self.config)}:{strategy_fingerprint(self.strategy)}".encode("utf-8")
+            f"{_config_hash(self.config, strategy_rng=True)}:{strategy_fingerprint(self.strategy)}".encode("utf-8")
         ).hexdigest()
         prepared_context = getattr(self, "_prepared_context", None)
         cutoff = pd.Timestamp(test_index[-1])
@@ -5654,7 +5672,7 @@ def _complete_data_hash(data) -> str:
         return digest.hexdigest()
 
 
-def _config_hash(config: WalkForwardConfig) -> str:
+def _config_hash(config: WalkForwardConfig, *, strategy_rng: bool = False) -> str:
     payload = {
         "split_mode": str(config.split_mode),
         "split_frequency": config.split_frequency,
@@ -5730,6 +5748,10 @@ def _config_hash(config: WalkForwardConfig) -> str:
     }
     if config.mode5_calibration is not None:
         payload["mode5_calibration"] = config.mode5_calibration.identity
+    invalid_intent = config.metadata.get("invalid_execution_intent_policy", "raise")
+    if invalid_intent != "raise" and not strategy_rng:
+        # Admission changes provenance, not the RNG of an otherwise valid call.
+        payload["invalid_execution_intent_policy"] = invalid_intent
     if config.sampler_config is not None or config.sampler_warm_start or config.parameter_constraints or config.result_constraints:
         payload["sampler_policy"] = {
             "config": None if config.sampler_config is None else config.sampler_config.metadata(),

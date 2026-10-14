@@ -2005,6 +2005,11 @@ class QuantBTEndpoint:
             )
         ).lower().strip()
         wf_metadata = dict(optimization_config.get("metadata", {}) or {})
+        if "invalid_execution_intent_policy" in optimization_config:
+            policy = optimization_config["invalid_execution_intent_policy"]
+            if "invalid_execution_intent_policy" in wf_metadata and wf_metadata["invalid_execution_intent_policy"] != policy:
+                raise ValueError("conflicting invalid_execution_intent_policy")
+            wf_metadata["invalid_execution_intent_policy"] = policy
         wf_metadata.setdefault("use_prepared_scoring_cache", bool(optimization_config.get("use_prepared_scoring_cache", True)))
         wf_metadata.setdefault("use_prepared_wfo_context", bool(optimization_config.get("use_prepared_wfo_context", True)))
         wf_metadata.setdefault("use_scalar_trial_scoring", bool(optimization_config.get("use_scalar_trial_scoring", True)))
@@ -4072,6 +4077,8 @@ class QuantBTEndpoint:
                 result.metadata["walk_forward"].get("native_prepared_wfo"),
             )
         result.metadata["walk_forward_result"] = wf_result
+        if "invalid_execution_intent_policy" in wf_result.metadata:
+            result.metadata["walk_forward"]["invalid_execution_intent_policy"] = wf_result.metadata["invalid_execution_intent_policy"]
         if "sampler_studies" in wf_result.metadata:
             result.metadata["walk_forward"]["sampler_studies"] = wf_result.metadata["sampler_studies"]
         if "mode5_diagnostics_first" in wf_result.metadata:

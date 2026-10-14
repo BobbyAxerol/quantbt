@@ -34626,6 +34626,38 @@ preserve scientific receipts/accounts and verify hashes/free bytes after cleanup
   remain open until their actual studies execute.
 - [Current sanitized admission report](../docs/mode5/M5_11_6_MODE4_REPORT.md).
 
+**Initial-Tranche Failure / Approved Input-Admissibility Amendment:**
+- The four-worker tranche was stopped and reaped after VWAP attempted trial
+  50 emitted a non-positive limit price. Completed-attempt logs: SC 23, HMA
+  15, HASH 51 and VWAP 50; these are not completed 128-trial studies, mature
+  decisions or original-account checkpoints. Interrupted other accounts are
+  not certified. Keep all failures and the exact pre-change source snapshots.
+- A separately registered engineering reproduction agrees with the original
+  full feedback compiler: the actual short fill was 2,655.65, staged risk
+  812.8323676551959 and target multiplier 3.816746507007356, producing TP
+  -446.72510003048774 on 2021-05-20 06:00 UTC. The positive-price constructor
+  guard is correct; no Rust fill, clock, data alignment or sign fix is inferred.
+- The owner explicitly approves an **opt-in**, versioned
+  `invalid_execution_intent_policy="prune_nonpositive_price_v1"` for causal
+  Mode 4 execution IS search. Default remains `raise`. An adapter must emit a
+  typed, finite non-positive-price failure; do not match arbitrary exception
+  strings or swallow NaN, unknown bugs or resource failures. Keep original
+  prices, alpha source, fees, objective and every valid account unchanged.
+- Pruning applies only inside current IS optimization and counts against its
+  128 attempted slots. Do not use a later forward error to reject or reselect
+  current params. Forward/observer failures keep their existing contracts.
+  Record the reason/value/time, exclude the invalid row from eligible pools
+  and labels, and bind the nondefault policy into meta-family compatibility.
+- Before another tranche, test legacy/default equivalence, typed-versus-unknown
+  failures, IS-only pruning, forward non-reselection, explicit metadata and the
+  stopped real point under the new adapter guard. Register a new source lane;
+  do not rewrite the failed receipt or call partial progress exact continuation.
+- Amendment verification: 20 public policy tests, 39 private guard tests and
+  ten existing mature event/W3 default cases PASS. Valid-input draws, selected
+  params, strategy seeds and financial buffers match; opt-in config and family
+  identity differ deliberately. The real stopped point is classified with the
+  identical negative price/time, without an economic-account PASS claim.
+
 <a id="mode5-m5-11-7"></a>
 ### Phase M5-11.7 - Mode 4/5 Complete Researcher Reports And Decision Qualification
 

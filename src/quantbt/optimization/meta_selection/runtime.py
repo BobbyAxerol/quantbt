@@ -127,6 +127,9 @@ class PublicMetaRuntime:
             "result_constraints": strategy_fingerprint(c.result_constraints)
                 if c.result_constraints is not None else None,
         }
+        invalid_intent = c.metadata.get("invalid_execution_intent_policy", "raise")
+        if invalid_intent != "raise":
+            anchor_policy["invalid_execution_intent_policy"] = invalid_intent
         from .nested import family_policy, is_nested
         if is_nested(c):
             anchor_policy.update(family_policy(c))

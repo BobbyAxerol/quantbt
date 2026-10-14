@@ -101,10 +101,31 @@ configuration/receipt tests. The expanded 141-case suite supersedes its earlier
 tests are retained and not counted as successful evidence. Cold configuration
 checks and actual financial controls above are reported separately.
 
-The first 128-trial study per alpha is registered and running. It uses the
-complete 2020-2021 IS and January 2022 forward, with separate histories and
-original coupled constraints. Completed generation journals and optimizer logs
-are retained. They are progress records, not a completed study or restart claim.
+The first tranche stopped after a VWAP proposal emitted a non-positive limit
+price. Completed-attempt logs show SC 23, HMA 15, HASH 51 and VWAP 50; none is
+a completed 128-trial study. All workers were reaped. Scalar logs and generation
+journals do not replace original metric observations or a recoverable study.
+
+The registered reproduction agrees with the original full compiler. At
+2021-05-20 06:00 UTC, a short fill at 2,655.65, staged risk 812.8323676551959 and
+target multiplier 3.816746507007356 produce an absolute TP of
+-446.72510003048774. The engine's positive-price guard is correct. No order
+price, alpha source or accepted financial result was repaired.
+
+The owner approved a versioned **opt-in IS-only** rejection policy. Explicit
+finite non-positive command prices can be classified by a typed adapter error
+and pruned inside the current optimizer. Default remains fail-fast, other
+errors remain fatal and forward failure cannot reselect params. The policy is
+part of meta-family/provenance identity; valid-input strategy RNG and sampler
+ordering remain unchanged. See [the policy contract](../meta_selection/EXECUTION_WFO.md#invalid-price-trials).
+
+The amendment passed 20 public policy tests, 39 private structural price-guard
+tests and ten rerun mature event/W3 default-path regression cases. The last ten
+are existing tests under the changed source, not ten new unique tests. A real
+reproduction under the new guard identifies the exact same invalid price and
+timestamp; that is a classification proof, not a valid economic account.
+The next 128-trial attempt must use a separately sealed source lane and retain
+the first failure unchanged.
 
 Still required for phase closure:
 
