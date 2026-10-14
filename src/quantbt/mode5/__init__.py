@@ -3,7 +3,8 @@
 from .integration_contracts import (CalibrationWindow, Mode5Calibration,
     calibration_binding, calibration_context, mode5_capabilities)
 from .continuous_binding import ContinuousMode5Calibration, continuous_calibration_binding
+from .decision_report import DecisionReport
 
 __all__ = ["CalibrationWindow", "Mode5Calibration", "calibration_binding",
            "calibration_context", "mode5_capabilities", "ContinuousMode5Calibration",
-           "continuous_calibration_binding"]
+           "continuous_calibration_binding", "DecisionReport"]

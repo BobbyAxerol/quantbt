@@ -165,6 +165,22 @@ effective unique candidates and local probes are not independent sample size.
 The runtime releases prepared/internal state on success and failure while
 preserving cold result metadata. Data permissions are revalidated on reload.
 
+The additive [decision report](DECISION_QUALIFICATION_V1.md) reads this actual
+metadata and selected dictionary without finance or RNG. It exposes separate
+trial/component/environment tables, requested/actual sampler provenance and
+gate exclusions for selected and `NO_SELECTION` outcomes. Exports are redacted
+by default; actual private dictionaries require `private=True`.
+
+### Explicit Continuous Provider
+
+`ContinuousMode5Calibration` is a separately versioned binding on the same
+public WFO endpoint and optimizer. It executes one original account over the
+declared scored development suffix, retains the authorized preload, and derives
+dependent annual views without yearly account resets. Its raw Sharpe is the
+whole-account daily-return ratio; annual mean Sharpe is separate metadata.
+The reset-flat `Mode5Calibration` behavior above remains unchanged. Do not mix
+these scopes or reuse incompatible scalar observations under a different label.
+
 ## Migration And Limits
 
 Without `mode5_calibration`, existing behavior and hashes remain unchanged.
