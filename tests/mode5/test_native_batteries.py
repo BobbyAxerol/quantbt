@@ -347,11 +347,27 @@ def test_altered_reduction_or_sealed_report_rejected(f):
         b.assemble_matrices(reduction, f.catalog(), rows_ref=rows_ref, report_ref=report_ref)
 
 
-def test_b4_b5_and_no_financial_runtime_imports(f):
+def test_b4_b5_and_no_financial_runtime_imports(f, monkeypatch):
+    import builtins
     import sys
+    forbidden = ("_quantbt_native", "numba", "optuna", "quantbt.backtester", "quantbt.engines", "quantbt.backends")
+    names = {"finance", "fast_native", "prepared", "private_inputs", "private_support", "static_binding"}
+    original_import = builtins.__import__
+    before = set(sys.modules)
+    attempts = []
+
+    def cold_import(name, *args, **kwargs):
+        # SDK initialization may already have loaded optional engines. Observe
+        # this reducer's import attempts even when Python would use that cache.
+        if name.startswith(forbidden) or name in names:
+            attempts.append(name)
+            raise AssertionError("cold reducer attempted financial import: "+name)
+        return original_import(name, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "__import__", cold_import)
     f.freeze()
     report = f.reduce().report.data
     assert report["batteries"]["B4"]["status"] == report["batteries"]["B5"]["status"] == "NOT_RUN"
     assert report["financial_executions"] == 0
-    assert not any(k.startswith(("_quantbt_native", "numba", "optuna")) or k in
-        {"finance", "fast_native", "prepared", "private_inputs", "private_support", "static_binding"} for k in sys.modules)
+    assert attempts == []
+    assert not any(k.startswith(forbidden) or k in names for k in set(sys.modules)-before)
