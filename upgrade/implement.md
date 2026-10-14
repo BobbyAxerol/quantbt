@@ -33748,6 +33748,30 @@ versions readable; preserve original alpha/core contracts and all attempts.
   ignored scratch root; retain XML and source snapshots, review inactivity,
   remove those fixtures after completion. Final cold assembly must reconcile
   actual complete coverage, work/custody and five dossiers before phase PASS.
+- Source-bound preflight exposed a historical/current supervisor identity
+  conflict before any new finance in `panel-Jan1-03`. All five old supervision
+  sources have exact retained archive bindings. A prospective v3 inventory
+  adapter pins those historical bytes by their archived identities; it does
+  not treat current code as the old version, alter financial requests, import
+  old financial code or relax output/custody guards. Fourteen focused tests
+  PASS. Keep the failed preflight and original historical manifests unchanged.
+- `panel-Jan1-04` successfully starts with 181 reused / 1,038 missing cells.
+  HMA's formerly unqualified index-33 output now has a separate passing run
+  and clean terminal group; the earlier output remains unqualified. The v3
+  companion and original v2 financial scheduler retain full boundary/payload
+  checks. Nothing in the live source inventory is edited.
+- Current verification shards: 232 supervisor/custody/guardian, 200 public
+  scope/report/geometry and 14 historical-source tests PASS. The separate cold
+  budget03 adapter passes 61 tests, validates exact 2/8/10-GiB storage-only
+  ancestry, retains 512-MiB report and 5-GiB reserve, and accepts append-only
+  supervisor source provenance without changing science. These overlapping
+  regression shards are not summed as newly distinct coverage or finance.
+  Exact sources and XML (including failed first adapter test) are archived.
+- Additional completed disposable fixtures: `historical-source-tests`,
+  `historical-source-tests02` and `current-public-tests`; budget03 tests use
+  `budget03-tests/run-01` and `run-02`. Add them to terminal reviewed cleanup,
+  retain both failed/passing XML and exact helper snapshots, and never remove
+  active finance/cache or source evidence. Full measurement remains in progress.
 
 <a id="mode5-m5-11-5"></a>
 ### Phase M5-11.5 - Diagnostic-Guided Mode 5 Calibration And Decision Qualification

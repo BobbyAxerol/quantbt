@@ -43,6 +43,19 @@ lane. HMA/HASH now have individual terminal groups, avoiding group-wide loss
 of custody on interruption. Numeric methods, sources, data, roles, parameters,
 seeds, accounting and gates are unchanged. No new search or release is opened.
 
+Preflight detected conflicting historical/current supervisor pins before any
+finance in `panel-Jan1-03`. All five needed historic sources have exact archived
+bytes. The prospective v3 inventory adapter validates and guards those archive
+identities without changing the original manifest or claiming current code is
+the historical version. Fourteen tests pass; the preflight failure is retained.
+`panel-Jan1-04` then starts successfully with the unchanged missing-cell bill.
+
+Current checks include 232 supervisor/custody/guardian tests and 200 public
+scope/report/geometry tests. The cold storage-ancestry adapter adds 61 passing
+tests, retains its failed first test XML, and is ready to read terminal output
+with zero finance/search. All exact new helper sources and receipts are archived.
+These are verification shards, not a completed financial or phase certificate.
+
 ## Verified So Far
 
 - Cold public scope, attribution, report and sensitivity tests: 181 pass.
