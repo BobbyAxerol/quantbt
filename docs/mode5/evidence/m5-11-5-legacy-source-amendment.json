@@ -1,0 +1,30 @@
+{
+  "schema": "mode5.legacy_guard.reconciliation.v1",
+  "scope": "Later committed immutable-snapshot fix only; old M5/QMS receipts stay immutable; no financial kernel or estimator amendment",
+  "entry": "137dcad",
+  "path": "src/quantbt/metrics/reporting/snapshots.py",
+  "before_sha256": "b125028c23b50cc9e15a7827fc283bee2a41e6876ebcf7cb0503dca4023309ae",
+  "after_commit": "63fbcf4ab5fb4b64af07b0bba004287e6d910b9d",
+  "after_sha256": "c83f9203e7a6d17453bdd22cc9fcab17a258455e846d93d19bac4b581baf2501",
+  "reason": "Use immutable ancestry only when every ndarray header is read-only; preserve deepcopy/pickle snapshot hashes, not scientific metric changes",
+  "later_sources": {
+    "src/quantbt/mode5/diagnostics/full_development.py": {
+      "after_commit": "b6cc4a475847e32703887399026fc6db6fd98ab0",
+      "after_sha256": "c9f0a8a6750a4c351e397199e79bb62dd0ff66ad8290d10a39c8a70045c68998",
+      "before_commit": "d82ab959cc94ea2169ee038f0c1c0b93543fb34e",
+      "before_sha256": null
+    },
+    "src/quantbt/mode5/dossier/researcher_report.py": {
+      "after_commit": "752fd5d54bc0959b5df6b1c01950ef1d13344087",
+      "after_sha256": "fd42ba2a0f64689dc1c28b7aab6a05a4661a925fa9e79b18cfd906cba64b35f1",
+      "before_commit": "b6cc4a475847e32703887399026fc6db6fd98ab0",
+      "before_sha256": null
+    },
+    "src/quantbt/backends/native_audit_projection.py": {
+      "after_commit": "a09c69a2e23e6c9737cb382619b86f5552e75a4e",
+      "after_sha256": "7fc616803003ae91fad0886174bf2667dd14ed316c4c84b090eec7948b93c75b",
+      "before_commit": "8d7509d058eb1fff393445e21324aa886137b70d",
+      "before_sha256": null
+    }
+  }
+}
