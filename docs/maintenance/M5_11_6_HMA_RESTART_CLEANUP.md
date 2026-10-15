@@ -79,3 +79,11 @@ other host activity stopped or that unused filesystem RAM was forcibly freed.
 Private additional receipts are `hma-recovery-cleanup-v1/test-before.json.gz`,
 `test-result.json`, and `hma-recovery-consumer-cleanup-v1/before.json.gz` /
 `result.json`, adjacent to the original cleanup lane. No service was stopped.
+
+The peer-handoff qualification subsequently closed one additional pytest fixture
+root: 292 files / 14,020,918 apparent bytes, with **15,003,648 bytes** observed
+recovery. Source, both actual-entry qualification receipts and original/current
+registration identities were reverified. Receipt:
+`hma-recovery-cleanup-v1/peer-test-result.json`. Cumulative observed increase
+across these reviewed actions is **982,073,344 bytes**, approximately 937 MiB;
+all scientific evidence remains retained.

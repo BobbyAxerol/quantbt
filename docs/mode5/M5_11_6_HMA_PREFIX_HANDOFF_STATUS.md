@@ -49,6 +49,8 @@ The owner has now separately approved
 [parallel peer prefix handoff](M5_11_6_PEER_PREFIX_HANDOFF.md) for HASH/SC.
 VWAP is not reoptimized. Peer launch requires its own source-bound dry proof;
 no unfinished peer is described as running merely because it is approved.
+The subsequent [parallel launch receipt](M5_11_6_PARALLEL_RECOVERY_STATUS.md)
+confirms HASH/SC live PIDs and actual new trial progress.
 
 ## Receipts
 
