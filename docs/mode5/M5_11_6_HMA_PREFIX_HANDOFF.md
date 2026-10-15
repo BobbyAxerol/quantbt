@@ -57,7 +57,21 @@ after owned workers have exited and host references have been checked. Record
 actual reclaimed bytes and reverify preserved hashes. Private alpha parameters
 and helpers remain ignored and excluded from package artifacts.
 
+Before restart, the owner's additional cleanup request admits exactly reviewed,
+inactive, single-link `.rlib`, `.rmeta` and `.d` dependency-cache files in
+`rust/target/debug/deps`. The initial inventory is 589 files / 573,496,370
+apparent bytes. Host cwd/executable/FD/maps checks and retained-source/evidence/
+artifact hash verification are mandatory before deletion. Exact extensions,
+test executables, wheel/sdist outputs, historical pair environments, the current
+tooling environment and offline registry caches are excluded. A future debug
+build must regenerate the deleted dependency cache; this is not an artifact or
+financial proof invalidation.
+
 ## Status
 
-Prospective handoff qualification is in progress. No new HMA PID is certified
-by this document alone; launch and cleanup receipts will be recorded separately.
+This is the prospective source-pinned plan, not a launch receipt. The
+[pre-restart cleanup receipt](../maintenance/M5_11_6_HMA_RESTART_CLEANUP.md)
+records exact inactive dependency removal and retained evidence. Operational
+qualification/launch status is recorded separately in
+[the handoff status report](M5_11_6_HMA_PREFIX_HANDOFF_STATUS.md); no PID or
+recovery PASS is certified by this plan alone.
