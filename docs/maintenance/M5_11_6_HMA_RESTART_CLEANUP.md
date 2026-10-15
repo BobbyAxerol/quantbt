@@ -39,3 +39,43 @@ The private append-only inventory and receipt are at
 `before.json.gz` and `result.json`. Receipt time is 2026-10-15 22:03:50
 Asia/Saigon. The original queue remains stopped; this cleanup alone does not
 authorize bypassing the prefix-handoff qualification gate.
+
+## Additional Owner-Approved Review
+
+The owner then requested removal of unused generated resources and images.
+The Docker inventory contains **zero build cache**, four listed images all
+referenced by live containers, no stopped containers, and six overlay mounts
+matching the six running containers. No orphan overlay was found. Active
+collector/dashboard images and mounts were preserved. Two unattached named
+volumes contain database/dashboard data, not established disposable scratch;
+they were not reclassified as garbage merely because their link count is zero.
+
+After per-directory host-reference and current-source checks, **nine obsolete
+installed consumers** under `.maturin/qms08/qualified/cp311|cp312|cp313` were
+removed: `sdist`, `core_off` and `core_optimization` only. All required exact
+dependency versions remain in each retained historical `pair` environment.
+Exact core/native wheels, sdists, source staging, build environments, logs,
+receipts and current tooling remain. Repeating these old installed-consumer
+proofs requires fresh artifact installation; the removed environments are not
+described as still installed.
+
+The initial broader 12-environment deletion was blocked by the safety review
+before execution. Per-directory read-only checks established inactivity and
+artifact custody; the narrower nine-consumer deletion was subsequently
+approved. No bypass or broad Docker/system prune occurred.
+
+| Additional cleanup | Apparent bytes | Observed free-space increase |
+|---|---:|---:|
+| Two completed pytest fixture roots, 256 files | 9,032,913 | 9,883,648 |
+| Nine obsolete consumers, 87,896 files | 4,246,695,969 | 382,410,752 |
+
+Consumer cleanup verified **2,526 protected files** and preserved HMA's active
+registration and source pins. Hard-linked dependencies explain why the 4.25-GB
+apparent inventory released only about 365 MiB. Available disk afterwards was
+**6,907,527,168 bytes**, approximately **6.43 GiB**. The three cleanup actions
+observed 967,069,696 bytes of cumulative increase; this is not a claim that all
+other host activity stopped or that unused filesystem RAM was forcibly freed.
+
+Private additional receipts are `hma-recovery-cleanup-v1/test-before.json.gz`,
+`test-result.json`, and `hma-recovery-consumer-cleanup-v1/before.json.gz` /
+`result.json`, adjacent to the original cleanup lane. No service was stopped.
