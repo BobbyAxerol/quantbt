@@ -1,5 +1,14 @@
 # M5-11.6 Parallel Recovery Status
 
+## Current Status
+
+The V1 workers below stopped at the RAM guard. They are superseded by the
+[RAM continuation and approved observer repair](M5_11_6_RAM_CONTINUATION_STATUS.md).
+The older live PIDs and cold proofs below are historical receipts, not current
+worker status or proof that subsequent V1 peer observer labels were valid.
+
+## Historical V1 Receipt
+
 ## Qualified Continuation
 
 This receipt implements the owner's
