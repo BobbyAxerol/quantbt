@@ -57,8 +57,17 @@ preflight is reused within its scope, not mislabeled full mature parity.
   host processes and verifying 29 retained evidence files. Apparent removed size
   was 1,386,236 bytes; observed available-space increase was 1,482,752 bytes.
   Plan/rules copies, sources, data, financial records and environments remain.
-- Current long-study status: **ADMITTED / LAUNCH_PENDING**. No completed long study,
+- Current long-study status: **RUNNING**, launched at 2026-10-15 11:30:20
+  Asia/Saigon under `quantbt-m5116-monthly-v1.service`. HMA, VWAP and HASH have
+  live independent workers and durable attempted-trial records in fold 2022-01;
+  SC waits for a safe completed slot. No completed long study,
   first fitted origin, runtime speedup or economic gain is claimed here.
+- Launch readback verifies 708 source pins, ten input pins and eighteen prior
+  witness references. Registration SHA-256:
+  `5836bba220a005883d277286d1a4a35070d8fb0d297ef460e2a98831bd77a5b0`.
+  Initial three-worker observation: approximately 1.05 GiB owned RSS and
+  3.16 GiB host available RAM. Each worker reports Numba and both loaded
+  OpenBLAS pools at one thread. These are launch observations, not run peaks.
 
 The full-search p95 has not been measured. The earlier conditional HMA model
 of approximately 24.8 worker-hours/search pass remains a forecast, not an ETA.
@@ -88,6 +97,16 @@ actual decision/ranking, model/snapshot references, sealed labels and completion
 disposition. Completed financial records precede rendering. Partial progress
 does **not** certify automatic exact full-WFO recovery; seed-only resume is
 forbidden.
+
+Host monitoring:
+
+```bash
+systemctl status quantbt-m5116-monthly-v1.service
+```
+
+The service is independent of this conversation or shell. Its approved 48-hour
+ceiling starts at queue launch; guard/failure can stop it earlier. No completion
+time or unattended phase certification is promised.
 
 On completion or guard/failure, the supervisor reaps its owned workers, records
 terminal dispositions and reviews only its exact inactive Numba scratch before
