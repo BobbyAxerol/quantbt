@@ -34877,6 +34877,52 @@ preserve scientific receipts/accounts and verify hashes/free bytes after cleanup
 - [Measured native contract and report](../docs/mode5/M5_11_6_NATIVE_TRANSACTION_CLOSURE.md)
   and [exact cleanup custody](../docs/maintenance/M5_11_6_NATIVE_TRANSACTION_CLEANUP.md).
 
+**Cold ETA / Rolling And Launch Review (2026-10-15, Asia/Saigon):**
+- Owner requests reassessment before launch; no optimizer, finance, new build
+  or queue is authorized by this review. Withdraw the uncalibrated conversational
+  4--8-day ETA and its unmeasured additional 1--3 verification days. Do not
+  replace it with an unsupported hours-only promise or a new speedup claim.
+- Existing 579 generation receipts separate 507 IS, 68 forward and four final
+  calls; 578 complete and one invalid. No duplicate optimizer proposals or
+  exact duplicate IS generation identities were found. Old generation timings
+  are not whole scoring timings; do not charge sampler/observer costs twice.
+- **Launch wiring remains required:** first-origin reference runner still
+  imports the original native and defaults to audit/replay. The new candidate,
+  account-path trial policy, exact full-IS shard reuse and transaction selection
+  must be explicit in a newly sealed runner. Generic terminal execution reuse
+  remains unavailable for Mode 4/per-fold causal; do not assert that `auto`
+  skips adaptive work or callback compilation.
+- **Final-prefix integration gap:** a global transaction override fails when
+  final account calendar includes flat pre-OOS bars but decisions begin later.
+  A dummy-session negative probe reproduces the consecutive-bar guard before
+  any native/financial step. Bounded IS parity remains valid, not a certificate
+  of transaction-first full-calendar final assembly. Proposed narrow policy:
+  transaction for diagnostics; retain original certified replay/audit for final
+  continuous assembly. Transactional final assembly instead needs separately
+  qualified flat-prefix advancement and carry parity; do not skip history.
+- Same 57 origins/128 trials: rolling 730D scores 46.13% and rolling 365D 23.07%
+  of expanding IS bars. These are workload ratios, not speedups; causal indicator
+  prefix preparation and final-account coverage remain. Rolling is a proposed
+  methodology amendment with new meta-family identity, not approved here.
+  Preserve 2026-10-01 exclusive analysis end and the original label budget.
+- Avoid assuming a second full search solely to reconstruct the native arm:
+  actual active metadata retains native-anchor and applied params per fold.
+  After the required bounded actual off/shadow/active ordered-pool/objective/
+  RNG proof, propose one primary search and two separately reconstructed final
+  accounts. This is not an adaptive execution cache or permission to skip
+  future-mutation/mature-meta proof. Failed same-pool proof blocks this reuse.
+- Proposed owner-approved next step: freeze corrected launch wiring and run
+  at most 72 fixed evaluations (three existing complete trial ordinals, four
+  alphas, earliest/latest cutoffs, three window policies) within a 30-minute
+  measurement budget, zero optimizer proposals. Initially <=2 independent
+  workers, one numeric thread each, <=128 MiB retained and >=5 GiB reserve;
+  register scratch/stop/cleanup before execution. A censored panel stays partial.
+  This is a proposed operational measurement, not full-search p95 or economics.
+- [Detailed cold findings, conditional work models and approval scope](../docs/mode5/M5_11_6_ETA_ROLLING_REVIEW.md).
+  Review itself is no-finance/no-build/no-JIT-scratch, <=1 MiB documentation/
+  compact retention, explicit no-deletion cleanup. Prior evidence and receipts
+  remain unchanged. M5-11.6 long admission, M5-11.7 and M5-12 remain open.
+
 <a id="mode5-m5-11-7"></a>
 ### Phase M5-11.7 - Mode 4/5 Complete Researcher Reports And Decision Qualification
 
