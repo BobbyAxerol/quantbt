@@ -35091,8 +35091,15 @@ preserve scientific receipts/accounts and verify hashes/free bytes after cleanup
   HMA model of 24.8 hours/search pass is not a p95 or mature-meta timing result.
   Guards stop/reap owned workers and preserve partial/failure receipts; they
   never reduce trials, horizons, labels or accounting checks to finish faster.
-- Current execution status: admission/instrumentation in progress; no completed
-  long study, mature fit, economic gain or phase exit is claimed by approval.
+- Admission update: 71 new operational/readback tests PASS; eight fixed
+  middle/late controls PASS in 157.79 seconds, six paths/fills exact on original
+  replay, highest peak worker RSS 597.24 MiB. Early controls are reused, with
+  no extra optimizer. Exact inactive control-cache cleanup PASS: 41 files,
+  77 host processes reviewed; source, data and receipts preserved.
+- Long lane is admitted for the guarded launch, not certified complete.
+  [Queue contract/status](../docs/mode5/M5_11_6_LONG_ROLLING_QUEUE.md) distinguishes
+  prospective timing, durable fold records and remaining qualification from
+  financial completion. No mature fit, economic gain or phase exit is claimed.
 
 <a id="mode5-m5-11-7"></a>
 ### Phase M5-11.7 - Mode 4/5 Complete Researcher Reports And Decision Qualification
