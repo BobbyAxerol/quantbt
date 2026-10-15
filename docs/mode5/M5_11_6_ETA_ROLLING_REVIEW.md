@@ -2,6 +2,11 @@
 
 ## Disposition
 
+Subsequent owner-approved work is recorded in the
+[bounded 730D rolling preflight](M5_11_6_ROLLING_PREFLIGHT.md). It supplies actual
+two-fold measurements and qualification; the read-only review below remains
+historical, including its withdrawn conversational ETA and unexecuted proposals.
+
 Read-only runtime/receipt review on 2026-10-15, Asia/Saigon. No new finance,
 optimizer, build or queue ran. A synthetic transport-only probe reproduced the
 final-prefix guard below before any native step. No source was changed by this

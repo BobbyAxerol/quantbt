@@ -34923,6 +34923,124 @@ preserve scientific receipts/accounts and verify hashes/free bytes after cleanup
   compact retention, explicit no-deletion cleanup. Prior evidence and receipts
   remain unchanged. M5-11.6 long admission, M5-11.7 and M5-12 remain open.
 
+**Owner-Approved Bounded Rolling Preflight (2026-10-15, Asia/Saigon):**
+- Owner approves researching rolling monthly/quarterly and a small real run to
+  catch integration errors, then requests a report and separate permission
+  before any long/background queue. This does not activate M5-11.7/M5-12.
+- First resolve terminology: current public `rolling` rejects omitted
+  `train_window`; monthly/quarterly controls OOS frequency, not IS length.
+  Ask which IS width the owner intends; do not remove validation, infer a new
+  mathematical default or silently replace rolling with expanding. Until
+  resolved, an explicitly labelled two-year engineering control may reuse the
+  original 2020--2021 IS footprint; it is not the long economic protocol.
+- Fix only the private research runner's opt-in wiring: load/pin the qualified
+  candidate, use account-path trial output and exact deterministic IS shard
+  reuse, and explicitly choose transaction feedback for diagnostic windows.
+  Preserve the original replay/audit route for final full-calendar assembly,
+  including the flat pre-OOS prefix. No global compiler override, new engine,
+  alpha modification, public endpoint/default or native rebuild is needed.
+- Before finance, test default/reference compatibility, requested capability
+  failure, spawn/isolation and final-versus-diagnostic routing. Preserve original
+  source copies/failed receipts. Existing RNG, price-pruning policy, fees,
+  pending protection/carry, quantity constraints and metric definitions remain.
+- Proposed bounded smoke ceiling: four original ETHUSDT 1h alpha bindings,
+  monthly and quarterly, two consecutive OOS folds and eight attempts/fold in
+  off and active arms (<=256 optimizer attempts total), matching exact policies
+  within each frequency. Source begins 2020; the short prefix run is solely
+  engineering/search/selector/accounting qualification, not a substitute for
+  the 128-attempt/fold long study, economics or twelve-mature-origin evidence.
+  Keep the sixteen-label panel policy and maturity threshold unchanged; report
+  actual eligible labels and expected cold fallback, not a fitted-meta claim.
+- Compare ordered sampler proposals/objectives/pruning, native anchor/applied
+  params, exact accounts, effective clocks and original final-audit output.
+  Check independent final account replay from stored commands, and numeric
+  IS/forward measurement. Preserve zero fills, insufficient support and failures.
+- Reuse current interpreter/candidate and retained ETH snapshot. No new env,
+  install, build, remote workflow, push, merge, tag or release. Register a fresh
+  private lane before work, <=128 MiB retained, <=64 MiB disposable scratch,
+  <=2 independent alpha workers, one numeric thread each, <=3 GiB aggregate
+  owned RSS with >=512 MiB available and >=5 GiB disk reserve plus forecast.
+  Foreground financial work has a 30-minute cap; preserve partial/failure
+  receipts and reap owned workers if exceeded. No optimizer runs by import.
+- Freeze runner/test/source and input hashes before launch; preserve old source
+  identities rather than editing their certificates. Run cleanup custody after
+  workers/tests exit, then report measured stage costs and remaining approval
+  decisions. Do not extrapolate a two-fold smoke into a certified full-study
+  p95 or call cold-start meta equivalent to mature fit/rank/no-leakage.
+
+**Rolling Width Clarification / Bounded Registration (owner reply, 2026-10-15):**
+- Owner explicitly selects a two-year IS sliding monthly/quarterly. Resolve
+  that to the current API's fixed `train_window="730D"`, not a new implicit
+  default; retained causal preload still starts 2020. First OOS remains 2022
+  for this bounded continuity test, with fresh rolling-family identities.
+- Monthly smoke covers January/February 2022; quarterly smoke covers Q1/Q2
+  2022. Source is clipped at each exact exclusive end. Full data still remains
+  2020--2026; a two-fold engineering prefix is not economic coverage of that
+  full span. Long 128-trial studies/background work still require approval.
+- At the registered full exclusive end 2026-10-01, monthly has 57 origins and
+  quarterly 19. With unchanged minimum twelve matured compatible origins,
+  quarterly cannot be presumed to yield twelve later paired-valid evaluated
+  origins. Keep the existing support gate and report this limitation; no old
+  expanding history is injected to manufacture quarterly maturity.
+- Reviewed scratch root: `.maturin/mode5-m5116/rolling-preflight-v1` (<=64 MiB);
+  retained root: `upgrade/private/mode5_upgrade_v1/m5-11-6/attempt-01/rolling-preflight-v1`
+  (<=128 MiB). Preserve previous transactions, baseline tranches and failures.
+  Reuse the current interpreter/candidate. Initial availability is about
+  3.8 GiB RAM and 5.9 GiB disk; two workers only subject to active guards.
+- First bounded attempt failed in the private verifier, which incorrectly
+  required a DataFrame for tuple-valued fills; six account-path arrays had
+  already matched independent replay. The 65.08-second queue failure and owned
+  worker termination remain retained, not converted to PASS. A fresh v2 lane
+  records the wrapper-only correction, stores finance before verification,
+  pins new source, charges the failed work and has a 1,730-second queue cap.
+  No range/seed/math change; <=256 logical attempts plus <=24 physical retry
+  attempts, all explicitly charged. Original source/evidence remains untouched.
+
+**Bounded Rolling Closeout (2026-10-15, Asia/Saigon):**
+- [Full report](../docs/mode5/M5_11_6_ROLLING_PREFLIGHT.md): PASS engineering
+  wiring/measurement/accounting, not completed M5-11.6 economics or long-run
+  admission. Four original ETHUSDT 1h alphas, monthly/quarterly, two folds and
+  eight attempts/fold, off/active: 16 cells, 256 attempts, 252 COMPLETE/four
+  constraint PRUNED. Focused policy/calendar/boundary tests: 115 PASS.
+- Ordered proposals/objectives/constraints/pruning, stable sampler metadata,
+  native/applied params, fills and six account paths agree exactly in all eight
+  off/active pairs. Each final account matches independent original execution;
+  first reset-flat forward observations match the unchanged daily oracle.
+  Exclude only elapsed sampler wall time from semantic equality; retain full
+  telemetry and the failed cold-reader receipt. No finance rerun for that fix.
+- Eight separately preregistered fixed IS controls (no new proposals/trials)
+  verify nonzero-start 730D rolling against original replay: exact commands,
+  six paths, fills and lifecycle; independent Sharpe/std/count matches saved
+  anchor/objective at existing 1e-12 tolerance, 729 daily returns. Same first
+  IS/seed across cadences avoids duplicating these controls by frequency.
+- Native diagnostic compilation uses one Rust session and zero full-tape
+  replay. SC remains its original callback route; final full-calendar carry
+  deliberately retains certified replay/audit, not an unqualified transaction
+  prefix shortcut. No public API/default, original alpha, clock, fee or
+  scientific policy changed. Existing qualified native artifact reused.
+- Passing queue wall 1,077.70 s; failed queue 65.08 s; fixed controls 120.56 s.
+  Total charged financial foreground 1,263.34 s, within 30 minutes. Maximum
+  worker peak RSS 684.8 MiB. New private v2 retention about 11.1 MiB/128-MiB cap.
+- Matched measured two-fold whole-study off/active seconds: SC monthly
+  41.35/57.86, quarterly 43.78/62.11; HMA 195.79/232.53 and 207.38/256.53;
+  HASH 67.27/83.93 and 66.48/99.45; VWAP 104.56/122.54 and 109.58/137.49.
+  Observer/capture work is included; zero mature model fits. Eight startup
+  trials do not establish the 128-trial adaptive candidate distribution.
+- Conditional one-search-pass budget model, not ETA/CI/p95: HMA monthly
+  approximately 24.80 worker-hours, quarterly 8.76; later-prefix preparation,
+  mature fitting/observer differences and long final assembly remain unmeasured.
+  Quarterly has 19 full origins versus monthly 57 and cannot be presumed to
+  meet the unchanged twelve later paired-valid origin gate. No threshold lowered
+  and no expanding history injected. Long cadence/background still awaits owner.
+- [Cleanup PASS](../docs/maintenance/M5_11_6_ROLLING_PREFLIGHT_CLEANUP.md): eight
+  IS controls cold-reconciled, four workers reaped, 72 host processes reviewed,
+  41 exact inactive JIT files removed, 629 protected hashes unchanged and frozen
+  plan/rules copies retained. Observed recovery 1.23 MiB; about 5.86 GiB remains.
+  Evidence, original/candidate native, environments and services preserved.
+- No push, CI, new build, merge, version, tag or publication. M5-11.6 full
+  horizon/mature-meta economics, M5-11.7 and M5-12 remain open; do not silently
+  convert the engineering PASS into any of those exit gates.
+
 <a id="mode5-m5-11-7"></a>
 ### Phase M5-11.7 - Mode 4/5 Complete Researcher Reports And Decision Qualification
 

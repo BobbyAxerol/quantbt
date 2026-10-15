@@ -91,6 +91,12 @@ proof. Resume domain work only after disk and evidence checks are complete.
 
 ## Recorded Cleanup
 
+The [M5-11.6 rolling-preflight receipt](maintenance/M5_11_6_ROLLING_PREFLIGHT_CLEANUP.md)
+records 16 cells, eight fixed IS controls, 41 exact inactive JIT-cache files,
+629 protected hashes and 72 host processes reviewed. Observed recovery is
+1.23 MiB; every source, failed/passing evidence, environment and native binary
+remains. This is not long economic-study or release certification.
+
 The [M5-11.6 native transaction receipt](maintenance/M5_11_6_NATIVE_TRANSACTION_CLEANUP.md)
 records one incremental offline build, 12 bounded saved controls, exact inactive
 six-file JIT-cache removal, 540 protected hashes and 72 host processes reviewed.
