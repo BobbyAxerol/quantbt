@@ -57,7 +57,7 @@ preflight is reused within its scope, not mislabeled full mature parity.
   host processes and verifying 29 retained evidence files. Apparent removed size
   was 1,386,236 bytes; observed available-space increase was 1,482,752 bytes.
   Plan/rules copies, sources, data, financial records and environments remain.
-- Current long-study status: **RUNNING**, launched at 2026-10-15 11:30:20
+- Historical launch status: **RUNNING**, launched at 2026-10-15 11:30:20
   Asia/Saigon under `quantbt-m5116-monthly-v1.service`. HMA, VWAP and HASH have
   live independent workers and durable attempted-trial records in fold 2022-01;
   SC waits for a safe completed slot. No completed long study,
@@ -113,6 +113,30 @@ terminal dispositions and reviews only its exact inactive Numba scratch before
 deletion. Unknown scratch entries or host-reference failures remain for review.
 Sources, data, environments, native binaries and all financial/failure receipts
 are preserved. No environment installation or rebuild is needed.
+
+## Current Guard Stop
+
+At **2026-10-15 20:45:50 Asia/Saigon**, the supervisor recorded
+`FAIL_OR_GUARD_STOP_RETAINED`: the 5-GiB disk reserve plus remaining output
+forecast was unavailable. VWAP had exited successfully; the supervisor stopped
+HMA, HASH and SC. The queue is **not running**, and the phase is not complete.
+
+This happened while the separately registered HMA performance build shared the
+same filesystem. Source isolation did not isolate disk consumption. The build
+cache has subsequently been removed, with the candidate artifact and failed/
+passing receipts retained. This is not evidence of an alpha/accounting failure,
+and no exact queue recovery or automatic restart is claimed. Other services and
+the other alpha source/configuration files have not been changed.
+
+HMA retains **21 completed folds, 2022-01 through 2023-09**. Fold 21 (2023-10)
+has partial attempted-trial records, not a completed study. Any continuation
+must preserve completed pools, chronological meta history, seeds, fold IDs and
+selection/accounting contracts; simply shortening the calendar and reseeding is
+not exact recovery. Recovery needs its own custody and equivalence proof before
+another long launch. The owner has requested the speed report and a continuation
+proposal, not an automatic restart of the other alphas. The
+[HMA performance report](M5_11_6_HMA_PERFORMANCE_REPORT.md) separates measured
+fixed-window gains from conditional search forecasts and unqualified recovery.
 
 ## Remaining Exit Gates
 
