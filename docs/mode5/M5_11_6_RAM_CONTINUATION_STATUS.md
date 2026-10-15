@@ -5,9 +5,12 @@
 The earlier three-worker snapshot below is historical. SC subsequently reached
 57 complete folds but exceeded its individual memory cap during final-account
 preparation; the peer coordinator also stopped HASH at 54 complete folds.
-[HASH now runs independently from that 54-fold prefix](M5_11_6_HASH54_CONTINUATION_STATUS.md).
-HMA continues unchanged; SC's final account/replay is pending and SC was not
-restarted by this HASH-only continuation.
+HASH subsequently completed all 57 folds and its final accounts/exact replay.
+[SC's final accounts and independent exact replays also completed](M5_11_6_SC57_FINALIZATION_STATUS.md)
+at 2026-10-16 06:31 Asia/Saigon, using all 57 saved corrected folds with no new
+searches or label panels. HMA continues unchanged. The independent HASH launch
+and earlier three-worker snapshot below are historical, not current pending
+SC finance. Whole-phase qualification/economic closeout still remains open.
 
 ## Live Readback
 
