@@ -133,8 +133,9 @@ has partial attempted-trial records, not a completed study. Any continuation
 must preserve completed pools, chronological meta history, seeds, fold IDs and
 selection/accounting contracts; simply shortening the calendar and reseeding is
 not exact recovery. Recovery needs its own custody and equivalence proof before
-another long launch. The owner has requested the speed report and a continuation
-proposal, not an automatic restart of the other alphas. The
+another long launch. The owner subsequently approved an
+[HMA-only prefix handoff](M5_11_6_HMA_PREFIX_HANDOFF.md), not an automatic
+restart of the other alphas. The
 [HMA performance report](M5_11_6_HMA_PERFORMANCE_REPORT.md) separates measured
 fixed-window gains from conditional search forecasts and unqualified recovery.
 
