@@ -35041,6 +35041,59 @@ preserve scientific receipts/accounts and verify hashes/free bytes after cleanup
   horizon/mature-meta economics, M5-11.7 and M5-12 remain open; do not silently
   convert the engineering PASS into any of those exit gates.
 
+**Owner-Approved Long Rolling Queue Amendment (2026-10-15, Asia/Saigon):**
+- The owner approves the complete monthly/730D/four-alpha proposal and its
+  resource limits. This amendment supersedes the initial expanding/resource
+  defaults for the new study only; all historical registrations and receipts
+  remain unchanged. M5-11.7, M5-12, remote CI and release remain unapproved.
+- SC/HMA/HASH/VWAP use the already verified ETHUSDT 1h snapshot, preload from
+  2020-01-01, rolling fixed-duration `730D` IS and 57 monthly OOS folds from
+  2022-01-01 to 2026-10-01 exclusive. First IS begins 2020-01-02, not January 1.
+  Keep 128 attempted trials/fold, legacy TPE, seed 731/fold derivation, no early
+  stopping or warm-start: 29,184 unique proposal slots across four studies.
+- Keep the native selector, original account/constraints, Ridge lambda 10,
+  twelve matured origins, predicted-Q floor -0.10, full eligible-pool ranking,
+  sixteen base labels plus union winners, and the frozen 13/12/32 calendar roles.
+  Pair native/meta on the same search pool, not two redundant optimizers. Charge
+  observer, parity/mutation and final-account executions separately. Cold
+  preflight and equal seeds alone are not mature same-pool certification.
+- SC retains its original callback; HMA/HASH/VWAP use actual-feedback native
+  tapes. Diagnostic transaction_v1/account_paths_v1/no_rng_v1 policies remain
+  qualified; final continuous accounts retain original replay/audit semantics.
+  Save financial results before report rendering; never concatenate diagnostic
+  equity or silently substitute reset-flat W3 accounts.
+- W01-W03: register a fresh source-bound rolling lane and reducer calendar;
+  preserve exact runtime/rules snapshots before execution. Reuse completed
+  early controls and run fixed predeclared middle/late-prefix controls, without
+  opening another optimizer to measure speed. Distinguish measured controls
+  from prospective whole-study forecasts; do not fabricate measured p95.
+- W04: start HMA, VWAP and HASH independently; admit SC into the first safe
+  slot. At most four workers, each adaptive study/numeric pool one thread,
+  aggregate owned RSS <=3 GiB and host available RAM >=512 MiB. Do not stop
+  unrelated services/notebooks. Preserve per-fold pools, params, selections,
+  model/history references, label revisions and work/disposition records.
+- M4X-03..05/W05-W06: verify early/mature/late chronology and off/shadow/active
+  semantics using bounded source-compatible witnesses; independently replay
+  both saved parameter schedules through the original continuous account.
+  Measure R/Q, lower-IS versus forward improvement, costs, inactivity, support
+  and uncertainty using the original three-month/16,384-draw/seed-731/95%
+  eight-coordinate family inference. Negative/unsupported economics is retained,
+  never repaired by retuning. Unfinished checks remain explicitly pending.
+- W07: produce the sanitized/private report and M5-11.7 field inventory, focused
+  regression and privacy checks, and cleanup receipt. Durable completed-fold
+  evidence is not an exact full-WFO recovery claim; seed-only resume is forbidden.
+- New lane: `upgrade/private/mode5_upgrade_v1/m5-11-6/attempt-01/long-rolling-monthly-v1`;
+  focused private helpers remain under the existing ignored `upgrade/local`
+  phase directory. Retained ceiling 512 MiB, exact disposable scratch
+  `.maturin/mode5-m5116/long-rolling-monthly-v1` <=64 MiB, disk reserve >=5 GiB
+  beyond the remaining forecast. No new environment, installation or rebuild.
+- Queue ceiling 48 hours, not an ETA promise. The measured-startup conditional
+  HMA model of 24.8 hours/search pass is not a p95 or mature-meta timing result.
+  Guards stop/reap owned workers and preserve partial/failure receipts; they
+  never reduce trials, horizons, labels or accounting checks to finish faster.
+- Current execution status: admission/instrumentation in progress; no completed
+  long study, mature fit, economic gain or phase exit is claimed by approval.
+
 <a id="mode5-m5-11-7"></a>
 ### Phase M5-11.7 - Mode 4/5 Complete Researcher Reports And Decision Qualification
 
