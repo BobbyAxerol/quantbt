@@ -1,5 +1,14 @@
 # M5-11.6 RAM Continuation Status
 
+## Current Update
+
+The earlier three-worker snapshot below is historical. SC subsequently reached
+57 complete folds but exceeded its individual memory cap during final-account
+preparation; the peer coordinator also stopped HASH at 54 complete folds.
+[HASH now runs independently from that 54-fold prefix](M5_11_6_HASH54_CONTINUATION_STATUS.md).
+HMA continues unchanged; SC's final account/replay is pending and SC was not
+restarted by this HASH-only continuation.
+
 ## Live Readback
 
 Observed **2026-10-16 01:31:55 Asia/Saigon**. The earlier workers stopped
