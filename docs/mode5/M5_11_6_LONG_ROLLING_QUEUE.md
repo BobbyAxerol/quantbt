@@ -130,6 +130,10 @@ publication.
 
 ## HMA Live Inspection
 
+The subsequent owner-approved [HMA-only performance amendment](M5_11_6_HMA_PERFORMANCE_PLAN.md)
+is isolated from every active source pin and from SC/HASH/VWAP. Its prospective
+qualification is not an in-place modification of this running queue.
+
 On the owner's request, only the HMA worker was suspended at 2026-10-15
 20:01:25 Asia/Saigon and continued at 20:04:52. SIGSTOP/SIGCONT preserved the
 same process, live account/compiler state, current Optuna study, RNG and meta
