@@ -127,3 +127,46 @@ explicit phase exit work. Missing economic support remains INCONCLUSIVE; adverse
 economics does not authorize retuning. A lower IS score alone is not forward
 improvement. This lane does not activate M5-11.7, M5-12, CI, push, merge, tags or
 publication.
+
+## HMA Live Inspection
+
+On the owner's request, only the HMA worker was suspended at 2026-10-15
+20:01:25 Asia/Saigon and continued at 20:04:52. SIGSTOP/SIGCONT preserved the
+same process, live account/compiler state, current Optuna study, RNG and meta
+history. No fold, optimizer or financial execution was restarted. Other workers
+and the supervisor were not signalled or reconfigured.
+
+At suspension HMA had completed nineteen folds and saved 102 attempted trials
+in fold 2023-08. Recent trials were completing approximately every 9-14 seconds:
+this was slow work, not an observed deadlock or stalled trial. Inspection of
+the nineteen completed searches found:
+
+| Observation | Measured value |
+|---|---:|
+| Search wall time | 28,843.21 s |
+| Original window generation/feedback wall time | 27,745.95 s, 96.20% of search |
+| Sampler wall telemetry | 68.42 s |
+| Physical IS generation windows / native sessions | 2,390 / 2,390 |
+| Native transactional step calls | 42,969,326 |
+| Full-tape re-executions in those diagnostic windows | 0 |
+| Median / maximum IS generation window | 10.68 / 39.06 s |
+
+The aggregate window timer includes original alpha preparation, the Python
+command/feedback compiler and native transactions. It does not independently
+attribute their individual shares or prove a Rust-kernel bottleneck. The long
+runtime is concentrated in this composite actual-feedback path, not sampler
+time; the former repeated-full-tape execution defect was not observed.
+
+All 114 retained files from the nineteen completed folds remained hash-identical
+before and after continuation. A twenty-second continuation check observed
+19.36 CPU-seconds of work and a newly persisted trial; subsequent readback
+observed 105 attempted trials in the current fold. Both other running alphas
+continued advancing.
+
+The 206.88-second suspension is recorded separately in the private
+`A-HMA/inspection-01` receipts. It contributes to the current window/fold's raw
+wall timer and to the unchanged 48-hour queue ceiling; it must be annotated in
+performance analysis, not silently removed from historical receipts. No runtime,
+source pin, trial budget, estimator, financial contract or deadline changed.
+Inspection created only compact retained receipts, with no new environment,
+profiler installation, financial replay or disposable cache requiring deletion.
