@@ -21,6 +21,10 @@ physical history including unavailable current/future revisions. Mutation
 changes future OHLCV, unavailable labels/pools/anchors and insertion order.
 Check actual history permissions, model inputs, policy/params/ranking, current
 OOS exclusion, global RNG and rejection of unavailable model artifacts.
+Run these mutations separately. Add a late revision arriving during search
+after the locked snapshot, and a permitted past-label positive control: it
+must change fitted coefficients without inventing another origin. These are
+explicit qualification fixtures, never new scientific evidence labels.
 
 Recompute one predeclared native-anchor IS account in active/control and
 mutated variants, using the original evaluator and fold seed. Compare objective,
