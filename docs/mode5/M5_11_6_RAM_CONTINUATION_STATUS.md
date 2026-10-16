@@ -8,9 +8,15 @@ preparation; the peer coordinator also stopped HASH at 54 complete folds.
 HASH subsequently completed all 57 folds and its final accounts/exact replay.
 [SC's final accounts and independent exact replays also completed](M5_11_6_SC57_FINALIZATION_STATUS.md)
 at 2026-10-16 06:31 Asia/Saigon, using all 57 saved corrected folds with no new
-searches or label panels. HMA continues unchanged. The independent HASH launch
-and earlier three-worker snapshot below are historical, not current pending
-SC finance. Whole-phase qualification/economic closeout still remains open.
+searches or label panels. HMA subsequently reached 57 completed searches but
+stopped at 2026-10-16 11:23 Asia/Saigon under its 900-MiB worker guard, before
+saving a final account. The [17:07 four-alpha readback](M5_11_6_FOUR_ALPHA_READBACK_20261016.md)
+also confirms 466 failed HMA observer labels across folds 29--56, caused by the
+RAM handoff's auxiliary-engine guard. Complete search markers do not certify
+those labels or the intended later adaptive decisions. No worker remains active
+in that readback; no repair or new study was launched. The independent HASH
+launch and earlier three-worker snapshot below are historical. Whole-phase
+qualification/economic closeout remains open.
 
 ## Live Readback
 
