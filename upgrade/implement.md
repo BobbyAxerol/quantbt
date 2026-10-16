@@ -2,12 +2,19 @@
 
 ## Current Mode 5 Diagnostics-First Upgrade - Full-Development Decision Support
 
-**Current planning request (2026-10-16, UTC):** insert exactly one proposed
-research/decision supplement, [M5-11.6.1](#mode5-m5-11-6-1), after M5-11.6 and
-before M5-11.7. The owner requests quarterly, not monthly, for this new study.
-Writing the plan is authorized; implementing it, launching pilot/search/finance,
-changing defaults and starting M5-11.7 are not. The new phase must conclude what
-to retain, upgrade opt-in or standardize in Mode 4 before reporting proceeds.
+**Current execution request (2026-10-16, UTC):** the owner approves implementing
+[M5-11.6.1](#mode5-m5-11-6-1), after M5-11.6 and before M5-11.7, under the
+quarterly protocol and its prospective resource gate. Status is APPROVED /
+IN_PROGRESS / Q03_NOT_ADMITTED: eight actual HMA controls and cold prefix
+worksheets are retained, but the conservative partial search forecast exceeds
+the 90-minute queue cap. No optimizer or quarterly economic comparison has run.
+See the [admission report](../docs/mode5/M5_11_6_1_ADMISSION_REPORT.md). The owner
+chooses resource cleanup and option2: design fast intrabar variants for review
+before variant implementation/finance. The [variant proposal](../docs/mode5/M5_11_6_1_FAST_VARIANT_DESIGN.md)
+records semantic changes and retains original-alpha claim boundaries. Cleanup
+is complete; no long queue, changed public default or M5-11.7 work is activated.
+The phase must conclude what to retain, upgrade
+opt-in or standardize in Mode 4 before reporting proceeds.
 Its 19-quarter calendar does not provide twelve mature evaluation quarters
 after twelve acquired origins; keep the existing meta support rule and record
 that limit rather than borrowing monthly history or weakening a scientific gate.
@@ -27476,8 +27483,8 @@ COMPLETE_LOCAL_REGISTERED_C01_C08. The subsequent owner request adds
 [M5-11.6](#mode5-m5-11-6), now locally complete for its registered work with
 family economics INCONCLUSIVE, and [M5-11.7](#mode5-m5-11-7), still PROPOSED /
 NOT_STARTED. The 2026-10-16 planning amendment inserts quarterly
-[M5-11.6.1](#mode5-m5-11-6-1), PROPOSED / NOT_STARTED, for the owner's Mode 4
-retain/upgrade decision before M5-11.7. M5-12 awaits these reviewed dispositions
+[M5-11.6.1](#mode5-m5-11-6-1), now APPROVED / IN_PROGRESS / Q03_NOT_ADMITTED,
+for the owner's Mode 4 retain/upgrade decision before M5-11.7. M5-12 awaits these reviewed dispositions
 as well. Preserve all
 historical study receipts; no earlier completion status is reopened by this plan.
 Read the
@@ -34291,7 +34298,7 @@ Mode 4 alpha studies and bounded reporting improvements before M5-12. They do
 not reopen completed Mode 5 experiments, introduce another methodology, or
 authorize CI, publication, a version change or live deployment.
 
-**Current planning amendment (2026-10-16, UTC):** the owner inserts
+**Historical planning amendment (2026-10-16, UTC):** the owner inserts
 [M5-11.6.1](#mode5-m5-11-6-1) between those two phases. Its explicitly proposed
 quarterly research variants/selector profile are a separate registration, not
 permission to change M5-11.6's original semantics or historical receipts. Only
@@ -35148,11 +35155,14 @@ preserve scientific receipts/accounts and verify hashes/free bytes after cleanup
 <a id="mode5-m5-11-6-1"></a>
 ### Phase M5-11.6.1 - Quarterly Diagnostics-Guided Mode 4 Research And Upgrade Decision
 
-**Status:** PROPOSED / NOT_STARTED. Owner instruction 2026-10-16 authorizes
-writing this phase and choosing quarterly rather than monthly. Separate owner
-approval is required before implementation, financial controls, optimizer work
-or a background queue. No public default, alpha, endpoint, source receipt,
-scientific target, M5-11.7, M5-12, CI or release is activated by this plan.
+**Status:** APPROVED / IN_PROGRESS / Q03_NOT_ADMITTED. The owner subsequently
+approved implementation on 2026-10-16 after the quarterly planning commit.
+Fixed controls/source-bound tests are executed below; main financial search
+still requires its timing/resource admission. Owner now chooses cleanup and
+fast intrabar variant design for review; implementation/financial execution of
+those variants awaits the documented approval point. No public default, alpha,
+endpoint, old source receipt, scientific target, M5-11.7, M5-12, CI or release
+is activated. This is not a complete phase or economic PASS.
 **Goal:** use a finite, matched, faster quarterly research experiment to decide
 which Mode 4 components should remain unchanged, become explicitly opt-in or
 share the existing diagnostics/registry infrastructure. Separate candidate
@@ -35497,7 +35507,7 @@ campaign-ledger expansion or release qualification. Genuine in-scope defects
 must be fixed; unsupported economic claims receive explicit final dispositions,
 not fabricated proof or silently deferred implementation.
 
-**Planning Verification / Approval Record (2026-10-16, UTC):**
+**Historical Planning Verification / Approval Record (2026-10-16, UTC):**
 - Documentation link/anchor gate PASS; structural/calendar checks PASS for one
   new phase between M5-11.6 and M5-11.7, eight work packages and twelve
   acceptance IDs. Budget arithmetic PASS: 19 quarters / 1,734 days / 21,888
@@ -35512,6 +35522,79 @@ not fabricated proof or silently deferred implementation.
   executed by the planning instruction. Status stays PROPOSED / NOT_STARTED;
   owner phase approval must precede implementation and prospective registration.
   No push, CI, merge, version/tag or publication is authorized here.
+
+**Execution Entry / Conditional Admission (2026-10-16, UTC):**
+- Owner approves work on this phase only. Existing user edits to this plan and
+  the superseded untracked spec are preserved. Two bounded sub-agent tasks
+  implement/test the pure calendar/selector and independently audit the shared
+  sampler/meta integration; a further independent review checks new helpers.
+- The pure research tools implement the exact quarterly calendar, 365D IS,
+  one-account 91/91/91/92-day attribution, declared daily-Sharpe floor/mean,
+  typed nulls/availability/ties and preparation-inclusive work admission. Public
+  WFO defaults/financial engines/alpha source remain unchanged. They are not
+  yet a complete factorial WFO binding or an economic study.
+- Independent audit finds that each native anchor needs its own anchor-first
+  sixteen-member panel and family. Freeze/dedup the physical query union; the
+  conservative budget reserves 36 forward candidates per primary sampler pool
+  and 18 for the RSI reference. This keeps per-task quotas, does not share a
+  derived label across incompatible anchors and does not mean eight optimizers.
+- Private attempt-01 registration inventories the permitted scratch, exact
+  market/original-account readback/native preservation and fixed controls.
+  Three pre-execution loader/capability failures across attempts01/02 remain
+  FAIL_RETAINED. Attempt03 uses the existing qualified context/candidate native
+  loader, with no new build or install. Eight HMA fixed controls complete; no
+  completed optimizer or financial control is rerun merely to repair a receipt.
+- Each control scores 365D / 8,760 bars. Measured elapsed range 3.419--8.641 s,
+  median 5.768 s, maximum process peak RSS 307.24 MiB. The seven-control
+  four-worker tranche takes 19.896 s and reuses the first completed control.
+  Timers include preparation/actual feedback/reduction; import/context spans
+  are separate, CPU telemetry is unavailable and not invented. Every control
+  already has one Rust session/zero full-tape executions; sampled boundary
+  calls remain about26.4k--26.7k per365D window.
+- HMA's 4,864 proposed search slots alone project to2.919 hours with observed
+  maximum costs and ideal four-worker sharing; a median-cost sensitivity gives
+  1.948 hours. This is a conditional forecast, not a mathematical lower bound,
+  p95 or ETA. It excludes other alphas, observers/final accounts and unmeasured
+  roles. Result `REJECT_PARTIAL_SEARCH_FORECAST_EXCEEDS_CAP`; no optimizer or
+  long queue is launched, and remaining alpha timing is explicitly NOT_RUN.
+- Cold prefix screening reuses128/127/119/127 eligible recorded SC/HMA/HASH/VWAP
+  points, with exact distinct geometry counts; no new finance. RSI's old
+  128-record pool has only48 matching the current Mode5 schema, with80 retained
+  exclusions. It is not quietly accepted as a new128-point matched diagnostic
+  design. Old economics/730D geometry is not a new365D account score; local
+  probes/environment observations and final recipe seals remain missing.
+- Review reproduces a synthetic submicrosecond-day support inflation (four
+  actual days admitted as240 observations) and a timing-only launch flag.
+  Pre-fix sources/reproduction are retained; no study decisions used these
+  helpers. Fixes reject non-midnight nanoseconds and separate `timing_admitted`
+  from always-false launch permission pending resource admission. Final source-
+  bound regression passes104 tests in2.16 seconds, including both fixes and
+  public readback; `attempt-03/pytest-final.xml` is retained. These pure-tool
+  tests do not certify a complete WFO financial producer or quarterly study.
+- Q01/Q02 are partial, Q03 is measured NOT_ADMITTED, Q04 has pure helper
+  contracts only; Q05--Q07 actual studies/economic proof and Q08 final owner
+  decision are not complete. The [admission report](../docs/mode5/M5_11_6_1_ADMISSION_REPORT.md)
+  and [public readback](../docs/mode5/M5_11_6_1_ADMISSION.json) retain scope and
+  counts. Current policy is KEEP_DEFAULT_UNTIL_MATCHED_RESEARCH_IS_ADMITTED.
+  No new meta gain or phase completion is inferred.
+- Owner subsequently chooses resource cleanup and option2: design fast
+  intrabar variants for approval before implementation/finance. The
+  [variant design](../docs/mode5/M5_11_6_1_FAST_VARIANT_DESIGN.md) preserves
+  original causal features, separates HMA fill-price/protection changes,
+  HASH single-terminal-TP/no-cooldown ablation and VWAP static-exit ablation,
+  and maps SC/RSI with explicit timing/priority checks. New effective schemas,
+  histories and original/variant distortion are mandatory; no unchanged-alpha
+  speedup or original-route promotion is claimed. V01--V06 describe freeze,
+  isolated adapters, same-contract oracle, bounded original bridges, whole-work
+  admission and then the existing Q04--Q08 flow. No variant optimizer starts
+  merely because a static intrabar kernel is fast.
+- The [cleanup receipt](../docs/maintenance/M5_11_6_1_ADMISSION_CLEANUP.md)
+  records3 exact inactive scratch roots/17 files removed,3,022 protected files
+  unchanged and397,312 bytes observed free-space increase. Current JIT,
+  environments, native/market/evidence and all failures remain. Two agent XML
+  receipts are retained before scratch removal. Initial cleanup-loader failure
+  is preserved separately; no service/kernel or unrelated cache was touched.
+  No optimizer, new variant, M5-11.7/M5-12, remote or release is activated.
 
 <a id="mode5-m5-11-7"></a>
 ### Phase M5-11.7 - Mode 4/5 Complete Researcher Reports And Decision Qualification

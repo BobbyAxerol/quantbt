@@ -91,6 +91,13 @@ proof. Resume domain work only after disk and evidence checks are complete.
 
 ## Recorded Cleanup
 
+The [M5-11.6.1 admission receipt](maintenance/M5_11_6_1_ADMISSION_CLEANUP.md)
+records eight completed original HMA controls, 104 pure-tool tests and exact
+inactive scratch removal after host-process review. It preserves two agent XML
+receipts, verifies 3,022 protected files and observes 0.38 MiB free-space recovery.
+Current JIT/native/tooling and all financial/failure evidence remain. This is
+not admission of a variant study or quarterly economic certification.
+
 The [M5-11.6 rolling-preflight receipt](maintenance/M5_11_6_ROLLING_PREFLIGHT_CLEANUP.md)
 records 16 cells, eight fixed IS controls, 41 exact inactive JIT-cache files,
 629 protected hashes and 72 host processes reviewed. Observed recovery is
