@@ -101,3 +101,6 @@ upgrade/drafts/
 
 # Local research sandbox is intentionally outside the public package.
 .local_arbitrage_sandboxes/
+
+# Exact disposable root for shared diagnostic tests; receipts live elsewhere.
+/.tmp/shared-alpha-diagnostics/

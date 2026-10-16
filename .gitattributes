@@ -6,6 +6,7 @@ docs/metrics/evidence/met03/performance-tooling-mismatch/failure.log whitespace=
 docs/metrics/evidence/met03/copy-review-repro.xml whitespace=-blank-at-eol
 docs/metrics/evidence/met03/copy-review-valid-repro.xml whitespace=-blank-at-eol
 docs/metrics/evidence/met03/copy-review-scalar-repro.xml whitespace=-blank-at-eol
+benchmarks/diagnostics/shared_alpha_diagnostics_native_pair_mismatch.xml whitespace=-blank-at-eol
 
 # Preserve the owner guide's exact bytes and intentional Markdown hard breaks.
 upgrade/QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md whitespace=-blank-at-eol

@@ -20,6 +20,13 @@ The [cleanup](../docs/maintenance/M5_11_6_1_TERMINAL_CLEANUP.md) verifies 40,492
 protected files. Original/variant differences and all failed lanes remain.
 M5-11.7/M5-12, CI, push, merge, version/tag and release are not activated.
 
+**Owner-approved shared diagnostics (2026-10-16, Asia/Saigon):**
+[mode-independent standardization](#shared-alpha-diagnostics) is authorized now.
+It reuses the existing geometry/statistics/access/cache owners for pre-search
+decision support, independently of WFO mode and meta activation. Ridge/model
+family, loss and hyperparameter methodology remain discussion-only; no tuning,
+financial study, automatic router or M5-11.7/M5-12 activation is authorized.
+
 **Current M5-11.6 readback:** all four original monthly/730D studies close 57
 folds each, with corrected HMA history, all eight continuous accounts and local
 checkpoint/measurement qualification. Registered family economics remains
@@ -35654,6 +35661,59 @@ not fabricated proof or silently deferred implementation.
   handoff. Owner review precedes any further phase or activation; no push/release.
 
 <a id="mode5-m5-11-7"></a>
+<a id="shared-alpha-diagnostics"></a>
+### Owner-Approved Shared Alpha Diagnostics Standardization
+
+**Status:** COMPLETE_LOCAL / TECHNICAL_PASS / OWNER_REVIEW_PENDING (2026-10-16, Asia/Saigon).
+**Goal:** expose the existing diagnostic owners as a mode-independent packaged
+module, usable before optimization or with any caller-declared WFO mode. Supply
+geometry, coverage, activity, local fragility, parameter associations and
+explainable recipe options, not an automatic alpha-name-to-sampler rule.
+**Scope:** promote tool-only diagnostic/geometry owners into `quantbt.diagnostics`
+with compatibility imports; preserve old identities/formulas/defaults. Reuse
+the existing parameter schema, computation plan, authorization, bounded cache,
+statistics and sampler geometry validation. Add typed immutable evidence and
+report contracts; do not accept future/holdout records for pre-search advice.
+**Detailed guide:** QMS [4 geometry/recipes](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s4),
+[5 model limits](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s5),
+[6 availability](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s6),
+[12 reporting](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s12);
+Mode 5 [4.5 geometry](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#45-trục-2--parameter-geometry-và-landscape),
+[4.9 batteries](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#49-multi-hypothesis-empirical-battery-giữ-năm-chiều-làm-rõ-mỗi-phép-thử),
+and [7.8 reporting](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#78-rules-báo-cáo-áp-dụng-cho-mọi-phase).
+**Work:** (1) retain canonical math and compatibility; (2) shared planner with
+explicit mode/schedule labels; (3) authorized cold panel/report and override
+worksheet; (4) synthetic mode/route, geometry, missing-data, source, privacy,
+copy/pickle, no-leakage and legacy parity tests; (5) docs/example, measured cold
+report cost, cleanup and scoped local commit.
+**Exit gates:** packaged imports need no repository `tools`; all old geometry/
+planner tests and new shared tests pass; before/after analysis values remain
+identical; each evidence access is role/manifest/readiness checked; reports
+cannot select params or activate a recipe; raw accounting, RNG, model/loss and
+financial endpoints stay unchanged. Missing activity/fragility/regime evidence
+remains explicit, never a neutral value or causal/Sobol importance claim.
+**Budget/cleanup:** existing environment only, no native build or optimizer;
+64 MiB scratch cap, 16 MiB retained test/report budget and at least 5 GiB disk
+headroom. Exact scratch root `.tmp/shared-alpha-diagnostics`; retain XML/logs,
+remove only that inactive scratch after testing. Preserve all prior evidence,
+private alphas, artifacts/environments and unrelated worktree changes.
+**Not authorized:** Ridge hyperparameter search, new ML/loss/targets, economic
+promotion, broad M5-11.7 report expansion, CI/push/merge/version/release. Generic
+data contracts do not expand the meta mode/domain support matrix.
+
+**Local result:** the shared packaged API and compatibility imports are complete.
+Source-final focused regression passes 348 tests, including 69 new shared tests;
+nine moved owner bodies retain exact AST semantics and financial/model/metric/
+Rust code is unchanged. Package-only subprocess import needs no `tools` directory.
+Cold report cost on 128 synthetic records is 25.03 ms p50 without associations
+or 196.89 ms with 64 finite-panel bootstrap draws; no financial calls or full-WFO
+speed claim. Failed setup/native-pair attempts are retained. Read the
+[implementation/report](../docs/diagnostics/SHARED_ALPHA_DIAGNOSTICS_REPORT.md),
+[public usage](../docs/diagnostics/SHARED_ALPHA_DIAGNOSTICS.md) and
+[cleanup receipt](../docs/maintenance/SHARED_ALPHA_DIAGNOSTICS_CLEANUP.md).
+Empirical status is NOT_ASSESSED; richer M5-11.7 integration, Ridge/model/loss
+research, M5-12, CI and release remain unactivated.
+
 ### Phase M5-11.7 - Mode 4/5 Complete Researcher Reports And Decision Qualification
 
 **Status:** PROPOSED / NOT_STARTED; separate owner approval after M5-11.6 and

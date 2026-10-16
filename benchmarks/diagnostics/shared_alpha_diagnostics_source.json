@@ -1,0 +1,63 @@
+{
+  "baseline": "f57aef7",
+  "body_checks": [
+    {
+      "body_equal": true,
+      "current_sha256": "46e690ee46c5472faa5b3b5e94bf74e5031c2d5333acd365c1d42129a551932a",
+      "destination": "src/quantbt/diagnostics/geometry/design.py",
+      "source": "tools/mode5_geometry/design.py"
+    },
+    {
+      "body_equal": true,
+      "current_sha256": "2743b218494d369011edf3ec106c46f0b873e19b6657f93bb22d738434574922",
+      "destination": "src/quantbt/diagnostics/geometry/neighborhoods.py",
+      "source": "tools/mode5_geometry/neighborhoods.py"
+    },
+    {
+      "body_equal": true,
+      "current_sha256": "260778b2f6fb4ea1a677543d541e748b1bdc162f09a46c5f375a8830857bf80b",
+      "destination": "src/quantbt/diagnostics/geometry/estimators.py",
+      "source": "tools/mode5_geometry/estimators.py"
+    },
+    {
+      "body_equal": true,
+      "current_sha256": "73dcafbbef1818cd4232de9d397437b5e50afeb1126eb56b36bcc92c25037774",
+      "destination": "src/quantbt/diagnostics/geometry/sensitivity.py",
+      "source": "tools/mode5_geometry/sensitivity.py"
+    },
+    {
+      "body_equal": true,
+      "current_sha256": "86ee5950cec447e427a52cd4b87e2c24c5d1b84d65dd8d0959f2f2d07064d8d1",
+      "destination": "src/quantbt/diagnostics/geometry/structured.py",
+      "source": "tools/mode5_geometry/structured.py"
+    },
+    {
+      "body_equal": true,
+      "current_sha256": "d6409d3970864120f83dc538fc662294e6bb65297820c0077a77d47358239a1a",
+      "destination": "src/quantbt/diagnostics/geometry/finite_panel.py",
+      "source": "tools/mode5_geometry/finite_panel.py"
+    },
+    {
+      "body_equal": true,
+      "current_sha256": "3f0cad3de8f7aeb71876827d1b4eb02169a5687f1df0956ff1fd15c03c9ac9b2",
+      "destination": "src/quantbt/diagnostics/geometry/basins.py",
+      "source": "tools/mode5_geometry/basins.py"
+    },
+    {
+      "body_equal": true,
+      "current_sha256": "8160c7f24e712bba089247bcdee92f8a5a41abbb7f1a8561a0f03a14243da9cf",
+      "destination": "src/quantbt/diagnostics/evidence.py",
+      "source": "tools/mode5_diagnostics/evidence.py"
+    },
+    {
+      "body_equal": true,
+      "current_sha256": "9e1df285de2560be23282043139f4c27a3550df92b05a34161f716ba43114b96",
+      "destination": "src/quantbt/diagnostics/reuse.py",
+      "source": "tools/mode5_diagnostics/reuse.py"
+    }
+  ],
+  "limitation": "Source/AST preservation, not installed-wheel or economic qualification.",
+  "protected_changed": [],
+  "schema": "quantbt.shared_diagnostics_source_promotion.v1",
+  "status": "PASS"
+}

@@ -91,6 +91,12 @@ proof. Resume domain work only after disk and evidence checks are complete.
 
 ## Recorded Cleanup
 
+The [shared alpha diagnostics receipt](maintenance/SHARED_ALPHA_DIAGNOSTICS_CLEANUP.md)
+records 348 passing local checks, removal of one exact owned synthetic test
+root, 34 protected source/artifact/evidence hashes unchanged and 2.66 MiB observed
+free-space recovery. Initial failed attempts are retained; no financial study,
+environment replacement, native rebuild or release occurred.
+
 The [M5-11.6.1 terminal receipt](maintenance/M5_11_6_1_TERMINAL_CLEANUP.md)
 records completed quarterly study/verifier owners, two exact inactive test-root
 removals and 40,492 protected files unchanged. It distinguishes linked-path

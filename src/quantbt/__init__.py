@@ -49,6 +49,11 @@ from importlib import import_module
 
 
 _LAZY_EXPORTS = {
+    **{name: (".diagnostics", name) for name in (
+        "AlphaDiagnostics", "AlphaDiagnosticReport", "DiagnosticContext",
+        "DiagnosticObservation", "DiagnosticAdvice", "DiagnosticAnalysis",
+        "DiagnosticBudget",
+    )},
     "ReportingRequest": (".metrics.reporting.request", "ReportingRequest"),
     "ReportingContractV1": (".metrics.report_contracts", "ReportingContractV1"),
     "ReportingCoverageV1": (".metrics.report_contracts", "ReportingCoverageV1"),
@@ -715,6 +720,8 @@ __version__ = "1.1.2"
 __author__  = "quantbt"
 
 __all__ = [
+    "AlphaDiagnostics", "AlphaDiagnosticReport", "DiagnosticContext",
+    "DiagnosticObservation", "DiagnosticAdvice", "DiagnosticAnalysis", "DiagnosticBudget",
     "ReportingRequest", "ReportingContractV1", "ReportingCoverageV1", "ReportingCache",
     # engines
     "BacktestEngine",
