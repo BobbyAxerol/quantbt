@@ -2,6 +2,12 @@
 
 ## Current Update
 
+The owner subsequently approved the
+[HMA-only corrected-history closeout](M5_11_6_HMA_OBSERVER_CLOSEOUT.md).
+It restores the clean 29-fold prefix, reuses all 57 saved optimizer pools and
+repairs later selection/labels before final accounts. No other alpha is rerun.
+This prospective scope is not a passing financial or qualification receipt.
+
 The earlier three-worker snapshot below is historical. SC subsequently reached
 57 complete folds but exceeded its individual memory cap during final-account
 preparation; the peer coordinator also stopped HASH at 54 complete folds.
