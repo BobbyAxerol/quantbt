@@ -2,12 +2,17 @@
 
 ## Current Update
 
-**Latest financial milestone:** [HMA history/account closure](M5_11_6_HMA_FINALIZATION_STATUS.md)
-now has 57 corrected folds, no failed labels and two successful fresh serial
-replays. The previous final-stage memory stop remains failed evidence; saved
-accounts were reused, not regenerated. Four-alpha checkpoint qualification and
-shared economics/uncertainty/cleanup are still running; the snapshots below are
-historical, not live worker counts.
+**Latest local closeout:** [four-alpha final report](M5_11_6_FOUR_ALPHA_CLOSEOUT.md)
+now has 57 complete folds per alpha, corrected HMA history, exact account replay,
+100/100 passing checkpoint controls, terminal cold readback and cleanup. No
+optimizer was rerun in this HMA repair/qualification closeout. The registered
+family uncertainty is INCONCLUSIVE, with missing-data reasons retained.
+
+The previous final-stage HMA memory stop remains failed evidence; saved accounts
+were reused, not regenerated. All workers for this scope have exited. The
+snapshots below are historical, not live worker counts. M5-11.6 stays open for
+the owner's next experiment decision; M5-11.7, M5-12, CI and release are not
+activated. The following paragraphs preserve the earlier progression.
 
 The owner subsequently approved the
 [HMA-only corrected-history closeout](M5_11_6_HMA_OBSERVER_CLOSEOUT.md).

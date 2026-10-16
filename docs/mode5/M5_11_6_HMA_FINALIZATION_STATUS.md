@@ -49,12 +49,17 @@ Native/active final equity is 19,563.29 / 17,204.90 from 20,000; whole-path DD i
 10.30% / 18.19%. Neither account liquidates. These continuous accounts are not
 concatenated diagnostic equities and do not replace paired fold R/Q analysis.
 
-## Still Running
+## Local Closeout Complete
 
 The [source-bound four-alpha checkpoint qualification](M5_11_6_CHECKPOINT_CLOSEOUT_PLAN.md)
-and shared uncertainty/report/cleanup closeout remain in progress. Do not call
-this HMA financial milestone completion of the entire phase. M5-11.7, a new
-experiment, M5-12, CI and release remain unstarted by this work.
+now has 100/100 passing cells. The [shared final report](M5_11_6_FOUR_ALPHA_CLOSEOUT.md)
+closes the approved local qualification, uncertainty disposition and cleanup.
+Registered family inference remains INCONCLUSIVE; no estimator/gate was changed
+to manufacture a positive result. Old failed receipts remain unchanged.
+
+The owner plans an additional experiment inside M5-11.6, so the overall phase
+remains IN_PROGRESS for that decision. M5-11.7, that new experiment, M5-12,
+CI, push and release remain unstarted by this closeout.
 
 Private records: `upgrade/private/mode5_upgrade_v1/m5-11-6/attempt-01/`
 `hma-observer-repair-v3` and `hma-accounts-finalization-v4`. Original failures,
