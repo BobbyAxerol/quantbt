@@ -11,7 +11,10 @@ the 90-minute queue cap. No optimizer or quarterly economic comparison has run.
 See the [admission report](../docs/mode5/M5_11_6_1_ADMISSION_REPORT.md). The owner
 chooses resource cleanup and option2: design fast intrabar variants for review
 before variant implementation/finance. The [variant proposal](../docs/mode5/M5_11_6_1_FAST_VARIANT_DESIGN.md)
-records semantic changes and retains original-alpha claim boundaries. Cleanup
+records semantic changes and retains original-alpha claim boundaries. The owner
+subsequently instructs implementation/continuation now: variants are APPROVED /
+IMPLEMENTED / TIMING_ADMITTED; source-sealed study follows the
+[implementation receipt](../docs/mode5/M5_11_6_1_IMPLEMENTATION_REPORT.md). Cleanup of the prior pilot
 is complete; no long queue, changed public default or M5-11.7 work is activated.
 The phase must conclude what to retain, upgrade
 opt-in or standardize in Mode 4 before reporting proceeds.
@@ -35155,12 +35158,17 @@ preserve scientific receipts/accounts and verify hashes/free bytes after cleanup
 <a id="mode5-m5-11-6-1"></a>
 ### Phase M5-11.6.1 - Quarterly Diagnostics-Guided Mode 4 Research And Upgrade Decision
 
-**Status:** APPROVED / IN_PROGRESS / Q03_NOT_ADMITTED. The owner subsequently
+**Status:** APPROVED / IN_PROGRESS / FAST_VARIANT_TIMING_ADMITTED. The owner subsequently
 approved implementation on 2026-10-16 after the quarterly planning commit.
 Fixed controls/source-bound tests are executed below; main financial search
-still requires its timing/resource admission. Owner now chooses cleanup and
-fast intrabar variant design for review; implementation/financial execution of
-those variants awaits the documented approval point. No public default, alpha,
+still requires its timing/resource admission. Following the design-only closeout,
+the owner now explicitly approves implementation/continuation of the fast
+intrabar variants. The [implementation receipt](../docs/mode5/M5_11_6_1_IMPLEMENTATION_REPORT.md)
+records shared execution/policy bindings, exact feature qualification, 16 unique
+original bridge controls and the 81.31-minute conditional whole-work forecast.
+Q03 fixed gates and Q04 bindings are implemented; Q05--Q08 actual research,
+checkpoint qualification, decision matrix and terminal cleanup remain.
+No public default, alpha,
 endpoint, old source receipt, scientific target, M5-11.7, M5-12, CI or release
 is activated. This is not a complete phase or economic PASS.
 **Goal:** use a finite, matched, faster quarterly research experiment to decide

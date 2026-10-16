@@ -2,10 +2,13 @@
 
 ## Status And Authority
 
-2026-10-16 UTC: **DESIGNED / OWNER_APPROVAL_PENDING_FOR_VARIANT_IMPLEMENTATION**.
-The owner requests resource reclamation and option 2, designing fast intrabar
-variants for review. No variant implementation, financial pilot, optimizer or
-background queue has started. This document does not convert the
+**APPROVED / IMPLEMENTED / TIMING_ADMITTED / STUDY_PENDING**. Following the
+recorded design-only closeout, the owner explicitly requests implementing and
+continuing M5-11.6.1 now. Variant adapter/evaluator/policy implementation is
+authorized; pilots and studies follow their already registered admission gates.
+The [implementation/admission receipt](M5_11_6_1_IMPLEMENTATION_REPORT.md)
+records executed tests and fixed controls. The source-sealed study follows
+that admission; this document does not convert the
 [original HMA non-admission](M5_11_6_1_ADMISSION_REPORT.md) into a passing run.
 
 Scope: [Q01--Q08 in the unified plan](../../upgrade/implement.md#mode5-m5-11-6-1).
@@ -23,7 +26,8 @@ Private alpha source, ranges, exact predicates and input snapshots stay private.
 Eight fixed HMA controls cost 3.419--8.641 seconds per 365D IS, including
 preparation/execution/reduction. They already use one Rust session with no
 full-tape replay. The residual strategy/feedback work cannot be removed simply
-by renaming the endpoint. No measured fast-variant speedup exists yet.
+by renaming the endpoint. Measured variant controls are recorded separately;
+they are not original-alpha performance-only speedup claims.
 
 The proposal retains the original indicator calculations, but replaces selected
 fill-dependent strategy behavior with a documented static-intent research
@@ -77,7 +81,10 @@ close on a bounded bridge.
    one-bar next-open activation. Do not pre-shift them or read the next open to
    choose entries, size or protection. The engine may use that open for fills.
 4. Use `intrabar_sizing_mode="fixed_notional"`, entry budget 2,000, not 2,000
-   contracts. Retain exact instrument constraints, quantization, fees, margin,
+   contracts: `alloc_per_trade=2000` and `entry_size=1.0` (a dimensionless budget
+   weight). Multiplying both by 2,000 would request 4,000,000 notional, not the
+   registered exposure; reject this wiring before finance. Retain exact
+   instrument constraints, quantization, fees, margin,
    liquidation, final-flat and same-bar policy from the sealed execution request.
 5. Use existing flat-only position gating; ignore opportunities while invested.
    A new close-time opportunity may be taken after a protection exit, according
@@ -94,6 +101,13 @@ close on a bounded bridge.
 8. A static tape should cross the boundary in one prepared execution request
    per account, with native engine-owned per-bar execution. Telemetry must show
    actual calls/bytes; this is a design target, not an achieved benchmark.
+
+The selected existing intrabar contract flattens at the final **close**. It does
+not inherit an event-runner option that reserves the final bar or flattens at
+its open: a penultimate-close entry can still activate at the final open. This
+terminal-phase difference is part of the named variant, tested separately and
+reported in original-route bridges; retaining final-flat status is not proof
+of equal terminal execution. All arms within the new study share this contract.
 
 Current native StrategyIR only provides a small fixed set of strategy forms;
 it is not a compiler for arbitrary Python/HMA or fill-age/cooldown state. The
@@ -151,7 +165,7 @@ those missing behaviors have been preserved by converting flags to arrays.
 
 ## Implementation Order And Pre-Search Gates
 
-After owner approval of this design:
+Under the owner's subsequent implementation approval:
 
 1. **V01: Freeze private variant manifests.** Record exact retained/removed
    logic, schema, engine contract, sizing, priority, readiness, terminal policy,
