@@ -2,6 +2,13 @@
 
 ## Current Update
 
+**Latest financial milestone:** [HMA history/account closure](M5_11_6_HMA_FINALIZATION_STATUS.md)
+now has 57 corrected folds, no failed labels and two successful fresh serial
+replays. The previous final-stage memory stop remains failed evidence; saved
+accounts were reused, not regenerated. Four-alpha checkpoint qualification and
+shared economics/uncertainty/cleanup are still running; the snapshots below are
+historical, not live worker counts.
+
 The owner subsequently approved the
 [HMA-only corrected-history closeout](M5_11_6_HMA_OBSERVER_CLOSEOUT.md).
 It restores the clean 29-fold prefix, reuses all 57 saved optimizer pools and
