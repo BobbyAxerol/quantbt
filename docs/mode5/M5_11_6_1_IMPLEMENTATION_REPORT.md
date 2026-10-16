@@ -2,6 +2,13 @@
 
 ## Scope
 
+**Current disposition:** the admitted work is now locally complete; see the
+[final quarterly decision report](M5_11_6_1_QUARTERLY_DECISION_REPORT.md),
+[numeric handoff](M5_11_6_1_QUARTERLY_SUMMARY.json) and
+[terminal cleanup](../maintenance/M5_11_6_1_TERMINAL_CLEANUP.md).
+The sections below retain the historical implementation/admission record.
+The economic family remains INCONCLUSIVE, with no default or release promotion.
+
 Owner-approved continuation of the [quarterly phase](../../upgrade/implement.md#mode5-m5-11-6-1),
 after the [original-route non-admission](M5_11_6_1_ADMISSION_REPORT.md).
 The [named variant contract](M5_11_6_1_FAST_VARIANT_DESIGN.md) remains authoritative.
@@ -99,6 +106,8 @@ receipts and current native environment remain; no new build/environment or
 unrelated service stop occurred.
 
 ## Remaining Work
+
+Historical at admission; superseded by the final disposition linked above:
 
 Execute admitted studies; verify actual decisions/no-leakage at stored
 checkpoints; reconcile continuous saved-schedule accounts; reduce quarterly

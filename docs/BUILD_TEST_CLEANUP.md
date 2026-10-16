@@ -91,6 +91,13 @@ proof. Resume domain work only after disk and evidence checks are complete.
 
 ## Recorded Cleanup
 
+The [M5-11.6.1 terminal receipt](maintenance/M5_11_6_1_TERMINAL_CLEANUP.md)
+records completed quarterly study/verifier owners, two exact inactive test-root
+removals and 40,492 protected files unchanged. It distinguishes linked-path
+retention from unique-inode bytes and reports the actual -819,200-byte free-space
+delta without claiming a net saving. All native/data/source/failure evidence and
+current tooling remain; no release or economic promotion follows from cleanup.
+
 The [M5-11.6.1 admission receipt](maintenance/M5_11_6_1_ADMISSION_CLEANUP.md)
 records eight completed original HMA controls, 104 pure-tool tests and exact
 inactive scratch removal after host-process review. It preserves two agent XML

@@ -2,25 +2,23 @@
 
 ## Current Mode 5 Diagnostics-First Upgrade - Full-Development Decision Support
 
-**Current execution request (2026-10-16, UTC):** the owner approves implementing
-[M5-11.6.1](#mode5-m5-11-6-1), after M5-11.6 and before M5-11.7, under the
-quarterly protocol and its prospective resource gate. Status is APPROVED /
-IN_PROGRESS / Q03_NOT_ADMITTED: eight actual HMA controls and cold prefix
-worksheets are retained, but the conservative partial search forecast exceeds
-the 90-minute queue cap. No optimizer or quarterly economic comparison has run.
-See the [admission report](../docs/mode5/M5_11_6_1_ADMISSION_REPORT.md). The owner
-chooses resource cleanup and option2: design fast intrabar variants for review
-before variant implementation/finance. The [variant proposal](../docs/mode5/M5_11_6_1_FAST_VARIANT_DESIGN.md)
-records semantic changes and retains original-alpha claim boundaries. The owner
-subsequently instructs implementation/continuation now: variants are APPROVED /
-IMPLEMENTED / TIMING_ADMITTED; source-sealed study follows the
-[implementation receipt](../docs/mode5/M5_11_6_1_IMPLEMENTATION_REPORT.md). Cleanup of the prior pilot
-is complete; no long queue, changed public default or M5-11.7 work is activated.
-The phase must conclude what to retain, upgrade
-opt-in or standardize in Mode 4 before reporting proceeds.
-Its 19-quarter calendar does not provide twelve mature evaluation quarters
-after twelve acquired origins; keep the existing meta support rule and record
-that limit rather than borrowing monthly history or weakening a scientific gate.
+**Current execution disposition (2026-10-16, UTC):**
+[M5-11.6.1](#mode5-m5-11-6-1) is COMPLETE_LOCAL_REGISTERED_RESEARCH.
+All nine sampler cells finish 19 quarterly folds/128 attempts: 21,888 proposal
+slots. Five prefix diagnostics, 34 continuous saved-schedule account replays,
+146 targeted accounting/future-market checks, independent measurement/history
+qualification and terminal cleanup are complete. The
+[decision report](../docs/mode5/M5_11_6_1_QUARTERLY_DECISION_REPORT.md) and
+[sanitized handoff](../docs/mode5/M5_11_6_1_QUARTERLY_SUMMARY.json) separate
+sampler, selector, own-anchor meta and common-reference effects.
+The fixed economic family is INCONCLUSIVE because some raw measurements have
+NO_VARIANCE; this is not missing financial work. VWAP/group's native family
+has no mature model; its floor family is exercised and this limit stays explicit.
+Keep Mode 4 defaults and existing opt-ins; recommend shared diagnostics, not
+an automatic sampler/floor replacement. Existing positive RSI evidence remains.
+The [cleanup](../docs/maintenance/M5_11_6_1_TERMINAL_CLEANUP.md) verifies 40,492
+protected files. Original/variant differences and all failed lanes remain.
+M5-11.7/M5-12, CI, push, merge, version/tag and release are not activated.
 
 **Current M5-11.6 readback:** all four original monthly/730D studies close 57
 folds each, with corrected HMA history, all eight continuous accounts and local
@@ -27486,7 +27484,8 @@ COMPLETE_LOCAL_REGISTERED_C01_C08. The subsequent owner request adds
 [M5-11.6](#mode5-m5-11-6), now locally complete for its registered work with
 family economics INCONCLUSIVE, and [M5-11.7](#mode5-m5-11-7), still PROPOSED /
 NOT_STARTED. The 2026-10-16 planning amendment inserts quarterly
-[M5-11.6.1](#mode5-m5-11-6-1), now APPROVED / IN_PROGRESS / Q03_NOT_ADMITTED,
+[M5-11.6.1](#mode5-m5-11-6-1), now COMPLETE_LOCAL_REGISTERED_RESEARCH with
+economic family INCONCLUSIVE,
 for the owner's Mode 4 retain/upgrade decision before M5-11.7. M5-12 awaits these reviewed dispositions
 as well. Preserve all
 historical study receipts; no earlier completion status is reopened by this plan.
@@ -35158,19 +35157,17 @@ preserve scientific receipts/accounts and verify hashes/free bytes after cleanup
 <a id="mode5-m5-11-6-1"></a>
 ### Phase M5-11.6.1 - Quarterly Diagnostics-Guided Mode 4 Research And Upgrade Decision
 
-**Status:** APPROVED / IN_PROGRESS / FAST_VARIANT_TIMING_ADMITTED. The owner subsequently
-approved implementation on 2026-10-16 after the quarterly planning commit.
-Fixed controls/source-bound tests are executed below; main financial search
-still requires its timing/resource admission. Following the design-only closeout,
-the owner now explicitly approves implementation/continuation of the fast
-intrabar variants. The [implementation receipt](../docs/mode5/M5_11_6_1_IMPLEMENTATION_REPORT.md)
-records shared execution/policy bindings, exact feature qualification, 16 unique
-original bridge controls and the 81.31-minute conditional whole-work forecast.
-Q03 fixed gates and Q04 bindings are implemented; Q05--Q08 actual research,
-checkpoint qualification, decision matrix and terminal cleanup remain.
-No public default, alpha,
-endpoint, old source receipt, scientific target, M5-11.7, M5-12, CI or release
-is activated. This is not a complete phase or economic PASS.
+**Status:** COMPLETE_LOCAL_REGISTERED_RESEARCH / OWNER_DECISION_PENDING.
+Q01--Q08 admitted work is terminal: nine cells/171 studies/21,888 attempts,
+five prefix dossiers, 34 continuous accounts with exact replay, 146 selected
+account/isolation checks and cleanup. See the
+[final decision report](../docs/mode5/M5_11_6_1_QUARTERLY_DECISION_REPORT.md).
+Supported accounting/causality/measurement checks PASS. Eight cells have full
+actual-pool qualification (two exact-source receipt reuses); VWAP/group retains
+INCONCLUSIVE_NO_MATURE_MODEL for its native family, with its floor-family fit
+checked. Economic family INCONCLUSIVE is an explicit research disposition,
+not fabricated positive evidence or missing implementation. No public default,
+original alpha, endpoint, old receipt, M5-11.7/M5-12, CI or release changes.
 **Goal:** use a finite, matched, faster quarterly research experiment to decide
 which Mode 4 components should remain unchanged, become explicitly opt-in or
 share the existing diagnostics/registry infrastructure. Separate candidate
@@ -35603,6 +35600,58 @@ not fabricated proof or silently deferred implementation.
   receipts are retained before scratch removal. Initial cleanup-loader failure
   is preserved separately; no service/kernel or unrelated cache was touched.
   No optimizer, new variant, M5-11.7/M5-12, remote or release is activated.
+
+**Executed Quarterly Closeout (2026-10-16, UTC):**
+- The owner approves the named fast variants, whose execution ablations remain
+  explicit. Original bridge controls are not global alpha-equivalence claims.
+  Shared original WFO/sampler/meta owners and public prepared Rust intrabar
+  accounting execute the research; no cloned financial engine or optimizer.
+- All 19 quarters/128 attempts finish for nine cells: 21,792 COMPLETE and
+  96 PRUNED. Two sampler pools support eight policies per primary alpha;
+  the matched RSI reference uses one pool/two policies. All 34 final continuous
+  accounts independently reproduce paths, costs, margin, protection and fills.
+- Five outcome-blind first-IS dossiers use 266 additional probes; 3,080 forward
+  observer accounts preserve own-anchor labels. Independent actual-pool
+  off/shadow/active, maturity, Rust/reference, future/late-label and positive
+  past-correction checks are retained. Actual first-fit account checkpoints
+  cover each family separately; 146 targeted runs verify saved forward witnesses,
+  independent daily arithmetic and nonempty future-suffix path invariance.
+- Keep all observations/dispositions. Primary group/floor/OFF versus legacy/
+  native/OFF R/Q: SC +0.0350/-0.2438 (18 pairs), HMA +0.5098/+0.1615 (18),
+  HASH -0.3477/-0.1911 (19), VWAP +1.3992/+0.8969 (13). Undefined NO_VARIANCE
+  coordinates prevent the fixed all-19 eight-coordinate inference; no bootstrap
+  interval is fabricated or incomplete family replaced after outcomes.
+- Own-native legacy meta learned-pair R/Q is SC -0.4955/-1.1544 (5),
+  HMA +0.9928/+0.0747 (5), HASH +1.2379/+0.8046 (6), VWAP +0.3151/+0.3095 (1);
+  matched RSI +4.7910/+1.9516 (6). Group and floor-anchor contrasts, lower-IS
+  decomposition, actual sealed versus paired-valid fit counts and risk/costs
+  are all handed off. No general twelve-learned-quarter promotion is claimed.
+- First export and host RAM-guard failures remain FAIL_RETAINED. Completed
+  folds/history and each ordered partial-IS proposal/score are checked before
+  successor continuation; no seed-only or exact full-WFO recovery claim.
+  Three-worker successor finishes under unchanged science/budgets. Financial
+  queues total 3,127.72s including failures; serial qualification 1,104.64s,
+  combined 70.54min versus prospective 90min. This is not an unchanged-original-
+  alpha or independently timed production meta-on/off speedup.
+- Independent review closes three verifier gaps before final qualification:
+  hashes bind consumed local artifacts, policy sets cannot be silently absent,
+  and each family's first-fit checkpoint is included. Fifteen hardening tests,
+  seven ordered-prefix tests and 54 default schedule/sampler/shard regressions
+  PASS; earlier source-bound suites are reused. The failed hardening test XML
+  remains retained; no financial output depended on that verifier version.
+- [Terminal cleanup](../docs/maintenance/M5_11_6_1_TERMINAL_CLEANUP.md) preserves
+  40,492 protected files, source archives, all failures, native/data/tooling;
+  only exact inactive test scratch is removed. Actual free-space change is
+  -819,200 bytes, not a claimed net saving. Current guard-counted retention
+  stays below512MiB; free disk about5.85GiB. Rules/plan pins remain frozen until
+  all lane owners exit; only these later documentation statuses change.
+- Recommendation: KEEP_CURRENT_MODE4 defaults; STANDARDIZE_SHARED_DIAGNOSTICS_ONLY.
+  Existing explicit sampler/meta opt-ins are not disabled. Positive HASH/legacy
+  and RSI meta observations remain; sampler/selector interactions and limited
+  quarterly support rule out a universal replacement. The
+  [report](../docs/mode5/M5_11_6_1_QUARTERLY_DECISION_REPORT.md) and
+  [sanitized JSON](../docs/mode5/M5_11_6_1_QUARTERLY_SUMMARY.json) form the M5-11.7
+  handoff. Owner review precedes any further phase or activation; no push/release.
 
 <a id="mode5-m5-11-7"></a>
 ### Phase M5-11.7 - Mode 4/5 Complete Researcher Reports And Decision Qualification
