@@ -82,3 +82,45 @@ def test_late_published_january_label_excluded_by_actual_frontier():
                label_available_at="2024-01-31T23:00:14Z",
                revision_available_at="2024-01-31T23:00:20Z")
     assert not permitted_calibration_rows([row], "A-HMA", "2024-01-31T23:00:00Z")
+
+
+def test_complete_calendar_bootstrap_matches_constant_independent_oracle():
+    paired = paired_coordinates(rows_fixture(), "base")
+    inferred = family_inference(paired)
+    assert inferred["numerical_bootstrap_executed"]
+    assert inferred["intervals"]["P1:delta_loss"] == [-1., -1.]
+    assert inferred["intervals"]["P1:delta_Q"] == [1., 1.]
+    assert inferred["intervals"]["P1:delta_R"] == [3., 3.]
+    assert inferred["coordinate_confidence"] == pytest.approx(1-(1-.95)/6)
+
+
+def test_pilot_gate_forecasts_before_scale_and_rejects_cost_excess():
+    from tools.meta_model_research.replay import pilot_gate
+    rows = [dict(group=g, wall_seconds=.2) for g in GROUPS for _ in range(3)]
+    result = pilot_gate(rows, StudyProtocol(), elapsed_cpu=100)
+    assert result["status"] == "ADMITTED"
+    assert result["conservative_remaining_seconds"] == pytest.approx(449.6)
+    with pytest.raises(ValueError, match="twelve"):
+        pilot_gate(rows[:3], StudyProtocol(), elapsed_cpu=0)
+    with pytest.raises(ValueError, match="CPU"):
+        pilot_gate([dict(r, wall_seconds=10) for r in rows], StudyProtocol(), elapsed_cpu=0)
+
+
+def test_recovery_retains_null_reasons_and_checks_actual_prediction_loss():
+    from tools.meta_model_research.recovery import complete_metric_evidence
+    from tools.meta_model_research.linear import evaluate_revision
+    from tests.meta_selection.test_mlr02_linear import corpus, artifact
+    data = corpus()
+    _, a = artifact(data)
+    revision = revision_for(data[3], data[0])
+    metrics = evaluate_revision(a, revision,
+        available_as_of=revision.revision_available_at + __import__("pandas").Timedelta(seconds=1))
+    row = dict(scored_rows=metrics.scored_rows, loss=metrics.metrics["y_mse"],
+               metric_status=metrics.status, served_metrics=dict(metrics.metrics))
+    recovered = complete_metric_evidence(row, a.decision.predictions, revision, "union")
+    assert recovered["metric_null_reasons"] == dict(metrics.null_reasons)
+    assert recovered["label_statuses"] == dict(metrics.label_statuses)
+    if row["loss"] is not None:
+        broken = dict(row, served_metrics=dict(row["served_metrics"], y_mse=row["loss"]+1))
+        with pytest.raises(ValueError, match="metric differs"):
+            complete_metric_evidence(broken, a.decision.predictions, revision, "union")

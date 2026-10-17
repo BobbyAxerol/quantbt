@@ -21,6 +21,7 @@ from quantbt.optimization.meta_selection.numerics import NumericRuntime
 from .admission import PUBLIC, ROOT, load_corpus, pin, read, save_new, verify_freeze
 from .linear import LinearResearch, Policy, dumps_artifact, evaluate_revision, loads_artifact
 from .protocol import GROUPS, StudyProtocol, choose_recipe
+from .recovery import add_null_evidence, recover_group
 
 
 def base_revision(revision):
@@ -109,17 +110,23 @@ def persist_gzip(path, value):
 
 
 class Replay:
-    def __init__(self, output):
+    def __init__(self, output, *, registration=None, reuse=None):
         self.output, self.protocol = Path(output), StudyProtocol()
+        self.registration = registration or PUBLIC / "ml01_registration_v2.json"
+        self.reuse = Path(reuse) if reuse else None
         self.started, self.cpu_started = time.perf_counter(), time.process_time()
+        self.previous_work = read(self.reuse / "failure.json") if self.reuse else None
         self.runtime = NumericRuntime(native_policy="require")
-        self.linear = LinearResearch(runtime=self.runtime, max_fits=4000, max_cache_entries=64)
+        reserve = (self.previous_work["fits"]["regression_fit_charge"] + 2 + 400
+                   if self.previous_work else 400)
+        self.linear = LinearResearch(runtime=self.runtime, max_fits=4000-reserve, max_cache_entries=64)
         self.fit_seconds = self.rank_seconds = self.report_seconds = 0.
         self.restore_checks = self.saved_matches = self.reference_solves = 0
 
     def guard(self):
         p = self.protocol
-        if time.process_time() - self.cpu_started > p.max_cpu_seconds:
+        if (time.process_time() - self.cpu_started +
+                (self.previous_work["cpu_seconds"] if self.previous_work else 0)) > p.max_cpu_seconds:
             raise ValueError("registered CPU ceiling reached")
         if resource.getrusage(resource.RUSAGE_SELF).ru_maxrss * 1024 > p.max_rss_bytes:
             raise ValueError("registered RSS ceiling reached")
@@ -133,7 +140,8 @@ class Replay:
         if sum(f.stat().st_size for f in self.output.rglob("*") if f.is_file()) > p.max_incremental_bytes:
             raise ValueError("retained byte ceiling reached")
 
-    def execute(self, corpus, fold, policy, panel, *, retain_restore=False, measure=True):
+    def execute(self, corpus, fold, policy, panel, *, retain_restore=False, measure=True,
+                artifact_stage="outer"):
         self.guard()
         revision, saved = corpus.revisions[fold], corpus.selections[fold]
         snapshot = view(corpus.snapshot(fold), panel)
@@ -164,6 +172,8 @@ class Replay:
                    loss=metrics.metrics["y_mse"] if metrics else None,
                    served_metrics=wire(metrics.metrics) if metrics else {},
                    metric_status=metrics.status if metrics else "PILOT_NO_OUTCOME_READ",
+                   metric_null_reasons=wire(metrics.null_reasons) if metrics else {},
+                   label_statuses=wire(metrics.label_statuses) if metrics else {},
                    known_rows=metrics.known_rows if metrics else None,
                    scored_rows=metrics.scored_rows if metrics else None,
                    economics=forward_effect(artifact, revision) if measure else None,
@@ -174,57 +184,88 @@ class Replay:
                                       available_as_of=artifact.decision.ready_at,
                                       task=task, schema=corpus.schema)
             assert restored.artifact_id == artifact.artifact_id
-            persist_gzip(self.output / "portable" / f"{corpus.group}-{fold:02d}-{panel}-{policy.name}.json.gz",
+            persist_gzip(self.output / "portable" / artifact_stage /
+                         f"{corpus.group}-{fold:02d}-{panel}-{policy.name}.json.gz",
                          json.loads(text))
             self.restore_checks += 1
         self.report_seconds += time.perf_counter() - tick
         return row, artifact
 
     def run(self):
-        registration = read(PUBLIC / "ml01_registration_v2.json")
+        registration = read(self.registration)
         if registration["protocol_id"] != self.protocol.protocol_id:
             raise ValueError("protocol changed after preregistration")
         for source in registration["source_pins"]:
             if pin(source["path"]) != source:
                 raise ValueError("sealed admission/protocol code changed")
+        for source in registration.get("reuse_pins", ()):
+            if pin(source["path"]) != source:
+                raise ValueError("retained partial replay input changed")
+        if self.reuse is not None and registration.get("reuse_root") != str(self.reuse.resolve()):
+            raise ValueError("unregistered recovery root")
         verify_freeze()
         self.output.mkdir(parents=True, exist_ok=False)
         save_new(self.output / "start.json", dict(created_at=datetime.now(timezone.utc).isoformat(),
-                  registration=pin(PUBLIC / "ml01_registration_v2.json"),
+                  registration=pin(self.registration),
                   sources=[pin(Path(__file__)), pin(Path(__file__).with_name("linear.py"))],
                   protocol_id=self.protocol.protocol_id, real_data_outcomes_opened=False))
         corpora = {g: load_corpus(g) for g in GROUPS}
         cutoff = min(c.revisions[25].task.data_cutoff for c in corpora.values())
         pilot, pilot_tick = [], time.perf_counter()
-        for group, corpus in corpora.items():
-            first = next(i for i in range(57) if corpus.snapshot(i).origin_count >= 12)
-            for fold in (first, 40, 56):
-                tick = time.perf_counter()
-                row, _ = self.execute(corpus, fold, Policy("P0"), "union", retain_restore=True,
-                                      measure=False)
-                pilot.append(dict(group=group, fold=fold, K=row["K"],
-                                  wall_seconds=time.perf_counter()-tick))
-        save_new(self.output / "pilot.json", dict(rows=pilot, fits=12,
-                  wall_seconds=time.perf_counter()-pilot_tick,
-                  peak_rss_mib=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024,
-                  conservative_fit_upper_bound=2248, physical_solves_counted_separately=True))
+        if self.reuse:
+            previous_pilot = read(self.reuse / "pilot.json")
+            pilot = previous_pilot["rows"]
+        else:
+            for group, corpus in corpora.items():
+                first = next(i for i in range(57) if corpus.snapshot(i).origin_count >= 12)
+                for fold in (first, 40, 56):
+                    tick = time.perf_counter()
+                    row, _ = self.execute(corpus, fold, Policy("P0"), "union", retain_restore=True,
+                                          measure=False, artifact_stage="pilot")
+                    pilot.append(dict(group=group, fold=fold, K=row["K"],
+                                      wall_seconds=time.perf_counter()-tick))
+        forecast = pilot_gate(pilot, self.protocol,
+            elapsed_cpu=time.process_time()-self.cpu_started +
+                        (self.previous_work["cpu_seconds"] if self.previous_work else 0))
+        save_new(self.output / "pilot.json", dict(rows=pilot, new_fits=0 if self.reuse else 12,
+                  reused_from=pin(self.reuse / "pilot.json") if self.reuse else None,
+                  wall_seconds=time.perf_counter()-pilot_tick, forecast=forecast,
+                  peak_rss_mib=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024))
         all_rows, recipes = [], {}
         for panel in ("base", "union"):
-            development = []
-            for group, corpus in corpora.items():
-                for fold in self.protocol.development_folds:
-                    revision = corpus.revisions[fold]
-                    if revision.revision_available_at >= cutoff:
-                        continue
-                    for alpha in self.protocol.grid:
-                        row, _ = self.execute(corpus, fold, Policy("P2", alpha), panel)
-                        development.append(row)
+            if self.reuse:
+                development = [add_null_evidence(row,
+                    corpora[row["group"]].revisions[row["fold"]], panel)
+                    for row in read(self.reuse / f"{panel}-development.json.gz")]
+                for row in development:
+                    if row["cutoff"] != corpora[row["group"]].revisions[row["fold"]].task.data_cutoff.isoformat():
+                        raise ValueError("recovered inner chronological identity changed")
+            else:
+                development = []
+                for group, corpus in corpora.items():
+                    for fold in self.protocol.development_folds:
+                        revision = corpus.revisions[fold]
+                        if revision.revision_available_at >= cutoff:
+                            continue
+                        for alpha in self.protocol.grid:
+                            row, _ = self.execute(corpus, fold, Policy("P2", alpha), panel)
+                            development.append(row)
             panel_recipes = {g: choose_recipe(development, g, cutoff) for g in GROUPS}
             recipes[panel] = panel_recipes
             # Seal calibration before reading any new outer winner outcome.
             persist_gzip(self.output / f"{panel}-development.json.gz", development)
             save_new(self.output / f"{panel}-recipes.json", stringify_keys(panel_recipes))
             for group, corpus in corpora.items():
+                existing = self.reuse / f"{panel}-{group}-rows.json.gz" if self.reuse else None
+                if existing is not None and existing.exists():
+                    group_rows, predictions = recover_group(read(existing),
+                        read(self.reuse / f"{panel}-{group}-predictions.json.gz"),
+                        corpus, panel, panel_recipes[group])
+                    persist_gzip(self.output / f"{panel}-{group}-rows.json.gz", group_rows)
+                    persist_gzip(self.output / f"{panel}-{group}-predictions.json.gz", predictions)
+                    all_rows.extend(group_rows)
+                    print(panel, group, "recovered57", flush=True)
+                    continue
                 group_rows, predictions = [], []
                 for fold in range(57):
                     recipe = panel_recipes[group]
@@ -241,6 +282,9 @@ class Replay:
                         group_rows.append(row)
                         predictions.append(dict(fold=fold, policy=name, fit_id=row["research_fit_id"],
                                                 predictions=wire(artifact.decision.predictions)))
+                    persist_gzip(self.output / "fold-checkpoints" / f"{panel}-{group}-{fold:02d}.json.gz",
+                                 dict(rows=[r for r in group_rows if r["fold"] == fold],
+                                      predictions=[r for r in predictions if r["fold"] == fold]))
                     print(panel, group, fold, "fits", self.linear.fit_count, flush=True)
                 persist_gzip(self.output / f"{panel}-{group}-rows.json.gz", group_rows)
                 persist_gzip(self.output / f"{panel}-{group}-predictions.json.gz", predictions)
@@ -250,6 +294,8 @@ class Replay:
                       created_at=datetime.now(timezone.utc).isoformat(), registration=registration["protocol_id"],
                       rows=all_rows, recipes=stringify_keys(recipes), saved_p0_matches=self.saved_matches,
                       portable_restore_checks=self.restore_checks,
+                      previous_failed_work=self.previous_work,
+                      recovery_scope="completed model-replay groups, not full-WFO recovery",
                       logical_fit_ledger=self.linear.metadata, native=wire(self.runtime.metadata),
                       wall_seconds=time.perf_counter()-self.started,
                       cpu_seconds=time.process_time()-self.cpu_started,
@@ -268,11 +314,31 @@ def stringify_keys(value):
     return value
 
 
+def pilot_gate(rows, protocol, *, elapsed_cpu):
+    if len(rows) != 12 or {r["group"] for r in rows} != set(GROUPS):
+        raise ValueError("twelve registered representative pilot cells required")
+    times = [r["wall_seconds"] for r in rows]
+    projected = max(times) * 2248
+    if (not all(np.isfinite(t) and t > 0 for t in times) or
+            projected + elapsed_cpu > protocol.max_cpu_seconds):
+        raise ValueError("pilot forecast exceeds remaining registered CPU budget")
+    retained_forecast, rss_forecast = 32*1024**2, 768*1024**2
+    if retained_forecast > protocol.max_incremental_bytes or rss_forecast > protocol.max_rss_bytes:
+        raise ValueError("pilot memory/storage forecast exceeds registered budget")
+    return dict(status="ADMITTED", median_cell_seconds=float(np.median(times)),
+                worst_cell_seconds=max(times), conservative_remaining_seconds=projected,
+                elapsed_cpu_seconds=elapsed_cpu, max_cpu_seconds=protocol.max_cpu_seconds,
+                retained_forecast_bytes=retained_forecast, rss_forecast_bytes=rss_forecast,
+                remark="conservative cold-host bound, not ETA; runtime/disk/RAM guards stay active")
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--registration", type=Path)
+    parser.add_argument("--reuse", type=Path)
     args = parser.parse_args()
-    runner = Replay(args.output)
+    runner = Replay(args.output, registration=args.registration, reuse=args.reuse)
     try:
         print(runner.run())
     except Exception as exc:

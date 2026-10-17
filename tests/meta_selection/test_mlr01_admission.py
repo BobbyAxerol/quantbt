@@ -82,6 +82,13 @@ def test_support_and_complete_blocks_cannot_be_faked_by_rows():
         choose_recipe(rows * 30, "A-SC", "2024-01-31T23:00Z")
 
 
+def test_partial_blocks_are_not_intact_calibration_blocks():
+    rows = [r for r in calibration_rows() if r["fold"] in (13, 16, 19, 22)]
+    result = choose_recipe(rows, "A-SC", "2024-01-31T23:00Z")
+    assert result["policy"] == "P0"
+    assert result["reason"] == "CALIBRATION_BLOCK_SUPPORT_INSUFFICIENT"
+
+
 def test_macro_group_not_candidate_row_weights():
     rows = [dict(group="a", loss=0.)] * 100 + [dict(group="b", loss=10.)]
     assert macro_mean(rows) == 5.

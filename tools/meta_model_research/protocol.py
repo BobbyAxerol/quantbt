@@ -110,7 +110,9 @@ def choose_recipe(rows, held_out, cutoff, protocol=StudyProtocol()):
     for start in range(13, 25, protocol.block_months):
         block = [r for r in selected if r["alpha"] == best and r["loss"] is not None
                  and start <= r["fold"] < start + protocol.block_months]
-        if {r["group"] for r in block} == set(groups):
+        required = {(g, fold) for g in groups
+                    for fold in range(start, start + protocol.block_months)}
+        if {(r["group"], r["fold"]) for r in block} == required:
             block_values.append(macro_mean(block))
     if len(block_values) < 3:
         return dict(policy="P0", alpha=None, reason="CALIBRATION_BLOCK_SUPPORT_INSUFFICIENT",
