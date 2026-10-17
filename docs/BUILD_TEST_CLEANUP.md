@@ -91,6 +91,14 @@ proof. Resume domain work only after disk and evidence checks are complete.
 
 ## Recorded Cleanup
 
+The [M4-ML-03](maintenance/M4_ML_03_CLEANUP.md),
+[ML-04](maintenance/M4_ML_04_CLEANUP.md) and
+[ML-05](maintenance/M4_ML_05_CLEANUP.md) receipts record terminal research/test
+owners, exact ignored fixture cleanup and unchanged protected model/account
+evidence. The private CPU-only wheel remains for offline research; no core
+environment, native artifact, service or scientific result was removed.
+These source-only KEEP_V1 receipts are not final-wheel or public release proofs.
+
 The [M4-ML-01/02 receipt](maintenance/M4_ML_01_02_CLEANUP.md) records exact
 inactive fixture cleanup with 425 protected hashes and 170 host processes
 reviewed. ML-02 observed +2,211,840 available bytes; all failed/passing replay,

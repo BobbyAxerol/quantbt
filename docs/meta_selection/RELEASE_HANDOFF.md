@@ -95,6 +95,28 @@ are retained. [Cleanup](../maintenance/MET03_CLEANUP.md) preserves artifacts and
 records the resolved transient inode-budget miss; owner final review remains
 PENDING rather than labelling that operational variance PASS.
 
+## Model Research Handoff
+
+**2026-10-17, Asia/Saigon:** sequential M4-ML-01..05 is complete locally;
+the [final decision](M4_ML_05_FINAL_DECISION.md) is KEEP_FROZEN_V1. P1 misses
+the registered gain gate; P2 and the five Bayesian/Huber/XGBoost settings lack
+complete common-calibration support. X2's descriptive development MSE gain is
+not promotion. Actual mature/late future controls and 128 retained P0 decisions
+pass; 24 original financial files remain exact. New-family actual adaptation
+and alternative-account economics are explicitly not executed without nominees.
+
+The [closure](../../benchmarks/optimization/meta_selection/model_research_v1/ml05_closure.json)
+binds source-only research, optional-library absence, cold reports and cleanup.
+Private CPU-wheel qualification adds no mandatory package dependency or public
+learner option. No production source, account engine, scientific target, sampler
+default or ABI changes in this research tranche. Earlier RSI positives and
+negative/undefined four-alpha evidence remain retained.
+
+M5-11.7 and M5-12 still require separate owner approval. Research completion is
+not a final-source installed-wheel, manylinux, remote matrix or public-index
+certificate; current release gates above remain pending. No workflow, push,
+merge, tag, new artifact build or publication was initiated here.
+
 ## Non-Publishing Qualification
 
 From the feature branch, with QuantBT's own tooling installed:

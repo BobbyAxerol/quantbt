@@ -16,7 +16,14 @@ authorize another learner or claim that these hyperparameters are optimal.
 The [completed ML-01/02 comparison](M4_ML_02_CALIBRATION_REPORT.md) retains V1:
 normalization-only P1 misses the registered gain gate; common calibration P2
 falls back on insufficient support. These are research-only policies, not new
-public learner options. Model-family research still requires separate approval.
+public learner options. The subsequent approved
+[ML-03 family screen](M4_ML_03_FAMILY_REPORT.md) and
+[ML-04 decision qualification](M4_ML_04_DECISION_REPORT.md) are complete locally.
+The [ML-05 final decision](M4_ML_05_FINAL_DECISION.md) retains V1: CPU-only
+Bayesian/Huber/XGBoost research prototypes are qualified at the research seam,
+but none has sufficient common nomination support for a replacement or real
+adaptive rollout. They are not public learner options or mandatory dependencies.
+No claim that lambda 10 is universally optimal or other families lack value.
 
 Read [history and descriptors](HISTORY.md) first. The authoritative requirements
 are [guide section 5](../../upgrade/QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s5)

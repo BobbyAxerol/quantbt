@@ -11,14 +11,16 @@ The [comparison](../docs/meta_selection/M4_ML_02_CALIBRATION_REPORT.md) retains
 V1: P1's primary macro loss improvement is 0.547%, below the 2% gate; P2
 correctly falls back for insufficient complete-block support. Missing selected
 outcomes prevent registered family inference; this is not proof of no edge.
-Owner has now authorized sequential ML-03 -> ML-04 -> ML-05. ML-03 framework
-and synthetic qualification are IN_PROGRESS; its
-[finite roster worksheet](../docs/meta_selection/M4_ML_03_PROTOCOL.md) now has
-owner approval; exact optional CPU-wheel admission precedes outcome comparison.
-ML-04/05 are QUEUED_AFTER_PREDECESSOR_GATE; older M5 phases remain unactivated.
-No new optimizer, full WFO study, production/default activation, remote CI or
-release is authorized. Optional private research dependency and bounded ML-04
-queries require their registered artifact/resource and predecessor gates.
+The sequential approved ML-03 -> ML-04 -> ML-05 work is COMPLETE_LOCAL;
+the [final decision](../docs/meta_selection/M4_ML_05_FINAL_DECISION.md) remains
+KEEP_FROZEN_V1. The exact private CPU wheel and 480 development cells are
+qualified; X2 improves descriptive macro MSE 2.59%, but no held-out group has
+complete nomination support. Actual mature/late model controls, 128 retained P0
+decisions and 24 original account-file hashes pass. No new-family adaptive or
+economic rollout is claimed. All admitted implementation gaps are closed;
+broader evidence remains explicitly INCONCLUSIVE. Older M5 phases remain
+unactivated. No new research optimizer, full WFO study, production/default
+activation, remote CI, artifact build or release is authorized.
 The detailed [research guide](QUANTBT_MODE4_META_LEARNER_RESEARCH_GUIDE_V1.md)
 requires common calibration procedures, held-out alpha-group plus chronological
 evaluation, unchanged target/guard primary comparisons and explicit cost gates.
@@ -35761,7 +35763,7 @@ and [14 economics](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI
 | M4-ML-02 | Fixed versus generally calibrated regularization | COMPLETE_LOCAL; technical PASS, empirical INCONCLUSIVE, KEEP_FROZEN_V1 |
 | M4-ML-03 | Cheap supervised challengers and alternative-family feasibility | COMPLETE_LOCAL; 480 cells, zero supported nominees; KEEP_V1 |
 | M4-ML-04 | Served decisions, chronology and bounded actual economics | COMPLETE_LOCAL; mature controls/fallback/account custody PASS; nominee economics N/A |
-| M4-ML-05 | Retain/opt-in/defer decision and old-phase handoff | APPROVED / QUEUED_AFTER_ML04_GATE |
+| M4-ML-05 | Retain/opt-in/defer decision and old-phase handoff | COMPLETE_LOCAL; KEEP_FROZEN_V1, optional research only; old phases await approval |
 
 <a id="m4-ml-01"></a>
 ### Phase M4-ML-01 - Frozen Ridge Baseline, Evidence Admission And Study Registration
@@ -36070,7 +36072,19 @@ evidence is a declared scope limit, never an implicit production promotion.
 <a id="m4-ml-05"></a>
 ### Phase M4-ML-05 - Model Decision, Compatibility And Research Handoff
 
-**Status:** APPROVED / QUEUED_AFTER_ML04_GATE (2026-10-17, Asia/Saigon).
+**Status:** COMPLETE_LOCAL / KEEP_FROZEN_V1 (2026-10-17, Asia/Saigon).
+The [final decision](../docs/meta_selection/M4_ML_05_FINAL_DECISION.md) and
+[closure](../benchmarks/optimization/meta_selection/model_research_v1/ml05_closure.json)
+bind the common model/policy matrix, measured support/cost/limits, exact cold
+report regeneration, fresh optional-XGBoost absence and affected regressions.
+Production/core/native/dependency sources remain unchanged; prototypes stay in
+research tools, not a new public learner registry. No real adaptive policy or
+new-family financial account is called qualified without supported nominees.
+ML-03/04 add 576 counted research numeric/reference/qualification fits total,
+separate from ML-01/02 historical work and software-test fits. No admitted
+implementation defects remain. Ranker/unsupervised economic selection and more
+support are explicitly deferred research, not hidden production capabilities.
+M5-11.7/M5-12, remote qualification and release remain separately approved work.
 **Goal:** resolve the question with one auditable retain/opt-in/defer decision,
 clear generic hyperparameter semantics and no compulsory new dependency.
 **Entry:** MLR-01..04 receipts and scope dispositions, unchanged V1 comparator.
@@ -36122,7 +36136,7 @@ not hidden technical debt or a reason to keep optimizing indefinitely.
 
 **Status:** PROPOSED / NOT_STARTED; separate owner approval after M5-11.6 and
 [M5-11.6.1](#mode5-m5-11-6-1) dispositions, including the owner's reviewed
-Mode 4 retain/upgrade/standardization decision and the newly proposed
+Mode 4 retain/upgrade/standardization decision and the completed KEEP_FROZEN_V1
 [M4-ML research disposition](#m4-ml-research). No new search or report
 implementation is authorized by this plan.
 **Goal:** provide a compact, quantitative and interpretable report explaining
