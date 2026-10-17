@@ -36131,6 +36131,29 @@ report/regression work using the existing environment; exact cleanup receipt.
 **Debt policy:** unsupported scientific ambitions are named/deferred explicitly,
 not hidden technical debt or a reason to keep optimizing indefinitely.
 
+**Owner-approved cold supplement (2026-10-17, Asia/Saigon):** compare constant
+served Y=0 against P0/B1/H135/H200/X2/X3 on exactly the retained development
+label IDs, origins and origin/group weights. This is a descriptive zero-reference
+skill check, not classical mean-reference R-squared, new calibration or a change
+to nomination/production. Both acquisition panels retain their own masks/nulls;
+any cross-model mask mismatch fails explicitly. Recompute model MSE from saved
+predictions and qualified labels and require agreement with the old table.
+No fit, optimizer, financial execution, new dependency or future phase activation.
+Budget: <=120 CPU seconds, <=1.5 GiB RSS, <=2 MiB incremental retained/scratch,
+>=5 GiB free disk; scratch only
+`upgrade/private/meta_model_research_v1/ml05/zero-01/scratch`.
+Retain immutable prior receipts; add a separate report/receipt and focused oracle
+tests, then exact cleanup/commit. The historical ML-05 closure remains unchanged.
+**Supplement result:** COMPLETE_LOCAL / DESCRIPTIVE_ONLY. Exact matched masks
+give primary zero MSE 10.712354, P0 9.750550 (8.98% zero-reference skill), X2
+9.497639 (11.34%). HMA P0/X2 are worse than zero. All previous model MSE values
+reproduce; 33 origins/451 labels primary, 33/476 union; 15 unscored origins per
+panel stay explicit. Six focused tests PASS, zero fits/finance/optimizer calls;
+no test scratch was created or deleted. See the
+[report](../docs/meta_selection/M4_ML_05_ZERO_BASELINE.md) and
+[supplement closure](../benchmarks/optimization/meta_selection/model_research_v1/ml05_zero_closure.json).
+This does not revise nomination, prior closures, KEEP_V1 or future-phase approval.
+
 <a id="mode5-m5-11-7"></a>
 ### Phase M5-11.7 - Mode 4/5 Complete Researcher Reports And Decision Qualification
 
