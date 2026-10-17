@@ -47,6 +47,7 @@ def test_unknown_forward_is_not_zero_or_a_conveniently_known_winner():
         check_economics(row,revision)
     row['economics']=dict(status='MISSING_OR_UNDEFINED_WINNER_WITNESS',winner_witness_exists=False,R=None,Q=None,IS_effect=None)
     assert not check_economics(row,revision)
-    other=deepcopy(row); other['economics']['Q']=0.0
+    other = deepcopy(row)
+    other['economics']['Q'] = 0.0
     with pytest.raises(ValueError,match='missing/undefined'):
         check_economics(other,revision)

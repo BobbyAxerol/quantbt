@@ -35760,7 +35760,7 @@ and [14 economics](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI
 | M4-ML-01 | Baseline/source and bias-aware corpus/design admission | COMPLETE_LOCAL; approved finite replay protocol, no economic promotion |
 | M4-ML-02 | Fixed versus generally calibrated regularization | COMPLETE_LOCAL; technical PASS, empirical INCONCLUSIVE, KEEP_FROZEN_V1 |
 | M4-ML-03 | Cheap supervised challengers and alternative-family feasibility | COMPLETE_LOCAL; 480 cells, zero supported nominees; KEEP_V1 |
-| M4-ML-04 | Served decisions, chronology and bounded actual economics | APPROVED / QUEUED_AFTER_ML03_GATE |
+| M4-ML-04 | Served decisions, chronology and bounded actual economics | COMPLETE_LOCAL; mature controls/fallback/account custody PASS; nominee economics N/A |
 | M4-ML-05 | Retain/opt-in/defer decision and old-phase handoff | APPROVED / QUEUED_AFTER_ML04_GATE |
 
 <a id="m4-ml-01"></a>
@@ -36001,8 +36001,19 @@ economics; unqualified alternatives stay unactivated with explicit reasons.
 <a id="m4-ml-04"></a>
 ### Phase M4-ML-04 - Chronological Decision Qualification And Targeted Economics
 
-**Status:** APPROVED / QUEUED_AFTER_ML03_GATE (2026-10-17, Asia/Saigon).
-No nominee, periodic real-data update or targeted query has been executed yet.
+**Status:** COMPLETE_LOCAL / KEEP_FROZEN_V1 (2026-10-17, Asia/Saigon).
+The [decision report](../docs/meta_selection/M4_ML_04_DECISION_REPORT.md) and
+[closure](../benchmarks/optimization/meta_selection/model_research_v1/ml04_closure.json)
+record all five families at cold/mature/late checkpoints, fresh-fit future
+invariance and non-vacuous permitted-past controls, 128 exact retained P0
+evaluation decisions, 24 unchanged original financial files, and independent
+raw R/Q checks over 480 development cells (230 observed, 250 missing/undefined).
+Source gates: 48 focused + 10 public regression checks PASS. Twenty-five logical
+control fits cost 44 numeric/reference/qualification charges, including runtime
+probes. No research optimizer/financial calls occurred. Zero ML-03 nominees
+means new-family evaluation economics/targeted queries/real adaptive updates are
+N/A_NO_SUPPORTED_NOMINEE, not failed implementation, accepted efficacy or a
+qualified adaptive rollout. All historical failures/corrections remain retained.
 **Goal:** evaluate complete served decisions against V1 on enough supported
 chronology without rerunning completed strategy searches or inventing outcomes.
 **Entry:** frozen nominees, evaluation roster and acceptance rules; MLR-03
