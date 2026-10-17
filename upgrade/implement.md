@@ -25,6 +25,17 @@ The detailed [research guide](QUANTBT_MODE4_META_LEARNER_RESEARCH_GUIDE_V1.md)
 requires common calibration procedures, held-out alpha-group plus chronological
 evaluation, unchanged target/guard primary comparisons and explicit cost gates.
 
+**Additional planning request (2026-10-17, Asia/Saigon):**
+[M4-ML-06](#m4-ml-06) is PROPOSED / NOT_STARTED, after completed ML-05 and
+before M5-11.7. The owner requests a concrete decision-value and diagnostic
+test plan, then approval before execution. Reuse original monthly decisions,
+saved predictions and separate quarterly sampler/selector evidence; proposed
+guard/ranking ablations are research-only amendments, not changes to frozen V1.
+The [supplemental protocol](QUANTBT_MODE4_META_LEARNER_RESEARCH_GUIDE_V1.md#mlr-s12)
+defines bounded missing-winner work, five fixed policies, causal rights and
+actionable outputs. No new test, fit, financial replay or phase execution has
+been authorized by this planning request. Historical receipts remain unchanged.
+
 **Current execution disposition (2026-10-16, UTC):**
 [M5-11.6.1](#mode5-m5-11-6-1) is COMPLETE_LOCAL_REGISTERED_RESEARCH.
 All nine sampler cells finish 19 quarterly folds/128 attempts: 21,888 proposal
@@ -35737,12 +35748,13 @@ Empirical status is NOT_ASSESSED; richer M5-11.7 integration, Ridge/model/loss
 research, M5-12, CI and release remain unactivated.
 
 <a id="m4-ml-research"></a>
-### Mode 4 Meta-Learner Research - Five Small Phases
+### Mode 4 Meta-Learner Research - Five Completed Phases And One Proposed Follow-Up
 
 **Authority (2026-10-17, Asia/Saigon):** freeze the initial Ridge baseline now;
 plan a bounded study before the older large phases. The completed shared
 diagnostics module remains independent and is reused, not redesigned.
 **Order:** M4-ML-01 -> M4-ML-02 -> M4-ML-03 -> M4-ML-04 -> M4-ML-05 ->
+proposed M4-ML-06 ->
 separately approved M5-11.7 -> M5-12. Every phase needs owner approval; writing
 the plan does not launch its work or promise a superior learner.
 **Common goal:** minimize generalization/decision error under the existing
@@ -35764,6 +35776,7 @@ and [14 economics](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI
 | M4-ML-03 | Cheap supervised challengers and alternative-family feasibility | COMPLETE_LOCAL; 480 cells, zero supported nominees; KEEP_V1 |
 | M4-ML-04 | Served decisions, chronology and bounded actual economics | COMPLETE_LOCAL; mature controls/fallback/account custody PASS; nominee economics N/A |
 | M4-ML-05 | Retain/opt-in/defer decision and old-phase handoff | COMPLETE_LOCAL; KEEP_FROZEN_V1, optional research only; old phases await approval |
+| M4-ML-06 | Decision value, prefix diagnostics and bounded policy ablations | PROPOSED / NOT_STARTED; plan only, execution awaits owner approval |
 
 <a id="m4-ml-01"></a>
 ### Phase M4-ML-01 - Frozen Ridge Baseline, Evidence Admission And Study Registration
@@ -36154,13 +36167,195 @@ no test scratch was created or deleted. See the
 [supplement closure](../benchmarks/optimization/meta_selection/model_research_v1/ml05_zero_closure.json).
 This does not revise nomination, prior closures, KEEP_V1 or future-phase approval.
 
+<a id="m4-ml-06"></a>
+### Phase M4-ML-06 - Decision Value, Prefix Diagnostics And Bounded Policy Ablations
+
+**Status:** PROPOSED / NOT_STARTED (2026-10-17, Asia/Saigon); owner approval
+required before implementing or running this protocol. This is one small
+follow-up phase, not a restart of ML-01..05 or a new full WFO search.
+**Goal:** determine where useful selection information is lost: candidate
+generation/support, predictions, the relative-decay ranking rule, or its Q
+guard. Produce evidence-based next actions for the researcher instead of another
+model-MSE leaderboard. Preserve frozen V1, positive RSI evidence and every
+negative/unsupported result within its original scope.
+**Entry:** ML-05 and fixed-zero supplement closed; verified monthly pools,
+corrected history, original accounts and saved model predictions; approved
+policy/query/cost protocol recorded before any new outcomes. X2 remains an
+exploratory fixed challenger, not an ML-03 nominee that passed the old gate.
+**Detailed guide:** [12 supplemental protocol](QUANTBT_MODE4_META_LEARNER_RESEARCH_GUIDE_V1.md#mlr-s12),
+[12.1 evidence and causal scope](QUANTBT_MODE4_META_LEARNER_RESEARCH_GUIDE_V1.md#mlr-d1),
+[12.2 policy definitions](QUANTBT_MODE4_META_LEARNER_RESEARCH_GUIDE_V1.md#mlr-d2),
+[12.3 diagnostics](QUANTBT_MODE4_META_LEARNER_RESEARCH_GUIDE_V1.md#mlr-d3),
+[12.4 witness queries](QUANTBT_MODE4_META_LEARNER_RESEARCH_GUIDE_V1.md#mlr-d4),
+[12.5 estimands](QUANTBT_MODE4_META_LEARNER_RESEARCH_GUIDE_V1.md#mlr-d5),
+[12.6 decisions](QUANTBT_MODE4_META_LEARNER_RESEARCH_GUIDE_V1.md#mlr-d6),
+[12.7 resources](QUANTBT_MODE4_META_LEARNER_RESEARCH_GUIDE_V1.md#mlr-d7).
+Also read QMS [5 target/selection](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s5),
+[6 availability](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s6),
+[14 R/Q](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s14);
+Mode 5 [4.5 geometry](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#45-trục-2--parameter-geometry-và-landscape),
+[4.9 separate batteries](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#49-multi-hypothesis-empirical-battery-giữ-năm-chiều-làm-rõ-mỗi-phép-thử),
+[4.10 advisory](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#410-radar-và-advisory-dossier)
+and the [shared diagnostics contract](../docs/diagnostics/SHARED_ALPHA_DIAGNOSTICS.md).
+Evidence entry points: [monthly closeout](../docs/mode5/M5_11_6_FOUR_ALPHA_CLOSEOUT.md),
+[quarterly comparison](../docs/mode5/M5_11_6_1_QUARTERLY_DECISION_REPORT.md),
+[ML-04 controls](../docs/meta_selection/M4_ML_04_DECISION_REPORT.md) and
+[zero-prediction result](../docs/meta_selection/M4_ML_05_ZERO_BASELINE.md).
+
+**Frozen Study Scope (proposed for approval):**
+
+| Component | Contract |
+|---|---|
+| Primary corpus | SC/HMA/HASH/VWAP original ETHUSDT 1h, monthly/730D, 57 origins and 128 attempted proposals/origin already executed |
+| Analysis roles | All 228 origins for change/fallback/support inventory; original 13 acquisition + 12 development + 32 evaluation roles preserved |
+| Primary decision period | February 2024--September 2026, 32 months/alpha; January 2022--January 2024 retained separately |
+| History | Exact qualified as-of historical union used by actual Ridge; coefficients use only that alpha/schema's mature allowed records |
+| Additional model | Existing X2 depth-2/64-round recipe, unchanged seed/scaler/weights/centering; saved compatible predictions first, at most 128 missing evaluation fits |
+| Sensitivity | Existing base-only versus union development predictions, no second full evaluation fit sweep |
+| Financial route | Original callback/actual-feedback route and original reset-forward measurement; no fast variant substituted for an original witness |
+| Secondary evidence | Completed quarterly/365D fast variants, legacy/group TPE and existing/floor selectors, separately reported with their own identities |
+| Research policies | N native anchor; R frozen Ridge; X frozen X2; G Ridge with Qhat >= 0; F Ridge ranked by maximum Qhat |
+| Search | Zero new optimizer proposals; no changed pool, range, seed, trial count, horizon or hyperparameter grid |
+
+N is a trained-search/native-selection baseline, not random. Constant Y=0 is
+a separate selector identity check with existing geometry/ties; it is not a
+sixth financial arm. Verify effective-parameter equivalence rather than assume
+every zero-distance candidate ID is identical to the anchor.
+G and F change one decision component each, have separate research policy IDs,
+and are never exported as V1. F changes ranking, not Ridge's training target;
+G's stronger predicted guard is not a guarantee of realized nonnegative Q.
+All procedures are common rules, with no alpha-name-specific thresholds.
+
+**To-Do / Work Packages:**
+1. **DV01 - Register custody, denominators and the query roster.** Verify saved
+   source/schema/pool/model/account pins; inventory predictions and raw forward
+   observations without interpreting missing values as zero. Distinguish missing
+   execution, undefined Sharpe, cold start, invalid intent and unsupported rights.
+   Register all policy IDs, metrics, support rules, inference family, query
+   priority and resource ceilings. Preserve the old zero-nominee decision.
+2. **DV02 - Replay fixed decisions before fetching outcomes.** Restore actual
+   N/R on all 57 origins; fit X only where matching saved predictions are absent
+   for the 32 evaluation origins. Reuse R predictions for G/F. Rank the full
+   valid IS pool, seal scores/guard/ties/proposed IDs, then attach forward
+   observations. Separate same ID, same effective params and changed action.
+   Retain cold/not-applicable/fallback origins in the policy denominator.
+3. **DV03 - Quantify decision value and model error.** For each alpha/policy,
+   report changes, observed helped/hurt/tied decisions, missing outcomes,
+   mean/median/worst and lower-tail Q, R and IS contribution; include the
+   unchanged folds. Compare changed-fold loss with all acquired-label loss and
+   quantify predicted-Q passes with realized Q < 0 and Q < -0.10. Decompose
+   measured opportunity on the witnessed panel into guard exclusion and ranking
+   misses. Never relabel that panel as the full-pool oracle or train on it.
+4. **DV04 - Explain candidate support using prefix diagnostics.** Reuse shared
+   geometry/activity/coverage owners on all monthly IS pools. At early mature,
+   middle and late registered checkpoints, explain validity/duplicates, active
+   branches, native cluster/fallback, anchor/winner position, descriptor support,
+   and available local-fragility/regime evidence. Expose missing probes/paths.
+   Audit whether raw-IS target coupling dominates predictions and whether OOD,
+   inactivity or extreme scores concentrate selected errors. These are
+   associations/hypotheses, not causal attribution or new model inputs.
+5. **DV05 - Reuse the actual sampler/selector experiment.** Cold-read all 19
+   quarters per matched fast-variant cell; separate sampler-only, selector-only
+   and interaction effects, actual fallback/relative-sampling usage, duplicates,
+   feasible support and R/Q. Check whether the previously recorded prefix advice
+   was available before each study; later diagnostics cannot justify an earlier
+   sampler choice. Produce compatibility and measured response per alpha, with
+   NO_CLEAR_WINNER allowed. Do not pool quarterly variants with monthly originals.
+6. **DV06 - Close only useful missing forward witnesses.** Follow the fixed
+   deduplicated queue in guide 12.4. Run at most 128 previously missing winner
+   witnesses plus four original-route parity controls, within the same bounded
+   CPU envelope. Pilot at most eight calls including controls, then forecast
+   remaining work. No repeated optimizer or two-year IS replay just to label a
+   known winner. Undefined existing metrics stay undefined. New observations
+   are evaluation-only and never enter replay training/history.
+7. **DV07 - Apply the registered interpretation and uncertainty rules.** Show
+   complete-policy and conditional-known-winner results separately, preserve
+   actual months and shared market dependence, and calculate eligible R/Q
+   intervals under guide 12.5 only. State which missing evidence prevents each
+   conclusion. Do not let a loss-only gain, lower IS, or a few favorable changed
+   folds become a model-promotion claim. All new comparisons are exploratory.
+8. **DV08 - Deliver an actionable recommendation and close custody.** Supply
+   one decision card per alpha and one common-method card: keep V1, investigate
+   anchor retention, investigate ranking/guard, improve specific feature/support,
+   or test a specific sampler next. Each card needs a measured reason, rival
+   explanation, support, exact next falsifiable test and estimated incremental
+   cost. Reconcile all fits/queries/failures, verify old hashes, clean exact
+   inactive scratch, run focused regression and commit the completed phase.
+
+**Tests / Acceptance IDs:**
+- **MLR06-T01:** exact retained N/R, zero-score/duplicate ties, full-pool winner
+  independent of label membership; G/F synthetic oracles including a lower-IS
+  decay improvement with worse forward and a guard-pass/realized-failure case.
+- **MLR06-T02:** independently mutate unavailable future market/labels/report
+  data and later revisions at early-mature/middle/late checkpoints; snapshot,
+  scores and decisions remain unchanged. A permitted-past positive control is
+  non-vacuous; cached decisions cannot substitute for fresh causal controls.
+- **MLR06-T03:** raw R/Q/IS algebra, per-alpha/macro weighting, changed/all-fold
+  denominators, tail conventions and undefined values match small independent
+  oracles. Current observations used for evaluation never enter fitting.
+- **MLR06-T04:** query queue identity/dedup/priority survives restart; outcome
+  values cannot alter query admission/order. Missing/unsupported work never
+  becomes zero or a successful replay; no exact WFO-resume claim is added.
+- **MLR06-T05:** future/full-development diagnostics cannot be authorized for
+  an earlier prefix; adaptive TPE pools cannot supply neutral-design sensitivity
+  claims; quarterly/original source and financial contracts cannot be merged.
+- **MLR06-T06:** four known-witness original-route controls agree with retained
+  metric/account contracts under existing tolerances; absent optional XGB,
+  numeric-thread/resource guards, report-only regeneration, privacy and cleanup
+  remain correct. Reuse unchanged certification; do not rebuild a wheel.
+
+**Deliverables:**
+- A private source-bound origin ledger with N/R/X/G/F winners, scores, witness
+  status, raw I/O/D/R/Q, change/help/harm, diagnostics and actual computation bill.
+- A compact public report and JSON with five tables: decision value, downside/
+  guard reliability, finite-panel opportunity, prefix diagnostic explanations,
+  and separate quarterly sampler/selector response. Private params stay private.
+- Four alpha decision cards plus a common-method decision; every suggested
+  upgrade identifies what experiment could disprove it and what evidence is missing.
+- Immutable registration, focused test/causality receipts, query accounting and
+  cleanup. Planned location: `docs/meta_selection/M4_ML_06_DECISION_VALUE_REPORT.md`;
+  compact evidence under `benchmarks/optimization/meta_selection/model_research_v1/`.
+
+**Exit Gate:** all registered origins/policies have explicit dispositions;
+baseline/measurement/chronology and admitted financial controls pass; no
+unresolved implementation defect. At least N/R are fully audited against all
+retained decisions and the quarterly comparison is cold-reconciled. Unknown
+X/G/F outcomes remain coverage limitations with a specific next action, never
+efficacy PASS. Technical completion does not require positive economics or an
+automatic learner/default change. A resource stop is PARTIAL, not full scope
+completion; an explicit owner disposition is needed to close reduced scope.
+**Cost / Cleanup:** cold/fit/analysis <=20 CPU-minutes, <=160 new learner fits
+including controls/retries; original-route queries <=2 CPU-hours, <=132 calls
+total including parity controls/retries. Two one-thread workers maximum, owned
+RSS <=1.5 GiB, >=512 MiB available RAM, incremental retained <=128 MiB plus
+scratch <=64 MiB and >=5 GiB disk free after projected peak. These are ceilings,
+not ETAs. Reuse the existing CPU wheel/native/environment and source-bound caches;
+retain compact daily/metric witnesses, no duplicate full tapes/per-bar JSON.
+**Debt / Scope Policy:** no production math/default/endpoint, new model family,
+feature-training profile, optimizer, auto-advisory, standalone financial engine,
+continuous challenger account, remote/build/release or M5-11.7 implementation.
+The new fixed-policy probes need this phase's approval; old ML-03 nomination
+gates are not loosened or relabeled. Missing campaign/probe/regime evidence and
+adaptive-history limitations are explicit bounded conclusions, not fabricated
+support. A richer classifier/selector or fresh independent confirmation requires
+a separately reviewed next protocol.
+
+**Planning Verification (2026-10-17, Asia/Saigon):** local Markdown targets and
+anchors checked for this plan and the amended detailed guide; whitespace and
+single-phase ordering checked. This receipt records planning checks only,
+not execution of MLR06-T01..06. No model fit, optimizer, financial call, new
+environment, scratch deletion, push or release occurred. Existing source and
+evidence remain retained; execution approval is still pending.
+
 <a id="mode5-m5-11-7"></a>
 ### Phase M5-11.7 - Mode 4/5 Complete Researcher Reports And Decision Qualification
 
 **Status:** PROPOSED / NOT_STARTED; separate owner approval after M5-11.6 and
 [M5-11.6.1](#mode5-m5-11-6-1) dispositions, including the owner's reviewed
 Mode 4 retain/upgrade/standardization decision and the completed KEEP_FROZEN_V1
-[M4-ML research disposition](#m4-ml-research). No new search or report
+[M4-ML research disposition](#m4-ml-research), plus the proposed
+[M4-ML-06 decision-value follow-up](#m4-ml-06) or explicit owner deferral.
+No new search or report
 implementation is authorized by this plan.
 **Goal:** provide a compact, quantitative and interpretable report explaining
 selection, participation, regime dependence and robustness evidence for Mode 4
@@ -36169,6 +36364,7 @@ for deciding what to deploy/research without changing a winner after outcomes.
 **Entry:** M5-11.6 actual report or owner-reviewed blocked dispositions;
 M5-11.6.1 quarterly report/decision matrix or explicit owner disposition;
 M4-ML-01..05 model/calibration decision or explicit owner deferral;
+M4-ML-06 action/coverage report or explicit owner deferral;
 existing M5-11.4/11.5 sealed data; inventory of available streams, identities and rights.
 Reuse public `decision_report`, diagnostic dossier and WFO metadata/metrics;
 do not introduce another endpoint or duplicate financial/metric implementations.

@@ -14,8 +14,13 @@ and [family report](../docs/meta_selection/M4_ML_03_FAMILY_REPORT.md). The
 [worksheet](../docs/meta_selection/M4_ML_03_PROTOCOL.md) records this boundary.
 The Ridge baseline remains frozen. No target, production
 hyperparameter/default policy or public activation changes are authorized.
-**Sequence:** M4-ML-01 -> M4-ML-02 -> M4-ML-03 -> M4-ML-04 -> M4-ML-05,
-then separately approved M5-11.7 and M5-12. No automatic phase advance.
+**Sequence:** completed M4-ML-01 -> M4-ML-02 -> M4-ML-03 -> M4-ML-04 ->
+M4-ML-05; proposed [M4-ML-06](#mlr-s12) decision-value follow-up, then
+separately approved M5-11.7 and M5-12. No automatic phase advance.
+**Planning amendment (2026-10-17, Asia/Saigon):** section 12 is a new,
+unexecuted protocol requested after the fixed-zero check. It proposes explicit
+research-only guard/ranking changes and additional witness work for approval;
+sections 1-11 and completed receipts retain their original scope and gates.
 
 <a id="mlr-s1"></a>
 ## 1. Authority, Baseline And Problem
@@ -383,3 +388,302 @@ authorize installation of the displayed latest release.
   robust loss, scale and regularization; not drop-in proof of better decisions.
 - [Cawley and Talbot, JMLR 2010](https://www.jmlr.org/papers/v11/cawley10a.html):
   overfitting model-selection criteria and subsequent evaluation bias.
+
+<a id="mlr-s12"></a>
+## 12. Proposed Decision-Value Follow-Up: M4-ML-06
+
+**PROPOSED / NOT_STARTED.** The owner requested a reviewable plan and will
+approve execution separately. This protocol supplements the completed studies;
+it does not revise their conclusions or admit a model through a failed gate.
+Read the [unified phase](implement.md#m4-ml-06). The question is which next
+engineering/research action is justified by decision-level evidence, rather
+than whether a larger learner can marginally lower one aggregate loss.
+
+<a id="mlr-d1"></a>
+### 12.1 Evidence, Roles And Counterfactual Limits
+
+Use original monthly/730D SC/HMA/HASH/VWAP pools with 128 attempted trials,
+all 57 origins, exact corrected histories and actual native/Ridge decisions.
+Keep the original 13 acquisition + 12 development + 32 evaluation roles.
+The primary decision comparison covers February 2024--September 2026; earlier
+origins diagnose cold start and development separately. Reuse earlier RSI
+evidence as a separate reference, without pretending the account/window matches.
+
+Primary fitting history is the historical union actually available to V1 at
+each cutoff. This matches actual Ridge decisions. Base-only development results
+remain a separately labeled acquisition sensitivity; do not compare a base-only
+new model with union-trained V1 and attribute the difference solely to the model.
+
+This is **conditional replay on logged history**. Old winner-union acquisition
+depends partly on the old policy. An X2/guard/ranking proposal using that history
+is causal as of its cutoff but is not a self-consistent replacement-policy
+rollout with its own newly acquired labels. New witness queries are evaluation
+only: never append them to training, change later snapshots, or backdate their
+availability. A complete adaptive policy replacement remains separate research.
+
+Restore saved predictions only with matching pool/schema/source/feature/model/
+history/clock identity. Compute missing X2 evaluation predictions with the
+already frozen recipe, not renewed tuning. This opens a new descriptive view
+of previously reviewed data; it is not untouched OOS. Choosing X2 after its
+development result creates selection bias which the report must disclose.
+No leave-group-out nomination or independent generalization claim is restored.
+
+Each new decision is sealed before its current forward outcome is attached.
+Full-development Mode 5 dossiers may explain today's research decisions, but
+cannot supply a feature, threshold, shortlist or regime label at an earlier
+Mode 4 vintage. Selection replay must use only prefix-authorized inputs.
+
+<a id="mlr-d2"></a>
+### 12.2 Five Fixed Policies And Zero-Score Control
+
+All policies see the same original valid candidate pool and native anchor.
+Existing feasibility, unsupported-metric handling and causal fallback apply.
+The following research changes require approval of M4-ML-06; they do not modify
+the production selector or its frozen mathematical identity.
+
+| ID | Prediction and ranking | Isolated question |
+|---|---|---|
+| N | Always the original native anchor | What value is added beyond existing IS search and native robustness selection? |
+| R | Actual union-trained Ridge V1, min Yhat with Qhat >= -0.10 | What did the existing learned decision actually add? |
+| X | Existing X2 recipe with exactly R's history and selection policy | Does its predictive improvement translate into better winners? |
+| G | R predictions; min Yhat with Qhat >= 0 | Does tolerating predicted forward deterioration explain avoidable harm? |
+| F | R predictions; max Qhat under the existing Qhat >= -0.10 guard | Is relative-decay ranking the limiting decision rule? |
+
+G changes only epsilon; F changes only ranking direction/score. Both reuse
+R's predictions, target, fit and history. F still trains Y with Ridge; it is
+not a new Q-trained model or a combined stricter-guard model. No G+F combined
+arm, additional epsilon grid, confidence threshold or per-alpha rule is admitted.
+Retain the two-pass tie tolerance, then distance and canonical keys; for F
+construct the tie set within the unchanged score tolerance of maximum Qhat.
+
+Test constant Yhat=0 separately on real/synthetic pools: Qhat=I-I_anchor.
+All safe candidates tie in Yhat and closest-to-anchor geometry normally
+retains the anchor. Verify canonical ID versus effective-parameter equivalence
+and zero-distance aliases explicitly; do not silently force anchor ID or
+describe the baseline as random. If non-equivalent aliases exist, report the
+control discrepancy and keep N as the explicit incumbent arm. No random
+financial selector or extra learner is needed for this question.
+
+Common frozen policy rules apply to every alpha. These comparisons isolate
+components under fixed logged information; they do not prove a threshold or
+ranking rule should become a global default. Native search still uses TPE;
+absence of a meta model does not mean the whole pipeline learned nothing.
+
+<a id="mlr-d3"></a>
+### 12.3 Prefix Diagnostic Explanations And Sampler Evidence
+
+Reuse `quantbt.diagnostics` rather than add another profiler. On all monthly
+IS pools, export attempted/complete/pruned counts, unique effective candidates,
+conditional branches, active dimensions, inactivity/missing metrics, native
+cluster/fallback and selected-versus-anchor coordinates. Distinguish nominal
+dimension, observed variation and any qualified effective-dimension estimate.
+
+Deep inspection uses each alpha's first actually mature origin, fold 40 and
+fold 56, selected for chronology/support, not outcomes. Reuse only authorized
+local probes and continuous-IS environment attribution. Report unavailable
+probe/return-path/episode evidence explicitly instead of simulating new broad
+panels or converting one aggregate Sharpe into a floor or fragility score.
+
+For Ridge, report exact served prediction contributions in the model's own
+scaled coordinates, including raw-IS/activity terms, coefficient stability,
+historical constant/OOD features and current anchor distance. Separately show
+Qhat=deltaIS-Yhat. Correlation or a large IS coefficient is not evidence of
+leakage or causal feature importance; IS occurs algebraically in the target.
+For X2 reuse existing diagnostics; no SHAP dependency or new feature tournament.
+
+Adaptive TPE pools support observed coverage and score distributions, not
+neutral-design Sobol indices, an independent plateau volume, or unbiased global
+sensitivity. Respect the shared module's association suppression for adaptive/
+reviewed rosters. Only existing structured, prefix-authorized probes can support
+their named local assertions; missing probes become a bounded next-test request.
+
+Cold-reconcile the completed 19-quarter/365D fast-variant factorial experiment:
+sampler-only at fixed selector/meta-off, selector-only within a sampler's pool,
+and their interaction. Keep original objective/budget/source identities. Compare
+duplicates, actual sampler fallback, feasible support, native fallback and R/Q;
+do not use final equity alone or conditional winners-only losses to rank samplers.
+
+Output one advisory row per alpha: compatible sampler/selector, evidence basis,
+observed strengths/weaknesses, competing explanation, missing proof and next
+falsifiable test. Distinguish compatibility, measured variant response and
+original-alpha evidence. A retrospectively reconstructed shortlist cannot be
+called a successfully tested pre-search router. No new sampler study is run.
+
+<a id="mlr-d4"></a>
+### 12.4 Missing-Winner Inventory And Bounded Queries
+
+First bind every sealed N/R/X/G/F winner to an existing raw IS observation and
+qualified forward witness. Rank the full pool regardless of label membership.
+Separate missing execution from existing NO_VARIANCE/invalid measurement: a
+rerun does not cure an undefined Sharpe or supply a missing campaign contract.
+
+Deduplicate a query by exact alpha/source, effective params, data snapshot,
+preload/cutoff, forward window, account/initial-terminal state, constraints,
+route/native and metric contract. Same params with a different account/state
+or window do not authorize reuse. Protect model/history receipts as immutable.
+
+Proposed additional budget: **128 distinct missing-winner forward executions
+and four known-witness parity controls, at most 132 calls including retries**.
+Register the exact queue after predictions are sealed and before new financial
+outcomes are opened. Query choice may use missingness/contract and fixed policy
+priority, never observed Q/R, attractive predicted gains, or economic results.
+
+Priority is X evaluation winners across all 32 months/alpha, then G, then F.
+Within each priority use fixed alpha round-robin and chronological origin order;
+deduplicate common winners and skip already witnessed/undefined observations.
+The X ceiling of 4 x 32 is before reuse; no unsupported promise is made that
+all G/F winners will fit the remaining budget. First pilot <=8 calls includes
+one retained-witness control per alpha and the first missing X winner per alpha
+where available. Controls may be the only calls if nothing is missing.
+
+Keep original full forward months and required indicator preload/actual
+feedback. Use saved IS observations; no fresh 730D search/scoring pass to obtain
+an existing metric. Match each control with original stored observations and
+account quantities under existing tolerances before admitting that alpha's new
+queries. Missing required warmup/state provenance fails admission rather than
+approximating a faster route. Reuse immutable preparations but never account,
+order, strategy, model or RNG state across independent candidates.
+
+New witnesses cannot be acquired merely to discover a better unseen winner.
+They evaluate decisions already selected without that outcome. If the query
+cap or CPU guard prevents completion, preserve exact missing IDs/coverage and
+bound the conclusion. Missing Sharpe values are unbounded without assumptions;
+do not invent finite full-policy worst/best bounds. Remaining G/F evidence may
+support mechanism checks while their economic effect stays unqualified.
+
+<a id="mlr-d5"></a>
+### 12.5 Required Measurements And Uncertainty
+
+For each observed candidate s relative to anchor a, independently verify:
+
+```text
+D_s = I_s - O_s
+R_s = D_a - D_s
+Q_s = O_s - O_a
+IS_contribution_s = I_a - I_s
+R_s = IS_contribution_s + Q_s
+deltaR_XR = R_X - R_R; deltaQ_XR = Q_X - Q_R
+```
+
+Report raw levels and differences, not division by near-zero signed IS or R.
+Use raw Sharpe from the qualified metric contract, never the native clustering
+objective. Account-return/day and costs/activity can supplement where original
+raw paths exist; they do not fill undefined Sharpe or replace the target.
+
+Five required tables:
+
+1. **Decision value:** eligible/model-ready/same-ID/same-effective/changed/
+   fallback counts, observed/null counts and dates, all-policy and changed-only
+   mean/median R/Q/IS contribution. Help/harm/tie refers explicitly to realized
+   Q sign, with R sign reported separately. Missing changed outcomes never count
+   as losses, wins or zero. Same-action contrasts are zero only when their metric
+   operands are defined; undefined flat Sharpe retains its disposition.
+2. **Downside and guard reliability:** worst Q, mean negative Q, positive/negative
+   magnitude totals per eligible month, loss concentration and mean worst 20% Q
+   using fractional empirical mass when >=10 observed folds. Otherwise the tail
+   summary is insufficient, with individual adverse cases retained. Show
+   Qhat-pass but Q<0 and Q<-0.10 rates, signed calibration bias, their denominators
+   and changes under G. A predicted guarantee is never inferred.
+3. **Selection opportunity:** on the fixed preexisting observed base panel plus
+   anchor, show whether an alternative has higher forward quality, and qualified
+   finite-panel regret. Keep the full old winner union as sensitivity. Attribute
+   missed observed opportunity to guard exclusion versus ordering. New winner
+   queries are shown separately, not added to the old panel to inflate its
+   apparent headroom. Failure to find a better observed candidate does not prove
+   no better candidate exists elsewhere in the pool or search domain.
+4. **Prefix explanation:** candidate geometry/activity/native fallback, actual
+   feature support and prediction contribution, available local/environment
+   evidence, selected versus full witnessed-label errors, limitations and rival
+   explanations. Optional associations are descriptive, not learned routing.
+5. **Quarterly sampler/selector response:** matched existing factorial contrasts,
+   coverage/feasibility and R/Q, separate from original monthly policies.
+
+Primary new uncertainty family, proposed before execution: N versus R and R
+versus X, each R and Q on four alphas = **16 fixed coordinates**. Report each
+alpha's points and support; equal-origin within alpha and equal-alpha macro only
+on explicitly matched supported masks. Never silently drop an alpha, substitute
+zero, pool candidate rows or let VWAP's tiny sample masquerade as precision.
+
+For a coordinate's numerical interval require its complete 32-month paired
+metric calendar, >=12 valid origins/365 days and at least four complete
+three-month blocks. Use shared three-month moving-block indices, 16,384 draws,
+seed 731 and family95% Bonferroni across all 16 reserved coordinates. Keep that
+divisor even when other coordinates are unsupported. Missing coordinates get
+no numerical interval; no calendar compression/interpolation. This is an
+explicit new exploratory inference plan that lets supported coordinates be
+described separately; it does not repair or rewrite the earlier all-family
+INCONCLUSIVE receipt. Intervals condition on fixed reviewed recipes/logged
+history and do not include full optimizer/model-selection uncertainty.
+
+G/F, subgroup, tail and diagnostic associations are descriptive mechanism checks,
+with support and observed consistency. They have no confirmatory CI or promotion
+claim here. Prediction MSE remains a secondary matched-label table, not the
+decision acceptance criterion. No threshold/rule is fitted from these outcomes.
+
+<a id="mlr-d6"></a>
+### 12.6 Concrete Research Decisions
+
+Each alpha and the common-method card must select one leading next action or
+NO_CLEAR_WINNER, cite measured quantities and explain the strongest competing
+interpretation. These are directions for the next owner decision, not changes
+to deployed defaults or an alpha-name policy router.
+
+| Observed pattern | Proposed next action | Evidence needed before a later activation |
+|---|---|---|
+| R improves decay with nonnegative mean Q and supported uncertainty | KEEP_RIDGE_RESEARCH | Original R/Q support; breadth/limits and account scope remain explicit |
+| R improves R mainly through lower IS, with negative Q concentrated in changed folds | ANCHOR_RETENTION_OR_GUARD_STUDY | G must avoid harm without an unreported loss of opportunity; test a fixed retention rule on fresh reserved chronology |
+| F improves forward quality on matched observed decisions while R's low-Y winners are weak | RANKING_OBJECTIVE_STUDY | Independent protocol for Q-oriented decision semantics and decay trade-off; no claim training target was fixed by reranking |
+| X improves MSE but not decision Q/R, or adds downside | DO_NOT_EXPAND_MODEL_SEARCH | Report prediction-versus-top-decision mismatch and missing support; keep V1 available |
+| Better candidates already occur in the witnessed panel but predictions misorder them | TARGETED_DESCRIPTOR_OR_CALIBRATION_STUDY | Identify one causal feature/calibration hypothesis, available-prefix inputs and incremental cost |
+| Observed support is thin, native falls back often, and matched quarterly sampler contrasts support a direction | TARGETED_SAMPLER_STUDY | Exact compatible sampler/space and original-route confirmation; no universal TPE failure claim |
+| Undefined/sparse outcomes or conflicting groups/years prevent a conclusion | INCONCLUSIVE_WITH_EXACT_GAP | List absent witnesses/support, the smallest informative next test and its estimated cost |
+
+For descriptive favorable decay call out R>0 and Q>=0 separately. A stronger
+supported statement requires the new interval for R to exclude zero positively
+and Q's lower bound >=-0.05 Sharpe, while point Q remains nonnegative. X's
+incremental assessment uses deltaR_XR/deltaQ_XR under the same rule. This is a
+proposed next-research interpretation, not a replacement for old nomination or
+production gates. G/F cannot obtain that badge without a later registered test.
+
+The final report must answer: how often learning helped/hurt, how badly it hurt,
+whether positive decay is real forward retention, whether the guard was
+miscalibrated, what witnessed candidate opportunity was missed, whether existing
+sampler evidence supports a change, and which exact experiment deserves the
+next unit of budget. Do not end only with "need more data" or a model ranking.
+
+<a id="mlr-d7"></a>
+### 12.7 Cost, Stop Rules And Deliverables
+
+Proposed extra ceilings: <=160 learner fits total including controls/retries,
+<=20 CPU-minutes cold/fit/analysis, <=132 original-route execution calls and
+<=2 CPU-hours financial work. The financial cap includes all candidate setup,
+preload/compilation, controls, retries and query execution, not just engine
+timing. Count report/software tests separately with their actual work bill;
+verification cannot hide a second research run. No optimizer, new broad probes,
+fresh features/model families, full WFO or continuous challenger account.
+
+Measure the <=8-call pilot and forecast the exact remaining roster before
+launching it; report worker CPU versus elapsed wall separately. A hard ceiling
+is not a promised ETA. Guard stops leave partial immutable receipts and require
+an explicit reduced-scope disposition or later budget amendment; no silent
+shortened windows, lower trials, changed routes or favorable query ordering.
+
+Reuse the existing private CPU-only XGB wheel and native/environment. At most
+two one-thread workers, total owned RSS <=1.5 GiB, host available >=512 MiB.
+Incremental retained evidence <=128 MiB and scratch <=64 MiB; preserve >=5 GiB
+free bytes after projected peak and check inodes. Reference existing paths by
+hash; use compact predictions/daily witnesses, no full market copies or verbose
+per-bar JSON. Pause between lanes to clean exact inactive fixture scratch.
+
+Planned private root: `upgrade/private/meta_model_research_v1/ml06/attempt-01/`;
+future attempts use new immutable directories. Only its registered `scratch/`
+subdirectory is a cleanup candidate after host owner checks. Preserve private
+strategy/params, originals, source/failed receipts, native/dependency artifacts.
+Existing cleanup budgets/receipts are not retroactively changed.
+
+Deliver `M4_ML_06_DECISION_VALUE_REPORT.md`, a sanitized JSON with the five
+tables/action cards, private origin/witness ledgers, registration, focused
+oracle/causality/control tests and terminal cost/privacy/cleanup receipts.
+Source work belongs in small research/report adapters over existing shared
+owners. No production source/default/ABI change, public learner switch, package
+dependency, build, push, CI or release. M5-11.7/M5-12 remain separately approved.
