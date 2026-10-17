@@ -25,6 +25,14 @@ but none has sufficient common nomination support for a replacement or real
 adaptive rollout. They are not public learner options or mandatory dependencies.
 No claim that lambda 10 is universally optimal or other families lack value.
 
+The subsequent [ML-06 decision-value experiment](M4_ML_06_DECISION_VALUE_REPORT.md)
+restores all 228 native/Ridge origins and evaluates fixed X2, guard and ranking
+ablations on original logged history. Mean decay reduction alone masks negative
+forward-Q on HMA/VWAP; X2 and stricter guard effects differ across groups.
+These conditional exploratory findings retain frozen V1, not a global learner
+replacement. [Interpretation](M4_ML_06_INTERPRETATION.md) separates support,
+prediction and decision errors; no production math or public option changes.
+
 Read [history and descriptors](HISTORY.md) first. The authoritative requirements
 are [guide section 5](../../upgrade/QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s5)
 and the [QMS-04 plan](../../upgrade/implement.md#qms-04).

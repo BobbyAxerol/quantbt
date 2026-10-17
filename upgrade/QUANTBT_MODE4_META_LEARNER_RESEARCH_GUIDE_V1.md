@@ -15,12 +15,18 @@ and [family report](../docs/meta_selection/M4_ML_03_FAMILY_REPORT.md). The
 The Ridge baseline remains frozen. No target, production
 hyperparameter/default policy or public activation changes are authorized.
 **Sequence:** completed M4-ML-01 -> M4-ML-02 -> M4-ML-03 -> M4-ML-04 ->
-M4-ML-05; proposed [M4-ML-06](#mlr-s12) decision-value follow-up, then
+M4-ML-05 and [M4-ML-06](#mlr-s12) decision-value follow-up, then
 separately approved M5-11.7 and M5-12. No automatic phase advance.
-**Planning amendment (2026-10-17, Asia/Saigon):** section 12 is a new,
+**Historical planning amendment (2026-10-17, Asia/Saigon):** section 12 was a new,
 unexecuted protocol requested after the fixed-zero check. It proposes explicit
 research-only guard/ranking changes and additional witness work for approval;
 sections 1-11 and completed receipts retain their original scope and gates.
+**Current section-12 disposition:** COMPLETE_LOCAL_REGISTERED_SCOPE; technical
+PASS, exploratory heterogeneous outcomes, KEEP_FROZEN_V1. The approved protocol
+bytes remain in the private registration and retained protocol archive. Only
+current status/report pointers are updated here; no scientific gate is amended.
+See the [report](../docs/meta_selection/M4_ML_06_DECISION_VALUE_REPORT.md) and
+[closure](../benchmarks/optimization/meta_selection/model_research_v1/ml06_closure.json).
 
 <a id="mlr-s1"></a>
 ## 1. Authority, Baseline And Problem
@@ -390,10 +396,17 @@ authorize installation of the displayed latest release.
   overfitting model-selection criteria and subsequent evaluation bias.
 
 <a id="mlr-s12"></a>
-## 12. Proposed Decision-Value Follow-Up: M4-ML-06
+## 12. Decision-Value Follow-Up: M4-ML-06
 
-**PROPOSED / NOT_STARTED.** The owner requested a reviewable plan and will
-approve execution separately. This protocol supplements the completed studies;
+**COMPLETE_LOCAL_REGISTERED_SCOPE (2026-10-17, Asia/Saigon).** The approved
+bounded experiment passes local technical gates; its exploratory results retain
+frozen V1 with no default activation. Read the
+[report](../docs/meta_selection/M4_ML_06_DECISION_VALUE_REPORT.md),
+[interpretation](../docs/meta_selection/M4_ML_06_INTERPRETATION.md) and
+[closure](../benchmarks/optimization/meta_selection/model_research_v1/ml06_closure.json).
+The registered 128 missing-winner calls and four original controls all finish;
+26 lower-priority F queries remain outside the cap, not silently imputed.
+This protocol supplements the completed studies;
 it does not revise their conclusions or admit a model through a failed gate.
 Read the [unified phase](implement.md#m4-ml-06). The question is which next
 engineering/research action is justified by decision-level evidence, rather

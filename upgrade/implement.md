@@ -25,16 +25,23 @@ The detailed [research guide](QUANTBT_MODE4_META_LEARNER_RESEARCH_GUIDE_V1.md)
 requires common calibration procedures, held-out alpha-group plus chronological
 evaluation, unchanged target/guard primary comparisons and explicit cost gates.
 
-**Additional planning request (2026-10-17, Asia/Saigon):**
-[M4-ML-06](#m4-ml-06) is PROPOSED / NOT_STARTED, after completed ML-05 and
-before M5-11.7. The owner requests a concrete decision-value and diagnostic
-test plan, then approval before execution. Reuse original monthly decisions,
-saved predictions and separate quarterly sampler/selector evidence; proposed
-guard/ranking ablations are research-only amendments, not changes to frozen V1.
+**Current decision-value follow-up (2026-10-17, Asia/Saigon):**
+[M4-ML-06](#m4-ml-06) is COMPLETE_LOCAL_REGISTERED_SCOPE, after completed ML-05
+and before M5-11.7. Technical gates PASS; exploratory decision effects are
+heterogeneous and KEEP_FROZEN_V1 remains the disposition. All 228 native/Ridge
+origin pairs are retained; 128 evaluation X2 fits and 128 admitted missing-winner
+witnesses are complete. The separate guard/ranking ablations remain research
+policies, not changes to frozen V1. See the
+[decision report](../docs/meta_selection/M4_ML_06_DECISION_VALUE_REPORT.md),
+[interpretation](../docs/meta_selection/M4_ML_06_INTERPRETATION.md) and
+[closure](../benchmarks/optimization/meta_selection/model_research_v1/ml06_closure.json).
 The [supplemental protocol](QUANTBT_MODE4_META_LEARNER_RESEARCH_GUIDE_V1.md#mlr-s12)
 defines bounded missing-winner work, five fixed policies, causal rights and
-actionable outputs. No new test, fit, financial replay or phase execution has
-been authorized by this planning request. Historical receipts remain unchanged.
+actionable outputs. The owner subsequently approved execution of this exact
+phase and requested a detailed report (2026-10-17, Asia/Saigon). Historical
+receipts remain unchanged. Twenty-six lower-priority F queries are outside the
+registered cap; no admitted worker was stopped short or outcome replaced by
+zero. M5-11.7/M5-12 and remote/build/release remain unactivated.
 
 **Current execution disposition (2026-10-16, UTC):**
 [M5-11.6.1](#mode5-m5-11-6-1) is COMPLETE_LOCAL_REGISTERED_RESEARCH.
@@ -35748,13 +35755,13 @@ Empirical status is NOT_ASSESSED; richer M5-11.7 integration, Ridge/model/loss
 research, M5-12, CI and release remain unactivated.
 
 <a id="m4-ml-research"></a>
-### Mode 4 Meta-Learner Research - Five Completed Phases And One Proposed Follow-Up
+### Mode 4 Meta-Learner Research - Six Completed Local Phases
 
 **Authority (2026-10-17, Asia/Saigon):** freeze the initial Ridge baseline now;
 plan a bounded study before the older large phases. The completed shared
 diagnostics module remains independent and is reused, not redesigned.
-**Order:** M4-ML-01 -> M4-ML-02 -> M4-ML-03 -> M4-ML-04 -> M4-ML-05 ->
-proposed M4-ML-06 ->
+**Order:** completed M4-ML-01 -> M4-ML-02 -> M4-ML-03 -> M4-ML-04 -> M4-ML-05 ->
+M4-ML-06 ->
 separately approved M5-11.7 -> M5-12. Every phase needs owner approval; writing
 the plan does not launch its work or promise a superior learner.
 **Common goal:** minimize generalization/decision error under the existing
@@ -35776,7 +35783,7 @@ and [14 economics](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI
 | M4-ML-03 | Cheap supervised challengers and alternative-family feasibility | COMPLETE_LOCAL; 480 cells, zero supported nominees; KEEP_V1 |
 | M4-ML-04 | Served decisions, chronology and bounded actual economics | COMPLETE_LOCAL; mature controls/fallback/account custody PASS; nominee economics N/A |
 | M4-ML-05 | Retain/opt-in/defer decision and old-phase handoff | COMPLETE_LOCAL; KEEP_FROZEN_V1, optional research only; old phases await approval |
-| M4-ML-06 | Decision value, prefix diagnostics and bounded policy ablations | PROPOSED / NOT_STARTED; plan only, execution awaits owner approval |
+| M4-ML-06 | Decision value, prefix diagnostics and bounded policy ablations | COMPLETE_LOCAL_REGISTERED_SCOPE; technical PASS, exploratory heterogeneous, KEEP_FROZEN_V1; no later activation |
 
 <a id="m4-ml-01"></a>
 ### Phase M4-ML-01 - Frozen Ridge Baseline, Evidence Admission And Study Registration
@@ -36170,9 +36177,9 @@ This does not revise nomination, prior closures, KEEP_V1 or future-phase approva
 <a id="m4-ml-06"></a>
 ### Phase M4-ML-06 - Decision Value, Prefix Diagnostics And Bounded Policy Ablations
 
-**Status:** PROPOSED / NOT_STARTED (2026-10-17, Asia/Saigon); owner approval
-required before implementing or running this protocol. This is one small
-follow-up phase, not a restart of ML-01..05 or a new full WFO search.
+**Status:** COMPLETE_LOCAL_REGISTERED_SCOPE / technical PASS (2026-10-17,
+Asia/Saigon); economics EXPLORATORY_HETEROGENEOUS, KEEP_FROZEN_V1. The owner
+approved this bounded follow-up, not a restart of ML-01..05 or a full WFO search.
 **Goal:** determine where useful selection information is lost: candidate
 generation/support, predictions, the relative-decay ranking rule, or its Q
 guard. Produce evidence-based next actions for the researcher instead of another
@@ -36202,7 +36209,7 @@ Evidence entry points: [monthly closeout](../docs/mode5/M5_11_6_FOUR_ALPHA_CLOSE
 [ML-04 controls](../docs/meta_selection/M4_ML_04_DECISION_REPORT.md) and
 [zero-prediction result](../docs/meta_selection/M4_ML_05_ZERO_BASELINE.md).
 
-**Frozen Study Scope (proposed for approval):**
+**Frozen Study Scope (approved and executed):**
 
 | Component | Contract |
 |---|---|
@@ -36347,14 +36354,68 @@ not execution of MLR06-T01..06. No model fit, optimizer, financial call, new
 environment, scratch deletion, push or release occurred. Existing source and
 evidence remain retained; execution approval is still pending.
 
+**Local Completion Receipt (2026-10-17, Asia/Saigon):** the preceding planning
+receipt is historical; subsequent owner approval and execution are complete.
+Read the [full report](../docs/meta_selection/M4_ML_06_DECISION_VALUE_REPORT.md),
+[research interpretation](../docs/meta_selection/M4_ML_06_INTERPRETATION.md),
+[machine summary](../benchmarks/optimization/meta_selection/model_research_v1/ml06_summary.json),
+[closure](../benchmarks/optimization/meta_selection/model_research_v1/ml06_closure.json)
+and [cleanup](../docs/maintenance/M4_ML_06_CLEANUP.md).
+
+- **DV01/02, MLR06-T01:** exact N/R restoration on all 228 origins per policy;
+  840 sealed decisions in total, including 640 evaluation-policy rows. The
+  constant-Y control retains effective anchor params on all 169 scored origins;
+  59 unsupported origins stay explicit. N is not random search.
+- **DV03/07, MLR06-T03:** R/Q/IS decomposition, matched policy differences,
+  changed/all-policy denominators, undefined metrics, downside and 16-coordinate
+  exploratory inference pass independent oracles. Ridge mean R/Q by alpha:
+  SC +0.9643/+0.3684 (20/32), HMA +1.2075/-0.6075 (32/32),
+  HASH +1.9284/+0.2449 (32/32), VWAP +1.6476/-0.0998 (11/32).
+  HMA/HASH supported family intervals include zero; SC/VWAP have incomplete
+  metric calendars. No universal positive or negative meta claim follows.
+- **DV04/05, MLR06-T05:** shared prefix diagnostics cover 228 pools and 12
+  deep checkpoints. All 19 quarterly/365D variant folds are cold-reconciled;
+  sampler, selector and interaction effects remain separate from originals.
+  Adaptive TPE is not neutral-design sensitivity; unavailable structured local
+  probes/environment paths and unproven pre-study advice sealing stay explicit.
+- **MLR06-T02:** 17 actual fresh causal/control fits, including 12 X2
+  early-mature/middle/late controls, three Ridge HMA controls and two non-vacuous
+  permitted-past positives; unchanged source-bound earlier actual market/label
+  proofs are reused separately. New queried outcomes never enter fitting.
+- **DV06, MLR06-T04/06:** all 128 admitted missing-winner calls plus four
+  exact original-route metric/account controls complete; 115 VALID and 17
+  NO_VARIANCE observations. Query ordering is sealed without forward outcomes.
+  All 26 remaining F queries are explicitly outside the registered budget,
+  not an unfinished admitted lane. Twenty-four original account files are exact.
+- **DV08, MLR06-T06:** 485 distinct affected source tests PASS, scoped Ruff
+  and deterministic cold report regeneration PASS. No core/Rust/endpoint,
+  metric, target, default, RNG, dependency or financial engine changes.
+  All previously failed setup/diagnostic/render/cleanup receipts are retained
+  with resolved causes, not relabeled PASS.
+- **Actual work:** 145 logical new research fits / 153 numeric-reference
+  charges; zero optimizer proposals. Cold stages use 180.92 CPU seconds;
+  admitted financial stages use 662.59 CPU / 665.76 wall seconds, process peak
+  696.09 MiB. Failed native-path startup CPU is unknown; its conservative
+  2,073.09-second upper bound plus measured financial CPU remains below the
+  7,200-second ceiling. This is not a full-WFO speedup benchmark.
+- **Cleanup:** 1,462 protected files unchanged; only inactive owned scratch
+  removed, 3,141,632 actual free bytes recovered, about 7.37 MiB new private
+  evidence retained at cleanup. No environment, service or evidence removed.
+- **Disposition:** keep frozen V1 available. X2/guard/ranking effects conflict
+  across groups; no global replacement or alpha-name router is activated.
+  Logged-history conditional replay is not a replacement-policy acquisition
+  rollout. Further witness/probe or structural-predictor work requires approval;
+  M5-11.7/M5-12, installed/public qualification, CI and release remain separate.
+
 <a id="mode5-m5-11-7"></a>
 ### Phase M5-11.7 - Mode 4/5 Complete Researcher Reports And Decision Qualification
 
 **Status:** PROPOSED / NOT_STARTED; separate owner approval after M5-11.6 and
 [M5-11.6.1](#mode5-m5-11-6-1) dispositions, including the owner's reviewed
 Mode 4 retain/upgrade/standardization decision and the completed KEEP_FROZEN_V1
-[M4-ML research disposition](#m4-ml-research), plus the proposed
-[M4-ML-06 decision-value follow-up](#m4-ml-06) or explicit owner deferral.
+[M4-ML research disposition](#m4-ml-research), plus the completed
+[M4-ML-06 decision-value follow-up](#m4-ml-06). Its exploratory results do not
+activate this phase.
 No new search or report
 implementation is authorized by this plan.
 **Goal:** provide a compact, quantitative and interpretable report explaining

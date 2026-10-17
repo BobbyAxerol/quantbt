@@ -112,6 +112,23 @@ learner option. No production source, account engine, scientific target, sampler
 default or ABI changes in this research tranche. Earlier RSI positives and
 negative/undefined four-alpha evidence remain retained.
 
+**ML-06 follow-up:** the approved bounded
+[decision-value experiment](M4_ML_06_DECISION_VALUE_REPORT.md) and
+[interpretation](M4_ML_06_INTERPRETATION.md) complete locally. The
+[closure](../../benchmarks/optimization/meta_selection/model_research_v1/ml06_closure.json)
+binds 485 distinct passing source tests, 145 logical research fits, 132
+original-route financial calls, exact restoration of 228 N/R origin pairs,
+four exact account/metric controls and completed
+[scratch cleanup](../maintenance/M4_ML_06_CLEANUP.md).
+Exploratory mean R/Q and X2/guard/ranking effects are heterogeneous; supported
+family intervals include zero and some calendars are incomplete. Twenty-six
+lower-priority F queries were outside the cap. New outcomes never train the
+models; conditional replay on old logged history is not a self-consistent
+alternative-policy acquisition rollout. Earlier RSI positives remain unchanged.
+KEEP_FROZEN_V1 remains the research disposition, not an efficacy rejection of
+all meta strategies or a production/default change. No installed consumer,
+native rebuild or public artifact is certified by this source-only experiment.
+
 M5-11.7 and M5-12 still require separate owner approval. Research completion is
 not a final-source installed-wheel, manylinux, remote matrix or public-index
 certificate; current release gates above remain pending. No workflow, push,
