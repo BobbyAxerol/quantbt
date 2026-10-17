@@ -700,3 +700,102 @@ oracle/causality/control tests and terminal cost/privacy/cleanup receipts.
 Source work belongs in small research/report adapters over existing shared
 owners. No production source/default/ABI change, public learner switch, package
 dependency, build, push, CI or release. M5-11.7/M5-12 remain separately approved.
+
+<a id="mlr-s13"></a>
+## 13. Structural Forward And Joint Decision Research: M4-ML-07
+
+**APPROVED / IN_PROGRESS:** the owner authorized continuing local research and
+evidence, including sampler and selector effects, without deciding production
+adoption. Read the [phase contract](implement.md#m4-ml-07). Register the finite
+roster, policy definitions and budget before new outcomes. All old reviewed
+results and earlier positive RSI evidence remain unchanged; this experiment is
+exploratory, not untouched OOS or a new-family nomination.
+
+### 13.1 Why The Structural Baseline Differs
+
+The existing target is Y=deltaIS-Q. Compare Yhat=0 (equal predicted decay) with
+Yhat=deltaIS (equal predicted forward quality, Qhat=0) on identical label IDs,
+origin weights and missingness. For every predictor, Y-error is negative
+Q-error; squared/absolute errors must agree. Report per-origin/group MSE/MAE,
+zero-reference skill and support; no whole-year or candidate-count reweighting.
+
+The structural baseline does not necessarily retain the anchor: with min-Y it
+prefers the lowest IS, since all candidates pass Qhat=0; with max-Q all tie and
+the unchanged distance rule prefers the anchor. Test this on synthetic and
+real scored pools. Do not run a special financial arm just to exploit low IS.
+
+### 13.2 One Same-Family Target Experiment
+
+On exactly the original monthly/730D as-of union and fitted scaler, estimate
+Q directly by origin-sum Ridge with lambda10, no intercept and unchanged
+features/weights. No new family or hyperparameter grid. A Q regression is not
+identical to the original Y regression under regularization: shrinking Y toward
+zero and shrinking Q toward zero impose different priors on the known IS term.
+Use existing Rust numeric transform/solve plus independent reference parity;
+never change the production target or masquerade the new fit as frozen V1.
+
+At each original evaluation origin, score the entire source-valid IS pool.
+Use the original whole-pool OOD fallback. Research QD ranks by implied
+Yhat=deltaIS-Qhat; research QF ranks by max Qhat; both use Qhat>=-0.10 and
+unchanged distance/canonical ties. Keep original N/R and ML06 X/F comparisons
+separate and matched. Every new winner is sealed before additional witnesses.
+Exact original snapshot/scaler/labels include only available historical records;
+new ML06/07 queried outcomes never enter these fits.
+
+### 13.3 Causal Retention Without A Confidence Claim
+
+Gate only the original Ridge proposal. Accept it when the previous12
+consecutive monthly original decisions have valid raw Q, all publication clocks
+<=current cutoff, and mean Q>0. Otherwise retain the current native anchor.
+Require all12 calendar months; no compressing around flat/undefined/missing
+months. Never inspect current/future Q before the gate; no alpha-specific
+threshold or outcomes-based tuning. This empirically tests abstention, not a
+probabilistic lower confidence bound, market-stationarity or capital guarantee.
+Measure all-policy/changed-policy value and selected support explicitly.
+
+### 13.4 Sampler X Selector X Meta
+
+Use all qualified19-quarter legacy/group-TPE x native/floor x off/active
+arms, not only favorable quarters. Own-family history/anchor and original
+raw metric witnesses must match. Show all-calendar, fitted and actually learned
+subsets and fallback; cold-start identity must not dilute or manufacture learned
+effect. Compute own-anchor meta effects, sampler/selector effects and matched
+difference-in-differences on common valid quarter IDs. Missing metrics stay null.
+Keep quarterly/365D fast variants separate from monthly/730D originals.
+Additional existing Mode5 CMA/Sobol evidence may inform feasibility questions,
+but does not certify a Mode4 prefix router or a new full-WFO result.
+
+### 13.5 Queries, Verification And Resources
+
+Reuse exact existing witnesses before querying. Fixed new priority QF then QD,
+fold chronological then original group order; outcomes cannot change admission.
+At most32 original-route financial calls including up to four parity controls,
+<=15 CPU-minutes financial work. No search/IS repeat. Query observations are
+evaluation-only, with original metric/account clocks and independent daily
+oracle. Outside-cap candidates remain unqualified, not failures or zero Sharpe.
+
+Cold work <=15 CPU-minutes and <=300 numeric/reference fit charges including
+controls/qualification. At most128 primary fits, strict Rust/reference parity,
+fresh future-mutation/past-positive controls and pure independent tests. No
+new optimizer, bootstrap family/promotion inference, dependency/environment,
+build, push, CI or release. Retain <=64MiB compact new evidence, scratch<=32MiB,
+reserve>=5GiB; owned RSS<=1.5GiB and available RAM>=512MiB. Preserve old source,
+account/model/failed evidence; remove only reviewed inactive exact scratch.
+
+Deliver separate source-bound registration/seals, structured losses, retention
+and factorial tables, target/ranking decisions with missingness, actual work,
+technical qualification, cleanup and a concrete research recommendation.
+Do not transfer an alternate winner's history into the old policy or call the
+logged-history comparison a self-consistent deployment rollout.
+
+### 13.6 Further Methods Remain Hypotheses
+
+Conservative selection, learned pairwise ranking and off-policy/bandit methods
+may be useful future directions, but require their own assumptions and support.
+The [conservative-bandit paper](https://proceedings.mlr.press/v48/wu16.html)
+does not make this empirical retention gate a theorem-backed safe algorithm.
+[Counterfactual risk minimization](https://jmlr.csail.mit.edu/beta/papers/v16/swaminathan15a.html)
+uses logged-feedback/importance-weighting assumptions; no propensities are
+fabricated for deterministic acquired panels. Do not claim unbiased IPS/DR or
+unobserved full-pool regret from the current partial witnesses. These references
+motivate questions, not adoption or evidence of improved alpha returns.

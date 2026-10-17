@@ -36407,6 +36407,80 @@ and [cleanup](../docs/maintenance/M4_ML_06_CLEANUP.md).
   rollout. Further witness/probe or structural-predictor work requires approval;
   M5-11.7/M5-12, installed/public qualification, CI and release remain separate.
 
+<a id="m4-ml-07"></a>
+### Phase M4-ML-07 - Structural Forward Controls, Causal Retention And Joint Search/Selection Research
+
+**Status:** APPROVED / IN_PROGRESS; owner authorized further local research,
+evidence and bounded tests after ML-06, not production adoption. Keep all old
+receipts, the frozen Ridge baseline and positive RSI evidence unchanged.
+**Goal:** distinguish forecasting unknown forward quality from reproducing the
+known IS component; test candidate-retention and ranking mechanisms; reconcile
+sampler, selector and meta interactions without another broad learner tournament.
+**Detailed guide:** [ML-07 supplemental protocol](QUANTBT_MODE4_META_LEARNER_RESEARCH_GUIDE_V1.md#mlr-s13),
+[original mathematical contract](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s5),
+[availability](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s6),
+[R/Q measurement](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s14)
+and [shared diagnostics](../docs/diagnostics/SHARED_ALPHA_DIAGNOSTICS.md).
+**Entry:** ML-06 source-bound closure PASS; original monthly union histories,
+full IS pools and quarterly factorial evidence retained. Reviewed outcomes mean
+new results are exploratory, not pristine OOS or retroactive nomination.
+
+**To-Do / Frozen Protocol:**
+1. **S01 - Structural controls.** On identical acquired-label IDs and origin
+   weights, compare Yhat=0, Yhat=deltaIS (Qhat=0), existing Ridge and X2. Report
+   forward-Q MSE/MAE and origin/group support; prove Y-error equals negative
+   Q-error. Verify min-Y versus max-Q behavior of the structural control on the
+   full eligible pool. It is not automatically an anchor-retention policy.
+2. **S02 - Same-family alternative target.** Fit Q=(I-I_anchor)-Y directly,
+   using the exact original as-of union, scaler/features, origin weights and
+   lambda10; no intercept or new feature/hyperparameter. Reuse Rust NumericRuntime
+   with independent solve parity. Two policy IDs isolate ranking: QD=min implied
+   Y=deltaIS-Qhat, QF=max Qhat; both retain Qhat>=-0.10, ties/geometry and whole-pool
+   OOD fallback. Fit at most the original 128 evaluation slots, not a new sweep
+   of Bayesian/Huber/XGB settings. Seal all winners before new financial queries.
+3. **S03 - Causal anchor retention.** A fixed gate accepts the original Ridge
+   winner only when its previous 12 consecutive calendar-month decisions all
+   have valid, published-before-cutoff raw Q and their mean Q is strictly >0;
+   otherwise retain the current native anchor. Earlier Q comes from actual
+   original Ridge decisions, never alternative queried outcomes. This is a
+   prequential empirical support rule, not a statistical safety guarantee.
+   Compare all-policy value, changes, abstention, help/harm and matched R/Q.
+4. **S04 - Joint search/selection.** Cold-qualify the existing 19-quarter
+   legacy/group-TPE x native/floor x meta-off/active factorial. Measure each
+   meta effect relative to its own anchor; measure sampler/selector interaction
+   on common valid masks, including the mature learned subset and fallback.
+   Do not confuse cold-start equivalence with learned efficacy. Inventory other
+   existing Mode5 sampler evidence separately; compatibility is not superiority
+   or a causal Mode4 router. No new optimizer proposals in this bounded lane.
+5. **S05 - Useful missing witnesses.** Reuse ML-06 witness queries by exact
+   identity; prioritize QF then QD, chronological fold then fixed alpha order,
+   deduplicate before observing outcomes. At most 32 new original-route calls,
+   including up to four retained-witness controls; no new IS scoring or search.
+   Missing outside the cap stays unqualified. New labels are evaluation-only.
+6. **S06 - Safety/report/closeout.** Test algebra, exact weighted masks,
+   regularization/target distinction, current/future-label mutation, actual
+   fresh fit controls and retention maturity, baseline restoration, factorial
+   matching and privacy. Report limits, rival explanations and concrete next
+   tests; no post-outcome threshold adjustment. Commit and clean owned scratch.
+
+**Tests / Exit Gate:** independently verified structural/target algebra and
+Rust/reference parity; no current/future outcomes in fit/gate; all registered
+policy slots have dispositions and admitted queries finish or retain explicit
+resource-stop receipts. Original accounts/sources exact; no source defect left
+open. No positive-result requirement. Scientific status remains exploratory;
+no new confidence interval or efficacy/promotion badge from incomplete calendars.
+**Budget / Cleanup:** <=300 numeric/reference fit charges including controls,
+<=15 CPU-minutes cold stages and <=15 CPU-minutes original financial work;
+<=32 new financial calls, zero optimizer proposals, one one-thread worker per
+numeric/financial lane, owned RSS <=1.5 GiB, available RAM >=512 MiB. New retained
+<=64 MiB, scratch <=32 MiB, >=5 GiB free bytes after forecast; no new environment,
+dependency/build/download. Only ignored `ml07/attempt-01/scratch` may be removed
+after host owner review; old source/accounts/evidence/artifacts remain.
+**Debt / Boundary:** no production implementation/default, installed/remote
+qualification, push, CI, release or M5-11.7/M5-12. Logged-history replay is not
+a replacement-acquisition rollout. Missing propensities forbid claiming unbiased
+IPS/DR policy evaluation; finite observed candidates are not a full-pool oracle.
+
 <a id="mode5-m5-11-7"></a>
 ### Phase M5-11.7 - Mode 4/5 Complete Researcher Reports And Decision Qualification
 
