@@ -2,19 +2,28 @@
 
 ## Current Mode 5 Diagnostics-First Upgrade - Full-Development Decision Support
 
-**Latest owner-approved research:** [M4-ML-07](#m4-ml-07) is
+**Latest owner-approved research:** [M4-ML-08](#m4-ml-08) completed the bounded
+additional-alpha replication locally: seven private inventory entries,23 main
+quarterly origins, three fixed sampler challenger cells and actual mature-fit
+causality/accounting checks. Detailed new economic/source evidence remains
+private by owner instruction; no universal learner/sampler replacement is
+supported. The frozen Ridge baseline and all earlier evidence remain unchanged.
+No production change, push, CI, release or later phase was activated.
+
+**Previous completed research:** [M4-ML-07](#m4-ml-07) is
 COMPLETE_LOCAL_REGISTERED_RESEARCH. Structural Q=0 controls, same-family direct-Q
 target/ranking, causal retention and the complete saved sampler/selector/meta
 factorial are qualified locally. The
 [report](../docs/meta_selection/M4_ML_07_FORWARD_DECISION_REPORT.md) preserves
 heterogeneous results: HMA has a favorable matched research signal, HASH rejects
 the same blanket upgrade, and sparse calendars limit SC/VWAP interpretations.
-No production adoption, new search, M5-11.7/M5-12, CI or release is activated.
+At the ML-07 closure, no production adoption, new search, M5-11.7/M5-12, CI
+or release was activated; the subsequent ML-08 research has separate authority.
 
-**Current meta-learning direction (2026-10-17, Asia/Saigon):** owner requested
+**Historical model/hyperparameter baseline (2026-10-17, Asia/Saigon):** owner requested
 the [Ridge V1 comparator freeze](../docs/meta_selection/RIDGE_V1_FROZEN_BASELINE.md)
 and a bounded general-purpose model/hyperparameter research plan. The
-[five M4-ML phases](#m4-ml-research) precede M5-11.7/M5-12. M4-ML-01 and
+[initial five M4-ML phases](#m4-ml-research) precede M5-11.7/M5-12. M4-ML-01 and
 M4-ML-02 are COMPLETE_LOCAL: admission and finite P0/P1/P2 replay are verified.
 The [comparison](../docs/meta_selection/M4_ML_02_CALIBRATION_REPORT.md) retains
 V1: P1's primary macro loss improvement is 0.547%, below the 2% gate; P2
@@ -28,13 +37,14 @@ complete nomination support. Actual mature/late model controls, 128 retained P0
 decisions and 24 original account-file hashes pass. No new-family adaptive or
 economic rollout is claimed. All admitted implementation gaps are closed;
 broader evidence remains explicitly INCONCLUSIVE. Older M5 phases remain
-unactivated. No new research optimizer, full WFO study, production/default
-activation, remote CI, artifact build or release is authorized.
+unactivated. At that original closure no new research optimizer, full WFO study,
+production/default activation, remote CI, artifact build or release was
+authorized; ML-06/07/08 subsequently received their own local research approvals.
 The detailed [research guide](QUANTBT_MODE4_META_LEARNER_RESEARCH_GUIDE_V1.md)
 requires common calibration procedures, held-out alpha-group plus chronological
 evaluation, unchanged target/guard primary comparisons and explicit cost gates.
 
-**Current decision-value follow-up (2026-10-17, Asia/Saigon):**
+**Completed decision-value follow-up (2026-10-17, Asia/Saigon):**
 [M4-ML-06](#m4-ml-06) is COMPLETE_LOCAL_REGISTERED_SCOPE, after completed ML-05
 and before M5-11.7. Technical gates PASS; exploratory decision effects are
 heterogeneous and KEEP_FROZEN_V1 remains the disposition. All 228 native/Ridge
@@ -35764,13 +35774,13 @@ Empirical status is NOT_ASSESSED; richer M5-11.7 integration, Ridge/model/loss
 research, M5-12, CI and release remain unactivated.
 
 <a id="m4-ml-research"></a>
-### Mode 4 Meta-Learner Research - Seven Completed Local Phases
+### Mode 4 Meta-Learner Research - Eight Completed Local Phases
 
 **Authority (2026-10-17, Asia/Saigon):** freeze the initial Ridge baseline now;
 plan a bounded study before the older large phases. The completed shared
 diagnostics module remains independent and is reused, not redesigned.
 **Order:** completed M4-ML-01 -> M4-ML-02 -> M4-ML-03 -> M4-ML-04 -> M4-ML-05 ->
-M4-ML-06 -> M4-ML-07 ->
+M4-ML-06 -> M4-ML-07 -> M4-ML-08 ->
 separately approved M5-11.7 -> M5-12. Every phase needs owner approval; writing
 the plan does not launch its work or promise a superior learner.
 **Common goal:** minimize generalization/decision error under the existing
@@ -35794,6 +35804,7 @@ and [14 economics](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI
 | M4-ML-05 | Retain/opt-in/defer decision and old-phase handoff | COMPLETE_LOCAL; KEEP_FROZEN_V1, optional research only; old phases await approval |
 | M4-ML-06 | Decision value, prefix diagnostics and bounded policy ablations | COMPLETE_LOCAL_REGISTERED_SCOPE; technical PASS, exploratory heterogeneous, KEEP_FROZEN_V1; no later activation |
 | M4-ML-07 | Structural forward target, causal retention and joint search/selection | COMPLETE_LOCAL_REGISTERED_RESEARCH; technical PASS, exploratory heterogeneous; no production adoption |
+| M4-ML-08 | Private additional-alpha replication and generalization limits | COMPLETE_LOCAL_BOUNDED_RESEARCH; technical PASS; private evidence retained; no universal promotion |
 
 <a id="m4-ml-01"></a>
 ### Phase M4-ML-01 - Frozen Ridge Baseline, Evidence Admission And Study Registration
@@ -36538,7 +36549,7 @@ and [cleanup](../docs/maintenance/M4_ML_07_CLEANUP.md).
 <a id="m4-ml-08"></a>
 ### Phase M4-ML-08 - Private Additional-Alpha Replication And Generalization Limits
 
-**Status:** APPROVED_LOCAL_RESEARCH / IN_PROGRESS; owner supplied two additional
+**Status:** COMPLETE_LOCAL_BOUNDED_RESEARCH / technical checks PASS; owner supplied two additional
 private alphas and requested bounded additional testing. No model adoption or
 later-phase activation. Preserve ML-06/07, positive RSI evidence and old receipts.
 **Goal:** expand the private inventory to seven, test an additional complete
@@ -36580,6 +36591,34 @@ dependency, build or data download. Only exact owned ignored scratch is eligible
 **Debt / Boundary:** A-N2 full four-target/risk sizing requires a separate
 admitted adapter if no exact route exists. No core/default/methodology promotion,
 Git alpha disclosure, remote CI, push, release, M5-11.7 or M5-12 activation.
+
+**Local Completion:** the ignored inventory is
+`upgrade/local/meta_model_research_v1/alpha_pool_v2.json`; source-bound receipts,
+machine tables and detailed report remain under
+`upgrade/private/meta_model_research_v1/ml08/attempt-01/`. Do not stage or package
+those files, alpha sources, ranges or individual parameters.
+
+- Complete26 studies /3,328 registered slots;3,308 captured candidates and20
+  duplicate-only prunes. Retain128 additional failed-writer attempts separately.
+  Two complete IS pools /255 observations reused, with four exact recovery
+  controls; no second optimizer for another selector/meta arm.
+- Thirteen support-fallback quarters and ten actually fitted quarters. Preserve
+  all signs, matched masks, selected-tail forecast error, activity and signed
+  decay/forward decomposition. No forced economic success, powered universal
+  claim, final-account equity splice or new deployment-acquisition claim.
+- Actual future-correction fit/rank checks at three mature cutoffs, permitted
+  past positive controls, original full-prefix account/independent daily metric
+  replay and Rust/reference numeric parity PASS. All completed v3 position/
+  equity comparisons are exact;145 distinct affected existing tests PASS.
+- Four shared prefix diagnostic reports; fourteen source-branch pairs reveal
+  both inactive paths and genuine risk/exit coupling. No undeclared parameter
+  pruning, causal factor claim or outcome-driven recipe adjustment.
+- A-N2:128 input/plan checks and three prefix-mutation cutoffs PASS_PLAN_ONLY;
+  no false full four-target execution/meta certification or single-TP substitute.
+- Main completed financial lane29.04 minutes /379.84MiB process peak RSS;
+  failed/setup/control/analysis work remains separate. Compact evidence only,
+  no market snapshot/environment/build duplication. Cleanup/source preservation
+  is recorded in the ignored closure receipts; no public qualification claimed.
 
 <a id="mode5-m5-11-7"></a>
 ### Phase M5-11.7 - Mode 4/5 Complete Researcher Reports And Decision Qualification
