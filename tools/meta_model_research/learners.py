@@ -219,6 +219,7 @@ class FamilyResearch:
         self.regression_fit_charge = 2 if self.runtime.native is not None else 0
         self.cache = OrderedDict()
         self.prepared = None
+        self.prepared_limits = None
         self.source_id = digest(
             {
                 p.name: sha256(p.read_bytes()).hexdigest()
@@ -229,6 +230,7 @@ class FamilyResearch:
     def clear(self):
         self.cache.clear()
         self.prepared = None
+        self.prepared_limits = None
         self.runtime.work_cache.clear()
 
     def fit(self, spec, schema, snapshot, *, fit_completed_at):
@@ -244,6 +246,7 @@ class FamilyResearch:
                 completed=completed,
                 backend=self.runtime.policy,
                 native=self.runtime.native_identity,
+                numeric_limits=self.runtime.limits,
             )
         )
         if key in self.cache:
@@ -284,8 +287,11 @@ class FamilyResearch:
                 self.prepared is None
                 or self.prepared.snapshot_id != snapshot.snapshot_id
                 or self.prepared.schema_id != schema.schema_id
+                or self.prepared_limits != self.runtime.limits
             ):
+                self.prepared = None
                 self.prepared = prepare_history(schema, snapshot, self.runtime)
+                self.prepared_limits = self.runtime.limits
             prepared = self.prepared
             model = fit_family(
                 spec, prepared.X, prepared.y, prepared.weights, runtime=self.runtime

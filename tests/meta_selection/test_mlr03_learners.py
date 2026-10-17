@@ -220,3 +220,24 @@ def test_native_basis_prediction_restore_and_real_fit_bill():
             data[2],
             fit_completed_at=data[3].decision_sealed_at,
         )
+
+
+def test_changed_numeric_limits_invalidate_fit_and_preparation_reuse():
+    data, engine, artifact = setup()
+    engine.runtime.limits = replace(
+        engine.runtime.limits, max_workspace_bytes=8_000_000
+    )
+    fitted = engine.fit(
+        FamilySpec("B1"), data[0], data[2], fit_completed_at=data[3].decision_sealed_at
+    )
+    assert engine.fits == 2 and engine.cache_hits == 0
+    assert fitted.fit_id == artifact.fit.fit_id
+    engine.runtime.limits = replace(engine.runtime.limits, max_workspace_bytes=1)
+    with pytest.raises(MetaRecordError, match="WORKSPACE"):
+        engine.fit(
+            FamilySpec("H135"),
+            data[0],
+            data[2],
+            fit_completed_at=data[3].decision_sealed_at,
+        )
+    assert engine.prepared is None

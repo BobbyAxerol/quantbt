@@ -35759,7 +35759,7 @@ and [14 economics](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI
 |---|---|---|
 | M4-ML-01 | Baseline/source and bias-aware corpus/design admission | COMPLETE_LOCAL; approved finite replay protocol, no economic promotion |
 | M4-ML-02 | Fixed versus generally calibrated regularization | COMPLETE_LOCAL; technical PASS, empirical INCONCLUSIVE, KEEP_FROZEN_V1 |
-| M4-ML-03 | Cheap supervised challengers and alternative-family feasibility | APPROVED / IN_PROGRESS; finite protocol approved, exact dependency admission pending |
+| M4-ML-03 | Cheap supervised challengers and alternative-family feasibility | COMPLETE_LOCAL; 480 cells, zero supported nominees; KEEP_V1 |
 | M4-ML-04 | Served decisions, chronology and bounded actual economics | APPROVED / QUEUED_AFTER_ML03_GATE |
 | M4-ML-05 | Retain/opt-in/defer decision and old-phase handoff | APPROVED / QUEUED_AFTER_ML04_GATE |
 
@@ -35933,14 +35933,20 @@ or unresolved source/clock bug. Model-family experimentation waits for MLR-03.
 <a id="m4-ml-03"></a>
 ### Phase M4-ML-03 - Bounded Supervised Challengers And Unsupervised Feasibility
 
-**Status:** APPROVED / IN_PROGRESS_LOCAL (2026-10-17, Asia/Saigon).
-Owner authorized ML-03 -> ML-04 -> ML-05 in order. Typed optional learner
-prototypes and synthetic oracles pass locally; the
-[protocol worksheet](../docs/meta_selection/M4_ML_03_PROTOCOL.md) has owner
-approval before outcomes. Exact optional CPU-wheel admission and immutable
-registration precede new real-data comparison; no production/financial code
-is changed. Initial failed unit receipts remain retained; current integration
-checks are 218 PASS / 6 explicit absent-XGBoost cases, not complete screening.
+**Status:** COMPLETE_LOCAL_REGISTERED_RESEARCH / KEEP_FROZEN_V1
+(2026-10-17, Asia/Saigon). The
+[report](../docs/meta_selection/M4_ML_03_FAMILY_REPORT.md) and
+[closure](../benchmarks/optimization/meta_selection/model_research_v1/ml03_closure.json)
+bind exact CPU-only dependency admission, 480 development cells, 422 logical
+fits/510 numeric/reference charges and 92 portable checks. Independent raw-label
+and candidate/clock/geometry audits pass; 342 combined tests pass with XGBoost
+present. Historical failed/absent-dependency receipts remain unchanged.
+All four held-out groups have zero nominees on both panels under the approved
+complete-block support rule; this is insufficient transfer support, not evidence
+that all alternative families lack value. X2 improves descriptive macro MSE
+2.59%, but worsens HMA. No production, optimizer or financial code changed.
+ML-04 may now qualify mature controls and V1 fallback; new-family economics and
+real adaptive updates remain conditional on a supported nominee, not forced.
 **Goal:** identify whether a small alternative family addresses observed Ridge
 limitations at a justifiable cost; assess unsupervised/ranker roles honestly.
 **Entry:** MLR-02 disposition, frozen shared inputs and MLR-01 configuration

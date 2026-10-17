@@ -7,7 +7,9 @@ The [unified plan](../../upgrade/implement.md#m4-ml-03) and
 [detailed guide](../../upgrade/QUANTBT_MODE4_META_LEARNER_RESEARCH_GUIDE_V1.md)
 remain authoritative. Owner approved the finite roster and private CPU-only
 dependency on question `call_9a8224a31af54e74aecaa659471bbdb5`. This worksheet is
-**OWNER_APPROVED / DEPENDENCY_ADMISSION_PENDING**, not a completed screening.
+**COMPLETE_LOCAL / KEEP_FROZEN_V1**. The finite screening and CPU dependency
+qualification are complete; the [report](M4_ML_03_FAMILY_REPORT.md) records
+results and limits. The following protocol remains the pre-outcome contract.
 Questions
 `call_a5c21b3dcd9c40c58ab9e2232efe3cea` and
 `call_82d98b76a45b4d4db4bfb80e7ebf18b1` retain the existing loss/R/Q and strict
@@ -44,9 +46,10 @@ installation, GPU/NCCL or mandatory package dependency is permitted. Proposed
 CPU-only wheel must have version/hash/build/footprint admission before import.
 Versions/recipes and UBJ/JSON payloads are validated; pickle is not used.
 The [dependency proposal](../../benchmarks/optimization/meta_selection/model_research_v1/ml03_dependency_proposal.json)
-records official PyPI metadata: the x86_64 wheel is 5,303,801 bytes. It has not
-been downloaded/installed or build-qualified; a published hash is not yet a
-verified local artifact.
+records official PyPI metadata: the x86_64 wheel is 5,303,801 bytes. The later
+[admission](../../benchmarks/optimization/meta_selection/model_research_v1/ml03_dependency_admission.json)
+verifies the exact local SHA256, wheel RECORD and CPU-only build. Extraction is
+private research-only; the main environment and package dependencies are unchanged.
 
 X is the existing standardized candidate-minus-origin-anchor descriptor basis;
 Y, origin replacement weights, Q floor -0.10, geometry/ties and whole-pool OOD

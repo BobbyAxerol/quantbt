@@ -6,8 +6,9 @@ protocol on 2026-10-17. M4-ML-01 admission and M4-ML-02 finite replay are
 complete locally; see the [comparison](../docs/meta_selection/M4_ML_02_CALIBRATION_REPORT.md).
 KEEP_FROZEN_V1: P1 misses the registered improvement gate; P2 lacks complete
 calibration blocks and falls back. Owner subsequently authorized sequential
-ML-03 -> ML-04 -> ML-05; ML-03 framework is in progress, with finite detailed
-protocol/dependency admission before new comparisons. The
+ML-03 -> ML-04 -> ML-05; ML-03 is complete locally with zero supported nominees
+under the approved finite protocol. See the
+[family report](../docs/meta_selection/M4_ML_03_FAMILY_REPORT.md). The
 [worksheet](../docs/meta_selection/M4_ML_03_PROTOCOL.md) records this boundary.
 The Ridge baseline remains frozen. No target, production
 hyperparameter/default policy or public activation changes are authorized.
