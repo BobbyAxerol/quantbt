@@ -36535,6 +36535,52 @@ and [cleanup](../docs/maintenance/M4_ML_07_CLEANUP.md).
   rule out blanket replacement. No new production policy, ML family, dependency,
   endpoint, artifact, CI/push/release or older phase is activated.
 
+<a id="m4-ml-08"></a>
+### Phase M4-ML-08 - Private Additional-Alpha Replication And Generalization Limits
+
+**Status:** APPROVED_LOCAL_RESEARCH / IN_PROGRESS; owner supplied two additional
+private alphas and requested bounded additional testing. No model adoption or
+later-phase activation. Preserve ML-06/07, positive RSI evidence and old receipts.
+**Goal:** expand the private inventory to seven, test an additional complete
+execution domain and distinguish decision-value heterogeneity from universal
+learner or sampler superiority.
+**Detailed guide:** [frozen supplemental protocol](QUANTBT_MODE4_META_LEARNER_RESEARCH_GUIDE_V1.md#mlr-s14),
+[original mathematics](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s5),
+[availability](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s6),
+[R/Q](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s14).
+
+**To-Do:**
+1. Version the ignored seven-alpha inventory; verify source hashes, Git ignore
+   and package isolation. Leave original alpha files/registrations unchanged.
+2. Admit A-N1 using two fixed original annual financial controls and timing;
+   qualify A-N2 plan/required domain without pretending single-TP equivalence.
+3. Run23 quarterly rolling365D origins with128 legacy-TPE attempts/origin;
+   compare native, frozen Ridge and direct-Q target/ranking policies on the
+   full IS pool. Shared capture/metric/history/scaler/numeric owners only.
+4. Seal all winners before forward; base16 plus original Ridge winners defines
+   acquisition history. New evaluation-only winners cannot contaminate it.
+   Publish mature labels with the existing one-second availability lag.
+5. Compare group-TPE at three fixed origins,128 attempts each; no false transfer
+   of old sampler history. Explain MSE versus decision value, support/activity,
+   R/Q and IS contribution, contradictions and shared-market dependence.
+6. Verify actual future/past controls, privacy and source-account parity;
+   preserve every failed/disposition receipt, clean owned scratch and commit
+   only sanitized plan/report material. All private code/params/results ignored.
+
+**Tests / Exit Gate:** complete registered cells or explicit resource-stop
+dispositions; original accounting, causality and numeric-reference parity;
+matched masks and no positive-result requirement. Economic generalization may
+remain INCONCLUSIVE; technical PASS is not promotion. At most ten fitted
+quarterly origins cannot certify universal improvement or a new deployment.
+**Budget / Cleanup:** <=3,328 planned proposals plus128 failed-writer attempts,
+one numeric/financial worker with
+one thread; <=30-minute financial lane, peak RSS<=1.5GiB, available RAM>=512MiB;
+retained<=64MiB/scratch<=32MiB and >=5GiB free beyond forecast. No environment,
+dependency, build or data download. Only exact owned ignored scratch is eligible.
+**Debt / Boundary:** A-N2 full four-target/risk sizing requires a separate
+admitted adapter if no exact route exists. No core/default/methodology promotion,
+Git alpha disclosure, remote CI, push, release, M5-11.7 or M5-12 activation.
+
 <a id="mode5-m5-11-7"></a>
 ### Phase M5-11.7 - Mode 4/5 Complete Researcher Reports And Decision Qualification
 

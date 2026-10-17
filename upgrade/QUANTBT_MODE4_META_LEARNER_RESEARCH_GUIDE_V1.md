@@ -806,3 +806,68 @@ uses logged-feedback/importance-weighting assumptions; no propensities are
 fabricated for deterministic acquired panels. Do not claim unbiased IPS/DR or
 unobserved full-pool regret from the current partial witnesses. These references
 motivate questions, not adoption or evidence of improved alpha returns.
+
+<a id="mlr-s14"></a>
+## 14. Private Additional-Alpha Replication (ML-08)
+
+The owner supplied two additional private strategies and authorized bounded
+local testing, not a new production model. Extend a versioned ignored inventory
+to seven alphas; never amend the sealed five-alpha inventories. Source, parameter
+names/values, market and detailed results stay under ignored local/private roots.
+No build, download, Git source inclusion, push, CI, release or package dependency.
+
+Select A-N1 before new economic outcomes because its original complete order
+wrapper exists. Admit with original-position and shadow-account parity at two
+fixed annual controls. Preserve close-fill, sizing, partial exits and real
+indicator prefix; do not replace it with target weights for speed. A-N2 needs
+an explicit four-target/risk-sizing execution contract; a single-target debug
+adapter cannot certify that domain. Inventory and causal plan tests do not mean
+full financial/meta coverage of A-N2.
+
+Boundary admission found that the legacy original orders engine ignores its
+array bar0. Retain exactly one real flat pre-window bar when executing, then
+use the existing reporting-scope reducer for the declared metric window. Do not
+suppress a valid first-window entry or alter alpha timing. Retain the failed
+writer/boundary receipts. The two complete IS pools from that lane may be reused
+only with unchanged observations and exact independent recovery controls; no
+silent old-history transfer or needless optimizer restart.
+
+After admission, one worker executes23 quarterly origins, 2021Q1--2026Q3, rolling
+365D IS, using actual ETHUSDT1h history from2020. Each origin runs the existing
+Mode4 IS-only robust engine:128 attempted legacy-TPE trials, seed731/fold-derived,
+no early stop/warm start, top10%, medoid, epsilon.15/min3, one IS subperiod.
+Fresh diagnostic accounts use20,000 capital, leverage1, one-way fee.0004,
+source equity-fraction sizing and no funding/slippage. This is a new private
+strategy family, not a paired extension of the monthly/730D source study.
+
+Use shared typed tasks, pool capture, original-result metrics, cap16 base panel,
+origin-balanced scaler and Ridge lambda10/min12/Qfloor-.10. Fit/rank before
+current forward execution; publish labels after the quarter plus one second.
+Seal native, old Ridge min-Y, old Ridge max-Q, direct-Q min-implied-Y and
+direct-Q max-Q; union winners are forward-observed, but only the original Ridge
+base/union panel enters the primary acquisition history. Alternative-target
+winners added for evaluation must not silently change primary training.
+Keep this logged-acquisition research distinct from an alternative deployment.
+
+Group-TPE is the sole compatible sampler challenger, selected from the mixed
+space contract before outcomes, at fixed origin indices4/12/20,128 attempts
+each. Compare its own native winner with the exact legacy origin, retaining
+undefined quarters. Three fresh challenger studies cannot inherit legacy meta
+history and do not establish a mature challenger meta rollout or sampler router.
+
+Report pooled and selected-tail forecast loss, activity/support, actual changes,
+help/harm, matched R/Q and IS decomposition. HMA/HASH heterogeneity motivates
+tests of ranking, regularization prior and support, not choosing a model by alpha
+name. Twenty-three origins permit at most ten fitted quarterly decisions; show
+actual counts and do not claim a powered cross-alpha generalization certificate.
+No per-alpha hyperparameter adjustment, current-forward feature, post-outcome
+threshold or positive-result admission. Freeze V1 unchanged regardless of sign.
+
+Budget: <=3,328 planned optimizer slots plus128 retained failed-writer attempts,
+<=30 minutes wall for the registered financial
+lane, <=1.5GiB process peak RSS, >=512MiB available RAM, <=64MiB retained and
+<=32MiB scratch, >=5GiB free beyond forecast. Guard stops preserve completed
+cells and explicit missingness; never rename a partial run complete. Tests cover
+source-account parity, causal prefix, as-of availability, actual model/rank
+future invariance, positive past sensitivity and privacy. Keep compact receipts,
+remove only inactive owned scratch, and record protected hashes at closure.
