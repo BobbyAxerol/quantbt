@@ -11,9 +11,14 @@ The [comparison](../docs/meta_selection/M4_ML_02_CALIBRATION_REPORT.md) retains
 V1: P1's primary macro loss improvement is 0.547%, below the 2% gate; P2
 correctly falls back for insufficient complete-block support. Missing selected
 outcomes prevent registered family inference; this is not proof of no edge.
-ML-03..05 remain PROPOSED / NOT_STARTED and require separate approval.
-No new financial study, dependency install, production/default activation,
-remote CI or release is authorized by this research scope.
+Owner has now authorized sequential ML-03 -> ML-04 -> ML-05. ML-03 framework
+and synthetic qualification are IN_PROGRESS; its
+[finite roster worksheet](../docs/meta_selection/M4_ML_03_PROTOCOL.md) now has
+owner approval; exact optional CPU-wheel admission precedes outcome comparison.
+ML-04/05 are QUEUED_AFTER_PREDECESSOR_GATE; older M5 phases remain unactivated.
+No new optimizer, full WFO study, production/default activation, remote CI or
+release is authorized. Optional private research dependency and bounded ML-04
+queries require their registered artifact/resource and predecessor gates.
 The detailed [research guide](QUANTBT_MODE4_META_LEARNER_RESEARCH_GUIDE_V1.md)
 requires common calibration procedures, held-out alpha-group plus chronological
 evaluation, unchanged target/guard primary comparisons and explicit cost gates.
@@ -35754,9 +35759,9 @@ and [14 economics](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI
 |---|---|---|
 | M4-ML-01 | Baseline/source and bias-aware corpus/design admission | COMPLETE_LOCAL; approved finite replay protocol, no economic promotion |
 | M4-ML-02 | Fixed versus generally calibrated regularization | COMPLETE_LOCAL; technical PASS, empirical INCONCLUSIVE, KEEP_FROZEN_V1 |
-| M4-ML-03 | Cheap supervised challengers and alternative-family feasibility | PROPOSED / NOT_STARTED |
-| M4-ML-04 | Served decisions, chronology and bounded actual economics | PROPOSED / NOT_STARTED |
-| M4-ML-05 | Retain/opt-in/defer decision and old-phase handoff | PROPOSED / NOT_STARTED |
+| M4-ML-03 | Cheap supervised challengers and alternative-family feasibility | APPROVED / IN_PROGRESS; finite protocol approved, exact dependency admission pending |
+| M4-ML-04 | Served decisions, chronology and bounded actual economics | APPROVED / QUEUED_AFTER_ML03_GATE |
+| M4-ML-05 | Retain/opt-in/defer decision and old-phase handoff | APPROVED / QUEUED_AFTER_ML04_GATE |
 
 <a id="m4-ml-01"></a>
 ### Phase M4-ML-01 - Frozen Ridge Baseline, Evidence Admission And Study Registration
@@ -35928,7 +35933,14 @@ or unresolved source/clock bug. Model-family experimentation waits for MLR-03.
 <a id="m4-ml-03"></a>
 ### Phase M4-ML-03 - Bounded Supervised Challengers And Unsupervised Feasibility
 
-**Status:** PROPOSED / NOT_STARTED.
+**Status:** APPROVED / IN_PROGRESS_LOCAL (2026-10-17, Asia/Saigon).
+Owner authorized ML-03 -> ML-04 -> ML-05 in order. Typed optional learner
+prototypes and synthetic oracles pass locally; the
+[protocol worksheet](../docs/meta_selection/M4_ML_03_PROTOCOL.md) has owner
+approval before outcomes. Exact optional CPU-wheel admission and immutable
+registration precede new real-data comparison; no production/financial code
+is changed. Initial failed unit receipts remain retained; current integration
+checks are 218 PASS / 6 explicit absent-XGBoost cases, not complete screening.
 **Goal:** identify whether a small alternative family addresses observed Ridge
 limitations at a justifiable cost; assess unsupervised/ranker roles honestly.
 **Entry:** MLR-02 disposition, frozen shared inputs and MLR-01 configuration
@@ -35983,7 +35995,8 @@ economics; unqualified alternatives stay unactivated with explicit reasons.
 <a id="m4-ml-04"></a>
 ### Phase M4-ML-04 - Chronological Decision Qualification And Targeted Economics
 
-**Status:** PROPOSED / NOT_STARTED.
+**Status:** APPROVED / QUEUED_AFTER_ML03_GATE (2026-10-17, Asia/Saigon).
+No nominee, periodic real-data update or targeted query has been executed yet.
 **Goal:** evaluate complete served decisions against V1 on enough supported
 chronology without rerunning completed strategy searches or inventing outcomes.
 **Entry:** frozen nominees, evaluation roster and acceptance rules; MLR-03
@@ -36040,7 +36053,7 @@ evidence is a declared scope limit, never an implicit production promotion.
 <a id="m4-ml-05"></a>
 ### Phase M4-ML-05 - Model Decision, Compatibility And Research Handoff
 
-**Status:** PROPOSED / NOT_STARTED.
+**Status:** APPROVED / QUEUED_AFTER_ML04_GATE (2026-10-17, Asia/Saigon).
 **Goal:** resolve the question with one auditable retain/opt-in/defer decision,
 clear generic hyperparameter semantics and no compulsory new dependency.
 **Entry:** MLR-01..04 receipts and scope dispositions, unchanged V1 comparator.

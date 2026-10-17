@@ -1,0 +1,18 @@
+{
+  "schema": "m4.ml03.optional-dependency-proposal.v1",
+  "status": "OWNER_APPROVAL_PENDING_NOT_INSTALLED",
+  "distribution": "xgboost-cpu",
+  "version": "3.1.1",
+  "filename": "xgboost_cpu-3.1.1-py3-none-manylinux_2_28_x86_64.whl",
+  "wheel_bytes": 5303801,
+  "sha256": "a6621e32501433c4ec31da72734e151802a26bb9e68a71fe5d26e07ac146277e",
+  "url": "https://files.pythonhosted.org/packages/b2/6c/b7031dc0bdf0eac2f67fad068dbf9def8bd6a85d80af6c5e517ef207b4c2/xgboost_cpu-3.1.1-py3-none-manylinux_2_28_x86_64.whl",
+  "metadata_source": "https://pypi.org/pypi/xgboost-cpu/3.1.1/json",
+  "yanked": false,
+  "wheel_downloaded": false,
+  "wheel_hash_verified": false,
+  "cpu_build_verified": false,
+  "installed": false,
+  "main_environment_or_package_dependency_changed": false,
+  "admission_required": ["owner approval", "download hash", "safe private extraction and RECORD", "actual build CPU/NCCL identity", "installed footprint and shared resource reserve", "one-thread synthetic fit/restore"]
+}

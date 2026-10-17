@@ -2,6 +2,13 @@
 
 ## Current Ridge Research Result
 
+Owner has subsequently authorized sequential ML-03 -> ML-04 -> ML-05 local
+research. ML-03 framework/synthetic work is in progress; its
+[finite protocol worksheet](../docs/meta_selection/M4_ML_03_PROTOCOL.md) now has
+owner approval, with exact CPU-wheel/source admission before new comparison
+outcomes. ML-04/05 wait for predecessor gates. No new financial work or public
+policy has started; no remote/release action is authorized.
+
 2026-10-17, Asia/Saigon: M4-ML-01 and M4-ML-02 are complete locally. The
 [frozen baseline](../docs/meta_selection/RIDGE_V1_FROZEN_BASELINE.md) and
 [admission report](../docs/meta_selection/M4_ML_01_ADMISSION_REPORT.md) bind
@@ -16,8 +23,9 @@ P0 because three complete three-month blocks/group are unavailable. Missing
 new-winner outcomes prevent numerical family inference, not evidence of no
 edge. Historical replay plus actual-history controls count 2,503 regressions,
 including failed-work recovery. No new optimizer/financial execution, build,
-dependency or default change. ML-03..05, older reporting/package phases and
-release wait for separate approval.
+dependency or default change. That ML-02 receipt remains historical; the new
+ML-03..05 authorization above does not activate older reporting/package phases
+or release.
 Earlier receipts below retain their historical source/claim scope.
 
 ## Latest E08 Execution

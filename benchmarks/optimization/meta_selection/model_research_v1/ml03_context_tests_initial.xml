@@ -1,0 +1,312 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="6" skipped="0" tests="9" time="3.390" timestamp="2026-10-17T01:58:22.841883+00:00" hostname="Bobby"><testcase classname="tests.meta_selection.test_mlr03_learners" name="test_history_basis_and_bayesian_mean_match_independent_augmented_oracle" time="0.029"><failure message="TypeError: dict() got multiple values for keyword argument 'status'">def test_history_basis_and_bayesian_mean_match_independent_augmented_oracle():
+&gt;       data, engine, artifact = setup()
+                                 ^^^^^^^
+
+tests/meta_selection/test_mlr03_learners.py:30: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/meta_selection/test_mlr03_learners.py:24: in setup
+    fitted = engine.fit(FamilySpec(code), data[0], data[2], fit_completed_at=data[3].decision_sealed_at)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = &lt;tools.meta_model_research.learners.FamilyResearch object at 0x7f490472eae0&gt;
+spec = FamilySpec(code='B1')
+schema = &lt;quantbt.optimization.meta_selection.descriptors.DescriptorSchema object at 0x7f491686b1d0&gt;
+snapshot = HistorySnapshot(family_id='4368f6a8950a46a9777b5fd761ba448f07fcb8efb2963d687ee5633ae6f0507a', authorized_corpora=('app...evision_id=None, correction_reason=None, publication_order=None, verification='original_result')), snapshot_order=None)
+fit_completed_at = Timestamp('2020-12-31 01:01:00+0000', tz='UTC')
+
+    def fit(self, spec, schema, snapshot, *, fit_completed_at):
+        completed = utc(fit_completed_at)
+        if completed &lt; snapshot.information_as_of:
+            raise MetaRecordError("MLR_FAMILY_FIT_CLOCK_INVALID")
+        key = digest(dict(source=self.source_id, recipe=spec.recipe_id, schema=schema.schema_id,
+                          snapshot=snapshot.snapshot_id, completed=completed,
+                          backend=self.runtime.policy, native=self.runtime.native_identity))
+        if key in self.cache:
+            self.cache_hits += 1
+            self.cache.move_to_end(key)
+            return self.cache[key][0]
+        if snapshot.origin_count &lt; 12:
+            return FamilyFit(spec, snapshot.family_id, schema.schema_id, snapshot.snapshot_id,
+                             snapshot.information_as_of, completed, snapshot.origin_count,
+                             None, None, dict(status="NO_FIT", K=snapshot.origin_count))
+        if self.fits &gt;= self.max_fits:
+            raise MetaRecordError("MLR_FAMILY_FIT_BUDGET_EXHAUSTED")
+        self.fits += 1
+        try:
+            if (self.prepared is None or self.prepared.snapshot_id != snapshot.snapshot_id
+                    or self.prepared.schema_id != schema.schema_id):
+                self.prepared = prepare_history(schema, snapshot, self.runtime)
+            prepared = self.prepared
+            model = fit_family(spec, prepared.X, prepared.y, prepared.weights, runtime=self.runtime)
+            prediction = model.predict(prepared.X)
+            errors = prediction - prepared.y
+&gt;           training = dict(status="FIT", K=prepared.K, N=len(prepared.y), d=prepared.X.shape[1],
+                served_y_mse=float(np.dot(prepared.weights, errors**2) / prepared.K),
+                served_y_mae=float(np.dot(prepared.weights, np.abs(errors)) / prepared.K),
+                **dict(model.metadata))
+E               TypeError: dict() got multiple values for keyword argument 'status'
+
+tools/meta_model_research/learners.py:170: TypeError</failure></testcase><testcase classname="tests.meta_selection.test_mlr03_learners" name="test_full_pool_head_and_portable_roundtrip[B1]" time="0.027"><failure message="TypeError: dict() got multiple values for keyword argument 'status'">code = 'B1'
+
+    @pytest.mark.parametrize("code",["B1","H135","H200"])
+    def test_full_pool_head_and_portable_roundtrip(code):
+&gt;       data, engine, artifact = setup(code=code)
+                                 ^^^^^^^^^^^^^^^^
+
+tests/meta_selection/test_mlr03_learners.py:44: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/meta_selection/test_mlr03_learners.py:24: in setup
+    fitted = engine.fit(FamilySpec(code), data[0], data[2], fit_completed_at=data[3].decision_sealed_at)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = &lt;tools.meta_model_research.learners.FamilyResearch object at 0x7f49047b7920&gt;
+spec = FamilySpec(code='B1')
+schema = &lt;quantbt.optimization.meta_selection.descriptors.DescriptorSchema object at 0x7f49047b79e0&gt;
+snapshot = HistorySnapshot(family_id='4368f6a8950a46a9777b5fd761ba448f07fcb8efb2963d687ee5633ae6f0507a', authorized_corpora=('app...evision_id=None, correction_reason=None, publication_order=None, verification='original_result')), snapshot_order=None)
+fit_completed_at = Timestamp('2020-12-31 01:01:00+0000', tz='UTC')
+
+    def fit(self, spec, schema, snapshot, *, fit_completed_at):
+        completed = utc(fit_completed_at)
+        if completed &lt; snapshot.information_as_of:
+            raise MetaRecordError("MLR_FAMILY_FIT_CLOCK_INVALID")
+        key = digest(dict(source=self.source_id, recipe=spec.recipe_id, schema=schema.schema_id,
+                          snapshot=snapshot.snapshot_id, completed=completed,
+                          backend=self.runtime.policy, native=self.runtime.native_identity))
+        if key in self.cache:
+            self.cache_hits += 1
+            self.cache.move_to_end(key)
+            return self.cache[key][0]
+        if snapshot.origin_count &lt; 12:
+            return FamilyFit(spec, snapshot.family_id, schema.schema_id, snapshot.snapshot_id,
+                             snapshot.information_as_of, completed, snapshot.origin_count,
+                             None, None, dict(status="NO_FIT", K=snapshot.origin_count))
+        if self.fits &gt;= self.max_fits:
+            raise MetaRecordError("MLR_FAMILY_FIT_BUDGET_EXHAUSTED")
+        self.fits += 1
+        try:
+            if (self.prepared is None or self.prepared.snapshot_id != snapshot.snapshot_id
+                    or self.prepared.schema_id != schema.schema_id):
+                self.prepared = prepare_history(schema, snapshot, self.runtime)
+            prepared = self.prepared
+            model = fit_family(spec, prepared.X, prepared.y, prepared.weights, runtime=self.runtime)
+            prediction = model.predict(prepared.X)
+            errors = prediction - prepared.y
+&gt;           training = dict(status="FIT", K=prepared.K, N=len(prepared.y), d=prepared.X.shape[1],
+                served_y_mse=float(np.dot(prepared.weights, errors**2) / prepared.K),
+                served_y_mae=float(np.dot(prepared.weights, np.abs(errors)) / prepared.K),
+                **dict(model.metadata))
+E               TypeError: dict() got multiple values for keyword argument 'status'
+
+tools/meta_model_research/learners.py:170: TypeError</failure></testcase><testcase classname="tests.meta_selection.test_mlr03_learners" name="test_full_pool_head_and_portable_roundtrip[H135]" time="1.212"><failure message="TypeError: dict() got multiple values for keyword argument 'status'">code = 'H135'
+
+    @pytest.mark.parametrize("code",["B1","H135","H200"])
+    def test_full_pool_head_and_portable_roundtrip(code):
+&gt;       data, engine, artifact = setup(code=code)
+                                 ^^^^^^^^^^^^^^^^
+
+tests/meta_selection/test_mlr03_learners.py:44: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/meta_selection/test_mlr03_learners.py:24: in setup
+    fitted = engine.fit(FamilySpec(code), data[0], data[2], fit_completed_at=data[3].decision_sealed_at)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = &lt;tools.meta_model_research.learners.FamilyResearch object at 0x7f4904807680&gt;
+spec = FamilySpec(code='H135')
+schema = &lt;quantbt.optimization.meta_selection.descriptors.DescriptorSchema object at 0x7f4904805760&gt;
+snapshot = HistorySnapshot(family_id='4368f6a8950a46a9777b5fd761ba448f07fcb8efb2963d687ee5633ae6f0507a', authorized_corpora=('app...evision_id=None, correction_reason=None, publication_order=None, verification='original_result')), snapshot_order=None)
+fit_completed_at = Timestamp('2020-12-31 01:01:00+0000', tz='UTC')
+
+    def fit(self, spec, schema, snapshot, *, fit_completed_at):
+        completed = utc(fit_completed_at)
+        if completed &lt; snapshot.information_as_of:
+            raise MetaRecordError("MLR_FAMILY_FIT_CLOCK_INVALID")
+        key = digest(dict(source=self.source_id, recipe=spec.recipe_id, schema=schema.schema_id,
+                          snapshot=snapshot.snapshot_id, completed=completed,
+                          backend=self.runtime.policy, native=self.runtime.native_identity))
+        if key in self.cache:
+            self.cache_hits += 1
+            self.cache.move_to_end(key)
+            return self.cache[key][0]
+        if snapshot.origin_count &lt; 12:
+            return FamilyFit(spec, snapshot.family_id, schema.schema_id, snapshot.snapshot_id,
+                             snapshot.information_as_of, completed, snapshot.origin_count,
+                             None, None, dict(status="NO_FIT", K=snapshot.origin_count))
+        if self.fits &gt;= self.max_fits:
+            raise MetaRecordError("MLR_FAMILY_FIT_BUDGET_EXHAUSTED")
+        self.fits += 1
+        try:
+            if (self.prepared is None or self.prepared.snapshot_id != snapshot.snapshot_id
+                    or self.prepared.schema_id != schema.schema_id):
+                self.prepared = prepare_history(schema, snapshot, self.runtime)
+            prepared = self.prepared
+            model = fit_family(spec, prepared.X, prepared.y, prepared.weights, runtime=self.runtime)
+            prediction = model.predict(prepared.X)
+            errors = prediction - prepared.y
+&gt;           training = dict(status="FIT", K=prepared.K, N=len(prepared.y), d=prepared.X.shape[1],
+                served_y_mse=float(np.dot(prepared.weights, errors**2) / prepared.K),
+                served_y_mae=float(np.dot(prepared.weights, np.abs(errors)) / prepared.K),
+                **dict(model.metadata))
+E               TypeError: dict() got multiple values for keyword argument 'status'
+
+tools/meta_model_research/learners.py:170: TypeError</failure></testcase><testcase classname="tests.meta_selection.test_mlr03_learners" name="test_full_pool_head_and_portable_roundtrip[H200]" time="0.055"><failure message="TypeError: dict() got multiple values for keyword argument 'status'">code = 'H200'
+
+    @pytest.mark.parametrize("code",["B1","H135","H200"])
+    def test_full_pool_head_and_portable_roundtrip(code):
+&gt;       data, engine, artifact = setup(code=code)
+                                 ^^^^^^^^^^^^^^^^
+
+tests/meta_selection/test_mlr03_learners.py:44: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/meta_selection/test_mlr03_learners.py:24: in setup
+    fitted = engine.fit(FamilySpec(code), data[0], data[2], fit_completed_at=data[3].decision_sealed_at)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = &lt;tools.meta_model_research.learners.FamilyResearch object at 0x7f48fa003dd0&gt;
+spec = FamilySpec(code='H200')
+schema = &lt;quantbt.optimization.meta_selection.descriptors.DescriptorSchema object at 0x7f48fa055760&gt;
+snapshot = HistorySnapshot(family_id='4368f6a8950a46a9777b5fd761ba448f07fcb8efb2963d687ee5633ae6f0507a', authorized_corpora=('app...evision_id=None, correction_reason=None, publication_order=None, verification='original_result')), snapshot_order=None)
+fit_completed_at = Timestamp('2020-12-31 01:01:00+0000', tz='UTC')
+
+    def fit(self, spec, schema, snapshot, *, fit_completed_at):
+        completed = utc(fit_completed_at)
+        if completed &lt; snapshot.information_as_of:
+            raise MetaRecordError("MLR_FAMILY_FIT_CLOCK_INVALID")
+        key = digest(dict(source=self.source_id, recipe=spec.recipe_id, schema=schema.schema_id,
+                          snapshot=snapshot.snapshot_id, completed=completed,
+                          backend=self.runtime.policy, native=self.runtime.native_identity))
+        if key in self.cache:
+            self.cache_hits += 1
+            self.cache.move_to_end(key)
+            return self.cache[key][0]
+        if snapshot.origin_count &lt; 12:
+            return FamilyFit(spec, snapshot.family_id, schema.schema_id, snapshot.snapshot_id,
+                             snapshot.information_as_of, completed, snapshot.origin_count,
+                             None, None, dict(status="NO_FIT", K=snapshot.origin_count))
+        if self.fits &gt;= self.max_fits:
+            raise MetaRecordError("MLR_FAMILY_FIT_BUDGET_EXHAUSTED")
+        self.fits += 1
+        try:
+            if (self.prepared is None or self.prepared.snapshot_id != snapshot.snapshot_id
+                    or self.prepared.schema_id != schema.schema_id):
+                self.prepared = prepare_history(schema, snapshot, self.runtime)
+            prepared = self.prepared
+            model = fit_family(spec, prepared.X, prepared.y, prepared.weights, runtime=self.runtime)
+            prediction = model.predict(prepared.X)
+            errors = prediction - prepared.y
+&gt;           training = dict(status="FIT", K=prepared.K, N=len(prepared.y), d=prepared.X.shape[1],
+                served_y_mse=float(np.dot(prepared.weights, errors**2) / prepared.K),
+                served_y_mae=float(np.dot(prepared.weights, np.abs(errors)) / prepared.K),
+                **dict(model.metadata))
+E               TypeError: dict() got multiple values for keyword argument 'status'
+
+tools/meta_model_research/learners.py:170: TypeError</failure></testcase><testcase classname="tests.meta_selection.test_mlr03_learners" name="test_support_budget_clock_and_unknown_artifact_fail_closed" time="0.099"><failure message="TypeError: dict() got multiple values for keyword argument 'status'">def test_support_budget_clock_and_unknown_artifact_fail_closed():
+        data, engine, artifact = setup(11)
+        assert artifact.fit.model is None and engine.fits == 0
+        assert artifact.decision.status == "META_SUPPORT_INSUFFICIENT"
+        data = corpus()
+        with pytest.raises(MetaRecordError,match="BUDGET"):
+            FamilyResearch(max_fits=0).fit(FamilySpec("B1"),data[0],data[2],fit_completed_at=data[3].decision_sealed_at)
+        with pytest.raises(MetaRecordError,match="CLOCK"):
+            FamilyResearch().fit(FamilySpec("B1"),data[0],data[2],fit_completed_at="1999-01-01")
+&gt;       data,engine,artifact = setup()
+                               ^^^^^^^
+
+tests/meta_selection/test_mlr03_learners.py:75: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/meta_selection/test_mlr03_learners.py:24: in setup
+    fitted = engine.fit(FamilySpec(code), data[0], data[2], fit_completed_at=data[3].decision_sealed_at)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = &lt;tools.meta_model_research.learners.FamilyResearch object at 0x7f48fa04acc0&gt;
+spec = FamilySpec(code='B1')
+schema = &lt;quantbt.optimization.meta_selection.descriptors.DescriptorSchema object at 0x7f48fa40e180&gt;
+snapshot = HistorySnapshot(family_id='4368f6a8950a46a9777b5fd761ba448f07fcb8efb2963d687ee5633ae6f0507a', authorized_corpora=('app...evision_id=None, correction_reason=None, publication_order=None, verification='original_result')), snapshot_order=None)
+fit_completed_at = Timestamp('2020-12-31 01:01:00+0000', tz='UTC')
+
+    def fit(self, spec, schema, snapshot, *, fit_completed_at):
+        completed = utc(fit_completed_at)
+        if completed &lt; snapshot.information_as_of:
+            raise MetaRecordError("MLR_FAMILY_FIT_CLOCK_INVALID")
+        key = digest(dict(source=self.source_id, recipe=spec.recipe_id, schema=schema.schema_id,
+                          snapshot=snapshot.snapshot_id, completed=completed,
+                          backend=self.runtime.policy, native=self.runtime.native_identity))
+        if key in self.cache:
+            self.cache_hits += 1
+            self.cache.move_to_end(key)
+            return self.cache[key][0]
+        if snapshot.origin_count &lt; 12:
+            return FamilyFit(spec, snapshot.family_id, schema.schema_id, snapshot.snapshot_id,
+                             snapshot.information_as_of, completed, snapshot.origin_count,
+                             None, None, dict(status="NO_FIT", K=snapshot.origin_count))
+        if self.fits &gt;= self.max_fits:
+            raise MetaRecordError("MLR_FAMILY_FIT_BUDGET_EXHAUSTED")
+        self.fits += 1
+        try:
+            if (self.prepared is None or self.prepared.snapshot_id != snapshot.snapshot_id
+                    or self.prepared.schema_id != schema.schema_id):
+                self.prepared = prepare_history(schema, snapshot, self.runtime)
+            prepared = self.prepared
+            model = fit_family(spec, prepared.X, prepared.y, prepared.weights, runtime=self.runtime)
+            prediction = model.predict(prepared.X)
+            errors = prediction - prepared.y
+&gt;           training = dict(status="FIT", K=prepared.K, N=len(prepared.y), d=prepared.X.shape[1],
+                served_y_mse=float(np.dot(prepared.weights, errors**2) / prepared.K),
+                served_y_mae=float(np.dot(prepared.weights, np.abs(errors)) / prepared.K),
+                **dict(model.metadata))
+E               TypeError: dict() got multiple values for keyword argument 'status'
+
+tools/meta_model_research/learners.py:170: TypeError</failure></testcase><testcase classname="tests.meta_selection.test_mlr03_learners" name="test_own_past_correction_changes_context_but_reordering_does_not" time="0.033"><failure message="TypeError: dict() got multiple values for keyword argument 'status'">def test_own_past_correction_changes_context_but_reordering_does_not():
+&gt;       data,engine,artifact = setup()
+                               ^^^^^^^
+
+tests/meta_selection/test_mlr03_learners.py:86: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/meta_selection/test_mlr03_learners.py:24: in setup
+    fitted = engine.fit(FamilySpec(code), data[0], data[2], fit_completed_at=data[3].decision_sealed_at)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = &lt;tools.meta_model_research.learners.FamilyResearch object at 0x7f490487e960&gt;
+spec = FamilySpec(code='B1')
+schema = &lt;quantbt.optimization.meta_selection.descriptors.DescriptorSchema object at 0x7f48fa0e6660&gt;
+snapshot = HistorySnapshot(family_id='4368f6a8950a46a9777b5fd761ba448f07fcb8efb2963d687ee5633ae6f0507a', authorized_corpora=('app...evision_id=None, correction_reason=None, publication_order=None, verification='original_result')), snapshot_order=None)
+fit_completed_at = Timestamp('2020-12-31 01:01:00+0000', tz='UTC')
+
+    def fit(self, spec, schema, snapshot, *, fit_completed_at):
+        completed = utc(fit_completed_at)
+        if completed &lt; snapshot.information_as_of:
+            raise MetaRecordError("MLR_FAMILY_FIT_CLOCK_INVALID")
+        key = digest(dict(source=self.source_id, recipe=spec.recipe_id, schema=schema.schema_id,
+                          snapshot=snapshot.snapshot_id, completed=completed,
+                          backend=self.runtime.policy, native=self.runtime.native_identity))
+        if key in self.cache:
+            self.cache_hits += 1
+            self.cache.move_to_end(key)
+            return self.cache[key][0]
+        if snapshot.origin_count &lt; 12:
+            return FamilyFit(spec, snapshot.family_id, schema.schema_id, snapshot.snapshot_id,
+                             snapshot.information_as_of, completed, snapshot.origin_count,
+                             None, None, dict(status="NO_FIT", K=snapshot.origin_count))
+        if self.fits &gt;= self.max_fits:
+            raise MetaRecordError("MLR_FAMILY_FIT_BUDGET_EXHAUSTED")
+        self.fits += 1
+        try:
+            if (self.prepared is None or self.prepared.snapshot_id != snapshot.snapshot_id
+                    or self.prepared.schema_id != schema.schema_id):
+                self.prepared = prepare_history(schema, snapshot, self.runtime)
+            prepared = self.prepared
+            model = fit_family(spec, prepared.X, prepared.y, prepared.weights, runtime=self.runtime)
+            prediction = model.predict(prepared.X)
+            errors = prediction - prepared.y
+&gt;           training = dict(status="FIT", K=prepared.K, N=len(prepared.y), d=prepared.X.shape[1],
+                served_y_mse=float(np.dot(prepared.weights, errors**2) / prepared.K),
+                served_y_mae=float(np.dot(prepared.weights, np.abs(errors)) / prepared.K),
+                **dict(model.metadata))
+E               TypeError: dict() got multiple values for keyword argument 'status'
+
+tools/meta_model_research/learners.py:170: TypeError</failure></testcase><testcase classname="tests.meta_selection.test_mlr03_family_protocol" name="test_common_roster_ignores_heldout_and_future_and_keeps_complete_blocks" time="0.013" /><testcase classname="tests.meta_selection.test_mlr03_family_protocol" name="test_update_requires_new_mature_support_and_not_current_forward" time="0.005" /><testcase classname="tests.meta_selection.test_mlr03_family_protocol" name="test_keep_simpler_recipe_and_actual_changed_allowed_past_control" time="0.009" /></testsuite></testsuites>
