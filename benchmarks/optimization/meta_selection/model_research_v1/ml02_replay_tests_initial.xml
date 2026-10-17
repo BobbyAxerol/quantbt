@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="4" time="1.683" timestamp="2026-10-17T00:59:57.962221+00:00" hostname="Bobby"><testcase classname="tests.meta_selection.test_mlr02_replay" name="test_base_only_view_preserves_original_and_origin_normalization" time="0.007"><failure message="TypeError: CandidateForwardRecord.__init__() missing 1 required positional argument: 'reporting_lag_seconds'">def test_base_only_view_preserves_original_and_origin_normalization():
+        task, schema = make_task(n=20, year=2020)
+        revision = revision_for(task, schema)
+        if not revision.panel.extra_union_members:
+            from quantbt.optimization.meta_selection.panel import freeze_panel
+            from quantbt.optimization.meta_selection.records import CandidateForwardRecord
+            outside = next(c for c in task.candidates if c.evaluation_id not in revision.panel.base_members)
+            panel = freeze_panel(task, schema, required_winners=(outside.evaluation_id,),
+                                 sealed_at=revision.panel.sealed_at)
+            # Use the existing fixture builder to create terminal dispositions for the union.
+            labels = {o.evaluation_id: o for o in revision.outcomes}
+            anchor_observation = revision.outcomes[0].observation
+&gt;           labels[outside.evaluation_id] = CandidateForwardRecord(
+                task.task_id, outside.evaluation_id, anchor_observation,
+                revision.outcomes[0].label_available_at)
+E           TypeError: CandidateForwardRecord.__init__() missing 1 required positional argument: 'reporting_lag_seconds'
+
+tests/meta_selection/test_mlr02_replay.py:26: TypeError</failure></testcase><testcase classname="tests.meta_selection.test_mlr02_replay" name="test_group_origin_paired_oracle_and_missing_calendar_fail_closed" time="0.002" /><testcase classname="tests.meta_selection.test_mlr02_replay" name="test_future_inner_outcomes_and_heldout_values_cannot_choose_lambda" time="0.007" /><testcase classname="tests.meta_selection.test_mlr02_replay" name="test_late_published_january_label_excluded_by_actual_frontier" time="0.001" /></testsuite></testsuites>
