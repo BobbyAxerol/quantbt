@@ -124,3 +124,35 @@ def test_recovery_retains_null_reasons_and_checks_actual_prediction_loss():
         broken = dict(row, served_metrics=dict(row["served_metrics"], y_mse=row["loss"]+1))
         with pytest.raises(ValueError, match="metric differs"):
             complete_metric_evidence(broken, a.decision.predictions, revision, "union")
+
+
+def test_nonconstant_block_input_keeps_calendar_and_macro_groups(monkeypatch):
+    import arch.bootstrap
+    import numpy as np
+    rows = rows_fixture()
+    for row in rows:
+        i = GROUPS.index(row["group"])
+        value = row["fold"] + i
+        shift = value if row["policy"] == "P1" else 2*value if row["policy"] == "P2" else 0
+        row["loss"] = 1000-shift
+        row["economics"] = dict(Q=shift, R=3*shift, IS_effect=2*shift, winner_witness_exists=True)
+
+    class Spy:
+        def __init__(self, block_size, values, seed):
+            assert block_size == 3 and seed == 731
+            assert values.shape == (32, 6)
+            for index, fold in enumerate(range(25, 57)):
+                v = fold + 1.5
+                np.testing.assert_allclose(values[index], [-v, v, 3*v, -2*v, 2*v, 6*v])
+            self.values = values
+
+        def conf_int(self, statistic, *, reps, method, size):
+            assert reps == 16384 and method == "percentile"
+            assert size == pytest.approx(1-(1-.95)/6)
+            mean = statistic(self.values)
+            np.testing.assert_allclose(mean, [-42, 42, 126, -84, 84, 252])
+            return np.vstack((mean-.1, mean+.1))
+
+    monkeypatch.setattr(arch.bootstrap, "MovingBlockBootstrap", Spy)
+    result = family_inference(paired_coordinates(rows, "base"))
+    assert result["intervals"]["P1:delta_Q"] == pytest.approx([41.9, 42.1])

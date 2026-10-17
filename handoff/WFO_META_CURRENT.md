@@ -1,13 +1,23 @@
 # WFO Meta Current Handoff
 
-## Current Ridge Research Admission
+## Current Ridge Research Result
 
-2026-10-17, Asia/Saigon: M4-ML-01 is complete locally. The
+2026-10-17, Asia/Saigon: M4-ML-01 and M4-ML-02 are complete locally. The
 [frozen baseline](../docs/meta_selection/RIDGE_V1_FROZEN_BASELINE.md) and
 [admission report](../docs/meta_selection/M4_ML_01_ADMISSION_REPORT.md) bind
 four original monthly groups, all 228 corrected snapshots and the owner-approved
-finite P0/P1/P2 protocol. No new optimizer/financial execution or default change.
-M4-ML-02 is next; ML-03..05, older reporting/package phases and release wait.
+finite P0/P1/P2 protocol. The
+[comparison](../docs/meta_selection/M4_ML_02_CALIBRATION_REPORT.md) and
+[closure](../benchmarks/optimization/meta_selection/model_research_v1/ml02_closure.json)
+record technical PASS, empirical INCONCLUSIVE and KEEP_FROZEN_V1. All 228
+unique P0 decisions match retained V1 (coefficient max diff 0); 61 final tests
+pass. P1 reduces primary macro MSE by 0.547%, below 2%; P2 explicitly retains
+P0 because three complete three-month blocks/group are unavailable. Missing
+new-winner outcomes prevent numerical family inference, not evidence of no
+edge. Historical replay plus actual-history controls count 2,503 regressions,
+including failed-work recovery. No new optimizer/financial execution, build,
+dependency or default change. ML-03..05, older reporting/package phases and
+release wait for separate approval.
 Earlier receipts below retain their historical source/claim scope.
 
 ## Latest E08 Execution

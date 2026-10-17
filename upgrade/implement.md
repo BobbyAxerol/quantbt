@@ -5,9 +5,13 @@
 **Current meta-learning direction (2026-10-17, Asia/Saigon):** owner requested
 the [Ridge V1 comparator freeze](../docs/meta_selection/RIDGE_V1_FROZEN_BASELINE.md)
 and a bounded general-purpose model/hyperparameter research plan. The
-[five M4-ML phases](#m4-ml-research) precede M5-11.7/M5-12. M4-ML-01 has
-completed local admission and the owner-approved finite registration;
-M4-ML-02 is authorized next. ML-03..05 remain PROPOSED / NOT_STARTED.
+[five M4-ML phases](#m4-ml-research) precede M5-11.7/M5-12. M4-ML-01 and
+M4-ML-02 are COMPLETE_LOCAL: admission and finite P0/P1/P2 replay are verified.
+The [comparison](../docs/meta_selection/M4_ML_02_CALIBRATION_REPORT.md) retains
+V1: P1's primary macro loss improvement is 0.547%, below the 2% gate; P2
+correctly falls back for insufficient complete-block support. Missing selected
+outcomes prevent registered family inference; this is not proof of no edge.
+ML-03..05 remain PROPOSED / NOT_STARTED and require separate approval.
 No new financial study, dependency install, production/default activation,
 remote CI or release is authorized by this research scope.
 The detailed [research guide](QUANTBT_MODE4_META_LEARNER_RESEARCH_GUIDE_V1.md)
@@ -35726,7 +35730,7 @@ Empirical status is NOT_ASSESSED; richer M5-11.7 integration, Ridge/model/loss
 research, M5-12, CI and release remain unactivated.
 
 <a id="m4-ml-research"></a>
-### Mode 4 Meta-Learner Research - Five Proposed Small Phases
+### Mode 4 Meta-Learner Research - Five Small Phases
 
 **Authority (2026-10-17, Asia/Saigon):** freeze the initial Ridge baseline now;
 plan a bounded study before the older large phases. The completed shared
@@ -35746,10 +35750,10 @@ original QMS [5 math](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1
 [12 reports](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s12)
 and [14 economics](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s14).
 
-| Phase | Goal | Starting status |
+| Phase | Goal | Current status |
 |---|---|---|
 | M4-ML-01 | Baseline/source and bias-aware corpus/design admission | COMPLETE_LOCAL; approved finite replay protocol, no economic promotion |
-| M4-ML-02 | Fixed versus generally calibrated regularization | PROPOSED / NOT_STARTED |
+| M4-ML-02 | Fixed versus generally calibrated regularization | COMPLETE_LOCAL; technical PASS, empirical INCONCLUSIVE, KEEP_FROZEN_V1 |
 | M4-ML-03 | Cheap supervised challengers and alternative-family feasibility | PROPOSED / NOT_STARTED |
 | M4-ML-04 | Served decisions, chronology and bounded actual economics | PROPOSED / NOT_STARTED |
 | M4-ML-05 | Retain/opt-in/defer decision and old-phase handoff | PROPOSED / NOT_STARTED |
@@ -35822,7 +35826,14 @@ external OOS, model power or a completion claim for an unrun study.
 <a id="m4-ml-02"></a>
 ### Phase M4-ML-02 - General Calibration Policies And Causal Linear Replay
 
-**Status:** PROPOSED / NOT_STARTED.
+**Status:** COMPLETE_LOCAL_REGISTERED_RESEARCH / technical PASS;
+empirical INCONCLUSIVE / KEEP_FROZEN_V1 (2026-10-17, Asia/Saigon).
+Owner approved sequential ML-01/02 execution, finite protocol and explicit
+complete-three-months/group block interpretation. Read the
+[comparison report](../docs/meta_selection/M4_ML_02_CALIBRATION_REPORT.md),
+[measured results](../benchmarks/optimization/meta_selection/model_research_v1/ml02_results.json)
+and [closure](../benchmarks/optimization/meta_selection/model_research_v1/ml02_closure.json).
+No production/default activation or later-phase execution follows.
 **Goal:** determine whether fixed, normalized or generally calibrated shrinkage
 improves served prediction/decision stability without alpha-specific hand tuning.
 **Entry:** MLR-01 approved registration and verified V1 corpus; no model roster
@@ -35869,6 +35880,50 @@ shortlist or explicit KEEP_V1/INCONCLUSIVE; no per-alpha saved winning lambda.
 zero financial calls; exact-cache/budget accounting and terminal cleanup.
 **Debt policy:** no silent lambda-convention switch, unstable uncertainty rule
 or unresolved source/clock bug. Model-family experimentation waits for MLR-03.
+
+**Local Completion Receipt:**
+- **MLR02-T01 PASS:** P0/P1 normalization at K=12 and all six fixed-grid
+  settings match independent weighted augmented-least-squares/scaler oracles.
+  Research policy/artifact identities differ; frozen V1 source/version guards
+  and all 42 source/five prior-receipt hashes remain unchanged.
+- **MLR02-T02 PASS:** held-out alpha labels, unavailable January labels,
+  reordered/future calibration rows and future history corrections cannot
+  change earlier decisions. Actual HMA history controls cover a mature K=24
+  snapshot and all 122 current candidates; a permitted past correction is
+  non-vacuous and changes coefficients without adding an origin.
+- **MLR02-T03 PASS:** exact anchor, guard/ties/OOD, origin replacement weights,
+  model/cache versions, resource budgets and portable restore are tested. All
+  **228 unique P0 union decisions** reproduce V1; coefficient max diff **0**.
+  All **1,168 registered policy/panel/calendar rows** and 24 raw account files
+  pass independent cold audit. There is no new financial execution.
+- **MLR02-T04 PASS:** final **61 source tests**, independent grouped/null/unit
+  oracles and constant/nonconstant shared-calendar bootstrap checks pass.
+  Actual numerical family inference is **INCONCLUSIVE**, not executed on an
+  incomplete calendar. Missing new-winner labels remain null, never zero.
+- P1 primary macro MSE **13.343636 -> 13.270682** (improvement **0.547%**).
+  SC/HMA/HASH/VWAP relative changes are **-1.270/+0.204/+2.940/-1.722%**.
+  Descriptive paired forward-Q changes differ by group and available-winner
+  support; lower HASH prediction loss does not imply a better selected winner.
+- P2's three training groups require three complete three-month blocks. All
+  four held-outs fallback P0: VWAP has only two valid inner origins; excluding
+  VWAP still leaves insufficient complete blocks. The
+  [owner clarification](../benchmarks/optimization/meta_selection/model_research_v1/ml02_owner_block_clarification.json)
+  was recorded after audit/review, not relabeled as pristine preregistration.
+- Failed replay-01 remains FAIL_RETAINED. Completed fixed-policy groups and
+  inner-grid evidence are hash-recovered; invalid partial-block P2 is excluded.
+  Filename, telemetry and pilot-gate defects are repaired in
+  [registration erratum v3](../benchmarks/optimization/meta_selection/model_research_v1/ml02_registration_v3.json).
+  This is model evidence recovery, not exact full-WFO/Optuna checkpoint proof.
+- Including failed work and actual-history controls: **2,503 counted
+  regression/qualification fits**, under 4,000. Replay CPU including failed
+  work **677.228 s**; corrected replay wall **248.049 s**, peak **462.50 MiB**.
+  Verification work is reported separately; zero proposals/financial calls,
+  installs, environments, builds, push, CI or release. Exact inactive scratch
+  cleanup and final hash verification are recorded in the closure.
+- **Disposition:** KEEP_FROZEN_V1; no per-alpha winning lambda, automatic
+  calibration or adaptive controller. P2 efficacy remains unmeasured because
+  support is insufficient, not because an implementation is pending. ML-03..05,
+  M5-11.7/M5-12 and artifact/public qualification retain their separate scope.
 
 <a id="m4-ml-03"></a>
 ### Phase M4-ML-03 - Bounded Supervised Challengers And Unsupervised Feasibility

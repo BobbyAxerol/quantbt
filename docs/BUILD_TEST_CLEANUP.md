@@ -91,6 +91,12 @@ proof. Resume domain work only after disk and evidence checks are complete.
 
 ## Recorded Cleanup
 
+The [M4-ML-01/02 receipt](maintenance/M4_ML_01_02_CLEANUP.md) records exact
+inactive fixture cleanup with 425 protected hashes and 170 host processes
+reviewed. ML-02 observed +2,211,840 available bytes; all failed/passing replay,
+private market/alpha evidence and the reused native/tooling remain. No finance,
+environment replacement, build, service stop or release occurred.
+
 The [shared alpha diagnostics receipt](maintenance/SHARED_ALPHA_DIAGNOSTICS_CLEANUP.md)
 records 348 passing local checks, removal of one exact owned synthetic test
 root, 34 protected source/artifact/evidence hashes unchanged and 2.66 MiB observed

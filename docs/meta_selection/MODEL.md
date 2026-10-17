@@ -10,9 +10,13 @@ The financial endpoint, sampler objective and account engine remain unchanged.
 
 The owner froze this first Ridge procedure as the retained research comparator
 on 2026-10-17. See the [immutable baseline contract](RIDGE_V1_FROZEN_BASELINE.md)
-and [proposed model/calibration research](../../upgrade/implement.md#m4-ml-research).
+and [model/calibration research](../../upgrade/implement.md#m4-ml-research).
 The freeze does not fix future fitted coefficients, replace existing receipts,
 authorize another learner or claim that these hyperparameters are optimal.
+The [completed ML-01/02 comparison](M4_ML_02_CALIBRATION_REPORT.md) retains V1:
+normalization-only P1 misses the registered gain gate; common calibration P2
+falls back on insufficient support. These are research-only policies, not new
+public learner options. Model-family research still requires separate approval.
 
 Read [history and descriptors](HISTORY.md) first. The authoritative requirements
 are [guide section 5](../../upgrade/QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s5)

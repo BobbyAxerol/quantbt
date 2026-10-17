@@ -2,8 +2,11 @@
 
 **Date:** 2026-10-17, Asia/Saigon.
 **Status:** owner approved sequential M4-ML-01/02 local execution and the finite
-protocol on 2026-10-17. M4-ML-01 admission is complete; ML-03..05 still require
-separate approval. The Ridge baseline remains frozen. No target, production
+protocol on 2026-10-17. M4-ML-01 admission and M4-ML-02 finite replay are
+complete locally; see the [comparison](../docs/meta_selection/M4_ML_02_CALIBRATION_REPORT.md).
+KEEP_FROZEN_V1: P1 misses the registered improvement gate; P2 lacks complete
+calibration blocks and falls back. ML-03..05 still require separate approval.
+The Ridge baseline remains frozen. No target, production
 hyperparameter/default policy or public activation changes are authorized.
 **Sequence:** M4-ML-01 -> M4-ML-02 -> M4-ML-03 -> M4-ML-04 -> M4-ML-05,
 then separately approved M5-11.7 and M5-12. No automatic phase advance.
