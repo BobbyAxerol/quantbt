@@ -1,5 +1,15 @@
 # WFO Meta Current Handoff
 
+## Current Ridge Research Admission
+
+2026-10-17, Asia/Saigon: M4-ML-01 is complete locally. The
+[frozen baseline](../docs/meta_selection/RIDGE_V1_FROZEN_BASELINE.md) and
+[admission report](../docs/meta_selection/M4_ML_01_ADMISSION_REPORT.md) bind
+four original monthly groups, all 228 corrected snapshots and the owner-approved
+finite P0/P1/P2 protocol. No new optimizer/financial execution or default change.
+M4-ML-02 is next; ML-03..05, older reporting/package phases and release wait.
+Earlier receipts below retain their historical source/claim scope.
+
 ## Latest E08 Execution
 
 Owner authorizes local E08 gap closure and the bracket incident investigation

@@ -1,9 +1,10 @@
 # Mode 4 Meta-Learner Research Guide V1
 
 **Date:** 2026-10-17, Asia/Saigon.
-**Status:** research design awaiting per-phase approval. Only the owner-requested
-Ridge baseline specification is frozen now. No new learner, target, automatic
-hyperparameter policy or public activation is approved by writing this guide.
+**Status:** owner approved sequential M4-ML-01/02 local execution and the finite
+protocol on 2026-10-17. M4-ML-01 admission is complete; ML-03..05 still require
+separate approval. The Ridge baseline remains frozen. No target, production
+hyperparameter/default policy or public activation changes are authorized.
 **Sequence:** M4-ML-01 -> M4-ML-02 -> M4-ML-03 -> M4-ML-04 -> M4-ML-05,
 then separately approved M5-11.7 and M5-12. No automatic phase advance.
 

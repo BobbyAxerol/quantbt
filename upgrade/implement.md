@@ -5,10 +5,11 @@
 **Current meta-learning direction (2026-10-17, Asia/Saigon):** owner requested
 the [Ridge V1 comparator freeze](../docs/meta_selection/RIDGE_V1_FROZEN_BASELINE.md)
 and a bounded general-purpose model/hyperparameter research plan. The
-[five M4-ML phases](#m4-ml-research) are PROPOSED / NOT_STARTED and precede
-M5-11.7/M5-12. Only the baseline source/recipe freeze and this planning/review
-are performed now; no model fit, calibration search, new financial study,
-dependency install or production/default activation is authorized by the plan.
+[five M4-ML phases](#m4-ml-research) precede M5-11.7/M5-12. M4-ML-01 has
+completed local admission and the owner-approved finite registration;
+M4-ML-02 is authorized next. ML-03..05 remain PROPOSED / NOT_STARTED.
+No new financial study, dependency install, production/default activation,
+remote CI or release is authorized by this research scope.
 The detailed [research guide](QUANTBT_MODE4_META_LEARNER_RESEARCH_GUIDE_V1.md)
 requires common calibration procedures, held-out alpha-group plus chronological
 evaluation, unchanged target/guard primary comparisons and explicit cost gates.
@@ -35747,7 +35748,7 @@ and [14 economics](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI
 
 | Phase | Goal | Starting status |
 |---|---|---|
-| M4-ML-01 | Baseline/source and bias-aware corpus/design admission | PROPOSED; source/recipe freeze recorded, study not started |
+| M4-ML-01 | Baseline/source and bias-aware corpus/design admission | COMPLETE_LOCAL; approved finite replay protocol, no economic promotion |
 | M4-ML-02 | Fixed versus generally calibrated regularization | PROPOSED / NOT_STARTED |
 | M4-ML-03 | Cheap supervised challengers and alternative-family feasibility | PROPOSED / NOT_STARTED |
 | M4-ML-04 | Served decisions, chronology and bounded actual economics | PROPOSED / NOT_STARTED |
@@ -35756,8 +35757,15 @@ and [14 economics](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI
 <a id="m4-ml-01"></a>
 ### Phase M4-ML-01 - Frozen Ridge Baseline, Evidence Admission And Study Registration
 
-**Status:** PROPOSED / NOT_STARTED. The owner-requested comparator specification
-freeze is already recorded; this does not mean phase data/test gates passed.
+**Status:** COMPLETE_LOCAL / technical PASS; empirical NOT_ASSESSED;
+owner execution and bounded protocol APPROVED (2026-10-17, Asia/Saigon).
+The frozen comparator, 228 monthly snapshot identities, acquisition bias,
+four-group chronology and resource/acceptance contracts are verified before
+new real-data learner outcomes. See the
+[admission report](../docs/meta_selection/M4_ML_01_ADMISSION_REPORT.md),
+[registration](../benchmarks/optimization/meta_selection/model_research_v1/ml01_registration_v2.json)
+and [closure](../benchmarks/optimization/meta_selection/model_research_v1/ml01_closure.json).
+Source-phase certification is not installed-wheel or independent economics.
 **Goal:** establish an immutable, reproducible comparator and an affordable
 research design that can assess procedure transfer beyond one chosen alpha.
 **Entry:** source `3370baf`, preserved scientific receipts and current shared
