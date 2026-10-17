@@ -134,6 +134,18 @@ not a final-source installed-wheel, manylinux, remote matrix or public-index
 certificate; current release gates above remain pending. No workflow, push,
 merge, tag, new artifact build or publication was initiated here.
 
+**ML-07 local research supplement:**
+[structural forecasts and joint decisions](M4_ML_07_FORWARD_DECISION_REPORT.md)
+now add Qhat=0 controls, direct-Q Ridge, empirical causal retention and the saved
+sampler/selector/meta factorial. The
+[closure](../../benchmarks/optimization/meta_selection/model_research_v1/ml07_closure.json)
+records52 focused source PASS,141 logical fits/286 numeric-reference charges,
+32 financial calls/four exact controls, unchanged original accounts and
+[cleanup](../maintenance/M4_ML_07_CLEANUP.md). Favorable HMA points and contrary
+HASH effects remain exploratory;45 missing winners are outside the registered
+cap. No new target, model, selector or sampler is adopted into production;
+this does not replace any final-source artifact/remote/public gate.
+
 ## Non-Publishing Qualification
 
 From the feature branch, with QuantBT's own tooling installed:

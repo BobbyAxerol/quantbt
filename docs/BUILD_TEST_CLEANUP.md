@@ -91,6 +91,11 @@ proof. Resume domain work only after disk and evidence checks are complete.
 
 ## Recorded Cleanup
 
+The [M4-ML-07 receipt](maintenance/M4_ML_07_CLEANUP.md) records completed local
+research owners, three exact inactive scratch roots,135 protected files unchanged
+and94,208 actual available bytes recovered. The retained original accounts,
+model/query/failure evidence, current tooling and native binaries remain.
+
 The [M4-ML-06 receipt](maintenance/M4_ML_06_CLEANUP.md) records terminal
 research/test workers, one exact ignored scratch root, 1,462 protected files
 unchanged and 3,141,632 bytes of actual available-space recovery. All source,

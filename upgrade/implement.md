@@ -2,6 +2,15 @@
 
 ## Current Mode 5 Diagnostics-First Upgrade - Full-Development Decision Support
 
+**Latest owner-approved research:** [M4-ML-07](#m4-ml-07) is
+COMPLETE_LOCAL_REGISTERED_RESEARCH. Structural Q=0 controls, same-family direct-Q
+target/ranking, causal retention and the complete saved sampler/selector/meta
+factorial are qualified locally. The
+[report](../docs/meta_selection/M4_ML_07_FORWARD_DECISION_REPORT.md) preserves
+heterogeneous results: HMA has a favorable matched research signal, HASH rejects
+the same blanket upgrade, and sparse calendars limit SC/VWAP interpretations.
+No production adoption, new search, M5-11.7/M5-12, CI or release is activated.
+
 **Current meta-learning direction (2026-10-17, Asia/Saigon):** owner requested
 the [Ridge V1 comparator freeze](../docs/meta_selection/RIDGE_V1_FROZEN_BASELINE.md)
 and a bounded general-purpose model/hyperparameter research plan. The
@@ -35755,13 +35764,13 @@ Empirical status is NOT_ASSESSED; richer M5-11.7 integration, Ridge/model/loss
 research, M5-12, CI and release remain unactivated.
 
 <a id="m4-ml-research"></a>
-### Mode 4 Meta-Learner Research - Six Completed Local Phases
+### Mode 4 Meta-Learner Research - Seven Completed Local Phases
 
 **Authority (2026-10-17, Asia/Saigon):** freeze the initial Ridge baseline now;
 plan a bounded study before the older large phases. The completed shared
 diagnostics module remains independent and is reused, not redesigned.
 **Order:** completed M4-ML-01 -> M4-ML-02 -> M4-ML-03 -> M4-ML-04 -> M4-ML-05 ->
-M4-ML-06 ->
+M4-ML-06 -> M4-ML-07 ->
 separately approved M5-11.7 -> M5-12. Every phase needs owner approval; writing
 the plan does not launch its work or promise a superior learner.
 **Common goal:** minimize generalization/decision error under the existing
@@ -35784,6 +35793,7 @@ and [14 economics](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI
 | M4-ML-04 | Served decisions, chronology and bounded actual economics | COMPLETE_LOCAL; mature controls/fallback/account custody PASS; nominee economics N/A |
 | M4-ML-05 | Retain/opt-in/defer decision and old-phase handoff | COMPLETE_LOCAL; KEEP_FROZEN_V1, optional research only; old phases await approval |
 | M4-ML-06 | Decision value, prefix diagnostics and bounded policy ablations | COMPLETE_LOCAL_REGISTERED_SCOPE; technical PASS, exploratory heterogeneous, KEEP_FROZEN_V1; no later activation |
+| M4-ML-07 | Structural forward target, causal retention and joint search/selection | COMPLETE_LOCAL_REGISTERED_RESEARCH; technical PASS, exploratory heterogeneous; no production adoption |
 
 <a id="m4-ml-01"></a>
 ### Phase M4-ML-01 - Frozen Ridge Baseline, Evidence Admission And Study Registration
@@ -36410,7 +36420,8 @@ and [cleanup](../docs/maintenance/M4_ML_06_CLEANUP.md).
 <a id="m4-ml-07"></a>
 ### Phase M4-ML-07 - Structural Forward Controls, Causal Retention And Joint Search/Selection Research
 
-**Status:** APPROVED / IN_PROGRESS; owner authorized further local research,
+**Status:** COMPLETE_LOCAL_REGISTERED_RESEARCH / technical PASS; exploratory
+heterogeneous outcomes. Owner authorized further local research,
 evidence and bounded tests after ML-06, not production adoption. Keep all old
 receipts, the frozen Ridge baseline and positive RSI evidence unchanged.
 **Goal:** distinguish forecasting unknown forward quality from reproducing the
@@ -36439,10 +36450,14 @@ new results are exploratory, not pristine OOS or retroactive nomination.
    OOD fallback. Fit at most the original 128 evaluation slots, not a new sweep
    of Bayesian/Huber/XGB settings. Seal all winners before new financial queries.
 3. **S03 - Causal anchor retention.** A fixed gate accepts the original Ridge
-   winner only when its previous 12 consecutive calendar-month decisions all
-   have valid, published-before-cutoff raw Q and their mean Q is strictly >0;
+   winner only when the latest published historical month and its preceding
+   11 consecutive calendar-month decisions all have valid, published-before-cutoff
+   raw Q and their mean Q is strictly >0;
    otherwise retain the current native anchor. Earlier Q comes from actual
-   original Ridge decisions, never alternative queried outcomes. This is a
+   original Ridge decisions, never alternative queried outcomes. The window end
+   uses publication clock/month only, not Q/status; gaps inside it cannot be
+   backfilled by older valid rows. This accounts for the original label lag.
+   This is a
    prequential empirical support rule, not a statistical safety guarantee.
    Compare all-policy value, changes, abstention, help/harm and matched R/Q.
 4. **S04 - Joint search/selection.** Cold-qualify the existing 19-quarter
@@ -36481,6 +36496,45 @@ qualification, push, CI, release or M5-11.7/M5-12. Logged-history replay is not
 a replacement-acquisition rollout. Missing propensities forbid claiming unbiased
 IPS/DR policy evaluation; finite observed candidates are not a full-pool oracle.
 
+**Local Completion Receipt:** see the
+[report](../docs/meta_selection/M4_ML_07_FORWARD_DECISION_REPORT.md),
+[machine tables](../benchmarks/optimization/meta_selection/model_research_v1/ml07_summary.json),
+[closure](../benchmarks/optimization/meta_selection/model_research_v1/ml07_closure.json)
+and [cleanup](../docs/maintenance/M4_ML_07_CLEANUP.md).
+
+- **S01:** exact matched acquired-label evaluation, 21/32/32/12 supported
+  origins for SC/HMA/HASH/VWAP. Equal-alpha MSE is 13.10013 for Qhat=0,
+  13.48537 Ridge, 13.53436 X2 and 13.27042 direct-Q. Conditional masks/weights
+  are explicit; no independent population-skill claim. Structural min-Y changes
+  effective params on169/169 scored controls; max-Q retains the anchor169/169.
+- **S02/03:** 384 new policy rows sealed before new queries. Matched QF-minus-R
+  DeltaQ: SC+0.27265/20, HMA+1.39576/30, HASH-0.99972/30,
+  VWAP-0.16763/8. QF versus QD and old F isolate ranking/target on their own
+  paired masks, not unequal-cohort subtraction. Retention accepts1/4/18/0 of32
+  origins, respectively; no per-alpha thresholds or confidence guarantee.
+- **S04:** complete19-quarter 2x2x2 factorial cold readback, exact own-anchor
+  and matched off/active contrasts; actually learned support is at most six
+  quarters, not enough for registered full scientific promotion. Existing RSI
+  CMA/Sobol evidence remains separate, with no repeated sampler study.
+- **S05:** all32 admitted calls finish, including four exact original controls;
+  26 VALID and six NO_VARIANCE dispositions. Forty-five further distinct
+  winners are outside the fixed cap, not zero outcomes or unfinished admitted
+  work. No new optimizer/IS execution or alternate-acquisition rollout.
+- **S06:** 52 distinct affected source tests, scoped Ruff and link/anchor gates
+  PASS;12 actual fresh future-correction controls and one permitted-past positive
+  control PASS. All24 original account files and frozen42 sources/five receipts
+  remain exact. Failed setup/test-oracle receipts retained with corrections.
+- **Actual cost:** 141 logical fits /286 numeric-reference charges. Primary/
+  controls use53.47 CPU seconds, factorial19.54; finance178.30 CPU/179.42 wall
+  seconds, process peak629.78MiB. Analysis/verification/tests are billed separately;
+  this is not a new full-WFO timing claim. Private retention at cleanup6.71MiB;
+  three exact inactive scratch roots removed,135 protected files unchanged,
+  actual free bytes+94,208; no service, source, evidence or environment removed.
+- **Disposition:** keep V1 available. HMA target/ranking and common evidence-aware
+  retention deserve a separately frozen confirmation; HASH and sparse calendars
+  rule out blanket replacement. No new production policy, ML family, dependency,
+  endpoint, artifact, CI/push/release or older phase is activated.
+
 <a id="mode5-m5-11-7"></a>
 ### Phase M5-11.7 - Mode 4/5 Complete Researcher Reports And Decision Qualification
 
@@ -36489,7 +36543,8 @@ IPS/DR policy evaluation; finite observed candidates are not a full-pool oracle.
 Mode 4 retain/upgrade/standardization decision and the completed KEEP_FROZEN_V1
 [M4-ML research disposition](#m4-ml-research), plus the completed
 [M4-ML-06 decision-value follow-up](#m4-ml-06). Its exploratory results do not
-activate this phase.
+activate this phase. The subsequent approved [M4-ML-07](#m4-ml-07) is complete
+locally and also does not activate this phase.
 No new search or report
 implementation is authorized by this plan.
 **Goal:** provide a compact, quantitative and interpretable report explaining

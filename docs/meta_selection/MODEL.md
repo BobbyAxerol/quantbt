@@ -33,6 +33,12 @@ These conditional exploratory findings retain frozen V1, not a global learner
 replacement. [Interpretation](M4_ML_06_INTERPRETATION.md) separates support,
 prediction and decision errors; no production math or public option changes.
 
+The [ML-07 research supplement](M4_ML_07_FORWARD_DECISION_REPORT.md) additionally
+tests the structural Qhat=0 forecast, same-family Q-target shrinkage, ranking,
+past-only anchor retention and saved sampler/selector/meta interactions. The
+target below remains V1; alternative Q-target fits are research artifacts only.
+Mixed alpha effects and incomplete witnesses do not authorize a default change.
+
 Read [history and descriptors](HISTORY.md) first. The authoritative requirements
 are [guide section 5](../../upgrade/QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s5)
 and the [QMS-04 plan](../../upgrade/implement.md#qms-04).

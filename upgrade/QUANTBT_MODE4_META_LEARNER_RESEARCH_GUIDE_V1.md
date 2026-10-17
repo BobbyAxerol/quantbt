@@ -12,10 +12,10 @@ economic/adaptive rollout. Actual mature controls and exact retained P0/account
 custody pass. See the [final decision](../docs/meta_selection/M4_ML_05_FINAL_DECISION.md)
 and [family report](../docs/meta_selection/M4_ML_03_FAMILY_REPORT.md). The
 [worksheet](../docs/meta_selection/M4_ML_03_PROTOCOL.md) records this boundary.
-The Ridge baseline remains frozen. No target, production
+The Ridge baseline remains frozen. No production target,
 hyperparameter/default policy or public activation changes are authorized.
 **Sequence:** completed M4-ML-01 -> M4-ML-02 -> M4-ML-03 -> M4-ML-04 ->
-M4-ML-05 and [M4-ML-06](#mlr-s12) decision-value follow-up, then
+M4-ML-05, [M4-ML-06](#mlr-s12) and [M4-ML-07](#mlr-s13) research follow-ups, then
 separately approved M5-11.7 and M5-12. No automatic phase advance.
 **Historical planning amendment (2026-10-17, Asia/Saigon):** section 12 was a new,
 unexecuted protocol requested after the fixed-zero check. It proposes explicit
@@ -704,12 +704,16 @@ dependency, build, push, CI or release. M5-11.7/M5-12 remain separately approved
 <a id="mlr-s13"></a>
 ## 13. Structural Forward And Joint Decision Research: M4-ML-07
 
-**APPROVED / IN_PROGRESS:** the owner authorized continuing local research and
+**COMPLETE_LOCAL_REGISTERED_RESEARCH / technical PASS:** the owner authorized continuing local research and
 evidence, including sampler and selector effects, without deciding production
 adoption. Read the [phase contract](implement.md#m4-ml-07). Register the finite
 roster, policy definitions and budget before new outcomes. All old reviewed
 results and earlier positive RSI evidence remain unchanged; this experiment is
 exploratory, not untouched OOS or a new-family nomination.
+The [completed report](../docs/meta_selection/M4_ML_07_FORWARD_DECISION_REPORT.md)
+and [closure](../benchmarks/optimization/meta_selection/model_research_v1/ml07_closure.json)
+retain mixed decision effects and all outside-budget/undefined cases. Approved
+protocol bytes are preserved privately; no production target or default changes.
 
 ### 13.1 Why The Structural Baseline Differs
 
@@ -744,9 +748,12 @@ new ML06/07 queried outcomes never enter these fits.
 
 ### 13.3 Causal Retention Without A Confidence Claim
 
-Gate only the original Ridge proposal. Accept it when the previous12
-consecutive monthly original decisions have valid raw Q, all publication clocks
-<=current cutoff, and mean Q>0. Otherwise retain the current native anchor.
+Gate only the original Ridge proposal. Use the latest published historical
+month before the current month as window end, then its preceding11 consecutive
+months. End-date eligibility uses only month and publication clock, never Q or
+status; the original publication lag must not make every gate vacuous. Accept
+when all12 decisions have valid raw Q, publication clocks<=cutoff and mean Q>0.
+Otherwise retain the current native anchor.
 Require all12 calendar months; no compressing around flat/undefined/missing
 months. Never inspect current/future Q before the gate; no alpha-specific
 threshold or outcomes-based tuning. This empirically tests abstention, not a
