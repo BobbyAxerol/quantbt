@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="3" time="1.906" timestamp="2026-10-17T02:39:58.611784+00:00" hostname="Bobby"><testcase classname="tests.meta_selection.test_mlr04_controls" name="test_mutation_is_explicit_and_preserves_anchor_source_and_original" time="0.027" /><testcase classname="tests.meta_selection.test_mlr04_controls" name="test_exact_controls_reject_any_changed_fit_or_winner" time="0.075"><failure message="quantbt.optimization.meta_selection.common.MetaRecordError: MLR_FAMILY_ARTIFACT_CONTEXT_INVALID">def test_exact_controls_reject_any_changed_fit_or_winner():
+        data = corpus()
+        first = fitted(data)
+        require_same_decision(first, fitted(data))
+&gt;       mutated = replace(first, fit=replace(first.fit,
+            fit_completed_at=first.fit.fit_completed_at-pd.Timedelta(nanoseconds=1)))
+
+tests/meta_selection/test_mlr04_controls.py:48: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/lib/python3.12/dataclasses.py:1588: in replace
+    return obj.__class__(**changes)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+&lt;string&gt;:6: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = FamilyArtifact(fit=FamilyFit(spec=FamilySpec(code='B1'), family_id='4368f6a8950a46a9777b5fd761ba448f07fcb8efb2963d687e...n_served_mse': 0.0871279937101826})})), task_digest='97e9380d2cbb3dd580bc3f4b0b577587d1487ca38b905cc10d35131d9fc4bdf0')
+
+    def __post_init__(self):
+        token(self.task_digest)
+        if (
+            not isinstance(self.fit, FamilyFit)
+            or not isinstance(self.decision, MetaSelectionDecision)
+            or self.decision.model_id != (self.fit.fit_id if self.fit.model else None)
+            or self.decision.training_snapshot_id
+            != (self.fit.snapshot_id if self.fit.model else None)
+            or self.fit.information_as_of &gt; self.decision.information_as_of
+        ):
+&gt;           raise MetaRecordError("MLR_FAMILY_ARTIFACT_CONTEXT_INVALID")
+E           quantbt.optimization.meta_selection.common.MetaRecordError: MLR_FAMILY_ARTIFACT_CONTEXT_INVALID
+
+tools/meta_model_research/learners.py:194: MetaRecordError</failure></testcase><testcase classname="tests.meta_selection.test_mlr04_controls" name="test_shadow_uses_same_proposal_but_applies_native_anchor_not_the_model_winner" time="0.046" /></testsuite></testsuites>
