@@ -2,6 +2,17 @@
 
 ## Current Mode 5 Diagnostics-First Upgrade - Full-Development Decision Support
 
+**Current meta-learning direction (2026-10-17, Asia/Saigon):** owner requested
+the [Ridge V1 comparator freeze](../docs/meta_selection/RIDGE_V1_FROZEN_BASELINE.md)
+and a bounded general-purpose model/hyperparameter research plan. The
+[five M4-ML phases](#m4-ml-research) are PROPOSED / NOT_STARTED and precede
+M5-11.7/M5-12. Only the baseline source/recipe freeze and this planning/review
+are performed now; no model fit, calibration search, new financial study,
+dependency install or production/default activation is authorized by the plan.
+The detailed [research guide](QUANTBT_MODE4_META_LEARNER_RESEARCH_GUIDE_V1.md)
+requires common calibration procedures, held-out alpha-group plus chronological
+evaluation, unchanged target/guard primary comparisons and explicit cost gates.
+
 **Current execution disposition (2026-10-16, UTC):**
 [M5-11.6.1](#mode5-m5-11-6-1) is COMPLETE_LOCAL_REGISTERED_RESEARCH.
 All nine sampler cells finish 19 quarterly folds/128 attempts: 21,888 proposal
@@ -35660,7 +35671,6 @@ not fabricated proof or silently deferred implementation.
   [sanitized JSON](../docs/mode5/M5_11_6_1_QUARTERLY_SUMMARY.json) form the M5-11.7
   handoff. Owner review precedes any further phase or activation; no push/release.
 
-<a id="mode5-m5-11-7"></a>
 <a id="shared-alpha-diagnostics"></a>
 ### Owner-Approved Shared Alpha Diagnostics Standardization
 
@@ -35714,11 +35724,313 @@ speed claim. Failed setup/native-pair attempts are retained. Read the
 Empirical status is NOT_ASSESSED; richer M5-11.7 integration, Ridge/model/loss
 research, M5-12, CI and release remain unactivated.
 
+<a id="m4-ml-research"></a>
+### Mode 4 Meta-Learner Research - Five Proposed Small Phases
+
+**Authority (2026-10-17, Asia/Saigon):** freeze the initial Ridge baseline now;
+plan a bounded study before the older large phases. The completed shared
+diagnostics module remains independent and is reused, not redesigned.
+**Order:** M4-ML-01 -> M4-ML-02 -> M4-ML-03 -> M4-ML-04 -> M4-ML-05 ->
+separately approved M5-11.7 -> M5-12. Every phase needs owner approval; writing
+the plan does not launch its work or promise a superior learner.
+**Common goal:** minimize generalization/decision error under the existing
+relative-decay task while limiting model-selection bias, overfit and research
+cost. No alpha-name-specific hyperparameter recipes, no forced single beta
+across incompatible schemas, no target/metric/account change disguised as an
+implementation improvement. The frozen V1 remains a retained comparator.
+**Detailed authority:** [research guide sections 1-11](QUANTBT_MODE4_META_LEARNER_RESEARCH_GUIDE_V1.md),
+original QMS [5 math](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s5),
+[6 availability](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s6),
+[8 parity/ownership](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s8),
+[12 reports](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s12)
+and [14 economics](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s14).
+
+| Phase | Goal | Starting status |
+|---|---|---|
+| M4-ML-01 | Baseline/source and bias-aware corpus/design admission | PROPOSED; source/recipe freeze recorded, study not started |
+| M4-ML-02 | Fixed versus generally calibrated regularization | PROPOSED / NOT_STARTED |
+| M4-ML-03 | Cheap supervised challengers and alternative-family feasibility | PROPOSED / NOT_STARTED |
+| M4-ML-04 | Served decisions, chronology and bounded actual economics | PROPOSED / NOT_STARTED |
+| M4-ML-05 | Retain/opt-in/defer decision and old-phase handoff | PROPOSED / NOT_STARTED |
+
+<a id="m4-ml-01"></a>
+### Phase M4-ML-01 - Frozen Ridge Baseline, Evidence Admission And Study Registration
+
+**Status:** PROPOSED / NOT_STARTED. The owner-requested comparator specification
+freeze is already recorded; this does not mean phase data/test gates passed.
+**Goal:** establish an immutable, reproducible comparator and an affordable
+research design that can assess procedure transfer beyond one chosen alpha.
+**Entry:** source `3370baf`, preserved scientific receipts and current shared
+diagnostics; explicit owner approval before further execution.
+**Detailed guide:** [1 baseline/problem](QUANTBT_MODE4_META_LEARNER_RESEARCH_GUIDE_V1.md#mlr-s1),
+[2 generalization](QUANTBT_MODE4_META_LEARNER_RESEARCH_GUIDE_V1.md#mlr-s2),
+[3 evidence/bias](QUANTBT_MODE4_META_LEARNER_RESEARCH_GUIDE_V1.md#mlr-s3),
+[6 validation](QUANTBT_MODE4_META_LEARNER_RESEARCH_GUIDE_V1.md#mlr-s6),
+[7 estimands](QUANTBT_MODE4_META_LEARNER_RESEARCH_GUIDE_V1.md#mlr-s7),
+[9 budget](QUANTBT_MODE4_META_LEARNER_RESEARCH_GUIDE_V1.md#mlr-s9).
+Read the [frozen baseline](../docs/meta_selection/RIDGE_V1_FROZEN_BASELINE.md),
+[original monthly closeout](../docs/mode5/M5_11_6_FOUR_ALPHA_CLOSEOUT.md),
+[quarterly variant report](../docs/mode5/M5_11_6_1_QUARTERLY_DECISION_REPORT.md),
+[RSI evidence](../docs/meta_selection/LOCAL_DEBT_CLOSURE_REPORT.md) and
+[shared diagnostics](../docs/diagnostics/SHARED_ALPHA_DIAGNOSTICS.md).
+
+**To-Do / Work Packages:**
+1. Verify comparator ID/source hashes/settings and exact reference/native
+   resolution. Freeze learner/loss/weights/scaler/guard/tie/OOD, not a future
+   full-history fitted beta. Reuse qualified V1 tests; register only necessary
+   restore/source-negative checks, not another whole financial suite.
+2. Inventory existing per-alpha pools, anchors, schemas, K/N/d, labels/panel
+   membership, null/maturity coverage, clocks and corrected-history custody.
+   Keep monthly originals, quarterly variants and historical RSI separate.
+3. Audit base-panel versus old-winner-union acquisition bias and feasibility
+   support. Do not treat missing labels as zero or a labeled subset as the
+   full-pool oracle. Enumerate exact reusable and missing winner witnesses.
+4. Seal related-alpha groups, permitted chronological development/inner/outer
+   blocks, independent versus reviewed labels, macro weights, purge/availability
+   rules, support/missingness and primary/secondary metrics before new outcomes.
+   Define numerical loss/R/Q acceptance margins, family confidence and cost
+   preference before screening; obtain owner approval for scientific choices.
+5. Seal model/recipe roster, finite grids, first-pilot cohort, seeds, fit counts,
+   dependency/hash and storage/work ceilings. Estimate full work from counts
+   without claiming candidate rows are independent origins. No new optimization.
+
+**Tests / Acceptance IDs:**
+- **MLR01-T01:** changed source, settings or ambiguous recipe cannot claim V1 ID.
+- **MLR01-T02:** future/late/revised labels, wrong alpha/schema/economics and
+  acquisition panels fail admission; valid corrections retain provenance.
+- **MLR01-T03:** same-origin/sibling groups never split; every required cell
+  has a supported role or explicit unavailable disposition, not silent removal.
+- **MLR01-T04:** full versus labeled-panel counts, metric units and work bill
+  reconcile; registration predates all newly executed model outcomes.
+**Deliverables:** corpus/reuse manifest, frozen study protocol, dependency/work
+bill and a source/recipe verification receipt; private data remains ignored.
+**Exit gate:** V1 reproducible, study adequate or explicitly bounded/inconclusive,
+and owner-approved protocol exists. No baseline/math/account defects may remain.
+**Cost/cleanup:** zero financial calls; <=15 CPU-minutes of cold admission;
+reuse environment, compact metadata and exact scratch cleanup per guide 9.
+**Debt policy:** support shortages become scoped dispositions; never fabricate
+external OOS, model power or a completion claim for an unrun study.
+
+<a id="m4-ml-02"></a>
+### Phase M4-ML-02 - General Calibration Policies And Causal Linear Replay
+
+**Status:** PROPOSED / NOT_STARTED.
+**Goal:** determine whether fixed, normalized or generally calibrated shrinkage
+improves served prediction/decision stability without alpha-specific hand tuning.
+**Entry:** MLR-01 approved registration and verified V1 corpus; no model roster
+or evaluation-block changes after outcomes.
+**Detailed guide:** [1 unchanged task](QUANTBT_MODE4_META_LEARNER_RESEARCH_GUIDE_V1.md#mlr-s1),
+[2 cross-family procedure](QUANTBT_MODE4_META_LEARNER_RESEARCH_GUIDE_V1.md#mlr-s2),
+[5 hyperparameters/adaptation](QUANTBT_MODE4_META_LEARNER_RESEARCH_GUIDE_V1.md#mlr-s5),
+[6 nested chronology](QUANTBT_MODE4_META_LEARNER_RESEARCH_GUIDE_V1.md#mlr-s6),
+[7 metrics](QUANTBT_MODE4_META_LEARNER_RESEARCH_GUIDE_V1.md#mlr-s7),
+[8 reuse](QUANTBT_MODE4_META_LEARNER_RESEARCH_GUIDE_V1.md#mlr-s8).
+
+**To-Do / Work Packages:**
+1. Replay P0 frozen sum-loss lambda 10 on authorized histories; prove selected
+   decisions/witnesses agree with existing retained V1 evidence where matched.
+2. Add research-only P1 mean-loss alpha=10/12 (sum lambda=K*10/12) and P2 common
+   six-point alpha calibration through new versioned contracts, not mutation of
+   V1 version guards. Keep feature basis, Y target, Q floor and native pool fixed.
+3. Evaluate common calibration recipes using training-alpha groups and their
+   own permitted inner chronology; held-out alpha outcomes cannot select its
+   recipe. Coefficients may fit on that family's permitted past. If support is
+   insufficient, retain P0 explicitly rather than reduce the twelve-origin guard.
+4. Reuse exact-basis sufficient statistics and retained task records. Measure
+   actual served loss, prediction/rank stability, regularization/complexity and
+   support. No extra labels, strategy trials or changed acquisition policy.
+5. Report fixed versus adaptive-policy hypotheses; do not run an online update
+   controller here. Shortlist a policy only under the frozen uncertainty/cost
+   rule; close with KEEP_V1 if none has adequate evidence.
+
+**Tests / Acceptance IDs:**
+- **MLR02-T01:** P1 equals P0 at K=12 on identical data/basis; other K preserves
+  declared mean/sum units and creates a different learner/artifact identity.
+- **MLR02-T02:** future alpha outcomes, inner validation leakage, full-corpus
+  preprocessing or altered eligibility cannot change an earlier decision.
+- **MLR02-T03:** exact anchor Yhat/Qhat zero, guard/ties/fallback, correction
+  weighting and cache invalidation hold across all policy settings.
+- **MLR02-T04:** grouped macro scores, nulls and proposal/fit counts match an
+  independent small oracle; matched Y/Q errors have opposite signs and equal
+  MAE/RMSE; cold/restored/cached predictions are equivalent.
+**Deliverables:** versioned calibration prototypes, compact fit/rank ledgers,
+common-policy comparison and initial complexity/runtime curves.
+**Exit gate:** technically sound common calibration comparison and a supported
+shortlist or explicit KEEP_V1/INCONCLUSIVE; no per-alpha saved winning lambda.
+**Cost/cleanup:** <=4,000 total fits including inner CV/controls, <=1 CPU-hour,
+zero financial calls; exact-cache/budget accounting and terminal cleanup.
+**Debt policy:** no silent lambda-convention switch, unstable uncertainty rule
+or unresolved source/clock bug. Model-family experimentation waits for MLR-03.
+
+<a id="m4-ml-03"></a>
+### Phase M4-ML-03 - Bounded Supervised Challengers And Unsupervised Feasibility
+
+**Status:** PROPOSED / NOT_STARTED.
+**Goal:** identify whether a small alternative family addresses observed Ridge
+limitations at a justifiable cost; assess unsupervised/ranker roles honestly.
+**Entry:** MLR-02 disposition, frozen shared inputs and MLR-01 configuration
+roster; CPU dependency admission before XGBoost installation or execution.
+**Detailed guide:** [3 bias](QUANTBT_MODE4_META_LEARNER_RESEARCH_GUIDE_V1.md#mlr-s3),
+[4 model triage/anchor](QUANTBT_MODE4_META_LEARNER_RESEARCH_GUIDE_V1.md#mlr-s4),
+[5 common policies](QUANTBT_MODE4_META_LEARNER_RESEARCH_GUIDE_V1.md#mlr-s5),
+[6 validation](QUANTBT_MODE4_META_LEARNER_RESEARCH_GUIDE_V1.md#mlr-s6),
+[8 architecture](QUANTBT_MODE4_META_LEARNER_RESEARCH_GUIDE_V1.md#mlr-s8),
+[9 budgets](QUANTBT_MODE4_META_LEARNER_RESEARCH_GUIDE_V1.md#mlr-s9).
+
+**To-Do / Work Packages:**
+1. Prototype one fixed-prior Bayesian linear method, <=2 Huber/L2 settings and
+   <=8 shallow XGBoost regression settings total. P0/P1/P2 are controls, not
+   another strategy-optimizer tournament. No separate recipe by alpha name.
+2. Resolve Y/weights/served-prediction/anchor semantics before fitting. For
+   nonlinear centering, version and test the complete transform/loss; setting
+   base_score=0 or overwriting only anchor scores is not sufficient. Reject
+   unsupported math rather than introducing an unreviewed target/controller.
+3. Reuse current typed history/transform/fit/rank/artifact seams. Use native CPU
+   library batching; do not rebuild QuantBT Rust or create a per-bar bridge.
+   Keep research dependencies optional and account for package/wheel disk cost.
+4. Run twelve representative small pilot fits then forecast registered work.
+   Execute feasible bounded grouped/chronological model comparisons; train loss
+   cannot choose winners without the frozen validation and complexity checks.
+5. Use small synthetic tests to explain ranker query grouping, magnitude/Q-head
+   requirements and unsupervised PCA/cluster/OOD limits. No rank score becomes
+   Sharpe, no unsupervised cluster becomes an economic label or rejection rule.
+   Record whether those alternatives are worth a future separate study.
+6. Keep all configuration attempts and negative/undefined results; nominate at
+   most two fully specified procedures for MLR-04, or retain V1 with no nominees.
+
+**Tests / Acceptance IDs:**
+- **MLR03-T01:** synthetic linear/no-skill/outlier/interaction expectations,
+  origin-balanced weights and served-output units; train/validation transforms
+  and nonlinear anchor invariants have independent expected-value checks.
+- **MLR03-T02:** same-origin query grouping, categorical/conditional masks,
+  early stopping and leave-group-out exclusion respect exact cutoffs.
+- **MLR03-T03:** uncalibrated rank scores and unsupervised-only economic
+  selections are rejected; absent optional dependencies leave Ridge/off intact.
+- **MLR03-T04:** deterministic snapshots, model-format/version validation,
+  thread/workspace/dependency limits, fallback and fresh restore pass.
+**Deliverables:** model feasibility matrix, optional adapters/prototypes,
+predictions/calibration/cost ledger and <=2 explicit challenger nominations.
+**Exit gate:** qualified method-specific predictions and bounded comparative
+evidence, or documented DEFER/KEEP_V1; no claim all nonlinear models were tested.
+**Cost/cleanup:** <=2,000 total challenger fits, <=90 CPU-minutes; CPU-only,
+one thread/model, at most two workers, shared 1.5-GiB RSS/256-MiB disk caps.
+**Debt policy:** no unresolved target/anchor/library error may be deferred into
+economics; unqualified alternatives stay unactivated with explicit reasons.
+
+<a id="m4-ml-04"></a>
+### Phase M4-ML-04 - Chronological Decision Qualification And Targeted Economics
+
+**Status:** PROPOSED / NOT_STARTED.
+**Goal:** evaluate complete served decisions against V1 on enough supported
+chronology without rerunning completed strategy searches or inventing outcomes.
+**Entry:** frozen nominees, evaluation roster and acceptance rules; MLR-03
+technical gates pass. No test-driven model/seed/threshold changes allowed.
+**Detailed guide:** [3 witnesses/bias](QUANTBT_MODE4_META_LEARNER_RESEARCH_GUIDE_V1.md#mlr-s3),
+[5 adaptation](QUANTBT_MODE4_META_LEARNER_RESEARCH_GUIDE_V1.md#mlr-s5),
+[6 chronology](QUANTBT_MODE4_META_LEARNER_RESEARCH_GUIDE_V1.md#mlr-s6),
+[7 loss/R/Q](QUANTBT_MODE4_META_LEARNER_RESEARCH_GUIDE_V1.md#mlr-s7),
+[9 measured execution cap](QUANTBT_MODE4_META_LEARNER_RESEARCH_GUIDE_V1.md#mlr-s9),
+[10 decision](QUANTBT_MODE4_META_LEARNER_RESEARCH_GUIDE_V1.md#mlr-s10).
+
+**To-Do / Work Packages:**
+1. Replay each nominee and V1 through full permitted pools in chronological
+   order. Keep full model/rank/guard/fallback/applied-ID and history witnesses;
+   freeze decisions before opening current outcomes, including replay rights.
+2. Join saved forward witnesses by exact effective params/domain/initial-state/
+   metric/clock. Inventory missing selected outcomes before reading results;
+   do not restrict ranking to already labeled candidates or cherry-pick coverage.
+3. Pilot <=8 missing-winner original-route executions, then <=64 total only if
+   the measured bill fits the registered cap. No optimizer reruns, abbreviated
+   IS/OOS horizons or silent endpoint simplification. If a full policy schedule
+   requires more, keep its broad economics INCONCLUSIVE or seek amendment.
+4. Compare common fixed calibration with at most one preregistered periodic
+   adaptive procedure if nominated and supported. Updates use only newly mature
+   permitted past; cadence/support/hysteresis are not chosen after losses.
+5. Report Y/Q prediction errors, selection/regret support, R/Q decomposition,
+   parameter turnover, uncertainty and costs. Run a continuous account only
+   when its full schedule and same-budget original execution are admitted;
+   diagnostic accounts cannot be spliced into a fake final equity curve.
+6. Test actual no-leakage and source/metric/parameter application at early,
+   first-fit/update and late checkpoints. Preserve old RSI positives, four-
+   alpha negatives and current limits; do not rebrand reviewed data as unseen.
+
+**Tests / Acceptance IDs:**
+- **MLR04-T01:** future price/label/other-alpha/calibration changes cannot alter
+  prior preprocessing/model/recipe/rank/guard/applied params; permitted-past
+  positive controls show that the test is not merely exercising fallback.
+- **MLR04-T02:** actual learned and adaptive-update decisions are exercised
+  with sufficient history; unavailable cohorts are not called qualified fits.
+- **MLR04-T03:** same saved schedule reproduces original accounting/metrics;
+  missing forward values, undefined Sharpe and partial support stay explicit.
+- **MLR04-T04:** prediction, ranking, R/Q/IS decomposition and dependence-aware
+  summaries agree with independent reducers and frozen registered estimands.
+**Deliverables:** bounded held-group/chronological decision report, witness
+coverage table, targeted execution receipts and fixed/adaptive disposition.
+**Exit gate:** nominee is technically sound and accepted only within registered
+generalization/economic/cost support; KEEP_V1/INCONCLUSIVE closes research validly.
+**Cost/cleanup:** zero strategy optimization; <=64 targeted new queries and <=2
+CPU-hours including admitted final accounts; stop safely before cap, preserve
+all completed evidence and clean only reviewed scratch.
+**Debt policy:** correctness/leakage faults block closure. Insufficient broader
+evidence is a declared scope limit, never an implicit production promotion.
+
+<a id="m4-ml-05"></a>
+### Phase M4-ML-05 - Model Decision, Compatibility And Research Handoff
+
+**Status:** PROPOSED / NOT_STARTED.
+**Goal:** resolve the question with one auditable retain/opt-in/defer decision,
+clear generic hyperparameter semantics and no compulsory new dependency.
+**Entry:** MLR-01..04 receipts and scope dispositions, unchanged V1 comparator.
+**Detailed guide:** [7 outputs](QUANTBT_MODE4_META_LEARNER_RESEARCH_GUIDE_V1.md#mlr-s7),
+[8 architecture](QUANTBT_MODE4_META_LEARNER_RESEARCH_GUIDE_V1.md#mlr-s8),
+[9 costs/cleanup](QUANTBT_MODE4_META_LEARNER_RESEARCH_GUIDE_V1.md#mlr-s9),
+[10 qualification/decision](QUANTBT_MODE4_META_LEARNER_RESEARCH_GUIDE_V1.md#mlr-s10),
+and [11 primary sources](QUANTBT_MODE4_META_LEARNER_RESEARCH_GUIDE_V1.md#mlr-s11).
+
+**To-Do / Work Packages:**
+1. Produce one model/policy decision matrix: loss improvement, Q/R and mechanism,
+   group/time transfer, support, complexity, instability and full resource cost.
+   Prefer the simplest adequate procedure within the frozen uncertainty rule.
+2. Document whether hyperparameters are explicit fixed initialization, shared
+   offline calibration or a versioned periodic adaptive rule, with fallback,
+   information frontier and update/effective-time provenance. No hidden tuning.
+3. Retain frozen V1 and off/shadow behavior. If a research opt-in is warranted,
+   specify exact model/feature/loss/artifact/capability IDs at the existing seam;
+   public activation/default change still needs separate owner approval.
+4. Qualify relevant serialization/cache/permission/optional-dependency absence
+   and affected WFO/report defaults. Reuse shared diagnostics/report owners;
+   do not open a second API, financial kernel or mandatory ML dependency.
+5. Publish sanitized methodology/cost/negative evidence and complete private
+   model/prediction refs. List deferred ranker/unsupervised/large-model scope.
+   Update M5-11.7 and M5-12 handoff, perform source/privacy/docs/cleanup checks
+   and scoped commit. No remote/release action in this phase.
+
+**Tests / Acceptance IDs:**
+- **MLR05-T01:** baseline source/recipe IDs and legacy decisions remain exact;
+  unrecognized models/losses or stale cache/artifact versions fail closed.
+- **MLR05-T02:** optional libraries absent, disabled meta, source-only/installed
+  capability differences and explicit fallback metadata behave as documented.
+- **MLR05-T03:** reports regenerate without simulation/RNG, preserve source
+  values/nulls and distinguish reviewed versus independently reserved evidence.
+- **MLR05-T04:** affected regressions, privacy, documentation links, work/fit/
+  query accounting and evidence-preserving cleanup pass on final source.
+**Deliverables:** final research decision, reproducible generic policy spec,
+minimal optional-adapter handoff where justified, and updated old-phase scope.
+**Exit gate:** owner can choose KEEP_FROZEN_V1, RESEARCH_OPT_IN_CANDIDATE,
+INCONCLUSIVE or DEFER_NEW_FAMILY from complete technical/scientific/cost facts.
+All admitted implementation defects closed; no implied universal best learner.
+**Cost/cleanup:** no new model tournament or financial execution; bounded
+report/regression work using the existing environment; exact cleanup receipt.
+**Debt policy:** unsupported scientific ambitions are named/deferred explicitly,
+not hidden technical debt or a reason to keep optimizing indefinitely.
+
+<a id="mode5-m5-11-7"></a>
 ### Phase M5-11.7 - Mode 4/5 Complete Researcher Reports And Decision Qualification
 
 **Status:** PROPOSED / NOT_STARTED; separate owner approval after M5-11.6 and
 [M5-11.6.1](#mode5-m5-11-6-1) dispositions, including the owner's reviewed
-Mode 4 retain/upgrade/standardization decision. No new search or report
+Mode 4 retain/upgrade/standardization decision and the newly proposed
+[M4-ML research disposition](#m4-ml-research). No new search or report
 implementation is authorized by this plan.
 **Goal:** provide a compact, quantitative and interpretable report explaining
 selection, participation, regime dependence and robustness evidence for Mode 4
@@ -35726,6 +36038,7 @@ and Mode 5, with detailed machine-readable backing. Make existing results useful
 for deciding what to deploy/research without changing a winner after outcomes.
 **Entry:** M5-11.6 actual report or owner-reviewed blocked dispositions;
 M5-11.6.1 quarterly report/decision matrix or explicit owner disposition;
+M4-ML-01..05 model/calibration decision or explicit owner deferral;
 existing M5-11.4/11.5 sealed data; inventory of available streams, identities and rights.
 Reuse public `decision_report`, diagnostic dossier and WFO metadata/metrics;
 do not introduce another endpoint or duplicate financial/metric implementations.

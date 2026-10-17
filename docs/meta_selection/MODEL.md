@@ -8,6 +8,12 @@ Mode-4 causal selection on the feature branch, not a published release; see
 describes implemented mathematics, not a promise of forward alpha improvement.
 The financial endpoint, sampler objective and account engine remain unchanged.
 
+The owner froze this first Ridge procedure as the retained research comparator
+on 2026-10-17. See the [immutable baseline contract](RIDGE_V1_FROZEN_BASELINE.md)
+and [proposed model/calibration research](../../upgrade/implement.md#m4-ml-research).
+The freeze does not fix future fitted coefficients, replace existing receipts,
+authorize another learner or claim that these hyperparameters are optimal.
+
 Read [history and descriptors](HISTORY.md) first. The authoritative requirements
 are [guide section 5](../../upgrade/QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s5)
 and the [QMS-04 plan](../../upgrade/implement.md#qms-04).
