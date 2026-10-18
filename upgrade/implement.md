@@ -6,20 +6,25 @@
 of [M4-ML-09](#m4-ml-09-closeout), then implement shared diagnostics and Mode4/5
 reporting through [M5-11.7](#mode5-m5-11-7). Detailed small phases are registered
 for sequential owner review in the [current roadmap](#mode4-reporting-act-roadmap);
-this turn updates planning only. No new optimizer, model tournament, automatic
+ML-09.C now completes its approved local technical scope. No new optimizer,
+model tournament, automatic
 recipe router, default/scientific change, optional financial probes, CI or
 publication is activated.
 
 **Current research status:** [M4-ML-09](#m4-ml-09) is
-FINANCE_AND_READBACK_COMPLETE / FINAL_TECHNICAL_QUALIFICATION_PENDING. Both
+COMPLETE_LOCAL_REGISTERED_TECHNICAL_SCOPE, supported by the
+[technical closeout](../docs/meta_selection/M4_ML_09_TECHNICAL_CLOSEOUT.md) and
+[terminal cleanup/measurement addendum](../docs/maintenance/M4_ML_09_TERMINAL_CLEANUP.md). Both
 additional private alphas complete57/57monthly730D origins with128attempts/fold,
 seed731 and frozen Ridge V1;6/6 sampler screens and both completed-prefix
 custody checks PASS. Source/readback/artifact pins and the42source/5receipt
 Ridge freeze reverify. There are15,360qualified proposal slots including reused
 complete work; abandoned old-contract attempts remain separate. Meta actually
 fits/ranks in44 and43origins, with explicit13/14support fallbacks. Technical
-closeout still needs mature mutation/measurement/accounting qualification and
-terminal cleanup; finance completion is not a final phase or release PASS.
+closeout now passes six mature actual-fit/rank checkpoints,24saved-account
+executions, independent measurement and116focused tests. All15,268IS journal
+observations and six sampler-forward observations independently recheck.
+This local technical PASS is not an installed-package/CI/release certificate.
 
 The approved narrow pure-reduce-only correction retains its
 [core/native receipt](../docs/maintenance/M4_ML_09_CORE_ACCEPTANCE.md):83focused
@@ -35833,7 +35838,7 @@ and [14 economics](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI
 | M4-ML-06 | Decision value, prefix diagnostics and bounded policy ablations | COMPLETE_LOCAL_REGISTERED_SCOPE; technical PASS, exploratory heterogeneous, KEEP_FROZEN_V1; no later activation |
 | M4-ML-07 | Structural forward target, causal retention and joint search/selection | COMPLETE_LOCAL_REGISTERED_RESEARCH; technical PASS, exploratory heterogeneous; no production adoption |
 | M4-ML-08 | Private additional-alpha replication and generalization limits | COMPLETE_LOCAL_BOUNDED_RESEARCH; technical PASS; private evidence retained; no universal promotion |
-| M4-ML-09 | Matched monthly additional-alpha robustness replication | FINANCE_AND_READBACK_COMPLETE / FINAL_TECHNICAL_QUALIFICATION_PENDING;57/57each,6/6screens; ML-09.C approved next |
+| M4-ML-09 | Matched monthly additional-alpha robustness replication | COMPLETE_LOCAL_REGISTERED_TECHNICAL_SCOPE;57/57each,6/6screens; ML-09.C PASS; frozen V1 unchanged |
 
 <a id="m4-ml-01"></a>
 ### Phase M4-ML-01 - Frozen Ridge Baseline, Evidence Admission And Study Registration
@@ -36652,8 +36657,9 @@ those files, alpha sources, ranges or individual parameters.
 <a id="m4-ml-09"></a>
 ### Phase M4-ML-09 - Matched Monthly Additional-Alpha Robustness Replication
 
-**Status:** FINANCE_AND_READBACK_COMPLETE / FINAL_TECHNICAL_QUALIFICATION_PENDING
-(current readback2026-10-18, UTC; historical launch receipts below stay unchanged).
+**Status:** COMPLETE_LOCAL_REGISTERED_TECHNICAL_SCOPE (2026-10-18UTC);
+[ML-09.C](#m4-ml-09-closeout) passes. Historical launch/readback/failure receipts
+below remain unchanged; no universal economic or release promotion follows.
 **Goal:** qualify both additional private alphas under the original monthly
 study design and describe consistency/return-risk trade-offs. Do not confuse
 OOS-versus-native Q with OOS-versus-IS, or impose a new positive-result gate.
@@ -36766,7 +36772,7 @@ Remaining work: complete scopes/screens, verify mature fit/rank chronology and
 measurement/accounting, report exact R/Q/return/activity masks, then terminal
 cleanup and local research disposition. No later phase or release activation.
 
-**Current Finance Receipt (not technical closeout):** the managed queue ends
+**Historical Finance Receipt (not technical closeout):** the managed queue ends
 2026-10-18T18:13:22UTC with
 `FINANCE_AND_READBACK_COMPLETE_FINAL_RESEARCH_QUALIFICATION_PENDING`. Both
 alphas complete57/57origins and3/3registered sampler screens. Every one of the
@@ -36776,7 +36782,8 @@ is a research interpretation, not a fresh family-confidence certificate.
 All171readback references per alpha and the retained worker/native/frozen-Ridge
 pins reverify. Model-ready counts44/43, support-fallback counts13/14; individual
 Sharpe masks still differ. Recorded initial lane failures remain immutable.
-No optimizer is active; ML-09.C below is the approved remaining technical scope.
+No optimizer is active. The subsequent [ML-09.C receipt](#m4-ml-09-closeout)
+closes the local technical scope without repeating this search.
 
 <a id="mode4-reporting-act-roadmap"></a>
 #### Approved ACT Roadmap - Technical Closure Before Shared Reporting
@@ -36788,7 +36795,7 @@ bounded subphases, not another open-ended research program.
 
 | Order | Small phase | Goal | Entry / status |
 |---|---|---|---|
-| 1 | [M4-ML-09.C](#m4-ml-09-closeout) | Mature causality, measurement/accounting and terminal receipt | ACT direction approved; registered for next small-phase execution |
+| 1 | [M4-ML-09.C](#m4-ml-09-closeout) | Mature causality, measurement/accounting and terminal receipt | COMPLETE_LOCAL_REGISTERED_TECHNICAL_SCOPE / PASS |
 | 2 | [M5-11.7.1](#mode5-m5-11-7-1) | Shared pre-WFO diagnostics, sampler/selector fit and bias explanations | Approved reporting direction; NOT_STARTED; after09.C |
 | 3 | [M5-11.7.2](#mode5-m5-11-7-2) | Shared Mode4fold consistency/meta decision and Mode5 views | NOT_STARTED; after11.7.1 |
 | 4 | [M5-11.7.3](#mode5-m5-11-7-3) | Public integration, source tests, reporting cost, privacy/docs/handoff | NOT_STARTED; after11.7.2 |
@@ -36803,8 +36810,9 @@ approval does not alter objectives, metric estimators, weights or sampler RNG.
 <a id="m4-ml-09-closeout"></a>
 #### M4-ML-09.C - Mature Chronology, Measurement And Technical Closeout
 
-**Status:** APPROVED_ACT_DIRECTION / NOT_STARTED; next bounded execution
-milestone for owner sequential review. Finance is complete, not rerun.
+**Status:** COMPLETE_LOCAL_REGISTERED_TECHNICAL_SCOPE / PASS (2026-10-18UTC).
+Fresh qualification is retained in a separate append-only closeout lane.
+Completed search is not rerun. No automatic M5-11.7, CI or release activation.
 **Goal:** close ML-09technical gates without changing economics or repeating
 the57fold optimizers. Preserve all negative/undefined findings.
 **Detailed guide:** [16.1closure](QUANTBT_MODE4_META_LEARNER_RESEARCH_GUIDE_V1.md#mlr-r1),
@@ -36836,6 +36844,41 @@ verify protected hashes before/after. No service stop or new native build.
 **Debt / Boundary:** source correctness must close; incomplete scientific
 calendar remains explicit. No learner/default/alpha/route change, optimizer
 rerun, remote CI, publication or automatic advance. Commit local closure only.
+
+**Execution / Exit Receipt (2026-10-18UTC):**
+- [Technical/economic closeout](../docs/meta_selection/M4_ML_09_TECHNICAL_CLOSEOUT.md)
+  PASS:120pools/114primary origins,15,360existing attempted slots, zero new
+  proposals. All15,268actual IS observations,1,954primary forward observations
+  and six sampler-forward observations recheck daily units/statuses; all
+  captured candidates match authoritative IS-journal observations exactly.
+- Six first-mature/middle/late checkpoints reconstruct fresh permitted history;
+  saved coefficients/scaler/Gram/RHS/row references, predictions, full ranking,
+  guards, ties, selected IDs and effective params match exactly. Current/future
+  labels, physical ordering and late corrections do not change earlier fits;
+  permitted-past corrections change beta without inflating origins/weights.
+- Exactly24registered original-route accounts execute once, including12future
+  mutations. Original observation hashes match exactly. Independent equity,
+  positions, fees and funding differences are zero; margin max2.274e-13 and
+  campaign-money max1.992e-10, within the unchanged1e-8tolerance. N1source
+  terminal open positions are marked; N2ends flat. No equity splicing.
+-116focused tests PASS. Successful mature controls use30Ridge/30direct-Q fits;
+  retained failed harness attempts add37each, explicitly counted. Qualification
+  harness corrections/versions remain separate from immutable study sources.
+- [Terminal cleanup](../docs/maintenance/M4_ML_09_TERMINAL_CLEANUP.md) preserves
+  all18,076protected references; only owned fixture scratch is removed.
+  Actual recovered bytes49,152; study retained126,853,989bytes and new proof
+  approximately1.1MiB, within budgets. No build, environment or service action.
+- Private append-only evidence: `upgrade/private/meta_model_research_v1/ml09/closeout-01/`
+  includes `closure.json`, `measurement-addendum.json`, mutation/account rows,
+  final test XML and cleanup. Initial technical closeout wall612.29seconds;
+  subsequent full-IS/screen addendum is read-only and remains within30minutes.
+  Exactly24new fixed account executions are separately registered and counted;
+  no optimizer or new economic candidate-query arm is opened.
+- Economics retains the registered masks: N1R/Q+3.06795/+1.15896 on32pairs;
+  N2+1.78324/-0.00697 on24pairs, with worse return tails. These are reviewed
+  descriptive findings, not a universal replacement or fresh CI claim.
+  Frozen Ridge V1 remains the reference; no remaining blocker in this bounded
+  technical closeout. Shared reporting is the next separately reviewed work.
 
 <a id="mode5-m5-11-7"></a>
 ### Phase M5-11.7 - Mode 4/5 Complete Researcher Reports And Decision Qualification

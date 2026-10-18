@@ -91,6 +91,13 @@ proof. Resume domain work only after disk and evidence checks are complete.
 
 ## Recorded Cleanup
 
+The [M4-ML-09 terminal receipt](maintenance/M4_ML_09_TERMINAL_CLEANUP.md)
+records 24 fixed original-route accounts, six mature fit/rank checkpoints,
+116 focused tests, 18,076 protected references and exact owned fixture cleanup.
+Actual available bytes increase by 49,152 at cleanup. Full IS/screen measurement
+is read-only; all original/failed study evidence and exact native artifacts
+remain. No optimizer rerun, environment replacement, CI or publication occurs.
+
 The [M4-ML-07 receipt](maintenance/M4_ML_07_CLEANUP.md) records completed local
 research owners, three exact inactive scratch roots,135 protected files unchanged
 and94,208 actual available bytes recovered. The retained original accounts,

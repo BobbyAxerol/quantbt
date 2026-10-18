@@ -991,6 +991,16 @@ protected hashes, account actual space recovery and retain the exact current
 artifact/environment needed by later gates. An economic negative or undefined
 fold is not a technical failure and must not be retuned into a positive one.
 
+**Local completion (2026-10-18UTC):**
+[ML-09.C](implement.md#m4-ml-09-closeout) passes the registered six mature
+checkpoints,24fixed accounts and116focused tests with no new optimizer.
+Independent full IS-journal and six sampler-forward measurement addendum is
+retained alongside the closure, without new finance. See the
+[technical/economic report](../docs/meta_selection/M4_ML_09_TECHNICAL_CLOSEOUT.md)
+and [cleanup/addendum](../docs/maintenance/M4_ML_09_TERMINAL_CLEANUP.md).
+Ridge V1 and all earlier scientific protocols remain unchanged. This is local
+technical closure, not new model activation or a release certificate.
+
 <a id="mlr-r2"></a>
 ### 16.2 Shared Diagnostics, Sampler Fit And Bias Attribution
 
