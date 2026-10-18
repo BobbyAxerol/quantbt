@@ -408,6 +408,20 @@ def test_sampler_timing_keeps_original_span_and_missing_time_separate():
         replace(research,sampler_telemetry=Record.of(dict(recipe_id='tpe_legacy',wall_seconds=-1.,source_ref='x')))
 
 
+def test_unmeasured_attempt_time_is_null_not_observed_zero():
+    owner,rows,research=sample()
+    trials=tuple(replace(t,elapsed_seconds=None) for t in research.trials)
+    attempts=data(owner,rows,replace(research,trials=trials))['search']['attempts']
+    assert attempts['summed_observed_attempt_seconds'] is None
+    assert attempts['measured_time_attempts']==0
+    assert attempts['missing_time_attempts']==len(trials)
+    trials=(replace(trials[0],elapsed_seconds=0.),)+trials[1:]
+    attempts=data(owner,rows,replace(research,trials=trials))['search']['attempts']
+    assert attempts['summed_observed_attempt_seconds']==0.
+    assert attempts['measured_time_attempts']==1
+    assert attempts['missing_time_attempts']==len(trials)-1
+
+
 def test_final_source_check_covers_mutation_during_cold_reduction(tmp_path,monkeypatch):
     import quantbt.diagnostics.researcher as module
     owner,rows,research=sample()

@@ -29,6 +29,7 @@ def search_profile(owner, rows, research):
             active_axes=list(point.active_names), effective_points=0))
         branch['effective_points'] += 1
     ledger = research.trials
+    measured_durations = [t.elapsed_seconds for t in ledger if t.elapsed_seconds is not None]
     attempts = dict(status='OBSERVED' if ledger else 'NOT_SUPPLIED',
         attempted=len(ledger) if ledger else None,
         declared_budget=research.requested_trials,
@@ -38,7 +39,7 @@ def search_profile(owner, rows, research):
         prune_reasons=dict(sorted(Counter(t.reason for t in ledger if t.status=='PRUNED').items())),
         measured_time_attempts=sum(t.elapsed_seconds is not None for t in ledger),
         missing_time_attempts=sum(t.elapsed_seconds is None for t in ledger),
-        summed_observed_attempt_seconds=sum(t.elapsed_seconds for t in ledger if t.elapsed_seconds is not None) if ledger else None,
+        summed_observed_attempt_seconds=sum(measured_durations) if measured_durations else None,
         time_convention='sum of producer attempt durations; not wall time or nonoverlapping CPU time',
         reason=None if ledger else 'No terminal attempt ledger supplied; observation count cannot stand in for trials.')
     curve, best, seen = [], None, set()
