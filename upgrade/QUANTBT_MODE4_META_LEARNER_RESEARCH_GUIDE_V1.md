@@ -17,6 +17,14 @@ hyperparameter/default policy or public activation changes are authorized.
 **Sequence:** completed M4-ML-01 -> M4-ML-02 -> M4-ML-03 -> M4-ML-04 ->
 M4-ML-05, [M4-ML-06](#mlr-s12) and [M4-ML-07](#mlr-s13) research follow-ups, then
 separately approved M5-11.7 and M5-12. No automatic phase advance.
+**Current roadmap amendment:** ML-06/07/08 research is complete; ML-09 has
+57/57 completed origins for each additional alpha and6/6 sampler screens, but
+final mature/accounting/cleanup qualification remains open. The owner approved
+technical closeout and shared diagnostics/reporting as the next two directions,
+with sequential small-phase review. See [section16](#mlr-s16) and the
+[unified roadmap](implement.md#mode4-reporting-act-roadmap). This approval does
+not activate a new optimizer, learner tournament, hyperparameter controller,
+default change, optional financial probes, packaging or publication.
 **Historical planning amendment (2026-10-17, Asia/Saigon):** section 12 was a new,
 unexecuted protocol requested after the fixed-zero check. It proposes explicit
 research-only guard/ranking changes and additional witness work for approval;
@@ -938,3 +946,165 @@ in a separate source-bound lane; reuse completed old work only with explicit
 contract/control proof. Incomplete Fib observations do not silently cross the
 changed acceptance contract. The build has a separate registered scratch
 budget; no dependency/environment/data download, push or publication is allowed.
+
+<a id="mlr-s16"></a>
+## 16. Approved Technical Closeout And Shared Researcher Reporting
+
+This is an additive reporting/qualification amendment, not a retrospective
+change to sections1-15, sealed recipes, objective functions, uncertainty gates
+or original observations. Owner approval covers the two ACT directions;
+the [small-phase execution order](implement.md#mode4-reporting-act-roadmap)
+allows sequential review before each implementation milestone. Keep Ridge V1,
+native selectors, sampler defaults and existing opt-ins unchanged.
+
+<a id="mlr-r1"></a>
+### 16.1 Finish ML-09 Without Repeating Search
+
+Verify both57-origin prefixes,128attempts in each qualified pool, all six
+sampler-only cells, exact source/binary pins and the unchanged Ridge freeze.
+Distinguish completed/reused qualified work, abandoned old-contract attempts,
+extra control executions and statistical support. Stage PASS and a serialized
+verification flag alone are not a fresh financial or no-leakage certificate.
+
+At each alpha's first actually fitted origin, fold40 and fold56, reconstruct
+fresh permitted snapshots and compare the served coefficients, predictions,
+guard/ties, ranked/selected IDs and effective params. Numerical equivalence
+must not rely on wall-generated model IDs. Change unavailable future labels,
+late corrections and future market bars: the earlier decision must remain
+unchanged. An allowed-past correction must change the fitted numeric result
+where the registered positive control requires it. Never admit mutated data
+as real historical training labels.
+
+Recompute D/R/Q and daily metric units from original observations on their
+exact masks. Reuse qualified original account witnesses; only missing final
+controls may reexecute fixed saved parameters through the same original route.
+Before execution register evaluation IDs, expected scope and a ceiling of24
+fixed account controls, zero proposals, zero new economic query arms and no
+alpha/model/metric changes. Reconcile original fills, MTM, positions, fees,
+funding, margin, terminal state and declared initial state. Do not splice
+reset-account equity or describe a diagnostic readback as continuous execution.
+
+Produce a readable report and machine receipt with separate technical,
+economic, missing-support and artifact statuses. Preserve earlier failures and
+the original native binary. Remove only reviewed inactive scratch; verify
+protected hashes, account actual space recovery and retain the exact current
+artifact/environment needed by later gates. An economic negative or undefined
+fold is not a technical failure and must not be retuned into a positive one.
+
+<a id="mlr-r2"></a>
+### 16.2 Shared Diagnostics, Sampler Fit And Bias Attribution
+
+Reuse `quantbt.diagnostics`, existing Mode5 dossiers/geometry and canonical
+metric/account reducers. Reports accept any strategy that supplies a declared
+parameter schema, route/economics identity and authorized observations; they
+do not infer unseen behavior from a strategy name or claim universal evidence
+from seven private alphas. No separate profiler/optimizer/account engine is added.
+
+Every explanation has an evidence basis, scope/cutoff, units/support, competing
+explanation, missing proof and next bounded researcher action. Use explicit
+states such as OBSERVED, HYPOTHESIS, NOT_SUPPLIED, NOT_COMPARABLE and INCONCLUSIVE
+where appropriate; a report recommendation never activates a recipe.
+
+| Concern | Required observable evidence | Forbidden inference |
+|---|---|---|
+| Legacy-TPE mismatch | Attempt order, feasible/unique effective support, inactive/conditional axes, branch counts, coverage, repeated points, native plateau/fallback and matched sampler comparisons where available | TPE always fails, high sampled density proves basin volume, or a numeric category code defines valid CMA geometry |
+| Interaction/search restriction | Existing branch-local structured sensitivity, joint probes, categorical/constraint support, boundary/clipping diagnostics | Marginal TPE statistics prove causal interaction or authorize silent range/flag removal |
+| Bull-market dominance | Declared calendar/state support, long/short exposure, net MTM/cost contributions and concentration, whole-versus-environment rankings and a convention-matched reference if available | Bull concentration is caused solely by TPE, a calendar year equals an independent regime, or a descriptive comparator is a qualified traded benchmark |
+| Objective/selector concentration | Actual objective components, raw-best/native/meta/applied IDs, top-cohort size, cluster/fallback, local fragility and environment trade-offs | Aggregate Sharpe implies robust transfer, or absent local probes prove a broad plateau |
+| Defensive degeneracy/specialism | Activity/exposed bars and days, zero-return share, opportunity/support if supplied, risk rejection, costs and supported state outcomes | Every flat/sparse candidate is wrong or a new activity penalty may be imposed by a report |
+| Meta decision risk | Support/OOD, exact predicted Q/Y, historical calibration, observed help/harm/tails, model-ready versus fallback and changed-versus-all-policy cohorts | A predicted guard guarantees realized Q, or lower MSE guarantees lower selected-policy loss |
+
+TPE can concentrate adaptively in regions favored by the supplied objective;
+distribution, market composition, sizing, objective and selector may all
+contribute to bull dominance. Separate descriptive pipeline attribution from
+causal sampler attribution. A causal sampler comparison needs a matched
+registered design; current limited/variant cells keep their actual scope.
+Do not launch a new sampler experiment merely to fill a report field.
+
+Return a traceable shortlist, not an alpha-name lookup. Compatibility is a
+first filter, measured behavior is another, and economic superiority requires
+its own evidence. Legacy/group-TPE, numeric-compatible CMA-ES and authorized
+Sobol recipes retain their existing geometry/conditional policies. A Mode5
+selector is not automatically a valid Mode4 selector; its required IS-only
+metrics, timing, support and actual implementation must all be declared.
+
+Adaptive/reviewed TPE pools may supply coverage and descriptive distributions;
+respect the current suppression of finite-panel association intervals for
+those rosters. Structured sensitivity/local assertions need their authorized
+design/probes. Optional environment/factor/fragility evidence remains missing
+when not supplied; no new regime classifier or factor estimator is fitted here.
+
+Trials are attempts, not effective configurations or independent origins.
+Report128-versus-requested256..412 honestly, along with duplicates, invalid
+points, branch support, base-panel/union label counts and origin weights.
+Larger pools do not automatically expand the base16 acquisition panel or prove
+better meta skill. Budget-response curves may reuse ordered existing records;
+they cannot be extrapolated into an unexecuted256/412 study or its history.
+
+<a id="mlr-r3"></a>
+### 16.3 Consistent Pre-WFO, Fold And Post-WFO Reports
+
+Use one additive typed report/reducer contract and mode-specific views, not
+separate formulas in notebooks, diagnostics, endpoint rendering and research
+scripts. Existing public endpoint signatures, metadata and report defaults
+remain compatible. Summary/Markdown/JSON/detail exports must agree numerically.
+
+| View | Allowed evidence and required output |
+|---|---|
+| Pre-WFO | Authorized prefix geometry/coverage/activity, supported environment/local evidence, sampler compatibility and explicit recipe advice; historical matured R/Q only if available at this cutoff |
+| Per fold | IS/OOS boundaries and clocks, sampler/budget/eligible pool, native/proposed/applied params, model maturity, guard/tie/fallback and observed forward disposition when it becomes available |
+| Post WFO | All-calendar, cold-start, mature, actual-changed and registered evaluation cohorts, each with its own complete/undefined/missing mask; historical/adaptive/exploratory status remains explicit |
+| Mode5 | Fixed dict and full-development rights, existing objective/floor/tail/components and parameter/environment/probe evidence; never relabel full-scope selection as causal OOS |
+
+Mode4 summaries require signed D/R/Q and IS decomposition; help/harm/tie counts
+and magnitudes; positive OOS Sharpe and positive return separately; mean, median,
+dispersion and supported worst-tail statistics; drawdown/activity/exposure/cost;
+time/state consistency; parameter turnover and actual execution differences.
+Keep daily-account, closed-trade/action and fill metrics in their declared units.
+Parameter changes do not necessarily mean a fill; fills are not closed actions.
+Mean fold Sharpe/DD is not final continuous-account Sharpe/DD.
+
+Report prediction MSE/MAE/bias/calibration and decision/ranking diagnostics
+when the exact witnesses exist. Include permitted fixed-zero/structural controls
+with matched masks; do not claim independent confirmation from algebraically
+identical Y/Q errors. Full-pool ranking does not mean full-pool forward labels:
+unknown regret and outcomes remain unknown. Retain same-anchor decisions in
+whole-policy reports, then add a separate changed-decision view.
+
+Pre-search reports cannot import current/future OOS statistics, a future-fitted
+partition or the full2020-2026 Mode5 dossier into an earlier Mode4 choice.
+Post-hoc audit views may show later data only with explicit retrospective rights;
+their advice cannot be backdated. Use existing registered uncertainty policies
+and calendar/dependence rules. Missing support produces an unavailable interval,
+not a new estimator, zero fill or favorable-only cohort. No positive-every-fold
+or OOS-greater-than-IS gate is added.
+
+<a id="mlr-r4"></a>
+### 16.4 Integration, Tests, Cost And Sequential Exit
+
+Map every field to original source IDs, units, data roles and availability.
+Reject mismatched windows, candidates, schemas, initial states and metrics.
+Use public synthetic bull-concentration, objective-driven sampling, correlated
+axes, sparse/flat specialist, sharp peak, stable neighborhood and meta-tail-risk
+cases; no private strategy logic, parameters or data enter Git/artifacts.
+The sampler-independent bull-concentration control must prevent the report from
+blaming TPE without a matched comparison.
+
+Real readbacks reuse all admitted sources with their own coverage: five Mode5
+diagnostic alphas, actual RSI studies, original Mode4 evidence, four monthly
+alphas, separate quarterly variants and the two added private alphas. No claim
+that seven alphas all have identical economic protocols or full Mode5 studies.
+Numeric expected-value/null/mask, chronological access, serialization/cache,
+stable endpoint behavior, zero financial/RNG report side effects and source
+privacy tests are mandatory. Benchmark cold summary/detail/JSON on matched
+existing ledgers; optimize only measured reporting bottlenecks using current
+reducers/runtime, without forcing a new Rust bridge or discarding requested data.
+
+The detailed sequence is ML-09.C -> M5-11.7.1 -> M5-11.7.2 -> M5-11.7.3 ->
+conditional M5-12. Existing R01-R08/M45R acceptance requirements remain mapped;
+the optional R06 <=99 winner-probe accounts require separate financial approval
+and are not launched by the current reporting ACT. Source/accounting blockers
+must be fixed in their proper ownership scope; missing scientific evidence
+stays explicit, not a fabricated PASS. Each small phase has its own receipt,
+resource/cleanup gate and coherent local commit. No automatic optimizer,
+model/default/scientific change, remote CI, merge, tag or publication follows.
