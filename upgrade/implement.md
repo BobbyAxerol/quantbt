@@ -3,7 +3,7 @@
 ## Current Mode 5 Diagnostics-First Upgrade - Full-Development Decision Support
 
 **Latest owner-approved research (2026-10-18, Asia/Saigon):**
-[M4-ML-09](#m4-ml-09) is APPROVED / ADMISSION_BLOCKED_CORE_SCOPE. Repeat the two
+[M4-ML-09](#m4-ml-09) is CORE_QUALIFIED / CORRECTED_TRANCHE_PENDING. Repeat the two
 additional private alphas on the original monthly/730D/57-origin schedule,
 128 attempted trials/origin, seed731 and frozen Ridge V1. The owner explicitly
 approved the full second-alpha local execution adapter, not a single-target
@@ -14,8 +14,14 @@ Eighteen local tests and four real early/late controls pass; one first-origin
 128-attempt study is complete. The other alpha's tranche exposed a solvent
 reduce-only close rejected by both Python and Rust under negative free margin.
 An alpha-independent hand-computable case confirms the acceptance issue.
-No core edit or long queue is launched pending separate owner scope approval;
-completed evidence and the failed input are retained. No production, remote,
+The owner subsequently approved a narrow Python/Rust pure reduce-only fee
+acceptance correction, artifact/parity checks and up to4hours/alpha background
+execution, one financial worker. Exposure-increasing margin gates, alpha,
+sampler, Ridge and measurement remain unchanged. Completed old evidence is
+retained. The exact corrected artifact passes83 focused checks and64 Rust unit
+tests; the blocked account and independent accounting now pass. See the
+[narrow qualification receipt](../docs/maintenance/M4_ML_09_CORE_ACCEPTANCE.md).
+Source-bound tranche admission precedes the new long queue. No production, remote,
 package or later-phase activation is authorized.
 
 **Previous completed research:** [M4-ML-08](#m4-ml-08) completed the bounded
@@ -35821,7 +35827,7 @@ and [14 economics](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI
 | M4-ML-06 | Decision value, prefix diagnostics and bounded policy ablations | COMPLETE_LOCAL_REGISTERED_SCOPE; technical PASS, exploratory heterogeneous, KEEP_FROZEN_V1; no later activation |
 | M4-ML-07 | Structural forward target, causal retention and joint search/selection | COMPLETE_LOCAL_REGISTERED_RESEARCH; technical PASS, exploratory heterogeneous; no production adoption |
 | M4-ML-08 | Private additional-alpha replication and generalization limits | COMPLETE_LOCAL_BOUNDED_RESEARCH; technical PASS; private evidence retained; no universal promotion |
-| M4-ML-09 | Matched monthly additional-alpha robustness replication | APPROVED / ADMISSION_BLOCKED_CORE_SCOPE; completed first-origin evidence retained; no promotion |
+| M4-ML-09 | Matched monthly additional-alpha robustness replication | CORE_QUALIFIED / CORRECTED_TRANCHE_PENDING; exact native and independent accounting PASS; no promotion |
 
 <a id="m4-ml-01"></a>
 ### Phase M4-ML-01 - Frozen Ridge Baseline, Evidence Admission And Study Registration
@@ -36640,7 +36646,7 @@ those files, alpha sources, ranges or individual parameters.
 <a id="m4-ml-09"></a>
 ### Phase M4-ML-09 - Matched Monthly Additional-Alpha Robustness Replication
 
-**Status:** APPROVED / ADMISSION_BLOCKED_CORE_SCOPE (2026-10-18, Asia/Saigon).
+**Status:** CORE_QUALIFIED / CORRECTED_TRANCHE_PENDING (2026-10-18, Asia/Saigon).
 **Goal:** qualify both additional private alphas under the original monthly
 study design and describe consistency/return-risk trade-offs. Do not confuse
 OOS-versus-native Q with OOS-versus-IS, or impose a new positive-result gate.
@@ -36681,8 +36687,10 @@ or universal transfer badge from opportunistic subgrouping.
 <=15,360 new proposal slots (two times57+3 studies times128); serial financial
 workers, one numeric thread, peakRSS<=1.5GiB and availableRAM>=512MiB. Initial
 retained ceiling192MiB, scratch32MiB, free disk>=5GiB plus remaining allowance.
-Pilot before long admission; initial cap2hours/alpha, with explicit censored
-disposition on a guard stop, not silent scope reduction. No rebuild/download.
+Pilot before long admission; the owner raised the initial2hour cap to4hours/alpha
+and approved background fold checkpoints. A guard stop is explicitly censored,
+not silent scope reduction. One incremental offline native build is now approved
+for the narrow acceptance correction; no dependency/environment/data download.
 **Debt / Boundary:** incomplete adapter or failed parity blocks that alpha,
 not a reason to fabricate equivalence. No production/default/scientific
 estimator change, source disclosure, push, CI, release, M5-11.7 or M5-12.
@@ -36708,6 +36716,30 @@ approved an adapter without core changes; no scientific gate, price, source,
 parameter range or leverage was changed to bypass this blocker. Full search,
 sampler screens, mature model/no-leakage matrices and final economics are still
 pending; do not claim57-fold completion or meta efficacy from this tranche.
+
+**Owner Amendment:** the owner approved the exact narrow core correction and
+artifact/parity gate before continuation. Only genuinely reducing, non-reversing
+`reduce_only` fills use fill-price equity to cover their fee. All other fills
+retain the original free-margin gate. Cover full/partial closes, direction,
+oversized clipping, gaps, fee affordability, unchanged entry/reversal rejection,
+Python/Numba/Rust parity and native session/static output. Preserve original
+receipts and native binary. New execution outcomes use a separate lane/family;
+old observations are reused only when contract identity and independent controls
+justify it. No claim of generic exact full-WFO/RNG recovery. Build/test scratch
+is reviewed separately from the compact study retention budget.
+
+**Narrow Core Receipt:** [local source/native qualification](../docs/maintenance/M4_ML_09_CORE_ACCEPTANCE.md)
+passes64 Rust unit tests and83 focused artifact tests. The previously blocked
+real account completes with190 fills, terminal flat, identical equity/positions/
+fees/funding and maximum margin error1.4211e-14 against the static oracle;
+the independent actual-fill ledger reconciles. Original static fills are
+submission-ordered, so execution-order views, not raw list order, are compared.
+An initial dynamic-import cache alias failure and strict raw-list verification
+failures remain retained; neither is relabeled as a passing attempt. Four
+unchanged-path controls retain complete observation hashes, qualifying the
+first completed origin for explicit reuse. Old incomplete second-alpha data
+remains separate. The corrected tranche and long/mature qualification remain
+pending; no final research or public artifact claim follows from this gate.
 
 <a id="mode5-m5-11-7"></a>
 ### Phase M5-11.7 - Mode 4/5 Complete Researcher Reports And Decision Qualification

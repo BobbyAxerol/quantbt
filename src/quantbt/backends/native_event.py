@@ -61,6 +61,7 @@ from ..core.event import (
     TIF_IOC,
     _engine_event_v1,
     _engine_event_v2,
+    _event_margin_allows_fill,
 )
 from ..core.event_contracts import (
     BarView,
@@ -1392,7 +1393,10 @@ class _NativeEventReactiveSession:
             trade_notional = abs(delta) * float(exec_price) * cs
             fee_cost = trade_notional * float(self.fee_rates[state.symbol_col])
             required, cur_im = self._margin_required(bar, state.symbol_col, delta, float(exec_price), fee_cost)
-            if required > self.equity - cur_im:
+            if not _event_margin_allows_fill(
+                command.reduce_only, self.current_pos[state.symbol_col], delta,
+                self.equity, cur_im, required, close, float(exec_price), cs, fee_cost,
+            ):
                 state.status = ORDER_STATUS_REJECTED
                 state.reject_code = REJECT_INSUFFICIENT_MARGIN
                 self._event(

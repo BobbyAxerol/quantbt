@@ -381,6 +381,21 @@ def _record_order_event(
 
 
 @njit(cache=True)
+def _event_margin_allows_fill(
+    reduce_only, current, delta, equity, current_initial_margin,
+    required, close, exec_price, contract_size, fee_cost,
+):
+    # A solvent reduction releases collateral; pre-close free margin is not
+    # the funding source for its fee. Exposure-increasing orders stay unchanged.
+    pure_reduction = (
+        reduce_only and current * delta < 0.0 and abs(delta) <= abs(current)
+    )
+    if pure_reduction:
+        return fee_cost <= equity + delta * (close - exec_price) * contract_size
+    return required <= equity - current_initial_margin
+
+
+@njit(cache=True)
 def _event_margin_required(
     n_syms: int,
     current_pos: np.ndarray,
@@ -901,7 +916,10 @@ def _engine_event_v2(
                 n_syms, current_pos, closes, contract_sizes, leverages,
                 maint_ratio, i, sym, delta, exec_price, fee_cost,
             )
-            if required > equity - cur_im:
+            if not _event_margin_allows_fill(
+                command_reduce_only[oid] == 1, current_pos[sym], delta,
+                equity, cur_im, required, c, exec_price, cs, fee_cost,
+            ):
                 active[oid] = 0
                 command_status[oid] = ORDER_STATUS_REJECTED
                 reject_code[oid] = REJECT_INSUFFICIENT_MARGIN

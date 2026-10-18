@@ -526,6 +526,24 @@ The adapter preserves active-order relationship metadata (`parent_order_id`,
 `group_id`, `oco_group_id`, activation state, tag, campaign, cycle, and level)
 for reactive contexts. Audit reports also retain event status and reject code.
 
+### Reduce-only collateral release
+
+For lifecycle commands, a flagged `reduce_only` fill that strictly reduces an
+existing position without reversing it pays its fee from solvent equity at
+the actual fill price. Negative free margin before collateral is released is
+not, by itself, a reason to reject that reduction. Oversized reduce-only
+quantities are still clipped to the existing position before this check.
+Fee affordability includes the mark-to-fill equity adjustment; it does not
+waive fees, liquidation, quantity constraints or fill-price rules.
+
+Entries, increases, reversals and unflagged orders retain their existing
+free-margin gate. The legacy `OrderIntent` execution path is unchanged. Python
+reactive, Numba command replay and Rust `FullSession` share this correction;
+[`test_reduce_only_margin_release.py`](../tests/native_event/test_reduce_only_margin_release.py)
+includes hand-accounted negative-free-margin examples and full-path parity.
+This source-level correction does not certify an older published native wheel;
+consumers must use the artifact qualified against the corrected source.
+
 ## Static tape and reporting
 
 ```python

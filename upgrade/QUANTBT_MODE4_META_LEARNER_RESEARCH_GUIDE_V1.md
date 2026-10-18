@@ -923,3 +923,18 @@ every completed cell/failed receipt at a guard stop; request any scope/resource
 amendment before more work, never silently shorten horizon or alter gates.
 Source/params/data/raw outcomes remain local/ignored, with no new dependency,
 environment, artifact build, CI, push, release or subsequent-phase activation.
+
+**Owner-approved continuation amendment (2026-10-18, Asia/Saigon):** raise the
+wall ceiling to4hours/alpha and allow managed background fold checkpoints with
+one financial worker. The earlier Fib admission exposed a pure reduce-only
+close rejected solely by negative pre-close free margin. The owner separately
+approved a narrow lifecycle-accounting correction, Python/Numba/Rust and
+independent hand-accounting tests, and one incremental offline native build.
+Only flagged, genuinely reducing, non-reversing fills use solvent fill-price
+equity for fee affordability; entries and other orders retain their old gate.
+Do not alter alpha, prices, sizing, sampler, Ridge, metrics or research gates.
+Retain every original failure. Qualify the exact new binary before continuation
+in a separate source-bound lane; reuse completed old work only with explicit
+contract/control proof. Incomplete Fib observations do not silently cross the
+changed acceptance contract. The build has a separate registered scratch
+budget; no dependency/environment/data download, push or publication is allowed.
