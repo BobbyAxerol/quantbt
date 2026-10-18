@@ -2,7 +2,17 @@
 
 ## Current Mode 5 Diagnostics-First Upgrade - Full-Development Decision Support
 
-**Latest owner-approved research:** [M4-ML-08](#m4-ml-08) completed the bounded
+**Latest owner-approved research (2026-10-18, Asia/Saigon):**
+[M4-ML-09](#m4-ml-09) is APPROVED / ADMISSION_IN_PROGRESS. Repeat the two
+additional private alphas on the original monthly/730D/57-origin schedule,
+128 attempted trials/origin, seed731 and frozen Ridge V1. The owner explicitly
+approved the full second-alpha local execution adapter, not a single-target
+substitute. No optimizer starts before accounting/resource admission. Report
+fold consistency, positive OOS Sharpe, return distributions and downside, not
+only mean R/Q or MSE. Existing scientific/production gates remain unchanged.
+No production, remote, package or later-phase activation is authorized.
+
+**Previous completed research:** [M4-ML-08](#m4-ml-08) completed the bounded
 additional-alpha replication locally: seven private inventory entries,23 main
 quarterly origins, three fixed sampler challenger cells and actual mature-fit
 causality/accounting checks. Detailed new economic/source evidence remains
@@ -35774,13 +35784,13 @@ Empirical status is NOT_ASSESSED; richer M5-11.7 integration, Ridge/model/loss
 research, M5-12, CI and release remain unactivated.
 
 <a id="m4-ml-research"></a>
-### Mode 4 Meta-Learner Research - Eight Completed Local Phases
+### Mode 4 Meta-Learner Research - Eight Completed And One Approved Local Phase
 
 **Authority (2026-10-17, Asia/Saigon):** freeze the initial Ridge baseline now;
 plan a bounded study before the older large phases. The completed shared
 diagnostics module remains independent and is reused, not redesigned.
 **Order:** completed M4-ML-01 -> M4-ML-02 -> M4-ML-03 -> M4-ML-04 -> M4-ML-05 ->
-M4-ML-06 -> M4-ML-07 -> M4-ML-08 ->
+M4-ML-06 -> M4-ML-07 -> M4-ML-08 -> approved M4-ML-09 ->
 separately approved M5-11.7 -> M5-12. Every phase needs owner approval; writing
 the plan does not launch its work or promise a superior learner.
 **Common goal:** minimize generalization/decision error under the existing
@@ -35805,6 +35815,7 @@ and [14 economics](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI
 | M4-ML-06 | Decision value, prefix diagnostics and bounded policy ablations | COMPLETE_LOCAL_REGISTERED_SCOPE; technical PASS, exploratory heterogeneous, KEEP_FROZEN_V1; no later activation |
 | M4-ML-07 | Structural forward target, causal retention and joint search/selection | COMPLETE_LOCAL_REGISTERED_RESEARCH; technical PASS, exploratory heterogeneous; no production adoption |
 | M4-ML-08 | Private additional-alpha replication and generalization limits | COMPLETE_LOCAL_BOUNDED_RESEARCH; technical PASS; private evidence retained; no universal promotion |
+| M4-ML-09 | Matched monthly additional-alpha robustness replication | APPROVED / ADMISSION_IN_PROGRESS; full second-alpha local adapter approved; no promotion |
 
 <a id="m4-ml-01"></a>
 ### Phase M4-ML-01 - Frozen Ridge Baseline, Evidence Admission And Study Registration
@@ -36619,6 +36630,58 @@ those files, alpha sources, ranges or individual parameters.
   failed/setup/control/analysis work remains separate. Compact evidence only,
   no market snapshot/environment/build duplication. Cleanup/source preservation
   is recorded in the ignored closure receipts; no public qualification claimed.
+
+<a id="m4-ml-09"></a>
+### Phase M4-ML-09 - Matched Monthly Additional-Alpha Robustness Replication
+
+**Status:** APPROVED / ADMISSION_IN_PROGRESS (2026-10-18, Asia/Saigon).
+**Goal:** qualify both additional private alphas under the original monthly
+study design and describe consistency/return-risk trade-offs. Do not confuse
+OOS-versus-native Q with OOS-versus-IS, or impose a new positive-result gate.
+**Detailed guide:** [ML-09 protocol](QUANTBT_MODE4_META_LEARNER_RESEARCH_GUIDE_V1.md#mlr-s15),
+[R/Q measurement](QUANTBT_MODE4_META_LEARNER_RESEARCH_GUIDE_V1.md#mlr-d5),
+[original availability](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s6).
+
+**To-Do:**
+1. Register the owner-approved ETHUSDT1h snapshot, rolling730D,57 monthly
+   origins2022-01..2026-09,128 attempted legacy-TPE slots/fold, seed731 and
+   original Mode4 selector. Keep the completed quarterly/365D study separate.
+2. Preserve both private source files. Admit the second alpha's full local
+   multi-child execution compiler using the existing native session; actual
+   engine state owns fills, fees, margin, liquidation and equity. No simplified
+   single-target adapter, invented signal proxy or alternate account engine.
+3. Verify fixed synthetic/account/causal controls before search and measure
+   two-year early/late control costs. Retain any failed admission; resource
+   estimates are not permission to reduce trials or windows.
+4. Execute each unique pool once, seal N/R/F/QD/QF before forward, and use only
+   the existing base16 plus original Ridge winners as training acquisition.
+   Keep model/history families independent from old alphas and old schedules.
+5. Keep13 acquisition +12 development +32 evaluation origins; report the
+   actual fitted/valid masks. Run the three fixed sampler-only challenger
+   cells per alpha after primary admission, with no inherited meta history.
+6. Report signed-decay win/tie/loss, OOS-positive fraction, Q help/harm size,
+   median/tails/dispersion, returns and DD/activity on their own exact masks.
+   Flat returns may be defined when Sharpe is not; never zero-impute Sharpe.
+7. Qualify mature fit/rank future invariance, permitted-past positive controls,
+   measurement/accounting and source privacy; retain compact receipts and
+   clean only owned inactive scratch before local closeout.
+
+**Tests / Exit Gate:** admitted full financial contracts;128 attempts for each
+completed fold; all winners have explicit forward dispositions; exact chronology
+and independent accounting/metric controls; technical qualification separate
+from economic sign. A negative outcome is not a failed run. No new confidence
+or universal transfer badge from opportunistic subgrouping.
+**Budget / Cleanup:** reuse current environment/data/native binaries. Register
+<=15,360 new proposal slots (two times57+3 studies times128); serial financial
+workers, one numeric thread, peakRSS<=1.5GiB and availableRAM>=512MiB. Initial
+retained ceiling192MiB, scratch32MiB, free disk>=5GiB plus remaining allowance.
+Pilot before long admission; initial cap2hours/alpha, with explicit censored
+disposition on a guard stop, not silent scope reduction. No rebuild/download.
+**Debt / Boundary:** incomplete adapter or failed parity blocks that alpha,
+not a reason to fabricate equivalence. No production/default/scientific
+estimator change, source disclosure, push, CI, release, M5-11.7 or M5-12.
+**Evidence:** ignored `upgrade/private/meta_model_research_v1/ml09/attempt-01/`;
+all source-bound code/ranges/results remain ignored under local/private roots.
 
 <a id="mode5-m5-11-7"></a>
 ### Phase M5-11.7 - Mode 4/5 Complete Researcher Reports And Decision Qualification

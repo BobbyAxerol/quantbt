@@ -871,3 +871,55 @@ cells and explicit missingness; never rename a partial run complete. Tests cover
 source-account parity, causal prefix, as-of availability, actual model/rank
 future invariance, positive past sensitivity and privacy. Keep compact receipts,
 remove only inactive owned scratch, and record protected hashes at closure.
+
+<a id="mlr-s15"></a>
+## 15. Matched Monthly Additional-Alpha Replication (ML-09)
+
+The owner approved both additional private alphas on2026-10-18 Asia/Saigon:
+ETHUSDT1h, monthly57 origins2022-01..2026-09, rolling730D IS,128 attempted
+legacy-TPE proposals/origin, seed731/fold-derived, no warm start/early stop.
+Preserve source sizing/clock/exit architecture; match the common account
+settings20,000 capital, leverage1, fee.0004 one-way, no funding/slippage.
+Source-specific sizing remains explicit; this is not identical economics
+between different alphas. Keep earlier quarterly evidence as a separate family.
+
+Use original Mode4/per_fold_causal/is_only_robust, top.10, medoid, epsilon.15,
+min3, IS subperiods1, the qualified daily Sharpe contract and frozen Ridge V1
+lambda10/min12/Qfloor-.10. Observe13 acquisition,12 development and32 reserved
+evaluation months; actual model-ready/valid support is reported, not assumed.
+Capture one full IS pool per optimizer; seal N/R/F/QD/QF before current forward.
+Only production base16 plus original R winners enters training. Alternative
+evaluation winners cannot change acquisition. Labels mature at forward end+1s.
+Each alpha has independent history and model identity. The three fixed group-TPE
+screens are months0/24/48 (2022/2024/2026 January),128 attempts each; they cannot
+inherit legacy-TPE mature history or imply full challenger meta qualification.
+
+The second alpha requires a source-faithful, local multi-child execution
+compiler. The owner approved one campaign/no pyramiding, next-open reversal,
+four reduce-only targets using original filled quantity, stop priority under
+same-bar ambiguity, entry risk based on live equity at fill, and runner close
+on reversal/segment end. Register precise gap/rejection/terminal rules before
+financial outcomes. Retain a real flat pre-window snapshot. Original market
+OHLC/clock and core accounting cannot be changed to obtain a favorable result.
+Qualify actual native execution against hand-computable synthetic examples and
+an independent test oracle before optimizer admission; the source plan alone
+is not a financial certificate. Any capability mismatch remains fail-closed.
+
+Primary tables report valid-pair counts, signed decay improvement frequency,
+positive OOS Sharpe frequency, Q help/harm/tie and sizes, median/dispersion/tails,
+annual/time-block consistency, activity, costs, and return/DD distributions.
+Q compares meta with native on the same forward window, not OOS with IS.
+Report return and Sharpe masks separately: a flat account can have a valid
+zero return but undefined Sharpe. Do not discard all inactivity by conditioning
+every table on defined Sharpe. Avoid pooling monthly and quarterly observations,
+splicing diagnostic equity, promoting per-alpha outcome-selected recipes or
+declaring a universal positive/negative meta effect. New descriptive statistics
+do not rewrite registered scientific gates or confer a fresh inference badge.
+
+Budget/admission: <=15,360 proposal slots, serial finance/one numeric thread,
+<=1.5GiB peak processRSS, >=512MiB availableRAM, initial cap2hours/alpha;
+<=192MiB retained/32MiB scratch and5GiB free beyond remaining forecast. Preserve
+every completed cell/failed receipt at a guard stop; request any scope/resource
+amendment before more work, never silently shorten horizon or alter gates.
+Source/params/data/raw outcomes remain local/ignored, with no new dependency,
+environment, artifact build, CI, push, release or subsequent-phase activation.
