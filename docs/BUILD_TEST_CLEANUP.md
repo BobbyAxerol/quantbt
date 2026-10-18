@@ -8,6 +8,10 @@ The [unified plan](../upgrade/implement.md#mandatory-buildtest-cleanup-gate) and
 [workspace rules](../AGENTS.md#build-and-test-cleanup) govern this procedure.
 
 Latest shared-reporting cleanup:
+[M5-11.7.2](maintenance/M5_11_7_2_CLEANUP.md) removes only inactive fixture scratch,
+rechecks 262 protected inputs and original evidence, and observes 8.46 MiB
+immediate recovery; retained reporting receipts stay below 64 MiB. No build,
+environment, financial evidence or service is removed. The prior
 [M5-11.7.1](maintenance/M5_11_7_1_CLEANUP.md) removes only exact inactive pytest
 scratch, verifies 185 protected inputs and retained report/evidence hashes,
 and observes 5.11 MiB immediate recovery across two removals. No environment,

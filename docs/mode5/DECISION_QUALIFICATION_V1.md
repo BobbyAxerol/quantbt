@@ -127,6 +127,7 @@ relabel it. Full-development scores and shorter decay are not independent
 forward quality or a universal edge guarantee.
 
 See [public calibration](PUBLIC_CALIBRATION_V1.md),
+[shared Mode 4/5 decision views](../diagnostics/FOLD_DECISION_REPORTS.md),
 [full-development diagnostics](FULL_DEVELOPMENT_DIAGNOSTICS_V1.md),
 [actual five-alpha worksheets and matched RSI studies](M5_11_5_DECISION_QUALIFICATION_REPORT.md),
 [M5-11.5 plan](../../upgrade/implement.md#mode5-m5-11-5) and

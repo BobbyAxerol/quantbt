@@ -28,6 +28,7 @@ PYTHONPATH=/root/bobby/pool_alpha python3 quantbt/examples/single_order_event.py
 | `optimization_workflow.py` | `OptunaOptimizer` + prepared/generic evaluators | Domain-agnostic optimization smoke template |
 | `shared_alpha_diagnostics.py` | `quantbt.diagnostics.AlphaDiagnostics` | Retained observation/schema analysis before any mode or meta choice; no optimizer or financial execution |
 | `shared_presearch_researcher.py` | Same additive diagnostics API | Typed attempt/account evidence, participation/attribution, recipe cards and private/public exports; synthetic, no strategy execution |
+| `shared_decision_reporting.py` | `quantbt.diagnostics.ResearchDecisionReport` | Fold masks, R/Q, decision trace and permitted exports from synthetic original records; no optimizer, account replay or model fit |
 | `optimization_exact_continuation.py` | additive owned sampler session | Four-recipe safe JSON checkpoint and exact fresh-process continuation; toy objective, no automatic WFO resume |
 | `nautilus_validation.py` | `QuantBTEndpoint.nautilus_validation(...)` | Signal validation through NautilusTrader |
 | `nautilus_explicit_orders.py` | `BacktestEngineV2(backend="nautilus", orders=...)` | Explicit order replay and native-vs-Nautilus parity |

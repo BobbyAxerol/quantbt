@@ -1,5 +1,10 @@
 # Shared Alpha Diagnostics
 
+For completed WFO decision consistency and R/Q, use the separate additive
+[fold decision report](FOLD_DECISION_REPORTS.md). It reads original observations
+without treating post-WFO outcomes as earlier pre-search evidence. Full-set
+Mode 5 decisions keep their distinct full-development permissions and scope.
+
 ## Scope
 
 `quantbt.diagnostics` is an opt-in pre-search module, independent of WFO mode,

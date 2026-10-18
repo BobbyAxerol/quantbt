@@ -273,6 +273,13 @@ selection revalidation: regeneration does not execute a model or account.
 
 ## Migration And Research Acceptance
 
+The additive [fold decision report](../diagnostics/FOLD_DECISION_REPORTS.md)
+reads a completed Mode 4 / `per_fold_causal` metadata record with retained typed
+observer revisions. It provides exact cohorts, R/Q/IS decomposition, decision
+trace, matched prediction-control losses and original continuous-account scope.
+It does not rerun finance, fit a model or change selected params. Missing
+observations remain missing; public exports redact private strategy identifiers.
+
 No change is needed for existing alpha calls. New options are explicit; removing
 `sampler_config`, `meta_selection` and `meta_history` restores the old path.
 Never blindly load a new family's history after changing strategy, economics,

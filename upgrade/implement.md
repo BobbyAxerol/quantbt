@@ -17,8 +17,12 @@ scope locally. Additive typed JSON/Markdown, source-bound interpretation, sample
 compatibility cards and privacy controls are qualified on retained evidence;
 legacy report identity, financial owners and frozen Ridge V1 remain unchanged.
 See the [implementation/coverage report](../docs/diagnostics/M5_11_7_1_IMPLEMENTATION_REPORT.md).
-M5-11.7.2/11.7.3, M5-12 and CI/release remain unstarted and need their sequential
-approval. This does not close the whole parent reporting phase.
+[M5-11.7.2](#mode5-m5-11-7-2) also completes its approved local scope: shared
+fold consistency, R/Q/IS, decision/support/control-loss and original account
+views are qualified on370retained origin slots plus two Mode5decision snapshots.
+See its [implementation report](../docs/diagnostics/M5_11_7_2_IMPLEMENTATION_REPORT.md).
+M5-11.7.3, M5-12 and CI/release remain unstarted and need sequential approval.
+This does not close the whole parent reporting phase or change scientific policy.
 
 **Current research status:** [M4-ML-09](#m4-ml-09) is
 COMPLETE_LOCAL_REGISTERED_TECHNICAL_SCOPE, supported by the
@@ -27845,9 +27849,9 @@ Every phase below inherits this mandatory resource registration/cleanup exit.
 | [M5-11.4](#mode5-m5-11-4) | Full 2020--2026 development profiling, missing diagnostics and readable researcher dossier | All 1,219 cells; five dossiers; guarded/daily readback and cleanup PASS | M5D-01..10; guide M5T-031..090 | COMPLETE / TECHNICALLY_VALID; DESCRIPTIVE_ONLY |
 | [M5-11.5](#mode5-m5-11-5) | Evidence-guided sampler/selector decisions, static calibration and measured handoff | Source-bound mandates/plans, five worksheets, three RSI256 studies, paired original-prefix proof and cleanup | M5C-01..10; guide M5T-061..110 | COMPLETE_LOCAL_REGISTERED_C01_C08; reviewed development, not independent OOS |
 | [M5-11.6](#mode5-m5-11-6) | Four-alpha long-horizon Mode 4 native/meta comparison | Owner approval; source/route/maturity/budget registration | M4X-01..10; QMS guide sections 5..8/14 | APPROVED / IN_PROGRESS; actual-route and resource admission before long studies |
-| [M5-11.7](#mode5-m5-11-7) | Complete Mode 4/5 decision, participation and fragility reports | Sequential subphase approval; existing sealed evidence | M45R-01..10; guide M5T-031..090/101..110 | IN_PROGRESS; 11.7.1 COMPLETE_LOCAL, 11.7.2/11.7.3 NOT_STARTED |
+| [M5-11.7](#mode5-m5-11-7) | Complete Mode 4/5 decision, participation and fragility reports | Sequential subphase approval; existing sealed evidence | M45R-01..10; guide M5T-031..090/101..110 | IN_PROGRESS; 11.7.1/11.7.2 COMPLETE_LOCAL, 11.7.3 NOT_STARTED |
 | [M5-11.7.1](#mode5-m5-11-7-1) | Shared pre-search diagnostics, recipe fit and source-bound interpretation | ML-09.C local exit; owner approval | M45R-01/03/04/05/06/08 | COMPLETE_LOCAL_REGISTERED_REPORTING_SCOPE |
-| [M5-11.7.2](#mode5-m5-11-7-2) | Fold consistency, R/Q and meta decision reports | Reviewed 11.7.1; sequential approval | M45R-01/02/03/04/07/08 | NOT_STARTED |
+| [M5-11.7.2](#mode5-m5-11-7-2) | Fold consistency, R/Q and meta decision reports | Reviewed 11.7.1; sequential approval | M45R-01/02/03/04/07/08 | COMPLETE_LOCAL_REGISTERED_REPORTING_SCOPE |
 | [M5-11.7.3](#mode5-m5-11-7-3) | Broader integration, reporting cost and handoff | Reviewed 11.7.2; sequential approval | M45R-01..10 | NOT_STARTED |
 | [M5-12](#mode5-m5-12) | Local qualification/docs/handoff | M5-01..11 plus M5-11.4..11.7 dispositions reviewed | M5T-111..120 | NOT_STARTED; awaits reviewed supplementary handoff |
 
@@ -36808,8 +36812,8 @@ bounded subphases, not another open-ended research program.
 | Order | Small phase | Goal | Entry / status |
 |---|---|---|---|
 | 1 | [M4-ML-09.C](#m4-ml-09-closeout) | Mature causality, measurement/accounting and terminal receipt | COMPLETE_LOCAL_REGISTERED_TECHNICAL_SCOPE / PASS |
-| 2 | [M5-11.7.1](#mode5-m5-11-7-1) | Shared pre-WFO diagnostics, sampler/selector fit and bias explanations | Approved reporting direction; NOT_STARTED; after09.C |
-| 3 | [M5-11.7.2](#mode5-m5-11-7-2) | Shared Mode4fold consistency/meta decision and Mode5 views | NOT_STARTED; after11.7.1 |
+| 2 | [M5-11.7.1](#mode5-m5-11-7-1) | Shared pre-WFO diagnostics, sampler/selector fit and bias explanations | COMPLETE_LOCAL_REGISTERED_REPORTING_SCOPE |
+| 3 | [M5-11.7.2](#mode5-m5-11-7-2) | Shared Mode4fold consistency/meta decision and Mode5 views | COMPLETE_LOCAL_REGISTERED_REPORTING_SCOPE |
 | 4 | [M5-11.7.3](#mode5-m5-11-7-3) | Public integration, source tests, reporting cost, privacy/docs/handoff | NOT_STARTED; after11.7.2 |
 | 5 | [M5-12](#mode5-m5-12) | Exact local package/installed qualification | Existing conditional approval; entry NOT_MET; not launched |
 | Later | Remote / release | Final-source CI, owner release scope, publication/public proof | Separate owner approval; no workflow/push/tag/upload now |
@@ -36895,8 +36899,8 @@ rerun, remote CI, publication or automatic advance. Commit local closure only.
 <a id="mode5-m5-11-7"></a>
 ### Phase M5-11.7 - Mode 4/5 Complete Researcher Reports And Decision Qualification
 
-**Status:** OWNER_APPROVED_REPORTING_SCOPE / IN_PROGRESS; 11.7.1 COMPLETE_LOCAL,
-11.7.2/11.7.3 NOT_STARTED. Latest ACT2approval
+**Status:** OWNER_APPROVED_REPORTING_SCOPE / IN_PROGRESS; 11.7.1/11.7.2 COMPLETE_LOCAL,
+11.7.3 NOT_STARTED. Latest ACT2approval
 is recorded2026-10-18UTC. Execute the three bounded subphases below sequentially
 after [ML-09.C](#m4-ml-09-closeout), following the requested individual review.
 Earlier research remains KEEP_FROZEN_V1, not automatic learner activation.
@@ -37168,7 +37172,9 @@ sampler classifier, default change or financial approval hidden in a report.
 <a id="mode5-m5-11-7-2"></a>
 #### M5-11.7.2 - Fold Consistency, Meta Decision And Mode-Specific Reports
 
-**Status:** NOT_STARTED; after11.7.1acceptance and sequential owner review.
+**Status:** COMPLETE_LOCAL_REGISTERED_REPORTING_SCOPE (2026-10-18UTC), after
+owner-approved sequential implementation. No new research finance/search/model
+fitting, 11.7.3or package activation.
 Maps original R02/R07 and reuses11.7.1provenance/interpretation.
 **Goal:** return the meaningful research statistics through normal diagnostics/
 WFO report ownership, rather than requiring notebook-specific research scripts.
@@ -37216,6 +37222,58 @@ preserve source/artifact hashes, keep5GiB reserve and clean owned inactive scrat
 scientific estimator, economic query or probe request returns for separate
 approval; it is not added to make a report look complete. Commit a coherent
 report integration, not an implicit recipe deployment.
+
+**Execution Receipt (2026-10-18, UTC):**
+- Additive typed `ResearchDecisionReport` owns cold fold/decision/Mode5views;
+  small contracts/snapshot/validation/reducer/adapter/renderer modules share
+  original observations and scientific owners. Existing `DecisionReport`,
+  normal endpoint signatures, default reports, alpha logic and financial
+  accounting are unchanged. Three canonical effect/opportunity AST bodies
+  match baseline017b421exactly; old research imports retain compatibility.
+- Normal Mode4/per_fold_causal metadata reader joins retained typed observer
+  revisions by task ID. No observer data means explicit unsupported input,
+  never invented labels or account execution. Exact all/fallback/disabled/
+  ready/proposed-changed/applied-changed/registered cohorts, own-metric masks
+  and common four-operand decomposition preserve missing/undefined/flat states.
+- Outputs include signed D/R/Q/IS, help/harm/tie and magnitude, distributions/
+  tails, actual return versus raw OOS Sharpe, metric-unit activity/cost/exposure,
+  model support/predictions/guards, applied identity/clocks, parameter turnover
+  and available execution witnesses. Matched zero-Y and structural Q=0error
+  references do not become selected policies. Original intervals only; fixed
+  acquired-panel headroom is not full-pool regret. State-label permissions are
+  separate from observation rights; full-development cannot advise a prefix.
+- Read-only original-source export verifies370Mode4origin slots: RSI28and six
+  monthly730Dfamilies57each, plus two original full-development Mode5decisions.
+  Eight retained native/active continuous accounts for the original four
+  families preserve exact wider calendar, result identity, scope and units.
+  No reset equity stitching or reslicing; missing reset metrics stay missing.
+  RSI and original four-family means reproduce within4.44e-16and exactly0,
+  respectively; additional-family results reproduce retained ML09outcomes.
+  Distinct protocols are not pooled. No new economic inference/study is claimed.
+- Final focused regression344PASS in52.80seconds, including original report/
+  environment/access integration, hand calculations, masks, immutable
+  copy/pickle/JSON, tampering, clocks, private/public exports and task ordering.
+  Existing synthetic toy-engine fixtures are not new alpha research runs.
+  Prior failed XML/readback attempts remain retained, not relabelled PASS.
+- Current source proof verifies262protected inputs, frozen Ridge42sources/
+  5receipts, unchanged global RNG and empty financial/optimizer/metric/backend/
+  Rust diff. New research finance/optimizer/fits0; no build/dependency/environment.
+  One-shot synthetic2/57fold assembly320.43/935.96ms, peak228.08MiB; full
+  nine-reader source queue82.53seconds, maxworker329.87MiB. Final projection
+  from sealed payloads16.18seconds, peak298.16MiB. Not speedup/p95 claims.
+- Cleanup removes only reviewed inactive owned fixtures; observed8.46MiB
+  recovered, retained46.63MiB at removal and>=5GiB reserve. Protected source/
+  retained hashes reverify; scientific evidence, alphas, market, artifacts,
+  current environment and services are preserved. Compact deterministic gzip
+  avoids another complete-matrix copy; complete parent payloads stay available.
+- See [API](../docs/diagnostics/FOLD_DECISION_REPORTS.md),
+  [implementation/coverage/cost](../docs/diagnostics/M5_11_7_2_IMPLEMENTATION_REPORT.md),
+  [synthetic example](../examples/shared_decision_reporting.py) and
+  [cleanup](../docs/maintenance/M5_11_7_2_CLEANUP.md).
+  Private terminal receipt is `upgrade/private/mode5_upgrade_v1/m5-11-7-2/attempt-01/terminal-qualification.json`.
+  No blocking implementation gap in this bounded scope; unretained data and
+  missing independent inference stay explicit. Wider integration11.7.3,
+  packageM5-12, CI/push/merge/tag/publication remain unactivated.
 
 <a id="mode5-m5-11-7-3"></a>
 #### M5-11.7.3 - Public Integration, Parity, Reporting Cost And Handoff
