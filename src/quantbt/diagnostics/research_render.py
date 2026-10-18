@@ -15,7 +15,7 @@ def markdown(research):
         'View: '+research['view']+'; decision use: '+research['decision_use'],
         'This report does not apply an optimizer, selector or parameter change.',
         '', '### Search And Coverage']
-    for key in ('attempts','unique_effective_points','duplicate_effective_observations',
+    for key in ('attempts','sampler_telemetry','unique_effective_points','duplicate_effective_observations',
                 'nominal_variable_axes','observed_varying_axes','effective_dimension','constraint_coverage'):
         lines.append('- '+key+': '+cell(search[key]))
     lines += ['', '| Axis | Active Points | Values | Low Hits | High Hits |', '|---|---:|---:|---:|---:|']

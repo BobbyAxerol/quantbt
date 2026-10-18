@@ -14,6 +14,7 @@ def search_profile(owner, rows, research):
         numeric = active if not spec.choices else []
         axes.append(dict(name=spec.name, kind=spec.kind, fixed=not spec.variable,
             conditional=bool(spec.active_if), source_inactive_reason=dict(owner.geometry.inactive).get(spec.name),
+            source_cast_policy=dict(owner.geometry.casts).get(spec.name),
             active_effective_points=len(active), observed_values=len({canonical(v) for v in active}),
             declared_low=spec.low, declared_high=spec.high, step=spec.step, log=spec.log,
             observed_min=min(numeric) if numeric else None, observed_max=max(numeric) if numeric else None,
@@ -54,8 +55,9 @@ def search_profile(owner, rows, research):
     return dict(attempts=attempts, retained_observations=len(rows),
         unique_effective_points=len(points), duplicate_effective_observations=len(rows)-len(points),
         unique_complete_points=len({r.point.identity for r in rows if r.status in {'COMPLETE','NO_TRADE'}}),
-        effective_transform_counts=dict(sorted(Counter(reason for point in points.values()
-            for _,reason in point.changes).items())),
+        effective_transform_counts=dict(sorted(Counter(reason for row in rows
+            for _,reason in row.point.changes).items())),
+        effective_transform_count_unit='retained observation-axis transform events, not all optimizer attempts',
         axes=axes, branches=[branches[k] for k in sorted(branches)],
         nominal_variable_axes=sum(s.variable for s in owner.geometry.specs),
         observed_varying_axes=sum(a['observed_values']>1 for a in axes),
@@ -65,5 +67,9 @@ def search_profile(owner, rows, research):
         constraint_coverage=dict(status='NOT_ESTIMATED',value=None,
             reason='Retained feasible points do not enumerate attempted infeasible regions or manifold volume.'),
         attempt_curve=curve, curve_metric=owner.context.primary_metric,
+        sampler_telemetry=dict(status='SOURCE_BOUND_PRODUCER_TELEMETRY',value=research.sampler_telemetry.data,
+            reason='Original observed spans only; may overlap scoring and are not added as a wall partition.')
+            if research.sampler_telemetry is not None else dict(status='NOT_SUPPLIED',value=None,
+            reason='No original sampler-specific timing/fallback telemetry supplied; no cost inferred from attempt count.'),
         limitations=['Sampled density and adaptive budget curves are not basin volume or neutral-design sensitivity.',
                      'No extrapolation to an unexecuted 256/412-trial study or independent origin count.'])

@@ -393,3 +393,31 @@ def test_legacy_composite_dossier_schema_uses_exact_catalogged_geometry(tmp_path
     assert result['dossier_geometry_binding']==catalog.ref('original-geometry')
     with pytest.raises(ValueError):
         owner.analyze(rows,research=replace(bound,dossier_geometry_ref=Record.of(catalog.ref('registered','/cells/0'))),catalog=catalog)
+
+
+def test_sampler_timing_keeps_original_span_and_missing_time_separate():
+    owner,rows,research=sample()
+    telemetry=Record.of(dict(recipe_id='tpe_legacy',wall_seconds=1.25,source_ref='original-sampler-ledger',
+        details=dict(independent_sample_calls=12,actual_fallback='not_used')))
+    out=data(owner,rows,replace(research,sampler_telemetry=telemetry))
+    assert out['search']['sampler_telemetry']['value']==telemetry.data
+    assert out['search']['attempts']['summed_observed_attempt_seconds']==pytest.approx(1.2)
+    assert '1.25' in owner.analyze(rows,research=replace(research,sampler_telemetry=telemetry)).to_markdown()
+    assert data(owner,rows,research)['search']['sampler_telemetry']['value'] is None
+    with pytest.raises(ValueError):
+        replace(research,sampler_telemetry=Record.of(dict(recipe_id='tpe_legacy',wall_seconds=-1.,source_ref='x')))
+
+
+def test_final_source_check_covers_mutation_during_cold_reduction(tmp_path,monkeypatch):
+    import quantbt.diagnostics.researcher as module
+    owner,rows,research=sample()
+    catalog,path=source_catalog(tmp_path,owner,dict(context_id=owner.context.identity,status='OBSERVED'))
+    original=module.assemble_research
+    def changed_after_reduce(*args,**kwargs):
+        result=original(*args,**kwargs)
+        path.write_text('{}')
+        return result
+    monkeypatch.setattr(module,'assemble_research',changed_after_reduce)
+    with pytest.raises(ValueError,match='changed'):
+        owner.analyze(rows,research=research,catalog=catalog,
+            analyses=(DiagnosticAnalysis('fragility',owner.context.identity,'source-v1'),))

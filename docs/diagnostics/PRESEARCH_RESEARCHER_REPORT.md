@@ -42,6 +42,10 @@ leave `trials=()`: attempted/failed/pruned counts then remain NOT_SUPPLIED, not
 an inferred 128/128 success. PRUNED/FAILED/INFEASIBLE/CANCELLED attempts retain
 their reason and cannot carry sentinel financial scores. `ordinal` is ordered
 and contiguous; `elapsed_seconds=None` is unavailable time, not zero cost.
+Optional `sampler_telemetry=Record.of(...)` retains the original `recipe_id`,
+`source_ref`, `wall_seconds` and producer details/fallback counters. It is a
+separate potentially overlapping observed span, not inferred per-attempt time
+and not added to scoring as a wall-clock partition.
 
 The [synthetic example](../../examples/shared_presearch_researcher.py) includes
 an original-mark account fixture and source-provided labels, with zero finance:

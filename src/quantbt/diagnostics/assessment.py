@@ -195,7 +195,7 @@ class AlphaDiagnostics:
             from .researcher import assemble_research
             data["researcher_diagnostics"] = assemble_research(self, rows, research,
                 optional, data["sampler_compatibility"], advice_rows, screens)
-            if research.dossier is not None:
+            if research.dossier is not None or analyses:
                 catalog.verify_current()
         record = Record.of(data)
         if len(record.payload.encode()) > self.budget.max_report_bytes:

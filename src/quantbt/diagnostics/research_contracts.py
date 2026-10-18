@@ -89,6 +89,7 @@ class DiagnosticResearch:
     accounts: tuple[DiagnosticAccount, ...] = ()
     dossier: Dossier | None = None
     dossier_geometry_ref: Record | None = None
+    sampler_telemetry: Record | None = None
 
     def __post_init__(self):
         require_text(self.context_id)
@@ -102,6 +103,15 @@ class DiagnosticResearch:
             raise ValueError("existing typed Dossier required; never a relabelled matrix dictionary")
         if self.dossier_geometry_ref is not None and (self.dossier is None or not isinstance(self.dossier_geometry_ref,Record)):
             raise ValueError("a legacy composite-schema bridge requires a typed catalog reference and dossier")
+        if self.sampler_telemetry is not None:
+            if not isinstance(self.sampler_telemetry,Record):
+                raise ValueError("immutable original sampler telemetry Record required")
+            telemetry=self.sampler_telemetry.data
+            require_text(telemetry.get('recipe_id'))
+            require_text(telemetry.get('source_ref'))
+            seconds=telemetry.get('wall_seconds')
+            if seconds is not None and (type(seconds) not in {int,float} or not math.isfinite(seconds) or seconds<0):
+                raise ValueError("finite original sampler wall seconds or null required")
         if self.requested_trials is not None and (type(self.requested_trials) is not int or self.requested_trials < 1):
             raise ValueError("positive declared trial budget or null required")
         if len({t.trial_id for t in self.trials}) != len(self.trials):
@@ -129,4 +139,5 @@ class DiagnosticResearch:
             source_ref=self.source_ref,view=self.view,trials=[asdict(t) for t in self.trials],
             requested_trials=self.requested_trials,accounts=accounts,
             dossier_id=self.dossier.record.identity if self.dossier is not None else None,
-            dossier_geometry_ref=self.dossier_geometry_ref.data if self.dossier_geometry_ref is not None else None))
+            dossier_geometry_ref=self.dossier_geometry_ref.data if self.dossier_geometry_ref is not None else None,
+            sampler_telemetry_id=self.sampler_telemetry.identity if self.sampler_telemetry is not None else None))
