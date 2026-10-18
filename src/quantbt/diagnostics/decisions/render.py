@@ -43,7 +43,10 @@ def _policy(value,alias):
         for k,v in value['supplemental'].items()}
     result['prediction']=_pick(value['prediction'],('count','y_count','q_mse','y_mse','q_mae','q_signed_bias','errors_not_independent'))
     result['guard']=_pick(value['guard'],('accepted_defined_count','accepted_negative_q','accepted_negative_q_rate',
+        'accepted_q_below_minus_0_1','accepted_q_below_minus_0_1_rate',
         'observed_floor_count','accepted_below_original_floor','accepted_below_original_floor_rate'))
+    result['witnessed_opportunity']=_pick(value['witnessed_opportunity'],('status','observed_origins','members',
+        'valid_members','better_observed_base_candidate','mean_positive_headroom','full_pool_oracle'))
     return result
 
 
@@ -77,6 +80,13 @@ def public_view(data,*,detail):
             status=value['status'] if value['status']=='DEFINED_EXPLORATORY' else 'UNAVAILABLE'))
     loss=summary['acquired_prediction_loss']
     result['summary']=dict(cohorts=cohorts,
+        forward_mark_span_days=_stats(summary['forward_mark_span_days'],alias),
+        state_coverage=dict(status=summary['state_coverage']['status'],
+            labelled_fold_ids=[alias[k] for k in summary['state_coverage']['labelled_fold_ids']],
+            unlabelled_fold_ids=[alias[k] for k in summary['state_coverage']['unlabelled_fold_ids']]),
+        execution_differences=dict(status=summary['execution_differences']['status'],
+            observed_fold_ids=[alias[k] for k in summary['execution_differences']['observed_fold_ids']],
+            missing_fold_ids=[alias[k] for k in summary['execution_differences']['missing_fold_ids']]),
         parameter_turnover={p:_pick(v,('observed_adjacent_transitions','missing_adjacent_transitions','changed_transitions'))
             for p,v in summary['parameter_turnover'].items()},
         time_consistency={f'time-group-{i+1}':_policy(v,alias) for i,v in enumerate(summary['time_consistency'].values())},
@@ -150,6 +160,16 @@ def markdown(data):
         lines += _table('Cohorts And Matched Decomposition',('Cohort','Policy','Calendar','Four Operands','Model Ready','Changed',
             'Q Help/Harm/Tie','Mean R','Mean IS','Mean Q','OOS Sharpe > 0','OOS Return > 0'),rows)
         lines += _table('Same-Origin Comparisons',('Cohort','Contrast','R n','Delta R','Q n','Delta Q','Help','Harm','Tie'),paired)
+        all_policy=summary['cohorts']['all_calendar']['policies']['applied']
+        lines += _table('Applied Forward Distribution',('Metric','n','Mean','Median','Std','Min','Max','Worst20%'),
+            ((key,value['count'],value['mean'],value['median'],value['sample_std'],value['minimum'],value['maximum'],value['mean_worst_20pct'])
+             for key,value in all_policy['effects'].items()))
+        lines += _table('Original Supplemental Metrics',('Metric','Unit','Observed Origins','Mean','Median','Min','Max'),
+            ((key,value['unit'],value['statistics']['count'],value['statistics']['mean'],value['statistics']['median'],
+              value['statistics']['minimum'],value['statistics']['maximum']) for key,value in all_policy['supplemental'].items()))
+        lines += _table('Guard And Decision Calibration',('Field','Value'),
+            [*all_policy['prediction'].items(),*all_policy['guard'].items()])
+        lines += _table('Witnessed Candidate Opportunity',('Field','Value'),all_policy['witnessed_opportunity'].items())
         lines += ['','Own-metric masks, means/medians/dispersion/tails and missing dispositions are retained in JSON.',
             'Matched decomposition above uses one common mask; own-mask statistics must not be subtracted as matched means.']
         lines += _table('Parameter Turnover',('Policy','Observed Adjacent','Missing Adjacent','Changed'),

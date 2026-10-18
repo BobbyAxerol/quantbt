@@ -82,6 +82,9 @@ class FoldDecisionEvidence:
     model_support: Record | None = None
     metrics: tuple[MetricSupplement, ...] = ()
     state_labels: tuple[str, ...] = ()
+    state_witness: AccessWitness | None = None
+    state_source_ref: str | None = None
+    state_label_purpose: str = 'decision_vintage'
     execution_comparison: Record | None = None
 
     def __post_init__(self):
@@ -138,6 +141,15 @@ class FoldDecisionEvidence:
             raise ValueError('immutable source state labels required')
         for state in self.state_labels:
             require_text(state)
+        if self.state_labels:
+            if (not isinstance(self.state_witness,AccessWitness)
+                    or self.state_witness.start_ns>task.forward_start.value
+                    or self.state_witness.end_ns<=task.forward_end.value
+                    or self.state_label_purpose not in {'decision_vintage','asof_calibration_descriptive'}):
+                raise ValueError('source states require their own scope, availability and declared purpose')
+            require_text(self.state_source_ref)
+        elif self.state_witness is not None or self.state_source_ref is not None:
+            raise ValueError('absent states cannot claim a source-labelled partition')
 
 
 @dataclass(frozen=True)

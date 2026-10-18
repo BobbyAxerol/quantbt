@@ -78,7 +78,7 @@ def snapshot(evidence):
         origin=task.origin.isoformat(),is_start=task.is_start.isoformat(),is_end=task.is_end.isoformat(),
         forward_start=task.forward_start.isoformat(),forward_end=task.forward_end.isoformat(),
         start_ns=int(task.forward_start.value),stop_ns=int(task.forward_end.value)+1,
-        duration_days=(task.forward_end.value-task.forward_start.value+1)/86_400_000_000_000,
+        mark_span_days=(task.forward_end.value-task.forward_start.value+1)/86_400_000_000_000,
         decision_clock=dict(cutoff=task.data_cutoff.isoformat(),sealed=task.decision_sealed_at.isoformat(),
             first_forward_action=task.first_forward_action_at.isoformat(),clock_mode=task.clock_mode,
             outcome_available=revision.revision_available_at.isoformat()),
@@ -98,6 +98,8 @@ def snapshot(evidence):
                 for status in sorted({o.observation.status.value for o in revision.outcomes})},
             original_sampling_provenance=wire(task.sampling_provenance)),
         state_labels=list(evidence.state_labels),
+        state_witness=asdict(evidence.state_witness) if evidence.state_witness else None,
+        state_source_ref=evidence.state_source_ref,state_label_purpose=evidence.state_label_purpose,
         execution_comparison=evidence.execution_comparison.data if evidence.execution_comparison else None,
         acquired_predictions=acquired,
         policies=policies)

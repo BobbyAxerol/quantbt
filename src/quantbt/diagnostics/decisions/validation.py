@@ -37,7 +37,8 @@ def validate_rows(payload):
         raise ValueError('altered ordered calendar')
     cohorts=[ReportCohort(**dict(c,fold_ids=tuple(c['fold_ids']))) for c in payload['cohorts']]
     if (len({c.name for c in cohorts})!=len(cohorts)
-            or any(not set(c.fold_ids)<={s.fold_id for s in slots} for c in cohorts)):
+            or any(not set(c.fold_ids)<={s.fold_id for s in slots} for c in cohorts)
+            or any(c.fold_ids!=tuple(s.fold_id for s in slots if s.fold_id in set(c.fold_ids)) for c in cohorts)):
         raise ValueError('altered cohort mask')
     expected_use='MATURE_HISTORICAL_ONLY' if payload['view']=='prefix' else 'NOT_BACKDATABLE'
     if payload['view'] not in {'prefix','post_wfo'} or payload['decision_use']!=expected_use:
@@ -50,6 +51,8 @@ def validate_rows(payload):
         if row['status']!='OBSERVED':
             raise ValueError('unknown fold disposition')
         clock=row['decision_clock']
+        if payload['view']=='prefix' and row['state_labels'] and row['state_label_purpose']!='decision_vintage':
+            raise PermissionError('descriptive state source cannot be backdated as a prefix partition')
         if not (pd.Timestamp(row['is_end'])<=pd.Timestamp(clock['cutoff'])<pd.Timestamp(row['forward_start'])
                 <=pd.Timestamp(clock['first_forward_action'])<=pd.Timestamp(row['forward_end'])
                 and pd.Timestamp(clock['sealed'])<=pd.Timestamp(clock['first_forward_action'])

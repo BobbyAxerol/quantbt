@@ -69,10 +69,16 @@ def policy_summary(rows,policy,mask):
     y_errors=[r['policies'][policy]['prediction']['yhat']+r['policies'][policy]['effect']['R'] for r in y_predictions]
     accepted=[r for r in predictions if r['policies'][policy]['prediction'].get('eligible') is True]
     harmed=sum(r['policies'][policy]['effect']['Q']<0 for r in accepted)
+    severe=sum(r['policies'][policy]['effect']['Q']<-.1 for r in accepted)
     below=sum(r['policies'][policy]['effect']['Q']<r['policies'][policy]['guard_floor']
         for r in accepted if r['policies'][policy]['guard_floor'] is not None)
     with_floor=sum(r['policies'][policy]['guard_floor'] is not None for r in accepted)
     stats=metrics['Q']
+    witnessed=[r['policies'][policy]['opportunity'] for r in present
+        if r['policies'][policy]['opportunity'] is not None
+        and r['policies'][policy]['opportunity']['status']=='OBSERVED_FIXED_BASE_PANEL'
+        and r['policies'][policy]['opportunity']['winner_preexisting_forward'] is not None]
+    gaps=[v['best_forward']-v['winner_preexisting_forward'] for v in witnessed]
     return dict(calendar_count=len(selected),observed_decisions=len(present),
         missing_fold_ids=[r['fold_id'] for r in selected if r['status']!='OBSERVED'],
         missing_policy_ids=[r['fold_id'] for r in selected if r['fold_id'] not in present_ids],
@@ -106,9 +112,16 @@ def policy_summary(rows,policy,mask):
             errors_not_independent=True,definition='Y=-R; Qhat=deltaIS-Yhat. Paired Y/Q errors are algebraically linked, not independent tests.'),
         guard=dict(accepted_defined_count=len(accepted),accepted_negative_q=harmed,
             accepted_negative_q_rate=_rate(harmed,len(accepted)),observed_floor_count=with_floor,
+            accepted_q_below_minus_0_1=severe,accepted_q_below_minus_0_1_rate=_rate(severe,len(accepted)),
             accepted_below_original_floor=below,accepted_below_original_floor_rate=_rate(below,with_floor),
             accepted_fold_ids=[r['fold_id'] for r in accepted],
             interpretation='Observed selected accepted predictions; never a guarantee on realized forward outcomes.'),
+        witnessed_opportunity=dict(status='OBSERVED_FIXED_PANEL' if witnessed else 'NOT_SUPPLIED_OR_UNDEFINED',
+            observed_origins=len(witnessed),members=[v['members'] for v in witnessed],
+            valid_members=[v['valid'] for v in witnessed],better_observed_base_candidate=sum(g>0 for g in gaps),
+            mean_positive_headroom=float(np.mean(np.maximum(gaps,0))) if gaps else None,
+            full_pool_oracle=False,
+            interpretation='Only original preexisting acquired base panel plus anchor; missing labels and unqueried full-pool outcomes remain unknown.'),
         interpretation='Fold diagnostic population; mean Sharpe/DD/return is not a continuous account metric.')
 
 
@@ -180,7 +193,20 @@ def reduce_views(rows,registered):
     return dict(cohorts=cohorts,model_status_counts=dict(Counter(r['model_status'] for r in complete)),
         parameter_turnover={p:turnover(rows,p) for p in POLICIES},
         time_consistency={year:policy_summary(rows,'applied',mask) for year,mask in sorted(byyear.items())},
+        time_coverage={year:dict(fold_ids=mask,origin_count=len(mask),
+            first_forward_start=min(r['forward_start'] for r in complete if r['fold_id'] in mask),
+            last_forward_end=max(r['forward_end'] for r in complete if r['fold_id'] in mask),
+            full_calendar_year_claimed=False) for year,mask in sorted(byyear.items())},
         state_consistency={state:policy_summary(rows,'applied',mask) for state,mask in sorted(bystate.items())},
+        state_coverage=dict(status='OBSERVED_SOURCE_LABELS' if bystate else 'NOT_SUPPLIED',
+            labelled_fold_ids=[r['fold_id'] for r in complete if r['state_labels']],
+            unlabelled_fold_ids=[r['fold_id'] for r in complete if not r['state_labels']],
+            reason='No classifier fitted; source-labelled overlapping states only, not inferred from outcome sign.'),
+        execution_differences=dict(status='SOURCE_BOUND_NOT_REPLAYED' if any(r['execution_comparison'] is not None for r in complete) else 'NOT_SUPPLIED',
+            observed_fold_ids=[r['fold_id'] for r in complete if r['execution_comparison'] is not None],
+            missing_fold_ids=[r['fold_id'] for r in complete if r['execution_comparison'] is None],
+            reason='Parameter changes are not execution differences. Only original compared execution witnesses qualify.'),
+        forward_mark_span_days=describe([r['mark_span_days'] for r in complete]),
         state_interpretation='Source-labelled dependent views; overlaps are allowed, calendar groups are not independent regimes.',
         acquired_prediction_loss=dict(origin_rows=loss,supported_origins=len(loss),
             total_observed_labels=sum(r['labels'] for r in loss),

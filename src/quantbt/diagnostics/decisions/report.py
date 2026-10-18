@@ -54,9 +54,23 @@ def _summary(mode,payload):
         summary['continuous_accounts']=payload['accounts'] or [dict(status='NOT_SUPPLIED',
             reason='No original carried account supplied. Diagnostic equity and fold Sharpe/DD are never stitched.')]
         return summary
+    if payload['view']!='full_development' or payload['decision_use']!='NOT_BACKDATABLE':
+        raise ValueError('full-development Mode5 evidence cannot become causal prefix evidence')
     decision=DecisionReport(Record.of(payload['mode5_snapshot']))
     value=decision.to_dict(private=True)
     runtime=value['runtime']; selected=runtime.get('decision') or {}
+    witness=AccessWitness(**payload['witness'])
+    first_trial=(runtime.get('chronology') or {}).get('first_trial_ns')
+    if first_trial is not None and witness.ready_ns<first_trial:
+        raise PermissionError('Mode5 result witness predates its original first trial')
+    scope=runtime.get('account_scope')
+    if scope and 'full_start_ns' in scope and 'full_stop_ns' in scope and (
+            witness.start_ns>scope['full_start_ns'] or witness.end_ns<scope['full_stop_ns']):
+        raise ValueError('Mode5 witness omits original full/preload scope')
+    observations=[o for t in runtime['trial_ledger'] for o in t.get('observations',[])]+(runtime.get('selected_audit') or [])
+    observations += [t['whole_observation'] for t in runtime['trial_ledger'] if t.get('whole_observation') is not None]
+    if any(witness.start_ns>o['start_ns'] or witness.end_ns<o['stop_ns'] for o in observations if 'start_ns' in o and 'stop_ns' in o):
+        raise ValueError('Mode5 source witness omits original observations')
     candidate=selected.get('chosen_candidate')
     trial=next((t for t in runtime['trial_ledger'] if t.get('candidate_id')==candidate and t.get('components') is not None),None)
     return dict(mode5_summary=value['summary'],selected_params=value['selected_params'],
@@ -70,6 +84,8 @@ def _summary(mode,payload):
         environments=trial.get('observations',[]) if trial else [],selected_audit=runtime.get('selected_audit'),
         environment_account_policy=runtime.get('environment_account_policy'),
         account_scope=runtime.get('account_scope'),annual_account_resets=runtime.get('annual_account_resets'),
+        scope_availability=dict(status='OBSERVED_FULL_SCOPE' if scope and 'full_start_ns' in scope and 'full_stop_ns' in scope else 'PARTIAL_OR_NOT_SUPPLIED',
+            missing_fields=[k for k in ('full_start_ns','full_stop_ns','scored_start_ns','scored_stop_ns') if k not in (scope or {})]),
         sampler=runtime['sampler'],compute_bill=runtime.get('compute_bill'),
         continuous_accounts=payload['accounts'] or [dict(status='NOT_SUPPLIED',reason='No separate original continuous MET/account report supplied; inspect original whole_observation and its contract.')],
         local_evidence=dict(status='RETAINED_COMPONENTS_ONLY',reason='Only original selector components are projected; absent winner-specific held probes remain NOT_SUPPLIED.'),
@@ -82,10 +98,18 @@ class ResearchDecisionReport:
     record: Record
 
     @classmethod
+    def from_walk_forward(cls,metadata,*,access,source_ref,role='diagnostic_development',**options):
+        from .adapters import from_walk_forward
+        return from_walk_forward(metadata,access=access,source_ref=source_ref,role=role,**options)
+
+    @classmethod
     def mode4(cls,folds,*,roster,access,cohorts=(),accounts=(),intervals=(),view='post_wfo',
               max_folds=2048,max_candidates=250000,max_report_bytes=4*1024**2):
         _scope(access)
-        if view not in {'post_wfo','prefix'} or type(max_folds) is not int or max_folds<1:
+        if view=='prefix' and access.purpose!='diagnostic':
+            raise PermissionError('independent validation rights cannot be converted into prefix advice')
+        if (view not in {'post_wfo','prefix'} or type(max_folds) is not int or max_folds<1
+                or type(max_candidates) is not int or max_candidates<1):
             raise ValueError('explicit bounded post-WFO or mature historical prefix view required')
         folds=tuple(islice(folds,max_folds+1)); roster=tuple(islice(roster,max_folds+1))
         if (len(folds)>max_folds or len(roster)>max_folds or not roster
@@ -111,19 +135,29 @@ class ResearchDecisionReport:
                 rows.append(dict(**asdict(slot),status='MISSING_FOLD_RECORD'))
                 continue
             access.require(evidence.witness); witnesses.append(asdict(evidence.witness))
+            if evidence.state_witness is not None:
+                access.require(evidence.state_witness)
+                if view=='prefix' and evidence.state_label_purpose!='decision_vintage':
+                    raise PermissionError('full-development/descriptive states cannot advise a prefix')
+                witnesses.append(asdict(evidence.state_witness))
             row=snapshot(evidence)
             if (row['start_ns'],row['stop_ns'])!=(slot.start_ns,slot.stop_ns):
                 raise ValueError('fold/task differs from exact declared forward slot')
             rows.append(dict(row,status='OBSERVED'))
-        cohorts=tuple(cohorts)
-        if any(not isinstance(c,ReportCohort) for c in cohorts) or len({c.name for c in cohorts})!=len(cohorts):
+        cohorts=tuple(islice(cohorts,65))
+        if len(cohorts)>64 or any(not isinstance(c,ReportCohort) for c in cohorts) or len({c.name for c in cohorts})!=len(cohorts):
             raise ValueError('distinct typed registered cohorts required')
         for cohort in cohorts:
             if not set(cohort.fold_ids)<={s.fold_id for s in roster}:
                 raise ValueError('cohort references unknown calendar slots')
+            if cohort.fold_ids!=tuple(s.fold_id for s in roster if s.fold_id in set(cohort.fold_ids)):
+                raise ValueError('cohort mask must preserve declared calendar order')
         account_rows=cls._accounts(accounts,access,witnesses,family.family_id,
             (roster[0].start_ns,roster[-1].stop_ns))
         interval_rows=[]
+        intervals=tuple(islice(intervals,385))
+        if len(intervals)>384:
+            raise ValueError('retained interval-coordinate budget exceeded')
         for interval in intervals:
             if not isinstance(interval,RetainedInterval):
                 raise ValueError('typed original interval evidence required')
@@ -157,6 +191,9 @@ class ResearchDecisionReport:
 
     @staticmethod
     def _accounts(accounts,access,witnesses,family_id,scope):
+        accounts=tuple(islice(accounts,5))
+        if len(accounts)>4:
+            raise ValueError('continuous account-report budget exceeded')
         result=[]
         for account in accounts:
             if not isinstance(account,RetainedAccountReport) or family_id is not None and account.family_id!=family_id:
@@ -193,7 +230,8 @@ class ResearchDecisionReport:
         access=AccessPolicy(**dict(policy,roles=tuple(policy['roles']),manifests=tuple(policy['manifests'])))
         self.authorize(access)
         payload=data['payload']
-        expected=([r['witness'] for r in payload['rows'] if r['status']=='OBSERVED']
+        expected=([w for r in payload['rows'] if r['status']=='OBSERVED'
+                   for w in ([r['witness']]+([r['state_witness']] if r['state_witness'] is not None else []))]
             if data['mode']=='mode4' else [payload['witness']])
         expected += [r['witness'] for r in payload['accounts']]
         if data['mode']=='mode4':
@@ -208,8 +246,13 @@ class ResearchDecisionReport:
         return self.record.identity
 
     @classmethod
-    def from_json(cls,payload):
-        return cls(Record.of(json.loads(payload)))
+    def from_json(cls,payload,*,max_bytes=16*1024**2):
+        if type(max_bytes) is not int or max_bytes<1 or not isinstance(payload,str) or len(payload.encode())>max_bytes:
+            raise ValueError('bounded complete private JSON snapshot required')
+        try:
+            return cls(Record.of(json.loads(payload)))
+        except (KeyError,TypeError,AttributeError) as exc:
+            raise ValueError('complete private detail snapshot required; public/compact views are not reloadable') from exc
 
     def authorize(self,access):
         _scope(access)
