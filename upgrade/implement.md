@@ -3,14 +3,20 @@
 ## Current Mode 5 Diagnostics-First Upgrade - Full-Development Decision Support
 
 **Latest owner-approved research (2026-10-18, Asia/Saigon):**
-[M4-ML-09](#m4-ml-09) is APPROVED / ADMISSION_IN_PROGRESS. Repeat the two
+[M4-ML-09](#m4-ml-09) is APPROVED / ADMISSION_BLOCKED_CORE_SCOPE. Repeat the two
 additional private alphas on the original monthly/730D/57-origin schedule,
 128 attempted trials/origin, seed731 and frozen Ridge V1. The owner explicitly
 approved the full second-alpha local execution adapter, not a single-target
 substitute. No optimizer starts before accounting/resource admission. Report
 fold consistency, positive OOS Sharpe, return distributions and downside, not
 only mean R/Q or MSE. Existing scientific/production gates remain unchanged.
-No production, remote, package or later-phase activation is authorized.
+Eighteen local tests and four real early/late controls pass; one first-origin
+128-attempt study is complete. The other alpha's tranche exposed a solvent
+reduce-only close rejected by both Python and Rust under negative free margin.
+An alpha-independent hand-computable case confirms the acceptance issue.
+No core edit or long queue is launched pending separate owner scope approval;
+completed evidence and the failed input are retained. No production, remote,
+package or later-phase activation is authorized.
 
 **Previous completed research:** [M4-ML-08](#m4-ml-08) completed the bounded
 additional-alpha replication locally: seven private inventory entries,23 main
@@ -35815,7 +35821,7 @@ and [14 economics](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI
 | M4-ML-06 | Decision value, prefix diagnostics and bounded policy ablations | COMPLETE_LOCAL_REGISTERED_SCOPE; technical PASS, exploratory heterogeneous, KEEP_FROZEN_V1; no later activation |
 | M4-ML-07 | Structural forward target, causal retention and joint search/selection | COMPLETE_LOCAL_REGISTERED_RESEARCH; technical PASS, exploratory heterogeneous; no production adoption |
 | M4-ML-08 | Private additional-alpha replication and generalization limits | COMPLETE_LOCAL_BOUNDED_RESEARCH; technical PASS; private evidence retained; no universal promotion |
-| M4-ML-09 | Matched monthly additional-alpha robustness replication | APPROVED / ADMISSION_IN_PROGRESS; full second-alpha local adapter approved; no promotion |
+| M4-ML-09 | Matched monthly additional-alpha robustness replication | APPROVED / ADMISSION_BLOCKED_CORE_SCOPE; completed first-origin evidence retained; no promotion |
 
 <a id="m4-ml-01"></a>
 ### Phase M4-ML-01 - Frozen Ridge Baseline, Evidence Admission And Study Registration
@@ -36634,7 +36640,7 @@ those files, alpha sources, ranges or individual parameters.
 <a id="m4-ml-09"></a>
 ### Phase M4-ML-09 - Matched Monthly Additional-Alpha Robustness Replication
 
-**Status:** APPROVED / ADMISSION_IN_PROGRESS (2026-10-18, Asia/Saigon).
+**Status:** APPROVED / ADMISSION_BLOCKED_CORE_SCOPE (2026-10-18, Asia/Saigon).
 **Goal:** qualify both additional private alphas under the original monthly
 study design and describe consistency/return-risk trade-offs. Do not confuse
 OOS-versus-native Q with OOS-versus-IS, or impose a new positive-result gate.
@@ -36682,6 +36688,26 @@ not a reason to fabricate equivalence. No production/default/scientific
 estimator change, source disclosure, push, CI, release, M5-11.7 or M5-12.
 **Evidence:** ignored `upgrade/private/meta_model_research_v1/ml09/attempt-01/`;
 all source-bound code/ranges/results remain ignored under local/private roots.
+
+**Admission Receipt (not phase completion):** eleven full multi-child synthetic
+checks pass against the existing Python financial oracle and independent
+fixed-fill accounting; seven pure calendar/report-mask tests pass. Four fixed
+early/late two-year account controls pass. One alpha completes its first
+128-attempt origin, with verified completed-prefix restore and143 account
+evaluations. The second retains99 completed IS observations before a blocked
+close. Ordered ask/tell reconstruction verifies all99 prior parameter vectors
+and reproduces the same failed input using one additional incomplete account,
+not99 repeated financial runs or a false exact-RNG checkpoint claim.
+
+The new gate is a core acceptance issue, not an economic-sign gate: a pure
+reduction releasing margin can be rejected when fees exceed pre-close free
+margin, although the account remains solvent. Both financial implementations
+share it, so their parity alone does not certify domain correctness. A separate
+hand-computable, alpha-independent counterexample is retained. The owner only
+approved an adapter without core changes; no scientific gate, price, source,
+parameter range or leverage was changed to bypass this blocker. Full search,
+sampler screens, mature model/no-leakage matrices and final economics are still
+pending; do not claim57-fold completion or meta efficacy from this tranche.
 
 <a id="mode5-m5-11-7"></a>
 ### Phase M5-11.7 - Mode 4/5 Complete Researcher Reports And Decision Qualification
