@@ -3,7 +3,7 @@
 ## Current Mode 5 Diagnostics-First Upgrade - Full-Development Decision Support
 
 **Latest owner-approved research (2026-10-18, Asia/Saigon):**
-[M4-ML-09](#m4-ml-09) is CORE_QUALIFIED / CORRECTED_TRANCHE_PENDING. Repeat the two
+[M4-ML-09](#m4-ml-09) is IN_PROGRESS / APPROVED_BACKGROUND_RUNNING. Repeat the two
 additional private alphas on the original monthly/730D/57-origin schedule,
 128 attempted trials/origin, seed731 and frozen Ridge V1. The owner explicitly
 approved the full second-alpha local execution adapter, not a single-target
@@ -21,7 +21,10 @@ sampler, Ridge and measurement remain unchanged. Completed old evidence is
 retained. The exact corrected artifact passes83 focused checks and64 Rust unit
 tests; the blocked account and independent accounting now pass. See the
 [narrow qualification receipt](../docs/maintenance/M4_ML_09_CORE_ACCEPTANCE.md).
-Source-bound tranche admission precedes the new long queue. No production, remote,
+The corrected128-attempt tranche and both completed-prefix verifications pass;
+the one-financial-worker background queue is launched after
+[cleanup/admission](../docs/maintenance/M4_ML_09_CONTINUATION_CLEANUP.md).
+Full57-origin economics and final mature qualification remain open. No production, remote,
 package or later-phase activation is authorized.
 
 **Previous completed research:** [M4-ML-08](#m4-ml-08) completed the bounded
@@ -35827,7 +35830,7 @@ and [14 economics](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI
 | M4-ML-06 | Decision value, prefix diagnostics and bounded policy ablations | COMPLETE_LOCAL_REGISTERED_SCOPE; technical PASS, exploratory heterogeneous, KEEP_FROZEN_V1; no later activation |
 | M4-ML-07 | Structural forward target, causal retention and joint search/selection | COMPLETE_LOCAL_REGISTERED_RESEARCH; technical PASS, exploratory heterogeneous; no production adoption |
 | M4-ML-08 | Private additional-alpha replication and generalization limits | COMPLETE_LOCAL_BOUNDED_RESEARCH; technical PASS; private evidence retained; no universal promotion |
-| M4-ML-09 | Matched monthly additional-alpha robustness replication | CORE_QUALIFIED / CORRECTED_TRANCHE_PENDING; exact native and independent accounting PASS; no promotion |
+| M4-ML-09 | Matched monthly additional-alpha robustness replication | IN_PROGRESS / APPROVED_BACKGROUND_RUNNING; exact core/native, corrected tranche and prefix custody PASS; final/mature gates open |
 
 <a id="m4-ml-01"></a>
 ### Phase M4-ML-01 - Frozen Ridge Baseline, Evidence Admission And Study Registration
@@ -36646,7 +36649,7 @@ those files, alpha sources, ranges or individual parameters.
 <a id="m4-ml-09"></a>
 ### Phase M4-ML-09 - Matched Monthly Additional-Alpha Robustness Replication
 
-**Status:** CORE_QUALIFIED / CORRECTED_TRANCHE_PENDING (2026-10-18, Asia/Saigon).
+**Status:** IN_PROGRESS / APPROVED_BACKGROUND_RUNNING (2026-10-18, Asia/Saigon).
 **Goal:** qualify both additional private alphas under the original monthly
 study design and describe consistency/return-risk trade-offs. Do not confuse
 OOS-versus-native Q with OOS-versus-IS, or impose a new positive-result gate.
@@ -36740,6 +36743,22 @@ unchanged-path controls retain complete observation hashes, qualifying the
 first completed origin for explicit reuse. Old incomplete second-alpha data
 remains separate. The corrected tranche and long/mature qualification remain
 pending; no final research or public artifact claim follows from this gate.
+
+**Corrected Tranche / Background Admission:** the second alpha completes its
+first corrected origin with128attempts/128candidates/144account calls in
+111.418seconds,309.547MiB peakRSS. It correctly falls back with zero matured
+history. The first alpha's complete original origin is reused without search;
+both one-origin prefixes pass typed custody verification. Eight supervisor
+checks pass. See [continuation/cleanup](../docs/maintenance/M4_ML_09_CONTINUATION_CLEANUP.md).
+The source-pinned supervisor starts the approved serial background queue
+(first-alpha remaining primary/screen/readback, then second-alpha continuation),
+with4hours/alpha debiting the corrected tranche and no automatic partial-study
+restart. Logs/status and all financial records stay ignored in `attempt-02`.
+At launch each alpha has1/57completed origins; first-alpha fold02/2022 is active.
+This is a dated launch receipt, not a live progress counter or final PASS.
+Remaining work: complete scopes/screens, verify mature fit/rank chronology and
+measurement/accounting, report exact R/Q/return/activity masks, then terminal
+cleanup and local research disposition. No later phase or release activation.
 
 <a id="mode5-m5-11-7"></a>
 ### Phase M5-11.7 - Mode 4/5 Complete Researcher Reports And Decision Qualification
