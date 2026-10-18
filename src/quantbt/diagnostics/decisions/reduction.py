@@ -46,6 +46,7 @@ def policy_summary(rows,policy,mask):
         fold_ids=[r['fold_id'] for r in data]) for k,data in populations.items()}
     own_forward=[r for r in present if r['policies'][policy]['observations']['selected_forward']['status']=='VALID']
     sharpe=describe([r['policies'][policy]['observations']['selected_forward']['raw_sharpe'] for r in own_forward])
+    activity=[r for r in present if r['policies'][policy]['observations']['selected_forward'].get('activity_count') is not None]
     supplemental={}
     keys=set().union(*(set(r['policies'][policy]['extra_metrics']['values'])
         for r in present if r['policies'][policy]['extra_metrics'] is not None))
@@ -102,6 +103,9 @@ def policy_summary(rows,policy,mask):
             defined=returns['statistics']['count'] if returns else 0,
             rate=_rate(returns['statistics']['positive'],returns['statistics']['count']) if returns else None,
             fold_ids=returns['fold_ids'] if returns else [],reason=None if returns else 'No original net account return supplied.'),
+        activity=dict(unit='original_metric_contract_activity_count_not_fills_or_closed_actions',
+            fold_ids=[r['fold_id'] for r in activity],statistics=describe([
+                r['policies'][policy]['observations']['selected_forward']['activity_count'] for r in activity])),
         supplemental=supplemental,
         prediction=dict(fold_ids=[r['fold_id'] for r in predictions],count=len(predictions),
             y_fold_ids=[r['fold_id'] for r in y_predictions],y_count=len(y_predictions),
@@ -189,7 +193,10 @@ def reduce_views(rows,registered):
         values=row['acquired_predictions']
         loss.append(dict(fold_id=row['fold_id'],labels=len(values),
             y_mse=float(np.mean([(p['yhat']-p['actual_y'])**2 for p in values])),
-            q_mse=float(np.mean([(p['qhat']-p['actual_q'])**2 for p in values]))))
+            q_mse=float(np.mean([(p['qhat']-p['actual_q'])**2 for p in values])),
+            zero_y_mse=float(np.mean([p['actual_y']**2 for p in values])),
+            structural_q_zero_y_mse=float(np.mean([(p['delta_is']-p['actual_y'])**2 for p in values])),
+            structural_q_zero_q_mse=float(np.mean([p['actual_q']**2 for p in values]))))
     return dict(cohorts=cohorts,model_status_counts=dict(Counter(r['model_status'] for r in complete)),
         parameter_turnover={p:turnover(rows,p) for p in POLICIES},
         time_consistency={year:policy_summary(rows,'applied',mask) for year,mask in sorted(byyear.items())},
@@ -212,4 +219,10 @@ def reduce_views(rows,registered):
             total_observed_labels=sum(r['labels'] for r in loss),
             origin_macro_y_mse=float(np.mean([r['y_mse'] for r in loss])) if loss else None,
             origin_macro_q_mse=float(np.mean([r['q_mse'] for r in loss])) if loss else None,
+            controls=dict(fold_ids=[r['fold_id'] for r in loss],
+                zero_y_origin_macro_mse=float(np.mean([r['zero_y_mse'] for r in loss])) if loss else None,
+                structural_q_zero_origin_macro_y_mse=float(np.mean([r['structural_q_zero_y_mse'] for r in loss])) if loss else None,
+                structural_q_zero_origin_macro_q_mse=float(np.mean([r['structural_q_zero_q_mse'] for r in loss])) if loss else None,
+                application_policy='REFERENCE_ERRORS_ONLY_NO_NEW_DECISIONS',
+                interpretation='Permitted Yhat=0 and Yhat=deltaIS/Qhat=0 references on the exact same witnessed label mask; neither is random search or an executed replacement policy.'),
             interpretation='Same acquired witnessed labels only, equal within-origin then equal-origin; not selected-winner loss, randomized acquisition, full-pool regret or independent Y/Q tests.'))

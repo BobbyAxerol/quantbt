@@ -37,7 +37,8 @@ def snapshot(evidence):
             p=predictions.get(row.candidate_evaluation_id)
             if p and p.get('yhat') is not None:
                 acquired.append(dict(evaluation_id=row.candidate_evaluation_id,original_origin_weight=row.origin_weight,
-                    actual_y=row.y,actual_q=row.q,yhat=p['yhat'],qhat=p['qhat']))
+                    actual_y=row.y,actual_q=row.q,delta_is=row.raw_is-row.anchor_is,
+                    yhat=p['yhat'],qhat=p['qhat']))
     policies={}
     for policy,eid in ids.items():
         candidate=byid.get(eid)

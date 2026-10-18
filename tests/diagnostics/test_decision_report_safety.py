@@ -265,3 +265,47 @@ def test_independent_validation_audit_cannot_be_relabelled_prefix_advice():
     assert ResearchDecisionReport.mode4((e,),roster=slots,access=validation).to_dict()['payload']['decision_use']=='NOT_BACKDATABLE'
     with pytest.raises(PermissionError,match='prefix advice'):
         ResearchDecisionReport.mode4((e,),roster=slots,access=validation,view='prefix')
+
+
+def test_normal_reader_joins_snapshot_revisions_by_task_not_snapshot_order():
+    a,b=fold(),fold(1)
+    _,access=inputs(a,b)
+    metadata=metadata_for(a,b)
+    metadata['meta_selection']['observed_revisions']=(b.revision,a.revision)
+    report=ResearchDecisionReport.from_walk_forward(metadata,access=access,source_ref='original-result',role='synthetic')
+    assert report.to_dict()['summary']==build(a,b).to_dict()['summary']
+
+
+def test_original_full_account_can_include_extra_flat_calendar_without_reslicing():
+    from quantbt.diagnostics import RetainedAccountReport
+    e=fold(); slots,access=inputs(e)
+    account=RetainedAccountReport(e.revision.task.family.family_id,'applied','original-full-account',e.witness,
+        Record.of(dict(final_equity=19000.,sharpe=-.2)),Record.of(dict(final_equity='USD',sharpe='ratio')),
+        'legacy-full-calendar-contract','original-full-result',e.witness.start_ns,e.witness.end_ns,
+        scope_relation='contains_reported_window')
+    report=ResearchDecisionReport.mode4((e,),roster=slots,access=access,accounts=(account,))
+    summary=private(report)['summary']['continuous_accounts'][0]
+    assert summary['scope_relation']=='contains_reported_window'
+    assert summary['metrics']['sharpe']==-.2
+    assert report.to_dict()['summary']['continuous_accounts'][0]['metrics']['final_equity']==19000.
+
+
+def test_permitted_zero_and_structural_controls_use_the_same_witnessed_label_mask():
+    report=build(fold())
+    loss=private(report)['summary']['acquired_prediction_loss']
+    assert loss['total_observed_labels']==1 and loss['supported_origins']==1
+    assert loss['origin_macro_y_mse']==pytest.approx(.04)
+    assert loss['controls']['zero_y_origin_macro_mse']==pytest.approx(.64)
+    assert loss['controls']['structural_q_zero_origin_macro_y_mse']==pytest.approx(.04)
+    assert loss['controls']['structural_q_zero_origin_macro_q_mse']==pytest.approx(.04)
+    assert loss['controls']['application_policy']=='REFERENCE_ERRORS_ONLY_NO_NEW_DECISIONS'
+    assert report.to_dict()['summary']['acquired_prediction_loss']['controls']['zero_y_origin_macro_mse']==pytest.approx(.64)
+
+
+def test_original_activity_is_reported_in_its_own_units_without_trade_alias():
+    report=build(fold())
+    stats=private(report)['summary']['cohorts']['all_calendar']['policies']['applied']
+    assert stats['activity']['statistics']['mean']==11
+    assert stats['supplemental']['fill_count']['statistics']['mean'] is None
+    assert stats['supplemental']['closed_action_count']['statistics']['mean'] is None
+    assert report.to_dict()['summary']['cohorts']['all_calendar']['policies']['applied']['activity']['statistics']['mean']==11

@@ -13,6 +13,18 @@ STATS=('status','count','mean','median','sample_std','minimum','maximum','q05','
     'mean_worst_20pct','worst_20pct_status')
 COHORTS={'all_calendar','model_ready','fallback','meta_disabled','applied_changed','proposed_changed'}
 UNITS={'fraction','ratio','USD','USDT','USDC','executed_fill_count','closed_action_count','closed_campaign_count'}
+ACCOUNT_METRICS={'initial_capital','final_equity','total_return_pct','cagr_pct','sharpe','sortino','calmar','omega',
+    'max_drawdown_pct','avg_drawdown_pct','max_dd_duration_days','avg_dd_duration_days','profit_factor',
+    'long_hitrate_pct','short_hitrate_pct','avg_win_pct','avg_loss_pct','expectancy_pct','liquidated',
+    'actual_fill_count','fees','funding','oos_exposure_fraction'}
+
+
+def _accounts(values):
+    return [dict(policy=v['policy'] if v['policy'] in {'native','proposed','applied','selected'} else 'REDACTED',
+        scope_relation=v['scope_relation'],start_ns=v['start_ns'],stop_ns=v['stop_ns'],
+        metrics={k:x for k,x in v['metrics'].items() if k in ACCOUNT_METRICS},
+        units={k:x if x in UNITS|{'percent','elapsed_days','count'} else 'REDACTED'
+            for k,x in v['units'].items() if k in ACCOUNT_METRICS}) for v in values]
 
 
 def _pick(data,names):
@@ -32,6 +44,8 @@ def _policy(value,alias):
     for key in ('missing_fold_ids','missing_policy_ids','paired_effect_fold_ids'):
         result[key]=[alias[k] for k in value[key]]
     result['effects']={k:_stats(v,alias) for k,v in value['effects'].items()}
+    result['activity']=dict(unit=value['activity']['unit'],fold_ids=[alias[k] for k in value['activity']['fold_ids']],
+        statistics=_stats(value['activity']['statistics'],alias))
     result['matched_decomposition']=dict(means=value['matched_decomposition']['means'],
         fold_ids=[alias[k] for k in value['matched_decomposition']['fold_ids']])
     for key in ('positive_forward_sharpe','positive_forward_return'):
@@ -57,7 +71,7 @@ def public_view(data,*,detail):
     if data['mode']=='mode5':
         original=DecisionReport(Record.of(data['payload']['mode5_snapshot'])).to_dict()
         result['summary']=dict(mode5_summary=original['summary'],mode5_report=original,
-            continuous_accounts=dict(status='REDACTED_SOURCE_REPORTS',count=len(data['payload']['accounts'])))
+            continuous_accounts=_accounts(data['payload']['accounts']) or [dict(status='NOT_SUPPLIED')])
         return result
     payload,summary=data['payload'],data['summary']
     alias={r['fold_id']:f'fold-{i+1}' for i,r in enumerate(payload['roster'])}
@@ -91,9 +105,12 @@ def public_view(data,*,detail):
             for p,v in summary['parameter_turnover'].items()},
         time_consistency={f'time-group-{i+1}':_policy(v,alias) for i,v in enumerate(summary['time_consistency'].values())},
         state_consistency={f'state-group-{i+1}':_policy(v,alias) for i,v in enumerate(summary['state_consistency'].values())},
-        acquired_prediction_loss=_pick(loss,('supported_origins','total_observed_labels','origin_macro_y_mse','origin_macro_q_mse')),
+        acquired_prediction_loss=dict(_pick(loss,('supported_origins','total_observed_labels','origin_macro_y_mse','origin_macro_q_mse')),
+            controls=dict(_pick(loss['controls'],('zero_y_origin_macro_mse','structural_q_zero_origin_macro_y_mse',
+                'structural_q_zero_origin_macro_q_mse','application_policy')),
+                fold_ids=[alias[k] for k in loss['controls']['fold_ids']])),
         uncertainty=dict(status=summary['uncertainty']['status'],coordinates=intervals),
-        continuous_accounts=dict(status='SOURCE_REPORTS_RETAINED' if payload['accounts'] else 'NOT_SUPPLIED',count=len(payload['accounts'])))
+        continuous_accounts=_accounts(payload['accounts']) or [dict(status='NOT_SUPPLIED')])
     if detail:
         result['payload']['rows']=[]
         for row in payload['rows']:
@@ -170,6 +187,7 @@ def markdown(data):
         lines += _table('Guard And Decision Calibration',('Field','Value'),
             [*all_policy['prediction'].items(),*all_policy['guard'].items()])
         lines += _table('Witnessed Candidate Opportunity',('Field','Value'),all_policy['witnessed_opportunity'].items())
+        lines += _table('Original Activity Count',('Field','Value'),all_policy['activity'].items())
         lines += ['','Own-metric masks, means/medians/dispersion/tails and missing dispositions are retained in JSON.',
             'Matched decomposition above uses one common mask; own-mask statistics must not be subtracted as matched means.']
         lines += _table('Parameter Turnover',('Policy','Observed Adjacent','Missing Adjacent','Changed'),

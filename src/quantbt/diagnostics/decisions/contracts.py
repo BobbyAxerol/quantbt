@@ -167,13 +167,15 @@ class RetainedAccountReport:
     start_ns: int
     stop_ns: int
     account_policy: str = 'continuous_original_account'
+    scope_relation: str = 'matches_reported_window'
 
     def __post_init__(self):
         for value in (self.family_id,self.policy,self.source_ref,self.contract_id,self.result_identity):
             require_text(value)
         if (not isinstance(self.witness,AccessWitness) or not isinstance(self.metrics,Record)
                 or not isinstance(self.units,Record) or self.account_policy!='continuous_original_account'
-                or set(self.metrics.data)!=set(self.units.data)):
+                or set(self.metrics.data)!=set(self.units.data)
+                or self.scope_relation not in {'matches_reported_window','contains_reported_window'}):
             raise ValueError('qualified continuous-account metrics with exact units required')
         if (any(type(v) is not int for v in (self.start_ns,self.stop_ns))
                 or not self.witness.start_ns<=self.start_ns<self.stop_ns<=self.witness.end_ns):

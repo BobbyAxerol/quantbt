@@ -198,13 +198,15 @@ class ResearchDecisionReport:
         for account in accounts:
             if not isinstance(account,RetainedAccountReport) or family_id is not None and account.family_id!=family_id:
                 raise ValueError('original account/family mismatch')
-            if scope is None or (account.start_ns,account.stop_ns)!=scope:
+            matches=scope is not None and ((account.start_ns,account.stop_ns)==scope
+                if account.scope_relation=='matches_reported_window' else account.start_ns<=scope[0] and account.stop_ns>=scope[1])
+            if not matches:
                 raise ValueError('original continuous account scope differs from reported full calendar')
             access.require(account.witness); witnesses.append(asdict(account.witness))
             result.append(dict(family_id=account.family_id,policy=account.policy,source_ref=account.source_ref,
                 witness=asdict(account.witness),metrics=account.metrics.data,units=account.units.data,
                 contract_id=account.contract_id,result_identity=account.result_identity,account_policy=account.account_policy,
-                start_ns=account.start_ns,stop_ns=account.stop_ns))
+                start_ns=account.start_ns,stop_ns=account.stop_ns,scope_relation=account.scope_relation))
         if len({r['policy'] for r in result})!=len(result):
             raise ValueError('one original continuous account per declared policy required')
         return result
