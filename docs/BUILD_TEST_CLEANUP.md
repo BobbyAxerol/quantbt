@@ -7,6 +7,12 @@ failed runs. It is not a financial, empirical, remote or release certificate.
 The [unified plan](../upgrade/implement.md#mandatory-buildtest-cleanup-gate) and
 [workspace rules](../AGENTS.md#build-and-test-cleanup) govern this procedure.
 
+Latest shared-reporting cleanup:
+[M5-11.7.1](maintenance/M5_11_7_1_CLEANUP.md) removes only exact inactive pytest
+scratch, verifies 185 protected inputs and retained report/evidence hashes,
+and observes 5.11 MiB immediate recovery across two removals. No environment,
+financial evidence, alpha/market source, artifact or service was removed.
+
 ## Before A Run
 
 1. Measure `df -h` and `df -i` for the actual working filesystem. Check both

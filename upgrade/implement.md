@@ -11,6 +11,15 @@ model tournament, automatic
 recipe router, default/scientific change, optional financial probes, CI or
 publication is activated.
 
+**Current reporting status (2026-10-18, UTC):**
+[M5-11.7.1](#mode5-m5-11-7-1) completes its approved shared pre-search reporting
+scope locally. Additive typed JSON/Markdown, source-bound interpretation, sampler
+compatibility cards and privacy controls are qualified on retained evidence;
+legacy report identity, financial owners and frozen Ridge V1 remain unchanged.
+See the [implementation/coverage report](../docs/diagnostics/M5_11_7_1_IMPLEMENTATION_REPORT.md).
+M5-11.7.2/11.7.3, M5-12 and CI/release remain unstarted and need their sequential
+approval. This does not close the whole parent reporting phase.
+
 **Current research status:** [M4-ML-09](#m4-ml-09) is
 COMPLETE_LOCAL_REGISTERED_TECHNICAL_SCOPE, supported by the
 [technical closeout](../docs/meta_selection/M4_ML_09_TECHNICAL_CLOSEOUT.md) and
@@ -27836,7 +27845,10 @@ Every phase below inherits this mandatory resource registration/cleanup exit.
 | [M5-11.4](#mode5-m5-11-4) | Full 2020--2026 development profiling, missing diagnostics and readable researcher dossier | All 1,219 cells; five dossiers; guarded/daily readback and cleanup PASS | M5D-01..10; guide M5T-031..090 | COMPLETE / TECHNICALLY_VALID; DESCRIPTIVE_ONLY |
 | [M5-11.5](#mode5-m5-11-5) | Evidence-guided sampler/selector decisions, static calibration and measured handoff | Source-bound mandates/plans, five worksheets, three RSI256 studies, paired original-prefix proof and cleanup | M5C-01..10; guide M5T-061..110 | COMPLETE_LOCAL_REGISTERED_C01_C08; reviewed development, not independent OOS |
 | [M5-11.6](#mode5-m5-11-6) | Four-alpha long-horizon Mode 4 native/meta comparison | Owner approval; source/route/maturity/budget registration | M4X-01..10; QMS guide sections 5..8/14 | APPROVED / IN_PROGRESS; actual-route and resource admission before long studies |
-| [M5-11.7](#mode5-m5-11-7) | Complete Mode 4/5 decision, participation and fragility reports | Separate approval; M5-11.6 dispositions and existing sealed Mode 5 evidence | M45R-01..10; guide M5T-031..090/101..110 | PROPOSED / NOT_STARTED; cold-first evidence reuse |
+| [M5-11.7](#mode5-m5-11-7) | Complete Mode 4/5 decision, participation and fragility reports | Sequential subphase approval; existing sealed evidence | M45R-01..10; guide M5T-031..090/101..110 | IN_PROGRESS; 11.7.1 COMPLETE_LOCAL, 11.7.2/11.7.3 NOT_STARTED |
+| [M5-11.7.1](#mode5-m5-11-7-1) | Shared pre-search diagnostics, recipe fit and source-bound interpretation | ML-09.C local exit; owner approval | M45R-01/03/04/05/06/08 | COMPLETE_LOCAL_REGISTERED_REPORTING_SCOPE |
+| [M5-11.7.2](#mode5-m5-11-7-2) | Fold consistency, R/Q and meta decision reports | Reviewed 11.7.1; sequential approval | M45R-01/02/03/04/07/08 | NOT_STARTED |
+| [M5-11.7.3](#mode5-m5-11-7-3) | Broader integration, reporting cost and handoff | Reviewed 11.7.2; sequential approval | M45R-01..10 | NOT_STARTED |
 | [M5-12](#mode5-m5-12) | Local qualification/docs/handoff | M5-01..11 plus M5-11.4..11.7 dispositions reviewed | M5T-111..120 | NOT_STARTED; awaits reviewed supplementary handoff |
 
 Respect the guide dependency graph. M5-05 and independent M5-06 preparation
@@ -36883,7 +36895,8 @@ rerun, remote CI, publication or automatic advance. Commit local closure only.
 <a id="mode5-m5-11-7"></a>
 ### Phase M5-11.7 - Mode 4/5 Complete Researcher Reports And Decision Qualification
 
-**Status:** OWNER_APPROVED_REPORTING_SCOPE / NOT_STARTED; latest ACT2approval
+**Status:** OWNER_APPROVED_REPORTING_SCOPE / IN_PROGRESS; 11.7.1 COMPLETE_LOCAL,
+11.7.2/11.7.3 NOT_STARTED. Latest ACT2approval
 is recorded2026-10-18UTC. Execute the three bounded subphases below sequentially
 after [ML-09.C](#m4-ml-09-closeout), following the requested individual review.
 Earlier research remains KEEP_FROZEN_V1, not automatic learner activation.
@@ -37067,8 +37080,8 @@ Markdown tables, per-bar JSON or snapshots merely to render multiple views.
 <a id="mode5-m5-11-7-1"></a>
 #### M5-11.7.1 - Shared Pre-WFO Diagnostics, Sampler Fit And Bias Explanation
 
-**Status:** APPROVED_REPORTING_DIRECTION / NOT_STARTED; sequential owner review
-before execution, entry ML-09.Cclosure/disposition. Maps original R01/R03/R04/R05.
+**Status:** COMPLETE_LOCAL_REGISTERED_REPORTING_SCOPE (2026-10-18UTC);
+ML-09.C local entry PASS. Maps original R01/R03/R04/R05. No M5-11.7.2 execution.
 **Goal:** let a researcher understand the alpha's observed search domain,
 regime/participation concentration and recipe suitability before choosing a
 sampler/selector, without an automatic alpha-name rule or future-data advice.
@@ -37114,6 +37127,43 @@ verify protected hashes, record actual recovery and commit the scoped change.
 **Debt / Boundary:** missing scientific data is explicit, not fake neutral
 evidence. No new estimator/regime classifier, structural alpha changes, automatic
 sampler classifier, default change or financial approval hidden in a report.
+
+**Execution / Exit Receipt (2026-10-18, UTC):**
+- Additive typed `researcher_diagnostics` JSON/Markdown and allowlisted public
+  exports reuse `AlphaDiagnostics`; omitted extension keeps the original v1
+  payload/hash/Markdown. Search/account/source-analysis/interpretation/render
+  responsibilities have focused owners. Existing environment attribution and
+  calendar mathematical bodies are preserved; old tool imports remain aliases.
+- Actual dispositions, effective/conditional/constraint/boundary support,
+  participation/concentration, available source-probe/selection details and
+  compatible sampler cards are measured or explicitly unavailable. Missing time
+  is null, distinct from observed zero. No new recipe or bull-bias causal claim.
+- Final source exports cover five original Mode5 panels (640 observations,
+  30 original matrices, five fixed-index-zero account paths of 2,470days each)
+  and18mature/middle/late Mode4prefix views across six monthly families. Exact
+  original attempt ledgers and sampler spans are joined at all18checkpoints;
+  the12older-family ledger revisions are not extra studies. All228original
+  four-family search pins and three existing formal RSI result pins reverify.
+  Earlier RSI and quarterly variant inventories retain different scope labels.
+- Final focused tests211PASS; related geometry/design/recovery/old diagnostics
+  regression248PASS plus12subtests. Legacy identity, copy/pickle, privacy,
+  narrowed/future-source rights, no hidden execution/RNG and exact-source checks
+  PASS. Synthetic account fixtures in existing tests are not new research runs.
+  Failed/intermediate XMLs and reader/preflight attempts remain retained.
+- Source proof: protected financial/optimizer/metric/backend/Rust diff empty
+  versus7c18ebb;185registered protected hashes and frozen Ridge42sources/5receipts
+  unchanged. Zero new research finance/search/fits, dependency or native build.
+  One-shot report assembly128/1024observations:65.08/363.81ms, not speedup or
+  percentile claims. Maximum final real-reader peak486.91MiB<512MiB.
+- Cleanup removes only registered inactive pytest fixtures, observed5.11MiB
+  immediate recovery; retained evidence stays under64MiB and >=5GiB free.
+  See [implementation/coverage](../docs/diagnostics/M5_11_7_1_IMPLEMENTATION_REPORT.md),
+  [API](../docs/diagnostics/PRESEARCH_RESEARCHER_REPORT.md),
+  [synthetic example](../examples/shared_presearch_researcher.py) and
+  [cleanup](../docs/maintenance/M5_11_7_1_CLEANUP.md).
+  Local registered pre-search scope is complete; fold R/Q/meta statistics,
+  wider public integration and package qualification remain11.7.2/11.7.3/M5-12,
+  respectively. No optional finance, push, workflow, merge or publication.
 
 <a id="mode5-m5-11-7-2"></a>
 #### M5-11.7.2 - Fold Consistency, Meta Decision And Mode-Specific Reports

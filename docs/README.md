@@ -37,7 +37,7 @@ to verify the pair and [Endpoint contract](endpoint.md) to select a route.
 | Use Nautilus as third-party execution validation, reports, and depth preflight | [Nautilus backend](nautilus_backend.md) |
 | Choose a strict causal WFO schedule and read its audit metadata | [Causal walk-forward guide](walkforward_causal.md) |
 | Understand WFO parameter selection methodology | [Walk-forward methodology](walkforward_methodology_vi.md) |
-| Analyze alpha geometry, coverage, activity and recipe options before any WFO mode or meta choice | [Shared alpha diagnostics](diagnostics/SHARED_ALPHA_DIAGNOSTICS.md), [synthetic example](../examples/shared_alpha_diagnostics.py) (feature branch) |
+| Analyze alpha geometry, coverage, activity and recipe options before any WFO mode or meta choice | [Shared alpha diagnostics](diagnostics/SHARED_ALPHA_DIAGNOSTICS.md), [researcher report contract](diagnostics/PRESEARCH_RESEARCHER_REPORT.md), [local source/readback qualification](diagnostics/M5_11_7_1_IMPLEMENTATION_REPORT.md), [synthetic example](../examples/shared_presearch_researcher.py) (feature branch) |
 | Configure feature-branch WFO samplers without changing legacy behavior | [QMS sampler contracts](meta_selection/SAMPLERS.md) |
 | Opt into diagnostics-first full-development Mode 5 on the feature branch | [Public calibration contract](mode5/PUBLIC_CALIBRATION_V1.md), [source/installed qualification and timings](mode5/M5_10_PUBLIC_RUNTIME_REPORT.md) (not yet published; no independent OOS claim) |
 | Prepare optional sampler-compatible ranges with explicit declarations and overrides | [Sampler-space helper](meta_selection/SAMPLER_SPACE_HELPER.md), [public pct-equity example](../examples/wfo_sampler_space.py) |

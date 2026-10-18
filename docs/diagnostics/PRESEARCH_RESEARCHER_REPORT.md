@@ -154,3 +154,6 @@ outcome-blind association analysis retains its isolated bootstrap generator and
 seed contract; this extension adds no sampling or inference. Source/local
 qualification is not a wheel/public release proof. Mode 4/5 fold/meta-statistic
 views and final public integration remain M5-11.7.2 and M5-11.7.3.
+
+See the [local implementation and retained-source coverage report](M5_11_7_1_IMPLEMENTATION_REPORT.md)
+for the exact test scope, reporting cost, real exports and remaining limits.

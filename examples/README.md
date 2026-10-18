@@ -26,6 +26,8 @@ PYTHONPATH=/root/bobby/pool_alpha python3 quantbt/examples/single_order_event.py
 | `wfo_meta_contract.py` | existing WFO endpoint and strict history restore | Complete off, sampler-only, reviewed local-history and unsupported-method cases; synthetic software proof, no economic/live claim |
 | `wfo_reactive_samplers.py` | existing prepared W3 and R3B | Four shared recipes, original Rust account/reset policy and versioned batch proposals; see [scheduler contract](../docs/meta_selection/W3_SAMPLER_SCHEDULES.md) |
 | `optimization_workflow.py` | `OptunaOptimizer` + prepared/generic evaluators | Domain-agnostic optimization smoke template |
+| `shared_alpha_diagnostics.py` | `quantbt.diagnostics.AlphaDiagnostics` | Retained observation/schema analysis before any mode or meta choice; no optimizer or financial execution |
+| `shared_presearch_researcher.py` | Same additive diagnostics API | Typed attempt/account evidence, participation/attribution, recipe cards and private/public exports; synthetic, no strategy execution |
 | `optimization_exact_continuation.py` | additive owned sampler session | Four-recipe safe JSON checkpoint and exact fresh-process continuation; toy objective, no automatic WFO resume |
 | `nautilus_validation.py` | `QuantBTEndpoint.nautilus_validation(...)` | Signal validation through NautilusTrader |
 | `nautilus_explicit_orders.py` | `BacktestEngineV2(backend="nautilus", orders=...)` | Explicit order replay and native-vs-Nautilus parity |
