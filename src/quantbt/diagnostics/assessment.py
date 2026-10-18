@@ -57,7 +57,7 @@ class AlphaDiagnostics:
         return result
 
     def analyze(self, observations=(), *, analyses=(), catalog=None, advice=(),
-                bootstrap_seed=731, bootstrap_resamples=64):
+                bootstrap_seed=731, bootstrap_resamples=64, research=None):
         rows = tuple(islice(iter(observations), self.budget.max_observations + 1))
         analyses, advice = tuple(analyses), tuple(advice)
         if len(rows) > self.budget.max_observations:
@@ -78,6 +78,34 @@ class AlphaDiagnostics:
                 raise ValueError("activity units/definition must be declared before analysis")
             seen.add(row.evaluation_id)
             witnesses[row.witness.identity] = row.witness
+
+        if research is not None:
+            from .researcher import require_research
+            require_research(self, rows, research)
+            witnesses[research.witness.identity] = research.witness
+            for account in research.accounts:
+                for witness in (account.evidence.witness, account.label_witness):
+                    if witness is not None:
+                        witnesses[witness.identity] = witness
+            if research.dossier is not None:
+                if not isinstance(catalog, EvidenceCatalog):
+                    raise ValueError("original Dossier EvidenceCatalog required")
+                for item in catalog.manifest.data["sources"]:
+                    witness = AccessWitness(**item["witness"])
+                    self.access.require(witness)
+                    witnesses[witness.identity] = witness
+                research.dossier.verify(catalog)
+                dependency = research.dossier.record.data["context"]
+                if research.dossier_geometry_ref is not None:
+                    original_geometry = catalog.require_ref(research.dossier_geometry_ref.data)
+                    if Record.of(original_geometry) != Record.of(self.geometry.metadata()):
+                        raise ValueError("catalog-bound original dossier geometry differs")
+                elif dependency["schema"] != self.geometry.identity:
+                    raise ValueError("composite dossier schema requires an explicit catalog-bound geometry reference")
+                if (dependency["alpha"] != self.context.alpha_id
+                        or dependency["data"] != self.context.market_id
+                        or dependency["economics"] != self.context.economics_id):
+                    raise ValueError("dossier alpha/market/economics/geometry binding mismatch")
 
         optional = {name: dict(status="NOT_SUPPLIED", value=None,
             reason="No authorized matching analysis supplied; no financial replay requested.")
@@ -101,6 +129,11 @@ class AlphaDiagnostics:
             value = catalog.require_ref(ref)
             if not isinstance(value, dict) or value.get("context_id") != self.context.identity:
                 raise ValueError("optional analysis context must be bound in verified source bytes")
+            if research is not None:
+                if value.get("geometry_id", self.geometry.identity) != self.geometry.identity:
+                    raise ValueError("optional analysis geometry mismatch")
+                if research.view == "prefix" and value.get("view", "prefix") != "prefix":
+                    raise PermissionError("retrospective/full-development analysis cannot advise a prefix")
             refs[analysis.source_id] = ref
             optional[analysis.section] = dict(status="SOURCE_BOUND_ANALYSIS", value=value,
                 reference=ref, reason="Existing producer analysis; no re-estimation or qualification inferred.")
@@ -158,6 +191,12 @@ class AlphaDiagnostics:
                 "No causal factor, global Sobol, parameter-removal or economic superiority claim.",
                 "Using any mode label does not expand meta mode/domain support."],
             authority=AUTHORITY)
+        if research is not None:
+            from .researcher import assemble_research
+            data["researcher_diagnostics"] = assemble_research(self, rows, research,
+                optional, data["sampler_compatibility"], advice_rows, screens)
+            if research.dossier is not None:
+                catalog.verify_current()
         record = Record.of(data)
         if len(record.payload.encode()) > self.budget.max_report_bytes:
             raise ValueError("diagnostic report byte budget exceeded; evidence not truncated")

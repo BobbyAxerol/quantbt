@@ -33,9 +33,14 @@ def test_m509_current_plan_status_and_historical_receipts_are_distinct():
     assert "DEFER_CALIBRATION" in phase and "zero" in phase
     assert "M509.01..06" in phase and "M5T-081..090" in phase
     top = text.split('## Current Mode 5 Diagnostics-First Upgrade -', 1)[1].split('\n## ', 1)[0]
-    assert "M5-10..M5-12 remain NOT_STARTED / NOT_RUN" in top
+    assert "M4-ML-09" in top and "M5-11.7" in top
     next_phase = text.split('### Phase M5-10 -', 1)[1].split('### Phase M5-11 -', 1)[0]
-    assert "NOT_STARTED" in next_phase and "approval PENDING" in next_phase
+    assert "COMPLETE_LOCAL_PUBLIC_OPT_IN" in next_phase
+    package_phase = text.split('### Phase M5-12 -', 1)[1].split('\n### ', 1)[0]
+    assert "NOT_STARTED" in package_phase and "package gates remain NOT_RUN" in package_phase
+    # The historical M5-09 receipt is not rewritten as later approval/progress.
+    old = json.loads((ROOT / "docs/mode5/evidence/m5-09.json").read_text())
+    assert old["next_phase_authorized"] is False
 
 
 def test_m509_contract_report_and_cleanup_links_and_limits():

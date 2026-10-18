@@ -8,9 +8,11 @@ from .evidence import ExecutionEvidence, MissingInputs, PanelRow
 from .identity import AnalysisKey, ExecutionKey, SelectionKey
 from .planner import DiagnosticNeeds, compile_plan
 from .report import AlphaDiagnosticReport
+from .research_contracts import DiagnosticAccount, DiagnosticResearch, DiagnosticTrial
 from .reuse import DiagnosticReuse
 
 __all__ = ["AccessPolicy", "AccessWitness", "AlphaDiagnostics", "AlphaDiagnosticReport",
     "DiagnosticAdvice", "DiagnosticAnalysis", "DiagnosticBudget", "DiagnosticContext",
+    "DiagnosticAccount", "DiagnosticResearch", "DiagnosticTrial",
     "DiagnosticObservation", "DiagnosticNeeds", "DiagnosticReuse", "ExecutionEvidence",
     "MissingInputs", "PanelRow", "ExecutionKey", "AnalysisKey", "SelectionKey", "compile_plan"]

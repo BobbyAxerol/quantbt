@@ -122,3 +122,14 @@ and sanitized evidence should be published.
 
 Installed-wheel/source-final packaging and M5-11.7 broader Mode 4/5 reporting
 remain separate gates. See the [local implementation report](SHARED_ALPHA_DIAGNOSTICS_REPORT.md).
+
+## Optional Researcher View
+
+The additive [pre-search researcher contract](PRESEARCH_RESEARCHER_REPORT.md)
+adds an actual trial ledger, branch/boundary support, original-mark account
+attribution, source-backed analysis details, explicit recipe option cards and
+six-matrix availability. Use `research=DiagnosticResearch(...)` with the same
+`AlphaDiagnostics.analyze` API; omitting it preserves the existing report payload
+and identity. Prefix/full-development/retrospective rights are distinct. Missing
+inputs are named, not guessed from aggregate Sharpe. Public exports redact all
+private prose, parameter/state values and source identifiers.

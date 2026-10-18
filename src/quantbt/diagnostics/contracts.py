@@ -91,7 +91,8 @@ class DiagnosticAnalysis:
     pointer: str = ""
 
     def __post_init__(self):
-        if self.section not in {"fragility", "environments", "factors"}:
+        if self.section not in {"fragility", "environments", "factors", "sensitivity",
+                                "selection", "sampler_comparison", "execution_stress"}:
             raise ValueError("known optional diagnostic section required")
         require_text(self.context_id)
         require_text(self.source_id)
@@ -127,6 +128,7 @@ class DiagnosticAdvice:
 class DiagnosticBudget:
     max_observations: int = 10_000
     max_report_bytes: int = 4 * 1024 * 1024
+    max_account_bytes: int = 32 * 1024 * 1024
 
     def __post_init__(self):
         if any(type(value) is not int or value <= 0 for value in asdict(self).values()):

@@ -25,7 +25,7 @@ class AlphaDiagnosticReport:
             "cutoff_ns", "source_witnesses", "evaluation_ids", "observation_identities",
             "source_refs", "geometry", "coverage", "activity", "associations", "analyses",
             "advice", "sampler_compatibility", "researcher_choice", "limitations", "authority"}
-        if (set(data) != required or data["schema"] != "quantbt.alpha_diagnostics.v1"
+        if (set(data) not in (required, required | {"researcher_diagnostics"}) or data["schema"] != "quantbt.alpha_diagnostics.v1"
                 or data["authority"] != AUTHORITY
                 or data["context_id"] != digest({"schema": "quantbt.diagnostic_context.v1", **data["context"]})
                 or len(data["evaluation_ids"]) != len(data["observation_identities"])
@@ -33,15 +33,29 @@ class AlphaDiagnosticReport:
             raise ValueError("shared diagnostic report without execution authority required")
         for row in data["source_witnesses"]:
             AccessWitness(**row)
+        if "researcher_diagnostics" in data:
+            research = data["researcher_diagnostics"]
+            if (research.get("schema") != "quantbt.presearch_researcher.v1"
+                    or research.get("view") not in {"prefix", "full_development", "retrospective"}
+                    or research["provenance"]["context_id"] != data["context_id"]
+                    or research["provenance"]["geometry_id"] != data["geometry_id"]
+                    or research["provenance"]["cutoff_ns"] != data["cutoff_ns"]
+                    or research["search"]["retained_observations"] != len(data["evaluation_ids"])):
+                raise ValueError("researcher view context/schema/scope mismatch")
 
     @property
     def identity(self):
         return self.record.identity
 
-    def to_dict(self):
+    def to_dict(self, *, public=False):
+        if public:
+            from .research_render import public_data
+            return public_data(self.record.data)
         return self.record.data
 
-    def to_json(self):
+    def to_json(self, *, public=False):
+        if public:
+            return Record.of(self.to_dict(public=True)).payload
         return self.record.payload
 
     def authorize(self, access):
@@ -70,7 +84,10 @@ class AlphaDiagnosticReport:
             reason=reason, parent_report_id=self.identity, applies_configuration=False)
         return replace(self, record=Record.of(data))
 
-    def to_markdown(self):
+    def to_markdown(self, *, public=False):
+        if public:
+            from .research_render import public_markdown
+            return public_markdown(self.to_dict(public=True))
         data = self.to_dict()
         def cell(value):
             return str(value).replace("|", "\\|").replace("\n", " ").replace("\r", " ")
@@ -110,4 +127,8 @@ class AlphaDiagnosticReport:
         for name, row in data["analyses"].items():
             lines.append(f"- {name}: {cell(row['status'])}; {cell(row.get('reason', 'See source reference'))}")
         lines += ["", "## Limits", *["- " + cell(v) for v in data["limitations"]]]
-        return "\n".join(lines) + "\n"
+        rendered = "\n".join(lines) + "\n"
+        if "researcher_diagnostics" in data:
+            from .research_render import markdown
+            rendered += markdown(data["researcher_diagnostics"])
+        return rendered
