@@ -7,6 +7,13 @@ failed runs. It is not a financial, empirical, remote or release certificate.
 The [unified plan](../upgrade/implement.md#mandatory-buildtest-cleanup-gate) and
 [workspace rules](../AGENTS.md#build-and-test-cleanup) govern this procedure.
 
+Latest additional-alpha research cleanup:
+[M5-11.8](maintenance/M5_11_8_CLEANUP.md) records reviewed superseded-consumer
+removal before admission and exact inactive scratch removal after terminal
+research/proof owners. It preserves 5,566 checked files and all scientific
+evidence; terminal observed recovery is 2,412,544 bytes. No environment build,
+service stop, broad cache purge or release is performed by the research lane.
+
 Latest shared-reporting cleanup:
 [M5-11.7.3](maintenance/M5_11_7_3_CLEANUP.md) removes exact inactive fixture
 scratch after terminal reporting workers, preserves 259 protected inputs,

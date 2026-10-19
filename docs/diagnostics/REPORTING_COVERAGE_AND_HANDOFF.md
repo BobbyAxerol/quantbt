@@ -80,6 +80,14 @@ actual final test counts, execution receipts, measured cost and failures retaine
 All inherited evidence keeps its original source/test/disposition identity;
 counts from overlapping suites are not added into a fictitious distinct total.
 
+The subsequent [two-alpha Mode 5 research](../mode5/M5_11_8_RESEARCH_STATUS.md)
+also reuses the shared researcher renderer on retained full-calendar accounts,
+with the original base projection unchanged. These later exports cannot
+backdate recipe advice or promote a new public legacy-close financial producer.
+The [parent research scope ledger](../mode5/M5_11_RESEARCH_COVERAGE_DISPOSITION.md)
+separates additional empirical coverage from the owner disposition still needed
+before M5-12. No old accounting or scientific finding is overwritten.
+
 ## M5-12 Entry And Rollback
 
 The approved reporting subphases are source-qualified, with original economic

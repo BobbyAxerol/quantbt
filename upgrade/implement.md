@@ -2,14 +2,17 @@
 
 ## Current Mode 5 Diagnostics-First Upgrade - Full-Development Decision Support
 
-**Additional owner research approval (2026-10-19, UTC):** inspect the two new
-private alphas and qualify a matched diagnostics-to-Mode5 experiment before
-disposing the remaining parent research coverage. [M5-11.8](#mode5-m5-11-8)
-registers technical admission first; the owner confirms the proposed economic
-protocol/arms in chat before opening new diagnostic/search outcomes.
-Existing reporting closure, original five-alpha evidence, negative outcomes and
-the parent REOPENED_RESEARCH_COVERAGE disposition are not overwritten. No
-M5-12, automatic recipe routing, core/default change or remote/release launch.
+**Additional owner research closeout (2026-10-19, UTC):**
+[M5-11.8](#mode5-m5-11-8) completes its registered two-alpha diagnostics-to-Mode5
+scope locally: 256 diagnostic accounts, six separately sealed256-attempt
+studies, original selected replays, full path/annual readback, cold reports and
+exact scratch cleanup. See [current research status](../docs/mode5/M5_11_8_RESEARCH_STATUS.md).
+Positive and negative comparisons remain specific to their actual recipe/risk
+and reviewed development scope; no universal default is promoted. Existing
+five-alpha/reporting evidence and the parent REOPENED_RESEARCH_COVERAGE status
+are not overwritten. The [parent scope ledger](../docs/mode5/M5_11_RESEARCH_COVERAGE_DISPOSITION.md)
+needs owner disposition before M5-12. No automatic router, public endpoint/
+default change, remote qualification or release is launched.
 
 **Latest owner-approved ACT (2026-10-18, UTC):** close the final technical gates
 of [M4-ML-09](#m4-ml-09-closeout), then implement shared diagnostics and Mode4/5
@@ -27867,7 +27870,8 @@ Every phase below inherits this mandatory resource registration/cleanup exit.
 | [M5-11.7.1](#mode5-m5-11-7-1) | Shared pre-search diagnostics, recipe fit and source-bound interpretation | ML-09.C local exit; owner approval | M45R-01/03/04/05/06/08 | COMPLETE_LOCAL_REGISTERED_REPORTING_SCOPE |
 | [M5-11.7.2](#mode5-m5-11-7-2) | Fold consistency, R/Q and meta decision reports | Reviewed 11.7.1; sequential approval | M45R-01/02/03/04/07/08 | COMPLETE_LOCAL_REGISTERED_REPORTING_SCOPE |
 | [M5-11.7.3](#mode5-m5-11-7-3) | Broader integration, reporting cost and handoff | Reviewed 11.7.2; sequential approval | M45R-01..10 | COMPLETE_LOCAL_REGISTERED_REPORTING_SCOPE |
-| [M5-12](#mode5-m5-12) | Local qualification/docs/handoff | M5-01..11 plus M5-11.4..11.7 dispositions reviewed | M5T-111..120 | NOT_STARTED; reporting handoff ready for owner entry review |
+| [M5-11.8](#mode5-m5-11-8) | Two additional private alphas: diagnostics, researcher recipe and actual matched calibration | Approved 128-point panels and six256-attempt studies; original-account/path/annual proof and cleanup | Registered N01..N08; guide M5T-031..110 | COMPLETE_LOCAL_REGISTERED_EXTRA_ALPHA_SCOPE; reviewed development, parent disposition still required |
+| [M5-12](#mode5-m5-12) | Local qualification/docs/handoff | M5-01..11 plus M5-11.4..11.8 dispositions reviewed | M5T-111..120 | NOT_STARTED; reporting/research handoff ready for owner scope review |
 
 Respect the guide dependency graph. M5-05 and independent M5-06 preparation
 may overlap only by explicit owner approval after M5-04; M5-06 exit still needs
@@ -37419,8 +37423,8 @@ modified; unrelated owner edits remain outside the local plan commit.
 <a id="mode5-m5-11-8"></a>
 ### Phase M5-11.8 - Additional-Alpha Diagnostics-To-Calibration Research
 
-**Status:** APPROVED / TECHNICAL_ADMISSION_IN_PROGRESS;
-ECONOMIC_PROTOCOL_APPROVED_2026_10_19. The owner requests additional private
+**Status:** COMPLETE_LOCAL_REGISTERED_EXTRA_ALPHA_SCOPE / TECHNICALLY_VALID;
+DESCRIPTIVE_ONLY; ECONOMIC_PROTOCOL_APPROVED_2026_10_19. The owner requests additional private
 alphas, matched Mode5 tests and an actual diagnostics-before-search workflow;
 this does not retrospectively approve an unregistered recipe or an unlimited
 model/sampler tournament. Inventory identifies two new substantive alphas
@@ -37605,6 +37609,75 @@ unique candidate; margin has original hashes and independent per-run comparison,
 with full margin/fill streams retained for selected audits. Existing raw evidence
 is never removed. The private legacy-close research binding is not a public
 producer promotion. See [current status](../docs/mode5/M5_11_8_RESEARCH_STATUS.md).
+
+**Concurrency Amendment (2026-10-19, UTC):** owner approves up to two independent
+financial workers, one per alpha and one numeric thread/study, owned RSS<=1.25GiB
+and available RAM>=512MiB. Trials, RNG, recipes, disk and financial semantics
+are unchanged. The first alpha is already complete when this approval arrives;
+remaining same-alpha arms stay sequential and no extra finance is invented to
+occupy a slot. This scheduling permission is not a benchmark speedup claim.
+
+**Registered N01..N08 Closeout (2026-10-19, UTC):**
+- Both128-point panels and all six separately sealed256-attempt studies complete.
+  There are1,536proposal slots and1,510unique-within-study proposals. Exact
+  identity reuse retains1,734original accounts:856/878by added alpha. Six selected
+  replays and five admission calls (one failed receipt retained) bring total
+  original scorer invocations to1,745. Do not label these independent samples
+  or infer internal Rust transaction counts from account marks.
+- Actual recipe choices precede each alpha's formal outcomes. The first tests
+  environment_floor_mean_v1 with legacy/group TPE; the second's pre-formal
+  revision tests fixed-reference pareto_chebyshev_v1 with legacy TPE/Sobol.
+  The discarded floor proposal, metadata/source amendment and all original
+  receipts remain. Numeric QMC and independent categorical sampling are explicit;
+  no categorical/boolean CMA encoding or hidden warm start is added.
+- Independent original-fill accounting checks equity/positions/fees exactly;
+  maximum observed margin rounding is below4e-12within1e-8tolerance. All12,138
+  carried annual views recheck and selected full original stream hashes replay
+  exactly. Complete years plus273days of2026remain one dependent account, not
+  seven OOS origins. The original close-clock private binding is not promoted
+  as a new public continuous producer or an all-Rust kernel certificate.
+- Current focused receipts contain315passing tests,16actual request scope/role/
+  identity controls,24real sealed-source/dossier/plan negative controls and six
+  chronology checks. Terminal source reconciliation covers361package Python
+  files against the pre-panel runtime tree, exact native import and the frozen
+  Ridge baseline. These are not whole-procedure historical router mutation
+  or independent temporal economics proofs.
+- Shared researcher JSON/Markdown reads the retained diagnostic accounts with
+  the original base projection unchanged; later richer exports cannot backdate
+  advice. Full private reports preserve annual metrics, original fills/campaign
+  counts, exposure/gross risk, objective components, normalized reference gaps,
+  branch support, cache/disposition counts and observed budget response. Local
+  probes/SAM, global sensitivity and execution stress remain explicitly missing.
+- Matched B/Csampler changes improve their own registered objective in both
+  alphas, but with different risk/growth tradeoffs. Raw/TPEstill has the better
+  common floor score for the first alpha. The second's Sobol arm improves Pareto
+  objective, whole Sharpe/DD and worst annual Uagainst Pareto/TPEat similar gross
+  risk, while comparison to raw/TPEretains larger exposure/DD and a slightly
+  worse minimum annual U. Positive floor/mean is not positive Uin every year.
+  No recipe or default is changed to turn these heterogeneous findings into
+  a universal superiority claim.
+- The registered exploratory fixed-pool readback adds no finance, does not
+  replace actual winners and stays post-first-alpha-A/B. Its top-feedback versus
+  final-quality coverage exposes search/objective/mandate coupling: high scores
+  can fail the whole-account quality gate when that gate is not a sampler
+  constraint. No incumbent protection was registered; known diagnostic-point
+  comparisons remain descriptive rather than silently reranking the studies.
+- Financial-study peak RSS is519.50MiB; the separate detailed cold report records
+  759.49MiB. Later five-second financial monitoring observes at least692.45MiB
+  available RAM. Retention is approximately767MiB, below1GiB. Host review of169PIDs
+  admits deletion of129owned inactive scratch files;5,566protected hashes remain
+  unchanged and actual free space rises2,412,544bytes. The earlier eight obsolete
+  consumer removals reclaimed1,299,812,352bytes with exact artifacts/logs retained.
+  See [cleanup](../docs/maintenance/M5_11_8_CLEANUP.md).
+- Private current closeout and JSON/Markdown remain in the ignored
+  `upgrade/private/mode5_upgrade_v1/m5-11-8/attempt-01/` lane. No source, parameter
+  dictionary or raw private economic path enters Git/package artifacts. Preserve
+  the unrelated owner plan edit and old untracked spec outside this phase's commits.
+  [Current status](../docs/mode5/M5_11_8_RESEARCH_STATUS.md) and the
+  [parent coverage ledger](../docs/mode5/M5_11_RESEARCH_COVERAGE_DISPOSITION.md)
+  distinguish bounded completion from original missing formal studies and
+  broader whole-procedure claims. M5-12, CI, merge/tag and publication remain
+  unstarted pending owner review; completed optimizers are not repeated.
 
 <a id="mode5-m5-12"></a>
 ### Phase M5-12 - Local Package Qualification, Regression, Docs And Handoff
