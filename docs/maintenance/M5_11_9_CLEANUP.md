@@ -60,3 +60,24 @@ financial workers and terminal tests exit. Its future cleanup receipt is not
 certified by this foreground admission. Partial held buffers, if encountered,
 are retained separately with provenance; completed optimizer evidence is reused,
 not deleted or recomputed.
+
+## Parallel Controller Fixture Cleanup
+
+The parallel scheduling controller's final mocked ownership/guard regression
+passes **28 tests**; all earlier failed/setup attempts remain separate XML
+receipts. After terminal pytest and exact host process/FD/cwd/maps review,
+cleanup removed only `/tmp/m5119-parallel-tests-01`. All **19 protected files**
+retain their hashes, including the final regression, registration, source,
+native artifact and wheel references. Logical fixture bytes were 145; observed
+filesystem free-space increase was 593,920 bytes. Concurrent financial writes
+make that difference unsuitable as a causal storage-recovery benchmark.
+
+Private receipts `parallel-fixture-cleanup-before.json` and
+`parallel-fixture-cleanup-after.json` retain the inventory and checks. A later
+read-only attachment check verifies 36 distinct protected files across the
+controller, original scheduler, successor and cleanup custody. Its initial
+thread-environment convention failure is retained separately; the corrected
+check does not launch finance or signal a worker. The live HASH/VWAP accounts,
+checkpoints, financial evidence, active environment and all services remain
+untouched. No VSCode-session cache is removed by this lane. Final research-tail
+cleanup still waits for its own terminal workers and tests.

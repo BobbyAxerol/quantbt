@@ -116,11 +116,13 @@ one numeric thread each, 1.25 GiB owned-RSS and 1 GiB retained-output ceilings,
 Optuna continuation journal; completed observations and trials are reused.
 
 The initial two-worker queue reached its resource guard and retained 63 SC and
-4 HASH terminal trials. The current operational retry uses **one worker** and
+4 HASH terminal trials. The first operational retry used **one worker** and
 collects unreachable objects only after the original account observation returns.
 It resumes the same sealed typed sampler session, not a new seeded study. The
 stopped attempt and uncommitted buffers remain separate; a missing observation
 is never fabricated from an incomplete receipt. No resource ceiling is raised.
+The later admitted parallel lease below restores at most two workers without
+changing that account observation or continuation contract.
 
 Operational admission exposed repeated per-bar resource-directory scans.
 One-second operational sampling, with mandatory per-account checks, preserved
@@ -170,6 +172,53 @@ samples). Ruff passes. Actual cold admission covers the old RSI inputs, six
 N1/N2 formal/winner/state joins and HMA's128-point matrix with no financial runs.
 The original five-panel regime and missing actual-winner financial checks still
 must finish through the registered tail before its terminal certificate exists.
+
+### Parallel Formal Scheduling
+
+The latest owner instruction permits VWAP alongside HASH after current RSS/RAM
+admission. A separate controller delegates scheduling without editing the
+source-pinned serial runner or interrupting its current financial HASH child.
+At most one study per alpha runs at once; trial order/RNG remains sequential
+within each study. The original scheduler is paused while this lease is active,
+then resumes to skip completed studies and release the existing tail lock.
+
+The same aggregate memory, disk, retention and absolute deadline limits apply;
+only the formal-study worker count returns to at most two. Resource pressure
+can retain/interrupt the new VWAP attempt and fall back to serial execution;
+uncommitted work is reported separately, not counted as another successful
+trial. The later winner/reporting tail remains serial. Earlier serial ETA is
+not a matched measurement of Mode5 overhead and must be re-estimated from the
+actual parallel alpha work; a single expensive initial trial is not a stable
+whole-study timing estimate.
+
+Live verification at **2026-10-19 17:38 UTC** (20 October 00:38 in Vietnam):
+
+| Alpha | Raw/TPE Attempts | Recipe/TPE | Recipe/Challenger |
+|---|---:|---:|---:|
+| SC | 256, complete | 256, complete | 256, complete |
+| HASH | 175/256, running | pending | pending |
+| VWAP | 174/256, running | pending | pending |
+
+The original HASH PID2383609 remains uninterrupted; VWAP PID2398754 is active
+alongside it. The paused serial scheduler is an intentional scheduling lease,
+not a paused financial account. Combined owned RSS is about 1.03 GiB, available
+RAM about 2.75 GiB, and free disk about 6.45 GiB; retained phase output is about 322 MiB.
+Both financial processes have one OS thread in this readback. The adopted HASH
+owner declares its original three numeric-thread environment controls; the new
+controller declares six. An initial verifier incorrectly required all six on
+the old worker; that read-only failure is retained, and the corrected check
+records declared controls separately from observed threads without changing
+either live process.
+
+The final mocked-controller regression passes **28 tests**; Ruff passes for
+the controller, its tests and the read-only attachment verifier. The attachment
+receipt rechecks **36 distinct protected source/artifact/evidence files** and
+confirms no completed optimizer restart or scientific-contract change. These
+are operational checks, not new market evidence or a finished phase. Private
+`parallel-attachment-verification.json`, `parallel-progress/` and the cleanup
+receipts retain the exact snapshot. All remaining arms and the registered
+winner/regime/qualification successor remain scheduled automatically; final
+`C06/complete.json` and `end-to-end-complete.json` do not yet exist.
 
 - Complete the nine formal arms or obtain an explicit owner disposition.
 - Qualify the newly selected original-alpha winners and remaining RSI held

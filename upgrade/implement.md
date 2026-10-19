@@ -37883,6 +37883,57 @@ held-readback tests plus23synthesis tests;31overlapping held/synthesis tests als
 pass in the exact active queue environment. Original-account financial work is
 not claimed complete by these tests. Final `C06/complete.json` remains pending.
 
+**Owner Parallel-Scheduling Amendment (2026-10-19, UTC):** the owner requests
+VWAP alongside HASH and permits operational efficiency work. Restore at most
+two independent financial workers for the remaining formal arms after measured
+RSS/RAM admission, one worker per alpha and one numeric thread per study. Do
+not change the registered256attempts, sequential ask/tell order within a study,
+sampler/RNG/checkpoint, data, original execution/accounting or objective.
+
+The running serial scheduler and formal sources stay byte-identical. Pause
+only its scheduling process, keep its current HASH child running, and delegate
+the pending HASH/VWAP studies to a source-pinned controller under the original
+lock. The old scheduler cannot open a duplicate VWAP study while delegated.
+When all delegated studies complete, resume it; it verifies/skips completed
+arms and performs the existing lock handoff to the already registered tail.
+The tail itself remains serial and unchanged. Completed optimizers/accounts
+are reused, not restarted. Record PID/start-time identities and lease events.
+
+Keep the aggregate1.25GiB owned-RSS,512MiB available-RAM,1GiB retention,
+5GiB reserve and original absolute24-hour deadline. A new VWAP worker may be
+interrupted on memory pressure with its exact checkpoint/unfinished buffers
+retained, then continued serially; never rerun committed trials or fabricate
+an incomplete observation. Unknown/source/accounting failures block dependent
+claims rather than silently retrying. A scalar-only standard-library control
+plane avoids importing the financial stack just to write scheduling receipts.
+Register before activation, verify with bounded synthetic ownership/guard tests,
+retain receipts, clean only exact terminal fixture scratch and commit scoped
+docs. No new methodology, alpha rewrite, build, VSCode/notebook/service stop,
+CI, release or M5-12 activation is authorized. The owner handles VSCode cleanup.
+
+**Parallel Attachment Verification (2026-10-19 17:38 UTC):** the delegated
+controller and original financial HASH child are live; VWAP is now running
+alongside HASH. All three SC arms remain complete at 256 attempts each. This
+snapshot has HASH 175/256 and VWAP 174/256 in their respective Raw/TPE studies;
+their other four arms remain pending and will start through the registered
+controller, not a new optimizer schedule. Original source/freeze/checkpoint
+identities remain unchanged, with no completed optimizer restarted.
+
+The final bounded controller regression passes 28 tests and Ruff; the read-only
+attachment receipt verifies 36 distinct protected files and the exact process
+identities. Owned RSS is about 1.03 GiB with 2.75 GiB RAM available, 6.45 GiB free
+disk and 322 MiB retained output. Each finance process has one observed OS thread;
+the old owner keeps its three declared environment controls and the new worker
+has six. Preserve the initial verifier's overly broad environment-check failure
+separately; correcting that verifier does not alter runtime or scientific gates.
+Exact terminal fixture cleanup preserves 19 protected files and all evidence;
+observed free-byte delta is 593,920 with concurrent financial writes disclosed.
+See [live status](../docs/mode5/M5_11_9_RESEARCH_STATUS.md#parallel-formal-scheduling)
+and [cleanup](../docs/maintenance/M5_11_9_CLEANUP.md#parallel-controller-fixture-cleanup).
+The original successor still waits for all nine formal receipts and lock
+handoff. Winner/stress/regime synthesis and final C06 certification remain
+IN_PROGRESS; operational attachment is not phase, parent or release acceptance.
+
 <a id="mode5-m5-12"></a>
 ### Phase M5-12 - Local Package Qualification, Regression, Docs And Handoff
 
