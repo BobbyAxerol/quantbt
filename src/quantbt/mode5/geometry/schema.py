@@ -142,6 +142,9 @@ class EffectiveGeometry:
             count = math.floor((s.high-s.low)/step + 1e-10)
             offset = min(count, max(0, math.floor((raw-s.low)/step + .5)))
             raw = s.low + offset*step
+        # Coordinates are already bounded. Preserve declared endpoints when
+        # floating-point step/log arithmetic overshoots by round-off.
+        raw = min(s.high, max(s.low, raw))
         return int(raw) if s.kind == "integer" else float(raw)
 
     def distance(self, left, right):
