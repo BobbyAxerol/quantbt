@@ -2,6 +2,18 @@
 
 ## Current Mode 5 Diagnostics-First Upgrade - Full-Development Decision Support
 
+**Latest approved completion work (2026-10-19, UTC):**
+[M5-11.9](#mode5-m5-11-9) is IN_PROGRESS: original-route admission and both
+additional-alpha market-state/actual-winner readbacks are complete locally;
+the missing SC/HASH/VWAP256-attempt formal arms are source-sealed and running
+under a resource-guarded exact-checkpoint queue, now one worker after the
+two-worker resource stop. Actual tested-neighbor survival is
+reported separately from the unmet radius-wide geometry coverage. See the
+[current evidence/limitations](../docs/mode5/M5_11_9_RESEARCH_STATUS.md).
+No completed optimizer is repeated. Parent disposition, M5-12 and release
+remain pending; earlier no-new-probe/search ACT language is historical to its
+original approved scope, not a prohibition on this newly approved work.
+
 **Additional owner research closeout (2026-10-19, UTC):**
 [M5-11.8](#mode5-m5-11-8) completes its registered two-alpha diagnostics-to-Mode5
 scope locally: 256 diagnostic accounts, six separately sealed256-attempt
@@ -37682,7 +37694,7 @@ occupy a slot. This scheduling permission is not a benchmark speedup claim.
 <a id="mode5-m5-11-9"></a>
 ### Phase M5-11.9 - Regime, Actual-Winner Robustness And Remaining Formal Coverage
 
-**Status:** OWNER_APPROVED_EXECUTION / ADMISSION_IN_PROGRESS, 2026-10-19.
+**Status:** OWNER_APPROVED_EXECUTION / IN_PROGRESS, 2026-10-19.
 The owner explicitly requests completion of the five remaining research gaps,
 not another release or a change to the Mode5 scientific direction. Earlier
 receipts remain immutable. This phase precedes M5-12 and does not activate it.
@@ -37716,6 +37728,9 @@ and [cleanup](../docs/BUILD_TEST_CLEANUP.md).
   their qualified2020-01-01 through2026-10-06exclusive diagnostic scope. Match
   all arms within an alpha exactly; disclose the five-day cross-study difference
   and family-specific economics rather than invent a matched cross-alpha race.
+  Original SC/HASH/VWAP profiles are BTCUSDT1h; N1/N2 are ETHUSDT1h. Preserve
+  these exact diagnostic cells and disclose the symbols; no cross-symbol matched
+  superiority claim or hidden data substitution is permitted.
 - Reuse the already qualified168-hour prior-closed-bar trend/volatility/activity
   features,quantiles(.25,.75), descriptive and decision-vintage namespaces.
   Do not fit a new regime model or silently replace annual objective coordinates.
@@ -37792,13 +37807,41 @@ universal routing/global sensitivity is not silently claimed complete. Disable
 new readbacks to return to old report views; originals and all evidence remain.
 No core/alpha/default change, CI, push, merge, tag or publication is authorized.
 
+**Execution Receipt (current partial scope; not a phase PASS):**
+- C01: original SC/HASH/VWAP full-scope research/audit accounting/path admission
+  passes. Shared continuous measurement matches original whole/annual values;
+  operational resource sampling is measured separately from scientific changes.
+- C02:856N1 and878N2 saved accounts have both state-fit namespaces reduced;
+  original continuous PnL reconciles. Finite-panel state ranks/regret and
+  actual-market frozen-past mutation proof are retained, without new finance.
+- C03(new-alpha scope): six actual centers,245feasible held neighbors across
+  their separate neighborhoods, and six real double-fee accounts complete.
+  Source geometry still reports missing required radii; this is explicitly not
+  a ball-wide basin PASS. Original winners/recipes remain unchanged. RSI and
+  new original-alpha formal-winner checks remain pending.
+- C04: original128-point eligible counts are SC124/HASH15/VWAP9; HMA remains0.
+  Nine256-attempt studies are independently sealed and running locally through
+  shared sampler/selector and exact continuation owners, not two-alpha repeats.
+- The initial two-worker resource guard stopped with SC63/HASH4terminal trials
+  preserved. Operational continuation is now one worker with post-observation
+  unreachable-object collection; no bound increase, account-state sharing,
+  estimator change or completed-trial rerun occurs. Uncommitted buffers remain
+  retained separately rather than receiving fabricated successful receipts.
+- Current affected regression529PASS, source-alpha privacy and staged exact
+  cleanup are recorded in the [cleanup receipt](../docs/maintenance/M5_11_9_CLEANUP.md).
+  This does not certify the still-running formal arms or remaining winner checks.
+- C05/C06 and the parent disposition remain open. See the
+  [current report](../docs/mode5/M5_11_9_RESEARCH_STATUS.md) for actual findings,
+  admission errors, queued work, resource limits and claim boundaries.
+
 <a id="mode5-m5-12"></a>
 ### Phase M5-12 - Local Package Qualification, Regression, Docs And Handoff
 
 **Status:** APPROVED_CONDITIONAL / NOT_STARTED; owner local implementation
 approval2026-10-12(Asia/Saigon) is retained. Current entry also requires ML-09.C
 and M5-11.7.1..3reviewed dispositions under the2026-10-18ACTroadmap, plus the
-earlier M5-11.6/11.6.1research dispositions; package gates remain NOT_RUN.
+earlier M5-11.6/11.6.1research dispositions and the newly approved
+M5-11.9remaining-coverage disposition; package gates remain NOT_RUN.
 M5-11.4/11.5 retain their separately approved local closure. This planning
 request does not launch M5-12 or any CI, release or publication.
 **Goal:** deliver a reproducible privacy-safe local package and honest capability/

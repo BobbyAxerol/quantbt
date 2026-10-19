@@ -331,9 +331,18 @@ def test_provider_source_and_native_binary_drift_without_editing_existing_files(
 
 
 def test_native_source_witness_uses_the_loaded_exact_binary():
+    from importlib import import_module
+    from quantbt.mode5.diagnostics.identity import digest
+
     import _quantbt_native._quantbt_native as native
-    expected = "2959f5388c6a8e57bdef5a6dafe76da3624ef57dba379f7ca686e9bf202ad26b"
-    assert sha256(Path(native.__file__).read_bytes()).hexdigest() == expected
+    source_pins = [(name, sha256(Path(import_module("quantbt." + name).__file__).read_bytes()).hexdigest())
+                   for name in producer._SOURCE_MODULES]
+    binary_hash = sha256(Path(native.__file__).read_bytes()).hexdigest()
+    _, execution = producer.producer_records(endpoint("orders", "rust").config, SyntheticLifecycle)
+    actual = execution.data["economics"]["source_identity"]
+    assert actual == digest([*source_pins, ("_quantbt_native", binary_hash)])
+    assert actual != digest(source_pins)
+    assert actual != digest([*source_pins, ("_quantbt_native", "0" * 64)])
 
 
 @pytest.mark.parametrize("field", ["native_event_rust_available", "native_event_rust_compatible",
