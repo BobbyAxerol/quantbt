@@ -1,11 +1,13 @@
 """Matched cold rendering cost; no account execution, search or model fitting."""
 
 import argparse
+import ast
 from hashlib import sha256
 import json
 from pathlib import Path
 import random
 import resource
+import subprocess
 import time
 
 
@@ -25,6 +27,7 @@ def run(args):
     from quantbt.diagnostics import ResearchDecisionReport,AccessPolicy,AccessWitness
     from quantbt.mode5 import DecisionReport
     from quantbt.mode5.dossier.records import Record
+    from quantbt.diagnostics.decisions import render
     from quantbt import QuantBTEndpoint
     from quantbt.walkforward import WalkForwardEngine
     from quantbt.optimization.meta_selection.model import RidgeLearner
@@ -64,9 +67,24 @@ def run(args):
         public_markdown=report.to_markdown,private_detail_markdown=lambda:report.to_markdown(private=True,detail=True))
     first={name:measure(call,1) for name,call in methods.items()}
     repeated={name:measure(call,args.repeats) for name,call in methods.items()}
+    # Execute only the pinned pure original renderer function, not old financial code.
+    root=Path(__file__).resolve().parents[1]
+    original_source=subprocess.check_output(['git','show',
+        '1633809:src/quantbt/diagnostics/decisions/render.py'],cwd=root,text=True)
+    node=next(n for n in ast.parse(original_source).body if isinstance(n,ast.FunctionDef) and n.name=='public_view')
+    namespace=dict(vars(render),DecisionReport=DecisionReport,Record=Record)
+    exec(compile(ast.Module(body=[node],type_ignores=[]),'<pinned-original-report-renderer>','exec'),namespace)
+    original_public=namespace['public_view']
+    def original_export(private,detail):
+        data=report.record.data
+        if not private:
+            data=original_public(data,detail=detail)
+        elif not detail:
+            data['payload']={k:v for k,v in data['payload'].items() if k not in {'rows','mode5_snapshot'}}
+        return Record.of(data).payload
     matched={}
     for private,detail in ((False,False),(False,True),(True,False),(True,True)):
-        old=lambda:Record.of(report.to_dict(private=private,detail=detail)).payload
+        old=lambda:original_export(private,detail)
         new=lambda:report.to_json(private=private,detail=detail)
         assert old()==new()
         times={'original':[],'current':[]}
@@ -84,6 +102,7 @@ def run(args):
         mode=report.to_dict()['mode'],synthetic_folds=args.folds if input_ref is None else None,
         imports_seconds=imports,assembly_seconds=assembly,first_call=first,repeated=repeated,
         repeats=args.repeats,matched_json=matched,peak_rss_mib=peak,global_rng_unchanged=True,
+        comparison_baseline='1633809',baseline_renderer_sha256=sha256(original_source.encode()).hexdigest(),
         new_finance_optimizer_fits=0,elapsed_seconds=time.perf_counter()-started,
         cost_scope='Fresh process imports/assembly, first call and repeated stateless rendering; five empirical samples are not a release p95 or end-to-end WFO speedup.',
         source_sha256=sha256(Path(__file__).read_bytes()).hexdigest())
