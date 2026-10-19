@@ -2,6 +2,15 @@
 
 ## Current Mode 5 Diagnostics-First Upgrade - Full-Development Decision Support
 
+**Additional owner research approval (2026-10-19, UTC):** inspect the two new
+private alphas and qualify a matched diagnostics-to-Mode5 experiment before
+disposing the remaining parent research coverage. [M5-11.8](#mode5-m5-11-8)
+registers technical admission first; the owner confirms the proposed economic
+protocol/arms in chat before opening new diagnostic/search outcomes.
+Existing reporting closure, original five-alpha evidence, negative outcomes and
+the parent REOPENED_RESEARCH_COVERAGE disposition are not overwritten. No
+M5-12, automatic recipe routing, core/default change or remote/release launch.
+
 **Latest owner-approved ACT (2026-10-18, UTC):** close the final technical gates
 of [M4-ML-09](#m4-ml-09-closeout), then implement shared diagnostics and Mode4/5
 reporting through [M5-11.7](#mode5-m5-11-7). Detailed small phases are registered
@@ -37407,6 +37416,196 @@ available and 5.52 million free inodes; no deletion needed for this plan edit.
 No scientific outputs, alpha sources, runtime or historical receipts are
 modified; unrelated owner edits remain outside the local plan commit.
 
+<a id="mode5-m5-11-8"></a>
+### Phase M5-11.8 - Additional-Alpha Diagnostics-To-Calibration Research
+
+**Status:** APPROVED / TECHNICAL_ADMISSION_IN_PROGRESS;
+ECONOMIC_PROTOCOL_APPROVED_2026_10_19. The owner requests additional private
+alphas, matched Mode5 tests and an actual diagnostics-before-search workflow;
+this does not retrospectively approve an unregistered recipe or an unlimited
+model/sampler tournament. Inventory identifies two new substantive alphas
+(private N1/N2), not a third invented strategy. They retain separate original
+financial contracts. M5-11.4/11.5/11.7 closures remain scope-specific.
+
+**Goal:** obtain discriminating evidence about what pre-search diagnostics
+contribute to a researcher's sampler/objective/selector decision for previously
+untested Mode5 alphas. Seek one fixed dictionary per full-development study,
+with transparent worst-environment, aggregate, activity and fragility tradeoffs;
+do not require every year to be profitable or promise independent future edge.
+Reconcile the remaining parent research coverage before package qualification.
+
+**Entry / Authority:** explicit owner request and subsequent protocol approval
+2026-10-19; source-only inventory and bounded technical controls come first,
+then the approved128-point panels and separately sealed256-proposal studies.
+If scope/budget must change, retain the failed registration and obtain an
+amendment before new outcomes. No seed/range/gate changes after seeing winners.
+
+**Detailed Guide:** [diagnostic study freeze](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#41-diagnosticstudy-là-đơn-vị-khoa-học-không-một-lần-gọi-optimizer),
+[six matrices and effective geometry](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#chapter-4),
+[three separate comparison levels](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#49-multi-hypothesis-empirical-battery-giữ-năm-chiều-làm-rõ-mỗi-phép-thử),
+[versioned utility/objectives and uncertainty](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#chapter-5),
+[freezing and execution contracts](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#chapter-6),
+[reporting and qualification](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#chapter-7),
+[current whole-account mandate](../docs/mode5/M5_11_5_DECISION_QUALIFICATION_REPORT.md),
+[shared reporting contract](../docs/diagnostics/REPORTING_COVERAGE_AND_HANDOFF.md),
+[architecture](../docs/architecture/execution-plan.md),
+[cleanup](../docs/BUILD_TEST_CLEANUP.md) and [private scope](#mode5-private-alpha-scope).
+
+**Proposed Matched Protocol / Freeze Before Economics:**
+- N1/N2 only. Reuse original five-alpha and ML-09 receipts by their actual
+  identities; no repeated old optimizer or conflation of monthly WFO with
+  full-development Mode5 candidate executions.
+- ETHUSDT1h, retained verified snapshot; proposed scored scope2020-01-01
+  inclusive through2026-10-01exclusive, preserving complete months and the
+  ML-09 market cell. Report2026as273days, not a complete year. This is five days
+  shorter than the older RSI Mode5 study; no cross-study matched claim.
+- Score from January1with original indicator warmup flat, disclose readiness;
+  no synthetic prehistory or removal of2020. Exactly one continuous account
+  per effective candidate; annual/year-entry attribution uses the shared
+  reducer and carried account baseline, never independent annual resets.
+- Capital20,000, leverage1, fee_one_way0.0004, slippage0, fundingoff; preserve
+  source-specific sizing, terminal behavior, quantity/margin and partial exits.
+  These are not identical exposure distributions across alphas. N1uses the
+  original close-fill orders path; N2keeps next-open, four reduce-only TP legs,
+  live-fill risk sizing and reserved-last-open flatten. Do not change N1to
+  next-open or N2to a single bracket to borrow a faster public certificate.
+- Original declared ranges and effective transforms;128unique diagnostic
+  configurations/alpha, outcome-independent design, seed731. Branch balance,
+  effective duplicates, invalid/disposition rows and actual execution counts
+  must be retained.128is not a global-sensitivity certificate in a mixed space.
+- Proposed existing mandate: >=180daily observations/environment, whole/annual
+  DD<=50%, whole U>=0and finite whole Sharpe; annual Uis ranked, not individually
+  constrained positive. Keep no-trade, undefined, bankrupt, failed and infeasible
+  states distinct. Do not promote cash-dominated inactivity as robustness.
+- Three separately sealed studies/alpha,256attempts each, seed731, sequential
+  shared sampler, no early stop/warm start: A=raw-whole-Sharpe/TPE;
+  B=diagnostic-chosen supported objective/selector with TPE;
+  C=same objective/selector as Bwith one compatible sampler challenger.
+  A/Bmeasure a declared objective/selection preference change; B/Cis the
+  matched sampler comparison. Apply the same final eligibility to all arms;
+  keep each arm's actual score fed to its own adaptive sampler unchanged.
+- Selector-only readback on the common diagnostic panel comes first, using
+  only genuinely available inputs. Missing SAM selection probes, Pareto
+  preferences or frozen regret references yield DEFER, not fabricated support.
+  No automatic rule mapping an alpha name/skew to a selector or CMA-ES.
+- Shortlist and explicit researcher choice must be recorded after diagnostic
+  interpretation but before formal search. Compatibility is necessary, not
+  empirical superiority. If diagnostics cannot distinguish recipes, retain
+  NO_CLEAR_WINNER and propose a bounded comparison instead of inventing proof.
+
+**To-Do / Ordered Work Packages:**
+1. N01Inventory: verify two private source pins, exact native/source/market
+   receipts, original adapters, schemas and actual reuse rights. Do not trust
+   the old N2 PLAN_ONLY inventory label over its later ML-09 qualification.
+   Produce a coverage ledger distinguishing old software proof, new full-scope
+   admission and still-missing economic evidence. Keep private names/params out
+   of public files, Git, wheel/sdist and logs intended for publication.
+2. N02Admission: test original full-calendar account handling and initial-flat
+   behavior at the actual first market bar. Compare independent original fills/
+   fees/positions/equity/margin and daily/annual measurements; retain no-trade,
+   partial/terminal and liquidation cases. Measure fixed controls, not another
+   optimizer for profiling. Existing public continuous producer clock support
+   is explicit: a close-fill provider cannot self-certify as v3-next-open.
+   A missing producer capability blocks that public arm, not the alpha's edge.
+3. N03Diagnostics: execute only newly needed128-point full-scope panels after
+   protocol approval. Use shared geometry, metric/continuous reducers and cold
+   researcher JSON/Markdown. Inventory six matrices and B1..B5with actual tested
+   support/missing masks; finite/local association is not global Sobol. Explain
+   exposure/bull dependence, flat inactivity, annual tail/floor, conditional
+   parameter behavior, coverage and plausible rival explanations.
+4. N04Probe/recipe seal: use bounded, disjoint selection/held local directions
+   only when required by a shortlisted selector; register their centers,
+   radii, count, source/calendar/cost identity and reuse rights before execution.
+   Unfunded or unsupported probes remain explicit missing evidence. A diagnostic
+   center's basin is not automatically the later winner's basin certificate.
+   Freeze Dossier/CalibrationPlan/journal and per-alpha arm choice before search.
+5. N05Studies: execute only admitted arms through shared sampler/study and
+   Mode5 objective/selector owners; no separate optimizer/financial engine or
+   formula reimplementation. Record attempted/unique/duplicate/pruned/failed
+   counts, actual visited bars, startup/fallback/dependency telemetry, RNG/tell
+   order, elapsed work and RSS. Flush financial observations before rendering.
+   Exact identities alone permit observation reuse; same seed alone does not.
+6. N06Decision audit: freeze each selected dictionary, independently reconcile
+   the final original continuous account and annual attribution, compare raw
+   versus floor/tail/fragility and whole return/Sharpe/DD. Report selection
+   reversals, annual support, concentration, costs, exposure, activity and
+   uncertainty. Record negative/inconclusive outcomes without retuning.
+7. N07Causality/claims: verify bound scope/source/role/cutoff and excluded-suffix
+   isolation on affected adapters. Full reviewed2020..2026data is development
+   calibration, not independent temporal OOS. Keep original B4forward receipts
+   separate. Do not call this finite single-seed study an automatic routing,
+   learned regime fitting or universal sampler/selector certificate.
+8. N08Closeout: shared public-safe and private detailed reports, source/evidence
+   pins, comparison/work ledger, remaining capability/debt dispositions, focused
+   regression, exact inactive scratch cleanup and local commits. Explicitly
+   reconcile parent M5-11coverage; two additional alphas do not silently fill
+   missing formal studies on SC/HASH/VWAPor broad whole-procedure validation.
+
+**Tests / Exit Gate:**
+- Source/privacy/ignore and exact market/calendar/schema/economics/cutoff tests;
+  no native fallback, clock substitution, malformed costs or mutable state reuse.
+- Independent continuous-account and carried annual measurements; primitive
+  account paths reconcile with original fills and available native/source oracle.
+  Missing or noncomparable primitives are null with reason, not zero-diff claims.
+- Same-panel selector-only and same-objective B/Cchecks; source/runtime actual
+  invocation and proposal-count assertions. Projection/cast or mixed categorical
+  dimensions cannot silently enter CMA-ES as ordinal coordinates.
+- Demonstrate that the recipe freeze predates search outcomes; test tamper,
+  future suffix, leaked held probes, missing support and resource fail-closed.
+- New study is complete only when the admitted budget and planned comparisons
+  are executed or an explicit owner-approved scope disposition exists. Economics
+  need not be positive. NO_SELECTION/NOT_ADMITTEDdoes not become scientific PASS
+  or absence-of-edge evidence. Final report must answer which diagnostic facts
+  changed the researcher's choice and what the actual new study did/did not add.
+
+**Budget / Evidence / Cleanup:**
+- Admission only: <=8fixed original full-account executions,0optimizer slots,
+  <=8MiB retained and16MiB scratch, one financial worker/thread, <=1.5GiB process
+  RSS, >=512MiBavailable RAM, >=5GiBdisk reserve beyond remaining forecast,
+ 30-minute wall guard. Record exact paths/pins before launch; no new environment,
+  wheel build, dependency download or service stop.
+- Financial research ceiling is NOT_ADMITTED until its measured per-candidate
+  time and lossless storage estimate fit available resources. Existing old
+  three-arm Mode5retention is692MiB; current free space is only about5.24GiB.
+  Do not launch an equivalent multi-alpha retention design under that reserve.
+  Prefer shared immutable inputs, one copy of each retained account, compressed
+  binary paths and cold per-trial metrics; do not remove scientific raw evidence
+  or weaken accounting verification to make a cap fit. Register any retention
+  change and actual audit/reproduction rights before execution.
+- Private lane `upgrade/local/mode5_upgrade_v1/m5-11-8/attempt-01/` and append-only
+  outputs `upgrade/private/mode5_upgrade_v1/m5-11-8/attempt-01/`; owned scratch
+  strictly below that output root. Preserve all old evidence and user changes.
+  Verify /procFD/cwd inactivity and protected hashes before deleting exact,
+  ignored reproducible scratch; retain failed receipts and disclose actual
+  available-byte delta, not apparent directory size. CI/release remains deferred.
+
+**Debt / Non-Goals:** no new ML model, Ridge tuning, Mode4rerun, default kernel
+activation, core accounting rewrite or universal economics claim. A close-clock
+public Mode5producer extension, fresh independent forward data, unsupported
+mixed-space sensitivity, broad router validation and the old parent research
+dispositions require their own explicit scope; report them rather than silently
+opening or closing them during this extra-alpha experiment.
+
+**Admission / Resource Amendment (2026-10-19, UTC):** original full-calendar
+controls complete twice per new alpha with independent path reconciliation and
+repeat hashes. The initial JSON/DataFrame receipt failure remains; its financial
+code is unchanged. A pre-finance neutral-design failure exposes decimal endpoint
+round-off in shared geometry. The narrow original-bound decode correction has
+43focused passing geometry/design tests; source and failed-design custody are
+retained before launching diagnostic accounts, with no range/seed change.
+Host process/FD/map/cwd review admits removal of eight exact superseded3.11/3.13
+consumer/build environments, preserving current3.12consumers, all artifacts,
+staging, logs/evidence and offline cache. Actual free-space recovery is
+1,299,812,352bytes; cleaned consumers require reinstallation before rerun.
+Research registration now admits one financial worker/thread, <=1.5GiBprocess
+RSS, >=512MiBavailable RAM, <=1GiBretained,16MiBscratch, six-hour wall ceiling
+and >=5GiBdisk reserve beyond the remaining forecast. Lossless original equity/
+positions/fees/funding and full whole/annual observations are retained per
+unique candidate; margin has original hashes and independent per-run comparison,
+with full margin/fill streams retained for selected audits. Existing raw evidence
+is never removed. The private legacy-close research binding is not a public
+producer promotion. See [current status](../docs/mode5/M5_11_8_RESEARCH_STATUS.md).
+
 <a id="mode5-m5-12"></a>
 ### Phase M5-12 - Local Package Qualification, Regression, Docs And Handoff
 
@@ -37418,7 +37617,7 @@ M5-11.4/11.5 retain their separately approved local closure. This planning
 request does not launch M5-12 or any CI, release or publication.
 **Goal:** deliver a reproducible privacy-safe local package and honest capability/
    scientific handoff covering the whole approved program before release approval.
-**Entry:** M5-01..11 including M5-11.4..11.7, M5-11.6.1 and ML-09.C reviewed dispositions, no blocking technical debt for claimed
+**Entry:** M5-01..11 including M5-11.4..11.8, M5-11.6.1 and ML-09.C reviewed dispositions, no blocking technical debt for claimed
    capabilities, explicit M5-12 approval. Remote/publish approval remains separate.
 **Detailed Guide:** [M5-12 work packages](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#phase-m5-12--qualification-docs-reproducibility-và-handoff),
 [7.8 reporting / 7.9 product gates](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#chapter-7),
