@@ -7,7 +7,12 @@
 additional-alpha market-state/actual-winner readbacks are complete locally;
 the missing SC/HASH/VWAP256-attempt formal arms are source-sealed and running
 under a resource-guarded exact-checkpoint queue, now one worker after the
-two-worker resource stop. Actual tested-neighbor survival is
+two-worker resource stop. The owner's full execution approval also covers the
+successor queue: remaining actual-winner checks, seven-alpha synthesis and
+terminal source/privacy/cleanup checks, without another per-step approval.
+The successor waits for the existing financial lock and all nine complete
+256-attempt receipts; it never changes the live study's pinned sources.
+Actual tested-neighbor survival is
 reported separately from the unmet radius-wide geometry coverage. See the
 [current evidence/limitations](../docs/mode5/M5_11_9_RESEARCH_STATUS.md).
 No completed optimizer is repeated. Parent disposition, M5-12 and release
@@ -27883,7 +27888,8 @@ Every phase below inherits this mandatory resource registration/cleanup exit.
 | [M5-11.7.2](#mode5-m5-11-7-2) | Fold consistency, R/Q and meta decision reports | Reviewed 11.7.1; sequential approval | M45R-01/02/03/04/07/08 | COMPLETE_LOCAL_REGISTERED_REPORTING_SCOPE |
 | [M5-11.7.3](#mode5-m5-11-7-3) | Broader integration, reporting cost and handoff | Reviewed 11.7.2; sequential approval | M45R-01..10 | COMPLETE_LOCAL_REGISTERED_REPORTING_SCOPE |
 | [M5-11.8](#mode5-m5-11-8) | Two additional private alphas: diagnostics, researcher recipe and actual matched calibration | Approved 128-point panels and six256-attempt studies; original-account/path/annual proof and cleanup | Registered N01..N08; guide M5T-031..110 | COMPLETE_LOCAL_REGISTERED_EXTRA_ALPHA_SCOPE; reviewed development, parent disposition still required |
-| [M5-12](#mode5-m5-12) | Local qualification/docs/handoff | M5-01..11 plus M5-11.4..11.8 dispositions reviewed | M5T-111..120 | NOT_STARTED; reporting/research handoff ready for owner scope review |
+| [M5-11.9](#mode5-m5-11-9) | Remaining original-alpha formal arms, actual-winner robustness and seven-alpha synthesis | Existing sealed studies plus guarded serial successor; no repeated completed optimizer | Registered C01..C06; guide M5T-031..110 | OWNER_APPROVED_EXECUTION / IN_PROGRESS; final receipt required, not just studies |
+| [M5-12](#mode5-m5-12) | Local qualification/docs/handoff | M5-01..11 plus M5-11.4..11.9 dispositions reviewed | M5T-111..120 | NOT_STARTED; reporting/research handoff ready for owner scope review |
 
 Respect the guide dependency graph. M5-05 and independent M5-06 preparation
 may overlap only by explicit owner approval after M5-04; M5-06 exit still needs
@@ -37834,6 +37840,49 @@ No core/alpha/default change, CI, push, merge, tag or publication is authorized.
   [current report](../docs/mode5/M5_11_9_RESEARCH_STATUS.md) for actual findings,
   admission errors, queued work, resource limits and claim boundaries.
 
+**End-To-End Execution Amendment (2026-10-19, UTC):**
+The owner reiterates approval of all C01..C06, including background completion;
+serial execution is an operational RAM constraint, not a new approval boundary.
+Keep the running source-frozen formal supervisor unchanged. A separately
+registered successor waits on the same exclusive financial lock, admits all
+nine exact-budget terminal receipts, then executes the following ordered tail:
+
+1. Register actual selected RSI/SC/HASH/VWAP winner identities and held rosters
+   before their new outcomes. Reuse original formal/checkpoint/audit evidence;
+   never repeat a completed optimizer. Fresh held accounts use the original
+   endpoint, clock, sizing and feedback; actual double-fee execution changes
+   both alpha/account fee inputs. Held results cannot replace a selected winner.
+2. Cold-attribute the original five neutral diagnostic panels and actual
+   winners to the same two registered state namespaces. Join their finite-panel
+   reference ranks with the completed N1/N2 regime readbacks. HMA's no-eligible
+   result remains explicit, without launching an unsupported formal search.
+3. Rebuild seven-alpha researcher JSON/Markdown: annual/state consistency,
+   activity/exposure, tails/DD, local downside and fee sensitivity, matched
+   recipe trade-offs, support/uncertainty and exact work counts. Preserve the
+   unfulfilled geometric-radius and independent-validation limitations.
+4. Validate all registered attempts/dispositions, winner/audit/path pins and
+   selector agreement; run affected tail regression, privacy and doc checks;
+   remove only the exact terminal test-fixture scratch after host review.
+   Emit a final research receipt and owner-review packet, not owner acceptance.
+
+The tail keeps the existing one-worker/thread,1GiB total retained-output,
+1.25GiB owned-RSS,512MiB available-RAM and5GiB disk-reserve limits. Its absolute
+wall deadline is inherited from the serial queue's original24-hour launch,
+not reset when the successor starts. Sources/inputs/outputs are pinned; only
+verified completed stages may be reused. A failed upstream receipt, accounting,
+source or resource check stops dependent claims and retains partial evidence.
+New small methodology research still requires its own proposal/approval after
+this research scope; parent M5-11, M5-12, CI and release are not auto-closed.
+
+**Attachment receipt:** source-pinned successor PID2383312 is running and waiting
+on the existing financial lock. All three SC256-attempt formal arms are now
+complete; HASH resumes its original saved study. `end-to-end-registration.json`,
+`end-to-end-launch.json` and `completion-queue/queue-spec.json` retain exact
+runtime/source/deadline/step identities. Current source checks comprise53queue/
+held-readback tests plus23synthesis tests;31overlapping held/synthesis tests also
+pass in the exact active queue environment. Original-account financial work is
+not claimed complete by these tests. Final `C06/complete.json` remains pending.
+
 <a id="mode5-m5-12"></a>
 ### Phase M5-12 - Local Package Qualification, Regression, Docs And Handoff
 
@@ -37846,7 +37895,7 @@ M5-11.4/11.5 retain their separately approved local closure. This planning
 request does not launch M5-12 or any CI, release or publication.
 **Goal:** deliver a reproducible privacy-safe local package and honest capability/
    scientific handoff covering the whole approved program before release approval.
-**Entry:** M5-01..11 including M5-11.4..11.8, M5-11.6.1 and ML-09.C reviewed dispositions, no blocking technical debt for claimed
+**Entry:** M5-01..11 including M5-11.4..11.9, M5-11.6.1 and ML-09.C reviewed dispositions, no blocking technical debt for claimed
    capabilities, explicit M5-12 approval. Remote/publish approval remains separate.
 **Detailed Guide:** [M5-12 work packages](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#phase-m5-12--qualification-docs-reproducibility-và-handoff),
 [7.8 reporting / 7.9 product gates](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#chapter-7),

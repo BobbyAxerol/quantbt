@@ -139,6 +139,38 @@ universal superiority.
 
 ## Exit Still Pending
 
+All of the following are already authorized under M5-11.9, including background
+execution. They are not separate approval requests. The existing formal queue
+retains its exact source/checkpoint identity; a guarded successor waits for its
+exclusive lock and nine complete256-attempt receipts, then runs the missing
+RSI/original-alpha held and actual-fee checks, original-panel regime readbacks,
+seven-alpha synthesis and terminal research qualification. It inherits the
+original24-hour deadline and unchanged resource limits. A technical/resource
+failure remains a retained failure, never an automatic phase PASS.
+
+The final private outputs are `C05/report.json.gz`, `C05/report.md` and
+`C06/complete.json`, with pinned inputs and a separate stage work ledger. Their
+existence/status must be checked before calling this scope complete; wiring
+the successor is not evidence that its financial work has already finished.
+
+### Successor Attached
+
+The source-pinned successor is running (owner PID2383312), waiting on the
+original supervisor's financial lock; it does not start a second financial
+worker. At the attachment check, **all three SC arms are complete at256attempts
+each** and HASH Raw/TPE has resumed its original checkpoint. HASH's other arms
+and all VWAP formal arms remain scheduled, not completed. No finished optimizer
+is restarted and no staged admission is substituted for a market result.
+
+The tail reuses the exact active `release-regression-v1` environment and pins its
+prefix/config and numeric package versions. Foreground verification includes
+53queue/readback tests and23synthesis tests; the31held/synthesis checks also pass
+in that exact queue environment (overlapping tests are not extra scientific
+samples). Ruff passes. Actual cold admission covers the old RSI inputs, six
+N1/N2 formal/winner/state joins and HMA's128-point matrix with no financial runs.
+The original five-panel regime and missing actual-winner financial checks still
+must finish through the registered tail before its terminal certificate exists.
+
 - Complete the nine formal arms or obtain an explicit owner disposition.
 - Qualify the newly selected original-alpha winners and remaining RSI held
   checks; old diagnostic-center probes cannot replace them.

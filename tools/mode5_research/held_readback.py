@@ -12,7 +12,8 @@ def account_summary(record):
         raise ValueError("original annual account views required")
     utilities = [row["utility"]["value"] for row in annual]
     # Daily paths remain in the authoritative observation, not copied per view.
-    compact = lambda row: {key: value for key, value in row.items() if key != "daily_returns"}
+    def compact(row):
+        return {key: value for key, value in row.items() if key != "daily_returns"}
     return dict(whole=compact(whole), annual=[compact(row) for row in annual],
         activity=record.get("original_measurement"),
         common_eligible=WholeAccountEligibility().eligible(whole, annual),

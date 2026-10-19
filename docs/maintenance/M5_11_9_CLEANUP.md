@@ -40,3 +40,23 @@ Final queue terminal cleanup remains part of the eventual phase closeout.
 Private append-only receipts: `consumer-cleanup-before.json.gz`,
 `consumer-cleanup-after.json`, `scratch-cleanup-before.json.gz` and
 `scratch-cleanup-after.json` under the registered M5-11.9 attempt directory.
+
+## End-To-End Tail Admission
+
+The new completion/held-readback checks pass53focused tests, with logs/XML
+retained. Exact `pre-tail-test-fixtures` scratch was reviewed against host
+processes and removed after pytest terminated. All399protected source/tooling
+and artifact checks remain unchanged. Logical fixture bytes were453,224;
+observed free-space increase was3,436,544bytes, with concurrent study writes
+disclosed rather than treating that difference as a causal reclaim benchmark.
+
+An initial cleanup helper import failed before removal; its failure receipt
+remains retained. The corrected import and subsequent successful cleanup are
+distinct events, not a rewritten success. No finance account, live checkpoint,
+environment, service, source alpha or native artifact was removed.
+
+The serial successor includes its own exact `tail-fixtures` cleanup after all
+financial workers and terminal tests exit. Its future cleanup receipt is not
+certified by this foreground admission. Partial held buffers, if encountered,
+are retained separately with provenance; completed optimizer evidence is reused,
+not deleted or recomputed.
