@@ -190,3 +190,40 @@ def test_accessors_reauthorize_every_call_and_have_no_finance_fit_search_or_rng_
 def test_reporting_accessors_do_not_eagerly_import_diagnostics_into_legacy_results():
     script="import sys; import quantbt.core.results; assert 'quantbt.diagnostics.decisions.completed' not in sys.modules"
     subprocess.run([__import__('sys').executable,'-B','-c',script],cwd=ROOT,check=True)
+
+
+def w3_metadata(row):
+    return dict(metadata_for(row),schema='quantbt-reactive-wfo-result-v1',engine='reactive_wfo_w3',
+        fold_account_policy='reset_flat',account_execution='segmented_reset_flat',continuous_equity_available=False)
+
+
+def test_w3_direct_metadata_is_read_without_inventing_continuous_equity():
+    row=fold(); _,access=inputs(row)
+    result=SimpleNamespace(metadata=w3_metadata(row))
+    report=ResearchDecisionReport.from_result(result,access=access,source_ref='synthetic-w3',role='synthetic')
+    expected=ResearchDecisionReport.from_walk_forward(result.metadata,access=access,source_ref='synthetic-w3',role='synthetic')
+    assert report.identity==expected.identity
+    assert report.to_dict()['summary']['continuous_accounts']==[dict(status='NOT_SUPPLIED')]
+
+
+@pytest.mark.parametrize('change',['engine','account','execution','continuous','ambiguous','accounts'])
+def test_w3_reporting_never_silently_promotes_carry(change):
+    row=fold(); _,access=inputs(row)
+    metadata=w3_metadata(row); options={}
+    if change=='engine': metadata['engine']='unknown'
+    elif change=='account': metadata['fold_account_policy']='carry'
+    elif change=='execution': metadata['account_execution']='continuous'
+    elif change=='continuous': metadata['continuous_equity_available']=True
+    elif change=='ambiguous': metadata['walk_forward']=metadata_for(row)
+    else: options['accounts']=(object(),)
+    with pytest.raises(ValueError,match='W3'):
+        ResearchDecisionReport.from_result(SimpleNamespace(metadata=metadata),access=access,
+            source_ref='synthetic-w3',role='synthetic',**options)
+
+
+def test_public_completed_example_is_numeric_and_sanitized():
+    from examples.completed_research_reporting import example_report
+    report=example_report()
+    assert report.to_dict()['summary']['cohorts']['all_calendar']['policies']['applied']['calendar_count']==12
+    assert 'lookback' not in report.to_json(detail=True)
+    assert 'Mean Q' in report.to_markdown()

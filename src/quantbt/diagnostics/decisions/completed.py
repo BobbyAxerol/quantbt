@@ -13,9 +13,21 @@ def from_result(result, *, access, source_ref, role='diagnostic_development', **
     if not isinstance(source_ref, str) or not source_ref.strip():
         raise ValueError('explicit original completed-result source reference required')
     metadata = getattr(result, 'metadata', None)
-    if not isinstance(metadata, Mapping) or not isinstance(metadata.get('walk_forward'), Mapping):
+    if not isinstance(metadata, Mapping):
         raise ValueError('completed public WFO result metadata required; reporting never runs a strategy')
-    wf = metadata['walk_forward']
+    if metadata.get('schema') == 'quantbt-reactive-wfo-result-v1':
+        if ('walk_forward' in metadata or metadata.get('engine') != 'reactive_wfo_w3'
+                or metadata.get('fold_account_policy') != 'reset_flat'
+                or metadata.get('account_execution') != 'segmented_reset_flat'
+                or metadata.get('continuous_equity_available') is not False):
+            raise ValueError('original unambiguous W3 reset-flat metadata required; carry is not inferred')
+        if options.get('accounts'):
+            raise ValueError('W3 segmented reset-flat evidence cannot carry a continuous-account report')
+        wf = metadata
+    else:
+        wf = metadata.get('walk_forward')
+        if not isinstance(wf, Mapping):
+            raise ValueError('completed public WFO result metadata required; reporting never runs a strategy')
     mode = wf.get('optimization_mode')
     if mode == 'mode_4_is_only_robust':
         return ResearchDecisionReport.from_walk_forward(
