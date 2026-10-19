@@ -37679,6 +37679,119 @@ occupy a slot. This scheduling permission is not a benchmark speedup claim.
   broader whole-procedure claims. M5-12, CI, merge/tag and publication remain
   unstarted pending owner review; completed optimizers are not repeated.
 
+<a id="mode5-m5-11-9"></a>
+### Phase M5-11.9 - Regime, Actual-Winner Robustness And Remaining Formal Coverage
+
+**Status:** OWNER_APPROVED_EXECUTION / ADMISSION_IN_PROGRESS, 2026-10-19.
+The owner explicitly requests completion of the five remaining research gaps,
+not another release or a change to the Mode5 scientific direction. Earlier
+receipts remain immutable. This phase precedes M5-12 and does not activate it.
+
+**Goal:** make the evidence answer whether one fixed actual dictionary retains
+economic quality across market environments and feasible parameter changes,
+instead of presenting aggregate Sharpe/DD/utility as a robustness certificate.
+Complete missing original-alpha formal comparisons, qualify the two new alphas
+under the same existing measurement methods, and reconcile the parent scope.
+
+**Detailed Guide:** [five axes and six matrices](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#chapter-4),
+[dual environments](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#46-trục-3--dual-perspective-environments-và-chronology),
+[local robustness and held directions](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#454-local-robustness-phải-chủ-động-và-độc-lập-sampler),
+[batteries and matched comparisons](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#49-multi-hypothesis-empirical-battery-giữ-năm-chiều-làm-rõ-mỗi-phép-thử),
+[utility and inference](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#chapter-5),
+[freezing](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#67-exact-freezing-points),
+[product gates](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#79-acceptance-matrix-theo-sản-phẩm-không-chỉ-phase),
+[existing environment contract](../docs/mode5/ENVIRONMENT_CONTRACT_V1.md),
+[current parent ledger](../docs/mode5/M5_11_RESEARCH_COVERAGE_DISPOSITION.md),
+[report integration](../docs/diagnostics/REPORTING_COVERAGE_AND_HANDOFF.md)
+and [cleanup](../docs/BUILD_TEST_CLEANUP.md).
+
+**Contracts / Scope Lock:**
+- Preserve the already executed128-point panels,256-attempt studies, seed731,
+  frozen objective versions, whole-account mandate, actual financial routes,
+  source-specific sizing, clocks, costs and terminal policies. Raw/TPE means
+  raw whole daily Sharpe feedback and highest eligible raw-Sharpe selection,
+  not the legacy plateau selector. Do not rerun completed optimizers.
+- New N1/N2 readbacks and actual-winner checks keep their original2020-01-01
+  through2026-10-01exclusive calendar. Original SC/HASH/VWAP comparisons retain
+  their qualified2020-01-01 through2026-10-06exclusive diagnostic scope. Match
+  all arms within an alpha exactly; disclose the five-day cross-study difference
+  and family-specific economics rather than invent a matched cross-alpha race.
+- Reuse the already qualified168-hour prior-closed-bar trend/volatility/activity
+  features,quantiles(.25,.75), descriptive and decision-vintage namespaces.
+  Do not fit a new regime model or silently replace annual objective coordinates.
+  Report calendar and market-state views separately; overlapping states are not
+  independent observations and disjoint prices/Sharpe are never spliced.
+- New actual-winner probes are held descriptive validation, never selection
+  evidence or a reason to replace an old winner. Use schema-aware signed and
+  adjacent feasible directions from the existing geometry owner; freeze the
+  exact roster, radii, coverage and source identities before their outcomes.
+  Actual2x-fee stress reruns the strategy/account, not repriced saved fills.
+- Complete the original SC/HASH/VWAP baseline/recipe-TPE/one-compatible-sampler
+  comparison,256attempts/arm, only after the pre-search dossier/recipe seal and
+  original-account parity admission. No HMA search without an eligible cohort;
+  keep its bounded NO_SELECTION rather than relaxing its mandate.
+- No automatic sampler/selector router, new estimator, objective coefficients,
+  relaxed gate, seed/range shopping, strategy rewrite, default activation or
+  independent-OOS claim. Later regime readbacks cannot backdate prior advice.
+
+**Ordered Work Packages:**
+1. C01Admission/resource: reconcile exact old source/native/market/account pins;
+   inspect live processes/free bytes/inodes; inventory only inactive reproducible
+   scratch; reuse one current environment. Register storage/RSS/financial-work
+   forecasts before execution. Preserve all old failures and financial evidence.
+2. C02New-alpha environments: cold-reduce saved diagnostic/formal/selected N1/N2
+   accounts through the same original environment/attribution owners. Export
+   per-state durations, episodes, PnL, tails, participation, costs, concentration,
+   ranks and finite-panel regret, with explicit unknown/missing/support masks.
+   Reconcile each family's PnL to its original one continuous account. Test
+   frozen-past thresholds/labels under future mutation separately from today's
+   valid descriptive fit; never infer a historical causal recipe decision.
+3. C03Actual winners: register and run only missing held parameter-neighbor and
+   actual2x-fee cells for the existing RSI/N1/N2 selected dictionaries and later
+   admitted SC/HASH/VWAP winners. Reuse exact identities when already available.
+   Report center quality, per-direction downside/survival, clipping/aliases,
+   coverage and regime-specific weaknesses. A finite neighborhood is not a
+   global basin and an inactive or losing flat surface is not economic success.
+4. C04Missing formal arms: inspect the existing SC/HASH/VWAP dossiers first;
+   freeze one supported recipe and one compatible sampler challenger per alpha
+   before new formal outcomes. Use actual original financial engines and shared
+   sampler/ordered study/selector contracts; retain all256attempt dispositions,
+   source/cutoff/RNG/work identities and independent selected-account audits.
+   Do not reuse other-alpha weights or a winner-only sampler comparison.
+5. C05Joint interpretation: join seven-alpha diagnostics, selected environment
+   matrices, local/stress evidence and actual matched studies. Distinguish
+   sampler generation, fixed-pool selection and whole-procedure claims; explain
+   bull dominance, defensive dilution, fragile peaks and uncertainty using
+   actual data. No recipe superiority inferred from schema compatibility.
+6. C06Closeout: affected regression/oracles, exact source/privacy/reproduction
+   checks, concise researcher JSON/Markdown and full private appendix, work/RSS
+   ledger, exact scratch cleanup, scoped commits and parent coverage disposition
+   for owner review. Do not declare parent acceptance or M5-12/release approval.
+
+**Tests / Exit Gate:** every claimed environment/local/stress/formal comparison
+has original measured inputs, aligned units/roles, declared coverage and honest
+missing states; original account/annual/state PnL reconcile; selected vectors,
+baseline paths and old receipts remain unchanged. Regime/geometry/selector
+oracles, future-mutation and access-negative tests pass on the actual admitted
+contracts. Full budget or explicit owner disposition is required for a formal
+arm. Negative economics is a valid finding, not permission to retune.
+
+**Resource / Cleanup Gate:** stage compact cold outputs first (forecast<=64MiB)
+and preserve>=5GiB filesystem reserve beyond remaining forecast. No build or
+dependency install. Measure original fixed controls before forecasting formal
+or probe runs; do not launch if forecast/RAM guards fail. Each finance study is
+one thread with fresh mutable state; at most two workers subject to measured
+owned RSS and>=512MiB RAM available. Retain compact authoritative evidence once,
+not duplicated per-bar JSON. Exact phase financial/retention caps are sealed in
+the admission registration before new outcomes; increasing them needs an
+explicit amendment, not a silent resource-gate bypass.
+
+**Debt / Rollback:** technical failure blocks dependent claims; scoped negative,
+insufficient or incompatible research remains explicit. Optional hypothetical
+universal routing/global sensitivity is not silently claimed complete. Disable
+new readbacks to return to old report views; originals and all evidence remain.
+No core/alpha/default change, CI, push, merge, tag or publication is authorized.
+
 <a id="mode5-m5-12"></a>
 ### Phase M5-12 - Local Package Qualification, Regression, Docs And Handoff
 
