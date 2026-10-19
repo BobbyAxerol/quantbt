@@ -227,3 +227,17 @@ def test_public_completed_example_is_numeric_and_sanitized():
     assert report.to_dict()['summary']['cohorts']['all_calendar']['policies']['applied']['calendar_count']==12
     assert 'lookback' not in report.to_json(detail=True)
     assert 'Mean Q' in report.to_markdown()
+
+
+def test_public_mode5_projection_does_not_revalidate_an_already_verified_snapshot(mode5_fixture,monkeypatch):
+    runtime_metadata,_=mode5_fixture
+    metadata,params=runtime_metadata(continuous=True)
+    decision=DecisionReport.read(metadata,selected_params=params)
+    witness=AccessWitness('synthetic','synthetic',0,10**18,10**18)
+    access=AccessPolicy('full-development',('synthetic',),('synthetic',),10**18,'diagnostic')
+    report=ResearchDecisionReport.mode5(decision,access=access,witness=witness,source_ref='synthetic')
+    expected=report.to_json(detail=True)
+    def forbidden(*a,**k):
+        pytest.fail('renderer repeated cold input validation after report ownership was verified')
+    monkeypatch.setattr(DecisionReport,'__post_init__',forbidden)
+    assert report.to_json(detail=True)==expected

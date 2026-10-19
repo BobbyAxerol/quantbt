@@ -3,8 +3,7 @@
 from html import escape
 import json
 
-from quantbt.mode5.decision_report import DecisionReport
-from quantbt.mode5.dossier.records import Record
+from quantbt.mode5.decision_report import _public as mode5_public_snapshot
 
 from .reduction import POLICIES
 
@@ -69,7 +68,8 @@ def public_view(data,*,detail):
         payload=dict(view=data['payload']['view'],decision_use=data['payload']['decision_use']),
         limits=data['limits'],private_content='REDACTED')
     if data['mode']=='mode5':
-        original=DecisionReport(Record.of(data['payload']['mode5_snapshot'])).to_dict()
+        # ResearchDecisionReport validates the immutable snapshot at assembly/reload.
+        original=mode5_public_snapshot(data['payload']['mode5_snapshot'])
         result['summary']=dict(mode5_summary=original['summary'],mode5_report=original,
             continuous_accounts=_accounts(data['payload']['accounts']) or [dict(status='NOT_SUPPLIED')])
         return result
