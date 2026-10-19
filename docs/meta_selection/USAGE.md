@@ -279,6 +279,12 @@ observer revisions. It provides exact cohorts, R/Q/IS decomposition, decision
 trace, matched prediction-control losses and original continuous-account scope.
 It does not rerun finance, fit a model or change selected params. Missing
 observations remain missing; public exports redact private strategy identifiers.
+Use `endpoint.research_report(access=..., source_ref=...)` or the same method
+on a completed ordinary result. Prepared W3 uses
+`ResearchDecisionReport.from_result(...)` with its direct reset-flat metadata.
+Diagnostics-first Mode 5 additionally requires its explicit full-development
+witness; neither accessor grants selection rights or broadens runtime modes.
+See [coverage and final local handoff](../diagnostics/REPORTING_COVERAGE_AND_HANDOFF.md).
 
 No change is needed for existing alpha calls. New options are explicit; removing
 `sampler_config`, `meta_selection` and `meta_history` restores the old path.

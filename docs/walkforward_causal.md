@@ -8,6 +8,13 @@ It complements the full [methodology](walkforward_methodology_vi.md) and the
 complete [endpoint reference](endpoint.md#walk-forward). Start here when
 selecting a schedule for a notebook, service, or stakeholder report.
 
+Completed feature-branch Mode 4 runs with typed observer evidence can use the
+opt-in [fold research report](diagnostics/FOLD_DECISION_REPORTS.md) for exact
+cohorts, R/Q/IS, predicted versus realized decisions and original account scope.
+Reporting grants no access to future data and does not change the chosen schedule.
+Read the [coverage/handoff](diagnostics/REPORTING_COVERAGE_AND_HANDOFF.md) before
+treating an available helper as support for another meta mode or financial route.
+
 ## Install
 
 The base package can run ordinary backtests. Parameter search requires the

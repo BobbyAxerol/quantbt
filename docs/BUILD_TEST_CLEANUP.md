@@ -8,6 +8,11 @@ The [unified plan](../upgrade/implement.md#mandatory-buildtest-cleanup-gate) and
 [workspace rules](../AGENTS.md#build-and-test-cleanup) govern this procedure.
 
 Latest shared-reporting cleanup:
+[M5-11.7.3](maintenance/M5_11_7_3_CLEANUP.md) removes exact inactive fixture
+scratch after terminal reporting workers, preserves 259 protected inputs,
+four prior receipts and all scientific/source artifacts, and observes 3.66 MiB
+immediate recovery. No global cache, environment or service removal occurs.
+The previous
 [M5-11.7.2](maintenance/M5_11_7_2_CLEANUP.md) removes only inactive fixture scratch,
 rechecks 262 protected inputs and original evidence, and observes 8.46 MiB
 immediate recovery; retained reporting receipts stay below 64 MiB. No build,

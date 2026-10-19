@@ -1018,3 +1018,16 @@ hashes and cleanup are separate from remote/public and economic acceptance.
 The [conditional sampler contract](meta_selection/CONDITIONAL_POLICIES.md)
 does not broaden the meta mode/domain matrix. Methods, accounts and default
 selection behavior remain unchanged by package qualification.
+
+## 20. Shared Research Reporting (Feature Branch)
+
+The optional [pre-search report](diagnostics/PRESEARCH_RESEARCHER_REPORT.md)
+describes permitted-prefix geometry, activity, fragility and sampler/selector
+evidence before researcher choice. It does not activate a recipe. Completed
+Mode 4 reports use [one shared reducer/API](diagnostics/FOLD_DECISION_REPORTS.md)
+for exact cohorts and signed R/Q/IS decomposition: decay reduction is not the
+same quantity as forward improvement, and own-metric masks may differ.
+Mode 5 keeps its fixed full-development dictionary and dependent attribution.
+The [coverage and handoff](diagnostics/REPORTING_COVERAGE_AND_HANDOFF.md)
+separates source-qualified readers from financial/runtime capabilities and
+future installed qualification. No model, objective or scientific gate changes.

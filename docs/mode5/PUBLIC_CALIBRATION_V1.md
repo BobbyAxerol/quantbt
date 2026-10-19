@@ -1,5 +1,12 @@
 # Public Diagnostics-First Mode 5
 
+For a completed run, the opt-in [research report](../diagnostics/FOLD_DECISION_REPORTS.md)
+reads the original decision/runtime through `endpoint.research_report(...)`
+with explicit full-development permissions and witness. It does not rerun the
+provider, change a winner or replace the existing report defaults. Source-only
+[coverage and package handoff](../diagnostics/REPORTING_COVERAGE_AND_HANDOFF.md)
+are distinct from installed or published availability.
+
 ## Entry And Scope
 
 This is an **opt-in full-development calibration**, not independent OOS proof

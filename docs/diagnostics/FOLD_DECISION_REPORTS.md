@@ -15,6 +15,59 @@ signatures, metrics, report defaults, financial ownership and Ridge V1 are
 unchanged. This is feature-branch source functionality, not a published-wheel
 or expanded meta-capability claim.
 
+## Endpoint And Result Access
+
+On a completed public WFO run the same reader is available without extracting
+metadata manually:
+
+```python
+report = endpoint.research_report(access=access, source_ref="my-original-run")
+# Or the same completed legacy/V2/event/score result:
+report = result.research_report(access=access, source_ref="my-original-run")
+# Works with a result-like object too, including prepared numeric W3:
+report = ResearchDecisionReport.from_result(
+    result, access=access, source_ref="my-original-run",
+)
+print(report.to_markdown())
+public_json = report.to_json()
+private_snapshot = report.to_json(private=True, detail=True)
+```
+
+`access` must be an explicit existing reporting policy as below, not a permission
+inferred from the result or final clock. The accessor returns a report object,
+does not print, store an attached cache, enable an observer or run a strategy.
+`full_report()`, `show_metrics()`, plots and all constructor defaults are unchanged.
+Merely having the accessor on an inherited options/event result does not make
+options, every WFO mode or a standalone backtest eligible for meta reporting.
+
+Prepared W3 uses its explicit root metadata schema, not the generic nested
+`walk_forward` key. Its declared reset-flat/segmented/no-continuous-equity
+markers must agree; supplying a continuous-account report is rejected. Its
+result-like interface is `ResearchDecisionReport.from_result(...)`, not a new
+method added to the reactive engine/result owner.
+
+For diagnostics-first Mode 5 use the same call with its original witness:
+
+```python
+report = endpoint.research_report(
+    access=full_development_access,
+    source_ref="my-original-calibration",
+    witness=full_development_witness,
+    role=full_development_witness.role,
+    max_report_bytes=16 * 1024**2,  # explicit budget for a large retained ledger
+)
+```
+
+The selected dictionary comes from the original `best_trial.params` and must
+match the runtime decision. No missing dictionary, observation or full-data
+witness is guessed. Mode 5 does not accept causal prefix/cohort overrides.
+Native/meta-off runs without observer labels retain their old reports; this
+new comparison accessor explicitly reports missing evidence rather than
+backtesting counterfactuals. Typed original records may still be supplied to
+`mode4(..., decision=None)` for the disabled-policy view.
+
+See [coverage, unavailable fields and M5-12 handoff](REPORTING_COVERAGE_AND_HANDOFF.md).
+
 ## Read A Completed Mode 4 Run
 
 ```python
@@ -193,10 +246,13 @@ Budgets fail without truncation: default 2,048 folds, 250,000 input candidates,
 reports and 4 MiB assembled private JSON. Explicit larger report caps are allowed;
 real retained Mode 5 snapshots use 16 MiB in local qualification. Reporting is
 cold Python/NumPy with shared numeric owners, not new Rust execution or an
-all-workload speedup claim. Wider endpoint accessors remain M5-11.7.3.
+all-workload speedup claim. Cold endpoint/result accessors are qualified in
+[M5-11.7.3](M5_11_7_3_IMPLEMENTATION_REPORT.md); installed qualification remains
+M5-12, not inherited from source tests.
 
 Run [the synthetic example](../../examples/shared_decision_reporting.py):
 
 ```bash
 PYTHONPATH=src:. .venv/bin/python -m examples.shared_decision_reporting
+PYTHONPATH=src:. .venv/bin/python -m examples.completed_research_reporting
 ```

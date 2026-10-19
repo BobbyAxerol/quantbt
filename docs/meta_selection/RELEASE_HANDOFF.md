@@ -60,6 +60,17 @@ not a substitute for final-source integrated remote/public release gates.
 
 ## Reporting Local Closure
 
+**Shared research reporting (2026-10-19 UTC):** M5-11.7.1/2/3 complete their
+registered source-only scope. The [coverage and M5-12 handoff](../diagnostics/REPORTING_COVERAGE_AND_HANDOFF.md)
+and [final local report](../diagnostics/M5_11_7_3_IMPLEMENTATION_REPORT.md)
+cover pre-search diagnostics, fold R/Q/meta decisions, original account scope,
+additive endpoint/result readers, permissions, privacy and matched cold-render
+costs. There are no new financial research/optimizer/model-fit runs or default
+changes. Existing economic findings retain their actual evidence and scope.
+This later source is **not** certified by the historical artifacts below.
+M5-12 remains unstarted pending reviewed entry; its exact new source/member/
+installed-consumer receipts must precede separately approved CI/publication.
+
 **Current MET-03 reporting source (2026-10-08):** the
 [copy/cost report](../metrics/MET03_COPY_COST_REPORT.md),
 [source receipt](../metrics/evidence/met03/run-20261008T162715710901Z/receipt.json),

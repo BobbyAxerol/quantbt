@@ -1,6 +1,13 @@
 # Mode 5 Decision Qualification
 
 `DecisionReport` is an additive cold reader for diagnostics-first Mode 5.
+
+The same original owner is available through the additive
+`endpoint.research_report(...)` / `result.research_report(...)` interface with
+explicit full-development access/witness. It retains the actual dictionary and
+does not convert calibration into causal WFO; see the
+[shared API](../diagnostics/FOLD_DECISION_REPORTS.md) and
+[coverage/handoff](../diagnostics/REPORTING_COVERAGE_AND_HANDOFF.md).
 It does not change an endpoint, objective, sampler, account engine or selected
 dictionary. Reading/rendering it executes no financial query, no reduction and
 no RNG draw. It does not grant current evidence rights or deployment permission.

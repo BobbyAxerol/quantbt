@@ -915,8 +915,21 @@ One final original account executes stitched targets, not concatenated fold
 equities. The [E03 report](../docs/meta_selection/QMSE03_REPORT.md) separates
 software validity, signed decay $R$, forward $Q$, uncertainty and owner promotion.
 Simulation evidence for a ladder is not proof for a private real DCA alpha.
-The completed E03 study has no registered economic gate PASS, despite positive
-mean decay reduction. Prepared-unit additionally fails post-liquidation metric
-parity: zero-base daily sample inclusion changes the objective and later search.
-Matching equity alone is insufficient. This is an open compatibility repair,
-not authorization to change Ridge labels, censoring or the scientific estimator.
+The original E03 study has no registered economic gate PASS, despite positive
+mean decay reduction. Its historical prepared-unit post-liquidation metric
+parity failure concerned zero-base daily sample inclusion and downstream
+search, not just equity. The narrow compatibility defect was subsequently
+closed under [E03-G01](../docs/meta_selection/QMSE03_G01_CLOSURE.md); original
+failed evidence and economic outcomes remain unchanged. The repair does not
+authorize changes to Ridge labels, censoring or the scientific estimator.
+
+## Shared Cold Research Reports
+
+The additive [pre-search](../docs/diagnostics/PRESEARCH_RESEARCHER_REPORT.md)
+and [completed decision](../docs/diagnostics/FOLD_DECISION_REPORTS.md) contracts
+retain original numeric owners, permissions and masks. The endpoint/result
+`research_report(...)` accessor reads retained evidence only. Mode 4 R/Q/IS,
+same-anchor/fallback cohorts and final continuous accounts stay distinct;
+prepared W3 stays reset-flat and Mode 5 stays full-development, not independent
+OOS. Missing probe/campaign/return evidence is not inferred from Sharpe/equity.
+See [source coverage and M5-12 handoff](../docs/diagnostics/REPORTING_COVERAGE_AND_HANDOFF.md).

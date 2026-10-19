@@ -11,7 +11,7 @@ model tournament, automatic
 recipe router, default/scientific change, optional financial probes, CI or
 publication is activated.
 
-**Current reporting status (2026-10-18, UTC):**
+**Current reporting status (2026-10-19, UTC):**
 [M5-11.7.1](#mode5-m5-11-7-1) completes its approved shared pre-search reporting
 scope locally. Additive typed JSON/Markdown, source-bound interpretation, sampler
 compatibility cards and privacy controls are qualified on retained evidence;
@@ -21,8 +21,13 @@ See the [implementation/coverage report](../docs/diagnostics/M5_11_7_1_IMPLEMENT
 fold consistency, R/Q/IS, decision/support/control-loss and original account
 views are qualified on370retained origin slots plus two Mode5decision snapshots.
 See its [implementation report](../docs/diagnostics/M5_11_7_2_IMPLEMENTATION_REPORT.md).
-M5-11.7.3, M5-12 and CI/release remain unstarted and need sequential approval.
-This does not close the whole parent reporting phase or change scientific policy.
+[M5-11.7.3](#mode5-m5-11-7-3) now completes approved public accessor integration,
+source regression, matched reporting cost, coverage/docs and cleanup. The
+parent M5-11.7 reporting scope is COMPLETE_LOCAL_REGISTERED_REPORTING_SCOPE;
+see [final source qualification](../docs/diagnostics/M5_11_7_3_IMPLEMENTATION_REPORT.md)
+and [M5-12 handoff](../docs/diagnostics/REPORTING_COVERAGE_AND_HANDOFF.md).
+Scientific policies and all original economic findings remain unchanged.
+M5-12 and CI/release remain unstarted; reviewed handoff is not automatic launch.
 
 **Current research status:** [M4-ML-09](#m4-ml-09) is
 COMPLETE_LOCAL_REGISTERED_TECHNICAL_SCOPE, supported by the
@@ -27848,12 +27853,12 @@ Every phase below inherits this mandatory resource registration/cleanup exit.
 | [M5-11.3](#mode5-m5-11-3) | Multi-origin fixed-policy transfer and economic qualification | Frozen M5-11.2 outputs and prefix studies | M5T-101..110 / EH-06..12 | Registered bounded accounts and accounting COMPLETE; economics INCONCLUSIVE retained; actual bounded 2023-prefix procedure qualified separately in M5-11.5, broader learned-router claim remains unqualified |
 | [M5-11.4](#mode5-m5-11-4) | Full 2020--2026 development profiling, missing diagnostics and readable researcher dossier | All 1,219 cells; five dossiers; guarded/daily readback and cleanup PASS | M5D-01..10; guide M5T-031..090 | COMPLETE / TECHNICALLY_VALID; DESCRIPTIVE_ONLY |
 | [M5-11.5](#mode5-m5-11-5) | Evidence-guided sampler/selector decisions, static calibration and measured handoff | Source-bound mandates/plans, five worksheets, three RSI256 studies, paired original-prefix proof and cleanup | M5C-01..10; guide M5T-061..110 | COMPLETE_LOCAL_REGISTERED_C01_C08; reviewed development, not independent OOS |
-| [M5-11.6](#mode5-m5-11-6) | Four-alpha long-horizon Mode 4 native/meta comparison | Owner approval; source/route/maturity/budget registration | M4X-01..10; QMS guide sections 5..8/14 | APPROVED / IN_PROGRESS; actual-route and resource admission before long studies |
-| [M5-11.7](#mode5-m5-11-7) | Complete Mode 4/5 decision, participation and fragility reports | Sequential subphase approval; existing sealed evidence | M45R-01..10; guide M5T-031..090/101..110 | IN_PROGRESS; 11.7.1/11.7.2 COMPLETE_LOCAL, 11.7.3 NOT_STARTED |
+| [M5-11.6](#mode5-m5-11-6) | Four-alpha long-horizon Mode 4 native/meta comparison | Existing reviewed closeout; no new research activation | M4X-01..10; QMS guide sections 5..8/14 | COMPLETE_LOCAL_REGISTERED_WORK / ECONOMIC_FAMILY_INCONCLUSIVE |
+| [M5-11.7](#mode5-m5-11-7) | Complete Mode 4/5 decision, participation and fragility reports | Sequential approved subphases; existing sealed evidence | M45R-01..10; guide M5T-031..090/101..110 | COMPLETE_LOCAL_REGISTERED_REPORTING_SCOPE; 11.7.1/2/3 source-qualified |
 | [M5-11.7.1](#mode5-m5-11-7-1) | Shared pre-search diagnostics, recipe fit and source-bound interpretation | ML-09.C local exit; owner approval | M45R-01/03/04/05/06/08 | COMPLETE_LOCAL_REGISTERED_REPORTING_SCOPE |
 | [M5-11.7.2](#mode5-m5-11-7-2) | Fold consistency, R/Q and meta decision reports | Reviewed 11.7.1; sequential approval | M45R-01/02/03/04/07/08 | COMPLETE_LOCAL_REGISTERED_REPORTING_SCOPE |
-| [M5-11.7.3](#mode5-m5-11-7-3) | Broader integration, reporting cost and handoff | Reviewed 11.7.2; sequential approval | M45R-01..10 | NOT_STARTED |
-| [M5-12](#mode5-m5-12) | Local qualification/docs/handoff | M5-01..11 plus M5-11.4..11.7 dispositions reviewed | M5T-111..120 | NOT_STARTED; awaits reviewed supplementary handoff |
+| [M5-11.7.3](#mode5-m5-11-7-3) | Broader integration, reporting cost and handoff | Reviewed 11.7.2; sequential approval | M45R-01..10 | COMPLETE_LOCAL_REGISTERED_REPORTING_SCOPE |
+| [M5-12](#mode5-m5-12) | Local qualification/docs/handoff | M5-01..11 plus M5-11.4..11.7 dispositions reviewed | M5T-111..120 | NOT_STARTED; reporting handoff ready for owner entry review |
 
 Respect the guide dependency graph. M5-05 and independent M5-06 preparation
 may overlap only by explicit owner approval after M5-04; M5-06 exit still needs
@@ -36814,8 +36819,8 @@ bounded subphases, not another open-ended research program.
 | 1 | [M4-ML-09.C](#m4-ml-09-closeout) | Mature causality, measurement/accounting and terminal receipt | COMPLETE_LOCAL_REGISTERED_TECHNICAL_SCOPE / PASS |
 | 2 | [M5-11.7.1](#mode5-m5-11-7-1) | Shared pre-WFO diagnostics, sampler/selector fit and bias explanations | COMPLETE_LOCAL_REGISTERED_REPORTING_SCOPE |
 | 3 | [M5-11.7.2](#mode5-m5-11-7-2) | Shared Mode4fold consistency/meta decision and Mode5 views | COMPLETE_LOCAL_REGISTERED_REPORTING_SCOPE |
-| 4 | [M5-11.7.3](#mode5-m5-11-7-3) | Public integration, source tests, reporting cost, privacy/docs/handoff | NOT_STARTED; after11.7.2 |
-| 5 | [M5-12](#mode5-m5-12) | Exact local package/installed qualification | Existing conditional approval; entry NOT_MET; not launched |
+| 4 | [M5-11.7.3](#mode5-m5-11-7-3) | Public integration, source tests, reporting cost, privacy/docs/handoff | COMPLETE_LOCAL_REGISTERED_REPORTING_SCOPE |
+| 5 | [M5-12](#mode5-m5-12) | Exact local package/installed qualification | Existing conditional approval; reporting handoff READY_FOR_OWNER_REVIEW; not launched |
 | Later | Remote / release | Final-source CI, owner release scope, publication/public proof | Separate owner approval; no workflow/push/tag/upload now |
 
 Read [new detailed reporting/closure guidance](QUANTBT_MODE4_META_LEARNER_RESEARCH_GUIDE_V1.md#mlr-s16).
@@ -36899,8 +36904,9 @@ rerun, remote CI, publication or automatic advance. Commit local closure only.
 <a id="mode5-m5-11-7"></a>
 ### Phase M5-11.7 - Mode 4/5 Complete Researcher Reports And Decision Qualification
 
-**Status:** OWNER_APPROVED_REPORTING_SCOPE / IN_PROGRESS; 11.7.1/11.7.2 COMPLETE_LOCAL,
-11.7.3 NOT_STARTED. Latest ACT2approval
+**Status:** COMPLETE_LOCAL_REGISTERED_REPORTING_SCOPE (2026-10-19UTC);
+11.7.1/11.7.2/11.7.3 locally source-qualified. This does not activate M5-12,
+new scientific/financial work or CI/release. The original ACT2approval
 is recorded2026-10-18UTC. Execute the three bounded subphases below sequentially
 after [ML-09.C](#m4-ml-09-closeout), following the requested individual review.
 Earlier research remains KEEP_FROZEN_V1, not automatic learner activation.
@@ -37278,7 +37284,9 @@ report integration, not an implicit recipe deployment.
 <a id="mode5-m5-11-7-3"></a>
 #### M5-11.7.3 - Public Integration, Parity, Reporting Cost And Handoff
 
-**Status:** NOT_STARTED; after11.7.2acceptance and sequential owner review.
+**Status:** COMPLETE_LOCAL_REGISTERED_REPORTING_SCOPE (2026-10-19UTC), after
+owner approval and reviewed11.7.2local exit. Additive cold accessor/source
+qualification only; no M5-12, build, finance/search/model fit, CI or release.
 Maps original R08 and all remaining M45R gates; optional R06 stays deferred.
 **Goal:** make the richer reports discoverable, compatible, fast on the cold
 path, reproducible and privacy-safe before M5-12local artifact qualification.
@@ -37316,6 +37324,62 @@ latency assertion. No package build, remote CI, push/merge/tag/publication here.
 **Debt / Boundary:** unsupported optional fields remain named, never estimates
 invented from equity alone. M5-12entry is a reviewed handoff, not automatic
 release. Further256..412trial/model/recipe studies remain separately proposed.
+
+**Execution Receipt (2026-10-19, UTC):**
+- Additive endpoint/ordinary legacy,V2,event,scalar result `research_report`
+  methods share `ResearchDecisionReport.from_result`, with explicit access and
+  source identity. Existing fields, signatures and every prior AST node match
+  baseline1633809after removing only six new lazy accessor methods. No default
+  report, engine, optimizer, metric, backend/Rust, model or alpha change.
+- Mode4requires original per_fold_causal sidecars/typed observer records;
+  absent native/meta-off observations fail explicitly without replay. Prepared
+  W3direct metadata is recognized separately and reset-flat markers enforced;
+  continuous-account attachment is denied. Diagnostics-first Mode5uses the
+  original reader, actual dictionary and explicit full-development witness.
+  Nested Mode1runtime remains distinct and is not certified by this raw Mode4
+  comparison reader. Helpers do not activate unsupported financial routes.
+- Complete M45R-01..10coverage/field/source/null/route matrix, source-only
+  handoff, normal call examples, official methodology/usage and privacy docs
+  are delivered. Earlier E03-G01 methodology wording is reconciled with its
+  existing closure; old scientific evidence/receipts stay intact. Optional
+  R06accounts, missing campaigns/probes/factors and independent inference are
+  not invented or launched to fill a report. All original outcomes remain.
+- Final affected suite416PASS in72.76seconds plus six distinct synthetic
+  privacy archive controls PASS in0.39seconds. Existing toy-engine fixtures
+  are not new alpha research runs. Copy/pickle/reload/access, active/shadow/
+  off, non-WFO, W3reset scope, Mode5NO_SELECTION/private/tamper and no hidden
+  finance/fit/RNG gates pass. Earlier failed fixture/readback/benchmark attempts
+  remain retained; the projection-before control demonstrates actual redundant
+  validation before its repair, not a vacuous performance assertion.
+- Nine final readbacks reproduce exact report identities, complete summaries
+  and public JSONbytes:370Mode4slots, two Mode5snapshots, eight retained
+  original continuous accounts. Source payload/current scalar parts are
+  reassembled according to prior compact custody and revalidated; no stale
+  summary is trusted. Final readback10.89seconds/308.64MiB peak. No new
+  financial research, optimizer proposals, model fits, bootstrap or market data.
+- Cold JSONuses the original canonical owner without temporary Record
+  revalidation; immutable validated Mode5public snapshots reuse the original
+  projection, retaining full validation at assembly/reload. All20matched
+  JSONcells are byte-identical versus pinned1633809renderer/export. Five
+  empirical repeats show Mode4JSON1.48..2.03x and Mode5publicJSON5.93..6.31x;
+  no whole-WFO/p95/universal-speedup claim. Current publicJSONmedians:
+  2fold11.23ms,57fold28.65ms,original HMA33.64ms,Mode5TPE/CMA124.14/133.95ms.
+  Max cost worker316.59MiB; imports/first/repeated/detail/bytes are separate.
+- Protected259byte-pinned inputs, four prior receipts, accessor-only source
+  AST and frozen Ridge42sources/5receipts pass. Exact inactive scratch cleanup
+  preserves44current sources/tools and all evidence; observed3,837,952bytes
+  recovered, retained2,635,335bytes at removal, >=5GiB reserve. No build,
+  environment, service stop, broad cache prune, push/workflow/tag/publication.
+- See [final report](../docs/diagnostics/M5_11_7_3_IMPLEMENTATION_REPORT.md),
+  [coverage/entry handoff](../docs/diagnostics/REPORTING_COVERAGE_AND_HANDOFF.md),
+  [API](../docs/diagnostics/FOLD_DECISION_REPORTS.md),
+  [synthetic example](../examples/completed_research_reporting.py) and
+  [cleanup](../docs/maintenance/M5_11_7_3_CLEANUP.md).
+  Private `upgrade/private/mode5_upgrade_v1/m5-11-7-3/attempt-01/terminal-qualification.json`
+  binds source/tests/benchmarks/readbacks/docs and retained failures. No blocking
+  implementation debt remains in the approved reporting scope. Parent11.7
+  completes locally; M5-12entry awaits owner review, with installed/package,
+  remote and public qualification still separate and NOT_RUN.
 
 **Current ACT Planning Verification (2026-10-18, UTC):** documentation-only
 amendment registers the four ordered small phases above and preserves the
