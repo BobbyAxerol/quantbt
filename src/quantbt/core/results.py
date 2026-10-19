@@ -36,6 +36,12 @@ class BacktestResultV2:
     diagnostics: pd.DataFrame = field(default_factory=pd.DataFrame)
     metadata: Dict = field(default_factory=dict)
 
+    def research_report(self, *, access, source_ref, **options):
+        """Read original WFO evidence without rerunning this result."""
+        from ..diagnostics import ResearchDecisionReport
+
+        return ResearchDecisionReport.from_result(self, access=access, source_ref=source_ref, **options)
+
     def __post_init__(self) -> None:
         if self.initial_capital <= 0.0:
             raise ValueError("initial_capital must be > 0")
@@ -148,6 +154,12 @@ class BacktestScalarScoreResult:
     liquidation_bar: int = -1
     metadata: Mapping[str, object] = field(default_factory=dict)
 
+    def research_report(self, *, access, source_ref, **options):
+        """Read retained WFO evidence; missing score-only evidence is explicit."""
+        from ..diagnostics import ResearchDecisionReport
+
+        return ResearchDecisionReport.from_result(self, access=access, source_ref=source_ref, **options)
+
     def full_report(self, trading_days: int = 365, scope: str = "auto", *, reporting=None) -> Dict:
         """Return the immutable report captured by the score execution."""
         if reporting is not None:
@@ -222,6 +234,12 @@ class NativeEventScoreResult:
     metrics: Mapping[str, float]
     metadata: Mapping[str, object] = field(default_factory=dict)
 
+    def research_report(self, *, access, source_ref, **options):
+        """Read retained WFO evidence without account or callback execution."""
+        from ..diagnostics import ResearchDecisionReport
+
+        return ResearchDecisionReport.from_result(self, access=access, source_ref=source_ref, **options)
+
     @property
     def equity(self) -> np.ndarray:
         return self.accounting.equity
@@ -291,6 +309,12 @@ class NativeEventScalarScoreResult:
     liquidation_bar: int
     metrics: Mapping[str, float]
     metadata: Mapping[str, object] = field(default_factory=dict)
+
+    def research_report(self, *, access, source_ref, **options):
+        """Read retained WFO evidence; never invent discarded path data."""
+        from ..diagnostics import ResearchDecisionReport
+
+        return ResearchDecisionReport.from_result(self, access=access, source_ref=source_ref, **options)
 
     def _lifecycle_counter(self, name: str, default: int = 0) -> int:
         counters = self.metadata.get("lifecycle_counters", {})

@@ -2663,6 +2663,14 @@ class QuantBTEndpoint:
         walk_forward = self._require_result().metadata.get("walk_forward", {})
         return walk_forward.get("research_audit") if isinstance(walk_forward, Mapping) else None
 
+    def research_report(self, *, access, source_ref, **options):
+        """Read witnessed WFO decisions on the cold path; defaults stay unchanged."""
+        from .diagnostics import ResearchDecisionReport
+
+        return ResearchDecisionReport.from_result(
+            self._require_result(), access=access, source_ref=source_ref, **options
+        )
+
     def nautilus_pct_equity_diagnostic(
         self,
         *,

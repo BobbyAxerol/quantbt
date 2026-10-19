@@ -6,6 +6,7 @@ import json
 import math
 
 from quantbt.mode5.decision_report import DecisionReport
+from quantbt.mode5.diagnostics.identity import canonical
 from quantbt.mode5.dossier.records import Record
 from quantbt.optimization.meta_selection.common import wire
 
@@ -96,6 +97,12 @@ def _summary(mode,payload):
 @dataclass(frozen=True)
 class ResearchDecisionReport:
     record: Record
+
+    @classmethod
+    def from_result(cls,result,*,access,source_ref,role='diagnostic_development',**options):
+        """Read a completed public result; no automatic access or execution."""
+        from .completed import from_result
+        return from_result(result,access=access,source_ref=source_ref,role=role,**options)
 
     @classmethod
     def from_walk_forward(cls,metadata,*,access,source_ref,role='diagnostic_development',**options):
@@ -277,7 +284,7 @@ class ResearchDecisionReport:
         return data
 
     def to_json(self,*,private=False,detail=False):
-        return Record.of(self.to_dict(private=private,detail=detail)).payload
+        return canonical(self.to_dict(private=private,detail=detail))
 
     def to_markdown(self,*,private=False,detail=False):
         from .render import markdown

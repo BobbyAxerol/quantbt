@@ -44,6 +44,12 @@ class BacktestResult:
     liquidation_bar:    int                     = -1
     metadata:           Dict                    = field(default_factory=dict)
 
+    def research_report(self, *, access, source_ref, **options):
+        """Read original WFO evidence without rerunning this result."""
+        from ..diagnostics import ResearchDecisionReport
+
+        return ResearchDecisionReport.from_result(self, access=access, source_ref=source_ref, **options)
+
     # ── computed on first access ──────────────────────────────────────────
     @property
     def drawdown(self) -> pd.Series:
