@@ -110,8 +110,8 @@ Three separate 256-attempt studies per admitted alpha are source/dossier sealed:
 
 These are registered research hypotheses grounded in the existing dossiers,
 not inferred sampler superiority. HMA remains NO_ELIGIBLE_COHORT; its mandate
-is not relaxed. The local supervised queue permits at most two financial workers,
-one numeric thread each, 1.25 GiB owned-RSS and 1 GiB retained-output ceilings,
+is not relaxed. The local supervised formal queue permits at most two financial workers,
+one numeric thread each, an owner-amended 2 GiB owned-RSS and 1 GiB retained-output ceiling,
 512 MiB available RAM and 5 GiB free-disk reserves. It retains the shared exact
 Optuna continuation journal; completed observations and trials are reused.
 
@@ -219,6 +219,51 @@ are operational checks, not new market evidence or a finished phase. Private
 receipts retain the exact snapshot. All remaining arms and the registered
 winner/regime/qualification successor remain scheduled automatically; final
 `C06/complete.json` and `end-to-end-complete.json` do not yet exist.
+
+### Two-GiB Continuation Lease
+
+After the first parallel controller reached its 1.25-GiB aggregate RSS guard
+during VWAP's final audit, the owner explicitly approved **2 GiB aggregate RSS**
+for the formal queue. The failed/interrupted audit remains retained; its 256
+committed trials are not rerun. Available-RAM, retention, disk and absolute
+deadline guards remain unchanged. The later research tail stays serial with
+its original limits. This is not an increase in trials or a methodology change.
+
+At 2026-10-19 18:39 UTC, the new source-pinned controller PID2431430 delegates
+scheduling from its predecessor, which is intentionally paused. HASH recipe/TPE
+keeps its original live PID2418621; VWAP PID2431449 resumes Raw/TPE audit from
+the exact 256-attempt checkpoint. SC's three studies and HASH Raw/TPE are
+complete; HASH recipe/TPE has 67 recorded attempts in this snapshot. Remaining
+per-alpha arms are scheduled automatically, with no concurrent workers on the
+same alpha. Completed studies are skipped, not restarted.
+
+The latest live telemetry is **`parallel-v2-progress/`**, not the intentionally
+paused predecessor's `parallel-progress/`. On completion, the new controller
+resumes its predecessor, whose existing checks cascade to the original
+financial-lock handoff and registered winner/regime/report successor. Unknown
+financial/source errors still fail closed; a new resource pressure event can
+retain VWAP's checkpoint and fall back serially under the approved limits.
+
+The focused new mocked ownership/guard regression passes **20 tests** in
+0.43 seconds; Ruff passes. These tests cover the lease, original-child custody,
+completed-study skipping, checkpoint routing, 2-GiB/startup/RAM/disk/deadline
+guards, PID/source failure and cleanup. They do not replace actual-account
+oracles or certify unfinished financial outcomes. Earlier fixture/setup
+failures remain separate XML receipts. Exact inactive fixture cleanup preserves
+23 protected files and all live/financial evidence; no environment or service
+is stopped. The new registration, launch, lease and cleanup receipts use the
+`parallel-v2-` prefix under the same private attempt directory. No end-to-end
+speedup is claimed before its full workload finishes.
+
+The read-only attachment receipt at **18:41 UTC** confirms 26 distinct source
+pins unchanged and one observed OS thread per financial worker. VWAP Raw/TPE
+has now completed its missing audit; the controller automatically starts VWAP
+recipe/TPE PID2431813. Both recipe studies are live: HASH69/256 and VWAP16/256
+at this snapshot, with both challenger arms still pending. Combined owned RSS
+is about 1.20 GiB, available RAM about 2.49 GiB, free disk about 6.37 GiB and
+retained phase output about 394 MiB. The original HASH PID remains unchanged.
+`parallel-v2-attachment-verification.json` records actual process/receipt
+identities, not a forecast or completed research certificate.
 
 - Complete the nine formal arms or obtain an explicit owner disposition.
 - Qualify the newly selected original-alpha winners and remaining RSI held

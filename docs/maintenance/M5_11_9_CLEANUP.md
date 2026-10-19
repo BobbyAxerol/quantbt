@@ -81,3 +81,22 @@ check does not launch finance or signal a worker. The live HASH/VWAP accounts,
 checkpoints, financial evidence, active environment and all services remain
 untouched. No VSCode-session cache is removed by this lane. Final research-tail
 cleanup still waits for its own terminal workers and tests.
+
+## Two-GiB Controller Fixture Cleanup
+
+The v2 continuation lease has **20 passing mocked tests**, with earlier
+fixture/setup failures retained as separate XML receipts. After pytest and
+its agent finished, host process/FD/cwd/maps review admitted removal of only
+`/tmp/m5119-parallel-v2-tests-01`. All **23 protected files** retain their hashes,
+including controller/test sources, historical custody, registration, launch,
+final regression and native-artifact references.
+
+The fixture tree contained no retained regular-file payload at cleanup;
+directory/metadata removal and concurrent research activity coincide with an
+observed free-byte increase of **602,112 bytes**. This is not a causal storage
+benchmark. `parallel-v2-fixture-cleanup-before.json` and
+`parallel-v2-fixture-cleanup-after.json` preserve the exact inventory/checks.
+Neither financial worker was stopped by cleanup. Original/current receipts,
+all financial evidence, checkpoints, environments, alpha/market sources,
+services and offline dependencies remain intact. Terminal research-tail
+cleanup remains pending its own completed work.

@@ -37934,6 +37934,48 @@ The original successor still waits for all nine formal receipts and lock
 handoff. Winner/stress/regime synthesis and final C06 certification remain
 IN_PROGRESS; operational attachment is not phase, parent or release acceptance.
 
+**Owner Acceleration / RSS Amendment (2026-10-19 18:30 UTC):** the owner
+explicitly approves raising only the formal queue's aggregate owned-RSS ceiling
+from 1.25 GiB to **2 GiB**, retaining at most two financial workers, one numeric
+thread per study, at least 512 MiB available RAM, the original absolute deadline,
+1 GiB retained-output cap and 5 GiB disk reserve. The audit-triggered earlier
+memory fallback remains historical evidence. This is scheduling permission,
+not a performance or scientific certificate; the later tail remains serial.
+
+Use a new versioned, source-pinned controller rather than editing either live
+scheduler or scientific sources. Pause only the predecessor scheduling owner;
+adopt its current HASH recipe worker without interruption, keep the original
+serial owner paused, and resume VWAP from its retained exact checkpoint. All
+256 Raw/TPE attempts remain committed; its missing audit still must execute.
+Complete pending per-alpha arms without duplicates, then resume the predecessor
+so its existing checks cascade through the original lock handoff to the tail.
+Retain PID/start-time/lease events and fail closed on unknown financial errors.
+On resource pressure, retain the new VWAP checkpoint and fall back serially;
+do not weaken account guards or silently raise any other budget.
+
+Before activation: bounded mocked ownership/guard tests and exact source checks;
+test retention <=8 MiB and scratch <=16 MiB, only the exact inactive
+`/tmp/m5119-parallel-v2-tests-01` may be removed after host review. Keep existing
+test failures and every financial receipt. Reuse the current environment/native
+artifact; no build, install, service stop, new methodology, M5-12, CI or release.
+
+**Two-GiB Activation Receipt (2026-10-19 18:41 UTC):** source-pinned controller
+PID2431430 is live after 20 focused mocked tests pass; Ruff and documentation
+links pass. Original HASH recipe/TPE PID2418621 is uninterrupted. VWAP's retained
+256-attempt Raw/TPE checkpoint completes its missing original-account audit,
+then the controller automatically starts recipe/TPE PID2431813. Snapshot:
+HASH 69/256, VWAP 16/256; both challenger arms remain automatically scheduled.
+The attachment verifies 26 distinct source pins, one observed OS thread per
+worker, about 1.20 GiB aggregate owned RSS and 2.49 GiB available RAM under the
+approved cap. No completed optimizer restarts or scientific changes occur.
+Exact inactive mock-fixture cleanup preserves 23 protected files and every prior
+failure; observed free-byte delta is 602,112 with concurrent finance disclosed.
+See [continuation status](../docs/mode5/M5_11_9_RESEARCH_STATUS.md#two-gib-continuation-lease)
+and [cleanup](../docs/maintenance/M5_11_9_CLEANUP.md#two-gib-controller-fixture-cleanup).
+New live heartbeats are `parallel-v2-progress/`; older scheduling owners are
+intentionally paused until cascade handoff. Final research/economics and C06
+remain IN_PROGRESS; M5-12 and CI/release stay unstarted.
+
 <a id="mode5-m5-12"></a>
 ### Phase M5-12 - Local Package Qualification, Regression, Docs And Handoff
 
