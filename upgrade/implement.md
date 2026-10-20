@@ -2,6 +2,21 @@
 
 ## Current Mode 5 Diagnostics-First Upgrade - Full-Development Decision Support
 
+**Latest research completion (2026-10-20, Asia/Saigon):**
+[M5-11.11](#mode5-m5-11-11) is COMPLETE_LOCAL_REGISTERED_RESEARCH_SCOPE,
+not production/source integration. Same128-point N1/N2 panels,27 actual
+continuous-account quarters and32 measured archived-anchor references/cell
+compare the original annual selector with the frozen upper20%-mean-regret
+challenger. Zero proposals/fits;64 new reference accounts plus4 selected audits.
+383 focused tests PASS; both selected dictionaries/streams reproduce.
+N1retains the baseline: better regret but weaker activity/consistency and
+daily quality. N2has better DD/tail/year consistency at lower risk allocation,
+but daily-quality noninferiority remains unestablished. Neither passes the
+complete registered economic condition; no generic replacement is promoted.
+See [research report](../docs/mode5/M5_11_11_STABLE_REGIONS_TEMPORAL_REGRET_REPORT.md)
+and [cleanup](../docs/maintenance/M5_11_11_CLEANUP.md).
+M5-11.12/11.13, parent disposition, M5-12and release retain separate approvals.
+
 **Latest cross-mode completion (2026-10-20, Asia/Saigon):**
 [M5-11.10](#mode5-m5-11-10) is COMPLETE_LOCAL_REGISTERED_COLD_SCOPE after
 owner execution approval. Seven archives contribute370Mode4origins,
@@ -14,8 +29,9 @@ New finance, optimizer proposals and model fits are all zero. See
 [report](../docs/mode5/M5_11_10_ARCHIVE_BASELINE_REPORT.md) and
 [cleanup](../docs/maintenance/M5_11_10_CLEANUP.md).
 N1/N2are the proposed compatible cells, not a new economic winner claim.
-M5-11.11..11.13execution and all numerical proposed protocols still require
-their separate owner review. Existing M5-11.9completion obligations, parent
+M5-11.11is separately approved/completed for local research only; its registered
+same-panel experiment does not authorize production/source integration.
+M5-11.12..11.13still require their separate owner review. Existing M5-11.9completion obligations, parent
 research disposition, M5-12and release remain separate.
 
 **Latest planning approval (2026-10-20, Asia/Saigon):**
@@ -30,7 +46,8 @@ See the [supplemental detailed guide](QUANTBT_MODE4_MODE5_CROSS_MODE_RESEARCH_GU
 and [approval roadmap](#mode45-cross-mode-roadmap).
 The registration originally leaves all four executions PENDING; the later
 M5-11.10approval/closeout above supersedes only that phase's initial status.
-M5-11.11..11.13remain PLAN_REGISTERED / NOT_STARTED. No later experiment or
+M5-11.11has the later research-only approval recorded below;
+M5-11.12..11.13remain PLAN_REGISTERED / NOT_STARTED. No later experiment or
 queue action is authorized by the planning update. Existing M5-11.9 work retains its
 separate authority; its dated operational receipts below are historical
 snapshots, not current process-liveness checks. Parent research, M5-12 and
@@ -27924,7 +27941,7 @@ Every phase below inherits this mandatory resource registration/cleanup exit.
 | [M5-11.8](#mode5-m5-11-8) | Two additional private alphas: diagnostics, researcher recipe and actual matched calibration | Approved 128-point panels and six256-attempt studies; original-account/path/annual proof and cleanup | Registered N01..N08; guide M5T-031..110 | COMPLETE_LOCAL_REGISTERED_EXTRA_ALPHA_SCOPE; reviewed development, parent disposition still required |
 | [M5-11.9](#mode5-m5-11-9) | Remaining original-alpha formal arms, actual-winner robustness and seven-alpha synthesis | Existing sealed studies plus guarded serial successor; no repeated completed optimizer | Registered C01..C06; guide M5T-031..110 | OWNER_APPROVED_EXECUTION / IN_PROGRESS; final receipt required, not just studies |
 | [M5-11.10](#mode5-m5-11-10) | Cross-mode archive, information rights and baseline registration | Approved cold execution; immutable inputs, remaining upstream scope explicit | XMR-001..010 | COMPLETE_LOCAL_REGISTERED_COLD_SCOPE; proposed later protocol awaits review |
-| [M5-11.11](#mode5-m5-11-11) | Static selector, stable regions and temporal regret | Reviewed 11.10 registration; own approval; same-panel observation rights | XMR-011..020 | PLAN_REGISTERED / NOT_STARTED; execution approval PENDING |
+| [M5-11.11](#mode5-m5-11-11) | Static selector, stable regions and temporal regret | Reviewed 11.10 registration; own approval; same-panel observation rights | XMR-011..020 | COMPLETE_LOCAL_REGISTERED_RESEARCH_SCOPE; no production/source integration |
 | [M5-11.12](#mode5-m5-11-12) | Bidirectional sampler assistance with strict prefix isolation | Reviewed 11.10/11.11; own approval; separate direction contracts | XMR-021..030 | PLAN_REGISTERED / NOT_STARTED; execution approval PENDING |
 | [M5-11.13](#mode5-m5-11-13) | Whole-procedure chronology, economics and final research disposition | Reviewed 11.10..12; own approval; sealed outer protocol and dependencies | XMR-031..040 | PLAN_REGISTERED / NOT_STARTED; execution approval PENDING |
 | [M5-12](#mode5-m5-12) | Local qualification/docs/handoff | M5-01..11 plus 11.4..11.13 reviewed dispositions, including remaining 11.9 coverage | M5T-111..120 | NOT_STARTED; research/owner disposition required before entry |
@@ -38204,7 +38221,8 @@ no scientific runtime or accounting state is changed.
 <a id="mode5-m5-11-11"></a>
 ### Phase M5-11.11 - Stable Regions, Static Selection And Temporal Regret
 
-**Status:** PLAN_REGISTERED / NOT_STARTED; execution approval PENDING.
+**Status:** COMPLETE_LOCAL_REGISTERED_RESEARCH_SCOPE; owner approval2026-10-20
+(Asia/Saigon). No production/source integration, defaults or public activation.
 **Goal:** test whether compatible temporal evidence improves selection of one
 fixed dictionary on a common candidate panel, with absolute quality, activity,
 local fragility and risk visible alongside regret.
@@ -38289,6 +38307,42 @@ insufficient precision retain explicit dispositions, not tuning until PASS.
 research reports; no public defaults or release activation.
 **Rollback:** retain the original selector and hide the additive research view;
 all original decisions and evidence remain reproducible.
+
+**Actual Research Receipt (2026-10-20, Asia/Saigon):**
+- Research-only authority: all new harness/policy code stays local/ignored.
+  No `src/quantbt`, endpoint/default, Ridge/model or public runtime changes.
+- Same128 original neutral points per N1/N2 ETHUSDT1h cell; original full
+  continuous account2020-01-01..2026-10-01exclusive, source-specific mechanics.
+  Original N1annual floor/mean and N2annual Pareto preferences reproduce.
+  Absolute eligibility remains the original shared owner, including annual risk.
+- Reuse256 original paths, measure64 missing static archived-anchor accounts,
+  derive8,640 final quarterly views and replay4 actual selected accounts.
+  No reset-label substitution, new optimizer proposals or ML fits. Independent
+  ledger/accounting and selected stream/margin hashes reproduce; whole and all
+  original annual metric views reconcile. Missing held-radius/stress evidence
+  remains UNKNOWN under the registered zero-new-held/fee cap.
+- Upper20%-mean quarterly regret falls0.445501->0.312004(N1),
+  0.292298->0.150083(N2). This is not maximum regret or Mode4R/Q.
+  N1positive quarters19->12and years7->4: KEEP_BASELINE.
+  N2positive quarters15->18and years5->7, DD19.87%->4.75%, but lower gross
+  allocation explains part of the improvement. N2is INCONCLUSIVE for the
+  complete economic gate and an interesting separately reviewed prefix candidate.
+- Both conditional regret intervals favor the challenger, but neither meets
+  the registered daily-quality noninferiority condition. Fixed selected-path
+  block intervals are not search-adjusted or independent-OOS guarantees.
+  Neutral-reference control changes N2's compromise, not N1's; region/state/
+  transition diagnostics remain explanatory, never new rank/gate inputs.
+- 383 final focused tests PASS. Independent review hardens exact reference
+  identity/roster and original baseline tie/Pareto authority; saved matrix
+  readback proves scores/choices unchanged, without rerunning finance.
+  Failed wrapper/test receipts and exact historical source copies are retained.
+- Final cleanup removes only owned inactive fixture scratch;1,509 protected
+  pins reverify, observed final available-byte delta+16,384. Approximately
+  34.1MiB compact retention, no environment rebuild/service stop/CI/release.
+- [Detailed report](../docs/mode5/M5_11_11_STABLE_REGIONS_TEMPORAL_REGRET_REPORT.md),
+  [cleanup](../docs/maintenance/M5_11_11_CLEANUP.md), and private
+  `upgrade/private/mode5_upgrade_v1/m5-11-11/attempt-01/final-qualification.json`
+  are the current authority. No later phase or parent scope is automatically closed.
 
 <a id="mode5-m5-11-12"></a>
 ### Phase M5-11.12 - Bidirectional Sampler Assistance And Prefix Isolation
