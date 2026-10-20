@@ -2,6 +2,22 @@
 
 ## Current Mode 5 Diagnostics-First Upgrade - Full-Development Decision Support
 
+**Latest cross-mode completion (2026-10-20, Asia/Saigon):**
+[M5-11.10](#mode5-m5-11-10) is COMPLETE_LOCAL_REGISTERED_COLD_SCOPE after
+owner execution approval. Seven archives contribute370Mode4origins,
+46,796retained IS candidate rows and6,127acquired forward records; the existing
+Mode5neutral panels cover896configurations. Independent custody matches342
+monthly730D revisions; all256N1/N2original static-path pins reverify.
+The phase adds typed cold reuse/access contracts, an immutable snapshot and
+a private concrete protocol packet;105focused tests and Ruff PASS.
+New finance, optimizer proposals and model fits are all zero. See
+[report](../docs/mode5/M5_11_10_ARCHIVE_BASELINE_REPORT.md) and
+[cleanup](../docs/maintenance/M5_11_10_CLEANUP.md).
+N1/N2are the proposed compatible cells, not a new economic winner claim.
+M5-11.11..11.13execution and all numerical proposed protocols still require
+their separate owner review. Existing M5-11.9completion obligations, parent
+research disposition, M5-12and release remain separate.
+
 **Latest planning approval (2026-10-20, Asia/Saigon):**
 register four small cross-mode research phases
 [M5-11.10](#mode5-m5-11-10) ->
@@ -12,9 +28,10 @@ compatible Mode 4 temporal evidence improves one fixed Mode 5 dictionary;
 the reverse sampler-assistance direction must enforce complete prefix rights.
 See the [supplemental detailed guide](QUANTBT_MODE4_MODE5_CROSS_MODE_RESEARCH_GUIDE_V1.md)
 and [approval roadmap](#mode45-cross-mode-roadmap).
-All four phases are PLAN_REGISTERED / NOT_STARTED, with individual execution
-approval PENDING. No new experiment, source/runtime change or queue action is
-authorized by this documentation update. Existing M5-11.9 work retains its
+The registration originally leaves all four executions PENDING; the later
+M5-11.10approval/closeout above supersedes only that phase's initial status.
+M5-11.11..11.13remain PLAN_REGISTERED / NOT_STARTED. No later experiment or
+queue action is authorized by the planning update. Existing M5-11.9 work retains its
 separate authority; its dated operational receipts below are historical
 snapshots, not current process-liveness checks. Parent research, M5-12 and
 release acceptance remain separate.
@@ -27906,7 +27923,7 @@ Every phase below inherits this mandatory resource registration/cleanup exit.
 | [M5-11.7.3](#mode5-m5-11-7-3) | Broader integration, reporting cost and handoff | Reviewed 11.7.2; sequential approval | M45R-01..10 | COMPLETE_LOCAL_REGISTERED_REPORTING_SCOPE |
 | [M5-11.8](#mode5-m5-11-8) | Two additional private alphas: diagnostics, researcher recipe and actual matched calibration | Approved 128-point panels and six256-attempt studies; original-account/path/annual proof and cleanup | Registered N01..N08; guide M5T-031..110 | COMPLETE_LOCAL_REGISTERED_EXTRA_ALPHA_SCOPE; reviewed development, parent disposition still required |
 | [M5-11.9](#mode5-m5-11-9) | Remaining original-alpha formal arms, actual-winner robustness and seven-alpha synthesis | Existing sealed studies plus guarded serial successor; no repeated completed optimizer | Registered C01..C06; guide M5T-031..110 | OWNER_APPROVED_EXECUTION / IN_PROGRESS; final receipt required, not just studies |
-| [M5-11.10](#mode5-m5-11-10) | Cross-mode archive, information rights and baseline registration | Own approval; immutable completed inputs, unfinished dependencies explicit | XMR-001..010 | PLAN_REGISTERED / NOT_STARTED; execution approval PENDING |
+| [M5-11.10](#mode5-m5-11-10) | Cross-mode archive, information rights and baseline registration | Approved cold execution; immutable inputs, remaining upstream scope explicit | XMR-001..010 | COMPLETE_LOCAL_REGISTERED_COLD_SCOPE; proposed later protocol awaits review |
 | [M5-11.11](#mode5-m5-11-11) | Static selector, stable regions and temporal regret | Reviewed 11.10 registration; own approval; same-panel observation rights | XMR-011..020 | PLAN_REGISTERED / NOT_STARTED; execution approval PENDING |
 | [M5-11.12](#mode5-m5-11-12) | Bidirectional sampler assistance with strict prefix isolation | Reviewed 11.10/11.11; own approval; separate direction contracts | XMR-021..030 | PLAN_REGISTERED / NOT_STARTED; execution approval PENDING |
 | [M5-11.13](#mode5-m5-11-13) | Whole-procedure chronology, economics and final research disposition | Reviewed 11.10..12; own approval; sealed outer protocol and dependencies | XMR-031..040 | PLAN_REGISTERED / NOT_STARTED; execution approval PENDING |
@@ -38058,9 +38075,10 @@ claim. This receipt certifies the plan structure, not any XMR research gate.
 <a id="mode5-m5-11-10"></a>
 ### Phase M5-11.10 - Cross-Mode Archive, Information Rights And Baseline Lock
 
-**Status:** PLAN_REGISTERED / NOT_STARTED; execution approval PENDING.
-The owner approves the research direction and writing/registering this plan,
-not its proposed numerical protocols, resource caps or phase execution.
+**Status:** COMPLETE_LOCAL_REGISTERED_COLD_SCOPE, 2026-10-20 Asia/Saigon;
+owner execution approval covers XM10.01..06 and XMR-001..010. The private
+proposed numerical/resource protocol for later phases still awaits owner
+review. No selector/sampler/financial phase is activated by this completion.
 **Goal:** make every proposed Mode 4/5 reuse decision explicit and reproducible,
 then freeze a meaningful bounded experiment for one static dictionary per
 alpha. Distinguish new temporal information from duplicate views of the same
@@ -38139,6 +38157,49 @@ dispositions; they cannot be hidden in an aggregate PASS.
 safe documentation; private sources, dictionaries and evidence remain ignored.
 **Rollback:** disable the new archive view and retain original reports/pins;
 no scientific runtime or accounting state is changed.
+
+**Execution Receipt:**
+- Seven Mode4archives contain370origins,46,796retained IS candidates and
+  6,127acquired forward observations, of which5,054have valid original Sharpe
+  and1,073retain NO_VARIANCE. Six57-origin730D families and the old28-origin
+  365D RSI family are not pooled as independent/matched protocols.
+- Five original128-point Mode5panels plus N1/N2cover896diagnostic configurations.
+  N1/N2are proposed from shared ETHUSDT1h/original-owner identities and
+  contrasting close/four-target mechanics. Original-four BTC/ETH mismatches
+  remain incompatible. RSI is correctly retained as ETH, with a different
+  window/account/metric family rather than a false symbol-mismatch claim.
+- Actual metadata permission assessments yield316EXACT_REUSE,
+  426TARGETED_EXECUTION_REQUIRED,372RIGHTS_FORBIDDEN and2DERIVED_READBACK_ALLOWED.
+  These are scoped metadata cases, not additional account or global-route
+  certification. All342six-family revisions bind to independent retained
+  custody;256continuous original path pins and the frozen42source/5receipt
+  Ridge manifest reverify. No raw metric or label is manufactured.
+- The private packet fixes actual128-point rosters and32outcome-blind archive
+  references per proposed cell, exact0/28/56Mode4cutoffs and three365-day static
+  horizons. Same-panel regret/neutral-reference interpretation is specified
+  before new outcomes. Proposed startup128controls and64archive seed attempts
+  preserve at least64global startup proposals; old default10receipts remain
+  context, not a silently reused matched control. All future budgets/thresholds
+  remain PROPOSED_FOR_OWNER_REVIEW, not approved deployment settings.
+- Initial unordered RSI task/revision input stops the positional join; the
+  corrected join validates exact task identities. Review also closes a new
+  reader byte-pinning gap, exponent overflow and missing-VALID-value handling.
+  Current attempt-03reruns the cold/permission proof; failed/preliminary
+  attempts and exact earlier helper-source bytes remain retained separately.
+-105focused tests PASS in3.97s; Ruff PASS. Final cold inventory takes10.92s
+  with217.50MiB peak, permission checks8.44s with211.90MiB peak and independent
+  custody4.62s. These are different measured processes/work, not additive RSS
+  or a financial-runtime speedup. No optimizer, strategy execution or fit runs.
+- Host cleanup reviews172processes, removes only the registered inactive
+  fixture root, preserves923protected inputs and observes131,072free bytes
+  gained. Current compact retention is approximately6MiB under64MiB; private
+  source/dictionaries/evidence remain ignored. Code is committed as`b8a351a`.
+  [Report](../docs/mode5/M5_11_10_ARCHIVE_BASELINE_REPORT.md),
+  [cleanup](../docs/maintenance/M5_11_10_CLEANUP.md) and private
+  `attempt-03/phase-exit.json` retain actual counts, source roles and limits.
+- M5-11.9still needs its own remaining formal/tail receipts. This phase does
+  not resume its workers, backdate its results, certify cross-mode economics,
+  close the parent or activate M5-11.11/M5-12/CI/release.
 
 <a id="mode5-m5-11-11"></a>
 ### Phase M5-11.11 - Stable Regions, Static Selection And Temporal Regret
