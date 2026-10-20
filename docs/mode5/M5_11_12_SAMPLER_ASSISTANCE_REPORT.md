@@ -1,7 +1,9 @@
 # M5-11.12 Bidirectional Sampler Assistance
 
-Status at study admission, 2026-10-20 UTC: **IN_PROGRESS**, research only.
-Neither economic superiority nor phase completion is claimed.
+Status, 2026-10-20 UTC: **COMPLETE_LOCAL_REGISTERED_RESEARCH_SCOPE**.
+Accounting, chronology and reproducibility gates PASS; owner review of research
+disposition and the scratch-allocation exception below remains pending.
+There is no public/default activation, whole-procedure promotion or release.
 
 ## Interpretation Safeguards
 
@@ -29,6 +31,8 @@ Does lawful archive/prefix assistance improve candidate generation when the
 objective, final selector, account and attempted budget remain matched?
 
 - Two private compatible alpha cells, original ETHUSDT 1h snapshot and engines.
+- Initial capital20,000, leverage1, one-way fee0.0004, slippage0, funding off;
+  original cell-specific sizing, lifecycle, constraints and terminal policy.
 - Mode4 to Mode5: 57 mature native anchors, then calendar/effective-ID IS-pool
   refill to64 unique legal coordinates. No forward labels rank supplied seeds.
 - Mode5 to Mode4:128 fresh continuous-account diagnostics at each physically
@@ -64,7 +68,8 @@ controls. Independent fill-ledger reconciliation passes; original measurements
 match. Exact deterministic full-IS shard reuse requires one financial execution,
 not a second identical shard run. Initial wiring failures remain FAIL_RETAINED.
 
-The private sequential adapter passed33 synthetic tests, zero failures/skips:
+Historical admission receipt, before financial dispatch: the private sequential
+adapter passed33 synthetic tests, zero failures/skips:
 128/256 baseline/treatment runs, fresh-process exact continuation, duplicate
 pruning without replacement slots, source/binding mismatch rejection, guards,
 cancellation, undefined objectives and minimum random-startup allocation.
@@ -212,7 +217,103 @@ Adaptive branch frequency is not a uniform-space coverage estimator. Neither
 new winner has a new local-probe/basin certificate in this phase; unrelated
 earlier diagnostic-center probes are not substituted for one.
 
-## Resources And Remaining Gates
+The N1 archive seed roster covers29 of48 declared categorical branches;19
+have no supplied seed. Neutral exploration raises final assisted coverage to44,
+versus46 in control. The approved archive anchor/calendar-refill rule is not a
+branch-balanced representative of the whole space. N2 seeds cover both declared
+branches. Conversely, reverse-direction prefix diagnostics can balance64 donors
+across all48 observed N1 branches and both N2 branches. These are different
+direction-specific priors and must not be conflated into one coverage claim.
+
+## Completed Prefix Contrast: Mode5 To Mode4
+
+Both arms keep the original IS-only native objective/plateau selector and
+meta OFF. Only candidate generation changes. Each cutoff gets its own730D IS,
+256 attempts/arm and one-month original forward account, replayed from fresh
+state. The three noncontiguous forward accounts are **not stitched equity**.
+
+Let I/F denote the canonical raw IS/forward Sharpe observations:
+`Q = F_assisted - F_control`, `delta_IS = I_assisted - I_control`, and
+`R = Q - delta_IS = decay_control - decay_assisted`. Q requires two valid
+forward observations; delta_IS requires two valid IS observations; R requires
+all four. Equal metric/economics IDs and paired windows/frontiers are checked.
+No rule requires forward Sharpe to exceed IS Sharpe. Negative decay is valid.
+
+| Cell / forward month | IS Sharpe control / assisted | Forward Sharpe control / assisted | delta_IS | Q | R |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| N1 /2022-01 | 1.9345 /1.9415 | 6.0708 /4.7930 | +0.0071 | -1.2778 | -1.2849 |
+| N1 /2024-05 | 1.1315 /1.4370 | -5.0415 /-5.1693 | +0.3055 | -0.1278 | -0.4333 |
+| N1 /2026-09 | 1.4653 /0.9441 | -6.5204 /4.3938 | -0.5212 | +10.9143 | +11.4354 |
+| N2 /2022-01 | 2.1362 /2.1752 | flat /flat | +0.0390 | undefined | undefined |
+| N2 /2024-05 | 2.9869 /2.3365 | 1.8007 /3.6181 | -0.6504 | +1.8174 | +2.4678 |
+| N2 /2026-09 | 1.8531 /1.7636 | flat /flat | -0.0895 | undefined | undefined |
+
+Financial outcomes below are percentages except actual engine fill counts.
+Exposure is the fraction of end-of-bar positions that are nonzero, not
+notional allocation or intrabar time-in-market.
+
+| Cell / month | Net return control / assisted | Max DD control / assisted | Exposure control / assisted | Fills control / assisted |
+| --- | ---: | ---: | ---: | ---: |
+| N1 /2022-01 | +6.43% /+8.33% | 2.06% /4.25% | 99.06% /92.47% | 3 /5 |
+| N1 /2024-05 | -6.78% /-9.39% | 9.91% /12.82% | 90.05% /93.68% | 29 /27 |
+| N1 /2026-09 | -6.64% /+4.25% | 7.21% /2.82% | 90.69% /86.39% | 25 /5 |
+| N2 /2022-01 | 0.00% /0.00% | 0.00% /0.00% | 0.00% /0.00% | 0 /0 |
+| N2 /2024-05 | +0.09% /+1.79% | 0.08% /0.16% | 5.38% /36.29% | 6 /6 |
+| N2 /2026-09 | 0.00% /0.00% | 0.00% /0.00% | 0.00% /0.00% | 0 /0 |
+
+**N1:** positive forward return/Sharpe increases1/3 to2/3, but Q and R each
+improve only1/3. Mean Q is+3.1695 and median Q is-0.1278; mean R is+3.2391
+and median R is-0.4333. The favorable means are dominated by the last cutoff,
+which has only5 assisted fills. Its R gain combines better forward quality
+(+10.9143) with lower IS Sharpe (-0.5212); it is not merely lower IS making
+decay look better. Conversely, January has more profit but lower forward
+Sharpe and higher DD. None of these different summaries should replace the
+others. Finding: heterogeneous, RESEARCH_ONLY, no default change.
+
+**N2:** both dictionaries are active in IS at all three cutoffs, but their
+January and September forward accounts have zero fills and no variance. Those
+are real zero-return/activity outcomes, not proven wins/losses, not numerical
+Q=R=0, and not proof of a broken engine or deliberate defensive degeneration.
+May improves both Q and R, with substantially higher exposure and slightly
+higher DD, based on6 fills/arm. One valid Sharpe pair is insufficient to claim
+consistent improvement across the three cutoffs. Finding: INCONCLUSIVE support;
+retain the baseline outside further separately registered research.
+
+All six contrasts choose different dictionaries. Only four change the actual
+forward streams; the other two are N2's equally flat accounts. Candidate-ID
+change, behavior change, positive-return consistency and decay improvement are
+therefore reported separately. Three origins do not supply365 paired forward
+days or the support of the earlier temporal-regret confidence family. No CI,
+universal advantage or independent historical-OOS claim is manufactured.
+
+## Technical Qualification
+
+- All16 studies complete256 attempts:3,937 COMPLETE observations and159 PRUNED
+  duplicate slots, zero failed trial slots. Historical wrapper failures remain
+  retained and are not relabeled successful executions.
+- 107 distinct current focused test cases PASS, plus29 seed subtests; repeated
+  earlier test runs do not inflate this count. These include independent seed
+  ranking, future dependency/label/candidate/revision rejection, admissible
+  geometry, exact continuation, fresh state, stale cache/reuse rejection,
+  report serialization, independent quantity masks and paired-contract binding.
+- All16 actual sampler journals reconstruct their terminal256-trial witness
+  and durable observation ledger in fresh processes: zero new proposals and
+  zero financial evaluations for those reconstructions.
+- Six actual future-market suffix mutations preserve physical prefixes,
+  frozen references,64-seed manifests and one preregistered original account
+  per prefix. Graph tests separately reject future labels/dossiers/revisions.
+  This certifies the declared input/seed boundary; it does not substitute for
+  M5-11.13's whole adaptive-procedure reconstruction or historical human purity.
+- Selected static account streams reproduce; all12 selected Mode4 accounts
+  reproduce from fresh state. Independent ledger residual maxima: equity,
+  positions and fees0; initial margin2.274e-12 and maintenance margin5.684e-14,
+  within the unchanged existing oracle contract. No tolerance was relaxed.
+- The original509 registration pins and16 sealed execution-source pins
+  reverify. Final cold-source pins, terminal journals/decisions, audit hashes,
+  canonical test XML, resource ledger and cleanup are bound in the private
+  `final-qualification.json`. No alpha source or parameter dictionary is staged.
+
+## Resources, Cost And Cleanup
 
 At most two independent one-thread financial workers; aggregate RSS ceiling
 2GiB, at least512MiB host available RAM and5GiB disk reserve. Incremental compact
@@ -220,7 +321,72 @@ retention ceiling384MiB; scratch16MiB. No new environment/build, editor stop,
 service stop, remote CI or release. Exact inactive fixture scratch is cleaned
 after owners terminate, preserving all scientific/source/receipt hashes.
 
-Still required: complete admitted matched studies,
-actual future-input isolation, selected audits, coverage/budget curves,
-annual/activity/tail/DD trade-offs, Mode4 IS/forward decomposition, work ledger,
-cleanup receipt and owner-reviewed handoff. No M5-11.13 execution is implied.
+| Work category | Actual count |
+| --- | ---: |
+| Attempted study slots | 4,096 |
+| Physical search-owner account executions | 3,424 |
+| Reused deterministic search observations | 513 |
+| Fresh continuous prefix diagnostic accounts | 768 |
+| Fixed-control executions additional to that diagnostic cohort | 6 |
+| Selected static audit executions | 4 |
+| Selected monthly forward/replay executions | 24 |
+| Actual future-prefix original-account replays | 6 |
+| Extra selected-forward activity witnesses | 6 |
+| Failed serialization forwards plus diagnostic probe | 3 |
+| Total new original-owner financial invocations | **4,241** |
+| Model fits | **0** |
+| Repeated completed optimizer studies | **0** |
+
+Eight fixed controls were executed, two already counted among768 diagnostics.
+Original-owner invocations include the source's preparation/shadow-oracle work
+and QuantBT execution; they are not bare native-call counts. Historical archive
+acquisition is extra:57 origins x128 source slots per cell,14,592 total supplied
+source slots, not newly run and not free information to create.
+
+Measured diagnostic/search worker CPU is10,070.66 seconds, including the failed
+owner's4,401.90 seconds exactly once; fixed-admission process CPU adds39.13
+seconds. Proof/test/probe CPU is not fully instrumented and is not claimed zero.
+The sum of per-alpha diagnostic/search process RSS maxima is1,082.07MiB;
+this is not an observed simultaneous whole-workload peak and does not measure
+every proof/test process. Sequential failed/restarted peaks are not added.
+Recorded warm-cache study times cannot establish algorithm or kernel speedup.
+
+Final cleanup preserves12,632 source/evidence/receipt pins, removes only exact
+inactive synthetic fixture directories, and recovers59,809,792 available bytes
+(57.04MiB observed), not merely their8,908,940 logical file bytes. Approximately
+62MiB compact evidence remains, below384MiB; available disk remains about5.78GiB.
+All environments, original finance, native artifacts, market/alpha sources,
+failure receipts and test XML remain. See
+[cleanup receipt](../maintenance/M5_11_12_CLEANUP.md).
+
+**Operational exception, not a new scientific result:** the registered16MiB
+scratch planning allowance was not enforced against filesystem-allocated bytes.
+Small-file fixture allocation exceeded that envelope even though the logical
+payload was much smaller; cleanup recovered57.04MiB. Allocated-scratch budget
+compliance is therefore not certified or silently redefined after the run.
+The5GiB disk-reserve guard remained in force, all affected fixtures are now
+removed, and the exception is retained for owner disposition. No larger scratch
+budget or future test run is implicitly authorized. This does not change any
+account, objective, decision or economic finding.
+
+## Handoff
+
+| Direction / cell | Research disposition |
+| --- | --- |
+| Mode4 -> Mode5 /N1 | KEEP_BASELINE for the registered objective; disclose growth/activity trade-off |
+| Mode4 -> Mode5 /N2 | KEEP_BASELINE; assisted winner worsens the registered robustness views |
+| Mode5 -> Mode4 /N1 | Heterogeneous RESEARCH_ONLY; late benefit does not establish consistent superiority |
+| Mode5 -> Mode4 /N2 | INCONCLUSIVE across origins; only one valid paired Sharpe observation |
+
+The useful general lesson is to diagnose prior coverage and objective alignment,
+not assume legal archive coordinates are automatically a better static prior.
+Prefix diagnostics can change candidate generation and occasionally improve
+forward decisions, but the unchanged medoid selector is sensitive to the pool's
+sampling density. No Ridge, selector, sampler family or public default changes.
+
+M5-11.13 requires separate owner approval and a frozen procedure/disposition.
+The current57-anchor roster must never be backdated into earlier prefixes;
+historical priors need their own vintage-complete inputs, counts and fallback.
+Keeping the baseline or an owner-approved no-new-finance disposition is valid;
+weak evidence is not a reason to force another tournament. Parent research,
+M5-12, remote CI, installed/public qualification and release remain separate.

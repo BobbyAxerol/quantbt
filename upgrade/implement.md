@@ -2,15 +2,18 @@
 
 ## Current Mode 5 Diagnostics-First Upgrade - Full-Development Decision Support
 
-**Latest research execution (2026-10-20, UTC):**
-[M5-11.12](#mode5-m5-11-12) is OWNER_APPROVED / IN_PROGRESS. The owner
-approved the original annual recipes, matched startup128/256-attempt TPE,
-64 params-only seeds and the separately charged128-account prefix diagnostics.
-Six fixed original-route controls pass full-path/measurement, independent
-ledger and exact deterministic IS-shard reuse checks. The private sequential
-sampler passes33 synthetic tests including fresh-process exact continuation.
-Two one-thread prefix-diagnostic workers are admitted; formal study admission
-still requires seed/right qualification and the final research source seal.
+**Latest research completion (2026-10-20, UTC):**
+[M5-11.12](#mode5-m5-11-12) is COMPLETE_LOCAL_REGISTERED_RESEARCH_SCOPE:
+16 matched studies /4,096 attempted slots plus768 prefix diagnostic accounts.
+107 distinct current tests and29 seed subtests PASS; all16 actual sampler
+journals reconstruct exactly, six actual future-prefix negative controls PASS,
+and original account/independent measurement checks pass. Static archive
+assistance does not beat the registered annual objective in either cell;
+reverse prefix assistance has heterogeneous/insufficient chronological support.
+The one cold audit serialization failure is retained and recovered without
+rerunning its256-trial optimizer. Cost, source and cleanup receipts are bound;
+allocated scratch exceeded its16MiB planning envelope and is reported, not
+certified as a passing resource gate. Owner disposition remains pending.
 See [current research report](../docs/mode5/M5_11_12_SAMPLER_ASSISTANCE_REPORT.md).
 M5-11.13, parent disposition, M5-12, CI and release remain separately gated.
 
@@ -61,7 +64,8 @@ and [approval roadmap](#mode45-cross-mode-roadmap).
 The registration originally leaves all four executions PENDING; the later
 M5-11.10approval/closeout above supersedes only that phase's initial status.
 M5-11.11has the later research-only approval recorded below;
-M5-11.12is now approved/in progress; M5-11.13remains PLAN_REGISTERED /
+M5-11.12is now complete within its approved local research scope;
+M5-11.13remains PLAN_REGISTERED /
 NOT_STARTED. No later experiment or
 queue action is authorized by the planning update. Existing M5-11.9 work retains its
 separate authority; its dated operational receipts below are historical
@@ -27957,7 +27961,7 @@ Every phase below inherits this mandatory resource registration/cleanup exit.
 | [M5-11.9](#mode5-m5-11-9) | Remaining original-alpha formal arms, actual-winner robustness and seven-alpha synthesis | Existing sealed studies plus guarded serial successor; no repeated completed optimizer | Registered C01..C06; guide M5T-031..110 | OWNER_APPROVED_EXECUTION / IN_PROGRESS; final receipt required, not just studies |
 | [M5-11.10](#mode5-m5-11-10) | Cross-mode archive, information rights and baseline registration | Approved cold execution; immutable inputs, remaining upstream scope explicit | XMR-001..010 | COMPLETE_LOCAL_REGISTERED_COLD_SCOPE; proposed later protocol awaits review |
 | [M5-11.11](#mode5-m5-11-11) | Static selector, stable regions and temporal regret | Reviewed 11.10 registration; own approval; same-panel observation rights | XMR-011..020 | COMPLETE_LOCAL_REGISTERED_RESEARCH_SCOPE; no production/source integration |
-| [M5-11.12](#mode5-m5-11-12) | Bidirectional sampler assistance with strict prefix isolation | Reviewed 11.10/11.11; own approval; separate direction contracts | XMR-021..030 | OWNER_APPROVED / IN_PROGRESS; original-route admission PASS; prefix diagnostics in progress |
+| [M5-11.12](#mode5-m5-11-12) | Bidirectional sampler assistance with strict prefix isolation | Reviewed 11.10/11.11; own approval; separate direction contracts | XMR-021..030 | COMPLETE_LOCAL_REGISTERED_RESEARCH_SCOPE;16 studies/4,096 slots,768 diagnostics,107 tests; scratch exception reported; no default activation |
 | [M5-11.13](#mode5-m5-11-13) | Whole-procedure chronology, economics and final research disposition | Reviewed 11.10..12; own approval; sealed outer protocol and dependencies | XMR-031..040 | PLAN_REGISTERED / NOT_STARTED; execution approval PENDING |
 | [M5-12](#mode5-m5-12) | Local qualification/docs/handoff | M5-01..11 plus 11.4..11.13 reviewed dispositions, including remaining 11.9 coverage | M5T-111..120 | NOT_STARTED; research/owner disposition required before entry |
 
@@ -38362,9 +38366,40 @@ all original decisions and evidence remain reproducible.
 <a id="mode5-m5-11-12"></a>
 ### Phase M5-11.12 - Bidirectional Sampler Assistance And Prefix Isolation
 
-**Status:** OWNER_APPROVED / IN_PROGRESS; research-only execution approved
-2026-10-20. Admission, source/prefix rights and tests precede financial dispatch.
+**Status:** COMPLETE_LOCAL_REGISTERED_RESEARCH_SCOPE,2026-10-20 UTC;
+accounting/chronology/reproducibility PASS, owner research/resource-exception
+disposition review pending. Research-only
+execution approval and source/prefix admission remain recorded below.
 No public/default activation, CI, release or M5-11.13 is authorized.
+**Closeout receipt:** all16 studies complete256 attempts:3,937 COMPLETE
+observations and159 duplicate PRUNED slots; no failed trial slots. All768
+prefix accounts,107 distinct passing test cases plus29 seed subtests,16 real
+fresh-process sampler reconstructions and six actual future-prefix controls
+are complete. Selected static account hashes and12 original selected monthly
+accounts reconcile; independent equity/position/fee residuals0, initial-margin
+residual at most2.274e-12 under the unchanged oracle contract.
+Static assistance loses the registered annual objective in both cells; retain
+the baseline. Reverse assistance improves Q/R on1/3 N1cutoffs, with means
+dominated by its late outcome; N2has one improved valid pair and two equally
+flat forward pairs, which do not support finite Sharpe R/Q. No generic hybrid,
+new Ridge/history identity or default sampler/selector is promoted.
+The N2cold audit failure preserves its256-trial journal/decision; exact
+continuation adds no proposal and only changes signed-infinity JSON encoding
+for report-only omega/profit_factor. Failed executions/CPU remain charged.
+Actual new original-owner financial invocations4,241; diagnostic/search worker
+CPU10,070.66seconds, with proof/test CPU explicitly incomplete, not zero.
+Terminal cleanup rechecks12,632 protected files and recovers57.04MiB actual
+available space; approximately62MiB compact evidence remains. No environment,
+native artifact, source, finance or failure evidence is removed.
+Allocated small-file fixture space exceeded the registered16MiB scratch
+planning envelope; allocated-cap compliance was not enforced/certified. The
+5GiB free-disk guard stayed active and owned fixtures are now removed. This
+operational exception is recorded separately for owner disposition; no budget
+is retroactively enlarged and no additional scientific gate is changed.
+See [research report](../docs/mode5/M5_11_12_SAMPLER_ASSISTANCE_REPORT.md),
+[cleanup](../docs/maintenance/M5_11_12_CLEANUP.md) and private
+`upgrade/private/mode5_upgrade_v1/m5-11-12/attempt-01/final-qualification.json`.
+Historical admission/failure receipts below are not current liveness claims.
 **Approved recipe amendment:** N1 retains annual `environment_floor_mean_v1`
 (mean weight 0.25); N2 retains annual `pareto_chebyshev_v1` (rho 0.01).
 Both arms use fresh TPE/startup128, 256 attempted slots and seed731 (original
@@ -38389,7 +38424,7 @@ report missing branches. The final winner mandate is unchanged. The original
 strict-donor NOT_ADMITTED receipt remains historical; the explicit v2 donor
 policy has its own private namespace and source-bound amendment. It cannot
 mark an ineligible financial candidate as eligible for final deployment.
-**Admission progress:**768/768 prefix diagnostic accounts complete. Original
+**Historical admission receipt:**768/768 prefix diagnostic accounts complete. Original
 financial controls and independent forward reconciliation pass. Final focused
 qualification has33 sampler tests,27 seed/provenance tests and2 reproduced
 reuse-rejection regressions passing; Ruff passes. Source is sealed before the
