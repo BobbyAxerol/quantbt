@@ -2,6 +2,18 @@
 
 ## Current Mode 5 Diagnostics-First Upgrade - Full-Development Decision Support
 
+**Latest research execution (2026-10-20, UTC):**
+[M5-11.12](#mode5-m5-11-12) is OWNER_APPROVED / IN_PROGRESS. The owner
+approved the original annual recipes, matched startup128/256-attempt TPE,
+64 params-only seeds and the separately charged128-account prefix diagnostics.
+Six fixed original-route controls pass full-path/measurement, independent
+ledger and exact deterministic IS-shard reuse checks. The private sequential
+sampler passes33 synthetic tests including fresh-process exact continuation.
+Two one-thread prefix-diagnostic workers are admitted; formal study admission
+still requires seed/right qualification and the final research source seal.
+See [current research report](../docs/mode5/M5_11_12_SAMPLER_ASSISTANCE_REPORT.md).
+M5-11.13, parent disposition, M5-12, CI and release remain separately gated.
+
 **Latest research completion (2026-10-20, Asia/Saigon):**
 [M5-11.11](#mode5-m5-11-11) is COMPLETE_LOCAL_REGISTERED_RESEARCH_SCOPE,
 not production/source integration. Same128-point N1/N2 panels,27 actual
@@ -15,7 +27,8 @@ but daily-quality noninferiority remains unestablished. Neither passes the
 complete registered economic condition; no generic replacement is promoted.
 See [research report](../docs/mode5/M5_11_11_STABLE_REGIONS_TEMPORAL_REGRET_REPORT.md)
 and [cleanup](../docs/maintenance/M5_11_11_CLEANUP.md).
-M5-11.12/11.13, parent disposition, M5-12and release retain separate approvals.
+M5-11.12has since received the research-only approval recorded above;
+M5-11.13, parent disposition, M5-12and release retain separate approvals.
 
 **Latest cross-mode completion (2026-10-20, Asia/Saigon):**
 [M5-11.10](#mode5-m5-11-10) is COMPLETE_LOCAL_REGISTERED_COLD_SCOPE after
@@ -31,7 +44,8 @@ New finance, optimizer proposals and model fits are all zero. See
 N1/N2are the proposed compatible cells, not a new economic winner claim.
 M5-11.11is separately approved/completed for local research only; its registered
 same-panel experiment does not authorize production/source integration.
-M5-11.12..11.13still require their separate owner review. Existing M5-11.9completion obligations, parent
+M5-11.12has since received separate research-only approval; M5-11.13still
+requires owner review. Existing M5-11.9completion obligations, parent
 research disposition, M5-12and release remain separate.
 
 **Latest planning approval (2026-10-20, Asia/Saigon):**
@@ -47,7 +61,8 @@ and [approval roadmap](#mode45-cross-mode-roadmap).
 The registration originally leaves all four executions PENDING; the later
 M5-11.10approval/closeout above supersedes only that phase's initial status.
 M5-11.11has the later research-only approval recorded below;
-M5-11.12..11.13remain PLAN_REGISTERED / NOT_STARTED. No later experiment or
+M5-11.12is now approved/in progress; M5-11.13remains PLAN_REGISTERED /
+NOT_STARTED. No later experiment or
 queue action is authorized by the planning update. Existing M5-11.9 work retains its
 separate authority; its dated operational receipts below are historical
 snapshots, not current process-liveness checks. Parent research, M5-12 and
@@ -27942,7 +27957,7 @@ Every phase below inherits this mandatory resource registration/cleanup exit.
 | [M5-11.9](#mode5-m5-11-9) | Remaining original-alpha formal arms, actual-winner robustness and seven-alpha synthesis | Existing sealed studies plus guarded serial successor; no repeated completed optimizer | Registered C01..C06; guide M5T-031..110 | OWNER_APPROVED_EXECUTION / IN_PROGRESS; final receipt required, not just studies |
 | [M5-11.10](#mode5-m5-11-10) | Cross-mode archive, information rights and baseline registration | Approved cold execution; immutable inputs, remaining upstream scope explicit | XMR-001..010 | COMPLETE_LOCAL_REGISTERED_COLD_SCOPE; proposed later protocol awaits review |
 | [M5-11.11](#mode5-m5-11-11) | Static selector, stable regions and temporal regret | Reviewed 11.10 registration; own approval; same-panel observation rights | XMR-011..020 | COMPLETE_LOCAL_REGISTERED_RESEARCH_SCOPE; no production/source integration |
-| [M5-11.12](#mode5-m5-11-12) | Bidirectional sampler assistance with strict prefix isolation | Reviewed 11.10/11.11; own approval; separate direction contracts | XMR-021..030 | PLAN_REGISTERED / NOT_STARTED; execution approval PENDING |
+| [M5-11.12](#mode5-m5-11-12) | Bidirectional sampler assistance with strict prefix isolation | Reviewed 11.10/11.11; own approval; separate direction contracts | XMR-021..030 | OWNER_APPROVED / IN_PROGRESS; original-route admission PASS; prefix diagnostics in progress |
 | [M5-11.13](#mode5-m5-11-13) | Whole-procedure chronology, economics and final research disposition | Reviewed 11.10..12; own approval; sealed outer protocol and dependencies | XMR-031..040 | PLAN_REGISTERED / NOT_STARTED; execution approval PENDING |
 | [M5-12](#mode5-m5-12) | Local qualification/docs/handoff | M5-01..11 plus 11.4..11.13 reviewed dispositions, including remaining 11.9 coverage | M5T-111..120 | NOT_STARTED; research/owner disposition required before entry |
 
@@ -38347,7 +38362,26 @@ all original decisions and evidence remain reproducible.
 <a id="mode5-m5-11-12"></a>
 ### Phase M5-11.12 - Bidirectional Sampler Assistance And Prefix Isolation
 
-**Status:** PLAN_REGISTERED / NOT_STARTED; execution approval PENDING.
+**Status:** OWNER_APPROVED / IN_PROGRESS; research-only execution approved
+2026-10-20. Admission, source/prefix rights and tests precede financial dispatch.
+No public/default activation, CI, release or M5-11.13 is authorized.
+**Approved recipe amendment:** N1 retains annual `environment_floor_mean_v1`
+(mean weight 0.25); N2 retains annual `pareto_chebyshev_v1` (rho 0.01).
+Both arms use fresh TPE/startup128, 256 attempted slots and seed731 (original
+fold-seed derivation for Mode4). Treatment includes exactly64 legal params-only
+seeds inside256, retaining at least64 random startup slots; control is unseeded.
+Mode4 remains monthly/730D at indices0/28/56 with meta OFF in both arms.
+Mode4->5 seeds use57 matured native anchors then calendar/effective-ID IS-pool
+refill, without reading forward outcomes to choose seeds. Mode5->4 rebuilds
+128 neutral diagnostic accounts per prefix, ranks with that alpha's annual
+recipe using only calendar years with at least180 days, reports partial years
+separately and balances categorical branches before choosing64. All diagnostic
+accounts, archive screening, selected audits and forward runs are charged
+separately from the4,096 proposed study slots. Original annual baselines remain
+the comparator; M5-11.11's regret research is not implicitly promoted.
+Reconstructed information-frontier clocks and actual wall publication clocks
+must remain distinct: current receipts are retrospective research, not evidence
+that a dossier was physically published before a historical sampler cutoff.
 **Goal:** identify whether better candidate generation follows from archive/
 diagnostic assistance, separately from a selector change, and certify the
 Mode 5 -> Mode 4 information boundary explicitly.
