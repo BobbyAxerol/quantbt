@@ -84,6 +84,10 @@ Current research receipts are not represented as dossiers historically
 published before a past decision. Reverse inputs must be physically truncated;
 dependency graphs must reject full-development fitted values and future rows.
 Existing historical human recipe decisions remain exploratory/reviewed.
+The monthly fixture's cutoffs use its existing logical bar-index convention.
+Its simulated +10/+30-second offsets are not measured search latency or proof
+of physical live next-open readiness. No canonical historical publication,
+production scheduling SLA or live deployment authority is certified here.
 
 Mode4 scoring and native selection remain confined to the current730D IS.
 The assisted proposal policy also uses older admissible prefix diagnostics.
@@ -96,6 +100,23 @@ disposition. The initial strict final-winner-donor interpretation failed branch
 coverage and remains retained, not relabeled PASS. The separately owner-approved
 v2 envelope only governs search seeds; original final eligibility is unaltered.
 There is no silent neutral refill, smaller study or incompatible meta-history reuse.
+
+## Cold Receipt Recovery
+
+The N2 first Mode4 control completed its256-trial journal and sealed decision,
+then its audit serializer rejected infinite report-only `omega`/`profit_factor`
+on a flat forward segment. The failure remains retained. A separately pinned
+local recovery envelope reconstructs that exact terminal journal, executes no
+new proposal in the recovered study, and replays the selected original account.
+It encodes these two infinite report fields as null plus their signed infinity
+class; objective, raw metric observation/status, fills and account streams are
+not changed. Unexpected nonfinite fields still fail closed. Five focused
+serialization tests pass. Failed/recovery CPU and the two lost audit executions
+plus one diagnostic probe are additional work, not erased by recovery.
+
+Flat/no-variance forward observations remain undefined for paired Sharpe R/Q.
+A legacy report Sharpe of zero or a position-regime count of one is not a
+trading win, forward skill or permission to invent a finite R/Q contrast.
 
 ## Resources And Remaining Gates
 
