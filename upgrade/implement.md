@@ -38382,6 +38382,20 @@ the comparator; M5-11.11's regret research is not implicitly promoted.
 Reconstructed information-frontier clocks and actual wall publication clocks
 must remain distinct: current receipts are retrospective research, not evidence
 that a dossier was physically published before a historical sampler cutoff.
+**Owner clarification before studies (2026-10-20 UTC):** reverse seed donors
+require feasible parameters and finite annual objective values, not the final
+winner's financial mandate. Balance branches with finite diagnostic data and
+report missing branches. The final winner mandate is unchanged. The original
+strict-donor NOT_ADMITTED receipt remains historical; the explicit v2 donor
+policy has its own private namespace and source-bound amendment. It cannot
+mark an ineligible financial candidate as eligible for final deployment.
+**Admission progress:**768/768 prefix diagnostic accounts complete. Original
+financial controls and independent forward reconciliation pass. Final focused
+qualification has33 sampler tests,27 seed/provenance tests and2 reproduced
+reuse-rejection regressions passing; Ruff passes. Source is sealed before the
+first study, with exact historical wrapper copies retained for the two fixed
+cold reuse checks. Matched research studies are in progress; economic results,
+actual future-input qualification and final cleanup/disposition remain open.
 **Goal:** identify whether better candidate generation follows from archive/
 diagnostic assistance, separately from a selector change, and certify the
 Mode 5 -> Mode 4 information boundary explicitly.

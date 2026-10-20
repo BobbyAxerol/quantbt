@@ -1,6 +1,6 @@
 # M5-11.12 Bidirectional Sampler Assistance
 
-Status at registration, 2026-10-20 UTC: **IN_PROGRESS**, research only.
+Status at study admission, 2026-10-20 UTC: **IN_PROGRESS**, research only.
 Neither economic superiority nor phase completion is claimed.
 
 ## Registered Question
@@ -13,7 +13,10 @@ objective, final selector, account and attempted budget remain matched?
   refill to64 unique legal coordinates. No forward labels rank supplied seeds.
 - Mode5 to Mode4:128 fresh continuous-account diagnostics at each physically
   truncated prefix. Existing annual recipes rank donors; categorical branches
-  are balanced. Years below180 calendar days remain reported but excluded
+  with finite diagnostic data are balanced; missing branches are reported.
+  The owner clarified before studies that seed eligibility means feasible
+  coordinates and finite annual objectives, not the final winner mandate.
+  Final winner financial gates remain unchanged. Years below180 calendar days remain reported but excluded
   from the ranking mask, under explicit owner approval.
 - Both arms: fresh legacy TPE, startup128,256 attempted proposals, seed731
   with original fold derivation. Exactly64 queued seeds consume treatment
@@ -46,7 +49,12 @@ The private sequential adapter passed33 synthetic tests, zero failures/skips:
 pruning without replacement slots, source/binding mismatch rejection, guards,
 cancellation, undefined objectives and minimum random-startup allocation.
 This certifies its owned local sampler journal only, not whole-WFO/account
-checkpoint recovery. Final seed/prefix and economic qualification remain open.
+checkpoint recovery. A further27 seed/provenance tests and2 focused
+reuse-rejection regressions pass; Ruff passes. Both reproduced wrapper defects
+were fixed before studies. Exact old wrapper copies and failing receipts remain
+available. The additional two original forward controls also pass independent
+reconciliation. All768 prefix accounts are complete;16 matched studies are now
+admitted. Economic qualification and actual future-input checks remain open.
 
 ## Information Rights
 
@@ -57,9 +65,11 @@ published before a past decision. Reverse inputs must be physically truncated;
 dependency graphs must reject full-development fitted values and future rows.
 Existing historical human recipe decisions remain exploratory/reviewed.
 
-Insufficient legal donors or missing required branches produce an explicit
-NOT_ADMITTED disposition. There is no silent neutral refill, relaxed economic
-gate, smaller study or incompatible meta-history reuse.
+Insufficient feasible finite-objective donors produce an explicit NOT_ADMITTED
+disposition. The initial strict final-winner-donor interpretation failed branch
+coverage and remains retained, not relabeled PASS. The separately owner-approved
+v2 envelope only governs search seeds; original final eligibility is unaltered.
+There is no silent neutral refill, smaller study or incompatible meta-history reuse.
 
 ## Resources And Remaining Gates
 
@@ -69,7 +79,7 @@ retention ceiling384MiB; scratch16MiB. No new environment/build, editor stop,
 service stop, remote CI or release. Exact inactive fixture scratch is cleaned
 after owners terminate, preserving all scientific/source/receipt hashes.
 
-Still required: final seed/source qualification, admitted matched studies,
+Still required: complete admitted matched studies,
 actual future-input isolation, selected audits, coverage/budget curves,
 annual/activity/tail/DD trade-offs, Mode4 IS/forward decomposition, work ledger,
 cleanup receipt and owner-reviewed handoff. No M5-11.13 execution is implied.
