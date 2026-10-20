@@ -2,6 +2,23 @@
 
 ## Current Mode 5 Diagnostics-First Upgrade - Full-Development Decision Support
 
+**Latest planning approval (2026-10-20, Asia/Saigon):**
+register four small cross-mode research phases
+[M5-11.10](#mode5-m5-11-10) ->
+[M5-11.11](#mode5-m5-11-11) ->
+[M5-11.12](#mode5-m5-11-12) ->
+[M5-11.13](#mode5-m5-11-13) before M5-12. The primary question is whether
+compatible Mode 4 temporal evidence improves one fixed Mode 5 dictionary;
+the reverse sampler-assistance direction must enforce complete prefix rights.
+See the [supplemental detailed guide](QUANTBT_MODE4_MODE5_CROSS_MODE_RESEARCH_GUIDE_V1.md)
+and [approval roadmap](#mode45-cross-mode-roadmap).
+All four phases are PLAN_REGISTERED / NOT_STARTED, with individual execution
+approval PENDING. No new experiment, source/runtime change or queue action is
+authorized by this documentation update. Existing M5-11.9 work retains its
+separate authority; its dated operational receipts below are historical
+snapshots, not current process-liveness checks. Parent research, M5-12 and
+release acceptance remain separate.
+
 **Latest approved completion work (2026-10-19, UTC):**
 [M5-11.9](#mode5-m5-11-9) is IN_PROGRESS: original-route admission and both
 additional-alpha market-state/actual-winner readbacks are complete locally;
@@ -27889,7 +27906,11 @@ Every phase below inherits this mandatory resource registration/cleanup exit.
 | [M5-11.7.3](#mode5-m5-11-7-3) | Broader integration, reporting cost and handoff | Reviewed 11.7.2; sequential approval | M45R-01..10 | COMPLETE_LOCAL_REGISTERED_REPORTING_SCOPE |
 | [M5-11.8](#mode5-m5-11-8) | Two additional private alphas: diagnostics, researcher recipe and actual matched calibration | Approved 128-point panels and six256-attempt studies; original-account/path/annual proof and cleanup | Registered N01..N08; guide M5T-031..110 | COMPLETE_LOCAL_REGISTERED_EXTRA_ALPHA_SCOPE; reviewed development, parent disposition still required |
 | [M5-11.9](#mode5-m5-11-9) | Remaining original-alpha formal arms, actual-winner robustness and seven-alpha synthesis | Existing sealed studies plus guarded serial successor; no repeated completed optimizer | Registered C01..C06; guide M5T-031..110 | OWNER_APPROVED_EXECUTION / IN_PROGRESS; final receipt required, not just studies |
-| [M5-12](#mode5-m5-12) | Local qualification/docs/handoff | M5-01..11 plus M5-11.4..11.9 dispositions reviewed | M5T-111..120 | NOT_STARTED; reporting/research handoff ready for owner scope review |
+| [M5-11.10](#mode5-m5-11-10) | Cross-mode archive, information rights and baseline registration | Own approval; immutable completed inputs, unfinished dependencies explicit | XMR-001..010 | PLAN_REGISTERED / NOT_STARTED; execution approval PENDING |
+| [M5-11.11](#mode5-m5-11-11) | Static selector, stable regions and temporal regret | Reviewed 11.10 registration; own approval; same-panel observation rights | XMR-011..020 | PLAN_REGISTERED / NOT_STARTED; execution approval PENDING |
+| [M5-11.12](#mode5-m5-11-12) | Bidirectional sampler assistance with strict prefix isolation | Reviewed 11.10/11.11; own approval; separate direction contracts | XMR-021..030 | PLAN_REGISTERED / NOT_STARTED; execution approval PENDING |
+| [M5-11.13](#mode5-m5-11-13) | Whole-procedure chronology, economics and final research disposition | Reviewed 11.10..12; own approval; sealed outer protocol and dependencies | XMR-031..040 | PLAN_REGISTERED / NOT_STARTED; execution approval PENDING |
+| [M5-12](#mode5-m5-12) | Local qualification/docs/handoff | M5-01..11 plus 11.4..11.13 reviewed dispositions, including remaining 11.9 coverage | M5T-111..120 | NOT_STARTED; research/owner disposition required before entry |
 
 Respect the guide dependency graph. M5-05 and independent M5-06 preparation
 may overlap only by explicit owner approval after M5-04; M5-06 exit still needs
@@ -36851,7 +36872,9 @@ bounded subphases, not another open-ended research program.
 | 2 | [M5-11.7.1](#mode5-m5-11-7-1) | Shared pre-WFO diagnostics, sampler/selector fit and bias explanations | COMPLETE_LOCAL_REGISTERED_REPORTING_SCOPE |
 | 3 | [M5-11.7.2](#mode5-m5-11-7-2) | Shared Mode4fold consistency/meta decision and Mode5 views | COMPLETE_LOCAL_REGISTERED_REPORTING_SCOPE |
 | 4 | [M5-11.7.3](#mode5-m5-11-7-3) | Public integration, source tests, reporting cost, privacy/docs/handoff | COMPLETE_LOCAL_REGISTERED_REPORTING_SCOPE |
-| 5 | [M5-12](#mode5-m5-12) | Exact local package/installed qualification | Existing conditional approval; reporting handoff READY_FOR_OWNER_REVIEW; not launched |
+| 5 | [M5-11.8/11.9](#mode5-m5-11-9) | Additional-alpha and remaining Mode 5 research | Later approved research; exact completion/dispositions required |
+| 6 | [M5-11.10..11.13](#mode45-cross-mode-roadmap) | Cross-mode static robustness and prefix-safe assistance | Planning approved 2026-10-20; each execution approval PENDING |
+| 7 | [M5-12](#mode5-m5-12) | Exact local package/installed qualification | Existing conditional approval; later research dispositions and separate launch review required |
 | Later | Remote / release | Final-source CI, owner release scope, publication/public proof | Separate owner approval; no workflow/push/tag/upload now |
 
 Read [new detailed reporting/closure guidance](QUANTBT_MODE4_META_LEARNER_RESEARCH_GUIDE_V1.md#mlr-s16).
@@ -37976,6 +37999,420 @@ New live heartbeats are `parallel-v2-progress/`; older scheduling owners are
 intentionally paused until cascade handoff. Final research/economics and C06
 remain IN_PROGRESS; M5-12 and CI/release stay unstarted.
 
+<a id="mode45-cross-mode-roadmap"></a>
+### Cross-Mode Research Roadmap Before M5-12
+
+**Planning authority:** owner approval on 2026-10-20, Asia/Saigon covers writing
+these four small phases and the
+[detailed research guide](QUANTBT_MODE4_MODE5_CROSS_MODE_RESEARCH_GUIDE_V1.md).
+Each phase requires separate execution approval; a predecessor PASS is not
+permission to launch its successor. Existing M5-11.9 tasks and failures are not
+replaced by this research. Freeze completed upstream snapshots; partial
+readbacks may support inventory, never completion or scientific PASS claims.
+
+**Research objective:** Mode 4 supports selection of one fixed Mode 5 dict
+through compatible temporal/region evidence. Mode 5 can assist Mode 4 search
+only with fully prefix-permitted diagnostics and priors. Keep legacy defaults,
+original scientific receipts, frozen Ridge V1 and financial owners unchanged.
+The new methods remain opt-in research until an explicit adoption decision.
+
+| Order | Phase | Main decision | Fresh financial scope, subject to approval/admission |
+|---|---|---|---|
+| 1 | M5-11.10 | Which archive cells and information rights are actually compatible? | None; inventory all seven alphas and seal a bounded roster |
+| 2 | M5-11.11 | Does temporal evidence improve one static selection on the same panel? | Missing registered witnesses and selected-account/probe checks only; zero optimizer proposals |
+| 3 | M5-11.12 | Does archive/prefix assistance improve candidate generation? | One matched challenger per direction/cell; proposed 256 attempts/study, at most two alpha cells |
+| 4 | M5-11.13 | Does the complete prefix procedure retain its benefit? | Proposed three full 365-day horizons/cell; exact reuse first, new prefix studies only where required |
+| Later | M5-12 | Is the accepted final source/package reproducible and private? | Separate local qualification approval after research disposition |
+
+**Shared scientific boundary:** original Mode 4 OOS becomes development input
+for a new selection if used to choose its dict/recipe. Preserve the old role
+and add the new lineage; it is not independent OOS for that new choice.
+Full-development Mode 5 dossiers, fitted geometry, candidate coordinates and
+human choices are NOT_BACKDATABLE. Independent confirmation cannot be created
+by renaming reviewed history. Candidate births, source/revision availability,
+account carry/reset, metrics, sampler acquisition and missing labels are
+mandatory comparison dimensions.
+
+The [proposed design](QUANTBT_MODE4_MODE5_CROSS_MODE_RESEARCH_GUIDE_V1.md#xm-design)
+specifies study/support/inference defaults for review, not execution permission.
+M5-11.10 must turn them into concrete manifests with exact dates, methods,
+numeric preferences, work/cost caps and permissions before financial approval.
+Do not reduce established horizons/trials merely to fit a runtime estimate.
+Independent subagents may review contracts, math/tests and reporting in parallel;
+financial owners share one measured resource budget and remain isolated.
+
+**Planning-only verification (2026-10-20, Asia/Saigon):** local documentation
+links/anchors and whitespace checks PASS. Structural review verifies four
+ordered phase sections before M5-12, thirteen required fields per phase,
+twenty-four work packages and forty uniquely mapped XMR acceptance IDs.
+Two independent read-only reviews check scope/approval and statistical
+contracts; the plan explicitly resolves account-basis, forward-reference
+clocks, new-candidate evaluation cost, NO_SELECTION and reverse-direction
+claim boundaries. The three existing detailed guides retain their SHA-256
+identities; unrelated owner edits and private strategy/evidence remain intact.
+Only documentation validation runs: no runtime regression, financial execution,
+new environment, queue action, CI or publication. No disposable test fixture
+or build cache is created, so cleanup has no deletion target or reclaimed-byte
+claim. This receipt certifies the plan structure, not any XMR research gate.
+
+<a id="mode5-m5-11-10"></a>
+### Phase M5-11.10 - Cross-Mode Archive, Information Rights And Baseline Lock
+
+**Status:** PLAN_REGISTERED / NOT_STARTED; execution approval PENDING.
+The owner approves the research direction and writing/registering this plan,
+not its proposed numerical protocols, resource caps or phase execution.
+**Goal:** make every proposed Mode 4/5 reuse decision explicit and reproducible,
+then freeze a meaningful bounded experiment for one static dictionary per
+alpha. Distinguish new temporal information from duplicate views of the same
+market path before spending on another optimization.
+**Entry:** separate owner approval; accessible immutable completed receipts
+from the relevant M5-11/ML-09 lanes; protected source/native/data identities.
+M5-11.9 may remain incomplete while inventory runs, but every dependent
+financial cell waits for its own complete upstream evidence.
+**Detailed Guide:** [protocol](QUANTBT_MODE4_MODE5_CROSS_MODE_RESEARCH_GUIDE_V1.md#xm-01),
+[rights and identity](QUANTBT_MODE4_MODE5_CROSS_MODE_RESEARCH_GUIDE_V1.md#xm-rights),
+[bounded design](QUANTBT_MODE4_MODE5_CROSS_MODE_RESEARCH_GUIDE_V1.md#xm-design),
+[QMS history](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s6),
+[reuse ownership](../docs/mode5/DIAGNOSTIC_REUSE_V1.md#permission-and-ownership),
+[history revisions](../docs/meta_selection/HISTORY.md#panels-clocks-and-revisions),
+[frozen Ridge](../docs/meta_selection/RIDGE_V1_FROZEN_BASELINE.md#frozen-scientific-contract)
+and [cleanup](../docs/BUILD_TEST_CLEANUP.md).
+
+**Contracts / Scope Lock:** cold analysis and focused contract tests only;
+zero new optimizer proposals, financial accounts, model fits or held probes.
+Inventory all seven private alphas; propose at most two financially compatible
+cells without choosing by favorable challenger performance. Do not pool BTC
+and ETH, monthly/quarterly schedules, reset/carried accounts or metric units.
+Existing held-winner checks retain validation-only roles. Ridge/legacy
+Mode 4/5 decisions and original manifests remain immutable.
+
+**To-Do / Guide Work Packages:**
+1. XM10.01 Source inventory: bind completed study/pool/acquisition/observation
+   receipts to exact source, artifact, market, parameter, route/account and
+   metric contracts. Register missing/incomplete upstream dependencies and
+   private/public boundaries; a worker's old launch receipt is not completion.
+2. XM10.02 Information graph: record actual versus simulated availability,
+   source cutoff, candidate generation/birth, label horizon/maturity,
+   publication/revision and permitted roles. Map current calibration and
+   prefix uses separately; reject dependencies fitted on later development.
+3. XM10.03 Coverage crosswalk: produce candidate x interval x metric masks,
+   effective aliases, acquisition selection and overlapping-time counts.
+   Classify each join as exact reuse, permitted derived readback, targeted
+   execution needed, rights-forbidden or incompatible. Unknown is not zero.
+4. XM10.04 Baseline/mathematics lock: map shared objective/geometry/tail/access
+   owners and pin the old static selector/native anchor. Register temporal
+   regret reference, absolute utility mandate, region interpretation and
+   the unchanged R/Q/IS algebra; no cross-unit composite or moving reference.
+5. XM10.05 Concrete experiment packet: choose exact lawful cell/interval
+   rosters, common panel/reference and outcome-blind missing-witness priority.
+   Specify the proposed 256-attempt matched arms, complete forward horizons,
+   support, seed, tail mass/tolerances, family/blocks/draws/economic margins,
+   source/role amendments and runtime/storage forecasts for owner review.
+   No unresolved numeric field becomes an implementation-time default.
+6. XM10.06 Reproducible handoff: public-safe summary plus private manifests,
+   focused test receipts and cleanup. State which inputs can be reused now,
+   which require new original-route execution and which cannot support a
+   claim. Update this phase's actual ledger without activating M5-11.11.
+
+**Tests:** XMR-001..010 in the
+[acceptance matrix](QUANTBT_MODE4_MODE5_CROSS_MODE_RESEARCH_GUIDE_V1.md#xm-tests):
+wrong-identity negatives, partial/undefined rows, aliases, future dossier and
+late-revision rejection, narrowed access on reload/cache, account-boundary
+mismatch, held-probe rights, deterministic cold reduction/no RNG consumption
+and privacy/source/cleanup. Small synthetic oracles supplement real retained
+metadata checks; neither is an economic experiment.
+**Deliverables:** immutable archive/rights crosswalk, coverage and missing-work
+ledger, frozen comparator references, concrete next-phase protocol packet,
+public-safe report and private JSON, test/resource/cleanup receipts.
+**Resource / Cleanup Gate:** proposed <=512 MiB RSS, <=64 MiB compact retained
+analysis and <=64 MiB scratch, one bounded cold worker; no new environment or
+large account copies. Check free bytes/inodes and shared live-job resources;
+preserve >=5 GiB reserve beyond forecast. Delete only exact inactive fixtures.
+**Exit Gate:** every intended source/use has a verified identity and lawful
+disposition; concrete downstream settings and costs are reviewable; XMR-001..010
+pass. No false full-pool labels, backdated candidate or unclassified account
+mismatch remains. Excluded scope is explicit, not a completed comparison.
+**Technical Debt / Gap Policy:** fix in-scope identity/rights defects before
+closure. Insufficient external data or incompatible cells receive explicit
+dispositions; they cannot be hidden in an aggregate PASS.
+**Commit Boundary:** shared cold contract/inventory support, focused tests and
+safe documentation; private sources, dictionaries and evidence remain ignored.
+**Rollback:** disable the new archive view and retain original reports/pins;
+no scientific runtime or accounting state is changed.
+
+<a id="mode5-m5-11-11"></a>
+### Phase M5-11.11 - Stable Regions, Static Selection And Temporal Regret
+
+**Status:** PLAN_REGISTERED / NOT_STARTED; execution approval PENDING.
+**Goal:** test whether compatible temporal evidence improves selection of one
+fixed dictionary on a common candidate panel, with absolute quality, activity,
+local fragility and risk visible alongside regret.
+**Entry:** reviewed M5-11.10 protocol and separate approval; required common
+panel/metric/account observations available or a sealed finite acquisition
+plan; tail/region/reference/mandate and uncertainty preferences fixed before
+affected outcomes. Keep incomplete M5-11.9 dependencies explicitly blocked.
+**Detailed Guide:** [protocol](QUANTBT_MODE4_MODE5_CROSS_MODE_RESEARCH_GUIDE_V1.md#xm-02),
+[math and hypotheses](QUANTBT_MODE4_MODE5_CROSS_MODE_RESEARCH_GUIDE_V1.md#xm-math),
+[Mode 5 matrices/transfer](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#chapter-4),
+[objective units and regret](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#chapter-5),
+[geometry](../docs/mode5/GEOMETRY_CONTRACT_V1.md#basin-evidence-and-representatives),
+[selector registry](../docs/mode5/SELECTION_CONTRACT_V1.md#formula-registry),
+[reporting](../docs/diagnostics/PRESEARCH_RESEARCHER_REPORT.md)
+and [cleanup](../docs/BUILD_TEST_CLEANUP.md).
+
+**Contracts / Scope Lock:** selector-only, zero new optimizer proposals.
+Use the old Mode 5 selector versus one registered upper-tail temporal-regret
+challenger on identical eligible candidate/interval observations. Region
+persistence and transition diagnostics explain this first experiment; they do
+not silently add a third tuned objective or a new regime model. Full-development
+results remain reviewed calibration. Preserve legacy objectives and Ridge V1.
+
+**To-Do / Guide Work Packages:**
+1. XM11.01 Common panel: admit exact observations/reference weights and masks.
+   Freeze candidate generation and common comparison support. Preserve missing
+   labels for the full roster; targeted replay follows the registered
+   outcome-blind order and original financial owner, not convenient winners.
+2. XM11.02 Region analysis: quantify near-optimal membership, feasible
+   distances, known local downside, clipping/alias counts, activity and
+   support across temporal/state views. Distinguish recurrence from TPE
+   density, overlapping IS and duplicate market evidence. No untested centroid
+   or empty-intersection theorem; actual finite support limits are reported.
+3. XM11.03 Regret policy: reuse typed utility/tail/reference owners; implement
+   only missing research policy. Freeze b_t and its reference version, fractional
+   upper-tail weights and tie rules. Enforce absolute economics/risk separately;
+   retain NO_SELECTION rather than silently deploying cash or a flat point.
+   A mean-regret identity test prevents a cosmetic objective rename.
+   Every ranked candidate/reference uses the matched continuous-account U_t
+   matrix. Reset labels remain diagnostic; region association does not alter
+   ranking/ties. No nearest-region substitution or candidate-specific masks.
+4. XM11.04 Matched decisions: compare original and challenger dictionary IDs,
+   component effects and actual observations on the same panel. Run only
+   missing declared financial witnesses, selected continuous accounts and
+   permissible held local/stress checks. Preserve fees/funding/sizing/carry,
+   feedback and terminal rules; reset labels never become a stitched account.
+5. XM11.05 Economic interpretation: report quality/floor/tail/regret, annual
+   and state consistency, transitions, exposure/inactivity, loss magnitudes,
+   DD/recovery and precision. Do not require every fold to be positive or
+   equate smaller IS-minus-forward decay with better forward performance.
+6. XM11.06 Decision packet: record KEEP_BASELINE, CANDIDATE_FOR_PREFIX_TEST,
+   INCONCLUSIVE or NO_SELECTION with source-bound reasons. Export the exact
+   required inputs for sampler/procedure tests, close correctness/resource
+   work and request the next phase review without automatic activation.
+
+**Tests:** XMR-011..020 cover independent small-array region/tail oracles,
+categorical/conditional feasibility, fractional mass, average-regret identity,
+reference revisions, stable/moving/losing/flat synthetic cases, missing labels,
+same-panel selection/ties, actual account/attribution reconciliation,
+transition chronology and held-role/privacy/work limits.
+**Deliverables:** comparable candidate/time/state matrices, fixed-reference
+regret and stable-region reports, original/challenger decision explanations,
+selected-account/held evidence, matched uncertainty and work ledger, private
+JSON and safe Markdown, source and cleanup receipts.
+**Resource / Cleanup Gate:** register the finite number of missing account,
+probe and fee-stress calls before finance; measure saved low/high-cost controls
+only where timing evidence is missing. Reuse immutable preparation/current
+environment. Apply the shared <=2 GiB aggregate RSS/two-worker ceiling only
+after admission, >=512 MiB available RAM and >=5 GiB disk reserve; compact
+evidence references remain within the new-series cap. No cap-driven method cut.
+**Exit Gate:** registered selector comparison and required selected-account
+witnesses complete for actual selections, XMR-011..020 pass, dictionary/component
+scores or valid NO_SELECTION rejection ledgers reproduce, and limitations/
+missing geometry are explicit. NO_SELECTION makes selected-account work
+NOT_APPLICABLE; next-phase review chooses a meaningful baseline-only sampler
+study or an owner-reviewed no-new-finance disposition. Negative economics can
+complete this research scope; an unfinished promised comparison cannot.
+**Technical Debt / Gap Policy:** no fabricated basin certificate, missing
+forward outcome or incompatible accounting substitution. Unsupported radii or
+insufficient precision retain explicit dispositions, not tuning until PASS.
+**Commit Boundary:** focused shared reducer/policy/tests and versioned safe
+research reports; no public defaults or release activation.
+**Rollback:** retain the original selector and hide the additive research view;
+all original decisions and evidence remain reproducible.
+
+<a id="mode5-m5-11-12"></a>
+### Phase M5-11.12 - Bidirectional Sampler Assistance And Prefix Isolation
+
+**Status:** PLAN_REGISTERED / NOT_STARTED; execution approval PENDING.
+**Goal:** identify whether better candidate generation follows from archive/
+diagnostic assistance, separately from a selector change, and certify the
+Mode 5 -> Mode 4 information boundary explicitly.
+**Entry:** reviewed M5-11.10/11.11, separate approval, exact direction-specific
+recipe/prefix/account identities and measured resource admission. Method
+parameters and total fresh/reused work must be sealed before new arm outcomes.
+**Detailed Guide:** [direction-specific protocol](QUANTBT_MODE4_MODE5_CROSS_MODE_RESEARCH_GUIDE_V1.md#xm-03),
+[information rights](QUANTBT_MODE4_MODE5_CROSS_MODE_RESEARCH_GUIDE_V1.md#xm-rights),
+[experimental design](QUANTBT_MODE4_MODE5_CROSS_MODE_RESEARCH_GUIDE_V1.md#xm-design),
+[QMS sampler](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s4),
+[QMS chronological flow](QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md#s7),
+[params-only reuse](../docs/meta_selection/SAMPLERS.md#params-only-warm-start),
+[space helper](../docs/meta_selection/SAMPLER_SPACE_HELPER.md#one-reusable-plan),
+[shared research rules](QUANTBT_MODE4_META_LEARNER_RESEARCH_GUIDE_V1.md#mlr-s8)
+and [cleanup](../docs/BUILD_TEST_CLEANUP.md).
+
+**Contracts / Scope Lock:** one challenger proposal policy per direction/cell,
+not every sampler x selector x model. Hold objective, selector, account,
+window and admission fixed within each contrast; proposed 256 attempts per
+study, seed 731/declared derivation, no early stopping. Supplied seeds and
+archive screening cost are counted. Mode 4 isolation uses meta off in both
+arms; no incompatible model/history is relabeled as frozen Ridge qualification.
+
+**To-Do / Guide Work Packages:**
+1. XM12.01 Register both experiments independently: Mode 4 -> Mode 5 uses
+   authorized mature archive regions for current static calibration; Mode 5
+   -> Mode 4 uses only a dossier constructed/reused from that origin's full
+   permissible prefix. Missing prefix dependencies cause rejection/fallback
+   under the sealed policy, not a truncated full-development dossier.
+2. XM12.02 Proposal policy: use the existing sampler factory/space helpers.
+   Freeze permitted seed coordinates/prior, neutral exploration allocation,
+   branch coverage, refresh cadence and fallback. Never transfer stale
+   objective values, optimizer state or normalized geometry across unmatched
+   contracts. Unsupported numeric/mixed-space paths remain explicit.
+3. XM12.03 Mode 5 contrast: old generation versus one archive-informed policy
+   under the same frozen static objective/selector. Charge all proposals
+   and supplied seeds to the same 256 budget and show archive construction
+   cost separately. Keep finite regret reference immutable during a study.
+   New candidates require their measured utility vector on the whole frozen
+   mask; budget reference and candidate account executions separately from
+   proposals. Beating the frozen reference may produce valid negative regret.
+4. XM12.04 Mode 4 contrast: at three calendar/support-selected early/mature/late
+   cutoffs per admitted alpha, compare original versus informed proposal
+   policy on identical IS/OOS contracts, with unchanged native selector.
+   Prefix geometry, scales, labels, coordinates and human recipe lineage must
+   be admissible before each seal. Current OOS never drives selection.
+5. XM12.05 Verify and interpret: preserve sequential ask/tell/RNG state and
+   exact supported continuation, fresh mutable accounts and guarded parallel
+   execution. Report effective coverage, duplicates/branches, budget response,
+   selected quality, actual forward outcomes and fallback; compatibility alone
+   does not establish superiority or causation of bull-market concentration.
+6. XM12.06 Handoff: disclose which direction/alpha benefits, costs and missing
+   evidence. Freeze at most one justified hybrid procedure per cell for
+   M5-11.13 review, or retain baseline. Do not automatically activate a research
+   prior, default sampler or new meta route in public Mode 4/5.
+
+**Tests:** XMR-021..030: incompatible objective/prior rejection; seed/budget
+counting; prefix-fitted priors with exploration; future dossier/label/candidate
+mutation; geometry/fallback and RNG; exact continuation versus unsupported
+recovery; fixed comparator economics/selector; history identity mismatch;
+immutable preparation/fresh account ownership; complete work/privacy/cleanup.
+**Deliverables:** two distinct direction protocols, prefix dossier/source
+graphs, exact trials/proposals and checkpoint ledgers, matched sampler and
+economic tables, measured full-work cost, review recommendation and receipts.
+**Resource / Cleanup Gate:** proposed ceiling 4,096 total slots across two
+cells and both directions (1,024 Mode 5 plus 3,072 Mode 4), less lawful exact
+reuse; not an authorization to dispatch them. Admission forecasts actual
+unique financial work and audits before launch. At most two admitted workers,
+one numeric thread/study under shared RSS/storage/deadline guards; preserve
+checkpoints and old source pins. Run source/math reviewers in parallel only
+without competing unbudgeted financial workers.
+**Exit Gate:** both direction contracts and claimed matched experiments have
+complete budgets/dispositions, XMR-021..030 pass, Mode 5 -> Mode 4 future-input
+isolation is demonstrated, and improvement/negative/insufficient findings
+remain distinct. A one-direction PASS cannot certify the other.
+**Technical Debt / Gap Policy:** no unfinished reuse or permission workaround.
+Changed-sampler meta-history qualification and universal automatic routing are
+outside this isolation study and explicitly unclaimed, not hidden debt.
+**Commit Boundary:** focused optional shared sampler/admission support, tests,
+safe docs and exact research handoff; no default or engine/alpha rewrite.
+**Rollback:** use the original proposal policy and sealed native selector;
+old RNG/decision receipts remain available and unchanged.
+
+<a id="mode5-m5-11-13"></a>
+### Phase M5-11.13 - Chronological Cross-Mode Qualification And Research Disposition
+
+**Status:** PLAN_REGISTERED / NOT_STARTED; execution approval PENDING.
+**Goal:** test the complete declared procedure, keep one dict fixed throughout
+each long deployment horizon, and decide honestly what cross-mode evidence
+adds before the parent research can enter M5-12.
+**Entry:** reviewed M5-11.10..12 and separate approval; exact selected procedures,
+outer calendars, inference and cost registrations; required upstream M5-11.9
+receipts available for any used cells. Unsupported methods receive an
+owner-reviewed no-new-finance disposition rather than a forced tournament.
+**Detailed Guide:** [chronological protocol](QUANTBT_MODE4_MODE5_CROSS_MODE_RESEARCH_GUIDE_V1.md#xm-04),
+[tests](QUANTBT_MODE4_MODE5_CROSS_MODE_RESEARCH_GUIDE_V1.md#xm-tests),
+[report/exit](QUANTBT_MODE4_MODE5_CROSS_MODE_RESEARCH_GUIDE_V1.md#xm-report),
+[Mode 5 temporal validation](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#chapter-4),
+[whole-procedure gates](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#chapter-7),
+[Mode 4 chronology](QUANTBT_MODE4_META_LEARNER_RESEARCH_GUIDE_V1.md#mlr-s6),
+[economic contract](../docs/mode5/ECONOMIC_CONTRACT_V1.md),
+[report masks](../docs/diagnostics/FOLD_DECISION_REPORTS.md#quantities-and-masks),
+[package handoff](../docs/diagnostics/REPORTING_COVERAGE_AND_HANDOFF.md#m5-12-entry-and-rollback)
+and [cleanup](../docs/BUILD_TEST_CLEANUP.md).
+
+**Contracts / Scope Lock:** baseline and at most one preregistered hybrid
+procedure per admitted cell. Proposed three nonoverlapping 365-day horizons
+with exact available-prefix dates selected before arm outcomes; no shortening
+to create apparent support. Reviewed historical data remains exploratory.
+Repeated origins validate a procedure; they do not establish one unchanged
+dict for every historical year. No new learner or default promotion.
+The reverse Mode 5 -> Mode 4 result remains a three-cutoff sampler screen and
+prefix-isolation proof, not full rolling deployment or changed-history meta
+qualification. Two-arm baseline/hybrid evidence cannot isolate a sampler x
+selector interaction; report only the registered total procedure effect.
+
+**To-Do / Guide Work Packages:**
+1. XM13.01 Freeze whole procedure: diagnostics, candidate/label acquisition,
+   geometry/environments, references, priors, recipe choices, fallback, support
+   and horizon. Declare exactly which inputs are reconstructed as-of and
+   which historical human choices remain retrospective development.
+2. XM13.02 Execute permitted prefixes: admit exact reusable completed studies;
+   otherwise run only the registered new prefix procedure at the full budget.
+   No latest-winner backdating, future-informed candidate bank or same-seed
+   substitute for actual source/RNG identity. A partial fixed-bank replay
+   cannot certify omitted adaptive search/environment/geometry stages.
+3. XM13.03 Fixed-dict forward accounts: execute original continuous engines
+   with declared opening state, warmup/carry, sizing, fees/funding and terminal
+   behavior. Parameters stay fixed within each full horizon; internal alpha
+   adaptation stays original. Reconcile actual positions/orders/fills/costs/
+   margin/MTM/equity using existing independent measurement owners.
+4. XM13.04 Chronology and inference: mutate future market/labels/revisions,
+   later candidates, final dossiers and reference rows on actual admitted
+   inputs; earlier proposals/recipe/selection must remain unchanged. Measure
+   paired absolute quality, regret/floor/tail, robustness, uncertainty and
+   valid R/Q/IS decomposition; preserve shared market shocks and missingness.
+   Freeze forward reference membership/rules before deployment, then measure
+   its matched forward outcomes strictly for assessment after the horizon.
+   Never reuse a development-window maximum as its forward benchmark.
+5. XM13.05 Shared reports: expose dictionary/support/time/state/transition
+   evidence, unchanged/changed decisions, trade-offs, sampler-versus-selector
+   contributions and absent proof in common JSON/Markdown. Keep counts of
+   trials, effective points, origins, time blocks and independent replications
+   distinct; publish no private strategy source or parameters.
+6. XM13.06 Final disposition: reconcile M5-11.1..11.13 and ML/research scopes,
+   old negative evidence and every remaining promised item. Recommend
+   keep-baseline, scoped opt-in adoption, further-research-only or rejection
+   per method/direction; close technical defects, retain explicit scientific
+   limits and obtain owner scope disposition before M5-12.
+
+**Tests:** XMR-031..040: full dependency closure; actual mature future mutation;
+fixed external params/internal adaptation; account/cost/boundary parity;
+independent utility/regret/R/Q masks; paired dependence/family uncertainty;
+unchanged original controls and adverse cases; JSON/Markdown/privacy agreement;
+affected shared/legacy regression; complete work/debt/cleanup/handoff.
+**Deliverables:** frozen procedures, exact origin/candidate lineage, original
+forward accounts and audits, uncertainty/decision tables, shared report
+integration, source/test/privacy/work receipts, completed research disposition
+packet and explicit M5-12 entry recommendation.
+**Resource / Cleanup Gate:** proposed maximum 3,072 proposal slots for two
+cells x three origins x two procedures x256, reduced only by exact admissible
+reuse; reference accounts, selected controls and probes counted separately.
+Full-work forecasts,
+source pins and admission precede execution. Retain compact authoritative
+evidence once under the shared new-series cap, clean exact inactive scratch,
+verify protected hashes and report actual bytes recovered. No default rebuild.
+**Exit Gate:** all claimed registered paths complete and XMR-031..040 pass;
+no accounting/leakage/reproducibility blocker remains. Research may conclude
+negative or INCONCLUSIVE with adequate measurement and explicit limitations.
+Owner acceptance of the scope/disposition is required; package, CI, public
+qualification and release do not activate automatically.
+**Technical Debt / Gap Policy:** missed required work cannot be called a
+negative economic result. Wider alpha generalization, pristine future data or
+unimplemented production routing remain explicitly unqualified unless separately
+approved and tested. Local source PASS is not installed-wheel certification.
+**Commit Boundary:** final focused research/report integration and affected
+tests, safe methodology/docs and source-bound disposition; release remains later.
+**Rollback:** retain legacy/frozen comparator paths and disable optional
+cross-mode research inputs; preserve all original and new evidence/receipts.
+
 <a id="mode5-m5-12"></a>
 ### Phase M5-12 - Local Package Qualification, Regression, Docs And Handoff
 
@@ -37983,13 +38420,17 @@ remain IN_PROGRESS; M5-12 and CI/release stay unstarted.
 approval2026-10-12(Asia/Saigon) is retained. Current entry also requires ML-09.C
 and M5-11.7.1..3reviewed dispositions under the2026-10-18ACTroadmap, plus the
 earlier M5-11.6/11.6.1research dispositions and the newly approved
-M5-11.9remaining-coverage disposition; package gates remain NOT_RUN.
+M5-11.9remaining-coverage disposition and owner-reviewed
+[M5-11.10..11.13 cross-mode research dispositions](#mode45-cross-mode-roadmap);
+package gates remain NOT_RUN.
 M5-11.4/11.5 retain their separately approved local closure. This planning
 request does not launch M5-12 or any CI, release or publication.
 **Goal:** deliver a reproducible privacy-safe local package and honest capability/
    scientific handoff covering the whole approved program before release approval.
-**Entry:** M5-01..11 including M5-11.4..11.9, M5-11.6.1 and ML-09.C reviewed dispositions, no blocking technical debt for claimed
-   capabilities, explicit M5-12 approval. Remote/publish approval remains separate.
+**Entry:** M5-01..11 including M5-11.4..11.13, M5-11.6.1 and ML-09.C reviewed
+   dispositions, no blocking technical debt for claimed capabilities, explicit
+   M5-12 approval. Cross-mode planning approval is not execution or scientific
+   acceptance. Remote/publish approval remains separate.
 **Detailed Guide:** [M5-12 work packages](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#phase-m5-12--qualification-docs-reproducibility-và-handoff),
 [7.8 reporting / 7.9 product gates](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#chapter-7),
 [Chapter 8 Definition of Done](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#chapter-8),
