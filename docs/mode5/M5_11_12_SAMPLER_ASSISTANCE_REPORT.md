@@ -142,6 +142,9 @@ days and is partial, not a full independent year.
 | Final equity, initial20,000 | 22,243.94 | 36,198.35 | 71,195.85 | 69,410.11 |
 | Unique declared effective points /256 | 248 | 244 | 253 | 245 |
 | Duplicate slots, pruned not replaced | 8 | 12 | 3 | 11 |
+| Observed categorical branches | 46 | 44 | 2 | 2 |
+| Largest observed branch share | 50.78% | 53.13% | 72.27% | 75.00% |
+| Observed final-eligible completed candidates | 91 | 192 | 208 | 216 |
 
 U is the registered net-return utility: net account return minus local
 drawdown and daily loss-ES penalties, both weight1. It is not raw Sharpe,
@@ -186,6 +189,28 @@ does not imply alignment with Mode5's full-calendar robustness objective.
 The particular57-anchor/refill64 initialization is not justified as a generic
 Mode5 upgrade by these results. No selector, lambda, seed mix or threshold is
 retuned after seeing this comparison.
+
+### Objective Response To Attempt Budget
+
+The table is best observed final-eligible objective, not a claim that an
+intermediate candidate was deployed. All completed256 attempts remain counted;
+duplicate/pruned proposals are not replaced to force256 distinct executions.
+
+| Attempts | N1 control | N1 assisted | N2 control | N2 assisted |
+| --- | ---: | ---: | ---: | ---: |
+| 64 | -0.112673 | -0.128010 | -270.581517 | -304.769316 |
+| 128 | -0.112673 | -0.112673 | -270.581517 | -270.581517 |
+| 192 | -0.091773 | -0.111389 | -238.850592 | -270.581517 |
+| 256 | -0.083486 | -0.111389 | -222.909168 | -270.581517 |
+
+Assistance improves the number of financially admissible N1 observations,
+91 to192, without improving its best registered objective. Feasibility yield,
+coverage and winner quality are different targets. The unassisted arms improve
+after128 attempts while the assisted arms mostly plateau; this motivates
+studying prior/objective alignment, not increasing seed exploitation by fiat.
+Adaptive branch frequency is not a uniform-space coverage estimator. Neither
+new winner has a new local-probe/basin certificate in this phase; unrelated
+earlier diagnostic-center probes are not substituted for one.
 
 ## Resources And Remaining Gates
 
