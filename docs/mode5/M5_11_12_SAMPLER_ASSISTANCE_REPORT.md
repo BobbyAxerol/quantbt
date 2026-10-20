@@ -3,6 +3,26 @@
 Status at study admission, 2026-10-20 UTC: **IN_PROGRESS**, research only.
 Neither economic superiority nor phase completion is claimed.
 
+## Interpretation Safeguards
+
+Equal256-proposal budgets are not equal lifetime computation/information:
+the archive and768 prefix diagnostic accounts are additional inputs/costs.
+Treatment may reuse deterministic financial observations already measured in
+control; actual calls/reuse are recorded separately. Cache-warm wall differences
+are not evidence that the proposal algorithm itself is faster.
+
+The sampler observes every finite registered objective, while the final winner
+still has the separate financial eligibility mandate. Budget curves therefore
+separate best scored objective from best observed final-eligible objective.
+A high score on a flat/ineligible configuration is not a supported winner.
+
+Holding the Mode4 plateau selector fixed does not make it neutral to sampling
+density: supplied seeds can alter clusters and the selected medoid. Observed
+density is not basin volume or local robustness certification. These contrasts
+measure the proposal-policy effect under the fixed selector, not a separately
+identified sampler-by-selector interaction. Annual partitions likewise are
+calendar robustness views, not proof of all latent market regimes.
+
 ## Registered Question
 
 Does lawful archive/prefix assistance improve candidate generation when the
@@ -64,6 +84,12 @@ Current research receipts are not represented as dossiers historically
 published before a past decision. Reverse inputs must be physically truncated;
 dependency graphs must reject full-development fitted values and future rows.
 Existing historical human recipe decisions remain exploratory/reviewed.
+
+Mode4 scoring and native selection remain confined to the current730D IS.
+The assisted proposal policy also uses older admissible prefix diagnostics.
+The complete assisted procedure is therefore prefix-informed, not exclusively
+current-IS-informed. Previously observed OOS may belong to that lawful past;
+the current forward segment never supplies scores, seeds or learned references.
 
 Insufficient feasible finite-objective donors produce an explicit NOT_ADMITTED
 disposition. The initial strict final-winner-donor interpretation failed branch
