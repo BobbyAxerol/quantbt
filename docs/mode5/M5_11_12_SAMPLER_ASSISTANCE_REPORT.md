@@ -118,6 +118,75 @@ Flat/no-variance forward observations remain undefined for paired Sharpe R/Q.
 A legacy report Sharpe of zero or a position-regime count of one is not a
 trading win, forward skill or permission to invent a finite R/Q contrast.
 
+## Completed Static Contrast: Mode4 To Mode5
+
+These are **same annual recipe / unassisted TPE versus archive-seeded TPE**,
+not raw-Sharpe/TPE versus a new robust objective. Both use startup128 and256
+attempts. Each selected dictionary stays fixed throughout2020-01-01 through
+2026-09-30 on one original continuous account. Annual attribution does not
+reset account state. Seven calendar environments are supported;2026 has273
+days and is partial, not a full independent year.
+
+| Quantity | N1 control | N1 assisted | N2 control | N2 assisted |
+| --- | ---: | ---: | ---: | ---: |
+| Registered selector objective, maximize | -0.083486 | -0.111389 | -222.909168 | -270.581517 |
+| Minimum annual U | -0.074050 | -0.106478 | -0.391306 | -0.520151 |
+| Positive-return environments | 3/7 | 6/7 | 4/7 | 4/7 |
+| Positive-U environments | 2/7 | 1/7 | 4/7 | 4/7 |
+| Whole account Sharpe, daily/365 | 0.2981 | 0.7810 | 0.9829 | 0.8336 |
+| Whole max drawdown | 9.81% | 13.73% | 25.36% | 33.22% |
+| Daily loss ES,95% | 0.711% | 1.415% | 2.434% | 3.107% |
+| Occupied-bar exposure | 13.09% | 65.73% | 99.77% | 99.03% |
+| Engine fills | 3,619 | 1,291 | 3,468 | 3,405 |
+| Independently reconstructed closed campaigns | 1,099 | 392 | 973 | 965 |
+| Final equity, initial20,000 | 22,243.94 | 36,198.35 | 71,195.85 | 69,410.11 |
+| Unique declared effective points /256 | 248 | 244 | 253 | 245 |
+| Duplicate slots, pruned not replaced | 8 | 12 | 3 | 11 |
+
+U is the registered net-return utility: net account return minus local
+drawdown and daily loss-ES penalties, both weight1. It is not raw Sharpe,
+raw return, a probability or a currency amount. N1 maximizes minimum annual U
+plus0.25 times its day-weighted annual mean. N2 uses the frozen annual
+Pareto/Chebyshev recipe and reference/scales, rho0.01; its normalized objective
+is not directly comparable to N1's utility units. The annual-positive count is
+a descriptive consistency statistic, not an added winner gate.
+
+### Annual Return And Utility
+
+Each cell is `net return / U`. The full private readback additionally preserves
+annual Sharpe, local and carried-watermark DD, loss ES, exposure, fees/funding,
+support/risk flags and the frozen selector's explanatory components.
+
+| Calendar | N1 control | N1 assisted | N2 control | N2 assisted |
+| --- | ---: | ---: | ---: | ---: |
+| 2020 | +1.99% / -0.0433 | +8.02% / -0.0667 | +69.74% / +0.5889 | +77.03% / +0.6226 |
+| 2021 | +10.73% / +0.0430 | +29.01% / +0.1785 | +44.00% / +0.2869 | +50.39% / +0.3111 |
+| 2022 | +5.03% / +0.0034 | +15.26% / -0.00005 | +38.25% / +0.2169 | +41.30% / +0.2285 |
+| 2023 | -0.67% / -0.0592 | -3.49% / -0.1065 | -11.55% / -0.3913 | -15.76% / -0.5202 |
+| 2024 | -2.00% / -0.0741 | +5.55% / -0.0629 | +31.44% / +0.1730 | +30.75% / +0.1238 |
+| 2025 | -1.43% / -0.0695 | +7.90% / -0.0283 | -6.76% / -0.3140 | -6.78% / -0.3841 |
+| 2026 partial | -2.28% / -0.0735 | +2.51% / -0.0620 | -2.83% / -0.2369 | -10.16% / -0.4398 |
+
+**N1 finding:** assistance discovers a more active, higher-growth dictionary
+and improves positive-return consistency, but doubles daily tail loss, raises
+DD and worsens the registered annual utility floor. Fewer fills do not mean
+less exposure. Better aggregate Sharpe/equity is not enough to declare success
+against the predeclared robust objective. This is a meaningful risk/activity
+trade-off, not proof that the archive has no useful information.
+
+**N2 finding:** the assisted winner has worse objective, worst-year U, whole
+Sharpe, DD and daily tail loss. Early strong years improve while later weak
+years deteriorate. This is observed calendar concentration under this seed
+policy, not a universal allegation that legacy TPE is bull-market-biased.
+The seed rule did not use forward labels, but those legal historical anchors
+were selected under Mode4's different IS objective: coordinate compatibility
+does not imply alignment with Mode5's full-calendar robustness objective.
+
+**Static recommendation:** KEEP_BASELINE for both registered cells/direction.
+The particular57-anchor/refill64 initialization is not justified as a generic
+Mode5 upgrade by these results. No selector, lambda, seed mix or threshold is
+retuned after seeing this comparison.
+
 ## Resources And Remaining Gates
 
 At most two independent one-thread financial workers; aggregate RSS ceiling
