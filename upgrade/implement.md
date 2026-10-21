@@ -2,6 +2,23 @@
 
 ## Current Mode 5 Diagnostics-First Upgrade - Full-Development Decision Support
 
+**Latest owner-approved disposition:**
+[M5-11.13](#mode5-m5-11-13) completes
+COMPLETE_LOCAL_APPROVED_NO_NEW_FINANCE_SCOPE: KEEP_BASELINE in both cross-mode
+directions; zero new proposals, accounts, model fits or forward days. The owner
+explicitly chose not to launch the proposed chronological financial studies.
+Their365-day whole-procedure, adaptive mutation and family-inference claims
+remain NOT_EVALUATED / DEFERRED_APPROVED, not PASS. Cold rights/source/report
+regression and the earlier bounded evidence remain separate. The final affected
+suite passes170tests; source/pin/approval/path checks are tightened without
+changing scientific defaults, accounting, Ridge or alpha behavior.
+See [disposition report](../docs/mode5/M5_11_13_CHRONOLOGICAL_DISPOSITION_REPORT.md)
+and [current coverage ledger](../docs/mode5/M5_11_RESEARCH_COVERAGE_DISPOSITION.md).
+M5-11.9still has6/9formal terminal receipts: HASHrecipe/TPE, HASHchallenger and
+VWAPchallenger plus successor synthesis/winner/terminal coverage remain open.
+No worker control occurred in this cold phase. Parent scope acceptance,
+M5-11.12operational-exception disposition, M5-12, CI and release remain gated.
+
 **Latest research completion (2026-10-20, UTC):**
 [M5-11.12](#mode5-m5-11-12) is COMPLETE_LOCAL_REGISTERED_RESEARCH_SCOPE:
 16 matched studies /4,096 attempted slots plus768 prefix diagnostic accounts.
@@ -15,7 +32,8 @@ rerunning its256-trial optimizer. Cost, source and cleanup receipts are bound;
 allocated scratch exceeded its16MiB planning envelope and is reported, not
 certified as a passing resource gate. Owner disposition remains pending.
 See [current research report](../docs/mode5/M5_11_12_SAMPLER_ASSISTANCE_REPORT.md).
-M5-11.13, parent disposition, M5-12, CI and release remain separately gated.
+M5-11.13has the subsequent approved cold disposition above; parent acceptance,
+M5-12, CI and release remain separately gated.
 
 **Latest research completion (2026-10-20, Asia/Saigon):**
 [M5-11.11](#mode5-m5-11-11) is COMPLETE_LOCAL_REGISTERED_RESEARCH_SCOPE,
@@ -31,7 +49,8 @@ complete registered economic condition; no generic replacement is promoted.
 See [research report](../docs/mode5/M5_11_11_STABLE_REGIONS_TEMPORAL_REGRET_REPORT.md)
 and [cleanup](../docs/maintenance/M5_11_11_CLEANUP.md).
 M5-11.12has since received the research-only approval recorded above;
-M5-11.13, parent disposition, M5-12and release retain separate approvals.
+M5-11.13has the subsequent approved cold disposition above; parent acceptance,
+M5-12and release retain separate approvals.
 
 **Latest cross-mode completion (2026-10-20, Asia/Saigon):**
 [M5-11.10](#mode5-m5-11-10) is COMPLETE_LOCAL_REGISTERED_COLD_SCOPE after
@@ -47,8 +66,8 @@ New finance, optimizer proposals and model fits are all zero. See
 N1/N2are the proposed compatible cells, not a new economic winner claim.
 M5-11.11is separately approved/completed for local research only; its registered
 same-panel experiment does not authorize production/source integration.
-M5-11.12has since received separate research-only approval; M5-11.13still
-requires owner review. Existing M5-11.9completion obligations, parent
+M5-11.12has since received separate research-only approval; M5-11.13now
+completes its approved no-new-finance scope. Existing M5-11.9completion obligations, parent
 research disposition, M5-12and release remain separate.
 
 **Latest planning approval (2026-10-20, Asia/Saigon):**
@@ -65,8 +84,8 @@ The registration originally leaves all four executions PENDING; the later
 M5-11.10approval/closeout above supersedes only that phase's initial status.
 M5-11.11has the later research-only approval recorded below;
 M5-11.12is now complete within its approved local research scope;
-M5-11.13remains PLAN_REGISTERED /
-NOT_STARTED. No later experiment or
+M5-11.13now completes only the approved cold KEEP_BASELINE disposition.
+No later experiment or
 queue action is authorized by the planning update. Existing M5-11.9 work retains its
 separate authority; its dated operational receipts below are historical
 snapshots, not current process-liveness checks. Parent research, M5-12 and
@@ -27962,7 +27981,7 @@ Every phase below inherits this mandatory resource registration/cleanup exit.
 | [M5-11.10](#mode5-m5-11-10) | Cross-mode archive, information rights and baseline registration | Approved cold execution; immutable inputs, remaining upstream scope explicit | XMR-001..010 | COMPLETE_LOCAL_REGISTERED_COLD_SCOPE; proposed later protocol awaits review |
 | [M5-11.11](#mode5-m5-11-11) | Static selector, stable regions and temporal regret | Reviewed 11.10 registration; own approval; same-panel observation rights | XMR-011..020 | COMPLETE_LOCAL_REGISTERED_RESEARCH_SCOPE; no production/source integration |
 | [M5-11.12](#mode5-m5-11-12) | Bidirectional sampler assistance with strict prefix isolation | Reviewed 11.10/11.11; own approval; separate direction contracts | XMR-021..030 | COMPLETE_LOCAL_REGISTERED_RESEARCH_SCOPE;16 studies/4,096 slots,768 diagnostics,107 tests; scratch exception reported; no default activation |
-| [M5-11.13](#mode5-m5-11-13) | Whole-procedure chronology, economics and final research disposition | Reviewed 11.10..12; own approval; sealed outer protocol and dependencies | XMR-031..040 | PLAN_REGISTERED / NOT_STARTED; execution approval PENDING |
+| [M5-11.13](#mode5-m5-11-13) | Whole-procedure chronology, economics and final research disposition | Reviewed 11.10..12; owner-approved KEEP_BASELINE/no-new-finance branch | XMR-031..040 | COMPLETE_LOCAL_APPROVED_NO_NEW_FINANCE_SCOPE;031..036DEFERRED_APPROVED,037..040verified cold only; parent/package not accepted |
 | [M5-12](#mode5-m5-12) | Local qualification/docs/handoff | M5-01..11 plus 11.4..11.13 reviewed dispositions, including remaining 11.9 coverage | M5T-111..120 | NOT_STARTED; research/owner disposition required before entry |
 
 Respect the guide dependency graph. M5-05 and independent M5-06 preparation
@@ -38517,10 +38536,36 @@ old RNG/decision receipts remain available and unchanged.
 <a id="mode5-m5-11-13"></a>
 ### Phase M5-11.13 - Chronological Cross-Mode Qualification And Research Disposition
 
-**Status:** PLAN_REGISTERED / NOT_STARTED; execution approval PENDING.
-**Goal:** test the complete declared procedure, keep one dict fixed throughout
-each long deployment horizon, and decide honestly what cross-mode evidence
-adds before the parent research can enter M5-12.
+**Status:** COMPLETE_LOCAL_APPROVED_NO_NEW_FINANCE_SCOPE.
+**Approved exit interpretation:** the owner selected KEEP_BASELINE and no new
+financial experiments. XMR-031..036receive explicit DEFERRED_APPROVED /
+NOT_EVALUATED dispositions, not empirical PASS. XMR-037..040are verified only
+for current cold integrity, reporting, regression and work/limit/cleanup
+handoff. This supersedes the original proposed full-finance exit within this
+phase, not the original scope of earlier receipts or unfinished M5-11.9.
+See [report](../docs/mode5/M5_11_13_CHRONOLOGICAL_DISPOSITION_REPORT.md),
+[cleanup](../docs/maintenance/M5_11_13_CLEANUP.md) and ignored private
+`upgrade/private/mode5_upgrade_v1/m5-11-13/attempt-01/phase-exit-v2.json`.
+**Approved scope amendment:** KEEP_BASELINE; no new finance for the two
+unsupported hybrid policies after M5-11.12. The owner explicitly approved a
+cold disposition/coverage/rights/regression handoff. The proposed3,072 proposal
+ceiling is not dispatched: zero new optimizers, account executions or fits.
+Unperformed365-day whole-procedure experiments and their economic/mutation
+claims remain NOT_EVALUATED / DEFERRED_APPROVED, never PASS by reused receipts.
+This narrows only M5-11.13; it does not waive unfinished M5-11.9 work, approve
+the parent research disposition or start M5-12, CI, release or publication.
+**Cold execution registration:** reuse the current tooling/native environment;
+one cold worker, one numeric thread,512MiB RSS,30-minute wall/20-minute CPU,
+32MiB compact retained outputs,64MiB filesystem-allocated scratch,5GiB free
+disk beyond the remaining forecast, and512MiB available RAM. Exact ignored
+fixture paths are admitted before tests; allocated blocks and inodes are
+checked, not merely logical JSON sizes. Preserve the M5-11.12 scratch exception
+as historical; current approval does not retroactively turn it into PASS.
+**Goal:** reconcile existing cross-mode evidence and retain the baseline under
+the owner-approved no-new-finance branch. The originally proposed complete
+prefix/long-deployment qualification remains unexecuted, not silently replaced
+by a fixed-bank readback. Decide and document what can actually be claimed
+before the parent research can enter M5-12.
 **Entry:** reviewed M5-11.10..12 and separate approval; exact selected procedures,
 outer calendars, inference and cost registrations; required upstream M5-11.9
 receipts available for any used cells. Unsupported methods receive an
