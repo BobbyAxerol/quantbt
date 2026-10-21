@@ -200,7 +200,7 @@ full-dimensional or radius-wide basin certificate. No threshold is lowered
 after seeing these results. Checks use whole U and the complete mandate, not
 a fictitious requirement that every annual U be nonnegative.
 
-## Remaining Original-Alpha Formal Arms
+## Original-Alpha Formal Design And History
 
 SC, HASH and VWAP passed full-history research/audit path parity against the
 original financial evidence, including selected audit fill reconciliation.
@@ -245,6 +245,91 @@ feedback changes TPE's later proposals. Reuse the fixed-panel comparisons for
 selector-only attribution. Recipe/TPE versus its matched challenger tests a
 sampler policy under the same objective/budget; one seed does not establish
 universal superiority.
+
+## Completed Original-Alpha Formal Results
+
+All nine formal studies now have256attempts and original selected-account
+audits:2,248COMPLETE/56PRUNED across2,304slots;992COMPLETE candidates satisfy
+the frozen final mandate. These are reviewed-development results, not untouched
+OOS. The calendar is2020-01-01 through2026-10-06exclusive;2026has278days.
+Winner held/probe/fee/regime qualification is a separate subsequent gate.
+
+`R` means raw-Sharpe/TPE; `T` is the frozen recipe/TPE; `C` is the same recipe
+with group TPE(SC) or Sobol(HASH/VWAP). Each winner is one fixed dictionary.
+Return, DD, daily-loss ES95, minimum annual U and exposure below are percent;
+fees are USDT, initial capital20,000. Exposure is the fraction of hourly bars
+with a non-flat position, not fraction of capital allocated.
+
+| Winner | Return % | Sharpe | DD % | Daily ES95 % | Min annual U % | Positive-return years /7 | Exposure % | Fees |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| SC R |44.57|1.459|4.04|0.409|-4.505|5|55.41|279.28|
+| SC T |4.70|0.610|1.56|0.062|0.000|2|3.95|2.57|
+| SC C |2.50|0.545|0.90|0.022|0.000|1|1.92|0.80|
+| HASH R |36.37|1.267|5.03|0.379|-2.901|7|90.15|576.65|
+| HASH T |9.04|0.460|4.15|0.340|-3.064|6|86.18|636.23|
+| HASH C |9.76|0.386|3.92|0.389|-4.097|5|82.50|901.08|
+| VWAP R |31.84|1.403|2.92|0.323|-1.604|7|33.81|217.58|
+| VWAP T |3.05|0.721|1.73|0.044|-1.291|4|1.35|164.28|
+| VWAP C |3.22|0.668|0.79|0.049|-1.304|4|1.51|227.26|
+
+### Annual Consistency, Not Only Final Equity
+
+Each cell is annual net return / annual U, in percent, attributed from the
+same continuous account. Zero-return years do not count as positive years;
+calendar-day support does not imply activity. The partial2026is not a full-year
+observation, and these seven years are not seven independent experiments.
+
+| Winner |2020|2021|2022|2023|2024|2025|2026 partial|
+|---|---:|---:|---:|---:|---:|---:|---:|
+| SC R |18.377/15.144|8.996/4.331|-0.890/-4.505|7.254/5.548|5.619/3.285|-0.257/-3.082|0.059/-2.298|
+| SC T |0/0|0/0|0/0|2.204/0.394|0/0|0/0|2.444/1.386|
+| SC C |0/0|0/0|0/0|0/0|0/0|0/0|2.498/1.417|
+| HASH R |12.233/8.332|7.791/3.140|0.587/-2.901|1.177/-2.555|3.917/1.352|4.171/2.272|2.321/0.206|
+| HASH T |1.969/-0.632|4.522/1.782|0.713/-1.720|0.437/-2.337|0.083/-2.055|-1.015/-3.064|2.099/0.295|
+| HASH C |0.676/-2.895|1.822/-2.161|1.722/-2.010|-0.803/-3.751|2.467/-1.415|3.873/1.421|-0.306/-4.097|
+| VWAP R |13.927/11.423|6.721/3.380|0.630/-0.858|3.496/1.393|3.873/2.357|0.171/-1.307|0.061/-1.604|
+| VWAP T |0.915/0.585|2.048/1.299|-0.299/-1.216|-0.397/-1.017|-0.537/-1.291|0.405/-0.135|0.902/0.665|
+| VWAP C |1.441/0.956|1.687/1.334|-0.451/-1.304|-0.003/-0.449|0.528/-0.041|0.041/-0.636|-0.046/-0.517|
+
+### Objective Meaning And Counter-Evidence
+
+Annual `U = net return - DD - daily-loss ES95`, in decimal-return units; fees
+are already netted. The frozen SC objective is minimum annual U plus0.25times
+its day-weighted mean. HASH uses minimum U plus0.5times the lower25%-mass
+annual-U mean, minus0.2times weighted MAD; this environment tail is not daily
+loss ES. VWAP uses a negative augmented day-weighted normalized Chebyshev gap
+with frozen annual-U ideal/worst references and rho0.01. Compare scores only
+within a family and reference revision, never across these different scales.
+
+Cold arithmetic on the saved Raw winner's annual summaries gives the following
+post-hoc comparison. No new finance or winner selection occurs; formal winners
+remain those selected in their own registered pools. This is not selector-only
+or independent validation, and a union-pool winner is not silently substituted.
+
+| Frozen recipe, higher is better | Raw winner, cold calculation | Recipe/TPE receipt | Recipe/challenger receipt |
+|---|---:|---:|---:|
+| SC floor/mean |-0.038025|0.000536|0.000399|
+| HASH environment tail |-0.046388|-0.046651|-0.061999|
+| VWAP frozen Chebyshev |-102.490|-143.733|-137.042|
+
+- SC improves its annual floor to zero, but T has five flat years and C six;
+  the latter's entire gain is in partial2026. Lower DD must be reported alongside
+ 93%/97%lower non-flat exposure, not called broad-regime profitability.
+- HASH does not improve the weakest annual U. Its challengers remain highly
+  exposed, produce less net growth and fewer positive years; C pays about56%more
+  fees than R. This is not explained just by becoming inactive. The Raw winner
+  also narrowly exceeds T on the frozen tail formula in this finite search.
+- VWAP Sobol improves its own recipe/TPE compromise and lowers whole DD, but
+  has worse weakest U, higher fees/daily ES and fewer positive-U years. Both
+  recipe winners are much less active than Raw; their risk/growth trade-off
+  is not a matched-exposure edge claim. Raw's saved winner also scores better
+  on the same frozen formula, showing that objective-aware search with256slots
+  need not discover the best point available in another study's pool.
+
+These findings support keeping diagnostics, activity and matched candidate
+generation/selection comparisons explicit. They do not justify automatic recipe
+routing, changing the mandate after results, replacing an actual winner with
+a held neighbor, or upgrading every alpha to one objective/sampler family.
 
 ## Exit Still Pending
 
