@@ -5,6 +5,14 @@ research program or begin package qualification. Historical receipts remain
 unchanged. See the [unified plan](../../upgrade/implement.md#mode5-m5-11)
 and [additional-alpha research](M5_11_8_RESEARCH_STATUS.md).
 
+**Latest integration closeout:** [M5-11.14](../diagnostics/M5_11_14_IMPLEMENTATION_REPORT.md)
+completes its approved local source integration: actionable shared diagnostics,
+optional archive review, explicit researcher recipe choice, checked run pack and
+actual-result reconciliation. Seven retained contexts are cold-read, not rerun;
+574distinct affected tests and bounded synthetic endpoint controls pass. This
+does not promote the archive assistance/regret methods or accept parent M5-11.
+Owner parent disposition remains the next decision before M5-12.
+
 **Latest reconciliation:** [M5-11.13](M5_11_13_CHRONOLOGICAL_DISPOSITION_REPORT.md)
 completes the owner-approved KEEP_BASELINE/no-new-finance scope. Its cold
 approval does not close M5-11.9, accept the parent research scope or qualify
@@ -60,6 +68,7 @@ completes as recorded above; neither completion nor a launch accepts the parent.
 | M5-11.11 regret/regions | Two fixed-panel selector comparisons, 68 original reference/selected-account invocations, bounded independent measurement complete | N1 keeps baseline; N2 trade-offs remain inconclusive for full quality noninferiority; no generic replacement |
 | M5-11.12 sampler assistance | 16 studies/4,096 slots, 768 fresh prefix diagnostic accounts, six actual future-prefix controls and actual sampler reconstruction complete locally | Both static registered objectives worsen; reverse prefix effects heterogeneous/sparse. Three-cutoff screen is not long deployment. Scratch deviation is an owner-accepted remediated operational exception, not historical resource PASS |
 | M5-11.13 disposition | KEEP_BASELINE, zero new finance/proposals/fits; 170 final cold rights/measurement/inference/reporting tests PASS | New 365-day whole-procedure, adaptive future mutation and family inference NOT_EVALUATED / DEFERRED_APPROVED; parent/package/release authority not granted |
+| M5-11.14 executable handoff | Shared source-bound worksheet/pack/reconciliation, seven-context cold evidence and actual existing endpoint controls;574distinct affected source tests PASS,14synthetic proposals/23financial invocations including failed work | Source-only; original external Dossier/catalog/producer/access required; annual continuous ranking only; market attrs need a manifest extension; no economic-policy/default promotion, installed-wheel claim or parent acceptance |
 | M5-12 | Registered package plan only | Final-source wheel/sdist, installed consumers, privacy, regression, docs and handoff are not started by this ledger |
 
 Software capability, tested research scope and economic conclusions are separate.

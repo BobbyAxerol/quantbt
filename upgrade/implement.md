@@ -2,17 +2,21 @@
 
 ## Current Mode 5 Diagnostics-First Upgrade - Full-Development Decision Support
 
-**Latest planning update (2026-10-21, Asia/Saigon):** the owner approves
-registration of one integration phase,
-[M5-11.14](#mode5-m5-11-14), for shared diagnostics, optional lawful Mode 4
-archive evidence, an actionable researcher worksheet, checked executable
-Mode 5 handoff and post-run decision reconciliation. Status is
-PLANNED / PENDING_OWNER_EXECUTION_APPROVAL; this request authorizes the plan
-only, not implementation or another financial study. Reuse completed
-M5-11.7..11.13 evidence and existing public runtime/financial owners; do not
-promote the rejected/unsupported archive-seeding or temporal-regret policies.
-The next order is separate M5-11.14 execution approval and local closeout,
-then owner disposition of parent M5-11, then separately admitted M5-12.
+**Latest integration closeout (2026-10-21, UTC):** the separately owner-approved
+[M5-11.14](#mode5-m5-11-14) is COMPLETE_LOCAL_REGISTERED_INTEGRATION_SCOPE.
+Shared source-bound diagnostics/archive review now lead to an explicit
+researcher worksheet, checked private Mode 5 run pack, original endpoint
+execution and post-run reconciliation. Final affected source regression passes
+574distinct tests; cumulative synthetic work is14proposal slots/23original-owner
+financial invocations, including retained failed work, with zero private-alpha
+optimizer reruns or model fits. Seven contexts are cold-read from eight retained
+metadata sources; no archive-seeding or regret policy is promoted. Original
+Mode5/endpoint/optimization owners and authoritative guides remain unchanged.
+Exact cleanup removes50.63MiB inactive scratch and rechecks110protected files.
+See [implementation/acceptance report](../docs/diagnostics/M5_11_14_IMPLEMENTATION_REPORT.md)
+and [cleanup receipt](../docs/maintenance/M5_11_14_CLEANUP.md).
+The next order is owner disposition of parent M5-11, then separately admitted
+M5-12. Source-only integration PASS is not installed/public qualification.
 CI, push/merge/tag, version changes, publication and deployment remain gated.
 
 **Latest terminal research closeout (2026-10-21, Asia/Saigon):**
@@ -28019,7 +28023,7 @@ Every phase below inherits this mandatory resource registration/cleanup exit.
 | [M5-11.11](#mode5-m5-11-11) | Static selector, stable regions and temporal regret | Reviewed 11.10 registration; own approval; same-panel observation rights | XMR-011..020 | COMPLETE_LOCAL_REGISTERED_RESEARCH_SCOPE; no production/source integration |
 | [M5-11.12](#mode5-m5-11-12) | Bidirectional sampler assistance with strict prefix isolation | Reviewed 11.10/11.11; own approval; separate direction contracts | XMR-021..030 | COMPLETE_LOCAL_REGISTERED_RESEARCH_SCOPE;16 studies/4,096 slots,768 diagnostics,107 tests; scratch exception reported; no default activation |
 | [M5-11.13](#mode5-m5-11-13) | Whole-procedure chronology, economics and final research disposition | Reviewed 11.10..12; owner-approved KEEP_BASELINE/no-new-finance branch | XMR-031..040 | COMPLETE_LOCAL_APPROVED_NO_NEW_FINANCE_SCOPE;031..036DEFERRED_APPROVED,037..040verified cold only; parent/package not accepted |
-| [M5-11.14](#mode5-m5-11-14) | Shared diagnostics to researcher choice, executable Mode 5 run pack and post-run reconciliation | Completed retained reporting/research evidence; separate execution approval; no automatic hybrid adoption | M5H-001..016 | PLANNED / PENDING_OWNER_EXECUTION_APPROVAL; implementation and new studies NOT_STARTED |
+| [M5-11.14](#mode5-m5-11-14) | Shared diagnostics to researcher choice, executable Mode 5 run pack and post-run reconciliation | Owner-approved local integration; retained evidence and bounded synthetic proof; no automatic hybrid adoption | M5H-001..016 | COMPLETE_LOCAL_REGISTERED_INTEGRATION_SCOPE;574distinct source tests;14synthetic proposals/23financial invocations including failed work; parent/package acceptance separate |
 | [M5-12](#mode5-m5-12) | Local qualification/docs/handoff | M5-01..11 plus 11.4..11.14 reviewed dispositions and explicit parent acceptance | M5T-111..120 | NOT_STARTED; 11.14 closeout and research/owner disposition required before entry |
 
 Respect the guide dependency graph. M5-05 and independent M5-06 preparation
@@ -36984,7 +36988,7 @@ bounded subphases, not another open-ended research program.
 | 4 | [M5-11.7.3](#mode5-m5-11-7-3) | Public integration, source tests, reporting cost, privacy/docs/handoff | COMPLETE_LOCAL_REGISTERED_REPORTING_SCOPE |
 | 5 | [M5-11.8/11.9](#mode5-m5-11-9) | Additional-alpha and remaining Mode 5 research | Later approved research; exact completion/dispositions required |
 | 6 | [M5-11.10..11.13](#mode45-cross-mode-roadmap) | Cross-mode static robustness and prefix-safe assistance | Individually completed registered scopes; 11.13 retains baseline with approved no-new-finance disposition, not hybrid promotion |
-| 7 | [M5-11.14](#mode5-m5-11-14) | Shared diagnostics, researcher worksheet, executable Mode 5 handoff and post-run reconciliation | Planning approved 2026-10-21; separate execution approval PENDING |
+| 7 | [M5-11.14](#mode5-m5-11-14) | Shared diagnostics, researcher worksheet, executable Mode 5 handoff and post-run reconciliation | COMPLETE_LOCAL_REGISTERED_INTEGRATION_SCOPE; owner execution approved; source-only qualification and cleanup complete |
 | 8 | Parent M5-11 disposition | Accept completed scopes and explicit research limits before packaging | Owner review after 11.14; no automatic parent acceptance |
 | 9 | [M5-12](#mode5-m5-12) | Exact local package/installed qualification | Existing conditional approval; 11.14 closeout, parent disposition and separate launch review required |
 | Later | Remote / release | Final-source CI, owner release scope, publication/public proof | Separate owner approval; no workflow/push/tag/upload now |
@@ -38253,7 +38257,7 @@ The new methods remain opt-in research until an explicit adoption decision.
 | 2 | M5-11.11 | Does temporal evidence improve one static selection on the same panel? | Missing registered witnesses and selected-account/probe checks only; zero optimizer proposals |
 | 3 | M5-11.12 | Does archive/prefix assistance improve candidate generation? | One matched challenger per direction/cell; proposed 256 attempts/study, at most two alpha cells |
 | 4 | M5-11.13 | Does the complete prefix procedure retain its benefit? | Proposed three full 365-day horizons/cell; exact reuse first, new prefix studies only where required |
-| Next | [M5-11.14](#mode5-m5-11-14) | Can a researcher turn compatible evidence into a checked Mode 5 run and explain the actual decision? | Separately approved integration only; reuse evidence, no new alpha tournament or hybrid promotion |
+| Completed | [M5-11.14](#mode5-m5-11-14) | Can a researcher turn compatible evidence into a checked Mode 5 run and explain the actual decision? | Local source integration complete; retained evidence cold-read and bounded synthetic endpoint proof; no new alpha tournament or hybrid promotion |
 | Review | Parent M5-11 | Which completed scopes and scientific limitations does the owner accept? | Explicit owner disposition after 11.14; not implied by source or research PASS |
 | Later | M5-12 | Is the accepted final source/package reproducible and private? | Separate local qualification approval after 11.14 and parent disposition |
 
@@ -38827,7 +38831,18 @@ cross-mode research inputs; preserve all original and new evidence/receipts.
 <a id="mode5-m5-11-14"></a>
 ### Phase M5-11.14 - Shared Diagnostics, Executable Mode 5 Handoff And Decision Reconciliation
 
-**Status:** PLANNED / PENDING_OWNER_EXECUTION_APPROVAL. The owner approves
+**Status:** COMPLETE_LOCAL_REGISTERED_INTEGRATION_SCOPE / PASS_SOURCE_ONLY.
+The owner separately authorized this registered integration phase. Admission uses the
+private `m5-11-14/attempt-01/registration.json`: current tooling/native artifacts,
+one test worker/thread,512MiB RSS,64MiB retained/64MiB allocated scratch,
+5GiB disk reserve beyond forecast and at least512MiB host RAM available.
+No private-alpha optimizer/model fit or new economic tournament is launched;
+the registered synthetic endpoint proof completes with cumulative14proposal
+slots/23financial invocations, including failed work, and574distinct final
+affected tests PASS. Parent acceptance, M5-12, CI and release remain separate.
+The initial planning
+authority below is retained as history, not the current execution state.
+**Original planning authority:** the owner approves
 writing this detailed phase on2026-10-21, Asia/Saigon, then reviews its
 execution separately. No implementation, new optimizer study, financial
 research, model fit, build, installed qualification, CI or release is launched
@@ -39133,6 +39148,46 @@ financial, runtime, installed-artifact or economic qualification. No new test
 fixture, bytecode cache, environment or financial output is created; cleanup
 has no disposable deletion target or claimed reclaimed bytes. All M5H tests,
 phase execution, parent acceptance and later qualification remain pending.
+
+**Local implementation/verification (2026-10-21, UTC; current):** the owner
+subsequently approves execution. DCH01..08 and M5H-001..016 now complete within
+the declared source-only integration scope; the planning-only statement above
+remains historical. See the [full implementation/acceptance map](../docs/diagnostics/M5_11_14_IMPLEMENTATION_REPORT.md),
+[runnable usage](../docs/diagnostics/MODE5_EXECUTABLE_HANDOFF.md) and
+[terminal cleanup](../docs/maintenance/M5_11_14_CLEANUP.md).
+
+| Work package | Completed local evidence / retained boundary |
+|---|---|
+| DCH01 | Existing financial/Mode5/sampler/Ridge owners remain byte/diff unchanged; pure archive contracts move to the shared package with tooling compatibility imports |
+| DCH02 | Source-bound optional archive/DAG/current-access checks; seven-alpha eight-source cold readback; absence/missing/forbidden/reset-static distinctions retained |
+| DCH03 | Explicit complete recipe cards, original five-axis/six-matrix summaries, measured findings, immutable researcher choice/override and distinct plan seals |
+| DCH04 | Private typed run pack, fixed caller stub and actual continuous Mode5 endpoint; source/data/account/clock/geometry/sampler preflight repeated at execution |
+| DCH05 | Existing selection/incumbent policy reused; warm-start coordinates/count/source/effective values checked, no old score imports; HASH/VWAP counterexamples preserved |
+| DCH06 | Shared ordered JSON/Markdown pre/post views; actual DecisionReport, sampler/plan/components/final marks reconciliation; failed/partial/NO_SELECTION/mismatch dispositions |
+| DCH07 | 574distinct affected tests PASS; actual no-archive/optional-missing paths and final-source smoke; exact original-account arrays and deterministic two-trial prefix; seven actual-result mutations rejected |
+| DCH08 | API/capability/example/docs updated; work/cost/privacy receipts retained; exact inactive scratch cleanup and110protected-file checks; explicit parent/package handoff |
+
+Private lane `m5-11-14/attempt-01` retains `source-final-05.xml`,
+`synthetic-final/qualification.json`, `verification.json`,
+`cold-benchmark-final/benchmark.json`, `retained-readback.json`,
+`retained-readback-final.md`, `cleanup.json`, and all earlier passing/failing
+receipts. Cumulative14/23counts include the initial4/6failure, successful8/13
+controls and final2/4source smoke; they are not just successful-study totals.
+No private-alpha optimizer, fit, build/install, worker/service control or release
+occurs. Cold compile/render p50/p95 is59.10/65.81ms on seven small synthetic
+metadata repetitions, not a WFO speedup. Exact cleanup reclaims53,092,352bytes
+and keeps every source/evidence/receipt/current environment.
+
+Remaining declared limits: executable handoff uses current annual continuous
+attribution; quarterly/state/regret ranking remains unsupported. This optional
+pack rejects nonempty market attrs until an explicit manifest extension can pin
+them; stripping financial attrs is forbidden as a workaround. Descriptive
+retained review is not a fresh execution/independent every-fill certificate.
+Radius-wide basin limits, heterogeneous assistance, unproven universal recipe
+superiority and approved-deferred365-day whole-procedure work retain their
+original scientific dispositions. They are not recast as missing implementation
+or fabricated economic PASS. Parent scope acceptance, M5-12 and remote/public
+qualification are still separate owner decisions, not activated by this receipt.
 
 <a id="mode5-m5-12"></a>
 ### Phase M5-12 - Local Package Qualification, Regression, Docs And Handoff

@@ -7,6 +7,12 @@ failed runs. It is not a financial, empirical, remote or release certificate.
 The [unified plan](../upgrade/implement.md#mandatory-buildtest-cleanup-gate) and
 [workspace rules](../AGENTS.md#build-and-test-cleanup) govern this procedure.
 
+Latest shared executable-handoff cleanup:
+[M5-11.14](maintenance/M5_11_14_CLEANUP.md) removes the exact inactive registered
+fixture/JIT scratch root, preserves110protected files and all failed/passing
+evidence, and observes50.63MiB immediate recovery. Existing tooling/native
+artifacts remain; no build/install, service control or economic promotion occurs.
+
 Latest additional-alpha research cleanup:
 [M5-11.8](maintenance/M5_11_8_CLEANUP.md) records reviewed superseded-consumer
 removal before admission and exact inactive scratch removal after terminal
