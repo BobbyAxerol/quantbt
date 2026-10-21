@@ -34,6 +34,8 @@ def committed_blob(commit, path, expected_hash):
 
 
 def without_reviewed_amendments(current, path, expected_hash):
+    from tools.portfolio_repair_source_guard import without_portfolio_repair
+    current = without_portfolio_repair(current, path, expected_baseline=expected_hash)
     entry = source_amendment()["sources"].get(path)
     if entry is None:
         return current

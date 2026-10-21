@@ -96,6 +96,8 @@ def without_decision_report(source, name):
 
 
 def without_continuous(source, name):
+    from tools.portfolio_repair_source_guard import without_portfolio_repair
+    source = without_portfolio_repair(source, name)
     from tools.mode5_accepted_source_guard import without_accepted_research_source
     source = without_accepted_research_source(source, name)
     m = json.loads(CONTINUOUS.read_text())
@@ -151,6 +153,8 @@ def without_reporting(source, name):
 
 
 def without_public_additions(source, name):
+    from tools.portfolio_repair_source_guard import without_portfolio_repair
+    source = without_portfolio_repair(source, name)
     source = without_full_development_additions(source, name)
     from tests.metrics.source_guard import source_amendment, without_reviewed_amendments
     later = source_amendment()["sources"].get(name)

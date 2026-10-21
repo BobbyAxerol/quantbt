@@ -405,6 +405,9 @@ class BacktestEngine:
                 "maintenance_ratio": self.maintenance_ratio,
                 "quantity_constraints": self._quantity_constraints.as_dict(),
                 "positions_semantics": "accepted_contract_units",
+                "funding_calendar": "utc_8h_events_close_proxy_interval_settlement_v2",
+                "account_contract": "linear_gross_cross_netting_close_v2",
+                "liquidation_contract": "simultaneous_adverse_ohlc_zero_equity_legacy",
                 "legacy_requested_positions_report": pd.DataFrame(
                     {f"Position_{s}": signals[:, i] for i, s in enumerate(self.symbols)},
                     index=self._idx,

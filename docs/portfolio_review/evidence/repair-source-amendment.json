@@ -1,0 +1,267 @@
+{
+  "authorization": "Owner requested repair of all reproduced account-review findings and cross-endpoint checks",
+  "contract": "docs/portfolio_review/REPAIR_PLAN.md",
+  "date_utc": "2026-10-21",
+  "schema": "quantbt.portfolio.repair_source_amendment.v1",
+  "sources": {
+    "rust/crates/quantbt-engine/src/orders/aliases.rs": {
+      "after_commit": "ff249cb6d1708f5b9d636730825f224a84fa8ceb",
+      "after_sha256": "38ec71bf3328dcc1f4fa57f68c2e027f13e5a82e8cd59ecae0291454e9fca862",
+      "before_commit": "59275659778e1e3306b35a3c92c7623a7e17c0c3",
+      "before_sha256": "38ec71bf3328dcc1f4fa57f68c2e027f13e5a82e8cd59ecae0291454e9fca862",
+      "historical_reconciliation": {
+        "commit": "ac0f4be0db845f8d7ee330d31356b69359235bdd",
+        "reason": "Exact pre-existing changes present at5927565; reconciliation is limited to matching historical MET baseline, old receipts remain historical",
+        "sha256": "7f3c29135e85796ed2ba9b4d82a9b3045df792f5321a8b4635898c04f6e5da4d"
+      }
+    },
+    "rust/crates/quantbt-engine/src/orders/arena.rs": {
+      "after_commit": "ff249cb6d1708f5b9d636730825f224a84fa8ceb",
+      "after_sha256": "edcd558feb6432e2f36f682ebe3524d9ef4bdf74ec99f6c31b2e3ce3979798f8",
+      "before_commit": "59275659778e1e3306b35a3c92c7623a7e17c0c3",
+      "before_sha256": "edcd558feb6432e2f36f682ebe3524d9ef4bdf74ec99f6c31b2e3ce3979798f8",
+      "historical_reconciliation": {
+        "commit": "ac0f4be0db845f8d7ee330d31356b69359235bdd",
+        "reason": "Exact pre-existing changes present at5927565; reconciliation is limited to matching historical MET baseline, old receipts remain historical",
+        "sha256": "fc94f0c2bb1641feda0d8c9e573a0d48f86a088a397bd50bfe92c7ca45799dbc"
+      }
+    },
+    "rust/crates/quantbt-engine/src/orders/indexes.rs": {
+      "after_commit": "ff249cb6d1708f5b9d636730825f224a84fa8ceb",
+      "after_sha256": "823399a939a0791cd303b4f95882fd0edfef2ebb22ed04b0ad0d921a9f496cbd",
+      "before_commit": "59275659778e1e3306b35a3c92c7623a7e17c0c3",
+      "before_sha256": "823399a939a0791cd303b4f95882fd0edfef2ebb22ed04b0ad0d921a9f496cbd",
+      "historical_reconciliation": {
+        "commit": "ac0f4be0db845f8d7ee330d31356b69359235bdd",
+        "reason": "Exact pre-existing changes present at5927565; reconciliation is limited to matching historical MET baseline, old receipts remain historical",
+        "sha256": "2bb66f893d06c18b6fd0ae05ae05aeaf4f4124c3857749afe2787723d8c6fbec"
+      }
+    },
+    "rust/crates/quantbt-engine/src/session.rs": {
+      "after_commit": "ff249cb6d1708f5b9d636730825f224a84fa8ceb",
+      "after_sha256": "0944e49957c9ede41a541cbafab4c325db82617f5655054c6e4fd814ccbf94a6",
+      "before_commit": "59275659778e1e3306b35a3c92c7623a7e17c0c3",
+      "before_sha256": "0944e49957c9ede41a541cbafab4c325db82617f5655054c6e4fd814ccbf94a6",
+      "historical_reconciliation": {
+        "commit": "ac0f4be0db845f8d7ee330d31356b69359235bdd",
+        "reason": "Exact pre-existing changes present at5927565; reconciliation is limited to matching historical MET baseline, old receipts remain historical",
+        "sha256": "c09fe1d83d48eec52320d2818a94c22850da64cc5c6affc86e1f62e4b731eb1a"
+      }
+    },
+    "rust/crates/quantbt-execution/src/lib.rs": {
+      "after_commit": "ff249cb6d1708f5b9d636730825f224a84fa8ceb",
+      "after_sha256": "91cf49fa8337df14f811a83ef0052d30903e838c3132c6a3d758e7eed910e92f",
+      "before_commit": "59275659778e1e3306b35a3c92c7623a7e17c0c3",
+      "before_sha256": "91cf49fa8337df14f811a83ef0052d30903e838c3132c6a3d758e7eed910e92f",
+      "historical_reconciliation": {
+        "commit": "ac0f4be0db845f8d7ee330d31356b69359235bdd",
+        "reason": "Exact pre-existing changes present at5927565; reconciliation is limited to matching historical MET baseline, old receipts remain historical",
+        "sha256": "713301a0d17e51df5832f6db866462a19c01ec07f704fb5f053394977c490803"
+      }
+    },
+    "rust/crates/quantbt-execution/src/target.rs": {
+      "after_commit": "ff249cb6d1708f5b9d636730825f224a84fa8ceb",
+      "after_sha256": "91ba2cad753bf4fb7bb97db5889229e455fcf3d6d7a28efa0149d94e32415b7e",
+      "before_commit": "59275659778e1e3306b35a3c92c7623a7e17c0c3",
+      "before_sha256": "a57966957d1f75a57bd46bc5c64c18856e8ce5df4dc620d71fe262c2372739bd"
+    },
+    "rust/crates/quantbt-portfolio/src/lib.rs": {
+      "after_commit": "ff249cb6d1708f5b9d636730825f224a84fa8ceb",
+      "after_sha256": "635f2e6d0d3e851c7aee7ed1a35db6af65e9de7c0ed55121853a09417528846f",
+      "before_commit": "59275659778e1e3306b35a3c92c7623a7e17c0c3",
+      "before_sha256": "9274b222e203985a93aa26609c2cfefe3224e632d4024d422fd123d9d850def7"
+    },
+    "rust/native_event/src/lib.rs": {
+      "after_commit": "ff249cb6d1708f5b9d636730825f224a84fa8ceb",
+      "after_sha256": "deb5d582da175dde4e07b242f45d7f723e22636bd7976c9b1afe5766c9068575",
+      "before_commit": "59275659778e1e3306b35a3c92c7623a7e17c0c3",
+      "before_sha256": "deb5d582da175dde4e07b242f45d7f723e22636bd7976c9b1afe5766c9068575",
+      "historical_reconciliation": {
+        "commit": "ac0f4be0db845f8d7ee330d31356b69359235bdd",
+        "reason": "Exact pre-existing changes present at5927565; reconciliation is limited to matching historical MET baseline, old receipts remain historical",
+        "sha256": "d8717455c27da8ee5edc2045ad9f42b24d5577b8588bc781451d1b81a395b326"
+      }
+    },
+    "src/quantbt/__init__.py": {
+      "after_commit": "ff249cb6d1708f5b9d636730825f224a84fa8ceb",
+      "after_sha256": "e9a429f600a09de4899e66c682e1f44051c6ce0506f9c5bb8a6fa02824fcd1c3",
+      "before_commit": "59275659778e1e3306b35a3c92c7623a7e17c0c3",
+      "before_sha256": "e9a429f600a09de4899e66c682e1f44051c6ce0506f9c5bb8a6fa02824fcd1c3",
+      "historical_reconciliation": {
+        "commit": "ac0f4be0db845f8d7ee330d31356b69359235bdd",
+        "reason": "Exact pre-existing changes present at5927565; reconciliation is limited to matching historical MET baseline, old receipts remain historical",
+        "sha256": "a2430f4057936ad0aef9454cb364916b3eaea9e6e4465cb7b2aaee30af3446e8"
+      }
+    },
+    "src/quantbt/backends/native_event.py": {
+      "after_commit": "ff249cb6d1708f5b9d636730825f224a84fa8ceb",
+      "after_sha256": "ec86d9b0a052edbc0565a635070c3f22fe84d437659e7de4acbdb84dfc6c1552",
+      "before_commit": "59275659778e1e3306b35a3c92c7623a7e17c0c3",
+      "before_sha256": "a75aed3a7b1e0b1e7b02fee88fc9a0a28388797d2168cb963d09a3237acd2fdc",
+      "historical_reconciliation": {
+        "commit": "ac0f4be0db845f8d7ee330d31356b69359235bdd",
+        "reason": "Exact pre-existing changes present at5927565; reconciliation is limited to matching historical MET baseline, old receipts remain historical",
+        "sha256": "c1397a77021febf76d0db79d465ca3b585aa2bc3d6e3c83400888e2a3473c6d7"
+      }
+    },
+    "src/quantbt/backends/native_intrabar_rust.py": {
+      "after_commit": "ff249cb6d1708f5b9d636730825f224a84fa8ceb",
+      "after_sha256": "ab7897f62993a52a22fb5e119939248d5e64e4473d698178d9211414f6a016d0",
+      "before_commit": "59275659778e1e3306b35a3c92c7623a7e17c0c3",
+      "before_sha256": "700a2813c4b7803c11c68ddc6ad7369405bfde4eccabf8aedfd8a87dafc5767a"
+    },
+    "src/quantbt/backends/native_portfolio.py": {
+      "after_commit": "ff249cb6d1708f5b9d636730825f224a84fa8ceb",
+      "after_sha256": "38d52eb87474f82fea742cdc640617763409ce47515d723cefba7f69dc02353a",
+      "before_commit": "59275659778e1e3306b35a3c92c7623a7e17c0c3",
+      "before_sha256": "2bf87fd144945f4b9a28c7832761a820d3d093e48b18d5a71883037c4b9b1a6b"
+    },
+    "src/quantbt/backends/native_vectorized.py": {
+      "after_commit": "ff249cb6d1708f5b9d636730825f224a84fa8ceb",
+      "after_sha256": "25a3153f5a6c95ac2850c6d858e8aec0ee9fe70f1351fa66c7f36820577459fe",
+      "before_commit": "59275659778e1e3306b35a3c92c7623a7e17c0c3",
+      "before_sha256": "8fb22adab3dee3aa1e9f4702c387d18148f5d50f6ead64cd2ee16135bdb1074b"
+    },
+    "src/quantbt/backends/native_wfo_public.py": {
+      "after_commit": "ff249cb6d1708f5b9d636730825f224a84fa8ceb",
+      "after_sha256": "52cc5adec699e04fe47404ee1096a68882a0cd0f865b3d79b1ece37fa5d3ce66",
+      "before_commit": "59275659778e1e3306b35a3c92c7623a7e17c0c3",
+      "before_sha256": "45f590fdd5004761a83a2f87080a1b374233164636e8c477d30087c575f2a0da"
+    },
+    "src/quantbt/backtester.py": {
+      "after_commit": "ff249cb6d1708f5b9d636730825f224a84fa8ceb",
+      "after_sha256": "37bd0307278ffff7f62966be4a402ab170e4c69aec7de8a9566c0bfa82fdffda",
+      "before_commit": "59275659778e1e3306b35a3c92c7623a7e17c0c3",
+      "before_sha256": "786c2df170b544f07cba0baa8a80dd4f3540d24a1e7916d8759041e82dee3b4a"
+    },
+    "src/quantbt/core/constraints.py": {
+      "after_commit": "ff249cb6d1708f5b9d636730825f224a84fa8ceb",
+      "after_sha256": "e41a6cab4fab9ecee7de2ffa5144a8953d42639bba29446580d9e2986e71dbd5",
+      "before_commit": "59275659778e1e3306b35a3c92c7623a7e17c0c3",
+      "before_sha256": "e4dec81fedddb817e60cc1ad02e4b5dea9fe400981a66f53e83355bad3299d09"
+    },
+    "src/quantbt/core/engine.py": {
+      "after_commit": "ff249cb6d1708f5b9d636730825f224a84fa8ceb",
+      "after_sha256": "daa9a387d8ba13fa413e78045002186a3e0ef81588a76142165b28610069144d",
+      "before_commit": "59275659778e1e3306b35a3c92c7623a7e17c0c3",
+      "before_sha256": "d9a8003c86290a854f740eec4040822b1c99a124528c582cae4bbc8d58a240f5"
+    },
+    "src/quantbt/core/event.py": {
+      "after_commit": "ff249cb6d1708f5b9d636730825f224a84fa8ceb",
+      "after_sha256": "9f69ec80d4dbfe234dd75fd4ff292ce18f64b6125512ced1f1b41868c0f69bfd",
+      "before_commit": "59275659778e1e3306b35a3c92c7623a7e17c0c3",
+      "before_sha256": "9f69ec80d4dbfe234dd75fd4ff292ce18f64b6125512ced1f1b41868c0f69bfd",
+      "historical_reconciliation": {
+        "commit": "ac0f4be0db845f8d7ee330d31356b69359235bdd",
+        "reason": "Exact pre-existing changes present at5927565; reconciliation is limited to matching historical MET baseline, old receipts remain historical",
+        "sha256": "f6af2e2c1b94d955513520030f8d62be622a1e25ca5fc68169d3dd2726c775af"
+      }
+    },
+    "src/quantbt/core/intrabar_kernel.py": {
+      "after_commit": "ff249cb6d1708f5b9d636730825f224a84fa8ceb",
+      "after_sha256": "d406d8be0441d663ae71b7cd46dd190b6198df7f9a596f9165feb075af565695",
+      "before_commit": "59275659778e1e3306b35a3c92c7623a7e17c0c3",
+      "before_sha256": "3a191fd95ee7a3c3607ef1fa9f6449a88a28b55e27731ae478444362522151fd"
+    },
+    "src/quantbt/core/intrabar_reference.py": {
+      "after_commit": "ff249cb6d1708f5b9d636730825f224a84fa8ceb",
+      "after_sha256": "92b49b6ae6735cf0d815ddb5ab52a75fb4053b1578f2537afffb33bef55b0e8a",
+      "before_commit": "59275659778e1e3306b35a3c92c7623a7e17c0c3",
+      "before_sha256": "5c6dd10cbbc5803448ea4b0aef43a2ad6c76bc0ac7a75a62839d41988b49b5f5"
+    },
+    "src/quantbt/core/portfolio_validation.py": {
+      "after_commit": "ff249cb6d1708f5b9d636730825f224a84fa8ceb",
+      "after_sha256": "e482ad14142ec9db8398dabbe119f82a1ec062d492dd375eaf348a7c349903d4",
+      "before_commit": "59275659778e1e3306b35a3c92c7623a7e17c0c3",
+      "before_sha256": null
+    },
+    "src/quantbt/core/preprocessor.py": {
+      "after_commit": "ff249cb6d1708f5b9d636730825f224a84fa8ceb",
+      "after_sha256": "b5a8aca1acc6186e31dbbd181feca34ca53d458452e6c2f777a29a731833a011",
+      "before_commit": "59275659778e1e3306b35a3c92c7623a7e17c0c3",
+      "before_sha256": "676ca488602c43d1fd03b1ef46867323efb740ebb35e0940b0279935ac0c141d"
+    },
+    "src/quantbt/core/schema.py": {
+      "after_commit": "ff249cb6d1708f5b9d636730825f224a84fa8ceb",
+      "after_sha256": "77343f17c0811d238344570c853516840f641ff5c84f75dbad3a660962fbef48",
+      "before_commit": "59275659778e1e3306b35a3c92c7623a7e17c0c3",
+      "before_sha256": "f3100f136858271f4e20ac900c0d455d10a34546ca54017a5af6742330780304"
+    },
+    "src/quantbt/core/vectorized.py": {
+      "after_commit": "ff249cb6d1708f5b9d636730825f224a84fa8ceb",
+      "after_sha256": "08e70f5d03595c4a0e6266d46af4025d033e255837403835e60f61be6a8d9ae4",
+      "before_commit": "59275659778e1e3306b35a3c92c7623a7e17c0c3",
+      "before_sha256": "80e47a3f2072fd531a789fdfaf1756e2468b60ef73fec3998f1d9187f5f05158"
+    },
+    "src/quantbt/endpoint.py": {
+      "after_commit": "ff249cb6d1708f5b9d636730825f224a84fa8ceb",
+      "after_sha256": "d46f254481041bddbc35cc42b8d17d761d05db26ddda318574c8a3c173128543",
+      "before_commit": "59275659778e1e3306b35a3c92c7623a7e17c0c3",
+      "before_sha256": "a26667835f76b1c4a5f128fe3d9259259b95b82ab6c426222d439087a0e2e956"
+    },
+    "src/quantbt/engines.py": {
+      "after_commit": "ff249cb6d1708f5b9d636730825f224a84fa8ceb",
+      "after_sha256": "14858b35578c10f214f718e4539535124ee39e43cf730afa52a8750d5cb8e691",
+      "before_commit": "59275659778e1e3306b35a3c92c7623a7e17c0c3",
+      "before_sha256": "56254b5c929e331b0be583d2479194fce5882bc4bcce2b348fec0d5d0813358b"
+    },
+    "src/quantbt/metrics/performance.py": {
+      "after_commit": "ff249cb6d1708f5b9d636730825f224a84fa8ceb",
+      "after_sha256": "a8bc7082be8860604af3fac7d8baf842052b8f7494f34bb718dc389f5287e476",
+      "before_commit": "59275659778e1e3306b35a3c92c7623a7e17c0c3",
+      "before_sha256": "152015d96b01021584422839b5f3fe70760efb9ec826dd3aebded557f2487095"
+    },
+    "src/quantbt/metrics/reporting/ledger.py": {
+      "after_commit": "ff249cb6d1708f5b9d636730825f224a84fa8ceb",
+      "after_sha256": "aa1517fdfaca28c4155f0604bcff003d112255521f1a9d4d846b2e8de7144e31",
+      "before_commit": "59275659778e1e3306b35a3c92c7623a7e17c0c3",
+      "before_sha256": "b20728b33c58a5fa8e332c53f90fd1c353e21e5396815ece96b1e1bd41c8ca90"
+    },
+    "src/quantbt/optimization/meta_selection/runtime.py": {
+      "after_commit": "ff249cb6d1708f5b9d636730825f224a84fa8ceb",
+      "after_sha256": "26d100ea15cdd027b6e7802ee48eb42a59afc238d9b4f2312e7306c65accef7c",
+      "before_commit": "59275659778e1e3306b35a3c92c7623a7e17c0c3",
+      "before_sha256": "26d100ea15cdd027b6e7802ee48eb42a59afc238d9b4f2312e7306c65accef7c",
+      "historical_reconciliation": {
+        "commit": "ac0f4be0db845f8d7ee330d31356b69359235bdd",
+        "reason": "Exact pre-existing changes present at5927565; reconciliation is limited to matching historical MET baseline, old receipts remain historical",
+        "sha256": "b208d95c19581e5beed3c031e8f917720d573d79867a4292b0ce84a710df67a0"
+      }
+    },
+    "src/quantbt/portfolio.py": {
+      "after_commit": "ff249cb6d1708f5b9d636730825f224a84fa8ceb",
+      "after_sha256": "ac5e2b285dec5bff8a01546b9a595a848125bb95e5f5ceaba845b1452cb7876f",
+      "before_commit": "59275659778e1e3306b35a3c92c7623a7e17c0c3",
+      "before_sha256": "a15abfcaa5930a8dde733309d705bff8b2f1707ab1bf962cc0a667b976a8cd84"
+    },
+    "src/quantbt/reporting/portfolio_audit.py": {
+      "after_commit": "ff249cb6d1708f5b9d636730825f224a84fa8ceb",
+      "after_sha256": "32e23ab3424409234c1925537bf3ad59855abf096d06cc45ac6cf0d0f6f595a4",
+      "before_commit": "59275659778e1e3306b35a3c92c7623a7e17c0c3",
+      "before_sha256": "cba2108155418532ef56f3b5ab493822b87da467140dc880013a148c83c9a200"
+    },
+    "src/quantbt/sizing/fast.py": {
+      "after_commit": "ff249cb6d1708f5b9d636730825f224a84fa8ceb",
+      "after_sha256": "2c8aead7bf2f68537179e0220e7d9d90c31fc0f74c788bba37bdd62f5bea3e80",
+      "before_commit": "59275659778e1e3306b35a3c92c7623a7e17c0c3",
+      "before_sha256": "9bdf758d6f19742fd461bfdfecdcb1adb48a87ebd1238f4fcde0c00a786ead82"
+    },
+    "src/quantbt/sizing/modes.py": {
+      "after_commit": "ff249cb6d1708f5b9d636730825f224a84fa8ceb",
+      "after_sha256": "cf1f78a758d1900a869ca7974142abcd5951fb6a9be7c18c4d49af46595f2391",
+      "before_commit": "59275659778e1e3306b35a3c92c7623a7e17c0c3",
+      "before_sha256": "41a7e60e5b57f68149912025484aae9b98875da83fea485f138748f6993db0b7"
+    },
+    "src/quantbt/wfo_execution.py": {
+      "after_commit": "ff249cb6d1708f5b9d636730825f224a84fa8ceb",
+      "after_sha256": "21ef1731ff388a0c7d4eaac7f6da715106aed7f174ccf3dd43a35e449624f6d4",
+      "before_commit": "59275659778e1e3306b35a3c92c7623a7e17c0c3",
+      "before_sha256": "21ef1731ff388a0c7d4eaac7f6da715106aed7f174ccf3dd43a35e449624f6d4",
+      "historical_reconciliation": {
+        "commit": "ac0f4be0db845f8d7ee330d31356b69359235bdd",
+        "reason": "Exact pre-existing changes present at5927565; reconciliation is limited to matching historical MET baseline, old receipts remain historical",
+        "sha256": "5df31a8e270afb7f0f82855f15df325c84132631d77eeef82cf3541b961ca1f2"
+      }
+    }
+  }
+}
