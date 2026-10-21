@@ -6131,6 +6131,7 @@ def _build_portfolio_orders_for_nautilus(
     hedge_type: str,
     use_pyramiding: bool,
     symbols,
+    contract_size=1.0,
 ) -> tuple[tuple[OrderIntent, ...], pd.DataFrame]:
     ht = str(hedge_type).lower().strip()
     if ht in {"%_equity", "pct_equity", "dca_ladder", "dca"}:
@@ -6152,6 +6153,7 @@ def _build_portfolio_orders_for_nautilus(
             close=close,
             alloc=alloc[symbol],
             use_pyramiding=use_pyramiding,
+            contract_size=(contract_size.get(symbol, 1.0) if isinstance(contract_size, dict) else contract_size),
         ).fillna(0.0)
         target_cols[symbol] = target
         prev = 0.0

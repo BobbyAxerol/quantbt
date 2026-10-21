@@ -56,10 +56,12 @@ from ..core.arbitrage import (
 from ..core.basket import build_frozen_basket_orders
 from ..core.orders import OrderIntent
 from ..core.preprocessor import make_funding_mask
+from ..core.preprocessor import build_tradable_matrix
 from ..core.schema import OrderSide
 from ..core.target_intents import StaticDcaTargetStepV1, StaticTargetTapeV1, compile_static_dca_target_tape
 from ..preparation.native_execution import NativeExecutionPreparationCache
 from ..sizing.fast import scale_signal_notional_matrix
+from ..core.portfolio_validation import validate_gross_cross_account
 from ..sizing.modes import compute_target_units
 
 
@@ -75,10 +77,11 @@ class NativeVectorizedConfig:
     target_runtime: str = "numba"
 
     def __post_init__(self) -> None:
+        validate_gross_cross_account(self.account)
         if isinstance(self.fee_rate, dict):
-            if any(float(rate) < 0.0 for rate in self.fee_rate.values()):
+            if any(not np.isfinite(float(rate)) or float(rate) < 0.0 for rate in self.fee_rate.values()):
                 raise ValueError("fee_rate must be >= 0")
-        elif float(self.fee_rate) < 0.0:
+        elif not np.isfinite(float(self.fee_rate)) or float(self.fee_rate) < 0.0:
             raise ValueError("fee_rate must be >= 0")
         unsupported = []
         if self.execution.fill_price_policy is not FillPricePolicy.CLOSE:
@@ -172,6 +175,7 @@ class NativeVectorizedBackend:
         target_kind: str,
         equity_fraction: np.ndarray,
         output_profile: int,
+        tradable_mask: Optional[np.ndarray] = None,
     ) -> tuple[Any, dict[str, Any], dict[str, Any]]:
         """Run one prepared Rust direct-target pass without a legacy dict hop.
 
@@ -225,6 +229,7 @@ class NativeVectorizedBackend:
             min_notional=np.ascontiguousarray(constraints.min_notional, dtype=np.float64),
             equity_fraction=np.ascontiguousarray(equity_fraction, dtype=np.float64),
             output_profile=int(output_profile),
+            tradable=tradable_mask,
         )
         typed_output = request.core.execute_typed()
         execution_metadata = self._rust_target_execution_metadata(
@@ -473,6 +478,7 @@ class NativeVectorizedBackend:
             high_low_source=high_low_source,
             _target_kind=_target_kind,
             _equity_fraction=_equity_fraction,
+            tradable_mask=build_tradable_matrix(closes, idx, symbol_list, closes_m),
         )
 
     def run_target_notionals(
@@ -635,6 +641,7 @@ class NativeVectorizedBackend:
         _scalar_score_trading_days: Optional[int] = None,
         _target_kind: str = "units",
         _equity_fraction: Optional[Union[float, Dict[str, float]]] = None,
+        tradable_mask: Optional[np.ndarray] = None,
     ) -> Union[BacktestResultV2, BacktestScalarScoreResult]:
         target_kind = str(_target_kind).strip().lower()
         if target_kind not in {"units", "notional", "weight", "equity_fraction", "pct_equity_transition"}:
@@ -666,6 +673,8 @@ class NativeVectorizedBackend:
             symbol_list,
             default=1.0,
         )
+        if np.any(contract_sizes <= 0) or np.any(leverages <= 0) or np.any(fee_rates < 0):
+            raise ValueError("contract sizes/leverage must be positive and fees nonnegative")
         rust_payload: Optional[Any] = None
         rust_execution_metadata: Optional[dict[str, Any]] = None
         rust_preparation: Optional[dict[str, Any]] = None
@@ -696,6 +705,7 @@ class NativeVectorizedBackend:
                 target_kind=target_kind,
                 equity_fraction=equity_fraction,
                 output_profile=1,
+                tradable_mask=tradable_mask,
             )
             equity_arr = np.ascontiguousarray(rust_payload.equity, dtype=np.float64)
             pos_arr = np.ascontiguousarray(rust_payload.positions, dtype=np.float64).reshape(
@@ -720,7 +730,7 @@ class NativeVectorizedBackend:
             liq_idx = int(rust_payload.liquidation_bar)
             liq_reason = int(rust_payload.liquidation_reason)
         else:
-            target_m = quantize_target_units_matrix(target_m, closes_m, contract_sizes, constraints)
+            target_m = quantize_target_units_matrix(target_m, closes_m, contract_sizes, constraints, check_minima=False)
             (
                 equity_arr,
                 pos_arr,
@@ -750,6 +760,9 @@ class NativeVectorizedBackend:
                 contract_sizes=contract_sizes,
                 slippage=self.config.execution.slippage_rate,
                 use_funding=bool(self.config.use_funding),
+                min_qtys=constraints.min_qty,
+                min_notionals=constraints.min_notional,
+                tradable=tradable_mask,
             )
 
         if _scalar_score_trading_days is not None:
@@ -959,6 +972,7 @@ class NativeVectorizedBackend:
                 closes=closes_m,
                 allocs=allocs,
                 use_pyramiding=use_pyramiding,
+                contract_sizes=self._per_symbol_array(contract_size, symbol_list, default=1.0),
             )
             return self._run_target_arrays(
                 idx=idx,
@@ -979,6 +993,7 @@ class NativeVectorizedBackend:
                 min_notional=min_notional,
                 high_low_source=high_low_source,
                 _scalar_score_trading_days=_scalar_score_trading_days,
+                tradable_mask=build_tradable_matrix(closes, idx, symbol_list, closes_m),
             )
 
         if close_dict is None:
@@ -998,6 +1013,7 @@ class NativeVectorizedBackend:
                 close=close_dict[s],
                 alloc=alloc[s],
                 use_pyramiding=use_pyramiding,
+                contract_size=(contract_size.get(s, 1.0) if isinstance(contract_size, dict) else contract_size),
             )
             for s in symbol_list
         }
@@ -1291,14 +1307,22 @@ class NativeVectorizedBackend:
     @staticmethod
     def _per_symbol_array(value, symbols: List[str], default: float) -> np.ndarray:
         if isinstance(value, dict):
-            return np.array([float(value.get(s, default)) for s in symbols], dtype=np.float64)
-        return np.full(len(symbols), float(value), dtype=np.float64)
+            out = np.array([float(value.get(s, default)) for s in symbols], dtype=np.float64)
+        else:
+            out = np.full(len(symbols), float(value), dtype=np.float64)
+        if not np.isfinite(out).all():
+            raise ValueError("per-symbol financial configuration must be finite")
+        return out
 
     @staticmethod
     def _per_symbol_mapping(value, symbols: List[str], default: float) -> Dict[str, float]:
         if isinstance(value, dict):
-            return {s: float(value.get(s, default)) for s in symbols}
-        return {s: float(value) for s in symbols}
+            out = {s: float(value.get(s, default)) for s in symbols}
+        else:
+            out = {s: float(value) for s in symbols}
+        if any(not np.isfinite(v) for v in out.values()):
+            raise ValueError("per-symbol financial configuration must be finite")
+        return out
 
     def _apply_atomic_package_margin_policy(
         self,

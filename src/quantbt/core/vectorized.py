@@ -12,6 +12,10 @@ from numba import njit
 
 REJECT_NONE = 0
 REJECT_INSUFFICIENT_MARGIN = 1
+REJECT_INVALID_TARGET = 2
+REJECT_NON_TRADABLE = 3
+REJECT_MIN_QTY = 7
+REJECT_MIN_NOTIONAL = 8
 
 LIQ_NONE = 0
 LIQ_INTRABAR = 1
@@ -36,6 +40,9 @@ def _engine_units_v2(
     contract_sizes:  np.ndarray,
     slippage:        float,
     use_funding:     bool,
+    min_qtys=None,
+    min_notionals=None,
+    tradable=None,
 ):
     equity_curve = np.zeros(n_bars, dtype=np.float64)
     pos_out      = np.zeros((n_bars, n_syms), dtype=np.float64)
@@ -132,7 +139,27 @@ def _engine_units_v2(
                 continue
 
             c = closes[i, s]
+            if not np.isfinite(target) or not np.isfinite(c) or c <= 0.0:
+                rejected[i] += 1
+                reject_code[i] = REJECT_INVALID_TARGET
+                continue
+            if tradable is not None and not tradable[i, s]:
+                rejected[i] += 1
+                reject_code[i] = REJECT_NON_TRADABLE
+                continue
+
             cs = contract_sizes[s]
+            reduction = current_pos[s] * target >= 0.0 and abs(target) <= abs(current_pos[s])
+            if not reduction:
+                if min_qtys is not None and abs(delta) + 1e-12 < min_qtys[s]:
+                    rejected[i] += 1
+                    reject_code[i] = REJECT_MIN_QTY
+                    continue
+                if min_notionals is not None and abs(delta) * c * cs + 1e-12 < min_notionals[s]:
+                    rejected[i] += 1
+                    reject_code[i] = REJECT_MIN_NOTIONAL
+                    continue
+
             exec_p = c * (1.0 + slippage if delta > 0.0 else 1.0 - slippage)
             trade_notional = abs(delta) * exec_p * cs
             fee_cost = trade_notional * fee_rates[s]
@@ -145,7 +172,7 @@ def _engine_units_v2(
             if margin_delta > 0.0:
                 required += margin_delta
 
-            if required > avail:
+            if (not reduction and required > avail) or fee_cost + slip_cost > equity + 1e-12:
                 rejected[i] += 1
                 reject_code[i] = REJECT_INSUFFICIENT_MARGIN
                 continue
@@ -154,9 +181,16 @@ def _engine_units_v2(
             current_pos[s] = target
             fee_arr[i] += fee_cost
             turnover_arr[i] += trade_notional
-            avail -= fee_cost + slip_cost + margin_delta
-            if avail < 0.0:
-                avail = 0.0
+            if reduction:
+                # Clipped pre-fill availability omits any carried IM deficit.
+                cur_im = 0.0
+                for k in range(n_syms):
+                    cur_im += abs(current_pos[k]) * closes[i, k] * contract_sizes[k] / leverages[k]
+                avail = max(0.0, equity - cur_im)
+            else:
+                avail -= fee_cost + slip_cost + margin_delta
+                if avail < 0.0:
+                    avail = 0.0
 
         close_im = 0.0
         close_mm = 0.0

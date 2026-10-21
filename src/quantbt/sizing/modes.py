@@ -7,13 +7,13 @@ that the numba engine can consume directly.
 Five modes
 ~~~~~~~~~~
 notional
-    target_units[i] = signal[i] × (alloc / close[i])
+    target_units[i] = signal[i] × (alloc / (close[i] × contract_size))
     Units recomputed every bar → constant notional exposure.
     Generates a trade whenever signal OR price changes.  High turnover on
     intraday data; intended for EOD / multi-day bars.
 
 unit
-    target_units[i] = signal[i] × (alloc / close[0])
+    target_units[i] = signal[i] × (alloc / (close[0] × contract_size))
     Scale fixed at the *first* bar's price.  Units stable as price moves;
     notional drifts with the market.
 
@@ -21,7 +21,7 @@ signal_notional  ← recommended for systematic strategies
     Units are re-anchored to current price ONLY when the signal weight
     changes.  Between signal changes the unit count is frozen → no
     spurious micro-trades due to price drift.
-    target_units[i] = signal[i] × (alloc / close[change_bar])
+    target_units[i] = signal[i] × (alloc / (close[change_bar] × contract_size))
 
 pct_equity
     Raw weight is passed straight through to the %_equity numba kernel,
@@ -39,6 +39,7 @@ signal : pd.Series       raw weight (float), e.g. 1.0 / -0.5 / 0.3
 close  : pd.Series       closing price, same index as signal
 alloc  : float           notional allocation per full signal unit (USD)
 use_pyramiding : bool    if False, signal is clipped to {-1, 0, 1}
+contract_size : float    positive notional/PnL multiplier per contract (default 1)
 
 Returns
 -------
@@ -51,14 +52,24 @@ import numpy as np
 import pandas as pd
 
 
+def _contract_multiplier(contract_size: float) -> float:
+    value = float(contract_size)
+    if not np.isfinite(value) or value <= 0.0:
+        raise ValueError("contract_size must be finite and > 0")
+    return value
+
+
 def scale_notional(
     signal: pd.Series,
     close: pd.Series,
     alloc: float,
     use_pyramiding: bool = True,
+    contract_size: float = 1.0,
 ) -> pd.Series:
     sig = signal if use_pyramiding else np.sign(signal)
-    return sig * (alloc / close)
+    denom = close * _contract_multiplier(contract_size)
+    valid = np.isfinite(denom) & (denom > 0.0)
+    return (sig * (alloc / denom.where(valid))).fillna(0.0)
 
 
 def scale_unit(
@@ -66,9 +77,16 @@ def scale_unit(
     close: pd.Series,
     alloc: float,
     use_pyramiding: bool = True,
+    contract_size: float = 1.0,
 ) -> pd.Series:
     sig   = signal if use_pyramiding else np.sign(signal)
-    scale = alloc / close.iloc[0]
+    denom = close.to_numpy(dtype=np.float64) * _contract_multiplier(contract_size)
+    valid = np.flatnonzero(np.isfinite(denom) & (denom > 0.0))
+    if not len(valid):
+        return pd.Series(0.0, index=signal.index)
+    first = int(valid[0])
+    scale = np.zeros(len(signal), dtype=np.float64)
+    scale[first:] = alloc / denom[first]
     return sig * scale
 
 
@@ -77,6 +95,7 @@ def scale_signal_notional(
     close: pd.Series,
     alloc: float,
     use_pyramiding: bool = True,
+    contract_size: float = 1.0,
 ) -> pd.Series:
     """
     Anchor-on-change scaling.
@@ -87,14 +106,17 @@ def scale_signal_notional(
     rebalancing trades.
     """
     sig_vals = signal.values if use_pyramiding else np.sign(signal.values)
-    pr_vals  = close.values
+    pr_vals  = close.to_numpy(dtype=np.float64) * _contract_multiplier(contract_size)
     n        = len(sig_vals)
     target   = np.zeros(n, dtype=np.float64)
 
     current_scale = 0.0
     for i in range(n):
-        if i == 0 or sig_vals[i] != sig_vals[i - 1]:
-            current_scale = (alloc / pr_vals[i]) if sig_vals[i] != 0 else 0.0
+        if i == 0 or sig_vals[i] != sig_vals[i - 1] or current_scale == 0.0:
+            if sig_vals[i] != 0 and np.isfinite(pr_vals[i]) and pr_vals[i] > 0.0:
+                current_scale = alloc / pr_vals[i]
+            else:
+                current_scale = 0.0
         target[i] = sig_vals[i] * current_scale
 
     return pd.Series(target, index=signal.index)
@@ -127,6 +149,7 @@ def compute_target_units(
     close:          pd.Series,
     alloc:          float,
     use_pyramiding: bool = True,
+    contract_size: float = 1.0,
 ) -> pd.Series:
     """
     Central dispatcher.  Returns target-unit series for any supported mode.
@@ -138,17 +161,18 @@ def compute_target_units(
     close      : close price series
     alloc      : notional per full unit of signal
     use_pyramiding : allow fractional weights; if False snaps to {-1,0,1}
+    contract_size : positive notional/PnL multiplier per contract
     """
     ht = hedge_type.lower().strip()
 
     if ht == "notional":
-        return scale_notional(signal, close, alloc, use_pyramiding)
+        return scale_notional(signal, close, alloc, use_pyramiding, contract_size)
 
     if ht == "unit":
-        return scale_unit(signal, close, alloc, use_pyramiding)
+        return scale_unit(signal, close, alloc, use_pyramiding, contract_size)
 
     if ht in ("signal_notional", "signal"):
-        return scale_signal_notional(signal, close, alloc, use_pyramiding)
+        return scale_signal_notional(signal, close, alloc, use_pyramiding, contract_size)
 
     if ht in ("%_equity", "pct_equity"):
         return scale_pct_equity(signal, use_pyramiding)

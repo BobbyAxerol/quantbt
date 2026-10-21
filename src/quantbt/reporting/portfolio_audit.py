@@ -61,13 +61,7 @@ def build_portfolio_domain_audit(
             .sum()
         )
         equity_delta = result.equity.diff().fillna(0.0)
-        if getattr(result, "liquidated", False):
-            liq_idx = int(getattr(result, "liquidation_bar", -1))
-            if liq_idx >= 0:
-                equity_delta = equity_delta.iloc[:liq_idx]
-                pnl_sum = pnl_sum.reindex(equity_delta.index, fill_value=0.0)
-        else:
-            pnl_sum = pnl_sum.reindex(equity_delta.index, fill_value=0.0)
+        pnl_sum = pnl_sum.reindex(equity_delta.index, fill_value=0.0)
         equity_residual = _max_abs((pnl_sum - equity_delta).to_numpy(dtype=float))
 
     fee_residual = np.nan
@@ -91,7 +85,18 @@ def build_portfolio_domain_audit(
         "fees_reconcile": _ok(fee_residual, tolerance),
         "accepted_notional_reconciles": _ok(notional_residual, tolerance),
         "exposure_identities_reconcile": _ok(exposure_residual, tolerance),
+        "financial_values_finite": all(np.isfinite(frame.to_numpy(dtype=float)).all()
+                                       for frame in (result.equity, accepted_units, accepted_notional)),
     }
+    funding = getattr(result, "funding", None)
+    if isinstance(funding, pd.Series) and not funding.empty and "funding_cost" in symbol_pnl_report:
+        expected_funding = symbol_pnl_report.groupby("timestamp")["funding_cost"].sum().reindex(funding.index, fill_value=0.0)
+        checks["funding_reconciles"] = _ok(_max_abs(expected_funding.to_numpy() - funding.to_numpy()), tolerance)
+    kernel = metadata.get("kernel_symbol_pnl")
+    if isinstance(kernel, pd.DataFrame) and not kernel.empty and not symbol_pnl_report.empty:
+        attribution = symbol_pnl_report.pivot(index="timestamp", columns="symbol", values="total_pnl")
+        attribution = attribution.reindex(index=kernel.index, columns=kernel.columns).cumsum()
+        checks["kernel_symbol_pnl_reconciles"] = _ok(_max_abs(attribution.to_numpy() - kernel.to_numpy()), tolerance)
     passed = all(checks.values())
     audit = {
         "status": "pass" if passed else "fail",
@@ -135,6 +140,9 @@ def _accepted_notional_residual(result, accepted_units: pd.DataFrame, accepted_n
 
 def _contract_sizes_from_metadata(result, columns) -> pd.Series:
     metadata = getattr(result, "metadata", {}) or {}
+    declared = metadata.get("contract_size")
+    if isinstance(declared, dict) and all(symbol in declared for symbol in columns):
+        return pd.Series({symbol: float(declared[symbol]) for symbol in columns})
     target = _frame(metadata.get("accepted_notional_report"))
     units = _frame(metadata.get("accepted_units_report"))
     closes = getattr(result, "closes", pd.DataFrame()).copy()

@@ -509,7 +509,10 @@ class NativePreparedPublicWfoScorerV1:
                 targets = np.ascontiguousarray(raw, dtype=np.float64)
                 equity_fraction = np.asarray([state.alloc], dtype=np.float64)
             else:
-                targets = self._target_units(raw, state.closes[start:end], index, state.alloc)
+                targets = self._target_units(
+                    raw, state.closes[start:end], index, state.alloc,
+                    contract_size=self._symbol_value(self.config.contract_size, state.symbol, 1.0),
+                )
             local_template = state.cache.window_template(state.template, start=start, end=end)
             request = state.cache.transient_direct_target_request(
                 local_template,
@@ -582,6 +585,7 @@ class NativePreparedPublicWfoScorerV1:
         closes: np.ndarray,
         index: pd.DatetimeIndex,
         alloc: float,
+        contract_size: float = 1.0,
     ) -> np.ndarray:
         if self.target_mode in {"signal_notional", "single_signal"}:
             return scale_signal_notional_matrix(
@@ -589,6 +593,7 @@ class NativePreparedPublicWfoScorerV1:
                 closes=closes,
                 allocs=np.asarray([alloc], dtype=np.float64),
                 use_pyramiding=bool(self.config.use_pyramiding),
+                contract_sizes=np.asarray([contract_size], dtype=np.float64),
             )
         signal = pd.Series(raw[:, 0], index=index)
         close = pd.Series(closes[:, 0], index=index)
@@ -598,6 +603,7 @@ class NativePreparedPublicWfoScorerV1:
             close,
             alloc,
             bool(self.config.use_pyramiding),
+            contract_size=contract_size,
         )
         return np.ascontiguousarray(units.to_numpy(dtype=np.float64).reshape(-1, 1))
 

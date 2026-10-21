@@ -233,6 +233,8 @@ def run_intrabar_reference(
 
     Decision arrays at index `t-1` become executable at `open[t]`.
     """
+    from .portfolio_validation import validate_gross_cross_account
+    validate_gross_cross_account(account, allow_margin_buffer=True)
     if tape.n_symbols != 1:
         raise NotImplementedError("Phase 31B intrabar oracle certifies single-symbol tapes only")
     if len(intent.entry_side) != tape.n_bars:

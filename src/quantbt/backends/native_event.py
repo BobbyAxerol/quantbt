@@ -11,7 +11,7 @@ import hashlib
 import math
 from pathlib import Path
 from time import perf_counter_ns
-from typing import Dict, List, Mapping, Optional, Sequence, Union
+from typing import Any, Dict, List, Mapping, Optional, Sequence, Union
 
 import numpy as np
 import pandas as pd
@@ -111,6 +111,7 @@ from ..core.preprocessor import (
     prepare_funding,
     validate_datetime,
 )
+from ..core.portfolio_validation import validate_gross_cross_account
 from ..core.results import (
     BacktestResultV2,
     NativeAccountingArrays,
@@ -222,12 +223,13 @@ class NativeEventConfig:
     shadow_evidence_dir: Optional[str] = None
 
     def __post_init__(self) -> None:
+        validate_gross_cross_account(self.account)
         if not isinstance(self.runtime_budget, RuntimeBudgetV1):
             raise TypeError("runtime_budget must be RuntimeBudgetV1")
         if isinstance(self.fee_rate, dict):
-            if any(float(rate) < 0.0 for rate in self.fee_rate.values()):
+            if any(not np.isfinite(float(rate)) or float(rate) < 0.0 for rate in self.fee_rate.values()):
                 raise ValueError("fee_rate must be >= 0")
-        elif float(self.fee_rate) < 0.0:
+        elif not np.isfinite(float(self.fee_rate)) or float(self.fee_rate) < 0.0:
             raise ValueError("fee_rate must be >= 0")
         object.__setattr__(self, "report_level", _normalize_native_event_report_level(self.report_level))
         object.__setattr__(self, "audit_sink", _normalize_native_event_audit_sink(self.audit_sink))
@@ -7399,8 +7401,12 @@ class NativeEventBackend:
     @staticmethod
     def _per_symbol_array(value, symbols: List[str], default: float) -> np.ndarray:
         if isinstance(value, dict):
-            return np.array([float(value.get(s, default)) for s in symbols], dtype=np.float64)
-        return np.full(len(symbols), float(value), dtype=np.float64)
+            out = np.array([float(value.get(s, default)) for s in symbols], dtype=np.float64)
+        else:
+            out = np.full(len(symbols), float(value), dtype=np.float64)
+        if not np.isfinite(out).all():
+            raise ValueError("per-symbol financial configuration must be finite")
+        return out
 
     @staticmethod
     def _market_signature(idx: pd.DatetimeIndex, symbols: List[str]):

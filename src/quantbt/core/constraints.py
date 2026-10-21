@@ -86,7 +86,8 @@ def build_quantity_constraints(
         min_qty=np.asarray(min_qtys, dtype=np.float64),
         min_notional=np.asarray(min_notionals, dtype=np.float64),
     )
-    if np.any(out.qty_step < 0.0) or np.any(out.min_qty < 0.0) or np.any(out.min_notional < 0.0):
+    if any(not np.isfinite(values).all() or np.any(values < 0.0)
+           for values in (out.qty_step, out.min_qty, out.min_notional)):
         raise ValueError("qty_step/lot_size, min_qty, and min_notional must be >= 0")
     return out
 
@@ -96,6 +97,8 @@ def quantize_target_units_matrix(
     prices: np.ndarray,
     contract_sizes: np.ndarray,
     constraints: QuantityConstraints,
+    *,
+    check_minima: bool = True,
 ) -> np.ndarray:
     """Round target-unit matrix down to exchange-acceptable quantities."""
 
@@ -106,8 +109,8 @@ def quantize_target_units_matrix(
     cs = np.asarray(contract_sizes, dtype=np.float64)
     for j in range(out.shape[1]):
         step = float(constraints.qty_step[j])
-        mnq = float(constraints.min_qty[j])
-        mnn = float(constraints.min_notional[j])
+        mnq = float(constraints.min_qty[j]) if check_minima else 0.0
+        mnn = float(constraints.min_notional[j]) if check_minima else 0.0
         for i in range(out.shape[0]):
             out[i, j] = quantize_signed_quantity(out[i, j], prices_arr[i, j], cs[j], step, mnq, mnn)
     return np.ascontiguousarray(out, dtype=np.float64)
