@@ -100,3 +100,23 @@ Neither financial worker was stopped by cleanup. Original/current receipts,
 all financial evidence, checkpoints, environments, alpha/market sources,
 services and offline dependencies remain intact. Terminal research-tail
 cleanup remains pending its own completed work.
+
+## Approved Feasibility Activation
+
+Before the newly approved trial-disposition continuation, a registered cold
+regression completes63tests with no financial execution or optimizer launch.
+After terminal pytest, host process/FD/cwd/maps review admits removal of only
+`continuation-20261021/approved-tests-scratch` inside the ignored private lane.
+The fixture tree contains486,059logical bytes and3,571,712allocated bytes;
+all14protected source, checkpoint and XML references remain unchanged. Actual
+filesystem free-byte increase is3,563,520bytes, retained in
+`approved-tests-cleanup-after.json`,
+separate from the allocated-byte inventory and concurrent host writes.
+
+The first cleanup bootstrap failed before any removal because its declared
+original `custody` import was not on the module path. That failed receipt
+remains separate; the explicit original-path bootstrap and successful cleanup
+do not rewrite it as PASS. No account, checkpoint, alpha/market source, old
+failure, environment, native artifact or service was deleted or stopped.
+Financial continuation and the original tail still need their own terminal
+work/resource/cleanup receipts; this is activation hygiene, not phase closure.

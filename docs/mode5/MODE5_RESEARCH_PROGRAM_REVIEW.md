@@ -751,7 +751,16 @@ and [historical resource amendments](M5_11_9_RESEARCH_STATUS.md).
 
 ### CURRENT_FINANCIAL_COMPLETION_PENDING
 
-**Current blocker update,2026-10-21Asia/Saigon:** the renewed queue committed
+**Approved continuation update,2026-10-21Asia/Saigon:** the owner has now
+approved finite nonpositive typed-price pruning for the incomplete formal
+attempts. A new registered runner keeps1,803committed files hash-pinned and
+continues exact checkpoints;63cold activation checks pass. A pruned attempt
+consumes the same256-slot budget with no score, never a repaired price or
+invented account. Six completed studies are preserved. The original serial
+winner/regime/synthesis/qualification tail is attached through a fresh receipt
+namespace. These launch facts are not terminal study or research acceptance.
+
+**Pre-amendment blocker history:** the renewed queue committed
 22new HASHrecipe/TPE attempts and81VWAPchallenger attempts, then stopped on
 the latter's original invalid-limit-price rejection. Current retained counts
 are146/256HASHrecipe/TPE,81/256VWAPchallenger and0/256HASHchallenger; formal
@@ -759,8 +768,8 @@ terminal coverage remains6/9. Both financial owners and the upstream-blocked
 successor are terminal, not currently running from the old progress records.
 A registered fixed-coordinate control confirms a finite negative requested
 price without changing the checkpoint or writing a score. The typed-only
-PRUNED feasibility amendment is proposed,55cold tests pass, but activation
-awaits owner approval. Original alpha, price and numerical observations are not
+PRUNED feasibility amendment was proposed,55cold tests passed, but activation
+then awaited owner approval. Original alpha, price and numerical observations are not
 repaired; missing winners/stress/synthesis are not called complete. See the
 [current continuation disposition](M5_11_9_RESEARCH_STATUS.md#current-completion-continuation).
 

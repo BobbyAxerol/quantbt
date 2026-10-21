@@ -21,9 +21,13 @@ evidence preserved. Its old resource gate remains exceeded/not-PASS; the
 acceptance does not certify an unmeasured peak or waive economics/accounting.
 The resumed11.9queue subsequently stops at an actual VWAPinvalid limit price;
 the registered typed-classification control preserves checkpoint/roster and
-does not write scores. A typed-only PRUNED feasibility amendment is now pending
-owner approval; HASHrecipe/TPE146/256and VWAPchallenger81/256are partial, not
-additional complete formal receipts. Do not infer liveness from old progress.
+does not write scores. The subsequent owner-approved typed-only PRUNED
+amendment permits exact continuation of the remaining attempts, not repricing
+or changing numerical metrics. Before activation HASHrecipe/TPE146/256and
+VWAPchallenger81/256are partial, not additional terminal receipts. The new
+admission preserves1,803committed files;63cold activation tests pass. Final
+winner/regime/synthesis qualification must still execute. Do not infer liveness
+or completion from old progress.
 
 ## Coverage And Meaning
 

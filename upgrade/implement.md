@@ -37834,6 +37834,23 @@ exceptions or rewrite old failures. Six completed formal studies remain intact;
 the upstream-dependent tail is terminal/incomplete, not running. The separate
 scratch exception is now owner-accepted as remediated, not a historical PASS.
 
+**Owner-approved feasibility amendment (2026-10-21, Asia/Saigon):** the owner
+explicitly approves pruning only typed finite requested prices <=0 for the
+remaining M5-11.9 formal attempts. Supersede the pending-approval state above
+without rewriting that receipt. The existing typed adapter must validate other
+command fields first; NaN/infinite prices, type errors and unknown exceptions
+remain fatal. A pruned attempt consumes one of the same256slots, retains its
+reason/metadata, and tells the sampler PRUNED with scoreNone, never0. No price,
+alpha, metric, objective, final mandate, selector or source-account change.
+All six completed studies and every committed prior trial remain hash-pinned.
+Continue exact checkpoint/config/RNG state; do not restart completed optimizers.
+Register the new generated runner, approval, bounded regression and scratch
+inventory before activating it. Keep the same operational deadline, two-worker
+2GiB RSS,1GiB phase retention and5GiB disk reserve. The original serial winner/
+regime/synthesis/qualification tail still requires nine actual terminal study
+receipts; its changed operational inputs need a fresh queue receipt namespace.
+Parent acceptance, M5-12, CI and release remain unapproved.
+
 **Goal:** make the evidence answer whether one fixed actual dictionary retains
 economic quality across market environments and feasible parameter changes,
 instead of presenting aggregate Sharpe/DD/utility as a robustness certificate.

@@ -8,7 +8,31 @@ ignored and excluded from distributions.
 
 ## Current Completion Continuation
 
-**Latest disposition: BLOCKED_PENDING_OWNER_FEASIBILITY_AMENDMENT.** The
+**Latest disposition: OWNER_APPROVED_FEASIBILITY_CONTINUATION_RUNNING.** The
+owner approved the typed finite-nonpositive price amendment on21October2026,
+Asia/Saigon. The new source-pinned worker resumes the three incomplete arms
+from their exact checkpoints; it never reruns any completed optimizer. The
+registered admission hashes1,803previously committed files, including all six
+complete studies and every old trial. New cold activation regression is63PASS;
+the prior55tests overlap and are not additional independent coverage.
+
+Only `NonPositiveExecutionPrice` for a finite requested price<=0 becomes
+PRUNED, scoreNone, charged to the existing256attempts. Unknown/nonfinite/type
+errors remain fatal. The original alpha/financial/selector/objective sources,
+RNG/checkpoint configuration, final mandate and existing numerical observations
+remain unchanged. A fresh operational tail namespace requires nine actual
+terminal study receipts before the original11-stage serial checks. This is
+not nine completed studies, parent acceptance, M5-12, CI or publication.
+
+Private append-only admission references:
+`continuation-20261021/owner-feasibility-approval-20261021.json`,
+`approved-feasibility-registration-v1.json`, `tail-approved-registration-v1.json`
+and `approved-chain-launch.json`. The old pending approval and failed queue
+receipts remain historical. Exact inactive test scratch has been removed;
+the cleanup verifies protected sources/checkpoints and retains the failed
+cleanup-bootstrap receipt separately. See [cleanup](../maintenance/M5_11_9_CLEANUP.md#approved-feasibility-activation).
+
+**Pre-amendment stop, retained history:** the
 continuation committed22additional HASHrecipe/TPE attempts and81VWAPchallenger
 attempts before the latter generated an invalid limit price. The original
 engine correctly rejected it; the coordinator retained both checkpoints and
@@ -21,7 +45,9 @@ failure as a typed finite negative price. The same checkpoint hash and trial
 roster survive, with zero score/proposal commits. The proposed feasibility
 amendment prunes only the existing typed finite-nonpositive price signal,
 charges the attempt, never repairs price or supplies a zero score, and leaves
-NaN/type/other exceptions fatal. It is **not activated pending owner approval**.
+NaN/type/other exceptions fatal. At that historical stop it was
+**not activated pending owner approval**; the approval above supersedes only
+that pending state, not the retained failures.
 Final cold queue/typed-feasibility regression is55PASS; earlier44tests overlap
 and are not added as distinct coverage. All failures and source copies remain.
 Exact inactive fixture cleanup removed3,473,408allocated bytes per measured
