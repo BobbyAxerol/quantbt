@@ -18,6 +18,17 @@ qualification tail has begun. Final held/stress/readback/C05/C06 receipts are
 still required; this is not parent acceptance or package/release qualification.
 All1,983prior committed pins remain unchanged; no completed optimizer reruns.
 
+**Interrupted-tail recovery:** actual RSI/SC/HASH held/probe/fee checks have
+complete financial outputs. The old coordinator lost its terminal HASH stage
+receipt at chat interruption; that historical stage is not rewritten as PASS.
+A new explicit recovery registration pins453existing admission/held/numeric
+inputs and the entire old queue. Its cold reuse stage passes with financial-owner
+creation forbidden. Five pure resource/source/recovery checks pass; no scratch
+or environment is created. The durable coordinator has its own session/log and
+runs only missing VWAP held checks, four original regime readbacks, synthesis
+and terminal qualification, under the same lock/deadline/caps. Financial work
+already complete is not repeated. Final C05/C06 still must pass.
+
 **Latest disposition: OWNER_APPROVED_FEASIBILITY_CONTINUATION_RUNNING.** The
 owner approved the typed finite-nonpositive price amendment on21October2026,
 Asia/Saigon. The new source-pinned worker resumes the three incomplete arms
@@ -305,6 +316,9 @@ Cold arithmetic on the saved Raw winner's annual summaries gives the following
 post-hoc comparison. No new finance or winner selection occurs; formal winners
 remain those selected in their own registered pools. This is not selector-only
 or independent validation, and a union-pool winner is not silently substituted.
+The source-pinned private `formal-cold-readback.json` reproduces this summary
+and matches all six recipe objective receipts within1e-12, with zero new
+financial executions, proposals or changed winners.
 
 | Frozen recipe, higher is better | Raw winner, cold calculation | Recipe/TPE receipt | Recipe/challenger receipt |
 |---|---:|---:|---:|

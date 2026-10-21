@@ -137,3 +137,19 @@ checkpoint references and observes364,544additional free bytes. All original
 failures, financial data, partial checkpoints, alpha/native sources, artifacts,
 environments and services remain. The new worker admission pins1,983committed
 files; final research-tail cleanup still waits for actual terminal execution.
+
+## Interrupted-Tail Recovery Admission
+
+Five pure resource/source/recovery tests pass without account execution,
+optimizer proposals, a new environment or disposable fixture scratch. The
+separate cleanup receipt verifies the two source pins and final XML, records
+zero deletions/zero reclaimed bytes, and retains every old interrupted queue
+and completed account. A cold readmission pins453existing financial/receipt
+inputs; this is validation, not a repeated financial run or retroactive PASS
+for the old missing terminal HASH stage receipt.
+
+The new coordinator owns its session and file-backed logs so chat interruption
+does not remove scheduling ownership. Remaining financial/regime/qualification
+work and original terminal fixture cleanup still require actual terminal
+receipts. No live service, source, account, checkpoint, artifact or dependency
+cache is removed during this admission.

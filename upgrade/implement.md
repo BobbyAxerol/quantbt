@@ -37876,6 +37876,18 @@ its fresh namespace, beginning with RSI actual-winner held checks. Formal
 completion is not held-probe/regime/synthesis/parent completion; C05/C06 remain
 required before a phase closeout claim. No scientific or resource-budget change.
 
+**Explicit interrupted-tail recovery:** RSI/SC/HASH held/probe/actual-fee
+qualification outputs are complete, but the old coordinator has no terminal
+stage receipt for HASH after the owner interrupts the chat. Keep that old
+stage interrupted, not fabricated PASS. A separately registered recovery queue
+pins the entire old queue and completed numeric paths, verifies completed held
+outputs with financial-owner creation forbidden, then runs only missing VWAP,
+four original regime readbacks, synthesis and terminal qualification. Same
+deadline, original financial owners, caps and shared exclusive lock; no new
+optimizer. Launch the coordinator in its own session with file-backed logs
+so chat interruption does not lose the scheduling owner. Final research/parent/
+package/CI/release statuses still require their separate actual receipts.
+
 **Goal:** make the evidence answer whether one fixed actual dictionary retains
 economic quality across market environments and feasible parameter changes,
 instead of presenting aggregate Sharpe/DD/utility as a robustness certificate.
