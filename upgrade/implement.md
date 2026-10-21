@@ -2,6 +2,19 @@
 
 ## Current Mode 5 Diagnostics-First Upgrade - Full-Development Decision Support
 
+**Latest planning update (2026-10-21, Asia/Saigon):** the owner approves
+registration of one integration phase,
+[M5-11.14](#mode5-m5-11-14), for shared diagnostics, optional lawful Mode 4
+archive evidence, an actionable researcher worksheet, checked executable
+Mode 5 handoff and post-run decision reconciliation. Status is
+PLANNED / PENDING_OWNER_EXECUTION_APPROVAL; this request authorizes the plan
+only, not implementation or another financial study. Reuse completed
+M5-11.7..11.13 evidence and existing public runtime/financial owners; do not
+promote the rejected/unsupported archive-seeding or temporal-regret policies.
+The next order is separate M5-11.14 execution approval and local closeout,
+then owner disposition of parent M5-11, then separately admitted M5-12.
+CI, push/merge/tag, version changes, publication and deployment remain gated.
+
 **Latest terminal research closeout (2026-10-21, Asia/Saigon):**
 [M5-11.9](#mode5-m5-11-9) is COMPLETE_REGISTERED_LOCAL_RESEARCH:
 nine256-attempt original formal studies,2,248COMPLETE/56PRUNED, all actual
@@ -28006,7 +28019,8 @@ Every phase below inherits this mandatory resource registration/cleanup exit.
 | [M5-11.11](#mode5-m5-11-11) | Static selector, stable regions and temporal regret | Reviewed 11.10 registration; own approval; same-panel observation rights | XMR-011..020 | COMPLETE_LOCAL_REGISTERED_RESEARCH_SCOPE; no production/source integration |
 | [M5-11.12](#mode5-m5-11-12) | Bidirectional sampler assistance with strict prefix isolation | Reviewed 11.10/11.11; own approval; separate direction contracts | XMR-021..030 | COMPLETE_LOCAL_REGISTERED_RESEARCH_SCOPE;16 studies/4,096 slots,768 diagnostics,107 tests; scratch exception reported; no default activation |
 | [M5-11.13](#mode5-m5-11-13) | Whole-procedure chronology, economics and final research disposition | Reviewed 11.10..12; owner-approved KEEP_BASELINE/no-new-finance branch | XMR-031..040 | COMPLETE_LOCAL_APPROVED_NO_NEW_FINANCE_SCOPE;031..036DEFERRED_APPROVED,037..040verified cold only; parent/package not accepted |
-| [M5-12](#mode5-m5-12) | Local qualification/docs/handoff | M5-01..11 plus 11.4..11.13 reviewed dispositions, including remaining 11.9 coverage | M5T-111..120 | NOT_STARTED; research/owner disposition required before entry |
+| [M5-11.14](#mode5-m5-11-14) | Shared diagnostics to researcher choice, executable Mode 5 run pack and post-run reconciliation | Completed retained reporting/research evidence; separate execution approval; no automatic hybrid adoption | M5H-001..016 | PLANNED / PENDING_OWNER_EXECUTION_APPROVAL; implementation and new studies NOT_STARTED |
+| [M5-12](#mode5-m5-12) | Local qualification/docs/handoff | M5-01..11 plus 11.4..11.14 reviewed dispositions and explicit parent acceptance | M5T-111..120 | NOT_STARTED; 11.14 closeout and research/owner disposition required before entry |
 
 Respect the guide dependency graph. M5-05 and independent M5-06 preparation
 may overlap only by explicit owner approval after M5-04; M5-06 exit still needs
@@ -36969,8 +36983,10 @@ bounded subphases, not another open-ended research program.
 | 3 | [M5-11.7.2](#mode5-m5-11-7-2) | Shared Mode4fold consistency/meta decision and Mode5 views | COMPLETE_LOCAL_REGISTERED_REPORTING_SCOPE |
 | 4 | [M5-11.7.3](#mode5-m5-11-7-3) | Public integration, source tests, reporting cost, privacy/docs/handoff | COMPLETE_LOCAL_REGISTERED_REPORTING_SCOPE |
 | 5 | [M5-11.8/11.9](#mode5-m5-11-9) | Additional-alpha and remaining Mode 5 research | Later approved research; exact completion/dispositions required |
-| 6 | [M5-11.10..11.13](#mode45-cross-mode-roadmap) | Cross-mode static robustness and prefix-safe assistance | Planning approved 2026-10-20; each execution approval PENDING |
-| 7 | [M5-12](#mode5-m5-12) | Exact local package/installed qualification | Existing conditional approval; later research dispositions and separate launch review required |
+| 6 | [M5-11.10..11.13](#mode45-cross-mode-roadmap) | Cross-mode static robustness and prefix-safe assistance | Individually completed registered scopes; 11.13 retains baseline with approved no-new-finance disposition, not hybrid promotion |
+| 7 | [M5-11.14](#mode5-m5-11-14) | Shared diagnostics, researcher worksheet, executable Mode 5 handoff and post-run reconciliation | Planning approved 2026-10-21; separate execution approval PENDING |
+| 8 | Parent M5-11 disposition | Accept completed scopes and explicit research limits before packaging | Owner review after 11.14; no automatic parent acceptance |
+| 9 | [M5-12](#mode5-m5-12) | Exact local package/installed qualification | Existing conditional approval; 11.14 closeout, parent disposition and separate launch review required |
 | Later | Remote / release | Final-source CI, owner release scope, publication/public proof | Separate owner approval; no workflow/push/tag/upload now |
 
 Read [new detailed reporting/closure guidance](QUANTBT_MODE4_META_LEARNER_RESEARCH_GUIDE_V1.md#mlr-s16).
@@ -38237,7 +38253,16 @@ The new methods remain opt-in research until an explicit adoption decision.
 | 2 | M5-11.11 | Does temporal evidence improve one static selection on the same panel? | Missing registered witnesses and selected-account/probe checks only; zero optimizer proposals |
 | 3 | M5-11.12 | Does archive/prefix assistance improve candidate generation? | One matched challenger per direction/cell; proposed 256 attempts/study, at most two alpha cells |
 | 4 | M5-11.13 | Does the complete prefix procedure retain its benefit? | Proposed three full 365-day horizons/cell; exact reuse first, new prefix studies only where required |
-| Later | M5-12 | Is the accepted final source/package reproducible and private? | Separate local qualification approval after research disposition |
+| Next | [M5-11.14](#mode5-m5-11-14) | Can a researcher turn compatible evidence into a checked Mode 5 run and explain the actual decision? | Separately approved integration only; reuse evidence, no new alpha tournament or hybrid promotion |
+| Review | Parent M5-11 | Which completed scopes and scientific limitations does the owner accept? | Explicit owner disposition after 11.14; not implied by source or research PASS |
+| Later | M5-12 | Is the accepted final source/package reproducible and private? | Separate local qualification approval after 11.14 and parent disposition |
+
+**Current integration boundary (2026-10-21, Asia/Saigon):** M5-11.10..13 have
+their separately recorded completed scopes; the proposed full-finance branch
+of11.13 remains DEFERRED_APPROVED / NOT_EVALUATED under owner instruction.
+The new11.14 is one downstream integration phase, not a fifth cross-mode
+economic experiment or approval to adopt the tested assistance policies.
+Its registration does not alter the four historical protocols or receipts.
 
 **Shared scientific boundary:** original Mode 4 OOS becomes development input
 for a new selection if used to choose its dict/recipe. Preserve the old role
@@ -38799,6 +38824,316 @@ tests, safe methodology/docs and source-bound disposition; release remains later
 **Rollback:** retain legacy/frozen comparator paths and disable optional
 cross-mode research inputs; preserve all original and new evidence/receipts.
 
+<a id="mode5-m5-11-14"></a>
+### Phase M5-11.14 - Shared Diagnostics, Executable Mode 5 Handoff And Decision Reconciliation
+
+**Status:** PLANNED / PENDING_OWNER_EXECUTION_APPROVAL. The owner approves
+writing this detailed phase on2026-10-21, Asia/Saigon, then reviews its
+execution separately. No implementation, new optimizer study, financial
+research, model fit, build, installed qualification, CI or release is launched
+by this planning change. The phase is one bounded integration step after
+M5-11.13, before parent M5-11 disposition and M5-12.
+**Goal:** make diagnostics operational rather than another retrospective
+chapter: a researcher can understand the alpha and lawful optional archive,
+choose or override an explicitly supported recipe, export a checked Mode 5
+run pack using existing endpoints, and reconcile actual search/selection
+results to the original evidence and decision rationale. Keep one fixed
+external parameter dictionary per Mode 5 account; preserve original internal
+alpha adaptation. Compatibility, executability, measured economic benefit,
+independent validation and deployment permission remain separate statements.
+**Entry:** separate owner execution approval; reviewed source interfaces and
+completed11.7.1..3 reports,11.9 final C05/C06/recovered completion and11.10..13
+evidence/dispositions. Inventory exact retained source/market/account/metric
+contexts before reuse; do not require an owner to accept the entire parent
+research scope before this approved integration can be tested. No archive,
+missing observations or negative economics must have usable explicit paths.
+Preserve frozen Ridge V1, original defaults and all historical receipts.
+**Detailed Guide:** [diagnostics cockpit and five axes](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#chapter-4),
+[canonical units/objectives](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#chapter-5),
+[researcher choice, incumbent and freezing](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#chapter-6),
+[shared architecture/evidence/product gates](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#chapter-7),
+[required reporting template](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#appendix-d),
+[archive rights](QUANTBT_MODE4_MODE5_CROSS_MODE_RESEARCH_GUIDE_V1.md#xm-rights),
+[cross-mode measurement](QUANTBT_MODE4_MODE5_CROSS_MODE_RESEARCH_GUIDE_V1.md#xm-math),
+[shared cross-mode architecture](QUANTBT_MODE4_MODE5_CROSS_MODE_RESEARCH_GUIDE_V1.md#xm-architecture),
+[research dispositions](QUANTBT_MODE4_MODE5_CROSS_MODE_RESEARCH_GUIDE_V1.md#xm-report),
+[existing shared pre-search contract](../docs/diagnostics/PRESEARCH_RESEARCHER_REPORT.md),
+[fold/R/Q contract](../docs/diagnostics/FOLD_DECISION_REPORTS.md#quantities-and-masks),
+[dossier governance](../docs/mode5/DOSSIER_GOVERNANCE_V1.md),
+[public calibration and continuous-account limits](../docs/mode5/PUBLIC_CALIBRATION_V1.md),
+[decision qualification](../docs/mode5/DECISION_QUALIFICATION_V1.md),
+and the [phase-specific integration work packages](#mode5-m5-11-14-work).
+These linked contracts and the explicit scope below govern implementation;
+they do not authorize omitted economic experiments from11.13.
+
+<a id="mode5-m5-11-14-contract"></a>
+**Contracts / Scope Lock:**
+- Extend shared `quantbt.diagnostics`, its evidence/access/decision/report
+  owners, existing Dossier/CalibrationPlan and the public Mode 5 continuous
+  binding. Add focused typed/versioned adapters only for responsibilities
+  actually missing. No new account engine, endpoint, prepared cache, optimizer
+  registry, financial reducer, Python/Rust bridge or monolithic WFO rewrite.
+- A report or recipe compiler performs zero strategy execution, financial
+  simulation, optimizer ask/tell or model fitting. Explicit execution is a
+  separate reviewed action through existing runtime owners. Data buffers are
+  referenced/streamed, not copied into every card or rendered JSON.
+- Optional archive consumption requires matching alpha/source, effective
+  schema, market/symbol/timeframe, cutoff, economic/execution/metric identities,
+  carry/reset, candidate birth/revision, data roles and label maturity.
+  Coordinate reuse and score/label reuse have separate rights. Hash agreement
+  is not scientific authentication or permission to broaden those rights.
+- An archive built from later history may describe current full-development
+  calibration, never an earlier causal decision. Full-development geometry,
+  environments, references, dossier and human recipe choices cannot be
+  backdated by slicing rows. A new use of old OOS is recorded as development
+  for that use; retain its original lineage without claiming pristine OOS.
+- No automatic archive seeding, temporal-regret selector, recipe classifier,
+  Ridge change or economic threshold revision.11.12's57-anchor/refill64 rule
+  is not promoted. A researcher may explicitly choose a coordinate-only
+  warm-start supported by the current runtime and sealed rights; importing
+  an unsupported seed-selection algorithm is a separate research action.
+- Keep search feedback/objective, eligibility gates and final selector as
+  distinct resolved fields. Current public continuous attribution windows
+  are annual; quarterly/state/transition views may explain results but cannot
+  silently become runtime ranking inputs. An unavailable raw/quarterly/regret
+  policy is not made executable by aliasing it to a supported selector.
+- Keep scientific preferences researcher-owned: risk/support/utility floors,
+  activity constraints, objective coefficients, references, probe requirements
+  and incumbent improvement margins are explicit, not learned from reviewed
+  outcomes in this phase. No new requirement that every year is positive or
+  that forward Sharpe exceeds IS. Technical readiness need not imply economic
+  superiority; a compatible opt-in experiment can remain economically unknown.
+
+The common optional archive/decision view must cover the following six groups
+without implying evidence exists for every alpha or route:
+
+| Group | Required retained data / masks | Configurable decision supported |
+|---|---|---|
+| Archive admission | Identity/role/cutoff matrix; exact reuse versus static replay versus forbidden use; source/metric/account reasons | Include a lawful archive or proceed with NO_ARCHIVE; never require a new57-fold WFO |
+| Temporal parameter map | Effective IDs/branches, active/fixed axes, recurrence, drift/overlap, boundary hits, valid origins and missing-label counts | Assess donor/reference relevance and missing branch support; recurrence is not independent replication or basin volume |
+| Static candidate comparison | Original continuous candidate x calendar/state metric views, utility components, risk/activity/cost/support and uncertainty | Compare one fixed dict across environments; reset fold labels are not substituted for static utility |
+| Search response | Actual attempts/states, duplicates/effective points, branch coverage, best-eligible budget curve and observed work | Compare compatible sampler/startup options without claiming density-neutral superiority or equal lifetime cost |
+| Fragility and incumbent | Existing actual-center held/stress witnesses, coverage limits, current-objective incumbent components and missing requirements | Keep/evaluate a registered incumbent or request bounded missing witnesses; do not invent local evidence |
+| Assistance evidence | Exact matched method/direction/cell, frozen comparator, validity masks, trade-offs, chronology/support and extra acquisition cost | Keep baseline, explicitly shortlist a supported option or retain RESEARCH_ONLY; no universal archive benefit claim |
+
+Each finding binds value/unit/source/role, support, uncertainty, interpretation,
+competing explanation, missing evidence, configuration implication and a bounded
+next action. Missing, flat, undefined, adverse and not-applicable are distinct;
+no favorable sentinel or fabricated CI. Raw Sharpe alone cannot populate
+annual utility, a regime map, local robustness or whole-procedure decay.
+
+<a id="mode5-m5-11-14-work"></a>
+**To-Do / Guide Work Packages:**
+1. **DCH01 - Source map and bounded baseline.** Reconcile existing shared
+   diagnostics/findings/cards, `with_choice`, Dossier/CalibrationPlan,
+   `calibration_binding`/`continuous_calibration_binding`,
+   `Mode5Calibration`/`ContinuousMode5Calibration`, sampler warm starts and
+   actual result/endpoint decision-report accessors. Publish a responsibility
+   and capability matrix; inventory seven-alpha report/receipt roles and the
+   previously approved cross-mode dispositions. Pin unchanged baseline/Ridge
+   owners, financial paths and legacy report identities. Do not rerun completed
+   optimizers or require new observations to fill a report heading.
+2. **DCH02 - Optional archive and comparison adapters.** Connect retained
+   lawful archive/region/assistance evidence through shared access, identity,
+   analysis and decision adapters. Produce the six groups above with source
+   refs instead of duplicate arrays; use existing numeric/attribution owners.
+   Missing matched continuous outcomes become TARGETED_EXECUTION_REQUIRED,
+   with exact candidates/contracts/missing work/cost and explicit approval
+   status, never hidden finance in a renderer. Preserve NO_ARCHIVE,
+   INCOMPATIBLE_SCOPE, undefined labels and absent probes as first-class
+   paths. Generalize by declared schema/contracts, not the seven alpha names.
+3. **DCH03 - Actionable recipe worksheet.** Present complete joint recipe
+   options: objective/channel/components/units/references; independent mandate
+   and support; sampler/geometry/startup/seed/schedule/attempt budget;
+   initialization; final selector/tie/probes; incumbent/failure/validation.
+   Link each field to researcher preference, existing default explicitly
+   retained, or measured/source-backed evidence. Show rival explanations,
+   conflicts, trade-offs, missing proof and estimated additional work.
+   Executable supported options remain available without a false superiority
+   claim; unsupported kernels remain visible but non-executable. A changed
+   preference or override produces a new immutable choice/reason and seal,
+   never edits the original dossier, old recommendation or study receipt.
+4. **DCH04 - Checked run-pack compiler and explicit execution boundary.**
+   Convert the chosen complete recipe into the existing sealed CalibrationPlan,
+   continuous binding and typed calibration object, not an unvalidated kwargs
+   dump. Export private versioned configuration, evidence/dependency manifest
+   and a small runnable script/example using known existing public APIs.
+   Inject strategy/data/original endpoint through explicit caller inputs;
+   do not generate/eval code from arbitrary descriptions, serialize pickled
+   callbacks, bundle alpha/market arrays or assume a checkout-local path.
+   Dry-run resolves capability, geometry, annual windows, economics/clock,
+   account continuity, rights, sampler/schedule, budget, effective warm-start
+   coordinates and current source dependencies before any financial call.
+   The generated runner calls existing `QuantBTEndpoint.walk_forward` with
+   `mode_5_full_robust` and the typed `mode5_calibration` opt-in; no new endpoint.
+   Supported donor/incumbent coordinates consume the declared proposal budget
+   and are evaluated under the current Mode 5 contract; old fold scores never
+   stand in for observations. Revalidate access and source on reload/run;
+   changing any sealed input requires a new plan. An unsupported option emits
+   NOT_EXECUTABLE plus the missing contract, not a silent fallback or alias.
+5. **DCH05 - Incumbent/common-bank safety and decision trace.** Reuse the
+   existing incumbent policy instead of building a second selector. A saved
+   candidate can be compared on the chosen objective only with compatible
+   complete metric/reference/account evidence; otherwise request explicit
+   evaluation as an in-budget coordinate. Freeze roster/improvement margin
+   before search. Retain pre/post-incumbent decisions and gate reasons; an
+   ineligible incumbent cannot force an invalid winner. Surface the actual
+   HASH/VWAP counter-evidence that a prior Raw winner can beat a later recipe
+   winner under the same saved formula, without retrospectively replacing
+   either winner or presenting a union-pool optimum as preregistered selection.
+6. **DCH06 - Unified pre/post-run reports.** Render the five ordered views
+   below from the same versioned data in JSON and readable Markdown, using
+   existing accessors/owners rather than a parallel standalone report system.
+   Link dossier, choice, plan, binding, run, trial, effective candidate and
+   decision identities. Reconcile declared versus actual resolved sampler,
+   initialization, objective components, mandate, selector, proposal ledger,
+   candidate set, selected dict, selected replay and final account. Preserve
+   partial/cancelled/failed/NO_SELECTION results and overrides. When dependencies
+   or actual execution differ, report the mismatch and withhold the dependent
+   verified claim; never render a valid-looking run from a plan-only snapshot.
+7. **DCH07 - Existing-evidence and small synthetic qualification.** Use all
+   seven retained alpha contexts for cold coverage/missingness/decision cards,
+   not another optimizer tournament; keep source-specific scopes separate.
+   Reproduce11.11/11.12 measured counterexamples in the new views and verify
+   no economic status upgrades. Run only the bounded synthetic end-to-end
+   cases registered below to show a researcher choice compiles, executes via
+   current endpoints and returns a reconciled decision. Compare exact baseline
+   financial paths, objective components, RNG/tell ordering and legacy outputs.
+   Test narrower rights/current-source checks on pack reload and future-input
+   isolation for prefix consumers; this does not close deferred11.13 whole-
+   procedure research. Measure cold compilation/render/reload separately from
+   the synthetic execution, including RSS/bytes and zero hidden owner calls.
+8. **DCH08 - Documentation, cleanup and parent handoff.** Document one usable
+   no-archive path, one compatible optional-archive path, a supported manual
+   override and an unsupported/research-only path. Provide public synthetic
+   examples and private external-alpha instructions; publish no private strategy
+   or parameter dictionary. Update shared diagnostics/calibration/decision
+   docs and endpoint capability/metadata descriptions for the actual changes.
+   Produce source-bound JSON/Markdown, test/coverage/work/performance/privacy/
+   cleanup receipts and explicit unresolved-scientific-limit dispositions.
+   Return the packet to owner review of parent M5-11; do not self-accept the
+   parent or launch M5-12, remote qualification or release.
+
+The readable report must guide a researcher through these ordered views;
+matrix drill-down stays available without repeating every retained buffer:
+
+| View | Required answer / actionable output |
+|---|---|
+| Decision Summary | What can run now, current choice/alternative, genuine blockers, retained baseline and explicit research-only options |
+| Alpha Behavior | Parameter/branch sensitivity and coverage, temporal/state concentration, activity, distribution/tail/cost and fragility; facts versus hypotheses |
+| Recipe Comparison | Matched objective/selector/sampler/initialization alternatives, support/conflicts/trade-offs, observed versus additional work and reasons for no superiority claim |
+| Run Configuration | Fully resolved executable plan or explicit NOT_EXECUTABLE; every choice/override source, preflight result and private run-pack reference |
+| Post-Run Qualification | What was actually executed/chosen; component/gate/incumbent agreement, annual/state consistency, available stress and unchanged-accounting witnesses, failures and unqualified claims |
+
+Static resilience, calendar/regime attribution, hindsight temporal regret and
+prefix-forward R/Q occupy distinct blocks with their actual metric/support
+contracts. R=Q-delta_IS is shown only with all required valid paired inputs;
+undefined is not zero. Better regret or lower risk allocation is not asserted
+to reduce IS-to-OOS decay or prove live regime adaptation. Calendar states,
+overlapping folds and selected paths are not independent replications.
+Existing meta-selection results are not negated by meta-off assistance tests.
+
+<a id="mode5-m5-11-14-tests"></a>
+**Tests:** the following acceptance families are required, not measured
+results or an authorization to run them in this planning change.
+
+| ID | Required test / independent expected outcome |
+|---|---|
+| M5H-001 | Source/interface inventory and identity baseline: actual existing APIs/capabilities; original Ridge, defaults, accounting and legacy report behavior unchanged |
+| M5H-002 | Optional archive: no archive still yields a usable supported Mode 5 recipe; wrong symbol/source/schema/economics/clock/reset/metric receives an exact reason, never silent cross-account reuse |
+| M5H-003 | Rights/chronology: future labels/candidates/revisions/full-sample fits rejected for prefix decisions; narrower rights and stale dependencies rechecked after JSON reload |
+| M5H-004 | Exact retained-value oracle: seven-alpha source fields/units/masks and counterexamples agree with retained ledgers; missing/static-reset/flat/undefined observations are not fabricated |
+| M5H-005 | Temporal/geometry semantics: no recurrence-as-independent-count, adaptive-density-as-basin-volume, partial-year-as-full-year or regime-bucket-as-independent-replication claim |
+| M5H-006 | Complete recipe/override: distinct objective, mandate and selector; explicit preferences/default sources; immutable choice and revised seal; forged/rehashed authority cannot authorize execution |
+| M5H-007 | Runtime capability: supported continuous/annual recipe compiles; unavailable raw/quarterly/regret/local-evidence paths remain non-executable rather than aliased or silently downgraded |
+| M5H-008 | Run-pack preflight/reload: exact data/account/geometry/reference/sampler/window/RNG/budget bindings; invalid source/roles/timezone/partial-calendar inputs fail before finance; no eval/pickle/path escape |
+| M5H-009 | Incumbent/donors: current-contract evaluation, budget accounting and deterministic ties; no imported fold scores, future-ranked seeds, unregistered donor rule or ineligible forced incumbent |
+| M5H-010 | Positive end-to-end: bounded synthetic no-archive and supported optional-input/manual-choice paths invoke existing endpoint and reproduce selected/final account with the declared continuous contract |
+| M5H-011 | Post-run agreement: declared/actual plan-sampler-trial-candidate-selector-component-account lineage matches; changed/partial/cancelled/failed/NO_SELECTION paths cannot be certified from metadata alone |
+| M5H-012 | Measurement masks: independent static/utility/regret/R/Q readback, correct Q/delta_IS/R validity, activity/risk/cost decomposition; no requirement that OOS exceed IS |
+| M5H-013 | Shared rendering and privacy: JSON/Markdown numerical/reason agreement, immutable round-trip, bounded references; private run packs excluded from public exports and package members |
+| M5H-014 | No hidden work/performance: diagnostics/compiler/render/reload counters stay zero for strategy/finance/ask-tell/fits; matched cold cost/RSS/bytes measured; default output/hot-path parity retained |
+| M5H-015 | Existing-interface regression: shared diagnostics, Mode4 decision reports, legacy Mode5, sealed continuous runtime, sampler continuation and frozen Ridge behavior remain under their original contracts |
+| M5H-016 | Docs/traceability/cleanup: runnable public synthetic example, retained real-evidence views, all work/claim/test dispositions, exact scratch/protected-hash checks and explicit parent/M5-12 approval boundaries |
+
+**Deliverables:** focused shared optional evidence/worksheet/run-pack adapters;
+checked supported recipe handoff through existing typed calibration/runtime;
+private versioned run configuration, dependency manifest and runnable entry
+script; matched pre/post-run JSON/Markdown; public synthetic examples and
+actual capability/docs updates. Retain private source-bound
+`m5-11-14/attempt-01` registration, baseline/work/test/performance/privacy/
+cleanup/exit receipts and a public-safe implementation/coverage report.
+Proposed source changes belong in small shared modules after source mapping,
+not under private alpha-specific production forks. Artifact/installed consumers
+remain M5-12 work; this phase's pack is not a new wheel certificate.
+**Resource / Cleanup Gate:** before execution record free bytes/inodes,
+source/evidence pins, exact ignored scratch/output paths and actual dependency
+availability. Reuse current qualified tooling/native artifacts; no default
+build/install or environment duplication. Proposed cold/test lane: one worker,
+one numeric thread,512MiB owned RSS,64MiB compact additional retention and
+64MiB filesystem-allocated scratch; account-buffer/report caps retain current
+defaults unless explicitly amended before admission. Keep >=512MiB host RAM
+available and >=5GiB disk reserve beyond forecast incremental use. Stream
+retained evidence and reference old paths rather than cloning the corpus.
+No new private-alpha optimization, model fit or financial research is budgeted.
+Only positive synthetic runtime integration may use at most16 total proposal
+slots and24 original-owner financial invocations including selected/final
+replays, with separate declared work counters; no new local/stress probes.
+Before any such smoke test measure its fixed control, register exact synthetic
+data, gates, wall/CPU and scratch caps, and stop for review if it cannot fit;
+do not reduce scientific scope or claim synthetic economics. Clean only exact
+inactive reproducible phase-owned fixtures after completion/failure, verify
+protected hashes, retain all evidence/logs/artifacts and report actual bytes
+reclaimed. No broad cache purge or unrelated notebook/service control.
+**Exit Gate:** all M5H-001..016 families pass within their declared scope;
+at least one supported researcher-selected recipe is demonstrated through the
+actual existing endpoint with verified post-run linkage, not a config-only
+mock. A no-archive alpha remains runnable; unsupported/rights-invalid options
+are explicit and blocked. Existing seven-alpha observations and11.10..13
+dispositions reconcile without new economic claims or private optimizer reruns.
+Baseline/Ridge/RNG/accounting/report contracts, privacy and resource/cleanup
+gates pass. Researcher can go from evidence to executable configuration and
+back from the actual result to the original rationale without hand-copying
+unbound fields. Negative/insufficient economics is retained, not retuned until
+positive. Hand back an explicit parent disposition packet; parent acceptance,
+M5-12, CI, publication and deployment require separate owner decisions.
+**Technical Debt / Gap Policy:** no disconnected report-only feature, TODO
+compiler, unsupported alias, silently dropped witness, unvalidated kwargs or
+misleading executable status at exit. Required supported-runtime defects are
+fixed in this phase; a genuinely new method/capability is recorded as
+RESEARCH_ONLY/NOT_EXECUTABLE with its dependency and separate approval, not
+an obligation to implement it here. Existing basin-coverage limits, unqualified
+economic superiority, deferred365-day11.13 work and broader live-generalization
+claims remain explicit scientific limits; they are not manufactured PASS or
+automatically reopened finance. Any in-scope unfinished feature needs owner
+scope disposition before closure; technical readiness never waives access or
+accounting correctness.
+**Commit Boundary:** after execution approval, small meaningful commits for
+shared contract/adapter tests, worksheet and checked compilation, pre/post-run
+integration, then docs/performance/privacy/cleanup handoff. Each verified
+coherent change is committed; preserve unrelated owner edits and private-only
+sources. This registration is documentation-only, not an implementation commit
+or permission to push, merge, tag, bump versions or publish.
+**Rollback:** disable optional archive/worksheet/run-pack integration and use
+existing diagnostics/calibration entry points with explicit original recipes.
+Keep old public signatures/default identities, all immutable evidence and
+historical decisions. Never rewrite selected params, old sampler journals or
+scientific receipts to make the new report appear compatible.
+
+**Planning-only verification (2026-10-21, Asia/Saigon):** local documentation
+links/anchors and `git diff --check` PASS. Structural validation finds one new
+phase after11.13/before12, thirteen required fields, eight DCH work packages
+and sixteen distinct M5H acceptance families, with the phase map/roadmaps and
+M5-12 entry updated consistently. Independent read-only scope/API review finds
+no blocking contradiction; it performs no implementation or financial work.
+The three linked authoritative guide hashes
+are unchanged; private alpha sources remain untracked and the unrelated owner
+plan edit is preserved. These are documentation checks, not implementation,
+financial, runtime, installed-artifact or economic qualification. No new test
+fixture, bytecode cache, environment or financial output is created; cleanup
+has no disposable deletion target or claimed reclaimed bytes. All M5H tests,
+phase execution, parent acceptance and later qualification remain pending.
+
 <a id="mode5-m5-12"></a>
 ### Phase M5-12 - Local Package Qualification, Regression, Docs And Handoff
 
@@ -38808,13 +39143,17 @@ and M5-11.7.1..3reviewed dispositions under the2026-10-18ACTroadmap, plus the
 earlier M5-11.6/11.6.1research dispositions and the newly approved
 M5-11.9remaining-coverage disposition and owner-reviewed
 [M5-11.10..11.13 cross-mode research dispositions](#mode45-cross-mode-roadmap);
-package gates remain NOT_RUN.
+[M5-11.14 checked diagnostics-to-calibration integration](#mode5-m5-11-14)
+must close locally before owner review accepts the parent M5-11 scope.
+Package gates remain NOT_RUN; neither the new plan nor a later technical
+11.14 PASS grants parent acceptance or permission to launch M5-12.
 M5-11.4/11.5 retain their separately approved local closure. This planning
 request does not launch M5-12 or any CI, release or publication.
 **Goal:** deliver a reproducible privacy-safe local package and honest capability/
    scientific handoff covering the whole approved program before release approval.
-**Entry:** M5-01..11 including M5-11.4..11.13, M5-11.6.1 and ML-09.C reviewed
-   dispositions, no blocking technical debt for claimed capabilities, explicit
+**Entry:** M5-01..11 including M5-11.4..11.14, M5-11.6.1 and ML-09.C reviewed
+   dispositions, explicit owner acceptance of the parent research scope,
+   no blocking technical debt for claimed capabilities, explicit
    M5-12 approval. Cross-mode planning approval is not execution or scientific
    acceptance. Remote/publish approval remains separate.
 **Detailed Guide:** [M5-12 work packages](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#phase-m5-12--qualification-docs-reproducibility-và-handoff),
