@@ -4,7 +4,6 @@ import json
 from pathlib import Path
 from types import SimpleNamespace
 
-import numpy as np
 import pandas as pd
 import pytest
 
@@ -203,7 +202,7 @@ def test_met02_t04_t10_completed_trade_adapter_requires_explicit_witness_and_pre
     before = deepcopy(trade.metadata)
     result = SimpleNamespace(trades=(trade,))
     obs = trades_from_completed(result, coverage=ledger_coverage(1), matching="position_episode",
-        currency="USDT", pnl_basis="authoritative_net", close_sequences=[1])
+        currency="USDT", pnl_basis="authoritative_net", close_sequences=[1], valuation_time_ns=int(end.value))
     report = reduce_ledger(obs, ledger_policy(start=int(start.value), end=int(end.value)))
     assert report.metric("closed_trade.net_pnl").value == 9
     assert report.metric("closed_trade.allocated_fee").status == "unavailable"

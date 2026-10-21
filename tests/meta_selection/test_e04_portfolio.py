@@ -302,17 +302,23 @@ def test_e04_t06_accounting_witness_rejects_unbound_and_detects_cost_only_change
 
 
 def test_e04_t06_exact_source_guard_still_rejects_unreviewed_bytes():
-    from tools.qms_e04_source_guard import ALLOW, ROOT, verify, without_e04_portfolio
-    assert verify()["financial_numeric_source_unchanged"]
+    from tools.portfolio_repair_source_guard import verify_current_source
+    from tools.qms_e04_source_guard import ALLOW, ROOT, without_e04_portfolio
+    source = verify_current_source()
+    assert source["current_source_qualified"] and not source["financial_numeric_source_unchanged"]
+    assert source["historical_receipts"]["e04"]["source"]["financial_numeric_source_unchanged"]
     for name in ALLOW:
         with pytest.raises(AssertionError, match="unreviewed"):
             without_e04_portfolio((ROOT/name).read_bytes()+b"\n# unreviewed\n", name)
 
 
 def test_e04_t06_historical_guard_chain_normalizes_once_and_keeps_byte_locks():
-    from tools.qms_c02_source_guard import verify, without_c02_witness
+    from tools.portfolio_repair_source_guard import verify_current_source
+    from tools.qms_c02_source_guard import without_c02_witness
     from tools.qms_e04_source_guard import ROOT
-    assert verify()["financial_rust_unchanged"]
+    source = verify_current_source()
+    assert source["current_source_qualified"] and not source["financial_rust_unchanged"]
+    assert source["historical_receipts"]["c02"]["source"]["financial_rust_unchanged"]
     name = "src/quantbt/endpoint.py"
     with pytest.raises(AssertionError, match="unapproved|unreviewed"):
         without_c02_witness((ROOT/name).read_bytes()+b"\n# unreviewed\n", name)

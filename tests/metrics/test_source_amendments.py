@@ -39,7 +39,12 @@ def test_original_historical_baselines_are_still_admitted(path):
 @pytest.mark.parametrize("path", SOURCES)
 def test_current_source_is_exact_final_reviewed_blob(path):
     entry = SOURCES[path]
-    assert (guard.ROOT / path).read_bytes() == blob(entry["transitions"][-1]["after_commit"], path)
+    from tools.portfolio_repair_source_guard import MANIFEST, MANIFEST_SHA256
+    raw = MANIFEST.read_bytes()
+    assert hashlib.sha256(raw).hexdigest() == MANIFEST_SHA256
+    repair = json.loads(raw)["sources"].get(path)
+    commit = repair["after_commit"] if repair is not None else entry["transitions"][-1]["after_commit"]
+    assert (guard.ROOT / path).read_bytes() == blob(commit, path)
     guard.assert_protected(path, entry["baseline_sha256"])
 
 

@@ -77,7 +77,11 @@ def test_review_open_pnl_never_claims_zero_without_matched_valuation(unit, valua
         valuation_time_ns=valuation, rosters=(ActionRoster(action_id="action", outcome_ids=("closed",),
             shared_net_adjustment=0., allocation_witness="recorded"),))
     report = reduce_ledger(obs, ledger_policy(unit))
-    assert report.metric(unit + ".net_pnl").value == 4
+    if valuation is None or valuation < 30:
+        assert report.metric(unit + ".net_pnl").status == "unavailable"
+        assert report.metric(unit + ".net_pnl").value is None
+    else:
+        assert report.metric(unit + ".net_pnl").value == 4
     for suffix in ("open_realized_net_pnl", "open_unrealized_pnl", "open_at_observation_end_count"):
         assert report.metric(unit + "." + suffix).status == "unavailable"
         assert report.metric(unit + "." + suffix).value is None

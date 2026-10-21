@@ -2,13 +2,18 @@
 
 import pytest
 
-from tools.qms_c02_source_guard import ROOT, ENTRY, TOKEN_GETTER, validate_changes, validate_rust_control, verify
+from tools.qms_c02_source_guard import ROOT, ENTRY, TOKEN_GETTER, validate_changes, validate_rust_control
 from tools.qms_c02_source_guard import without_c02_witness
 import subprocess
 
 
 def test_c02_t08_current_source_guard():
-    assert verify()["financial_rust_unchanged"] is True
+    from tools.portfolio_repair_source_guard import verify_current_source
+
+    source = verify_current_source()
+    assert source["current_source_qualified"]
+    assert source["financial_rust_unchanged"] is False
+    assert source["historical_receipts"]["c02"]["source"]["financial_rust_unchanged"] is True
 
 
 @pytest.mark.parametrize("name", ["src/quantbt/walkforward.py", "src/quantbt/metrics/performance.py",
