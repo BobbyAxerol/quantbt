@@ -96,6 +96,8 @@ def without_decision_report(source, name):
 
 
 def without_continuous(source, name):
+    from tools.mode5_accepted_source_guard import without_accepted_research_source
+    source = without_accepted_research_source(source, name)
     m = json.loads(CONTINUOUS.read_text())
     if name in m["existing"]:
         before = subprocess.check_output(["git", "show", m["entry"]+":"+name], cwd=ROOT)

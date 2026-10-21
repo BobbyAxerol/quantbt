@@ -1,0 +1,40 @@
+{
+  "schema": "quantbt.accepted_mode5_source_reconciliation.v1",
+  "scope": "Exact already-committed, owner-accepted opt-in WFO/research-report changes; no engine edit or new scientific permission",
+  "owner_disposition": {
+    "path": "docs/mode5/evidence/m5-11-parent-disposition.json",
+    "sha256": "6b5c822c29af2b968b2a770b927f9a6e25981f61c20b239bcb08bd06d262896c",
+    "commit": "01e49fe709870e028fe6184a2b775c609fc31a0e"
+  },
+  "reviewed_changes": [
+    "d51ddbcc75b032c2604ec71565b9290767b93dfe",
+    "8cb755df4ff148b58e2fdd83ebe22429d61899bc",
+    "932929ba2c67b64f0d80cb2620cd1ebf222493cc",
+    "60e15a8a66613a177aa5954bad0d2dbe458413cf",
+    "a82e3e5fc7cdd6339ba4b2a951803685d6cd500c"
+  ],
+  "sources": {
+    "src/quantbt/core/types.py": {
+      "before_commit": "163380969d194e1dde89388a21deed4840626467",
+      "before_sha256": "ac8931dda15057c9447d5cf655eb170228e411490274803353564a3088236205",
+      "accepted_sha256": "c01da85d019fab2853600ee5a742ec485739bc3fa29a3231c9dcf4ed172e4037"
+    },
+    "src/quantbt/core/results.py": {
+      "before_commit": "163380969d194e1dde89388a21deed4840626467",
+      "before_sha256": "676d3b8444add357b5e49b81c73b0c723d4e6232fcaf3505ab25d62ef95ba766",
+      "accepted_sha256": "f4b45b7fafc3d7da2e2bbb444ed6ba67800c7296ea5941d339a244a2733a51db"
+    },
+    "src/quantbt/endpoint.py": {
+      "before_commit": "11582db26ce419fff471012eba6dfa6147a4c3d0",
+      "before_sha256": "66246b4f0637efb993a56cb55cfe706bee489ed17dc4c9443832a490bc87ef14",
+      "accepted_sha256": "a26667835f76b1c4a5f128fe3d9259259b95b82ab6c426222d439087a0e2e956"
+    },
+    "src/quantbt/walkforward.py": {
+      "before_commit": "11582db26ce419fff471012eba6dfa6147a4c3d0",
+      "before_sha256": "4c0ddd8c0c55b145de3457c34c01d3db3391e4715968def90613e52319ad19a3",
+      "accepted_sha256": "3f5583b7fff0c97b0e221cf69e3227de338a50341e770ff625dd5904148d0cfc"
+    }
+  },
+  "historical_receipts_rewritten": false,
+  "later_or_arbitrary_bytes_admitted": false
+}
