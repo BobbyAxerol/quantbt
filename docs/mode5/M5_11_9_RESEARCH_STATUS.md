@@ -32,6 +32,18 @@ receipts remain historical. Exact inactive test scratch has been removed;
 the cleanup verifies protected sources/checkpoints and retains the failed
 cleanup-bootstrap receipt separately. See [cleanup](../maintenance/M5_11_9_CLEANUP.md#approved-feasibility-activation).
 
+**Subsequent operational readmission:** HASH reaches189/256and VWAP218/256
+before the filesystem inventory races the optimizer's atomic temporary-file
+rename. The failed coordinator and interrupted calls remain retained. The
+resource-only fix ignores only a disappeared `.qms-checkpoint-*` temporary in
+an exact registered study folder with its canonical checkpoint present; missing
+account/trial/receipt files and unrelated errors remain fatal. Seven additional
+deterministic tests pass, including negative/permission/stable-count cases.
+`reliable-resource-registration-v1.json` now pins1,983committed files and keeps
+the same absolute deadline, caps, feasibility rule and original financial/RNG
+contracts. The readmitted chain is attached; incomplete coordinates alone may
+execute again, never a completed optimizer. No new study completion is implied.
+
 **Pre-amendment stop, retained history:** the
 continuation committed22additional HASHrecipe/TPE attempts and81VWAPchallenger
 attempts before the latter generated an invalid limit price. The original

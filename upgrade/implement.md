@@ -37851,6 +37851,21 @@ regime/synthesis/qualification tail still requires nine actual terminal study
 receipts; its changed operational inputs need a fresh queue receipt namespace.
 Parent acceptance, M5-12, CI and release remain unapproved.
 
+**Operational resource-race readmission:** continuation reaches HASH189/256
+and VWAP218/256before its inventory races an atomic `.qms-checkpoint-*` rename.
+The coordinator fails closed and retains both checkpoints/failures; this is
+neither an alpha rejection nor accounting failure. A separate resource-only
+adapter tolerates ENOENT solely for that exact temporary basename in registered
+study folders with a canonical checkpoint present. Missing financial evidence,
+unknown paths and permission errors remain fatal. Stable-tree logical/allocated
+counts match the former sampler; seven deterministic race/negative tests pass.
+Sources, objectives, RNG, same deadline/caps and six complete studies remain
+unchanged. A new readmission pins1,983committed files and resumes only unfinished
+coordinates; interrupted partial work remains failed, not fabricated success.
+Terminal fixture cleanup removes368,640allocated bytes and verifies14protected
+files. The original source-pinned serial tail remains mandatory after all nine
+receipts; no parent, M5-12, remote or release activation follows.
+
 **Goal:** make the evidence answer whether one fixed actual dictionary retains
 economic quality across market environments and feasible parameter changes,
 instead of presenting aggregate Sharpe/DD/utility as a robustness certificate.

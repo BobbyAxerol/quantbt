@@ -760,6 +760,13 @@ invented account. Six completed studies are preserved. The original serial
 winner/regime/synthesis/qualification tail is attached through a fresh receipt
 namespace. These launch facts are not terminal study or research acceptance.
 
+The first approved continuation then reaches HASH189/256and VWAP218/256before
+a resource-inventory race sees a just-renamed checkpoint temporary. Its failure
+and partial work are preserved. Seven deterministic resource tests validate a
+strict atomic-temp-only fix; a new registration pins1,983committed files and
+resumes the same financial contracts/deadline, not new methodology or study
+budgets. This operational readmission also does not establish terminal results.
+
 **Pre-amendment blocker history:** the renewed queue committed
 22new HASHrecipe/TPE attempts and81VWAPchallenger attempts, then stopped on
 the latter's original invalid-limit-price rejection. Current retained counts

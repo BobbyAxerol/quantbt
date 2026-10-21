@@ -120,3 +120,20 @@ do not rewrite it as PASS. No account, checkpoint, alpha/market source, old
 failure, environment, native artifact or service was deleted or stopped.
 Financial continuation and the original tail still need their own terminal
 work/resource/cleanup receipts; this is activation hygiene, not phase closure.
+
+## Resource-Race Readmission
+
+After the resource inventory's atomic-checkpoint rename race, seven new
+deterministic tests pass with the original source/numerical contracts retained.
+The first test command's terminal Hypothesis plugin import failure is kept as
+FAIL_RETAINED despite seven test bodies completing; a separate stdlib-queue
+bootstrap command exits successfully and has its own XML. No failed command
+is relabeled PASS.
+
+Host process/FD/cwd/maps review then admits removal of the two exact registered
+`reliable-resources-scratch` and `reliable-resources-scratch-v2` fixture roots.
+The cleanup removes368,640allocated bytes, verifies14protected source/XML/
+checkpoint references and observes364,544additional free bytes. All original
+failures, financial data, partial checkpoints, alpha/native sources, artifacts,
+environments and services remain. The new worker admission pins1,983committed
+files; final research-tail cleanup still waits for actual terminal execution.
