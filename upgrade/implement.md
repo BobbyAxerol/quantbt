@@ -37823,6 +37823,17 @@ M5-11.13keeps its approved zero-new-finance baseline disposition; finishing11.9
 does not activate package, CI, release or new cross-mode experiments. Parent
 acceptance and the historical11.12scratch-exception decision remain explicit.
 
+**Continuation stop / feasibility decision:** the renewed queue reaches
+HASHrecipe/TPE146/256and VWAPchallenger81/256; it retains checkpoints and stops
+on VWAP's original invalid-limit-price rejection. A registered one-coordinate
+control confirms a finite negative price, leaves the same shared checkpoint
+and trial roster untouched, and writes no objective score. The proposed
+typed-only PRUNED policy has55passing cold tests but is NOT_ACTIVATED pending
+owner approval; it must never repair prices, impute a score, swallow unrelated
+exceptions or rewrite old failures. Six completed formal studies remain intact;
+the upstream-dependent tail is terminal/incomplete, not running. The separate
+scratch exception is now owner-accepted as remediated, not a historical PASS.
+
 **Goal:** make the evidence answer whether one fixed actual dictionary retains
 economic quality across market environments and feasible parameter changes,
 instead of presenting aggregate Sharpe/DD/utility as a robustness certificate.

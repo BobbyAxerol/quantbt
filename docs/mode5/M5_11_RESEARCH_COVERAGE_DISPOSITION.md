@@ -19,6 +19,11 @@ see [continuation status](M5_11_9_RESEARCH_STATUS.md#current-completion-continua
 Separately the owner now accepts the remediated11.12scratch exception with all
 evidence preserved. Its old resource gate remains exceeded/not-PASS; the
 acceptance does not certify an unmeasured peak or waive economics/accounting.
+The resumed11.9queue subsequently stops at an actual VWAPinvalid limit price;
+the registered typed-classification control preserves checkpoint/roster and
+does not write scores. A typed-only PRUNED feasibility amendment is now pending
+owner approval; HASHrecipe/TPE146/256and VWAPchallenger81/256are partial, not
+additional complete formal receipts. Do not infer liveness from old progress.
 
 ## Coverage And Meaning
 

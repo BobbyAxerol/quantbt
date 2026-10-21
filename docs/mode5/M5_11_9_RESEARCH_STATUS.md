@@ -8,6 +8,26 @@ ignored and excluded from distributions.
 
 ## Current Completion Continuation
 
+**Latest disposition: BLOCKED_PENDING_OWNER_FEASIBILITY_AMENDMENT.** The
+continuation committed22additional HASHrecipe/TPE attempts and81VWAPchallenger
+attempts before the latter generated an invalid limit price. The original
+engine correctly rejected it; the coordinator retained both checkpoints and
+stopped its owned workers. HASHrecipe/TPE is now146/256, VWAPchallenger81/256,
+HASHchallenger0/256. Formal completion remains6/9; no current worker-liveness
+claim follows from the older RUNNING progress files below.
+
+A separately registered one-coordinate classification control reproduces the
+failure as a typed finite negative price. The same checkpoint hash and trial
+roster survive, with zero score/proposal commits. The proposed feasibility
+amendment prunes only the existing typed finite-nonpositive price signal,
+charges the attempt, never repairs price or supplies a zero score, and leaves
+NaN/type/other exceptions fatal. It is **not activated pending owner approval**.
+Final cold queue/typed-feasibility regression is55PASS; earlier44tests overlap
+and are not added as distinct coverage. All failures and source copies remain.
+Exact inactive fixture cleanup removed3,473,408allocated bytes per measured
+round with source/XML evidence retained. The attached successor also stopped
+at upstream admission because all nine terminal receipts do not yet exist.
+
 Owner instruction on **21 October 2026, Asia/Saigon** renews the remaining
 registered completion work, not a new experiment. Host inspection finds no old
 financial workers. Six complete studies are retained/skipped; HASH recipe/TPE
@@ -39,7 +59,7 @@ than a same-name module from another lane. Its first relative/absolute source-pi
 adapter failure is retained, with zero tail financial calls. Cold RSI admission
 finds all three original winners without account execution.
 
-**Still IN_PROGRESS:** automatic attachment is not completion. C05/C06 and the
+**Still incomplete:** automatic attachment is not completion. C05/C06 and the
 current tail completion receipt must actually exist and pass before this report
 can close. M5-11.10..13 keep their registered completed/disposition scopes;
 M5-11.13 launches no new finance. Parent acceptance, scratch-exception acceptance,
