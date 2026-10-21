@@ -39381,6 +39381,25 @@ chunks and preserve unrelated owner edits. No push/merge/tag/publication.
 **Rollback:** omit the explicit new report/donor option and retain original
 Mode4/Mode5/default behavior; all existing evidence and decisions remain intact.
 
+#### Owner-Approved Portfolio/Account Correctness Repair (2026-10-21)
+
+Status: `COMPLETE_LOCAL_REPAIR_CONTRACT`; baseline `5927565`, repaired financial
+source `9c2bfd9`. The owner approved fixing the
+reproduced findings in the [portfolio review](../docs/PORTFOLIO_ACCOUNT_REVIEW_2026-10-21.md)
+and checking other endpoints sharing the affected code. The detailed
+[repair contract, tests and cleanup gate](../docs/portfolio_review/REPAIR_PLAN.md)
+govern this bounded correctness work. Existing research receipts remain
+historical; unsupported account models must fail explicitly. M5-12 and
+CI/publication remain separate. The [repair report](../docs/portfolio_review/REPAIR_REPORT.md)
+and [terminal qualification/cleanup receipt](../docs/portfolio_review/evidence/repair-qualification.json)
+record1,544 distinct latest Python passes,40 Rust passes, fresh native arithmetic
+proof and2,547 protected-file checks. Unsupported hedge/isolated/tiered models
+remain explicitly unavailable; no strategy economics or package release claim
+is promoted. Current financial-source qualification is separate from historical
+unchanged-source receipts. M5-12 must certify the final repaired source/native
+pair; historical packaging tools assuming unchanged native bytes are not proof
+for this source.
+
 <a id="mode5-m5-12"></a>
 ### Phase M5-12 - Local Package Qualification, Regression, Docs And Handoff
 

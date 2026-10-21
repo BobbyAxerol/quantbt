@@ -67,6 +67,15 @@ Native V2 metrics remain under their own metadata/contract. Shared equity
 alone does not prove legacy/native numerical equality: denominator, baseline,
 sampling and counter populations differ. Valid period metrics stay available.
 
+The owner-approved [portfolio correctness repair](../portfolio_review/REPAIR_REPORT.md)
+adds `period_expected_return_pct` (arithmetic mean of the declared account-return
+sample), `position_state_count` (explicit alias of legacy `num_trades`) and
+`metric_population` (labels, units/populations and support descriptions).
+Legacy estimator keys remain available; default text uses the explicit
+population labels instead of implying closed trades or calendar recovery time.
+Closed-trade/action reporting now also requires `valuation_time_ns` covering
+the requested scope end, including adapters accepting authoritative net trades.
+
 ## Route / Raw Capability Table
 
 Availability is **per actual artifact**, not only endpoint name. Do not assume

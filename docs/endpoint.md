@@ -2463,6 +2463,13 @@ Routing:
 
 Use this for a position matrix across many symbols.
 
+See the [account correctness repair and metric migration](portfolio_review/REPAIR_REPORT.md)
+for supported account/fill contracts, corrected contract multipliers, funding
+interval aggregation, risk reductions and exact cost attribution. Generic
+portfolio executes gross-cross netting targets at close; unsupported isolated,
+hedging and alternate fill clocks raise explicitly. `native_portfolio` remains
+Numba-owned; the Rust shared-account helper is a separate declared route.
+
 ```python
 bt = QuantBTEndpoint.portfolio(
     portfolio_mode="longshort",

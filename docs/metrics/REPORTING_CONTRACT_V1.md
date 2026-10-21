@@ -167,6 +167,14 @@ reconcile only under a matched valuation boundary; no report-induced close.
 Dataclass fields defaulting to empty do **not** certify completeness. Scope
 filtering of rows must be independently verified. No ledger inference/replay.
 
+For closed-trade/action reporting, the ledger's authoritative
+`valuation_time_ns` must be present and reach at least `scope_end_ns`, even
+when there are no closed rows or every retained row predates the end. A
+`complete` label with an unknown or earlier valuation horizon is insufficient:
+closed populations return `UNAVAILABLE`. This guard does not manufacture a
+later valuation or change the account observations. See the
+[account repair](../portfolio_review/REPAIR_REPORT.md) for regression controls.
+
 Owner review before MET-02: approve these report-only defaults/definitions,
 optional convention choices, source/capability limitations, separate namespace
 and no scientific migration. Public API wiring is deferred to MET-03; its

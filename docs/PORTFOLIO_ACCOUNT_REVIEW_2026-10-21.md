@@ -1,5 +1,10 @@
 # Portfolio Account And Metrics Review
 
+Follow-up: the owner approved repairing these findings. Current implementation,
+numerical controls and migration details are in the
+[repair report](portfolio_review/REPAIR_REPORT.md). This original review and its
+receipts remain historical evidence of the pre-repair behavior.
+
 Date: 2026-10-21. Review baseline: `6e900b5`, branch
 `feat/mode5-diagnostics-first`. This is an investigation, not a runtime repair,
 new financial contract, release certificate or new research phase. No alpha,

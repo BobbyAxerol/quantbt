@@ -1,5 +1,18 @@
 # Portfolio Engine V3 Methodology
 
+## Account Correctness Repair (2026-10-21)
+
+The [account repair and migration report](portfolio_review/REPAIR_REPORT.md)
+supersedes historical claims below where they concern ignored account options,
+contract multipliers, funding gaps, delta-order minimums, accepted legacy units
+or liquidation attribution. Generic portfolio execution is gross-cross netting
+at close. Unsupported account/fill modes now fail explicitly. Quantity minima
+apply to actual increasing delta orders, with reduction/close exemptions.
+Default8h funding sums all events in a carried interval; coarse bars use the
+closing-price valuation proxy and do not reconstruct intrabar collateral paths.
+Trade/action metrics require their declared ledgers; default compatibility
+statistics are labelled with their actual populations.
+
 Portfolio Engine V3 is the roadmap for replacing the current compatibility
 portfolio path with a native, array-first, institutional-grade engine.
 
