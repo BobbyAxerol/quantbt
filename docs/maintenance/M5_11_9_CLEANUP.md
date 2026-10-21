@@ -153,3 +153,27 @@ does not remove scheduling ownership. Remaining financial/regime/qualification
 work and original terminal fixture cleanup still require actual terminal
 receipts. No live service, source, account, checkpoint, artifact or dependency
 cache is removed during this admission.
+
+## Terminal Research Cleanup
+
+The original C06qualification completes after all financial owners and its
+76-test regression terminate. Exact host process/FD/cwd/maps review admits
+removal only of the registered private `tail-fixtures` root. Its logical regular
+files total443,995bytes; all53protected financial/report/source/test-log/XML
+references retain their hashes. The measured free-byte increase is3,465,216;
+concurrent host activity means it is not a causal reclaim or performance claim.
+Receipt: `C06/cleanup-after.json`, status PASS_EXACT_TERMINAL_FIXTURE_CLEANUP.
+
+The final source-only evidence is about676MiBallocated(about655MiBlogical)
+under the1GiBretained cap, with about5.9GiBfree disk. A final receipt-export
+Path serialization failure occurs after the eight recovery stages and queue
+PASS; its log/source are preserved. Cold recovery verifies the stored queue,
+all stage/input/output/C06pins and1,983readmission pins, and emits the portable
+completion without finance, optimizer or test reruns. No scratch or environment
+is created by that recovery, and no old failure is relabeled PASS.
+
+All private alpha/market/account evidence, exact source/native/artifacts,
+checkpoint lineage, old interruption/failure logs and current offline tooling
+remain. The durable coordinator has terminated; no owned financial job remains.
+No service stop, broad cache prune, build, dependency install, CI or publication
+occurs. Parent scope acceptance and M5-12remain separate owner decisions.

@@ -1,12 +1,29 @@
 # Mode 5 Remaining Research Coverage
 
-Status: **IN_PROGRESS**, not parent acceptance or package/release approval.
+Status: **COMPLETE_REGISTERED_LOCAL_RESEARCH**,2026-10-21Asia/Saigon;
+parent acceptance and package/release approval remain separate.
 The [registered work](../../upgrade/implement.md#mode5-m5-11-9) completes
 missing evidence without repeating the completed RSI or two additional-alpha
 optimizers. Private sources, parameter vectors, fills and account buffers remain
 ignored and excluded from distributions.
 
 ## Current Completion Continuation
+
+**Terminal disposition:** C05seven-alpha JSON/Markdown, original C06qualification
+and the final portable recovery completion receipt are present and verified.
+All nine formal studies, registered winner/held/actual-fee checks and original
+regime readbacks are complete. C06passes76focused tests; the recovery queue
+has8/8actual stage PASS. Its final wrapper receipt-export failure is recovered
+from the stored PASS queue JSON without new finance/tests. The failed log and
+old interrupted coordinator are preserved, not relabeled PASS.
+
+Completion authority:
+`continuation-20261021/interrupted-tail-recovery-complete.json`,
+`C05/report.json.gz`, `C05/report.md`, `C06/complete.json`.
+No `end-to-end-complete.json` is fabricated for the interrupted old launcher.
+The earlier partial counts and pending states below are dated execution history,
+not current missing work or liveness. Parent M5-11acceptance, M5-12, CI and
+release remain NOT_STARTED/PENDING_OWNER_REVIEW as applicable.
 
 **Current formal coverage:9/9 terminal studies.** After the owner resumes the
 interrupted turn, host inspection finds no old finance worker and all nine
@@ -345,7 +362,106 @@ generation/selection comparisons explicit. They do not justify automatic recipe
 routing, changing the mandate after results, replacing an actual winner with
 a held neighbor, or upgrading every alpha to one objective/sampler family.
 
-## Exit Still Pending
+## Actual-Winner Robustness And Cost Results
+
+All eighteen registered centers retain their formal dictionaries. Across the
+four original and two additional active alpha cells,534feasible neighbor
+observations complete their registered rosters, plus eighteen center replays
+and eighteen real2x-fee accounts. These are observations across separate
+neighborhoods, not534independent market samples or global unique vectors.
+HMAhas no eligible formal winner and is not forced into the comparison.
+
+| Original winner | Valid held / expected | Full-mandate survival % | Actual2x-fee net return % |
+|---|---:|---:|---:|
+| RSI Raw/TPE |30/30|100.00|1132.11|
+| RSI Floor/TPE |30/30|100.00|506.77|
+| RSI Floor/CMA |29/29|100.00|463.96|
+| SC Raw/TPE |11/11|100.00|43.18|
+| SC recipe/TPE |11/11|63.64|4.69|
+| SC group TPE |11/11|54.55|2.49|
+| HASH Raw/TPE |27/27|85.19|33.49|
+| HASH recipe/TPE |28/28|53.57|5.86|
+| HASH Sobol |28/28|60.71|5.25|
+| VWAP Raw/TPE |27/27|88.89|30.75|
+| VWAP recipe/TPE |27/27|55.56|2.23|
+| VWAP Sobol |30/30|80.00|2.08|
+
+Survival means passing the frozen whole-account mandate, not hit rate, fraction
+profitable or a requirement that every year have positive U. Loss, inactivity,
+undefined quality and risk failures remain in their original dispositions.
+Every requested radius-wide geometry status remains INSUFFICIENT_COVERAGE;
+completed feasible directions are not a full-ball basin certificate. Original
+account streams and available independent fill accounting reconcile without
+tolerance changes. RSIhas original/direct shared-kernel account controls, not
+an authoritative independent fill ledger; its unavailable fill/campaign counts
+remain null. Fees are actually rerun with alpha/account feedback updated, not
+recomputed by multiplying saved costs.
+
+## Actual Market-State Interpretation
+
+The existing prior-closed-bar168-hour trend/volatility/activity descriptors
+have both as-of-calibration descriptive and decision-vintage namespaces. Five
+original128-point neutral panels and both new-alpha panels retain their own
+references; later formal winners do not enter those reference banks. Every
+family conserves its original account PnL and observed days, with unknown
+states retained. Families overlap and are not independent tests.
+
+| Winner | Positive / flat / negative known descriptive buckets | High-vol mean net bps/day |
+|---|---:|---:|
+| SC Raw/TPE |9/0/0|2.8815|
+| SC recipe/TPE |7/0/2|-0.0103|
+| SC group TPE |6/2/1|0.0000|
+| HASH Raw/TPE |9/0/0|1.9004|
+| HASH recipe/TPE |8/0/1|0.7953|
+| HASH Sobol |7/0/2|-0.3944|
+| VWAP Raw/TPE |9/0/0|2.2066|
+| VWAP recipe/TPE |9/0/0|0.2161|
+| VWAP Sobol |8/0/1|0.2806|
+
+There are nine known buckets(three per overlapping family); high-vol support
+is624days in these original BTCcells. Positive state aggregates do not erase
+negative calendar years, inactive periods or local/cost fragility. In particular,
+VWAPrecipe/TPE has nine positive descriptive buckets but negative2022-2024
+calendar returns and55.56%tested-neighbor mandate survival.
+
+Namespace choice also matters. RSI Floor/TPE high-vol mean is+1.1459bps/day
+under the full-calibration descriptive partition(614days), but-2.9422under
+the2020-fitted decision-vintage partition(345days). Neither is silently
+substituted for the other or called independent forward validation. N1/N2
+state and fee/neighborhood findings remain in their completed sections above.
+
+## Registered Exit And Remaining Authority
+
+The registered C01..C06work is complete locally. Original formal work reconstructs
+2,304attempts,2,248COMPLETE/56PRUNED and2,273unique observed points within their
+studies; the last count includes observed undefined-objective prunes and is not
+a count of all financial invocations. Existing RSI/N1/N2formal attempts are
+reused. Terminal process timings are not summed as total resumed-study time.
+
+C05retains347,662compressed JSON bytes and71,665Markdown bytes; it adds no
+financial runs or proposals. C06passes76tests and source/privacy/docs checks.
+Supplemental63/7/5activation/resource/recovery test receipts remain separate;
+overlap is not added as independent coverage. Terminal cleanup verifies53
+protected references, removes443,995logical fixture bytes and observes3,465,216
+additional free bytes. Final evidence is about676MiBallocated under the1GiBcap;
+no financial evidence, artifact, environment, source or service was removed.
+
+The original receipt-export wrapper fails on a PosixPath payload after all
+eight recovery stages and their queue PASS. The cold receipt recovery pins that
+failed log, validates the stored typed queue JSON and every output/C06input,
+and writes the final portable completion with zero finance/test reruns. The
+old failure remains FAIL_RETAINED_PORTABILITY_ONLY. The interrupted original
+queue's missing HASH terminal is not fabricated; its completed financial output
+has the explicit cold reuse proof instead.
+
+This closes execution for M5-11.9, not parent research acceptance. The owner
+still reviews the bounded research/claim packet; HMAno-eligible scope, finite
+geometry/global sensitivity and approved deferred whole-procedure experiments
+remain explicit. M5-12, CI, push/merge/tag, publication and deployment are not
+activated. See the [parent coverage packet](M5_11_RESEARCH_COVERAGE_DISPOSITION.md)
+and [overall research review](MODE5_RESEARCH_PROGRAM_REVIEW.md).
+
+### Historical Queue Obligations
 
 All of the following are already authorized under M5-11.9, including background
 execution. They are not separate approval requests. The existing formal queue

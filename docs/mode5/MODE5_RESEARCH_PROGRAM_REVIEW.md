@@ -1,10 +1,11 @@
 # Mode 5 Research Program Review
 
-Review date: 2026-10-21, Asia/Saigon. **Public-safe aggregate evidence review; M5-11.9
-financial completion remains pending.** This document synthesizes existing
-public reports and source-sealed summaries. It performs no financial execution,
-optimizer restart, model fit, source import, test run or process inspection.
-It is not a new independent audit of the underlying private accounts.
+Review date: 2026-10-21, Asia/Saigon. **Public-safe aggregate evidence review;
+M5-11.9 registered local research is complete, parent acceptance pending.**
+This combines the earlier evidence review with the actual new C05/C06 and
+portable terminal recovery receipts. Rendering the review adds no financial
+execution, optimizer restart or model fit. Its cited technical proofs are not
+new independent market observations or an installed-package certificate.
 
 The governing reporting standard is [detailed guide section 7.8](../../upgrade/QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#78-rules-b%C3%A1o-c%C3%A1o-%C3%A1p-d%E1%BB%A5ng-cho-m%E1%BB%8Di-phase):
 technical completion, scientific findings, information rights and adoption
@@ -39,10 +40,14 @@ The main empirical lessons are:
 - M5-11.10..13 completed their individually approved local scopes. M5-11.13
   explicitly chose **KEEP_BASELINE with no new finance**, rather than claiming
   that its proposed chronological experiments had passed.
-- M5-11.9's three remaining formal studies and original-winner/reporting tail
-  are under renewed completion authority. Their current terminal results must
-  be supplied by the main completion worker; this review does not infer them
-  from launch records, historical trial files or software PASS counts.
+- M5-11.9 now has all nine formal studies and original winner/state/reporting
+  qualification. Across eighteen neighborhoods,534feasible neighbor
+  observations and eighteen actual double-fee accounts preserve the selected
+  dictionaries. SC/HASH/VWAP challengers do not justify a universal upgrade;
+  the final source-bound numbers, activity, local and cost trade-offs matter.
+- The original C06passes76focused tests. A receipt-only Path serialization
+  failure after a PASS recovery queue is retained and cold-recovered; it is
+  not disguised as a successful original exporter or repeated financial work.
 
 These conclusions follow from the [RSI decision](M5_11_5_DECISION_QUALIFICATION_REPORT.md),
 [RSI forward](M5_11_3_FORWARD_REPORT.md), [additional-alpha](M5_11_8_RESEARCH_STATUS.md),
@@ -291,15 +296,23 @@ and [remaining winner obligations](M5_11_9_RESEARCH_STATUS.md).
 
 | Alpha | Original Neutral Panel | Current-Mandate Eligible | Static Research Interpretation |
 |---|---:|---:|---|
-| SC | 128 | 124 | Supported fixed-pool comparisons; three formal arms have historical terminal receipts, but final winner/state/tail synthesis is not supplied here |
+| SC | 128 | 124 | Three formal arms plus winner/state/local/fee qualification complete; floor improvements largely accompany inactivity |
 | HMA | 128 | 0 | NO_SELECTION / NO_ELIGIBLE_COHORT on this panel; no mandate relaxation or unsupported formal search |
-| HASH | 128 | 15 | Sparse eligible cohort; Raw/TPE historical completion does not finish recipe/challenger work |
-| VWAP | 128 | 9 | Sparse eligible cohort; retain inactive/undefined observations and actual amendment/feedback semantics |
+| HASH | 128 | 15 | Three formal arms plus actual-winner qualification complete; tested recipe winners worsen weakest annual U and local survival versus Raw |
+| VWAP | 128 | 9 | Three formal arms plus actual-winner qualification complete; Sobol improves DD/local survival versus recipe TPE but not every annual/cost/quality coordinate |
 
 Sources: [five-alpha current-mandate readback](M5_11_5_DECISION_QUALIFICATION_REPORT.md)
 and [historical terminal reconciliation](M5_11_RESEARCH_COVERAGE_DISPOSITION.md).
 HMA's result excludes neither its whole family nor untested parameter regions.
 Eligibility yield is not a guarantee of local robustness or annual/state gains.
+The [completed formal/winner tables](M5_11_9_RESEARCH_STATUS.md#completed-original-alpha-formal-results)
+give nine whole accounts, all annual returns/U, activity, costs and post-hoc
+same-recipe arithmetic. HASHRaw's weakest annual U is-0.02901against-0.03064/
+-0.04097for recipeTPE/Sobol; positive-return calendar views are7/7versus6/7and
+5/7. VWAPSobol lowers DD from recipeTPE's1.728%to0.787%and improves tested
+mandate survival55.56%to80%, but Raw retains88.89%survival and much more growth.
+SCTPE/group floor improves to zero while five/six calendar years are flat.
+These are measured preferences/failure modes, not a mandate to retune outcomes.
 
 Earlier 2021-2023 SC diagnostics had 122 positive, four negative and two
 zero-return/no-trade accounts. Its 58 local paths still left both tested centers
@@ -749,74 +762,97 @@ resources. These are ceilings, not measured current usage or a speedup claim.
 Sources: [current renewal and original tail contract](../../upgrade/implement.md#mode5-m5-11-9)
 and [historical resource amendments](M5_11_9_RESEARCH_STATUS.md).
 
-### CURRENT_FINANCIAL_COMPLETION_PENDING
+<a id="current_financial_completion_pending"></a>
+### Registered Research Completion
 
-**Current terminal-study update:** all nine original formal receipts are now
-complete and the original admission verifies2,304slots with2,248COMPLETE/
-56PRUNED. Coordinator recovery after interruption skips every completed study;
-1,983prior pins remain unchanged. The original serial RSI/SC/HASH/VWAP actual-
-winner/regime/synthesis/qualification tail has begun. Its missing terminal
-outputs remain pending; formal completion is not blanket robustness or parent
-acceptance. Earlier partial counts below remain dated historical snapshots.
+All nine original formal studies complete256attempts with source/context/path/
+ordered-checkpoint admission:2,304slots,2,248COMPLETE/56PRUNED and992eligible
+COMPLETE candidates. The2,273within-study unique observed count includes
+observed undefined-objective prunes and is not global unique finance invocations.
+Six previously complete studies and all1,983pins sealed at readmission remain
+unchanged. No completed optimizer is restarted; no price is repaired.
 
-**Approved continuation update,2026-10-21Asia/Saigon:** the owner has now
-approved finite nonpositive typed-price pruning for the incomplete formal
-attempts. A new registered runner keeps1,803committed files hash-pinned and
-continues exact checkpoints;63cold activation checks pass. A pruned attempt
-consumes the same256-slot budget with no score, never a repaired price or
-invented account. Six completed studies are preserved. The original serial
-winner/regime/synthesis/qualification tail is attached through a fresh receipt
-namespace. These launch facts are not terminal study or research acceptance.
+| Original alpha | Raw/TPE COMPLETE/PRUNED | Recipe/TPE | Recipe/challenger |
+|---|---:|---:|---:|
+| SC |256/0|256/0|256/0|
+| HASH |250/6|253/3|235/21|
+| VWAP |231/25|256/0|255/1|
 
-The first approved continuation then reaches HASH189/256and VWAP218/256before
-a resource-inventory race sees a just-renamed checkpoint temporary. Its failure
-and partial work are preserved. Seven deterministic resource tests validate a
-strict atomic-temp-only fix; a new registration pins1,983committed files and
-resumes the same financial contracts/deadline, not new methodology or study
-budgets. This operational readmission also does not establish terminal results.
+All four original actual-winner scopes and the earlier N1/N2winner scopes are
+complete:534feasible neighbor observations across eighteen separate
+neighborhoods, eighteen original center replays and eighteen real double-fee
+accounts. The original tail contributes289neighbors and24center/fee accounts;
+N1/N2reuse245neighbors and12center/fee accounts. RSI's95original held/center/
+fee observations also use95direct shared-kernel controls; these are not an
+independent authoritative fill ledger or extra market observations. Required
+radius-wide geometry remains INSUFFICIENT_COVERAGE for all neighborhoods.
 
-**Pre-amendment blocker history:** the renewed queue committed
-22new HASHrecipe/TPE attempts and81VWAPchallenger attempts, then stopped on
-the latter's original invalid-limit-price rejection. Current retained counts
-are146/256HASHrecipe/TPE,81/256VWAPchallenger and0/256HASHchallenger; formal
-terminal coverage remains6/9. Both financial owners and the upstream-blocked
-successor are terminal, not currently running from the old progress records.
-A registered fixed-coordinate control confirms a finite negative requested
-price without changing the checkpoint or writing a score. The typed-only
-PRUNED feasibility amendment was proposed,55cold tests passed, but activation
-then awaited owner approval. Original alpha, price and numerical observations are not
-repaired; missing winners/stress/synthesis are not called complete. See the
-[current continuation disposition](M5_11_9_RESEARCH_STATUS.md#current-completion-continuation).
-
-**Reserved for the main M5-11.9 completion worker after terminal verification.**
-At this independent review's handoff, current resumed financial outcomes,
-actual-winner checks and final C05/C06 qualification are not asserted complete.
-The historical 6/9 table above must not be used as a live count, and renewal
-registration must not be converted into nine completed studies.
-
-For chronology only, the main-worker handoff supplied on 2026-10-21,
-Asia/Saigon recorded HASH recipe/TPE at 134/256 and VWAP challenger at 37/256.
-These are supplied checkpoint counts, not this review's independent progress
-poll, live-worker claim or completed-study result. The missing HASH challenger
-and all dependent tail qualifications still require their own terminal evidence.
-
-| Required Main-Worker Addition | Evidence Needed Before A Completion Claim | Current Review Disposition |
+| Actual-winner cell | Raw / recipeTPE / challenger tested mandate survival % | Actual fee2 net return %, same order |
 |---|---|---|
-| HASH recipe/TPE continuation | Exact checkpoint lineage; all 256 attempt dispositions; selected audit and terminal receipt | CURRENT_FINANCIAL_COMPLETION_PENDING |
-| HASH challenger | Original sealed recipe/sampler/budget; complete attempt ledger and selected original-account qualification | CURRENT_FINANCIAL_COMPLETION_PENDING |
-| VWAP challenger | Original sealed recipe/sampler/budget; complete attempt ledger and selected original-account qualification | CURRENT_FINANCIAL_COMPLETION_PENDING |
-| RSI/SC/HASH/VWAP actual-winner qualification | Frozen actual selected centers; missing-only held rosters; actual double-fee executions; original center/path checks; explicit geometry gaps | CURRENT_FINANCIAL_COMPLETION_PENDING |
-| Original-panel market-state and seven-alpha synthesis | Original five-panel/state joins plus completed N1/N2 readbacks; annual/state/activity/cost/local findings with support/masks | CURRENT_FINANCIAL_COMPLETION_PENDING |
-| Final research closeout | Source/privacy/attempt/work/resource/cleanup qualification; final C05 reports, C06 completion and end-to-end receipt | CURRENT_FINANCIAL_COMPLETION_PENDING |
+| RSI |100 /100 /100|1132.11 /506.77 /463.96|
+| SC |100 /63.64 /54.55|43.18 /4.69 /2.49|
+| HASH |85.19 /53.57 /60.71|33.49 /5.86 /5.25|
+| VWAP |88.89 /55.56 /80.00|30.75 /2.23 /2.08|
+| N1 |95.12 /93.02 /31.71|176.52 /100.77 /-7.61|
+| N2 |100 /97.44 /100|42.90 /141.46 /494.82|
 
-The main worker owns final numerical results, actual work/resources, retained
-failures, terminal status and the authoritative M5-11.9 plan/report updates.
-It should preserve exact reuse and distinguish a completed negative result
-from incomplete execution. Terminal presence alone is insufficient without
-identity, account and qualification checks. Required terminal outputs named in the
-existing contract are `C05/report.json.gz`, `C05/report.md`,
-`C06/complete.json` and `end-to-end-complete.json`; their historical absence
-does not assert their current filesystem state. See [11.9 exit contract](M5_11_9_RESEARCH_STATUS.md).
+The [full results](M5_11_9_RESEARCH_STATUS.md#actual-winner-robustness-and-cost-results)
+separate survival from profitability/hit rate, include annual/state activity and
+retain measured downside. Raw is not best on every downside coordinate, and
+good finite survival does not cover omitted directions or future regimes.
+
+All five original128-point neutral-panel/state readbacks plus N1/N2readbacks
+complete; each winner's continuous PnL/days reconcile independently per family.
+Current descriptive buckets do not stand in for decision-vintage partitions.
+RSIFloor/TPE high-vol mean changes from+1.1459bps/day(614descriptive days) to
+-2.9422(345decision-vintage days). VWAPrecipeTPE's nine positive descriptive
+buckets coexist with three negative calendar years and55.56%local mandate
+survival. This demonstrates why calendar, state, activity and local/cost views
+must be inspected together, rather than replacing them with final equity.
+
+| Registered obligation | Actual terminal evidence | Disposition |
+|---|---|---|
+| Three missing formal arms | Exact256-slot receipts, selected audits, ordered sampler/context/path pins | COMPLETE |
+| Original selected-vector checks | All registered feasible held rosters, original center/account checks and actual fee2 execution | COMPLETE; requested radius coverage remains insufficient |
+| Neutral-panel and selected market states | All seven cells, both namespaces, original PnL/day conservation and support masks | COMPLETE_DESCRIPTIVE |
+| Joint researcher dossier | `C05/report.json.gz`347,662bytes and `C05/report.md`71,665bytes | COMPLETE; no new finance in cold join |
+| Original source-only qualification | `C06/complete.json`,76focused tests, original source/privacy/docs/input checks and terminal cleanup | COMPLETE_LOCAL |
+| Final orchestration receipt | Stored eight-stage PASS recovery queue, portable final completion and preserved failed exporter log | RECOVERED_COMPLETE; old failure not rewritten |
+
+The authoritative final completion is
+`continuation-20261021/interrupted-tail-recovery-complete.json`, together with
+C05/C06and their pinned inputs. No `end-to-end-complete.json` is fabricated for
+the interrupted old launcher. The recovery verifies already-complete financial
+outputs without financial-owner construction and runs only missing stages.
+
+### Operational History And Resource Bill
+
+The original invalid-price failure is retained. A one-coordinate typed control
+does not commit a score; owner approval then permits only finite requested
+price<=0 to become PRUNED/scoreNone within the same256attempts. Nonfinite/type/
+unknown errors stay fatal. Activation regression is63PASS; earlier55overlap.
+An inventory race against an atomic checkpoint temporary is fixed separately,
+with seven deterministic positive/negative tests and unchanged resource caps.
+Five additional pure recovery tests pass with no scratch. Their shared cases
+are not added as independent coverage to C06's76tests.
+
+Chat interruption loses an old coordinator terminal, not the completed HASH
+financial output. Its original stage remains interrupted; explicit cold reuse
+checks pin453existing inputs and forbid new financial-owner construction.
+The durable recovery has8/8actual stage PASS. Its wrapper subsequently fails
+only exporting Path pins; cold recovery validates the stored queue JSON and
+every stage/output/C06input, then writes the final receipt without financial,
+optimizer or test reruns. That failed log remains FAIL_RETAINED_PORTABILITY_ONLY.
+
+Observed formal-continuation RSS samples peak at1,325,617,152bytes across757
+samples; this is a sampled maximum, not an exact lifetime peak. A cold
+coordinator's completion-only timing/RSS must not be treated as the whole
+financial study. Terminal process timings remain scoped per resumed owner.
+Final retained evidence is about676MiBallocated under the1GiBcap; about5.9GiB
+disk remains. Exact terminal cleanup removes443,995logical fixture bytes,
+verifies53protected references and observes3,465,216additional free bytes;
+host writes mean this is not a causal cleanup benchmark. No financial evidence,
+original source, native artifact, environment or service is removed.
 
 Finishing 11.9 does not reopen 11.13's deferred experiment branch, accept the
 parent or activate M5-12/CI/release. The separate owner acceptance of the
@@ -879,8 +915,8 @@ reference banks retain their dependence and selection history.
 
 | Gap | Present Evidence Boundary | Required Disposition |
 |---|---|---|
-| Current 11.9 financial completion | This review uses historical sealed summaries and renewal metadata only | Main worker supplies terminal studies, winner checks, synthesis and final receipts in the pending subsection |
-| Actual-winner local geometry | N1/N2 feasible neighbors measured, required radius coverage incomplete; other tail work pending here | Report exact achieved radii/directions/aliases and keep uncovered geometry insufficient; do not lower thresholds |
+| Registered 11.9 execution | Nine formal arms, all selected held/fee/state checks, C05/C06 and final portable recovery complete | No missing registered finance remains; parent scope acceptance stays separate |
+| Actual-winner local geometry | All eighteen winner neighborhoods measured;534feasible observations; requested radius coverage incomplete | Keep exact achieved radii/directions/aliases and uncovered geometry insufficient; do not lower thresholds |
 | Cost/execution generalization | Actual double-fee evidence exists for specified cohorts/winners; not universal slippage/funding/venue stress | Keep source-specific stress claims; no broader survival claim without its own registered experiment |
 | Activity/opportunity support | Some legacy RSI and monthly campaign/opportunity fields unavailable; sparse/flat forward cells explicit | Preserve null reasons; do not invent sample sizes or new inactivity gates |
 | Whole adaptive chronological procedure | XMR-031..036 deferred under approved 11.13 branch | Keep NOT_EVALUATED / DEFERRED_APPROVED unless separately authorized later |
@@ -893,10 +929,9 @@ Sources: [11.9 remaining obligations](M5_11_9_RESEARCH_STATUS.md),
 [11.13 approved disposition](M5_11_13_CHRONOLOGICAL_DISPOSITION_REPORT.md) and
 [parent coverage](M5_11_RESEARCH_COVERAGE_DISPOSITION.md).
 
-The next required action is to finish and source-reconcile the already
-registered M5-11.9 scope, not repeat completed searches or force positive
-economics. Then present the parent scope, negative and favorable results and
-deferred broader claims for explicit owner review, carrying the allocation
+The next required action is owner review of the completed bounded research
+packet, not repeated searches or forced positive economics. Present the parent
+scope, negative and favorable results and deferred broader claims, carrying the allocation
 exception as an already accepted remediation with its historical limits intact.
 Any later experiment should answer a concrete unresolved decision with its
 identities, information rights, cost and inferential claim frozen beforehand.
@@ -905,13 +940,14 @@ remote CI, publication and deployment remain separate gates.
 
 ### Reproduction And Review Boundary
 
-This aggregate is reconstructed from the linked source reports; it adds no
-new financial measurement or test receipt. Their original private append-only
+This aggregate is reconstructed from the linked source reports and the actual
+new C05/C06/portable completion receipts; rendering adds no financial work.
+Their original private append-only
 roots retain source/native/market identities, registrations, trial journals,
 account pins, failed attempts, JSON/Markdown reports and cleanup receipts.
 Detailed reproduction remains subject to original private access rights and
 the exact registered environment; no raw strategy artifact is needed in this
-public-safe review. This document does not claim a fresh verification of every
-private hash or an installed-current-source run. The dedicated pending section
-is the sole reserved location for the main worker's new terminal financial
-summary; existing historical values and claim limits should remain traceable.
+public-safe review. The terminal section records actual checked input/output
+pins, without treating hashes as independent economics or claiming an installed-
+current-source run. Historical values, failed receipts and claim limits remain
+traceable; parent review and M5-12are not auto-approved by this completion.

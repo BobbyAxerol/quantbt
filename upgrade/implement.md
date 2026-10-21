@@ -2,6 +2,25 @@
 
 ## Current Mode 5 Diagnostics-First Upgrade - Full-Development Decision Support
 
+**Latest terminal research closeout (2026-10-21, Asia/Saigon):**
+[M5-11.9](#mode5-m5-11-9) is COMPLETE_REGISTERED_LOCAL_RESEARCH:
+nine256-attempt original formal studies,2,248COMPLETE/56PRUNED, all actual
+winner/state/readback obligations, seven-alpha C05 JSON/Markdown and original
+C06qualification complete. Across eighteen registered winner neighborhoods,
+534feasible neighbor observations and eighteen actual double-fee accounts are
+measured; all radius-wide coverage limitations remain explicit. C06passes76
+focused tests and exact terminal scratch cleanup. The explicit recovery queue
+has eight actual PASS stages; its final receipt-export Path serialization
+failure is retained and recovered from that already-PASS queue JSON, without
+new finance/tests or a fabricated old coordinator receipt. Private completion
+is `continuation-20261021/interrupted-tail-recovery-complete.json`.
+See [current results](../docs/mode5/M5_11_9_RESEARCH_STATUS.md),
+[full program review](../docs/mode5/MODE5_RESEARCH_PROGRAM_REVIEW.md) and
+[parent disposition packet](../docs/mode5/M5_11_RESEARCH_COVERAGE_DISPOSITION.md).
+M5-11.10..13keep their existing individually approved scopes; no generic
+recipe/model/default is promoted. Parent M5-11scope acceptance remains pending;
+M5-12, CI, push/merge/tag, publication and deployment are NOT_STARTED.
+
 **Latest owner-approved disposition:**
 [M5-11.13](#mode5-m5-11-13) completes
 COMPLETE_LOCAL_APPROVED_NO_NEW_FINANCE_SCOPE: KEEP_BASELINE in both cross-mode
@@ -14,13 +33,14 @@ suite passes170tests; source/pin/approval/path checks are tightened without
 changing scientific defaults, accounting, Ridge or alpha behavior.
 See [disposition report](../docs/mode5/M5_11_13_CHRONOLOGICAL_DISPOSITION_REPORT.md)
 and [current coverage ledger](../docs/mode5/M5_11_RESEARCH_COVERAGE_DISPOSITION.md).
-M5-11.9still has6/9formal terminal receipts: HASHrecipe/TPE, HASHchallenger and
-VWAPchallenger plus successor synthesis/winner/terminal coverage remain open.
+That cold review's historical6/9M5-11.9snapshot is superseded by the current
+nine-study/winner/synthesis/qualification closeout above; its old receipt stays
+unchanged.
 No worker control occurred in that cold phase. Subsequent2026-10-21owner
 approval accepts the remediated M5-11.12operational exception with evidence
 retained, not a historical resource PASS. Parent scope acceptance, M5-12, CI
 and release remain gated. The separately renewed11.9completion queue is
-registered below; its pending financial work is not closed by11.13.
+registered below; its financial work is closed by actual11.9receipts, not11.13.
 
 **Latest research completion (2026-10-20, UTC):**
 [M5-11.12](#mode5-m5-11-12) is COMPLETE_LOCAL_REGISTERED_RESEARCH_SCOPE:
@@ -33,7 +53,8 @@ reverse prefix assistance has heterogeneous/insufficient chronological support.
 The one cold audit serialization failure is retained and recovered without
 rerunning its256-trial optimizer. Cost, source and cleanup receipts are bound;
 allocated scratch exceeded its16MiB planning envelope and is reported, not
-certified as a passing resource gate. Owner disposition remains pending.
+certified as a passing resource gate. The later2026-10-21owner disposition
+accepts the remediated exception, without certifying its unmeasured peak.
 See [current research report](../docs/mode5/M5_11_12_SAMPLER_ASSISTANCE_REPORT.md).
 M5-11.13has the subsequent approved cold disposition above; parent acceptance,
 M5-12, CI and release remain separately gated.
@@ -94,7 +115,7 @@ separate authority; its dated operational receipts below are historical
 snapshots, not current process-liveness checks. Parent research, M5-12 and
 release acceptance remain separate.
 
-**Latest approved completion work (2026-10-19, UTC):**
+**Historical approved completion work (2026-10-19, UTC):**
 [M5-11.9](#mode5-m5-11-9) is IN_PROGRESS: original-route admission and both
 additional-alpha market-state/actual-winner readbacks are complete locally;
 the missing SC/HASH/VWAP256-attempt formal arms are source-sealed and running
@@ -27980,7 +28001,7 @@ Every phase below inherits this mandatory resource registration/cleanup exit.
 | [M5-11.7.2](#mode5-m5-11-7-2) | Fold consistency, R/Q and meta decision reports | Reviewed 11.7.1; sequential approval | M45R-01/02/03/04/07/08 | COMPLETE_LOCAL_REGISTERED_REPORTING_SCOPE |
 | [M5-11.7.3](#mode5-m5-11-7-3) | Broader integration, reporting cost and handoff | Reviewed 11.7.2; sequential approval | M45R-01..10 | COMPLETE_LOCAL_REGISTERED_REPORTING_SCOPE |
 | [M5-11.8](#mode5-m5-11-8) | Two additional private alphas: diagnostics, researcher recipe and actual matched calibration | Approved 128-point panels and six256-attempt studies; original-account/path/annual proof and cleanup | Registered N01..N08; guide M5T-031..110 | COMPLETE_LOCAL_REGISTERED_EXTRA_ALPHA_SCOPE; reviewed development, parent disposition still required |
-| [M5-11.9](#mode5-m5-11-9) | Remaining original-alpha formal arms, actual-winner robustness and seven-alpha synthesis | Existing sealed studies plus guarded serial successor; no repeated completed optimizer | Registered C01..C06; guide M5T-031..110 | OWNER_APPROVED_EXECUTION / IN_PROGRESS; final receipt required, not just studies |
+| [M5-11.9](#mode5-m5-11-9) | Original-alpha formal arms, actual-winner robustness and seven-alpha synthesis | Existing sealed studies plus guarded successor/recovery; no repeated completed optimizer | Registered C01..C06; guide M5T-031..110 | COMPLETE_REGISTERED_LOCAL_RESEARCH; C05/C06 and final recovered completion verified; parent review pending |
 | [M5-11.10](#mode5-m5-11-10) | Cross-mode archive, information rights and baseline registration | Approved cold execution; immutable inputs, remaining upstream scope explicit | XMR-001..010 | COMPLETE_LOCAL_REGISTERED_COLD_SCOPE; proposed later protocol awaits review |
 | [M5-11.11](#mode5-m5-11-11) | Static selector, stable regions and temporal regret | Reviewed 11.10 registration; own approval; same-panel observation rights | XMR-011..020 | COMPLETE_LOCAL_REGISTERED_RESEARCH_SCOPE; no production/source integration |
 | [M5-11.12](#mode5-m5-11-12) | Bidirectional sampler assistance with strict prefix isolation | Reviewed 11.10/11.11; own approval; separate direction contracts | XMR-021..030 | COMPLETE_LOCAL_REGISTERED_RESEARCH_SCOPE;16 studies/4,096 slots,768 diagnostics,107 tests; scratch exception reported; no default activation |
@@ -37798,7 +37819,8 @@ occupy a slot. This scheduling permission is not a benchmark speedup claim.
 <a id="mode5-m5-11-9"></a>
 ### Phase M5-11.9 - Regime, Actual-Winner Robustness And Remaining Formal Coverage
 
-**Status:** OWNER_APPROVED_EXECUTION / IN_PROGRESS, 2026-10-19.
+**Status:** COMPLETE_REGISTERED_LOCAL_RESEARCH, 2026-10-21, Asia/Saigon;
+PARENT_SCOPE_REVIEW_PENDING. Initial execution approval was2026-10-19.
 The owner explicitly requests completion of the five remaining research gaps,
 not another release or a change to the Mode5 scientific direction. Earlier
 receipts remain immutable. This phase precedes M5-12 and does not activate it.
@@ -37887,6 +37909,39 @@ deadline, original financial owners, caps and shared exclusive lock; no new
 optimizer. Launch the coordinator in its own session with file-backed logs
 so chat interruption does not lose the scheduling owner. Final research/parent/
 package/CI/release statuses still require their separate actual receipts.
+
+**Terminal execution receipt:** all nine formal arms have256attempts, original
+selected audits and exact ordered checkpoint/context/path admission. C06
+reconstructs2,304slots:2,248COMPLETE/56PRUNED and2,273within-study unique observed
+points(including observed undefined-objective prunes; not a global invocation
+count). All twelve original RSI/SC/HASH/VWAP actual winners have completed
+held/center/actual2x-fee checks; six N1/N2winners are reused. The combined scope
+contains534feasible neighbor observations, eighteen centers and eighteen real
+double-fee accounts; tested geometry remains INSUFFICIENT_COVERAGE at the
+requested radius, not a basin certificate. All five original neutral-panel
+state readbacks plus N1/N2state joins reconcile original continuous PnL/days.
+No account, winner, alpha, objective or numerical tolerance is changed.
+
+C05synthesis JSON/Markdown and C06/complete.json are present and validated;
+the original source/privacy/docs/accounting inventory and76focused tests PASS.
+The recovery queue has8/8actual stage PASS. Its wrapper then fails only while
+serializing Path pins for the final receipt; preserve that failed log. A
+separately registered cold exporter validates the stored PASS queue, every
+stage/source/output pin, C06inputs and1,983prior pins, then writes the portable
+completion receipt with zero additional finance/proposals/test reruns. This
+does not rewrite the old interrupted coordinator or failed exporter as PASS.
+Terminal fixture cleanup verifies53protected references, removes443,995logical
+fixture bytes and observes3,465,216additional free bytes. Retention is about
+676MiBallocated under the1GiBcap; no environment/artifact/evidence is removed.
+
+The registered M5-11.9scope has no remaining execution blocker. Economic
+reversals, HMAno-eligible scope, unmeasured radii/global sensitivity and wider
+whole-procedure claims remain disclosed for parent review. See the
+[final results](../docs/mode5/M5_11_9_RESEARCH_STATUS.md),
+[program review](../docs/mode5/MODE5_RESEARCH_PROGRAM_REVIEW.md),
+[coverage disposition](../docs/mode5/M5_11_RESEARCH_COVERAGE_DISPOSITION.md) and
+[cleanup](../docs/maintenance/M5_11_9_CLEANUP.md).
+No M5-12, CI, push, merge/tag, release or publication is activated.
 
 **Goal:** make the evidence answer whether one fixed actual dictionary retains
 economic quality across market environments and feasible parameter changes,
