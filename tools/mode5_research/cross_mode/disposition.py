@@ -32,8 +32,11 @@ def _pins(values):
     for value in values:
         if not isinstance(value, FilePin):
             raise TypeError("typed file pins required")
+        if not isinstance(value.path, str) or "\x00" in value.path:
+            raise ValueError("canonical NUL-free evidence path required")
         path = PurePosixPath(value.path)
-        if path.is_absolute() or ".." in path.parts or str(path) in {"", "."}:
+        if (path.is_absolute() or ".." in path.parts or str(path) in {"", "."}
+                or str(path) != value.path):
             raise ValueError("repository-relative evidence path required")
         _digest(value.sha256)
         if type(value.bytes) is not int or value.bytes < 0 or value.path in seen:

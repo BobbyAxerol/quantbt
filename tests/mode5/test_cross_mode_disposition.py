@@ -126,6 +126,12 @@ def test_missing_or_malformed_authority_pin_is_rejected(bad):
         packet(approval=bad)
 
 
+@pytest.mark.parametrize('path',['a//b','a/./b','a/b/','./a/b','a\x00b','',None])
+def test_evidence_aliases_and_non_path_values_are_rejected(path):
+    with pytest.raises((ValueError,TypeError)):
+        packet(approval=FilePin(path,17,'a'*64))
+
+
 def test_receipt_reference_duplicates_and_unknown_payload_fields_fail():
     with pytest.raises(ValueError):
         replace(gate(40),evidence=(pin(),pin()))
