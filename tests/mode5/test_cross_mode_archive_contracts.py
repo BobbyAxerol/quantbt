@@ -269,7 +269,7 @@ def test_xmr009_deterministic_cold_reduction_has_no_execution_imports_or_rng_con
     assert candidate_alias_key(reversed_nodes) == candidate_alias_key(evidence)
     assert digest(asdict(expected)) == digest(asdict(assess_reuse(deepcopy(evidence), use(evidence), policy())))
     assert random.getstate() == before
-    source = Path(__file__).resolve().parents[2] / "tools/mode5_research/cross_mode/contracts.py"
+    source = Path(__file__).resolve().parents[2] / "src/quantbt/diagnostics/archive_contracts.py"
     tree = ast.parse(source.read_text())
     imports = [n.module for n in ast.walk(tree) if isinstance(n, ast.ImportFrom)]
     assert set(imports) == {"dataclasses", "typing", "quantbt.mode5.diagnostics.access",
