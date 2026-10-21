@@ -56,6 +56,24 @@ PYTHONPATH=src:. .venv/bin/python -m examples.shared_presearch_researcher
 
 ## Output
 
+### Explicit Mode 5 Handoff
+
+The optional [checked handoff](MODE5_EXECUTABLE_HANDOFF.md) connects this report
+to an explicit `CalibrationWorksheet`, `Mode5RunPack` and the existing continuous
+Mode 5 endpoint. Use `report.mode5_worksheet(..., diagnostic_report_ref=...)`
+only after the original report snapshot is retained as an exact reference in
+the verified catalog/dossier revision. Reload rechecks original values and
+every diagnostic dependency under the actual selection rights; a summary or
+matching checksum is not an authorization shortcut. A changed catalog requires
+a revised dossier/plan, not backdated seals.
+
+The worksheet never starts an optimizer. A researcher chooses or overrides a
+complete recipe, compiles it, exports privately and explicitly preflights the
+original inputs before calling `backtest`. Archive evidence is optional, and
+an incompatible/missing archive does not disable an otherwise valid recipe.
+`calibration_handoff_capabilities()` describes this cold workflow separately
+from financial route support. Legacy report bytes/defaults are unchanged.
+
 | Section | What Is Measured Or Preserved |
 |---|---|
 | Provenance | Context/schema/route/economics, metric names and units, exact witnesses, source references, cutoff and view rights |

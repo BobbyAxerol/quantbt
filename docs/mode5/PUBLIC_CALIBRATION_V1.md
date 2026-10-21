@@ -26,6 +26,15 @@ future economic studies. See the
 
 ## Freeze Before Search
 
+For a researcher-facing bridge from diagnostics to the same sealed inputs,
+see [Mode 5 executable handoff](../diagnostics/MODE5_EXECUTABLE_HANDOFF.md).
+`CalibrationRecipe`/`CalibrationWorksheet` resolve an explicit choice into a
+private `Mode5RunPack`; `prepare` returns the existing endpoint after current
+data/source/rights and sampler-initialization preflight. `reconcile` and the
+pack's JSON/Markdown views join the actual outcome to the declared recipe.
+This is optional source-qualified orchestration, not automatic recipe routing,
+archive-seeding promotion or new financial endpoint/installed qualification.
+
 1. Supply original data/strategy/account or an existing financial endpoint.
    Diagnose that exact alpha, data, economics and effective parameter schema.
    Do not convert old Mode 4 scalar objectives into new Mode 5 observations.
