@@ -14,6 +14,9 @@ use quantbt_engine::{
     NativePathOutputV1, NativeScoreOutputV1, OnlineMetricReducerV2, OutputRequirementsV1,
     StaticOutputProfile,
 };
+use quantbt_portfolio::{
+    PortfolioTargetRejectReason, is_reduction, target_delta_validation_reason,
+};
 
 use crate::{
     FingerprintWriter, NativeExecutionTemplateV1, NativeOutputProfileV1, hex_fingerprint,
@@ -180,6 +183,10 @@ pub const TARGET_REJECT_ATOMIC_ROLLBACK: i64 = 5;
 /// an accepted target (not a rejected order); audit consumers can distinguish
 /// it from an exact full-target fill without inferring from quantities.
 pub const TARGET_ADJUSTED_PRO_RATA: i64 = 6;
+/// Minimum filters apply to actual exposure-increasing delta orders, not the
+/// total retained position. Pure closes/reductions are explicitly exempt.
+pub const TARGET_REJECT_MIN_QTY: i64 = 7;
+pub const TARGET_REJECT_MIN_NOTIONAL: i64 = 8;
 
 pub const TARGET_LIQ_NONE: i64 = 0;
 pub const TARGET_LIQ_INTRABAR: i64 = 1;
@@ -977,8 +984,6 @@ fn execute_direct_target(
                 },
                 request.equity_fraction[symbol],
                 request.qty_step[symbol],
-                request.min_qty[symbol],
-                request.min_notional[symbol],
             )?;
             let (requested_units, target_units) = match resolution {
                 TargetResolution::Value {
@@ -1029,12 +1034,21 @@ fn execute_direct_target(
 
             command_count = command_count.saturating_add(1);
             target_audit.decision_count = target_audit.decision_count.saturating_add(1);
-            let mut rejection_code = TARGET_REJECT_NONE;
-            if !DirectTargetRequestV1::flag_at(&request.tradable, n_symbols, bar, symbol) {
-                rejection_code = TARGET_REJECT_NON_TRADABLE;
-            } else if DirectTargetRequestV1::flag_at(&request.stale, n_symbols, bar, symbol) {
-                rejection_code = TARGET_REJECT_STALE_PRICE;
-            }
+            let mut rejection_code =
+                if !DirectTargetRequestV1::flag_at(&request.tradable, n_symbols, bar, symbol) {
+                    TARGET_REJECT_NON_TRADABLE
+                } else if DirectTargetRequestV1::flag_at(&request.stale, n_symbols, bar, symbol) {
+                    TARGET_REJECT_STALE_PRICE
+                } else {
+                    delta_order_rejection(
+                        current_positions[symbol],
+                        target_units,
+                        close,
+                        contract_sizes[symbol],
+                        request.min_qty[symbol],
+                        request.min_notional[symbol],
+                    )
+                };
 
             let order_id = direct_target_order_id(bar, symbol, n_symbols)?;
             if rejection_code == TARGET_REJECT_NONE {
@@ -1054,23 +1068,42 @@ fn execute_direct_target(
                     target_units.abs() * execution_price * contract_sizes[symbol]
                         / leverages[symbol];
                 let margin_delta = new_initial_margin - old_initial_margin;
-                // Legacy `%_equity` lets a reduction release margin into the
-                // same bar's availability without clipping it to zero. The
-                // close-target direct contracts retain their existing
-                // conservative increase-only admission rule.
+                // Keep transition sizing and symbol ordering unchanged. Pure
+                // reductions pay costs from equity even below initial margin;
+                // reversals/increases still need the existing free-margin gate.
                 let required = if pct_equity_transition {
                     fee_cost + slippage_cost + margin_delta
                 } else {
                     fee_cost + slippage_cost + margin_delta.max(0.0)
                 };
-                if required > available {
+                let pure_reduction = is_reduction(current_positions[symbol], target_units);
+                let insufficient = if pure_reduction {
+                    fee_cost + slippage_cost > equity + 1.0e-12
+                } else {
+                    required > available
+                };
+                if insufficient {
                     rejection_code = TARGET_REJECT_INSUFFICIENT_MARGIN;
                 } else {
                     equity -= fee_cost + slippage_cost;
                     current_positions[symbol] = target_units;
                     fee_bar += fee_cost;
                     turnover_bar += trade_notional;
-                    available = if pct_equity_transition {
+                    available = if pure_reduction {
+                        // Clipped pre-fill availability loses any IM deficit.
+                        // Do not turn a partial reduction into fictitious
+                        // buying power for the next symbol's increase.
+                        (equity
+                            - initial_margin(
+                                &current_positions,
+                                market,
+                                source_bar,
+                                n_symbols,
+                                contract_sizes,
+                                leverages,
+                            ))
+                        .max(0.0)
+                    } else if pct_equity_transition {
                         available - fee_cost - slippage_cost - margin_delta
                     } else {
                         (available - fee_cost - slippage_cost - margin_delta).max(0.0)
@@ -1382,7 +1415,8 @@ impl SharedPortfolioStateV1 {
         leverages: &[f64],
         fee_rates: &[f64],
         slippage_rate: f64,
-        allow_margin_relief: bool,
+        min_qty: f64,
+        min_notional: f64,
     ) -> Result<Option<SharedPortfolioFillV1>, i64> {
         let current = self.positions[symbol];
         let delta = target_units - current;
@@ -1390,6 +1424,17 @@ impl SharedPortfolioStateV1 {
             return Ok(None);
         }
         let close = market_value(market, source_bar, n_symbols, symbol, 3);
+        let rejection = delta_order_rejection(
+            current,
+            target_units,
+            close,
+            contract_sizes[symbol],
+            min_qty,
+            min_notional,
+        );
+        if rejection != TARGET_REJECT_NONE {
+            return Err(rejection);
+        }
         let price = if delta > 0.0 {
             close * (1.0 + slippage_rate)
         } else {
@@ -1412,7 +1457,12 @@ impl SharedPortfolioStateV1 {
             ))
         .max(0.0);
         let required = fee + slippage + margin_delta.max(0.0);
-        if !allow_margin_relief && required > available + 1.0e-12 {
+        let insufficient = if is_reduction(current, target_units) {
+            fee + slippage > self.equity + 1.0e-12
+        } else {
+            required > available + 1.0e-12
+        };
+        if insufficient {
             return Err(TARGET_REJECT_INSUFFICIENT_MARGIN);
         }
 
@@ -1686,6 +1736,9 @@ fn execute_shared_portfolio_target(
         }
 
         state.mark_to_close(market, source_bar, n_symbols, contract_sizes);
+        // Historical OHLC stress combines each leg's adverse extreme, not
+        // necessarily a synchronous market snapshot. A breach still settles
+        // the whole account to zero; this is not venue liquidation modeling.
         let mut worst_equity = state.equity;
         let mut worst_maintenance = 0.0;
         for (symbol, contract_size) in contract_sizes.iter().copied().enumerate().take(n_symbols) {
@@ -1768,8 +1821,6 @@ fn execute_shared_portfolio_target(
                 equity_snapshot,
                 direct.equity_fraction[symbol],
                 direct.qty_step[symbol],
-                direct.min_qty[symbol],
-                direct.min_notional[symbol],
             )? {
                 TargetResolution::Value {
                     requested_units,
@@ -1786,7 +1837,14 @@ fn execute_shared_portfolio_target(
                     {
                         TARGET_REJECT_STALE_PRICE
                     } else {
-                        TARGET_REJECT_NONE
+                        delta_order_rejection(
+                            state.positions[symbol],
+                            target_units,
+                            close,
+                            contract_size,
+                            direct.min_qty[symbol],
+                            direct.min_notional[symbol],
+                        )
                     };
                     candidates.push(SharedPortfolioCandidateV1 {
                         symbol,
@@ -1836,7 +1894,8 @@ fn execute_shared_portfolio_target(
                             leverages,
                             fee_rates,
                             account.slippage_rate,
-                            false,
+                            direct.min_qty[candidate.symbol],
+                            direct.min_notional[candidate.symbol],
                         ) {
                             Ok(Some(fill)) => committed.push((fill, 0)),
                             Ok(None) => {}
@@ -1865,7 +1924,8 @@ fn execute_shared_portfolio_target(
                                 leverages,
                                 fee_rates,
                                 account.slippage_rate,
-                                true,
+                                direct.min_qty[candidate.symbol],
+                                direct.min_notional[candidate.symbol],
                             ) {
                                 Ok(Some(fill)) => committed.push((fill, 0)),
                                 Ok(None) => {}
@@ -1893,7 +1953,8 @@ fn execute_shared_portfolio_target(
                                 leverages,
                                 fee_rates,
                                 account.slippage_rate,
-                                false,
+                                direct.min_qty[candidate.symbol],
+                                direct.min_notional[candidate.symbol],
                             ) {
                                 Ok(Some(fill)) => committed.push((fill, 1)),
                                 Ok(None) => {}
@@ -1956,16 +2017,11 @@ fn execute_shared_portfolio_target(
                                 continue;
                             }
                             let current = state.positions[candidate.symbol];
-                            let close =
-                                market_value(market, source_bar, n_symbols, candidate.symbol, 3);
-                            let scaled = quantize_signed_quantity(
-                                current + (candidate.target_units - current) * scale,
-                                close,
-                                contract_sizes[candidate.symbol],
-                                direct.qty_step[candidate.symbol],
-                                direct.min_qty[candidate.symbol],
-                                direct.min_notional[candidate.symbol],
-                            );
+                            let scaled = current
+                                + quantize_signed_quantity(
+                                    (candidate.target_units - current) * scale,
+                                    direct.qty_step[candidate.symbol],
+                                );
                             adjusted[candidate.symbol] =
                                 (scaled - candidate.target_units).abs() >= 1.0e-12;
                             match state.apply_target(
@@ -1978,7 +2034,8 @@ fn execute_shared_portfolio_target(
                                 leverages,
                                 fee_rates,
                                 account.slippage_rate,
-                                false,
+                                direct.min_qty[candidate.symbol],
+                                direct.min_notional[candidate.symbol],
                             ) {
                                 Ok(Some(fill)) => committed.push((fill, 1)),
                                 Ok(None) => {}
@@ -2020,7 +2077,8 @@ fn execute_shared_portfolio_target(
                                 leverages,
                                 fee_rates,
                                 account.slippage_rate,
-                                false,
+                                direct.min_qty[candidate.symbol],
+                                direct.min_notional[candidate.symbol],
                             ) {
                                 committed.push((fill, 1));
                             }
@@ -2053,7 +2111,8 @@ fn execute_shared_portfolio_target(
                                 leverages,
                                 fee_rates,
                                 account.slippage_rate,
-                                true,
+                                direct.min_qty[candidate.symbol],
+                                direct.min_notional[candidate.symbol],
                             ) {
                                 Ok(Some(fill)) => preview_fills.push((fill, 0)),
                                 Ok(None) => {}
@@ -2076,7 +2135,8 @@ fn execute_shared_portfolio_target(
                                 leverages,
                                 fee_rates,
                                 account.slippage_rate,
-                                false,
+                                direct.min_qty[candidate.symbol],
+                                direct.min_notional[candidate.symbol],
                             ) {
                                 Ok(Some(fill)) => preview_fills.push((fill, 1)),
                                 Ok(None) => {}
@@ -2363,8 +2423,6 @@ fn resolve_target(
     equity_snapshot: f64,
     equity_fraction: f64,
     qty_step: f64,
-    min_qty: f64,
-    min_notional: f64,
 ) -> Result<TargetResolution, String> {
     if !raw.is_finite() {
         return match invalid_policy {
@@ -2416,25 +2474,11 @@ fn resolve_target(
     }
     Ok(TargetResolution::Value {
         requested_units,
-        target_units: quantize_signed_quantity(
-            requested_units,
-            close,
-            contract_size,
-            qty_step,
-            min_qty,
-            min_notional,
-        ),
+        target_units: quantize_signed_quantity(requested_units, qty_step),
     })
 }
 
-fn quantize_signed_quantity(
-    value: f64,
-    price: f64,
-    contract_size: f64,
-    qty_step: f64,
-    min_qty: f64,
-    min_notional: f64,
-) -> f64 {
+fn quantize_signed_quantity(value: f64, qty_step: f64) -> f64 {
     if value == 0.0 {
         return 0.0;
     }
@@ -2443,13 +2487,30 @@ fn quantize_signed_quantity(
     if qty_step > 0.0 {
         absolute = (absolute / qty_step + 1.0e-12).floor() * qty_step;
     }
-    if absolute <= 0.0
-        || (min_qty > 0.0 && absolute + 1.0e-12 < min_qty)
-        || (min_notional > 0.0 && absolute * price * contract_size + 1.0e-12 < min_notional)
-    {
-        return 0.0;
-    }
     sign * absolute
+}
+
+fn delta_order_rejection(
+    current: f64,
+    target: f64,
+    close: f64,
+    contract_size: f64,
+    min_qty: f64,
+    min_notional: f64,
+) -> i64 {
+    match target_delta_validation_reason(
+        current,
+        target,
+        close,
+        contract_size,
+        min_qty,
+        min_notional,
+    ) {
+        PortfolioTargetRejectReason::Accepted => TARGET_REJECT_NONE,
+        PortfolioTargetRejectReason::MinQty => TARGET_REJECT_MIN_QTY,
+        PortfolioTargetRejectReason::MinNotional => TARGET_REJECT_MIN_NOTIONAL,
+        _ => unreachable!("delta-order filters only return minimum-size rejections"),
+    }
 }
 
 fn initial_margin(
@@ -2616,4 +2677,355 @@ fn direct_target_contract_bundle_hash(request: &DirectTargetRequestV1) -> u128 {
     let mut lower = [0_u8; 16];
     lower.copy_from_slice(&bytes[..16]);
     u128::from_le_bytes(lower)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{AccountModelV1, ExecutionContractV1, InstrumentTableV1};
+    use quantbt_domain::generated_contracts::CONTRACT_EVENT_LIFECYCLE_V2_NEXT_BAR_CLOSE;
+    use quantbt_engine::FullMarketData;
+
+    const POLICIES: [PortfolioAdmissionPolicyV1; 4] = [
+        PortfolioAdmissionPolicyV1::SequentialLegacy,
+        PortfolioAdmissionPolicyV1::ReduceFirstThenIncrease,
+        PortfolioAdmissionPolicyV1::ProRataToAvailableMargin,
+        PortfolioAdmissionPolicyV1::AllOrNoneRebalance,
+    ];
+
+    #[allow(clippy::too_many_arguments)]
+    fn request(
+        closes: &[f64],
+        n_symbols: usize,
+        targets: &[f64],
+        capital: f64,
+        fee: f64,
+        step: f64,
+        min_qty: f64,
+        min_notional: f64,
+    ) -> DirectTargetRequestV1 {
+        let n_bars = closes.len() / n_symbols;
+        let market = FullMarketData::new(
+            (0..n_bars).map(|bar| bar as i64).collect(),
+            closes.to_vec(),
+            closes.to_vec(),
+            closes.to_vec(),
+            closes.to_vec(),
+            vec![1_000.0; closes.len()],
+            vec![0.0; closes.len()],
+            vec![false; n_bars],
+            n_symbols,
+        )
+        .unwrap();
+        let template = NativeExecutionTemplateV1::new(
+            Arc::new(market),
+            InstrumentTableV1::sequential(
+                vec![1.0; n_symbols],
+                vec![1.0; n_symbols],
+                vec![fee; n_symbols],
+            )
+            .unwrap(),
+            AccountModelV1::new(capital, 0.005, 0.0, false).unwrap(),
+            ExecutionContractV1::new(CONTRACT_EVENT_LIFECYCLE_V2_NEXT_BAR_CLOSE).unwrap(),
+        )
+        .unwrap();
+        DirectTargetRequestV1::from_template(
+            Arc::new(template),
+            targets.to_vec(),
+            DirectTargetKindV1::Units,
+            TARGET_TIMING_CLOSE_TARGET_V2_SAME_CLOSE,
+            InvalidTargetPolicyV1::RejectRun,
+            vec![true; closes.len()],
+            vec![false; closes.len()],
+            vec![step; n_symbols],
+            vec![min_qty; n_symbols],
+            vec![min_notional; n_symbols],
+            vec![1.0; n_symbols],
+            NativeOutputProfileV1::Audit,
+        )
+        .unwrap()
+    }
+
+    fn shared(
+        inner: DirectTargetRequestV1,
+        admission_policy: PortfolioAdmissionPolicyV1,
+    ) -> SharedPortfolioTargetRequestV1 {
+        let mut request = SharedPortfolioTargetRequestV1 {
+            inner,
+            admission_policy,
+            fingerprint: [0; 32],
+        };
+        request.fingerprint = request.compute_fingerprint();
+        request
+    }
+
+    #[test]
+    fn below_initial_margin_reduction_pays_fees_without_restoring_im() {
+        let request = request(
+            &[100.0, 100.0, 110.0],
+            1,
+            &[0.0, -19.0, -18.0],
+            2_000.0,
+            0.0004,
+            0.0,
+            18.5,
+            1_850.0,
+        );
+        let direct = request.execute().unwrap();
+        assert_eq!(direct.output.score().final_positions, vec![-18.0]);
+        assert!((direct.output.score().final_equity - 1_809.196).abs() < 1.0e-9);
+        for policy in POLICIES {
+            let result = shared(request.clone(), policy).execute().unwrap();
+            let score = result.output.score();
+            assert_eq!(score.final_positions, vec![-18.0], "{policy:?}");
+            assert!((score.final_equity - 1_809.196).abs() < 1.0e-9);
+            assert!(!score.liquidated);
+            assert_eq!(score.rejected_count, 0);
+        }
+    }
+
+    #[test]
+    fn reduction_does_not_manufacture_margin_for_the_next_symbol() {
+        let request = request(
+            &[100.0, 100.0, 100.0, 100.0, 110.0, 100.0],
+            2,
+            &[0.0, 0.0, -19.0, 0.0, -18.0, 0.1],
+            2_000.0,
+            0.0004,
+            0.0,
+            0.0,
+            0.0,
+        );
+        let direct = request.execute().unwrap();
+        assert_eq!(direct.output.score().final_positions, vec![-18.0, 0.0]);
+        assert_eq!(direct.output.score().rejected_count, 1);
+        for policy in [POLICIES[0], POLICIES[1]] {
+            let result = shared(request.clone(), policy).execute().unwrap();
+            assert_eq!(result.output.score().final_positions, vec![-18.0, 0.0]);
+            assert_eq!(result.output.score().rejected_count, 1);
+        }
+        let atomic = shared(request, POLICIES[3]).execute().unwrap();
+        assert_eq!(atomic.output.score().final_positions, vec![-19.0, 0.0]);
+        assert!((atomic.output.score().final_equity - 1_809.24).abs() < 1.0e-9);
+    }
+
+    #[test]
+    fn pure_reduction_still_requires_equity_to_cover_its_costs() {
+        let request = request(
+            &[100.0, 100.0, 200.0],
+            1,
+            &[0.0, -1.0, -0.5],
+            200.0,
+            0.6,
+            0.0,
+            0.0,
+            0.0,
+        );
+        let direct = request.execute().unwrap();
+        assert_eq!(direct.output.score().final_positions, vec![-1.0]);
+        assert_eq!(direct.output.score().final_equity, 40.0);
+        for policy in POLICIES {
+            let result = shared(request.clone(), policy).execute().unwrap();
+            assert_eq!(result.output.score().final_positions, vec![-1.0]);
+            assert_eq!(result.output.score().final_equity, 40.0);
+            assert_eq!(result.output.score().rejected_count, 1);
+        }
+    }
+
+    #[test]
+    fn minimums_apply_to_increasing_deltas_with_explicit_reduction_exemptions() {
+        for sign in [-1.0, 1.0] {
+            for (min_qty, min_notional, code) in [
+                (0.5, 0.0, TARGET_REJECT_MIN_QTY),
+                (0.0, 50.0, TARGET_REJECT_MIN_NOTIONAL),
+            ] {
+                for next in [1.1, 0.1, 0.0, 1.5] {
+                    let request = request(
+                        &[100.0; 3],
+                        1,
+                        &[0.0, sign, sign * next],
+                        1_000.0,
+                        0.0,
+                        0.1,
+                        min_qty,
+                        min_notional,
+                    );
+                    let rejected = next == 1.1;
+                    let expected = sign * if rejected { 1.0 } else { next };
+                    let direct = request.execute().unwrap();
+                    assert!((direct.output.score().final_positions[0] - expected).abs() < 1.0e-9);
+                    if rejected {
+                        assert_eq!(direct.target_audit.rejection_code.last(), Some(&code));
+                    }
+                    for policy in POLICIES {
+                        let result = shared(request.clone(), policy).execute().unwrap();
+                        assert!(
+                            (result.output.score().final_positions[0] - expected).abs() < 1.0e-9
+                        );
+                        assert_eq!(result.output.score().rejected_count, i64::from(rejected));
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn minimums_are_checked_after_target_and_pro_rata_quantization() {
+        for (min_qty, min_notional) in [(0.55, 0.0), (0.0, 55.0)] {
+            let request = request(
+                &[100.0; 3],
+                1,
+                &[0.0, 1.0, 1.59],
+                1_000.0,
+                0.0,
+                0.1,
+                min_qty,
+                min_notional,
+            );
+            assert_eq!(
+                request.execute().unwrap().output.score().final_positions,
+                vec![1.0]
+            );
+            for policy in POLICIES {
+                let result = shared(request.clone(), policy).execute().unwrap();
+                assert_eq!(result.output.score().final_positions, vec![1.0]);
+            }
+        }
+        for (min_qty, min_notional) in [(0.5, 0.0), (0.0, 50.0)] {
+            let request = request(
+                &[100.0; 3],
+                1,
+                &[0.0, 1.0, 2.0],
+                130.0,
+                0.0,
+                0.1,
+                min_qty,
+                min_notional,
+            );
+            let result = shared(request, POLICIES[2]).execute().unwrap();
+            assert_eq!(result.output.score().final_positions, vec![1.0]);
+            assert_eq!(result.output.score().fill_count, 1);
+            assert_eq!(result.output.score().rejected_count, 1);
+        }
+    }
+
+    #[test]
+    fn pro_rata_residual_lots_cannot_create_subminimum_orders() {
+        let request = request(
+            &[100.0; 6],
+            2,
+            &[0.0, 0.0, 1.0, 1.0, 2.0, 2.0],
+            250.0,
+            0.0,
+            0.1,
+            0.2,
+            20.0,
+        );
+        let result = shared(request, POLICIES[2]).execute().unwrap();
+        for position in &result.output.score().final_positions {
+            assert!((*position - 1.2).abs() < 1.0e-9);
+        }
+        assert_eq!(result.output.score().fill_count, 4);
+        let NativeExecutionOutputV1::Audit(audit) = result.output else {
+            panic!("audit expected");
+        };
+        assert!(audit.fills.qty.iter().all(|qty| qty.abs() + 1.0e-12 >= 0.2));
+    }
+
+    #[test]
+    fn reversal_filters_follow_actual_unsplit_or_split_orders() {
+        let request = request(
+            &[100.0; 3],
+            1,
+            &[0.0, 1.0, -0.1],
+            1_000.0,
+            0.0,
+            0.0,
+            0.5,
+            50.0,
+        );
+        assert_eq!(
+            request.execute().unwrap().output.score().final_positions,
+            vec![-0.1]
+        );
+        for policy in POLICIES {
+            let result = shared(request.clone(), policy).execute().unwrap();
+            let expected = match policy {
+                PortfolioAdmissionPolicyV1::SequentialLegacy => -0.1,
+                PortfolioAdmissionPolicyV1::AllOrNoneRebalance => 1.0,
+                _ => 0.0,
+            };
+            assert_eq!(result.output.score().final_positions, vec![expected]);
+        }
+    }
+
+    #[test]
+    fn sequential_symbol_order_is_not_silently_changed_to_reduce_first() {
+        let request = request(
+            &[100.0; 6],
+            2,
+            &[0.0, 0.0, 0.0, 9.0, 5.0, 0.0],
+            1_000.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+        );
+        assert_eq!(
+            request.execute().unwrap().output.score().final_positions,
+            vec![0.0, 0.0]
+        );
+        for policy in POLICIES {
+            let result = shared(request.clone(), policy).execute().unwrap();
+            let expected = if policy == PortfolioAdmissionPolicyV1::SequentialLegacy {
+                vec![0.0, 0.0]
+            } else {
+                vec![5.0, 0.0]
+            };
+            assert_eq!(result.output.score().final_positions, expected);
+        }
+    }
+
+    #[test]
+    fn historical_asynchronous_ohlc_stress_still_settles_whole_account_to_zero() {
+        let mut request = request(
+            &[100.0; 8],
+            2,
+            &[0.0, 0.0, 5.0, -5.0, 5.0, -5.0, 0.0, 0.0],
+            100.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+        );
+        let mut market = request.template.market().as_ref().clone();
+        market.highs[4..6].fill(130.0);
+        market.lows[4..6].fill(70.0);
+        request.template = Arc::new(
+            NativeExecutionTemplateV1::new(
+                Arc::new(market),
+                InstrumentTableV1::sequential(vec![1.0; 2], vec![20.0; 2], vec![0.0; 2]).unwrap(),
+                request.template.account(),
+                ExecutionContractV1::new(CONTRACT_EVENT_LIFECYCLE_V2_NEXT_BAR_CLOSE).unwrap(),
+            )
+            .unwrap(),
+        );
+        request.fingerprint = request.compute_fingerprint();
+        let direct = request.execute().unwrap();
+        assert_eq!(
+            direct.output.score().liquidation_reason,
+            TARGET_LIQ_INTRABAR
+        );
+        assert_eq!(direct.output.score().final_equity, 0.0);
+        for policy in POLICIES {
+            let result = shared(request.clone(), policy).execute().unwrap();
+            assert_eq!(result.output.score().liquidation_bar, 2);
+            assert_eq!(
+                result.output.score().liquidation_reason,
+                TARGET_LIQ_INTRABAR
+            );
+            assert_eq!(result.output.score().final_equity, 0.0);
+            assert_eq!(result.output.score().final_positions, vec![0.0; 2]);
+        }
+    }
 }
