@@ -120,6 +120,15 @@ def test_order_minima_apply_to_increasing_delta_and_allow_reduction():
     np.testing.assert_array_equal(no_entry.positions, 0)
 
 
+@pytest.mark.parametrize("sign", [-1, 1])
+@pytest.mark.parametrize("minimum,accepted,equity", [(50, 1.5, 998.5), (50.25, 1, 999)])
+def test_notional_minimum_uses_close_mark_before_slippage(sign, minimum, accepted, equity):
+    result = run([100] * 3, [0, sign, sign * 1.5], min_notional=minimum,
+                 execution=ExecutionConfig(slippage_bps=100))
+    assert result.positions.iloc[-1, 0] == pytest.approx(sign * accepted)
+    assert result.equity.iloc[-1] == pytest.approx(equity)
+
+
 def test_heterogeneous_leverage_exposes_margin_not_fictional_scalar_capacity():
     result = run([[100, 100]] * 3, [[0, 0], [1, -1], [1, -1]], leverage={"S0": 1, "S1": 10})
     report = result.metadata["exposure_report"]

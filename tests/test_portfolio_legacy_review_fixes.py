@@ -60,6 +60,22 @@ def _backtester(close, signal, **overrides):
     return BacktestEngine(**kwargs)
 
 
+@pytest.mark.parametrize("sign", [-1, 1])
+@pytest.mark.parametrize("minimum,accepted,equity", [(50, 1.5, 998.5), (50.25, 1, 999)])
+@pytest.mark.parametrize("mode", ["unit", "pct_equity"])
+def test_legacy_min_notional_uses_close_mark_before_slippage(sign, minimum, accepted, equity, mode):
+    index = _index(3)
+    close = pd.Series(100., index=index)
+    target = pd.Series([0., sign, sign * 1.5], index=index)
+    if mode == "pct_equity":
+        target.iloc[1:] *= 100 / 999
+        target.iloc[1] = sign * .1
+    result = _backtester(close, target, hedge_type=mode, slippage=.01,
+                         min_notional=minimum).result
+    assert result.positions.iloc[-1, 0] == pytest.approx(sign * accepted)
+    assert result.equity.iloc[-1] == pytest.approx(equity)
+
+
 @pytest.mark.parametrize(
     "mode,expected",
     [

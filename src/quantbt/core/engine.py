@@ -163,7 +163,7 @@ def _engine_units(
             delta  = target - current_pos[s]
             exec_p = closes[i, s] * (1.0 + slippage if delta > 0.0 else 1.0 - slippage)
             if min_qtys is not None and min_notionals is not None:
-                if not _delta_order_allowed(current_pos[s], target, exec_p, contract_sizes[s], min_qtys[s], min_notionals[s]):
+                if not _delta_order_allowed(current_pos[s], target, closes[i, s], contract_sizes[s], min_qtys[s], min_notionals[s]):
                     continue
 
             fee_cost   = abs(delta) * exec_p * contract_sizes[s] * fee_rate
@@ -312,7 +312,7 @@ def _engine_pct_equity(
 
             delta  = target - current_pos[s]
             exec_p = closes[i, s] * (1.0 + slippage if delta > 0.0 else 1.0 - slippage)
-            if not _delta_order_allowed(current_pos[s], target, exec_p, contract_sizes[s], min_qtys[s], min_notionals[s]):
+            if not _delta_order_allowed(current_pos[s], target, closes[i, s], contract_sizes[s], min_qtys[s], min_notionals[s]):
                 continue
 
             fee_cost  = abs(delta) * exec_p * contract_sizes[s] * fee_rate
@@ -834,7 +834,7 @@ def _engine_portfolio(
                     continue
                 exec_price = c * (1.0 + slippage_rate) if delta > 0.0 else c * (1.0 - slippage_rate)
                 if min_qtys is not None and min_notionals is not None:
-                    if not _delta_order_allowed(current_pos[s], target_pos[i, s], exec_price, cs, min_qtys[s], min_notionals[s]):
+                    if not _delta_order_allowed(current_pos[s], target_pos[i, s], c, cs, min_qtys[s], min_notionals[s]):
                         invalid_target = True
                 trade_notional = abs(delta) * exec_price * cs
                 fee_est += trade_notional * fee_rate
@@ -1092,7 +1092,7 @@ def _engine_portfolio_equity_sizing(
                     invalid_target = True
                     continue
                 exec_price = c * (1.0 + slippage_rate) if delta > 0.0 else c * (1.0 - slippage_rate)
-                if not _delta_order_allowed(current_pos[s], target_units[s], exec_price, cs, min_qtys[s], min_notionals[s]):
+                if not _delta_order_allowed(current_pos[s], target_units[s], c, cs, min_qtys[s], min_notionals[s]):
                     invalid_target = True
                 trade_notional = abs(delta) * exec_price * cs
                 fee_est += trade_notional * fee_rate
