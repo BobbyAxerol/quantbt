@@ -44,7 +44,7 @@ class CalibrationRecipe:
     @classmethod
     def continuous(cls, dossier, *, option_id, binding, param_ranges, formula,
                    selector_id, search_budget, seed, access, validation,
-                   failure_policy, reason):
+                   failure_policy, reason, donors=None):
         """Resolve identifiers mechanically; numeric preferences stay explicit.
 
         The caller's diagnostic producer supplies its original continuous
@@ -75,6 +75,11 @@ class CalibrationRecipe:
             budget=len(b["local_offsets"]) * search_budget)
         spec["validation"].update(validation)
         spec["reuse"]["selection_policy"] = asdict(access)
+        if donors is not None:
+            from .donors import ArchiveDonorPlan
+            if not isinstance(donors, ArchiveDonorPlan):
+                raise TypeError('explicit typed archive donor plan required')
+            spec['reuse']['archive_donors'] = donors.record.data
         return cls.from_spec(option_id=option_id, binding=binding, spec=spec, reason=reason,
             field_origins={name: "researcher-supplied binding/formula/policy; identifiers mechanically resolved"
                            for name in (*FIELDS, "search_budget")})

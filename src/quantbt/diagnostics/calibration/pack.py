@@ -98,6 +98,8 @@ class Mode5RunPack:
             raise NotImplementedError("NOT_EXECUTABLE: " + "; ".join(option["missing_contracts"]))
         recipe = CalibrationRecipe(Record.of(option["recipe"]))
         plan, binding = recipe.resolve(dossier)
+        from .donor_binding import verify_recipe_donors
+        verify_recipe_donors(recipe, dossier=dossier, binding=binding, catalog=catalog, access=access)
         from quantbt.mode5.dossier.plans import CalibrationPlan
         # Scientific fields stay identical; each researcher revision gets a
         # distinct plan seal and cannot inherit an earlier choice's chronology.
@@ -248,6 +250,18 @@ class Mode5RunPack:
     def reconcile(self, result):
         from .reconcile import reconcile
         return reconcile(self, result)
+
+    def winner_report(self, result, *, access, witness, source_ref, request=None):
+        """Same opt-in report owner as result.research_report, after reconciliation."""
+        from ..winner import WinnerQualificationReport
+        from quantbt.mode5.decision_report import DecisionReport
+        retained = self.reconcile(result)
+        data = retained.record.data
+        if data['status'] not in {'RECONCILED_RETAINED_RUN', 'NO_SELECTION'}:
+            raise ValueError('winner report needs this pack\'s reconciled original outcome')
+        return WinnerQualificationReport.build(DecisionReport(Record.of(data['actual_decision'])),
+            access=access, witness=witness, source_ref=source_ref, request=request,
+            result=None if data['status'] == 'NO_SELECTION' else result)
 
     def to_dict(self, *, report=None, private=False):
         if type(private) is not bool:

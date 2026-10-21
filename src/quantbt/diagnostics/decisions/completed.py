@@ -29,6 +29,9 @@ def from_result(result, *, access, source_ref, role='diagnostic_development', **
         if not isinstance(wf, Mapping):
             raise ValueError('completed public WFO result metadata required; reporting never runs a strategy')
     mode = wf.get('optimization_mode')
+    qualification = options.pop('qualification', None)
+    if qualification is not None and mode != 'mode_5_full_robust':
+        raise ValueError('winner qualification requires diagnostics-first Mode5; no inferred route')
     if mode == 'mode_4_is_only_robust':
         return ResearchDecisionReport.from_walk_forward(
             wf, access=access, source_ref=source_ref, role=role, **options)
@@ -44,5 +47,11 @@ def from_result(result, *, access, source_ref, role='diagnostic_development', **
     best = wf.get('best_trial')
     params = best.get('params') if isinstance(best, Mapping) else None
     decision = DecisionReport.read(wf['mode5_diagnostics_first'], selected_params=params)
+    if qualification is not None:
+        from ..winner import WinnerQualificationReport
+        if options:
+            raise ValueError('winner qualification options belong in its typed request')
+        return WinnerQualificationReport.build(decision, access=access, witness=witness,
+            source_ref=source_ref, request=qualification, result=result)
     return ResearchDecisionReport.mode5(decision, access=access, witness=witness,
         source_ref=source_ref, **options)

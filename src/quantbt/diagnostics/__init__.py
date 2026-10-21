@@ -13,8 +13,11 @@ from .reuse import DiagnosticReuse
 from .decisions import (FoldDecisionEvidence, FoldSlot, MetricSupplement, ReportCohort,
                         ResearchDecisionReport, RetainedAccountReport, RetainedInterval)
 from .calibration import (CalibrationRecipe, CalibrationWorksheet, Mode5RunPack,
-                          CalibrationRunReport, calibration_handoff_capabilities)
+                          CalibrationRunReport, calibration_handoff_capabilities,
+                          ArchiveDonorPlan, CoordinateDonorTarget, continuous_donor_target)
 from .archive import ArchiveReview
+from .winner import (WinnerStateView, WinnerEvidence, WinnerBaseline,
+                     WinnerQualificationRequest, WinnerQualificationReport, winner_subject)
 
 __all__ = ["AccessPolicy", "AccessWitness", "AlphaDiagnostics", "AlphaDiagnosticReport",
     "DiagnosticAdvice", "DiagnosticAnalysis", "DiagnosticBudget", "DiagnosticContext",
@@ -23,4 +26,7 @@ __all__ = ["AccessPolicy", "AccessWitness", "AlphaDiagnostics", "AlphaDiagnostic
     "MissingInputs", "PanelRow", "ExecutionKey", "AnalysisKey", "SelectionKey", "compile_plan",
     "FoldDecisionEvidence", "FoldSlot", "MetricSupplement", "ReportCohort", "ResearchDecisionReport",
     "RetainedAccountReport", "RetainedInterval", "CalibrationRecipe", "CalibrationWorksheet",
-    "Mode5RunPack", "CalibrationRunReport", "ArchiveReview", "calibration_handoff_capabilities"]
+    "Mode5RunPack", "CalibrationRunReport", "ArchiveReview", "calibration_handoff_capabilities",
+    "WinnerStateView", "WinnerEvidence", "WinnerBaseline", "WinnerQualificationRequest",
+    "WinnerQualificationReport", "winner_subject", "ArchiveDonorPlan", "CoordinateDonorTarget",
+    "continuous_donor_target"]

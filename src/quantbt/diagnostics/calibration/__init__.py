@@ -2,6 +2,8 @@
 from .worksheet import CalibrationRecipe, CalibrationWorksheet
 from .pack import Mode5RunPack
 from .reconcile import CalibrationRunReport
+from .donors import ArchiveDonorPlan, CoordinateDonorTarget
+from .donor_binding import continuous_donor_target
 
 
 def calibration_handoff_capabilities():
@@ -14,8 +16,11 @@ def calibration_handoff_capabilities():
         report_views_require_retained_authorized_evidence=True,
         market_index="explicit_timezone_aware", dataframe_attrs="not_qualified_without_manifest_extension",
         external_evidence_required=True, private_pack_export=True,
+        explicit_complete_archive_coordinates=True, archive_scores_imported=False,
+        winner_qualification='result.research_report(qualification=WinnerQualificationRequest(...))',
         exact_full_wfo_resume=False, deployment_authorized=False)
 
 
 __all__ = ["CalibrationRecipe", "CalibrationWorksheet", "Mode5RunPack", "CalibrationRunReport",
-           "calibration_handoff_capabilities"]
+           "calibration_handoff_capabilities", "ArchiveDonorPlan", "CoordinateDonorTarget",
+           "continuous_donor_target"]
