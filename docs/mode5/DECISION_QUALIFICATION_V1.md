@@ -2,6 +2,10 @@
 
 `DecisionReport` is an additive cold reader for diagnostics-first Mode 5.
 
+For a unified exact-winner coverage/decision/account report, see the opt-in
+[winner qualification request](../diagnostics/MODE5_WINNER_QUALIFICATION.md).
+It shares this original decision owner; omitted options preserve this reader.
+
 The same original owner is available through the additive
 `endpoint.research_report(...)` / `result.research_report(...)` interface with
 explicit full-development access/witness. It retains the actual dictionary and

@@ -6,6 +6,12 @@ The [API](FOLD_DECISION_REPORTS.md) shares original numeric owners with
 [pre-search diagnostics](PRESEARCH_RESEARCHER_REPORT.md) and the original
 [Mode 5 reader](../mode5/DECISION_QUALIFICATION_V1.md).
 
+The later [winner qualification supplement](MODE5_WINNER_QUALIFICATION.md)
+adds exact winner/account/state/probe/stress coverage and explicit coordinate
+donors on the same endpoint/report path. Historical acceptance counts below
+retain their original source scope. Parent research has since received owner
+scope acceptance; final-source package/CI/publication still require new gates.
+
 ## Surface And Timing
 
 | Surface | Public Entry | Required Evidence / Scope |

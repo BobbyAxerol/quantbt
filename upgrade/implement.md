@@ -2,6 +2,18 @@
 
 ## Current Mode 5 Diagnostics-First Upgrade - Full-Development Decision Support
 
+**Current product supplement (2026-10-21, UTC):** the owner-approved
+[M5-11.15](#mode5-m5-11-15) is COMPLETE_LOCAL_REGISTERED_SUPPORT_SCOPE:
+716distinct cold tests PASS; three actual synthetic proofs total36proposals/
+66financial invocations, zero private-alpha optimizers/model fits. It adds unified
+winner evidence, numeric explanations and an explicit cross-mode donor path.
+Support is opt-in through the existing endpoints; researcher choice remains
+authoritative. Neither a measured local gain nor technical qualification changes
+defaults without separate owner approval. Parent research acceptance below is
+preserved. See the [local closeout](../docs/diagnostics/M5_11_15_IMPLEMENTATION_REPORT.md#local-closeout).
+M5-12 remains NOT_STARTED until its separate owner launch/resource admission;
+release and remote/public approval remain later.
+
 **Owner parent disposition (2026-10-21, UTC):** the owner explicitly approves
 the overall disposition of [parent M5-11](#mode5-m5-11). Current status is
 COMPLETE_OWNER_ACCEPTED_RESEARCH_SCOPE: completed registered research and
@@ -17,7 +29,7 @@ NOT_STARTED, awaiting its separate launch decision and resource admission.
 No new tests/finance, build/install, CI, push/merge/tag or release is authorized
 or launched by this research-scope acceptance.
 
-**Latest integration closeout (2026-10-21, UTC):** the separately owner-approved
+**Earlier integration closeout (2026-10-21, UTC):** the separately owner-approved
 [M5-11.14](#mode5-m5-11-14) is COMPLETE_LOCAL_REGISTERED_INTEGRATION_SCOPE.
 Shared source-bound diagnostics/archive review now lead to an explicit
 researcher worksheet, checked private Mode 5 run pack, original endpoint
@@ -28043,7 +28055,8 @@ Every phase below inherits this mandatory resource registration/cleanup exit.
 | [M5-11.12](#mode5-m5-11-12) | Bidirectional sampler assistance with strict prefix isolation | Reviewed 11.10/11.11; own approval; separate direction contracts | XMR-021..030 | COMPLETE_LOCAL_REGISTERED_RESEARCH_SCOPE;16 studies/4,096 slots,768 diagnostics,107 tests; scratch exception reported; no default activation |
 | [M5-11.13](#mode5-m5-11-13) | Whole-procedure chronology, economics and final research disposition | Reviewed 11.10..12; owner-approved KEEP_BASELINE/no-new-finance branch | XMR-031..040 | COMPLETE_LOCAL_APPROVED_NO_NEW_FINANCE_SCOPE;031..036DEFERRED_APPROVED,037..040verified cold only; parent/package not accepted |
 | [M5-11.14](#mode5-m5-11-14) | Shared diagnostics to researcher choice, executable Mode 5 run pack and post-run reconciliation | Owner-approved local integration; retained evidence and bounded synthetic proof; no automatic hybrid adoption | M5H-001..016 | COMPLETE_LOCAL_REGISTERED_INTEGRATION_SCOPE;574distinct source tests;14synthetic proposals/23financial invocations including failed work; parent/package acceptance separate |
-| [M5-12](#mode5-m5-12) | Local qualification/docs/handoff | M5-01..11 plus 11.4..11.14 reviewed dispositions and explicit parent acceptance | M5T-111..120 | APPROVED_CONDITIONAL / NOT_STARTED; 11.14 and parent acceptance complete; separate launch approval/resource admission pending |
+| [M5-11.15](#mode5-m5-11-15) | Unified winner evidence/explanations and explicit archive donor execution | Owner-approved opt-in product supplement; preserve accepted parent scope and defaults | WQ-001..014 | COMPLETE_LOCAL_REGISTERED_SUPPORT_SCOPE; 716distinct PASS, actual donor proof36/66 work, no release |
+| [M5-12](#mode5-m5-12) | Local qualification/docs/handoff | M5-01..11 plus 11.4..11.15 reviewed dispositions and explicit parent acceptance | M5T-111..120 | APPROVED_CONDITIONAL / NOT_STARTED; 11.14/11.15 and parent acceptance complete; separate launch approval/resource admission pending |
 
 Respect the guide dependency graph. M5-05 and independent M5-06 preparation
 may overlap only by explicit owner approval after M5-04; M5-06 exit still needs
@@ -39221,6 +39234,153 @@ original scientific dispositions. They are not recast as missing implementation
 or fabricated economic PASS. Parent scope acceptance, M5-12 and remote/public
 qualification are still separate owner decisions, not activated by this receipt.
 
+<a id="mode5-m5-11-15"></a>
+### Phase M5-11.15 - Winner Evidence, Numeric Explanations And Cross-Mode Opt-In Qualification
+
+**Status:** COMPLETE_LOCAL_REGISTERED_SUPPORT_SCOPE / PASS_SOURCE_ONLY.
+The [implementation/exit report](../docs/diagnostics/M5_11_15_IMPLEMENTATION_REPORT.md)
+and [local summary](../docs/diagnostics/evidence/m5-11-15-local-summary.json)
+record716distinct affected PASS, actual complete-archive/donor/account/state/
+baseline checks and cumulative36proposal slots/66financial owner calls across
+three bounded synthetic proofs, within48/80caps. Existing real RSI evidence is
+read without finance/search; private-alpha optimizers/model fits remain zero.
+Exact scratch cleanup verifies11protected metadata pins, preserves old failures,
+and keeps defaults/Ridge/scientific/engine bytes unchanged. WQ-001..014 PASS in
+the registered local support scope; no installed/remote/public certificate.
+Approval explicitly covers the three supplements requested after parent M5-11
+acceptance. This is product support, not a new tournament/default promotion.
+**Goal:** a researcher can obtain, at the existing endpoint/result interface,
+one source-bound qualification report for the actual chosen Mode5 dictionary:
+whole/annual/state performance, activity/exposure, risk/tail, actual-center local
+and stress evidence, matched baseline/runner-up comparisons and numerically
+explained trade-offs. A complete lawful Mode4 archive can provide explicitly
+researcher-chosen coordinates to an opt-in Mode5 run, with fresh current-contract
+evaluation, declared budget and observed lineage. Absence of benefit preserves
+baseline; absence of evidence is named, not manufactured.
+**Entry:** accepted parent research scope, M5-11.14 source closeout, latest
+owner implementation approval; retain unrelated owner edits and private-only
+alpha/data. Reuse existing environment/native binaries and qualified retained
+evidence. No M5-12, installed build, CI, push, merge, tag or publication.
+**Detailed Guide:** [Mode5 diagnostic axes and empirical comparisons](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#chapter-4),
+[units/objectives](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#chapter-5),
+[choice/freeze/incumbent](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#chapter-6),
+[architecture/reporting](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#chapter-7),
+[claim limits](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#chapter-8),
+[cross-mode rights](QUANTBT_MODE4_MODE5_CROSS_MODE_RESEARCH_GUIDE_V1.md#xm-rights),
+[shared cross-mode architecture](QUANTBT_MODE4_MODE5_CROSS_MODE_RESEARCH_GUIDE_V1.md#xm-architecture),
+[existing decision report](../docs/mode5/DECISION_QUALIFICATION_V1.md),
+[shared endpoint access](../docs/diagnostics/FOLD_DECISION_REPORTS.md),
+and [handoff contracts](../docs/diagnostics/MODE5_EXECUTABLE_HANDOFF.md).
+
+**Contracts / Scope Lock:**
+- Extend shared diagnostics/report owners, not financial engines or scientific
+  reducers. Existing `research_report` defaults and legacy outputs remain exact;
+  an explicit typed winner-qualification option adds the new report path.
+- All added evidence binds candidate effective ID, original execution/context,
+  source/witness, scope, units and measurement contract. Evidence for another
+  diagnostic center cannot certify a formal winner. Missing, unmeasured,
+  insufficient, adverse and not-applicable are separate statuses.
+- Calendar annuals remain original dependent views of a continuous account.
+  State/transition attribution is descriptive; labels retain their own rights,
+  fit vintage, unknown-state support and source. No hidden regime fitting or
+  selection on held/future outcomes is added to report assembly.
+- Baseline meaning is explicit: same-pool alternative/incumbent, original legacy
+  selector, matched separate study, or not supplied. A retained same-pool score
+  comparison is not a full sampler treatment effect. Report arithmetic is a
+  description of supplied evidence, not causal attribution to a sampler.
+- Donor selection is explicit, immutable and researcher-ordered. Only coordinates
+  from complete, source-bound, rights-valid archive records may enter the
+  existing warm-start seam. No old objective values/model state are imported.
+  Parameters consume current proposal slots and are evaluated under current
+  Mode5 accounting/metrics. Score reuse and coordinate reuse remain distinct.
+- Full-development Mode5 evidence cannot advise an earlier Mode4 fold.
+  Prefix-safe donor requests recheck all dependency clocks and rights; this
+  supplement does not add automatic per-fold diagnostics or backdate dossiers.
+- No automatic router, learned donor ranking, temporal-regret default, new
+  estimator/model, financial proxy, outcome-based gate change or blanket
+  superiority claim. Current annual ranking capability is unchanged.
+
+**To-Do / Work Packages:**
+1. WQP01: inventory existing selected/component/environment/account and source
+   contracts; register exact source/resource/retained witness scope before tests.
+   Define candidate/context-bound optional evidence and comparison inputs.
+2. WQP02: implement focused immutable winner evidence contracts and report
+   assembly: original whole/annual observations, actual selected dict and gates,
+   explicit activity/exposure/tail/cost and state/local/stress attachments. Reuse
+   existing measured source values or attribution owners, never infer fills from
+   transitions, risk/exposure from Sharpe, or missing evidence from a file name.
+3. WQP03: produce numerical winner/runner-up/incumbent/baseline explanations:
+   objective components and differences, raw quality/risk/activity trade-offs,
+   exclusions, tie/guard behavior and evidence support. Unknowns stay named;
+   explain actual policy rather than retrospectively choosing a better winner.
+4. WQP04: expose via existing endpoint/result report dispatch and handoff pack;
+   keep one shared JSON/Markdown owner and private-by-default protections.
+   Same request works for a new alpha by contracts, without alpha-name routing.
+5. WQP05: implement explicit source-bound archive coordinate selection and
+   checked conversion to existing sampler warm starts; bind declared target,
+   strategy/schema/market/instrument/clock/economics, access and budget. Freeze
+   donor roster/reason before search; require revised binding/context/seal.
+6. WQP06: qualify a positive complete-archive path and matched no-assistance
+   baseline through actual existing endpoints on bounded public synthetic
+   inputs. Obtain genuine completed Mode4 candidates, never relabel MISSING
+   as complete. Check current observations, ordered attempts, accounting and
+   donor/source lineage. Test forbidden future/full-data-prefix use explicitly.
+7. WQP07: exercise the report on retained real winner evidence without rerunning
+   completed optimizers. Cover supported source adapters and retain exact
+   missing/scoped categories; do not pretend research receipt formats are
+   automatically public runtime inputs. Add new-alpha synthetic examples.
+8. WQP08: final affected regression, benchmark cold assembly/reload/render,
+   privacy, documentation/capability map, exact scratch cleanup and commit.
+   Hand back current support/limitations and M5-12 prerequisites to the owner.
+
+**Tests / Exit Witnesses:**
+| Gate | Required result |
+|---|---|
+| WQ-001 | Original report/endpoint/default/RNG/account contracts preserved when opt-in omitted |
+| WQ-002 | Wrong candidate, run/context, window, metrics, source, instrument or source bytes rejected, including reload |
+| WQ-003 | Whole/annual values and score components exact original readback; actual selected dictionary and original replay agree |
+| WQ-004 | State/activity/tail/DD values have source, units, support and missing masks; calendar years never labelled market regimes |
+| WQ-005 | Actual-center local/stress evidence required; wrong center/budget/held role cannot rerank or certify the winner |
+| WQ-006 | Baseline type/matching explicit; missing comparison and nonmatched sampler effects never presented as measured gains |
+| WQ-007 | Independent numeric explanation fixtures cover beneficial/adverse/tied/inactive/unsupported/NO_SELECTION cases |
+| WQ-008 | Complete lawful archive converts only explicit source-bound coordinates; order, geometry, hashes, budget and current access checked |
+| WQ-009 | Future candidates/revisions/labels/full-development dependencies denied for prefix use; source policy rechecked after reload/run |
+| WQ-010 | Positive actual Mode4-to-Mode5 donor run plus matched baseline, fresh current scores/accounting and exact donor/application lineage |
+| WQ-011 | Existing endpoint/result opt-in and pack expose same report; default APIs unchanged and unsupported mode requests fail explicitly |
+| WQ-012 | Report assembly calls no strategy/finance/ask/tell/fit; public redaction and bounded immutable round trips pass |
+| WQ-013 | Retained real evidence support/readback and cold cost/RSS/bytes measured honestly; no new economic promotion from synthetic results |
+| WQ-014 | Docs/links/source manifests, resource/work ledger, privacy and exact inactive scratch cleanup complete |
+
+**Deliverables:** shared typed winner evidence/report and optional donor
+selection, endpoint/result/pack integration, public runnable synthetic examples,
+local source-bound test/work/benchmark/cleanup receipts and detailed report.
+Private strategies/data/dictionaries stay ignored and outside distribution.
+**Resource / Cleanup Gate:** reuse `.venv` and existing native artifacts; no
+build/install or private-alpha optimizer/model fits. One financial/test worker
+and one numeric thread; local admission ceiling768MiB owned RSS,64MiB compact
+retention/128MiB allocated scratch, >=512MiB available RAM and >=5GiB disk reserve
+beyond192MiB incremental forecast. Before financial smoke seal exact synthetic
+protocol; at most48proposal slots/80original-owner financial invocations,
+including failures/replays. This is mechanics qualification, not enough budget
+for economic superiority claims. Preserve all evidence and exact failed work;
+remove only registered inactive `m5-11-15/attempt-01/scratch`, verify protected
+pins and report actual reclaimed bytes. No unrelated process/cache control.
+**Exit Gate:** WQ-001..014 pass within declared local scope; actual positive
+archive use is observed, not a missing-archive fallback; researchers can choose
+the supported option through existing endpoints and inspect a unified report.
+Missing evidence cannot receive a robustness PASS. No default or broader
+scientific claim changes without separate owner approval. Parent accepted
+research remains accepted; M5-12 and release await their own launch authority.
+**Technical Debt / Gap Policy:** fix in-scope binding/report/application gaps;
+do not deliver another disconnected retrospective table or an untested public
+flag. New methodology, automatic donor ranking, broader regimes/engines or
+unsupported manifest semantics require separate scope, not silent aliasing.
+**Commit Boundary:** verified contract/report changes, endpoint integration,
+donor proof, then final documentation/qualification/cleanup; commit meaningful
+chunks and preserve unrelated owner edits. No push/merge/tag/publication.
+**Rollback:** omit the explicit new report/donor option and retain original
+Mode4/Mode5/default behavior; all existing evidence and decisions remain intact.
+
 <a id="mode5-m5-12"></a>
 ### Phase M5-12 - Local Package Qualification, Regression, Docs And Handoff
 
@@ -39235,13 +39395,16 @@ M5-11.9remaining-coverage disposition and owner-reviewed
 [M5-11.10..11.13 cross-mode research dispositions](#mode45-cross-mode-roadmap);
 [M5-11.14 checked diagnostics-to-calibration integration](#mode5-m5-11-14),
 which is locally complete and included in the separately accepted parent scope.
+The later owner-approved [M5-11.15 support supplement](#mode5-m5-11-15) is also
+locally complete and must be included in exact final-source package/consumer
+qualification; its source receipt is not an installed-artifact certificate.
 Package gates remain NOT_RUN; parent acceptance is not installed-artifact
 qualification or permission to launch release workflows.
 M5-11.4/11.5 retain their separately approved local closure. This planning
 request does not launch M5-12 or any CI, release or publication.
 **Goal:** deliver a reproducible privacy-safe local package and honest capability/
    scientific handoff covering the whole approved program before release approval.
-**Entry:** M5-01..11 including M5-11.4..11.14, M5-11.6.1 and ML-09.C reviewed
+**Entry:** M5-01..11 including M5-11.4..11.15, M5-11.6.1 and ML-09.C reviewed
    dispositions, explicit owner acceptance of the parent research scope,
    no blocking technical debt for claimed capabilities, explicit
    M5-12 approval. Cross-mode planning approval is not execution or scientific

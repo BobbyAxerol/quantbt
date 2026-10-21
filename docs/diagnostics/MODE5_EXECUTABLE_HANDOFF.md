@@ -11,6 +11,11 @@ It imports no test modules and needs no archived study or 57-fold research run.
 
 ## Entry Points
 
+The later [winner qualification and complete-archive donor supplement](MODE5_WINNER_QUALIFICATION.md)
+adds an explicit optional request on the same result/endpoint interface and
+verified coordinate-only warm starts. The MISSING archive example below remains
+an absence control; it is not retroactively relabelled as the positive proof.
+
 The shared `calibration_handoff_capabilities()` describes executable annual
 continuous attribution versus descriptive-only temporal views. It adds no
 financial route or automatic recipe registry. For a completed run,

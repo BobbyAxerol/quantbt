@@ -3758,6 +3758,10 @@ Important rules:
   research selector slots do not replace the legacy selectors above. See
   [Public Diagnostics-First Mode 5](mode5/PUBLIC_CALIBRATION_V1.md) for exact
   sampler, prepared retention, failure, measurement and selected-audit rules;
+- source-branch opt-in [winner qualification and archive donors](diagnostics/MODE5_WINNER_QUALIFICATION.md)
+  add exact-candidate evidence and current-contract coordinate reevaluation on
+  the existing endpoint/result interfaces. Researchers choose whether to use
+  them; no automatic router, default replacement or new financial engine;
 - numba accelerates repeated scoring/bootstrap loops when installed; Python /
   NumPy fallback remains available for debug and equivalence tests.
 

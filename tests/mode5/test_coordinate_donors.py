@@ -251,7 +251,8 @@ def test_unknown_future_and_cutoff_equal_dag_clocks_are_never_donors(tmp_path, f
 
 @pytest.mark.parametrize("kind", ["source", "candidate", "outcome", "revision"])
 def test_full_development_dependencies_cannot_be_backdated_by_coordinate_reevaluation(tmp_path, kind):
-    edit = lambda e: _node(e, kind, backdating="NOT_BACKDATABLE")
+    def edit(e):
+        return _node(e, kind, backdating="NOT_BACKDATABLE")
     retrospective = _build(tmp_path / "current", evidence_edit=edit)
     assert _create(retrospective).verify(**_current(retrospective))
     prefix = _build(tmp_path / "prefix", evidence_edit=edit, mode="MODE4_PREFIX")

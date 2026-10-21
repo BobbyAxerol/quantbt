@@ -60,6 +60,17 @@ not a substitute for final-source integrated remote/public release gates.
 
 ## Reporting Local Closure
 
+**Mode 5 product supplement:** the opt-in
+[winner qualification and explicit archive donor contract](../diagnostics/MODE5_WINNER_QUALIFICATION.md)
+extends current source beyond historical receipts below. Final M5-12 packaging
+must include its modules, tests, example and exact-current-source consumer proof;
+source qualification does not reuse an older wheel's certificate. No default
+promotion, remote execution or publication is authorized by this addition.
+The [local implementation/exit report](../diagnostics/M5_11_15_IMPLEMENTATION_REPORT.md)
+and [source summary](../diagnostics/evidence/m5-11-15-local-summary.json)
+record716distinct cold PASS, actual opt-in donor execution and safe cleanup;
+these do not certify a previously built or published wheel.
+
 **Shared research reporting (2026-10-19 UTC):** M5-11.7.1/2/3 complete their
 registered source-only scope. The [coverage and M5-12 handoff](../diagnostics/REPORTING_COVERAGE_AND_HANDOFF.md)
 and [final local report](../diagnostics/M5_11_7_3_IMPLEMENTATION_REPORT.md)

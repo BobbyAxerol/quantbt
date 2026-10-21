@@ -1,0 +1,57 @@
+{
+  "actual_work": {
+    "empty_harness_failure_retained": true,
+    "financial_invocations": 66,
+    "model_fits": 0,
+    "private_alpha_optimizers": 0,
+    "proposals": 36,
+    "successful_proofs": 3
+  },
+  "automatic_routing": false,
+  "cleanup": {
+    "delta_is_not_exclusive_attribution": true,
+    "free_after_bytes": 6284468224,
+    "free_before_bytes": 6248140800,
+    "protected_metadata_pins_verified": 11,
+    "removed": "upgrade/private/mode5_upgrade_v1/m5-11-15/attempt-01/scratch",
+    "retained_allocated_bytes": 7213056,
+    "reviewed_allocated_scratch_bytes": 37769216,
+    "scratch_absent": true,
+    "shared_device_free_delta_bytes": 36327424
+  },
+  "defaults_changed": false,
+  "distinct_tests": 716,
+  "installed_or_remote_certified": false,
+  "parent_acceptance_preserved": true,
+  "privacy": {
+    "package_certification": "M5-12_NOT_STARTED",
+    "private_research_tracked": false,
+    "source_public_redaction_tested": true
+  },
+  "protected_source_changes": [],
+  "push_merge_tag_publish": false,
+  "report_benchmark": {
+    "financial_invocations": 0,
+    "median_seconds": 0.35243880515918136,
+    "model_fits": 0,
+    "optimizer_proposals": 0,
+    "process_peak_rss_kib": 222664,
+    "repeats": 5,
+    "report_bytes": 393322,
+    "status": "PASS_COLD_SOURCE_READBACK"
+  },
+  "schema": "quantbt.m51115.local_qualification.v1",
+  "separately_deselected_actual_smoke": 1,
+  "source_commit": "ba899c9d1a4d97991533cbc1e88aa0e00b13ea4a",
+  "source_suite_time": {
+    "exit_status": 0,
+    "peak_rss_kib": 276304
+  },
+  "status": "PASS_LOCAL_SOURCE_SCOPE",
+  "tests": {
+    "errors": 0,
+    "failures": 0,
+    "skipped": 0,
+    "tests": 716
+  }
+}
