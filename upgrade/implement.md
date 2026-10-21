@@ -2,6 +2,21 @@
 
 ## Current Mode 5 Diagnostics-First Upgrade - Full-Development Decision Support
 
+**Owner parent disposition (2026-10-21, UTC):** the owner explicitly approves
+the overall disposition of [parent M5-11](#mode5-m5-11). Current status is
+COMPLETE_OWNER_ACCEPTED_RESEARCH_SCOPE: completed registered research and
+M5-11.14 integration are accepted with their recorded scope, evidence and
+limitations. Negative/inconclusive findings, KEEP_BASELINE, insufficient basin
+coverage and approved-deferred whole-procedure work are retained unchanged;
+acceptance adds no scientific superiority, independent OOS or deployment claim.
+See the [current scope decision](../docs/mode5/M5_11_RESEARCH_COVERAGE_DISPOSITION.md#owner-decision-before-m5-12)
+and [append-only approval record](../docs/mode5/evidence/m5-11-parent-disposition.json).
+This explicit decision supersedes earlier pending-parent labels below, without
+rewriting their historical receipts. M5-12 remains APPROVED_CONDITIONAL /
+NOT_STARTED, awaiting its separate launch decision and resource admission.
+No new tests/finance, build/install, CI, push/merge/tag or release is authorized
+or launched by this research-scope acceptance.
+
 **Latest integration closeout (2026-10-21, UTC):** the separately owner-approved
 [M5-11.14](#mode5-m5-11-14) is COMPLETE_LOCAL_REGISTERED_INTEGRATION_SCOPE.
 Shared source-bound diagnostics/archive review now lead to an explicit
@@ -15,8 +30,9 @@ Mode5/endpoint/optimization owners and authoritative guides remain unchanged.
 Exact cleanup removes50.63MiB inactive scratch and rechecks110protected files.
 See [implementation/acceptance report](../docs/diagnostics/M5_11_14_IMPLEMENTATION_REPORT.md)
 and [cleanup receipt](../docs/maintenance/M5_11_14_CLEANUP.md).
-The next order is owner disposition of parent M5-11, then separately admitted
-M5-12. Source-only integration PASS is not installed/public qualification.
+The subsequent explicit owner disposition above now accepts parent M5-11;
+M5-12 is next only after its separate launch approval and admission.
+Source-only integration PASS is not installed/public qualification.
 CI, push/merge/tag, version changes, publication and deployment remain gated.
 
 **Latest terminal research closeout (2026-10-21, Asia/Saigon):**
@@ -35,7 +51,8 @@ See [current results](../docs/mode5/M5_11_9_RESEARCH_STATUS.md),
 [full program review](../docs/mode5/MODE5_RESEARCH_PROGRAM_REVIEW.md) and
 [parent disposition packet](../docs/mode5/M5_11_RESEARCH_COVERAGE_DISPOSITION.md).
 M5-11.10..13keep their existing individually approved scopes; no generic
-recipe/model/default is promoted. Parent M5-11scope acceptance remains pending;
+recipe/model/default is promoted. Parent M5-11 scope is now accepted under the
+separate owner disposition above; no receipt's scientific scope is broadened.
 M5-12, CI, push/merge/tag, publication and deployment are NOT_STARTED.
 
 **Latest owner-approved disposition:**
@@ -733,8 +750,10 @@ Read the [M5-10 report](../docs/mode5/M5_10_PUBLIC_RUNTIME_REPORT.md),
 [public opt-in contract](../docs/mode5/PUBLIC_CALIBRATION_V1.md),
 [summary](../docs/mode5/evidence/m5-10.json) and
 [cleanup](../docs/maintenance/M5_10_CLEANUP.md).
-M5-11 research is REOPENED_RESEARCH_COVERAGE after the owner's scope correction
-on 2026-10-10 (Asia/Saigon). The separately approved historical finite pilot
+M5-11 research is now COMPLETE_OWNER_ACCEPTED_RESEARCH_SCOPE under the explicit
+2026-10-21 UTC owner disposition. Its historical reopening followed the owner's
+scope correction on 2026-10-10 (Asia/Saigon); that history is retained below.
+The separately approved historical finite pilot
 remains COMPLETE_LOCAL_FINITE_PILOT_EXPLORATORY: 654 shared tests, 50 overlapping final economics/clock
 tests and four report tests PASS; 20 qualified 365-day paths reconcile and two
 eligible public calibrations/stress controls preserve exact accounting. Both
@@ -28006,7 +28025,7 @@ Every phase below inherits this mandatory resource registration/cleanup exit.
 | [M5-08.1](#mode5-m5-08-1) | Longer calendar, coverage and mechanism diagnostics | Reviewed M5-08; separate owner approval | M5T-071..080 plus extension contracts | COMPLETE_LOCAL_REGISTERED_HISTORICAL_DIAGNOSTICS; DESCRIPTIVE_ONLY; broad confirmation INCONCLUSIVE |
 | [M5-09](#mode5-m5-09) | Dossier, advisory and sealed plan | M5-08/08.1 reviewed exit | M5T-081..090 | COMPLETE_LOCAL_DOSSIER_GOVERNANCE |
 | [M5-10](#mode5-m5-10) | Public opt-in integration/runtime reuse | M5-09 plus current source map | M5T-091..100 | COMPLETE_LOCAL_PUBLIC_OPT_IN / TECHNICALLY_VALID |
-| [M5-11](#mode5-m5-11) | Formal calibration and scoped economics | M5-10 plus authorized adequate data | M5T-101..110 | REOPENED_RESEARCH_COVERAGE; original finite pilot preserved |
+| [M5-11](#mode5-m5-11) | Formal calibration and scoped economics | M5-10 plus separately approved research scopes and owner parent disposition | M5T-101..110 plus registered subphase gates | COMPLETE_OWNER_ACCEPTED_RESEARCH_SCOPE; bounded completion and scientific limitations accepted; original receipts preserved |
 | [M5-11.1](#mode5-m5-11-1) | Broad five-alpha diagnostics and renewed dossier | M5-11 scope review; registered data/design/resource protocol | M5T-041..060 / 071..090 | Broad accounts and bounded native B2/dossiers technically PASS; 640 discovery accounts, 348 native probes; scientific limitations retained |
 | [M5-11.2](#mode5-m5-11-2) | Actual adaptive formal search and selector comparisons | Reviewed M5-11.1 dossier; new sealed plans | M5T-091..103 / EH-01..05 | Raw256/floor256 audited and recovered; selector-only complete; three new sampler256 arms and cold matched comparison PASS; historical failures retained |
 | [M5-11.3](#mode5-m5-11-3) | Multi-origin fixed-policy transfer and economic qualification | Frozen M5-11.2 outputs and prefix studies | M5T-101..110 / EH-06..12 | Registered bounded accounts and accounting COMPLETE; economics INCONCLUSIVE retained; actual bounded 2023-prefix procedure qualified separately in M5-11.5, broader learned-router claim remains unqualified |
@@ -28017,14 +28036,14 @@ Every phase below inherits this mandatory resource registration/cleanup exit.
 | [M5-11.7.1](#mode5-m5-11-7-1) | Shared pre-search diagnostics, recipe fit and source-bound interpretation | ML-09.C local exit; owner approval | M45R-01/03/04/05/06/08 | COMPLETE_LOCAL_REGISTERED_REPORTING_SCOPE |
 | [M5-11.7.2](#mode5-m5-11-7-2) | Fold consistency, R/Q and meta decision reports | Reviewed 11.7.1; sequential approval | M45R-01/02/03/04/07/08 | COMPLETE_LOCAL_REGISTERED_REPORTING_SCOPE |
 | [M5-11.7.3](#mode5-m5-11-7-3) | Broader integration, reporting cost and handoff | Reviewed 11.7.2; sequential approval | M45R-01..10 | COMPLETE_LOCAL_REGISTERED_REPORTING_SCOPE |
-| [M5-11.8](#mode5-m5-11-8) | Two additional private alphas: diagnostics, researcher recipe and actual matched calibration | Approved 128-point panels and six256-attempt studies; original-account/path/annual proof and cleanup | Registered N01..N08; guide M5T-031..110 | COMPLETE_LOCAL_REGISTERED_EXTRA_ALPHA_SCOPE; reviewed development, parent disposition still required |
+| [M5-11.8](#mode5-m5-11-8) | Two additional private alphas: diagnostics, researcher recipe and actual matched calibration | Approved 128-point panels and six256-attempt studies; original-account/path/annual proof and cleanup | Registered N01..N08; guide M5T-031..110 | COMPLETE_LOCAL_REGISTERED_EXTRA_ALPHA_SCOPE; reviewed development; included in accepted parent disposition, not independent OOS |
 | [M5-11.9](#mode5-m5-11-9) | Original-alpha formal arms, actual-winner robustness and seven-alpha synthesis | Existing sealed studies plus guarded successor/recovery; no repeated completed optimizer | Registered C01..C06; guide M5T-031..110 | COMPLETE_REGISTERED_LOCAL_RESEARCH; C05/C06 and final recovered completion verified; parent review pending |
 | [M5-11.10](#mode5-m5-11-10) | Cross-mode archive, information rights and baseline registration | Approved cold execution; immutable inputs, remaining upstream scope explicit | XMR-001..010 | COMPLETE_LOCAL_REGISTERED_COLD_SCOPE; proposed later protocol awaits review |
 | [M5-11.11](#mode5-m5-11-11) | Static selector, stable regions and temporal regret | Reviewed 11.10 registration; own approval; same-panel observation rights | XMR-011..020 | COMPLETE_LOCAL_REGISTERED_RESEARCH_SCOPE; no production/source integration |
 | [M5-11.12](#mode5-m5-11-12) | Bidirectional sampler assistance with strict prefix isolation | Reviewed 11.10/11.11; own approval; separate direction contracts | XMR-021..030 | COMPLETE_LOCAL_REGISTERED_RESEARCH_SCOPE;16 studies/4,096 slots,768 diagnostics,107 tests; scratch exception reported; no default activation |
 | [M5-11.13](#mode5-m5-11-13) | Whole-procedure chronology, economics and final research disposition | Reviewed 11.10..12; owner-approved KEEP_BASELINE/no-new-finance branch | XMR-031..040 | COMPLETE_LOCAL_APPROVED_NO_NEW_FINANCE_SCOPE;031..036DEFERRED_APPROVED,037..040verified cold only; parent/package not accepted |
 | [M5-11.14](#mode5-m5-11-14) | Shared diagnostics to researcher choice, executable Mode 5 run pack and post-run reconciliation | Owner-approved local integration; retained evidence and bounded synthetic proof; no automatic hybrid adoption | M5H-001..016 | COMPLETE_LOCAL_REGISTERED_INTEGRATION_SCOPE;574distinct source tests;14synthetic proposals/23financial invocations including failed work; parent/package acceptance separate |
-| [M5-12](#mode5-m5-12) | Local qualification/docs/handoff | M5-01..11 plus 11.4..11.14 reviewed dispositions and explicit parent acceptance | M5T-111..120 | NOT_STARTED; 11.14 closeout and research/owner disposition required before entry |
+| [M5-12](#mode5-m5-12) | Local qualification/docs/handoff | M5-01..11 plus 11.4..11.14 reviewed dispositions and explicit parent acceptance | M5T-111..120 | APPROVED_CONDITIONAL / NOT_STARTED; 11.14 and parent acceptance complete; separate launch approval/resource admission pending |
 
 Respect the guide dependency graph. M5-05 and independent M5-06 preparation
 may overlap only by explicit owner approval after M5-04; M5-06 exit still needs
@@ -29736,13 +29755,26 @@ matched performance and installed-consumer/resource/privacy/cleanup evidence.
 <a id="mode5-m5-11"></a>
 ### Phase M5-11 - Formal Calibration, Adequate Forward Tests And Economics
 
-**Status:** REOPENED_RESEARCH_COVERAGE after owner correction 2026-10-10
+**Status:** COMPLETE_OWNER_ACCEPTED_RESEARCH_SCOPE. The owner explicitly approves
+the overall parent disposition on 2026-10-21 UTC, after M5-11.14 local closeout.
+**Current scope disposition:** accept completed registered M5-11 research,
+including the original and additional-alpha scopes, Mode4/ML research/reporting,
+cross-mode dispositions and executable handoff, with their exact limitations.
+See the [coverage/disposition ledger](../docs/mode5/M5_11_RESEARCH_COVERAGE_DISPOSITION.md)
+and [approval record](../docs/mode5/evidence/m5-11-parent-disposition.json).
+No new finance, optimizer rerun, model fit, estimator/threshold/default change
+or stronger scientific claim follows from acceptance. HMA's missing eligible
+formal cohort, finite probe coverage, unavailable independent validation and
+the approved-deferred whole-procedure experiments retain explicit dispositions.
+M5-12 launch/resource admission and remote/release approvals remain separate.
+
+**Historical reopening record:** REOPENED_RESEARCH_COVERAGE after owner correction 2026-10-10
 (Asia/Saigon). Historical COMPLETE_LOCAL_FINITE_PILOT_EXPLORATORY technical
 gates remain PASS; that receipt does not close the expanded research target.
 Transfer/method superiority INCONCLUSIVE, not promoted.
 Owner separately approved the finite pilot and reviewed/exploratory protocol;
 no historical deferred seal is bypassed. M5-12 remains separately unapproved.
-**Current scope disposition:** the two-point panel was inadequate for the
+**Historical reopening rationale:** the two-point panel was inadequate for the
 intended full diagnostics -> actual search -> selector/forward experiment.
 Read [review](../docs/mode5/M5_11_RESEARCH_SCOPE_REVIEW.md). Complete the three
 recovery stages below before requesting M5-12. M5-11.1 is registered and executing;
@@ -36989,7 +37021,7 @@ bounded subphases, not another open-ended research program.
 | 5 | [M5-11.8/11.9](#mode5-m5-11-9) | Additional-alpha and remaining Mode 5 research | Later approved research; exact completion/dispositions required |
 | 6 | [M5-11.10..11.13](#mode45-cross-mode-roadmap) | Cross-mode static robustness and prefix-safe assistance | Individually completed registered scopes; 11.13 retains baseline with approved no-new-finance disposition, not hybrid promotion |
 | 7 | [M5-11.14](#mode5-m5-11-14) | Shared diagnostics, researcher worksheet, executable Mode 5 handoff and post-run reconciliation | COMPLETE_LOCAL_REGISTERED_INTEGRATION_SCOPE; owner execution approved; source-only qualification and cleanup complete |
-| 8 | Parent M5-11 disposition | Accept completed scopes and explicit research limits before packaging | Owner review after 11.14; no automatic parent acceptance |
+| 8 | Parent M5-11 disposition | Accept completed scopes and explicit research limits before packaging | COMPLETE_OWNER_ACCEPTED_RESEARCH_SCOPE; explicit owner acceptance on 2026-10-21 UTC, not automatic from test PASS |
 | 9 | [M5-12](#mode5-m5-12) | Exact local package/installed qualification | Existing conditional approval; 11.14 closeout, parent disposition and separate launch review required |
 | Later | Remote / release | Final-source CI, owner release scope, publication/public proof | Separate owner approval; no workflow/push/tag/upload now |
 
@@ -38258,7 +38290,7 @@ The new methods remain opt-in research until an explicit adoption decision.
 | 3 | M5-11.12 | Does archive/prefix assistance improve candidate generation? | One matched challenger per direction/cell; proposed 256 attempts/study, at most two alpha cells |
 | 4 | M5-11.13 | Does the complete prefix procedure retain its benefit? | Proposed three full 365-day horizons/cell; exact reuse first, new prefix studies only where required |
 | Completed | [M5-11.14](#mode5-m5-11-14) | Can a researcher turn compatible evidence into a checked Mode 5 run and explain the actual decision? | Local source integration complete; retained evidence cold-read and bounded synthetic endpoint proof; no new alpha tournament or hybrid promotion |
-| Review | Parent M5-11 | Which completed scopes and scientific limitations does the owner accept? | Explicit owner disposition after 11.14; not implied by source or research PASS |
+| Accepted | Parent M5-11 | Which completed scopes and scientific limitations does the owner accept? | Completed registered scopes and recorded limits explicitly accepted on 2026-10-21 UTC; no broader claim promotion |
 | Later | M5-12 | Is the accepted final source/package reproducible and private? | Separate local qualification approval after 11.14 and parent disposition |
 
 **Current integration boundary (2026-10-21, Asia/Saigon):** M5-11.10..13 have
@@ -39193,15 +39225,18 @@ qualification are still separate owner decisions, not activated by this receipt.
 ### Phase M5-12 - Local Package Qualification, Regression, Docs And Handoff
 
 **Status:** APPROVED_CONDITIONAL / NOT_STARTED; owner local implementation
-approval2026-10-12(Asia/Saigon) is retained. Current entry also requires ML-09.C
+approval2026-10-12(Asia/Saigon) is retained. Explicit parent research-scope
+acceptance on 2026-10-21 UTC is now recorded; the current message does not
+launch M5-12. Its separate launch decision and resource admission remain pending.
+Entry dependencies include ML-09.C
 and M5-11.7.1..3reviewed dispositions under the2026-10-18ACTroadmap, plus the
 earlier M5-11.6/11.6.1research dispositions and the newly approved
 M5-11.9remaining-coverage disposition and owner-reviewed
 [M5-11.10..11.13 cross-mode research dispositions](#mode45-cross-mode-roadmap);
-[M5-11.14 checked diagnostics-to-calibration integration](#mode5-m5-11-14)
-must close locally before owner review accepts the parent M5-11 scope.
-Package gates remain NOT_RUN; neither the new plan nor a later technical
-11.14 PASS grants parent acceptance or permission to launch M5-12.
+[M5-11.14 checked diagnostics-to-calibration integration](#mode5-m5-11-14),
+which is locally complete and included in the separately accepted parent scope.
+Package gates remain NOT_RUN; parent acceptance is not installed-artifact
+qualification or permission to launch release workflows.
 M5-11.4/11.5 retain their separately approved local closure. This planning
 request does not launch M5-12 or any CI, release or publication.
 **Goal:** deliver a reproducible privacy-safe local package and honest capability/

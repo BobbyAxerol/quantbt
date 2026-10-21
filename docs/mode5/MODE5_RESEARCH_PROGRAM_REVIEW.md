@@ -1,7 +1,11 @@
 # Mode 5 Research Program Review
 
 Review date: 2026-10-21, Asia/Saigon. **Public-safe aggregate evidence review;
-M5-11.9 registered local research is complete, parent acceptance pending.**
+M5-11.9 registered local research is complete. Parent M5-11 is subsequently
+owner-accepted on 2026-10-21 UTC with its recorded limitations.**
+The [explicit parent decision](M5_11_RESEARCH_COVERAGE_DISPOSITION.md#owner-decision-before-m5-12)
+follows M5-11.14 closeout; it does not alter the scientific tables below or
+start M5-12, CI or release.
 This combines the earlier evidence review with the actual new C05/C06 and
 portable terminal recovery receipts. Rendering the review adds no financial
 execution, optimizer restart or model fit. Its cited technical proofs are not
@@ -922,17 +926,18 @@ reference banks retain their dependence and selection history.
 | Whole adaptive chronological procedure | XMR-031..036 deferred under approved 11.13 branch | Keep NOT_EVALUATED / DEFERRED_APPROVED unless separately authorized later |
 | Independent generalization | Reviewed history, finite cells, one-seed formal contrasts and conditional-path inference | No independent OOS or universal-router claim; future confirmation is a separate research decision |
 | 11.12 allocated-scratch exception | ACCEPTED_REMEDIATED_OPERATIONAL_EXCEPTION on 2026-10-21 Asia/Saigon; all evidence retained | Operational disposition resolved; historical gate stays EXCEEDED_NOT_PASS, exact peak unknown, no scientific/accounting/economic waiver |
-| Parent and installed/public package acceptance | Local research/reporting receipts do not close parent coverage or M5-12 | Owner reviews the precise claim/limit packet before separately gated package/CI/release work |
+| Parent and installed/public package acceptance | Parent research scope explicitly accepted after M5-11.14; local receipts still do not qualify final installed/public artifacts | Preserve accepted claim/limit packet; M5-12 launch/resource admission, CI and release remain separately gated |
 
 Sources: [11.9 remaining obligations](M5_11_9_RESEARCH_STATUS.md),
 [11.12 limitations/resources](M5_11_12_SAMPLER_ASSISTANCE_REPORT.md),
 [11.13 approved disposition](M5_11_13_CHRONOLOGICAL_DISPOSITION_REPORT.md) and
 [parent coverage](M5_11_RESEARCH_COVERAGE_DISPOSITION.md).
 
-The next required action is owner review of the completed bounded research
-packet, not repeated searches or forced positive economics. Present the parent
-scope, negative and favorable results and deferred broader claims, carrying the allocation
-exception as an already accepted remediation with its historical limits intact.
+Owner review now accepts the completed bounded parent research packet, retaining
+negative and favorable results, deferred broader claims and the allocation
+exception as accepted remediation with its historical limits intact. The next
+action is a separate M5-12 launch decision/admission, not repeated searches or
+forced positive economics.
 Any later experiment should answer a concrete unresolved decision with its
 identities, information rights, cost and inferential claim frozen beforehand.
 M5-12 final-source wheel/sdist and installed-consumer/privacy/regression proof,

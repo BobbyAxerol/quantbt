@@ -7,6 +7,11 @@ See the [phase contract](../../upgrade/implement.md#mode5-m5-11-14),
 [usage and limitations](MODE5_EXECUTABLE_HANDOFF.md), and
 [parent research ledger](../mode5/M5_11_RESEARCH_COVERAGE_DISPOSITION.md).
 
+Subsequent owner decision: parent M5-11 is explicitly accepted on 2026-10-21 UTC
+under the [recorded scope disposition](../mode5/M5_11_RESEARCH_COVERAGE_DISPOSITION.md#owner-decision-before-m5-12).
+This new approval does not rewrite M5-11.14's historical test/exit receipts;
+M5-12, installed qualification and release remain separate.
+
 ## Researcher Workflow
 
 1. Supply the original verified diagnostics/Dossier and catalog. A Mode 4
@@ -169,6 +174,8 @@ Exact terminal cleanup and protected-input checks are recorded in the
 binary, original evidence, source, failed receipt, service or notebook is
 removed. Current tooling is reused; no build/install occurs.
 
-Next is **owner review of parent M5-11 scope and limitations**, then separately
-admitted M5-12. No push, CI, merge, tag, version change, publication or automatic
-deployment is performed by M5-11.14.
+At M5-11.14 closeout, the next action was owner review of parent M5-11 scope and
+limitations. That review is now explicitly approved in the ledger above.
+M5-12 still requires its separate launch decision and admission. No push, CI,
+merge, tag, version change, publication or automatic deployment is performed
+by M5-11.14 or the subsequent research-scope acceptance.

@@ -1,17 +1,26 @@
 # Mode 5 Research Coverage Disposition
 
-This is a current scope ledger, not an owner approval to close the parent
-research program or begin package qualification. Historical receipts remain
+This is the current scope ledger, including the explicit owner decision below,
+not permission to begin package qualification. Historical receipts remain
 unchanged. See the [unified plan](../../upgrade/implement.md#mode5-m5-11)
 and [additional-alpha research](M5_11_8_RESEARCH_STATUS.md).
+
+**Current owner decision (2026-10-21, UTC):** parent M5-11 is
+**COMPLETE_OWNER_ACCEPTED_RESEARCH_SCOPE**. The owner explicitly accepts this
+overall disposition after M5-11.14 closeout: completed registered scopes and
+their recorded limitations, without extending scientific or deployment claims.
+The [approval record](evidence/m5-11-parent-disposition.json) is a new authority
+record, not a rewrite of older pending/failed/partial receipts. M5-12 remains
+unstarted pending separate launch approval and resource admission; CI/release
+remain separate decisions.
 
 **Latest integration closeout:** [M5-11.14](../diagnostics/M5_11_14_IMPLEMENTATION_REPORT.md)
 completes its approved local source integration: actionable shared diagnostics,
 optional archive review, explicit researcher recipe choice, checked run pack and
 actual-result reconciliation. Seven retained contexts are cold-read, not rerun;
 574distinct affected tests and bounded synthetic endpoint controls pass. This
-does not promote the archive assistance/regret methods or accept parent M5-11.
-Owner parent disposition remains the next decision before M5-12.
+does not itself promote archive assistance/regret or accept parent M5-11.
+The subsequent explicit owner decision above now supplies that parent acceptance.
 
 **Latest reconciliation:** [M5-11.13](M5_11_13_CHRONOLOGICAL_DISPOSITION_REPORT.md)
 completes the owner-approved KEEP_BASELINE/no-new-finance scope. Its cold
@@ -123,21 +132,39 @@ economic outcomes to be positive.
 
 ## Owner Decision Before M5-12
 
-The parent remains `REOPENED_RESEARCH_COVERAGE` until its scope has an explicit
-reviewed disposition. There are two legitimate paths:
+The owner now approves **ACCEPT_COMPLETED_REGISTERED_SCOPES_WITH_LIMITATIONS**,
+closing the earlier `REOPENED_RESEARCH_COVERAGE` parent status. This is explicit
+research-scope acceptance, not inferred from a test count or software PASS.
 
-1. Accept the completed registered studies with their precise limitations as
-   the empirical scope of this release. Keep missing broad claims unqualified,
-   preserve negative evidence and keep recipe choice researcher-controlled.
-2. Register a specific additional experiment only when its outcome would change
-   a concrete product or methodology decision. Specify the missing comparison,
-   identities, budget and scientific claim before execution.
+Accepted coverage includes the registered original/additional-alpha diagnostics,
+formal studies and winner checks, bounded forward/economic experiments,
+Mode 4/ML decision research, shared reporting, cross-mode research dispositions
+and M5-11.14 executable handoff. Existing source reports and the coverage table
+define the actual per-alpha/per-method scope; no missing experiment is invented.
 
-The recommended default is to review the bounded existing evidence first, not
-repeat completed optimizers or require positive economics. This recommendation
-does not waive a gate or make either path approved. Universal superiority,
-automatic routing, new local fragility/stress claims and independent forward
-generalization cannot be inferred from software qualification.
+The decision preserves these boundaries:
+
+- HMA has no eligible formal cohort in the tested panel/mandate; that finding
+  is not a negative conclusion about all possible HMA parameter dictionaries.
+- Finite local probes do not certify unmet basin radii; global structured
+  sensitivity and broad stress/independent generalization remain unqualified
+  where evidence is insufficient.
+- All favorable, adverse, inconclusive, flat and undefined measurements retain
+  their original units/support/data roles. No gate, estimator or threshold changes.
+- KEEP_BASELINE and the approved-deferred 365-day whole-procedure branch stay
+  unchanged. Deferred work remains NOT_EVALUATED, not PASS.
+- M5-11.14 retains its annual-continuous and market-attrs manifest limitations;
+  no unsupported route or automatic recipe/seed policy is activated.
+
+No optimizer, financial execution, model fit, build or new research experiment
+is required or run to record this approval. A later experiment must address a
+concrete decision under a separately approved protocol; positive economics is
+not a condition for preserving valid completed research.
+
+The next phase is M5-12 final-source package/installed/privacy/regression
+qualification, **only after its separate launch decision and resource admission**.
+Accepting parent research does not certify a wheel/sdist, authorize deployment,
+prove universal superiority or guarantee a live trading result.
 
 CI, merge, version/tag changes, publication and public consumer proof remain
 separately approved final steps. Private alpha sources, parameter dictionaries
