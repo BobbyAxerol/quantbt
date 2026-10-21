@@ -21,7 +21,7 @@ def grid(title, columns, rows):
     return lines
 
 
-def render_worksheet(worksheet, *, private=False):
+def render_worksheet(worksheet, *, private=False, run_report=None):
     d = worksheet.to_dict(private=private)
     lines = ["# Diagnostics To Mode 5", "", "Researcher decision support; no automatic execution or deployment."]
     lines += table("Decision Summary", d.items() if not private else dict(
@@ -30,8 +30,21 @@ def render_worksheet(worksheet, *, private=False):
         options=[dict(option_id=c["recipe"]["option_id"], readiness=c["readiness"],
             missing_contracts=c["missing_contracts"], economic_superiority="NOT_QUALIFIED") for c in d["cards"]]).items())
     if not private:
+        if run_report is not None:
+            lines += ["", render_run(run_report)]
         return "\n".join(lines) + "\n"
     lines += table("Alpha Behavior", dict(context=d["context"], diagnostic=d["diagnostic"]).items())
+    summary = d.get("dossier_summary")
+    if summary is not None:
+        lines += grid("Existing Five-Axis Measures", ("Axis", "Metric", "Value", "Unit", "Support", "Uncertainty", "Reason"),
+            ((axis, p["metric"], p["value"], p["unit"], p["support"], p["uncertainty"], p["reason"])
+             for axis, points in summary["radar"].items() for p in points))
+        lines += grid("Original Six-Matrix Coverage", ("Matrix", "Retained rows", "Original roster"),
+            ((kind, v["rows"], v["roster_id"]) for kind, v in summary["matrices"].items()))
+        lines += table("Existing Evidence And Limits", {k: v for k, v in summary.items()
+            if k not in {"axes", "radar", "matrices"}}.items())
+    else:
+        lines += ["", "Five-axis snapshot not retained in this older pack; read its original dossier, not an inferred replacement."]
     lines += grid("Measured Findings", ("Finding", "Basis / status", "Value", "Unit", "Support", "Uncertainty / masks", "Interpretation", "Competing explanation", "Next action"),
         ((f["label"], f["basis"] + " / " + f["status"], f["value"], f["unit"], f["support"],
           dict(uncertainty=f["uncertainty"], masks=f["masks"]),
@@ -66,14 +79,20 @@ def render_worksheet(worksheet, *, private=False):
             sampler=b["sampler"], warm_start=b["warm_start"], batch_size=b["batch_size"],
             local_offsets=b["local_offsets"],
             annual_account_resets=0, account_policy=b["continuous"]["account_policy"]).items())
+        lines += table("Original Financial Authority", dict(source=b["continuous"]["source"],
+            execution=b["continuous"]["execution"],
+            original_inputs="Caller supplies the matching original account/endpoint; a hash does not reveal fee or sizing values.").items())
         lines += grid("Annual Attribution Windows", ("Environment", "First scored mark (ns)", "Last scored mark (ns)", "Manifest", "Role"),
             ((w["environment_id"], w["start_ns"], w["end_ns"], w["witness"]["manifest_id"], w["witness"]["role"])
              for w in b["windows"]))
     else:
         lines += table("Run Configuration", [("status", "NO_EXECUTABLE_CHOICE")])
-    lines += table("Post-Run Qualification", [("status", "NOT_RUN"),
-        ("next_action", "Compile the explicit choice, export privately, preflight original inputs, then call backtest explicitly."),
-        ("limits", "Regret is not decay; calendar views are not independent OOS; no automatic recipe or seed policy is enabled.")])
+    if run_report is not None:
+        lines += ["", render_run(run_report, private=True)]
+    else:
+        lines += table("Post-Run Qualification", [("status", "NOT_RUN"),
+            ("next_action", "Compile the explicit choice, export privately, preflight original inputs, then call backtest explicitly."),
+            ("limits", "Regret is not decay; calendar views are not independent OOS; no automatic recipe or seed policy is enabled.")])
     return "\n".join(lines) + "\n"
 
 

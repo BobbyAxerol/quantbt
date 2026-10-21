@@ -18,6 +18,7 @@ from .worksheet import CalibrationRecipe, CalibrationWorksheet, selection_access
 
 RUNNER = '''"""Explicit caller-supplied original inputs; no automatic data or alpha import."""
 from quantbt.diagnostics import Mode5RunPack
+from quantbt.mode5.runtime import Mode5NoSelectionError
 
 
 def run(pack_path, *, expected_identity, dossier, catalog, journal, access,
@@ -28,7 +29,10 @@ def run(pack_path, *, expected_identity, dossier, catalog, journal, access,
         access=access, data=data, strategy=strategy, param_ranges=param_ranges,
         account_kwargs=account_kwargs, execution_endpoint=execution_endpoint,
         target_mode=target_mode, archive_access=archive_access)
-    result = endpoint.backtest(data=data, param_ranges=param_ranges)
+    try:
+        result = endpoint.backtest(data=data, param_ranges=param_ranges)
+    except Mode5NoSelectionError as error:
+        result = error
     report = pack.reconcile(result)
     return endpoint, result, report
 '''
@@ -50,6 +54,33 @@ def _unique(pairs):
     return result
 
 
+def _market_contract(data):
+    import pandas as pd
+    if not isinstance(data.index, pd.DatetimeIndex) or data.index.tz is None:
+        raise ValueError("explicit timezone-aware market clock required; naive time is not inferred as UTC")
+    if data.attrs:
+        raise NotImplementedError("run-pack market attrs need an explicit manifest extension; do not strip financial attrs to bypass it")
+
+
+@dataclass(frozen=True)
+class _RunPackCalibration(ContinuousMode5Calibration):
+    """Cold execution-time validation, delegating all financial work unchanged."""
+    run_pack: object
+    archive_access: object = None
+
+    def preflight(self, engine, data, index, param_ranges):
+        # The shared calendar can normalize naive timestamps before preflight;
+        # validate the original scorer input as well as that aligned view.
+        original = getattr(engine.scorer, "market_data", None)
+        if original is None:
+            raise NotImplementedError("run-pack preflight requires the original endpoint market witness")
+        _market_contract(original)
+        _market_contract(data)
+        self.run_pack.verify(dossier=self.dossier, catalog=self.catalog,
+            access=self.access, archive_access=self.archive_access)
+        super().preflight(engine, data, index, param_ranges)
+
+
 @dataclass(frozen=True)
 class Mode5RunPack:
     record: Record
@@ -67,10 +98,22 @@ class Mode5RunPack:
             raise NotImplementedError("NOT_EXECUTABLE: " + "; ".join(option["missing_contracts"]))
         recipe = CalibrationRecipe(Record.of(option["recipe"]))
         plan, binding = recipe.resolve(dossier)
+        from quantbt.mode5.dossier.plans import CalibrationPlan
+        # Scientific fields stay identical; each researcher revision gets a
+        # distinct plan seal and cannot inherit an earlier choice's chronology.
+        reason = Record.of(dict(worksheet_id=worksheet.identity,
+            researcher=selected["researcher"], choice_reason=selected["reason"],
+            recipe_rationale=recipe.record.data["reason"])).payload
+        plan = CalibrationPlan.search(dossier, recipe.record.data["spec"], reason)
         declared = selection_access(plan.record.data["recipe"]["reuse"]["selection_policy"])
         if access != declared:
             raise PermissionError("changed selection rights require a revised choice/plan")
         verify_sources(catalog, access)
+        diagnostic = worksheet.record.data["diagnostic"]
+        if diagnostic is not None:
+            for witness in catalog.require_ref(diagnostic["ref"])["source_witnesses"]:
+                from quantbt.mode5.diagnostics.access import AccessWitness
+                access.require(AccessWitness(**witness))
         sources = [{k: v for k, v in source.items() if k != "path"}
                    for source in catalog.manifest.data["sources"]]
         return cls(Record.of(dict(schema="quantbt.mode5.run_pack.v1",
@@ -148,12 +191,13 @@ class Mode5RunPack:
         fresh journal seals an imported choice now, never at a historical time.
         """
         self.verify(dossier=dossier, catalog=catalog, access=access, archive_access=archive_access)
+        _market_contract(data)
         if not isinstance(journal, GovernanceLog):
             raise TypeError("explicit existing GovernanceLog required")
         from quantbt.mode5.dossier.plans import CalibrationPlan
         plan = CalibrationPlan(Record.of(self.record.data["plan"]))
         binding = Record.of(self.record.data["binding"])
-        calibration = ContinuousMode5Calibration(dossier, plan, catalog, journal, binding)
+        calibration = _RunPackCalibration(dossier, plan, catalog, journal, binding, self, archive_access)
         account = dict(account_kwargs or {})
         if execution_endpoint is not None:
             if account:
@@ -185,6 +229,8 @@ class Mode5RunPack:
             prepare_wfo_studies(endpoint.config.walkforward_config, param_ranges,
                 [(0, engine.build_folds(data.index))], strategy_identity=strategy_fingerprint(strategy),
                 derive_seed=None)
+            for start in binding.data["warm_start"]:
+                calibration.continuous_contract.geometry.resolve(start["params"])
         finally:
             scorer.release_prepared_state()
         history = journal.history()
@@ -202,3 +248,22 @@ class Mode5RunPack:
     def reconcile(self, result):
         from .reconcile import reconcile
         return reconcile(self, result)
+
+    def to_dict(self, *, report=None, private=False):
+        if type(private) is not bool:
+            raise ValueError("private disclosure requires an explicit boolean")
+        if report is not None and report.record.data["pack_id"] != self.identity:
+            raise ValueError("post-run report belongs to another run pack")
+        return dict(schema="quantbt.mode5.handoff_report.v1",
+            pack_id=self.identity if private else "REDACTED",
+            worksheet=CalibrationWorksheet(Record.of(self.record.data["worksheet"])).to_dict(private=private),
+            post_run=report.to_dict(private=private) if report is not None else dict(status="NOT_RUN"))
+
+    def to_json(self, *, report=None, private=False):
+        return Record.of(self.to_dict(report=report, private=private)).payload
+
+    def to_markdown(self, *, report=None, private=False):
+        self.to_dict(report=report, private=private)
+        from .render import render_worksheet
+        return render_worksheet(CalibrationWorksheet(Record.of(self.record.data["worksheet"])),
+            private=private, run_report=report)

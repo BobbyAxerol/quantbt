@@ -26,6 +26,17 @@ def verify_sources(catalog, access):
         access.require(AccessWitness(**source["witness"]))
 
 
+def dossier_summary(dossier):
+    """Keep existing raw five-axis measures and refs, not copies of six matrices."""
+    d = dossier.record.data
+    return dict(validity=d["validity"], axes=d["axes"], radar=d["radar"],
+        matrices={kind: dict(roster_id=value["roster_id"], rows=len(value["rows"]),
+                            original_dossier_id=dossier.record.identity)
+                  for kind, value in d["matrices"].items()},
+        batteries_ref=dict(dossier_id=dossier.record.identity, pointer="/batteries"),
+        recommendations=d["recommendations"], limitations=d["limitations"], compute_bill=d["compute_bill"])
+
+
 @dataclass(frozen=True)
 class CalibrationRecipe:
     record: Record
@@ -111,11 +122,15 @@ class CalibrationRecipe:
         d = self.record.data
         if d["kind"] != "CONTINUOUS_MODE5":
             raise NotImplementedError("NOT_EXECUTABLE: " + "; ".join(d["missing_contracts"]))
+        if d["spec"].get("sampler", {}).get("fallback") != "raise":
+            raise NotImplementedError("NOT_EXECUTABLE: an unbound failure policy cannot silently change runtime behavior")
         if set(d["field_origins"]) != set(FIELDS) | {"search_budget"}:
             raise ValueError("complete field origins required")
         for value in d["field_origins"].values():
             require_text(value)
         plan = CalibrationPlan.search(dossier, d["spec"], d["reason"])
+        if plan.record.data["recipe"]["objective"]["channel"]["name"] not in {"ECONOMIC_UTILITY_V1", "PSR_EVIDENCE_V1"}:
+            raise NotImplementedError("NOT_EXECUTABLE: legacy scalar channels require an explicit supported rescore")
         binding = Record.of(d["binding"])
         if dossier.record.data["context"]["scope"] != binding.identity:
             raise ValueError("binding change requires a revised diagnostic context")
@@ -138,7 +153,7 @@ class CalibrationWorksheet:
 
     @classmethod
     def create(cls, *, dossier, catalog, options, findings=(), archive=None,
-               archive_access=None, diagnostic_report=None):
+               archive_access=None, diagnostic_report=None, diagnostic_report_ref=None):
         if not isinstance(dossier, Dossier) or not options:
             raise TypeError("verified dossier and explicit recipe options required")
         verify_sources(catalog, catalog.policy)
@@ -159,13 +174,16 @@ class CalibrationWorksheet:
             rows.append(finding.record.data)
         diagnostic = None
         if diagnostic_report is not None:
+            if diagnostic_report_ref is None or Record.of(catalog.require_ref(diagnostic_report_ref)) != diagnostic_report.record:
+                raise ValueError("shared diagnostic attachment requires its exact catalog-bound original report")
             diagnostic_report.authorize(catalog.policy)
             original = diagnostic_report.record.data
             context = dossier.record.data["context"]
             if any(original["context"][key] != context[target] for key, target in
                    (("alpha_id", "alpha"), ("market_id", "data"), ("economics_id", "economics"))):
                 raise ValueError("shared diagnostic report context differs from dossier")
-            diagnostic = dict(identity=diagnostic_report.identity, coverage=original["coverage"],
+            diagnostic = dict(identity=diagnostic_report.identity, ref=diagnostic_report_ref,
+                coverage=original["coverage"],
                 activity=original["activity"], sampler_compatibility=original["sampler_compatibility"])
         archive_data = None
         if archive is not None:
@@ -176,6 +194,7 @@ class CalibrationWorksheet:
         result = cls(Record.of(dict(schema="quantbt.calibration_worksheet.v1",
             dossier_id=dossier.record.identity, context=dossier.record.data["context"],
             catalog_id=catalog.manifest.identity, diagnostic=diagnostic, archive=archive_data,
+            dossier_summary=dossier_summary(dossier),
             cards=cards, findings=rows, selection=None,
             authority=dict(automatic_routing=False, optimizer_started=False, deployment_authorized=False))))
         if len(result.record.payload.encode()) > 4 * 1024 * 1024:
@@ -184,8 +203,9 @@ class CalibrationWorksheet:
 
     def __post_init__(self):
         d = self.record.data
-        if set(d) != {"schema", "dossier_id", "context", "catalog_id", "diagnostic", "archive",
-                       "cards", "findings", "selection", "authority"} or d["schema"] != "quantbt.calibration_worksheet.v1":
+        required = {"schema", "dossier_id", "context", "catalog_id", "diagnostic", "archive",
+                    "cards", "findings", "selection", "authority"}
+        if set(d) not in (required, required | {"dossier_summary"}) or d["schema"] != "quantbt.calibration_worksheet.v1":
             raise ValueError("complete versioned worksheet required")
         if d["authority"] != dict(automatic_routing=False, optimizer_started=False, deployment_authorized=False):
             raise ValueError("worksheet cannot authorize automatic execution or promotion")
@@ -236,16 +256,34 @@ class CalibrationWorksheet:
             raise ValueError("worksheet belongs to another dossier")
         if self.record.data["context"] != dossier.record.data["context"]:
             raise ValueError("worksheet context differs from original dossier")
+        if "dossier_summary" in self.record.data and self.record.data["dossier_summary"] != dossier_summary(dossier):
+            raise ValueError("dossier summary differs from original verified measures")
         verify_sources(catalog, catalog.policy)
         dossier.verify(catalog)
         if self.record.data["catalog_id"] != catalog.manifest.identity:
             raise ValueError("catalog revision requires a new worksheet")
+        diagnostic = self.record.data["diagnostic"]
+        if diagnostic is not None:
+            from ..report import AlphaDiagnosticReport
+            original = AlphaDiagnosticReport(Record.of(catalog.require_ref(diagnostic["ref"])))
+            original.authorize(catalog.policy)
+            context = dossier.record.data["context"]
+            if any(original.record.data["context"][key] != context[target] for key, target in
+                   (("alpha_id", "alpha"), ("market_id", "data"), ("economics_id", "economics"))):
+                raise ValueError("shared diagnostic report context differs from dossier")
+            expected = dict(identity=original.identity, ref=diagnostic["ref"],
+                **{k: original.record.data[k] for k in ("coverage", "activity", "sampler_compatibility")})
+            if diagnostic != expected:
+                raise ValueError("diagnostic attachment differs from its original verified source")
         from quantbt.mode5.dossier.researcher_report import Finding
         for value in self.record.data["findings"]:
             Finding(Record.of(value)).verify(catalog)
         if self.record.data["archive"] is not None:
             from ..archive import ArchiveReview
-            ArchiveReview(Record.of(self.record.data["archive"])).verify(catalog=catalog, access=archive_access)
+            review = ArchiveReview(Record.of(self.record.data["archive"]))
+            if review.record.data["context_id"] != digest(dossier.record.data["context"]):
+                raise ValueError("archive context differs from calibration context")
+            review.verify(catalog=catalog, access=archive_access)
         for card in self.record.data["cards"]:
             if card["readiness"] == "READY_FOR_PREFLIGHT":
                 CalibrationRecipe(Record.of(card["recipe"])).resolve(dossier)

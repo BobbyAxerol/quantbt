@@ -85,12 +85,13 @@ class AlphaDiagnosticReport:
         return replace(self, record=Record.of(data))
 
     def mode5_worksheet(self, *, dossier, catalog, options, findings=(), archive=None,
-                        archive_access=None):
+                        archive_access=None, diagnostic_report_ref=None):
         """Explicit optional handoff; legacy report bytes and choices stay unchanged."""
         from .calibration import CalibrationWorksheet
         return CalibrationWorksheet.create(dossier=dossier, catalog=catalog,
             options=options, findings=findings, archive=archive,
-            archive_access=archive_access, diagnostic_report=self)
+            archive_access=archive_access, diagnostic_report=self,
+            diagnostic_report_ref=diagnostic_report_ref)
 
     def to_markdown(self, *, public=False):
         if public:
