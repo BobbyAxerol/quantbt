@@ -216,8 +216,17 @@ def retain_mode4_archive(inputs, endpoint, result, *, started_ns):
                for s in inputs["catalog"].manifest.data["sources"]]
     sources.append(Source(ARCHIVE_SOURCE, str(path), pin["sha256"], pin["bytes"], source_witness))
     catalog = EvidenceCatalog(tuple(sources), replace(access, purpose="diagnostic"))
-    entries = tuple((e, IntendedReuse(e.identity, "MODE5_CALIBRATION"),
-        catalog.ref(ARCHIVE_SOURCE, "/evidence/" + str(i))) for i, e in enumerate(evidence))
+    entries = []
+    for i, e in enumerate(evidence):
+        current_key = replace(e.identity.execution, account=binding.data['continuous']['account_policy'])
+        destination = replace(e.identity, execution=current_key,
+            analysis=AnalysisKey(current_key.identity, context.data['roles'], context.data['metrics'],
+                context.data['references']),
+            start_ns=binding.data['continuous']['start_ns'], end_ns=binding.data['continuous']['stop_ns'],
+            metric_unit='decimal_return')
+        entries.append((e, IntendedReuse(destination, 'MODE5_CALIBRATION'),
+            catalog.ref(ARCHIVE_SOURCE, '/evidence/' + str(i))))
+    entries = tuple(entries)
     return dict(catalog=catalog, access=access, entries=entries, rows=rows)
 
 
@@ -336,6 +345,9 @@ def run_demo(workdir, *, donor_folds):
         kwargs = {key: retained[key] for key in ("catalog", "access", "entries")}
         baseline = create_recipe_inputs(inputs, **kwargs)
         challenger = create_recipe_inputs(inputs, **kwargs, donor_choices=choices)
+        if any(row['disposition'] != 'TARGETED_EXECUTION_REQUIRED'
+                for row in challenger['archive'].to_dict()['rows']):
+            raise ValueError('old IS paths/scores must not certify the current full Mode5 account')
         # Both choices/packs/journals are frozen before either Mode5 outcome.
         packs = {"baseline": _compile(baseline, "baseline"), "challenger": _compile(challenger, "challenger")}
         endpoints = {"baseline": _prepare(baseline, packs["baseline"], "baseline"),
@@ -369,6 +381,8 @@ def run_demo(workdir, *, donor_folds):
             baseline_winner_id=a["metadata"]["selected_params_digest"],
             challenger_winner_id=b["metadata"]["selected_params_digest"],
             baseline_warm_start_attempts=0, challenger_warm_start_attempts=sampler["warm_start_attempts"],
+            archive_score_dispositions={row['evidence_id']: row['disposition']
+                for row in challenger['archive'].to_dict()['rows']},
             challenger_attempts=sampler["attempts"], winner_report_id=winner.identity,
             sampler_cutoff_authority=sampler["cutoff_authority"],
             sampler_warm_start_cutoff=pd.Timestamp(sampler["warm_start_cutoff"]).isoformat(),

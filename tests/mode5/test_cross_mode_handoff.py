@@ -294,6 +294,10 @@ def test_actual_cross_mode_handoff_smoke(tmp_path):
     assert outcome["winner"].record.data["baseline"]["status"] == "SOURCE_BOUND_SELECTED_PATHS"
     archive = outcome["challenger"]["archive"].to_dict()
     assert all(r["declared_inputs"]["evidence"]["status"] == "COMPLETE" for r in archive["rows"])
+    assert all(r['disposition'] == 'TARGETED_EXECUTION_REQUIRED' for r in archive['rows'])
+    contract = outcome['challenger']['binding'].data['continuous']
+    assert all(r['declared_inputs']['intended']['identity']['start_ns'] == contract['start_ns']
+        and r['declared_inputs']['intended']['identity']['end_ns'] == contract['stop_ns'] for r in archive['rows'])
     starts = outcome["challenger"]["binding"].data["warm_start"]
     row = outcome["completed"]["challenger"]["metadata"]["trial_ledger"][0]
     assert row["state"] == "COMPLETE" and row["effective_params"] == starts[0]["params"]
