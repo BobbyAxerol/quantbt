@@ -91,6 +91,11 @@ def reduce_ledger(observations, contract, *, backend="python", retain_population
     prefix = contract.unit + "."
     builder = MetricBuilder(contract, observations.coverage)
     reason = observations.coverage.reason if observations.coverage.ledger != "complete" else None
+    if not reason:
+        if observations.valuation_time_ns is None:
+            reason = "ledger completeness horizon missing; reporting scope end is not covered"
+        elif observations.valuation_time_ns < contract.scope_end_ns:
+            reason = "ledger completeness horizon precedes reporting scope end"
     if any(row.currency != contract.currency for row in observations.records):
         reason = "recorded currency conversion required; mixed currencies cannot be summed"
     if contract.ledger_scope != "closed_in_scope_lifetime":
@@ -137,6 +142,7 @@ def reduce_ledger(observations, contract, *, backend="python", retain_population
                     costs="authoritative net; embedded slippage never subtracted twice",
                     action_roster_count=len(observations.rosters), backend="numpy/" + backend,
                     raw_records=len(observations.records), population_complete=reason is None,
+                    ledger_valuation_time_ns=observations.valuation_time_ns,
                     close_order="timestamp_ns then recorded unique close sequence")
     if reason:
         for name in CORE_KEYS + EXTRA_KEYS:

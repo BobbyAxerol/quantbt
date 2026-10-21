@@ -160,8 +160,8 @@ def avg_drawdown(result: BacktestResult) -> float:
 
 def drawdown_duration(result: BacktestResult) -> Tuple[int, int]:
     """
-    Returns (max_duration_bars, avg_duration_bars).
-    Duration counted in calendar days on daily equity.
+    Returns maximum and integer mean runs of observed underwater daily closes.
+    Missing dates are not filled; this is not elapsed calendar duration.
     """
     eq   = _equity_daily(result)
     peak = eq.cummax()
@@ -189,7 +189,8 @@ def drawdown_duration(result: BacktestResult) -> Tuple[int, int]:
 def hitrate(result: BacktestResult) -> Tuple[float, float]:
     """
     Returns (long_hitrate_pct, short_hitrate_pct).
-    A bar is a 'win' if the daily return > 0 while the position is active.
+    Account bar-return signs are masked by each symbol's current position side,
+    then averaged across symbols (inactive sides contribute zero). Not trade wins.
     """
     eq_ret   = result.returns
     long_hr  = []
@@ -213,7 +214,7 @@ def hitrate(result: BacktestResult) -> Tuple[float, float]:
 
 
 def number_of_trades(result: BacktestResult) -> int:
-    """Count signal transitions (any symbol)."""
+    """Legacy count: initial row per symbol plus quantity changes, not closures."""
     count = 0
     for sym in result.symbols:
         pos = result.positions[f"Position_{sym}"]
@@ -222,6 +223,7 @@ def number_of_trades(result: BacktestResult) -> int:
 
 
 def profit_factor(result: BacktestResult) -> float:
+    """Positive/absolute negative account-period returns, not closed-trade PnL."""
     r     = _returns_for_stats(result)
     gains = r[r > 0].sum()
     loss  = abs(r[r < 0].sum())
@@ -229,17 +231,19 @@ def profit_factor(result: BacktestResult) -> float:
 
 
 def avg_win_loss(result: BacktestResult) -> Tuple[float, float]:
-    """(avg_win_pct, avg_loss_pct) in percent."""
+    """Conditional positive/negative account-period return means, in percent."""
     r = _returns_for_stats(result)
-    w = r[r > 0].mean() * 100 if (r > 0).any() else 0.0
-    l = r[r < 0].mean() * 100 if (r < 0).any() else 0.0
-    return float(w), float(l)
+    win = r[r > 0].mean() * 100 if (r > 0).any() else 0.0
+    loss = r[r < 0].mean() * 100 if (r < 0).any() else 0.0
+    return float(win), float(loss)
 
 
 def expectancy(result: BacktestResult) -> float:
     """
-    Expectancy = HR × avg_win + (1 − HR) × avg_loss
-    (uses combined long/short hitrate average)
+    Legacy mixed statistic, not a closed-trade expectancy.
+
+    Combines mean long/short state hit rates with conditional account-period
+    win/loss return means. Preserve this estimator for scientific compatibility.
     """
     lh, sh   = hitrate(result)
     hr       = (lh + sh) / 200.0          # convert to decimal average
@@ -285,7 +289,10 @@ def compute_performance_metrics(
 
     This intentionally mirrors `full_report()` semantics so lightweight
     prepared/native-event score paths and public `BacktestResultV2` reports use
-    one metric implementation.
+    one metric implementation. Legacy aliases and estimators remain unchanged.
+    Formatters can use `metric_population[key]["label"]` and its description
+    without renaming those keys. `period_expected_return_pct` is the arithmetic
+    mean of the same finite stats returns, not the legacy mixed `expectancy_pct`.
     """
     idx = pd.DatetimeIndex(timestamps)
     equity_arr = np.asarray(equity, dtype=np.float64)
@@ -300,7 +307,7 @@ def compute_performance_metrics(
     if pos_arr.shape[0] != len(equity_arr):
         raise ValueError("positions must have the same number of rows as equity")
 
-    stats_returns = _array_returns_for_stats(idx, equity_arr, returns_arr)
+    stats_returns, stats_population = _array_return_sample(idx, equity_arr, returns_arr)
     annual_periods = _array_annualization_periods(idx, stats_returns, trading_days)
     elapsed_years = _array_elapsed_years(idx, equity_arr, trading_days)
     drawdown = _array_drawdown(equity_arr)
@@ -319,6 +326,8 @@ def compute_performance_metrics(
     avg_win, avg_loss = _array_avg_win_loss(stats_returns)
     hr = (long_hr + short_hr) / 200.0
     expectancy_value = hr * avg_win + (1.0 - hr) * avg_loss
+    position_state_count = int(_array_number_of_trades(pos_arr))
+    period_expected_return = float(np.mean(stats_returns) * 100.0) if len(stats_returns) else np.nan
 
     return {
         "initial_capital": float(initial_capital),
@@ -339,9 +348,72 @@ def compute_performance_metrics(
         "avg_win_pct": float(avg_win),
         "avg_loss_pct": float(avg_loss),
         "expectancy_pct": float(expectancy_value),
-        "num_trades": int(_array_number_of_trades(pos_arr)),
+        "num_trades": position_state_count,
         "liquidated": bool(liquidated),
+        "period_expected_return_pct": period_expected_return,
+        "position_state_count": position_state_count,
+        "metric_population": _array_metric_population(stats_returns, stats_population),
     }
+
+
+def _array_metric_population(stats_returns: np.ndarray, stats_population: str) -> Dict:
+    period_labels = {
+        "sharpe": "Period Sharpe",
+        "sortino": "Period Sortino",
+        "omega": "Period Omega",
+        "profit_factor": "Period Profit Factor",
+        "avg_win_pct": "Mean Positive Period Return",
+        "avg_loss_pct": "Mean Negative Period Return",
+        "period_expected_return_pct": "Mean Period Return",
+    }
+    descriptions = {
+        "observed_daily_equity_returns": (
+            "Returns between observed UTC daily closing equity marks; missing days are not filled."
+        ),
+        "finite_bar_returns": (
+            "Finite supplied account bar returns, including zero returns; daily return sample unavailable."
+        ),
+        "equity_return_fallback": (
+            "Finite equity-path return fallback; daily and supplied bar return samples unavailable."
+        ),
+    }
+    metadata = {
+        key: dict(label=label, population=stats_population, sample_count=len(stats_returns),
+                  description=descriptions[stats_population])
+        for key, label in period_labels.items()
+    }
+    metadata["period_expected_return_pct"]["description"] += " Arithmetic mean in percent; NaN for an empty sample."
+    metadata["avg_win_pct"]["description"] += " Conditional mean of positive returns, in percent."
+    metadata["avg_loss_pct"]["description"] += " Conditional mean of negative returns, in percent."
+    metadata["avg_win_pct"]["sample_count"] = int(np.count_nonzero(stats_returns > 0.0))
+    metadata["avg_loss_pct"]["sample_count"] = int(np.count_nonzero(stats_returns < 0.0))
+    for side in ("long", "short"):
+        metadata[side + "_hitrate_pct"] = dict(
+            label=side.title() + " State Hit Rate", population="account_bar_returns_by_current_symbol_side",
+            description=("Positive account bar returns while each symbol has this current side, averaged across symbols; "
+                         "inactive sides contribute zero. Not closed-trade wins."),
+        )
+    metadata["expectancy_pct"] = dict(
+        label="Legacy Mixed Statistic", population="legacy_mixed",
+        description=("Mean long/short state hit rate times mean positive period return plus its complement times "
+                     "mean negative period return. Not a trade expectancy or mean period return."),
+        components=["long_hitrate_pct", "short_hitrate_pct", "avg_win_pct", "avg_loss_pct"],
+    )
+    for key in ("num_trades", "position_state_count"):
+        metadata[key] = dict(
+            label="Position State Count", population="initial_position_rows_and_quantity_transitions",
+            description=("One initial row per symbol plus subsequent quantity changes; includes initially flat symbols. "
+                         "Not closed trades or actions."),
+        )
+    metadata["position_state_count"]["alias_of"] = "num_trades"
+    for key, label in (("max_dd_duration_days", "Max Underwater Daily Closes"),
+                       ("avg_dd_duration_days", "Mean Underwater Daily Closes")):
+        metadata[key] = dict(
+            label=label, population="observed_daily_equity",
+            description=("Consecutive observed underwater UTC daily closes; missing dates are not filled and the mean "
+                         "is truncated to an integer. Not elapsed calendar days."),
+        )
+    return metadata
 
 
 def _array_finite_returns(values: np.ndarray) -> np.ndarray:
@@ -355,7 +427,8 @@ def _array_daily_equity(idx: pd.DatetimeIndex, equity: np.ndarray) -> np.ndarray
     if len(idx) != len(equity):
         return np.asarray(equity, dtype=np.float64)
     day_ns = 86_400_000_000_000
-    days = idx.view("int64") // day_ns
+    # Integer datetime views follow the index resolution, not necessarily ns.
+    days = idx.as_unit("ns").asi8 // day_ns
     if len(days) == 0:
         return np.empty(0, dtype=np.float64)
     change = np.flatnonzero(days[1:] != days[:-1])
@@ -364,6 +437,10 @@ def _array_daily_equity(idx: pd.DatetimeIndex, equity: np.ndarray) -> np.ndarray
 
 
 def _array_returns_for_stats(idx: pd.DatetimeIndex, equity: np.ndarray, returns: np.ndarray) -> np.ndarray:
+    return _array_return_sample(idx, equity, returns)[0]
+
+
+def _array_return_sample(idx: pd.DatetimeIndex, equity: np.ndarray, returns: np.ndarray) -> Tuple[np.ndarray, str]:
     daily_equity = _array_daily_equity(idx, equity)
     if len(daily_equity) >= 2:
         base = daily_equity[:-1]
@@ -375,25 +452,25 @@ def _array_returns_for_stats(idx: pd.DatetimeIndex, equity: np.ndarray, returns:
         )
         daily_returns = _array_finite_returns(daily_returns)
         if len(daily_returns) > 0:
-            return daily_returns
+            return daily_returns, "observed_daily_equity_returns"
     bar = _array_finite_returns(returns)
     if len(bar) > 0:
-        return bar
+        return bar, "finite_bar_returns"
     if len(equity) < 2:
-        return np.zeros(1, dtype=np.float64)
+        return np.zeros(1, dtype=np.float64), "equity_return_fallback"
     base = equity[:-1]
     out = np.divide(equity[1:] - base, base, out=np.zeros(len(base), dtype=np.float64), where=base != 0.0)
-    return _array_finite_returns(out)
+    return _array_finite_returns(out), "equity_return_fallback"
 
 
 def _array_annualization_periods(idx: pd.DatetimeIndex, stats_returns: np.ndarray, trading_days: int) -> float:
+    ns = idx.as_unit("ns").asi8
     daily_equity_returns = len(stats_returns) > 0
     if daily_equity_returns and len(idx) >= 2:
         day_ns = 86_400_000_000_000
-        if len(np.unique(idx.view("int64") // day_ns)) >= 2:
+        if len(np.unique(ns // day_ns)) >= 2:
             return float(trading_days)
     if len(idx) >= 2:
-        ns = idx.view("int64")
         deltas = np.diff(ns).astype(np.float64) / 1_000_000_000.0
         deltas = deltas[deltas > 0.0]
         if len(deltas) > 0:

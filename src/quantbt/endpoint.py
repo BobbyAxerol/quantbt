@@ -4562,6 +4562,11 @@ def format_metrics_report(report: Dict) -> str:
     The returned string is intentionally plain monospaced text so notebooks,
     terminals, logs, and services all render the same high-signal report.
     """
+    populations = report.get("metric_population", {})
+
+    def label(key, fallback):
+        return populations.get(key, {}).get("label", fallback)
+
     lines = [
         ("Initial Capital", _fmt_money(report.get("initial_capital"), decimals=0)),
         ("Final Equity", _fmt_money(report.get("final_equity"), decimals=2)),
@@ -4573,14 +4578,17 @@ def format_metrics_report(report: Dict) -> str:
         ("Omega Ratio", _fmt_float(report.get("omega"), decimals=3)),
         ("Max Drawdown", _fmt_pct(report.get("max_drawdown_pct"), signed=False, decimals=2)),
         ("Avg Drawdown", _fmt_pct(report.get("avg_drawdown_pct"), signed=False, decimals=2)),
-        ("Max DD Duration", _fmt_days(report.get("max_dd_duration_days"))),
-        ("Profit Factor", _fmt_float(report.get("profit_factor"), decimals=3)),
-        ("Long Hit Rate", _fmt_pct(report.get("long_hitrate_pct"), signed=False, decimals=2)),
-        ("Short Hit Rate", _fmt_pct(report.get("short_hitrate_pct"), signed=False, decimals=2)),
-        ("Avg Win", _fmt_pct(report.get("avg_win_pct"), signed=True, decimals=3)),
-        ("Avg Loss", _fmt_pct(report.get("avg_loss_pct"), signed=True, decimals=3)),
-        ("Expectancy", _fmt_pct(report.get("expectancy_pct"), signed=True, decimals=3)),
-        ("Number of Trades", _fmt_int(report.get("num_trades"))),
+        (label("max_dd_duration_days", "Max DD Duration"),
+         _fmt_int(report.get("max_dd_duration_days")) if populations else _fmt_days(report.get("max_dd_duration_days"))),
+        (label("profit_factor", "Profit Factor"), _fmt_float(report.get("profit_factor"), decimals=3)),
+        (label("long_hitrate_pct", "Long Hit Rate"), _fmt_pct(report.get("long_hitrate_pct"), signed=False, decimals=2)),
+        (label("short_hitrate_pct", "Short Hit Rate"), _fmt_pct(report.get("short_hitrate_pct"), signed=False, decimals=2)),
+        (label("avg_win_pct", "Avg Win"), _fmt_pct(report.get("avg_win_pct"), signed=True, decimals=3)),
+        (label("avg_loss_pct", "Avg Loss"), _fmt_pct(report.get("avg_loss_pct"), signed=True, decimals=3)),
+        ((label("period_expected_return_pct", "Mean Period Return"),
+          _fmt_pct(report.get("period_expected_return_pct"), signed=True, decimals=3))
+         if populations else ("Expectancy", _fmt_pct(report.get("expectancy_pct"), signed=True, decimals=3))),
+        (label("num_trades", "Number of Trades"), _fmt_int(report.get("num_trades"))),
         ("Liquidated", f"{'Yes' if report.get('liquidated') else 'No':>14}"),
     ]
     col_width = max(len(key) for key, _ in lines)
