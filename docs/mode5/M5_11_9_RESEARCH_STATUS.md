@@ -6,6 +6,45 @@ missing evidence without repeating the completed RSI or two additional-alpha
 optimizers. Private sources, parameter vectors, fills and account buffers remain
 ignored and excluded from distributions.
 
+## Current Completion Continuation
+
+Owner instruction on **21 October 2026, Asia/Saigon** renews the remaining
+registered completion work, not a new experiment. Host inspection finds no old
+financial workers. Six complete studies are retained/skipped; HASH recipe/TPE
+continues its exact 124-trial checkpoint. HASH challenger and VWAP challenger
+retain their original frozen256-attempt designs. The old study starts/deadlines
+and all failed receipts remain intact.
+
+The ignored `continuation-20261021/registration-v2.json` admits a fresh24-hour
+operational window. A generated, source-pinned runner changes exactly one
+expired operational deadline-guard AST node; original sampler, tell order,
+checkpoint/config/binding, objective/selector and financial AST nodes are
+unchanged. Frozen original source files are not edited. A six-test structural
+proof and the final44-test queue/renewal regression pass; the initial pytest
+plugin import failure remains FAIL_RETAINED, not six passing dots mislabeled
+as a successful owner exit.
+
+HASH recipe/TPE and VWAP challenger run in parallel, one numeric thread each,
+under the existing2GiBaggregate RSS,1GiBallocated retention,512MiBavailable RAM
+and5GiBreserve-beyond-forecast bounds. HASH challenger follows in the HASH slot.
+Actual progress is in `continuation-20261021/progress/`; prior dated PID tables
+below are historical, not current liveness. No completed optimizer is restarted.
+
+The source-pinned original11-stage winner/regime/synthesis/qualification tail
+is attached to the same lock and requires all nine terminal study receipts.
+Its renewed registration is `continuation-20261021/tail-registration-v2.json`.
+It preserves the original serial financial contracts; the bootstrap explicitly
+loads stdlib `queue` and the declared original cleanup `custody` module rather
+than a same-name module from another lane. Its first relative/absolute source-pin
+adapter failure is retained, with zero tail financial calls. Cold RSI admission
+finds all three original winners without account execution.
+
+**Still IN_PROGRESS:** automatic attachment is not completion. C05/C06 and the
+current tail completion receipt must actually exist and pass before this report
+can close. M5-11.10..13 keep their registered completed/disposition scopes;
+M5-11.13 launches no new finance. Parent acceptance, scratch-exception acceptance,
+M5-12, CI and release remain separate.
+
 ## What Raw/TPE Means
 
 The sampler is the shared `tpe_legacy` recipe. Its feedback/objective is the

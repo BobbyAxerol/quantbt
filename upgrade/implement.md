@@ -37800,6 +37800,26 @@ The owner explicitly requests completion of the five remaining research gaps,
 not another release or a change to the Mode5 scientific direction. Earlier
 receipts remain immutable. This phase precedes M5-12 and does not activate it.
 
+**Current completion renewal (2026-10-21, Asia/Saigon):** owner requests the
+missing three formal studies, actual-winner/regime/synthesis/closeout and an
+aggregate review including M5-11.10..13. Host inspection finds no old financial
+worker. Six complete studies are skipped; HASHrecipe/TPE resumes its exact
+124-trial checkpoint; HASH/VWAPchallengers retain256attempts each. The old
+launch deadline is exhausted, so a new source-bound operational continuation
+registration renews only a24-hour wall window, not the scientific budget.
+Original starts/deadlines, failed receipts and frozen sources remain unchanged.
+A generated operational artifact differs by exactly one deadline-guard AST
+node, independently tested; sampler/config/binding/tell/checkpoint, objective,
+selector, finance and context identities remain original. No clock is spoofed.
+At most two independent financial workers, one numeric thread each,2GiBowned
+RSS,1GiBallocated phase retention,512MiBavailable RAM and5GiBfree reserve beyond
+remaining forecast. Reuse the exact current environment; no build/install.
+The original winner/reporting tail remains serial and guarded. Register/review
+inactive fixture cleanup before tests and verify protected hashes afterwards.
+M5-11.13keeps its approved zero-new-finance baseline disposition; finishing11.9
+does not activate package, CI, release or new cross-mode experiments. Parent
+acceptance and the historical11.12scratch-exception decision remain explicit.
+
 **Goal:** make the evidence answer whether one fixed actual dictionary retains
 economic quality across market environments and feasible parameter changes,
 instead of presenting aggregate Sharpe/DD/utility as a robustness certificate.
