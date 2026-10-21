@@ -8,6 +8,13 @@ than launching another financial study. This is a research disposition, not
 successful qualification of a new hybrid, independent forward validation or
 approval of the parent research program.
 
+**Subsequent owner decision,2026-10-21Asia/Saigon:** the historical M5-11.12
+scratch exception is accepted as remediated with evidence preserved, not as a
+passing old resource gate. Original11.13receipts correctly retain the then-open
+blocker; the [current parent ledger](M5_11_RESEARCH_COVERAGE_DISPOSITION.md)
+and append-only11.12owner disposition supersede only that pending status.
+Parent acceptance and M5-12/CI/release remain separate.
+
 The original three 365-day horizons and proposed 3,072-slot ceiling were **not
 executed in this phase**. Their whole-procedure economic and mutation claims
 remain **NOT_EVALUATED / DEFERRED_APPROVED**, not failed experiments and not
@@ -163,9 +170,9 @@ Both were corrected using their declared roots and exact byte/hash checks;
 the failed source copies/receipts remain. No source/accounting mutation was
 established and no finance rerun was used to repair these reader failures.
 
-The previous M5-11.12 allocated-scratch exception remains explicitly **owner
-disposition pending**. The present no-finance approval does not waive it or
-retroactively certify that resource gate. Current cleanup removes only
+The previous M5-11.12 allocated-scratch exception was explicitly **owner
+disposition pending** at this cold closeout. The later acceptance above closes
+that operational disposition, not the failed historical resource gate. Current cleanup removes only
 135,168 allocated bytes of terminated test scratch per round (270,336 bytes
 across two measured removals) and rechecks protected pins.
 

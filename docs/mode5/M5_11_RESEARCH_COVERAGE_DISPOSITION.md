@@ -12,6 +12,14 @@ unexecuted whole-procedure experiments. The private coverage addendum pins 22
 earlier phase/subscope terminal receipts; recorded bounded completion is kept
 separate from universal economic claims and current financial work.
 
+**Subsequent completion authority,2026-10-21Asia/Saigon:** the owner requests
+completion of the three missing11.9studies and their registered successor tail.
+They resume under a fresh operational deadline, not a scientific-budget change;
+see [continuation status](M5_11_9_RESEARCH_STATUS.md#current-completion-continuation).
+Separately the owner now accepts the remediated11.12scratch exception with all
+evidence preserved. Its old resource gate remains exceeded/not-PASS; the
+acceptance does not certify an unmeasured peak or waive economics/accounting.
+
 ## Coverage And Meaning
 
 | Work | Evidence Already Available | Remaining Boundary |
@@ -25,7 +33,7 @@ separate from universal economic claims and current financial work.
 | M5-11.9 remaining coverage | Both additional alphas have actual market-state and selected-winner held/double-fee evidence; original-alpha formal arms and their full successor checks are approved for end-to-end local execution | [Current status](M5_11_9_RESEARCH_STATUS.md); require all terminal study/winner/readback checks and `C06/complete.json`, not queue launch alone. Parent acceptance remains separate; finite feasible probes do not certify unmet geometric radii |
 | M5-11.10 archive/rights | Registered cold inventory/access/custody scope complete; 370 origin slots, seven archives, original hash-bound witnesses | Reuse metadata and typed rights do not authorize a new adaptive experiment or backdated full-history dossier |
 | M5-11.11 regret/regions | Two fixed-panel selector comparisons, 68 original reference/selected-account invocations, bounded independent measurement complete | N1 keeps baseline; N2 trade-offs remain inconclusive for full quality noninferiority; no generic replacement |
-| M5-11.12 sampler assistance | 16 studies/4,096 slots, 768 fresh prefix diagnostic accounts, six actual future-prefix controls and actual sampler reconstruction complete locally | Both static registered objectives worsen; reverse prefix effects heterogeneous/sparse. Three-cutoff screen is not long deployment. Allocated-scratch exception remains pending owner disposition |
+| M5-11.12 sampler assistance | 16 studies/4,096 slots, 768 fresh prefix diagnostic accounts, six actual future-prefix controls and actual sampler reconstruction complete locally | Both static registered objectives worsen; reverse prefix effects heterogeneous/sparse. Three-cutoff screen is not long deployment. Scratch deviation is an owner-accepted remediated operational exception, not historical resource PASS |
 | M5-11.13 disposition | KEEP_BASELINE, zero new finance/proposals/fits; 170 final cold rights/measurement/inference/reporting tests PASS | New 365-day whole-procedure, adaptive future mutation and family inference NOT_EVALUATED / DEFERRED_APPROVED; parent/package/release authority not granted |
 | M5-12 | Registered package plan only | Final-source wheel/sdist, installed consumers, privacy, regression, docs and handoff are not started by this ledger |
 

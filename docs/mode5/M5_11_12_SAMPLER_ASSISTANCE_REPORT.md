@@ -2,8 +2,14 @@
 
 Status, 2026-10-20 UTC: **COMPLETE_LOCAL_REGISTERED_RESEARCH_SCOPE**.
 Accounting, chronology and reproducibility gates PASS; owner review of research
-disposition and the scratch-allocation exception below remains pending.
+disposition and the scratch-allocation exception below was pending at closeout.
 There is no public/default activation, whole-procedure promotion or release.
+
+**Later owner decisions:** M5-11.13retains the baseline with no new cross-mode
+finance. On2026-10-21Asia/Saigon the owner accepts the scratch deviation as
+ACCEPTED_REMEDIATED_OPERATIONAL_EXCEPTION, preserving the original receipts.
+The historical resource envelope remains exceeded/not-PASS, not retroactively
+raised. See [operational disposition](../maintenance/M5_11_12_CLEANUP.md).
 
 ## Interpretation Safeguards
 

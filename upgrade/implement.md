@@ -16,8 +16,11 @@ See [disposition report](../docs/mode5/M5_11_13_CHRONOLOGICAL_DISPOSITION_REPORT
 and [current coverage ledger](../docs/mode5/M5_11_RESEARCH_COVERAGE_DISPOSITION.md).
 M5-11.9still has6/9formal terminal receipts: HASHrecipe/TPE, HASHchallenger and
 VWAPchallenger plus successor synthesis/winner/terminal coverage remain open.
-No worker control occurred in this cold phase. Parent scope acceptance,
-M5-11.12operational-exception disposition, M5-12, CI and release remain gated.
+No worker control occurred in that cold phase. Subsequent2026-10-21owner
+approval accepts the remediated M5-11.12operational exception with evidence
+retained, not a historical resource PASS. Parent scope acceptance, M5-12, CI
+and release remain gated. The separately renewed11.9completion queue is
+registered below; its pending financial work is not closed by11.13.
 
 **Latest research completion (2026-10-20, UTC):**
 [M5-11.12](#mode5-m5-11-12) is COMPLETE_LOCAL_REGISTERED_RESEARCH_SCOPE:

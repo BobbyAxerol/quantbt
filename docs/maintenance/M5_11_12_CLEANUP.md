@@ -3,6 +3,14 @@
 Date:2026-10-20 UTC. Scope: owned local cross-mode research fixtures only.
 All financial and proof owners were terminal before terminal cleanup.
 
+**Subsequent owner disposition,2026-10-21 Asia/Saigon:**
+ACCEPTED_REMEDIATED_OPERATIONAL_EXCEPTION. The owner explicitly accepts the
+reported deviation with all evidence retained. The old16MiB resource envelope
+was exceeded and remains **NOT_PASS**; its exact peak was not measured.
+Scientific/accounting gates are not waived and no parent/package/release
+approval follows. Private append-only authority:
+`owner-operational-disposition-20261021.json` under the same original lane.
+
 - Registration, all16 matched studies,4,096 attempted slots,768 diagnostic
   accounts, selected audits, future-prefix controls and exact sampler journals
   remain retained. Completed optimizers were not repeated.
@@ -38,5 +46,6 @@ but filesystem-allocated small-file fixture space exceeded it. The run did not
 enforce or continuously measure that allocated-space envelope. It is not
 retroactively called a passing resource-budget gate. The5GiB free-space guard
 remained active; fixtures are removed, the deviation is reported, and owner
-disposition remains pending. `resource-envelope-addendum.json` records this
+disposition was pending at the historical closeout and is now accepted as the
+remediated exception above. `resource-envelope-addendum.json` records this
 separately from passing scientific/source/accounting qualification.

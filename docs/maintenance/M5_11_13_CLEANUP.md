@@ -47,9 +47,10 @@ does not turn failed reads into PASS; repaired cold readbacks have separate
 receipts. No global cache, Docker storage, shared native build tree, private
 alpha/data, scientific path or M5-11.9 worker was touched.
 
-The M5-11.12 scratch overrun remains a historical reported exception with owner
-disposition pending. This lane does not retroactively raise its cap or claim
-that the previous operational resource gate passed.
+The M5-11.12 scratch overrun was owner-disposition pending at this cleanup.
+The [later explicit acceptance](M5_11_12_CLEANUP.md) closes that operational
+disposition with evidence retained. Neither lane retroactively raises its cap
+or claims that the previous operational resource gate passed.
 
 Private receipts:
 `upgrade/private/mode5_upgrade_v1/m5-11-13/attempt-01/registration-v3.json`,
