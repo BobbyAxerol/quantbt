@@ -29,6 +29,12 @@ admission preserves1,803committed files;63cold activation tests pass. Final
 winner/regime/synthesis qualification must still execute. Do not infer liveness
 or completion from old progress.
 
+**Current formal reconciliation:** the resumed turn now finds all nine
+registered studies terminal and verifies them through original C04 admission:
+2,304attempts,2,248COMPLETE/56PRUNED. The cold coordinator skips completed
+optimizers. Actual-winner/regime/synthesis/terminal qualification remains in
+progress; neither this formal count nor a tail launch accepts the parent.
+
 ## Coverage And Meaning
 
 | Work | Evidence Already Available | Remaining Boundary |
@@ -53,8 +59,10 @@ account and its annual attributions are not independent WFO origins or OOS.
 
 ## Remaining Terminal Coverage
 
-The M5-11.13 read-only snapshot finds six of nine M5-11.9 formal `complete.json`
+The historical M5-11.13 read-only snapshot finds six of nine M5-11.9 formal `complete.json`
 receipts, not nine. This is an evidence-completion check, not worker liveness.
+The subsequent current nine-study reconciliation above supersedes its count,
+without changing that immutable historical snapshot.
 
 | Alpha | Complete Formal Arms | Missing Formal Terminal Receipts |
 |---|---|---|

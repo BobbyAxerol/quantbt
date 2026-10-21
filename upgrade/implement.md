@@ -37866,6 +37866,16 @@ Terminal fixture cleanup removes368,640allocated bytes and verifies14protected
 files. The original source-pinned serial tail remains mandatory after all nine
 receipts; no parent, M5-12, remote or release activation follows.
 
+**Post-interruption formal completion:** readmission finds no live financial
+owner and all nine256-attempt terminal study receipts already retained. Cold
+coordinator completion skips all completed arms, preserves1,983prior pins and
+does not reopen an optimizer. Original admission then verifies2,304slots:
+2,248COMPLETE and56PRUNED, saved winners/audits, context/path/checkpoint pins
+and ordered dispositions. The original eleven-stage tail is now executing in
+its fresh namespace, beginning with RSI actual-winner held checks. Formal
+completion is not held-probe/regime/synthesis/parent completion; C05/C06 remain
+required before a phase closeout claim. No scientific or resource-budget change.
+
 **Goal:** make the evidence answer whether one fixed actual dictionary retains
 economic quality across market environments and feasible parameter changes,
 instead of presenting aggregate Sharpe/DD/utility as a robustness certificate.

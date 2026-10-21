@@ -8,6 +8,16 @@ ignored and excluded from distributions.
 
 ## Current Completion Continuation
 
+**Current formal coverage:9/9 terminal studies.** After the owner resumes the
+interrupted turn, host inspection finds no old finance worker and all nine
+original study receipts already complete. Cold coordinator recovery skips
+every completed arm. Original `C04-final/admission.json` verifies2,304attempted
+slots,2,248COMPLETE/56PRUNED, ordered trial/checkpoint/context/path identities
+and saved selected audits. The original serial actual-winner/regime/synthesis/
+qualification tail has begun. Final held/stress/readback/C05/C06 receipts are
+still required; this is not parent acceptance or package/release qualification.
+All1,983prior committed pins remain unchanged; no completed optimizer reruns.
+
 **Latest disposition: OWNER_APPROVED_FEASIBILITY_CONTINUATION_RUNNING.** The
 owner approved the typed finite-nonpositive price amendment on21October2026,
 Asia/Saigon. The new source-pinned worker resumes the three incomplete arms

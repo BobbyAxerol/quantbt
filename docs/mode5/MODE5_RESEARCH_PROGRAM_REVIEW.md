@@ -751,6 +751,14 @@ and [historical resource amendments](M5_11_9_RESEARCH_STATUS.md).
 
 ### CURRENT_FINANCIAL_COMPLETION_PENDING
 
+**Current terminal-study update:** all nine original formal receipts are now
+complete and the original admission verifies2,304slots with2,248COMPLETE/
+56PRUNED. Coordinator recovery after interruption skips every completed study;
+1,983prior pins remain unchanged. The original serial RSI/SC/HASH/VWAP actual-
+winner/regime/synthesis/qualification tail has begun. Its missing terminal
+outputs remain pending; formal completion is not blanket robustness or parent
+acceptance. Earlier partial counts below remain dated historical snapshots.
+
 **Approved continuation update,2026-10-21Asia/Saigon:** the owner has now
 approved finite nonpositive typed-price pruning for the incomplete formal
 attempts. A new registered runner keeps1,803committed files hash-pinned and
