@@ -1,7 +1,7 @@
 """Pure winner-report controls: retained metadata only, never financial runs."""
 
 from copy import copy, deepcopy
-from dataclasses import FrozenInstanceError, replace
+from dataclasses import FrozenInstanceError, asdict, replace
 import html
 import json
 from pathlib import Path
@@ -454,3 +454,176 @@ def test_baseline_requires_current_pack_and_rechecks_real_pack_sources_without_f
     source.write_text(json.dumps(dict(changed=True)), encoding="ascii")
     with pytest.raises(ValueError, match="source changed"):
         baseline.verify()
+
+
+def compiled_rights_bundle(tmp_path, monkeypatch, *, extra_source=None, archive=False, selection_only=False):
+    """Real source/pack boundary around literal runtime controls, not finance."""
+    from examples import mode5_diagnostic_handoff as example
+    from quantbt.diagnostics import CalibrationRecipe, CalibrationWorksheet, Mode5RunPack
+    from quantbt.mode5.dossier.dossier import Dossier
+
+    def forbidden(*args, **kwargs):
+        raise AssertionError("rights regression must never execute finance")
+
+    monkeypatch.setattr(QuantBTEndpoint, "backtest", forbidden)
+    if selection_only:
+        original = example._missing_archive
+
+        def restricted(*args, **kwargs):
+            evidence = original(*args, **kwargs)
+            return replace(evidence, nodes=tuple(replace(node, purposes=("selection",)) for node in evidence.nodes))
+
+        monkeypatch.setattr(example, "_missing_archive", restricted)
+    inputs = example.build_inputs(tmp_path / "rights-inputs", optional_archive=archive)
+    card = next(c for c in inputs["worksheet"].record.data["cards"] if c["recipe"]["option_id"] == example.OPTION_ID)
+    recipe_data = card["recipe"]
+    access, catalog, dossier = inputs["access"], inputs["catalog"], inputs["dossier"]
+    witness = AccessWitness(**recipe_data["binding"]["continuous"]["witness"])
+    if extra_source is not None:
+        dependency = replace(witness,
+            manifest_id="extra-dependency" if extra_source == "manifest" else witness.manifest_id,
+            ready_ns=witness.ready_ns + 1)
+        access = replace(access, manifests=tuple(dict.fromkeys((*access.manifests, dependency.manifest_id))))
+        recipe_data["spec"]["reuse"]["selection_policy"] = asdict(access)
+        path = inputs["workdir"] / "extra-dependency.json"
+        write_json(path, dict(status="SYNTHETIC_CONTROL", value=None))
+        pin = file_identity(path)
+        sources = tuple(Source(**{**s, "witness": AccessWitness(**s["witness"])})
+            for s in catalog.manifest.data["sources"])
+        catalog = EvidenceCatalog((*sources, Source("extra-dependency", str(path), pin["sha256"], pin["bytes"], dependency)),
+            replace(access, purpose="diagnostic"))
+        data = dossier.record.data
+        data["source_manifest"] = catalog.manifest.data
+        dossier = Dossier(Record.of(data))
+        dossier.verify(catalog)
+    recipe = CalibrationRecipe(Record.of(recipe_data))
+    worksheet = CalibrationWorksheet.create(dossier=dossier, catalog=catalog, options=(recipe,),
+        archive=inputs["archive"], archive_access=inputs["archive_access"])
+    chosen = worksheet.choose(example.OPTION_ID, researcher="rights-regression", reason="Literal cold contract control")
+    pack = Mode5RunPack.compile(chosen, dossier=dossier, catalog=catalog, access=access,
+        archive_access=inputs["archive_access"])
+    value, params = metadata()
+    value.update(calibration_plan_id=pack.record.data["plan_id"], runtime_binding_identity=pack.record.data["binding_id"],
+        dossier_id=dossier.record.identity)
+    continuous = pack.record.data["binding"]["continuous"]
+    step = pack.record.data["binding"]["metrics"]["bar_interval_ns"]
+    bars = (continuous["stop_ns"] - continuous["start_ns"]) // step
+    value["account_scope"].update(scored_start_ns=continuous["start_ns"], scored_stop_ns=continuous["stop_ns"],
+        full_bars=bars, scored_bars=bars, preload_bars=0, scored_positions=[0, bars])
+    for row in value["trial_ledger"]:
+        if "whole_observation" in row:
+            row["whole_observation"].update(start_ns=continuous["start_ns"], stop_ns=continuous["stop_ns"])
+    decision = DecisionReport.read(value, selected_params=params)
+    bundle = WinnerBaseline(decision, pack, dossier, catalog, access, "source-bound-literal-control",
+        archive_access=inputs["archive_access"])
+    assert bundle.verify() is bundle
+    diagnostic = replace(access, policy_id="current-diagnostic-readback", purpose="diagnostic")
+    return bundle, diagnostic, witness
+
+
+@pytest.mark.parametrize("dependency", ("manifest", "future"))
+@pytest.mark.parametrize("supplied_as", ("current", "baseline"))
+def test_report_reauthorizes_real_pack_catalog_sources_under_current_diagnostic_rights(
+        tmp_path, monkeypatch, dependency, supplied_as):
+    bundle, authorized, witness = compiled_rights_bundle(tmp_path, monkeypatch, extra_source=dependency)
+    before = bundle.pack.record
+    current = bundle
+    if supplied_as == "baseline":
+        current, _, _ = compiled_rights_bundle(tmp_path / "separate-current", monkeypatch)
+    inputs = dict(access=authorized, witness=witness, source_ref="current-catalog-readback")
+    request = WinnerQualificationRequest(include_account=False, current=current,
+        baseline=bundle if supplied_as == "baseline" else None)
+    WinnerQualificationReport.build(current.decision, **inputs, request=request)
+    if dependency == "manifest":
+        narrowed = replace(authorized, manifests=(witness.manifest_id,))
+    else:
+        narrowed = replace(authorized, cutoff_ns=witness.ready_ns)
+    narrowed.require(witness)  # Only a dependency, not the account, is forbidden.
+    if supplied_as == "baseline":
+        assert current.authorize(narrowed) is current
+    with pytest.raises(PermissionError):
+        bundle.authorize(narrowed)
+    with pytest.raises(PermissionError):
+        WinnerQualificationReport.build(current.decision, **dict(inputs, access=narrowed), request=request)
+    assert bundle.pack.record == before
+    assert bundle.access.purpose == "selection" and bundle.verify() is bundle
+
+
+def test_archive_readback_rechecks_dag_clocks_without_replacing_original_selection_seal(tmp_path, monkeypatch):
+    bundle, authorized, witness = compiled_rights_bundle(tmp_path, monkeypatch, archive=True)
+    before = bundle.pack.record
+    assert bundle.authorize(authorized) is bundle
+    narrowed = replace(authorized, cutoff_ns=witness.ready_ns)
+    narrowed.require(witness)
+    for source in bundle.catalog.manifest.data["sources"]:
+        narrowed.require(AccessWitness(**source["witness"]))
+    # Source/mark readiness passes. Original DAG publication at the cutoff
+    # still lacks the ordering witness required for retrospective readback.
+    with pytest.raises(PermissionError):
+        bundle.authorize(narrowed)
+    with pytest.raises(PermissionError):
+        WinnerQualificationReport.build(bundle.decision, access=narrowed, witness=witness, source_ref="archive-readback",
+            request=WinnerQualificationRequest(include_account=False, current=bundle))
+    assert bundle.pack.record == before and bundle.verify() is bundle
+
+
+def test_selection_only_archive_nodes_cannot_borrow_diagnostic_readback_purpose(tmp_path, monkeypatch):
+    bundle, diagnostic, witness = compiled_rights_bundle(tmp_path, monkeypatch, archive=True, selection_only=True)
+    before = bundle.pack.record
+    diagnostic.require(witness)
+    assert bundle.verify() is bundle  # Original selection permission remains valid.
+    with pytest.raises(PermissionError):
+        bundle.authorize(diagnostic)
+    with pytest.raises(PermissionError):
+        WinnerQualificationReport.build(bundle.decision, access=diagnostic, witness=witness, source_ref="selection-only-archive",
+            request=WinnerQualificationRequest(include_account=False, current=bundle))
+    assert bundle.pack.record == before
+
+
+@pytest.mark.parametrize("mismatch", ("run", "winner"))
+def test_direct_builder_rejects_other_completed_decision_even_for_identical_finance_and_no_account_request(
+        retained, monkeypatch, mismatch):
+    import pandas as pd
+    from quantbt.diagnostics.winner import report as owner
+    from quantbt.mode5.evaluation import array_identity
+
+    def forbidden(*args, **kwargs):
+        raise AssertionError("include_account=False must not profile or execute an account")
+
+    monkeypatch.setattr(owner, "profile_selected_account", forbidden)
+    index = pd.date_range("1970-01-01", periods=6, freq="D", tz="UTC")
+    equity = pd.Series(100., index=index)
+    positions = pd.DataFrame(0., index=index, columns=["CONTROL"])
+    finance = dict(equity=array_identity(equity.to_numpy()), positions=array_identity(positions.to_numpy()))
+    stop = int(index[-1].value) + 86_400_000_000_000
+    runtimes = [metadata(), metadata(incumbent=mismatch == "winner")]
+    for value, _ in runtimes:
+        value["account_scope"].update(scored_start_ns=0, scored_stop_ns=stop,
+            full_bars=6, scored_bars=6, preload_bars=0, scored_positions=[0, 6])
+        for row in value["trial_ledger"]:
+            if "whole_observation" in row:
+                row["whole_observation"].update(finance=finance, initial_capital=100., final_equity=100., start_ns=0, stop_ns=stop)
+    original, params = runtimes[0]
+    other, other_params = runtimes[1]
+    if mismatch == "run":
+        other["dossier_id"] = "another-completed-run"
+    decision = DecisionReport.read(original, selected_params=params)
+    other_decision = DecisionReport.read(other, selected_params=other_params)
+    assert decision != other_decision
+    result = BacktestResult(equity=equity, returns=pd.Series(0., index=index), positions=positions,
+        closes=pd.DataFrame(1., index=index, columns=["CONTROL"]), symbols=["CONTROL"], initial_capital=100., leverage=1.,
+        metadata=dict(walk_forward=dict(optimization_mode="mode_5_full_robust",
+            mode5_diagnostics_first=original, best_trial=dict(params=params))))
+    stale = deepcopy(result)
+    stale.metadata["walk_forward"].update(mode5_diagnostics_first=other, best_trial=dict(params=other_params))
+    assert array_identity(stale.equity.to_numpy()) == finance["equity"]
+    assert array_identity(stale.positions.to_numpy()) == finance["positions"]
+    witness = AccessWitness("run", "synthetic", 0, stop, stop + 1)
+    options = dict(retained["kwargs"], witness=witness,
+        access=replace(retained["kwargs"]["access"], cutoff_ns=stop + 2))
+    request = WinnerQualificationRequest(include_account=False)
+    before = pickle.dumps((result.metadata, stale.metadata))
+    WinnerQualificationReport.build(decision, **options, request=request, result=result)
+    with pytest.raises(ValueError, match="result|decision"):
+        WinnerQualificationReport.build(decision, **options, request=request, result=stale)
+    assert pickle.dumps((result.metadata, stale.metadata)) == before

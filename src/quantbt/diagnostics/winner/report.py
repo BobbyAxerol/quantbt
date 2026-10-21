@@ -14,12 +14,12 @@ from .explanation import compare_rows, environment_summary, explain
 
 def _baseline(request, decision, *, access, profile):
     if request.current is not None:
-        request.current.verify()
+        request.current.authorize(access)
         if request.current.decision != decision:
             raise ValueError('current baseline context does not belong to this actual decision')
     if request.baseline is None:
         return dict(status='NOT_SUPPLIED', reason='No original source-bound baseline supplied')
-    current, baseline = request.current, request.baseline.verify()
+    current, baseline = request.current, request.baseline.authorize(access)
     a, b = current.dossier.record.data['context'], baseline.dossier.record.data['context']
     if any(a[key] != b[key] for key in ('alpha', 'data', 'economics', 'schema', 'roles', 'metrics')):
         raise ValueError('baseline alpha/market/economics/schema/roles/metric context differs')
@@ -112,6 +112,12 @@ class WinnerQualificationReport:
         runtime = decision.record.data['runtime']
         if runtime.get('environment_account_policy') != 'CONTINUOUS_PATH_ATTRIBUTION':
             raise ValueError('winner qualification requires original continuous Mode5 account attribution')
+        if result is not None:
+            wf = getattr(result, 'metadata', {}).get('walk_forward', {})
+            actual = DecisionReport.read(wf.get('mode5_diagnostics_first', {}),
+                selected_params=wf.get('best_trial', {}).get('params'))
+            if actual != decision:
+                raise ValueError('current result is not the original completed decision')
         scope = runtime.get('account_scope')
         if scope is not None and (witness.start_ns > scope['scored_start_ns'] or witness.end_ns < scope['scored_stop_ns']):
             raise PermissionError('witness must cover the original scored account scope')

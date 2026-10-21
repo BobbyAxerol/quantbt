@@ -128,6 +128,31 @@ class WinnerBaseline:
                 raise ValueError('baseline result is not its original completed decision')
         return self
 
+    def authorize(self, access):
+        """Current reporting rights never inherit an earlier selection approval."""
+        self.verify()
+        verify_sources(self.catalog, access)
+        binding = self.pack.record.data['binding']
+        access.require(AccessWitness(**binding['continuous']['witness']))
+        from ..archive import _restore
+        from ..archive_contracts import ArchiveEvidence, IntendedReuse, assess_reuse
+        worksheet = self.pack.record.data['worksheet']
+        reviews = [worksheet.get('archive')]
+        donors = self.pack.record.data['plan']['recipe']['reuse'].get('archive_donors')
+        if donors is not None:
+            reviews.append(donors['review'])
+        for review in reviews:
+            if review is None:
+                continue
+            for row in review['rows']:
+                evidence = _restore(ArchiveEvidence, row['declared_inputs']['evidence'])
+                for node in evidence.nodes:
+                    access.require(node.witness)
+                check = assess_reuse(evidence, IntendedReuse(evidence.identity, 'RETROSPECTIVE_READBACK'), access)
+                if check.disposition == 'RIGHTS_FORBIDDEN':
+                    raise PermissionError('current report access excludes baseline dependencies: ' + '; '.join(check.reasons))
+        return self
+
 
 @dataclass(frozen=True)
 class WinnerQualificationRequest:
