@@ -252,7 +252,7 @@ def execution_case():
         winner_candidate_id="c" * 64, baseline_candidate_id="b" * 64,
         planned_donor_params=[dict(period=8)], applied_donor_params=[dict(period=8)], donor_sources=["warm_start"])
     optimizer = dict(execution_case=matrix.EXECUTION_CASE, execution_cases=1, proposal_limit=12,
-        financial_limit=23, create_study_calls=4, optimize_trials=[2, 2], ask_calls=8,
+        financial_limit=23, create_study_calls=4, optimize_trials=[2, 2], ask_calls=12,
         tell_calls=8, walkforward_runs=3, forbidden_calls=[], observed_proposals=12)
     return execution, optimizer
 
@@ -467,6 +467,8 @@ def exercised_mock_budget():
         return object()
     def optimize(study, *, n_trials=None, n_jobs=1):
         calls.append(("optimize", n_trials, n_jobs))
+        for _ in range(n_trials):
+            wrapped["ask"](study)
     def ask(study):
         calls.append("ask")
         return object()
@@ -492,9 +494,29 @@ def test_observed_budget_wrappers_call_originals_without_search_emulation():
     budget, _, _, calls = exercised_mock_budget()
     execution, expected = execution_case()
     assert budget.receipt() == expected
-    assert calls.count("ask") == 8 and calls.count("tell") == 8
+    assert calls.count("ask") == 12 and calls.count("tell") == 8
     assert calls.count(("optimize", 2, 1)) == 2 and calls.count("walkforward") == 3
     matrix.validate_execution(execution, budget.receipt())
+
+
+def test_real_optuna_optimize_internal_asks_are_counted_once():
+    import optuna
+    class Engine:
+        def run(self):
+            pass
+    budget = OptimizerBudget(matrix.EXECUTION_CASE)
+    budget.begin(matrix.EXECUTION_CASE)
+    with budget.protect(optuna, Engine):
+        study = optuna.create_study()
+        study.optimize(lambda trial: trial.suggest_int("x", 0, 1), n_trials=2)
+    assert budget.ask_calls == budget.receipt()["observed_proposals"] == 2
+    assert budget.optimize_trials == [2] and not budget.forbidden
+
+
+@pytest.mark.parametrize("attempt", [0, 17, True, "2"])
+def test_invalid_attempt_cannot_reuse_outputs(tmp_path, attempt):
+    with pytest.raises(ValueError, match="attempt"):
+        preflight.qualify(tmp_path, attempt=attempt)
 
 
 @pytest.mark.parametrize("operation", ["ask", "walkforward", "create_study"])

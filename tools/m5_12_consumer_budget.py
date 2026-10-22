@@ -59,7 +59,7 @@ class OptimizerBudget:
                 if not args or not any(args[0] is study for study in self.studies):
                     self.reject("optimizer attempted an unobserved/reused study")
                 if name == "ask":
-                    if self.ask_calls >= self.proposal_limit or self.ask_calls + sum(self.optimize_trials) >= self.proposal_limit:
+                    if self.ask_calls >= self.proposal_limit:
                         self.reject("Study.ask/shared proposal budget exceeded")
                     self.ask_calls += 1
                 elif name == "tell":
@@ -73,7 +73,7 @@ class OptimizerBudget:
                     jobs = bound.arguments.get("n_jobs", 1)
                     if (type(trials) is not int or trials != 2 or len(self.optimize_trials) >= 2
                             or type(jobs) is not int or jobs != 1
-                            or self.ask_calls + sum(self.optimize_trials) + trials > self.proposal_limit):
+                            or self.ask_calls + trials > self.proposal_limit):
                         self.reject("missing/changed Study.optimize trial or serial budget")
                     self.optimize_trials.append(trials)
             elif name == "walkforward":
@@ -82,7 +82,10 @@ class OptimizerBudget:
                 self.walkforward_runs += 1
             else:
                 self.reject("unknown optimizer instrumentation")
+            asks_before = self.ask_calls
             result = original(*args, **kwargs)
+            if name == "optimize" and self.ask_calls - asks_before != trials:
+                self.reject("Study.optimize did not produce its declared observed asks")
             if name == "create_study":
                 if any(result is study for study in self.studies):
                     self.reject("reused study returned by creation")
@@ -108,4 +111,4 @@ class OptimizerBudget:
             proposal_limit=self.proposal_limit, financial_limit=self.financial_limit,
             create_study_calls=len(self.studies), optimize_trials=list(self.optimize_trials),
             ask_calls=self.ask_calls, tell_calls=self.tell_calls, walkforward_runs=self.walkforward_runs,
-            forbidden_calls=list(self.forbidden), observed_proposals=self.ask_calls + sum(self.optimize_trials))
+            forbidden_calls=list(self.forbidden), observed_proposals=self.ask_calls)

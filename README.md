@@ -54,8 +54,9 @@ The [M5-12 preparation checklist](docs/mode5/M5_12_PREPARATION.md) separates
 current source checks from final artifact, platform and public-index proof.
 The [prepared capability map](#prepared-release-capabilities) below describes
 the candidate source, not what an ordinary install command already provides.
-M5-12 package gates remain **NOT_RUN**; historical installed receipts do not
-certify this final source/pair, and preparation does not authorize publication.
+M5-12 records final-source local artifact qualification separately from
+historical installed receipts, platform certification and public-index proof.
+Local qualification does not authorize publication.
 
 Optional features:
 

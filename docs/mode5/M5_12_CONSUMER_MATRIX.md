@@ -13,6 +13,11 @@ plus its matching directory. A single-kind receipt explicitly lists its kind,
 `proof_scope=single_artifact_consumer` and `complete_pair=false`; it cannot
 certify the pair. Callers may retire only reviewed terminal environments between
 separately admitted installs; this tool neither installs nor removes them.
+Local M5-12 may instead supply `quantbt.m5_12.local_artifacts.v1`, verified by
+the current source guard, exact packaging inputs and unchanged-Rust ACC native
+artifact provenance. This is not an old QMS installed certificate. A failed
+consumer remains retained; `--attempt N` writes a fresh nonce and separate
+append-only attempt without changing the 12-proposal cap.
 
 | Required Feature | Bounded Public Synthetic Coverage |
 |---|---|
@@ -31,9 +36,10 @@ skips, xfails, collection drift and absent feature modules fail.
 All 43 non-search cases forbid optimizer calls. Only the precisely named
 `test_bounded_mode5_cross_mode_execution` call may run the staged public
 `mode5_cross_mode_qualification.run_demo(..., donor_folds=(0,))` once.
-Call-through wrappers cap public `Study.ask` at 12 and share a 12-proposal
-budget with the two Mode4 two-trial `Study.optimize` calls. The current protocol
-observes eight asks plus four optimize slots, four fresh studies, eight tells
+Call-through wrappers cap actual `Study.ask` at 12. Four calls occur internally
+inside the two Mode4 two-trial `Study.optimize` calls and eight are direct;
+they are counted once, not as extra reserved slots. The protocol observes
+twelve asks, four fresh studies, eight public tells
 and three walk-forward runs, serially, without changing methodology or results.
 Original summary counts must reconcile to exactly 12 proposals and at most 23
 financial invocations, with actual donor application and reconciled winner/

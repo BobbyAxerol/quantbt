@@ -4,6 +4,8 @@ include CHANGELOG.md
 include pyproject.toml
 
 recursive-include src/quantbt *.py py.typed
+include src/quantbt/benchmarks/README.md
+include src/quantbt/benchmarks/phase7_thresholds.json
 
 global-exclude *.pem
 global-exclude *.key

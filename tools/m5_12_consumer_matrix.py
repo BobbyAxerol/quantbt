@@ -113,7 +113,7 @@ def validate_execution(execution, optimizer):
     if not isinstance(execution, dict) or not isinstance(optimizer, dict):
         raise ValueError("bounded execution summary and observed optimizer budget required")
     expected = dict(execution_case=EXECUTION_CASE, execution_cases=1, proposal_limit=12,
-        financial_limit=23, create_study_calls=4, optimize_trials=[2, 2], ask_calls=8,
+        financial_limit=23, create_study_calls=4, optimize_trials=[2, 2], ask_calls=12,
         tell_calls=8, walkforward_runs=3, forbidden_calls=[], observed_proposals=12)
     integers = ("execution_cases", "proposal_limit", "financial_limit", "create_study_calls",
                 "ask_calls", "tell_calls", "walkforward_runs", "observed_proposals")

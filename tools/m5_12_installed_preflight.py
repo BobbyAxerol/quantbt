@@ -28,6 +28,7 @@ def verifier_manifest():
     return {name: digest(ROOT / name) for name in
             ("tools/m5_12_installed_preflight.py", "tools/m5_12_consumer_artifacts.py",
              "tools/m5_12_source_guard.py", "tools/m5_12_extraction_contract.py",
+             "tools/m5_12_local_artifacts.py",
              "tools/portfolio_repair_source_guard.py", "tools/account_metrics_source_guard.py",
              "tools/public_inventory_source_amendment.py")}
 
@@ -105,15 +106,19 @@ def validate_row(row, manifest, kind, request_hash):
             raise ValueError("actual loaded path/source differs from manifest")
 
 
-def qualify(lane, *, kind=None):
+def qualify(lane, *, kind=None, attempt=1):
     if kind not in (None, "pair", "sdist"):
         raise ValueError("unknown installed consumer kind")
     kinds = (kind,) if kind is not None else ("pair", "sdist")
+    if type(attempt) is not int or not 1 <= attempt <= 16:
+        raise ValueError("explicit bounded attempt number required")
     lane = Path(lane).resolve()
     interpreter = "cp" + "".join(map(str, sys.version_info[:2]))
     if not lane.is_relative_to(ROOT / ".maturin/qms08") or lane.name != interpreter:
         raise ValueError("exact current CPython QMS artifact lane required")
     basename = "installed-m5-12" + ("-" + kind if kind is not None else "") + "-proof"
+    if attempt != 1:
+        basename = basename.removesuffix("-proof") + "-attempt-" + str(attempt) + "-proof"
     destination = lane / (basename + ".json")
     records = lane / basename
     if destination.exists() or records.exists():
@@ -213,8 +218,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--lane", type=Path, required=True)
     parser.add_argument("--kind", choices=("pair", "sdist"), help="one artifact consumer only; default requires both")
+    parser.add_argument("--attempt", type=int, default=1, help="fresh append-only proof attempt; never replaces a prior receipt")
     args = parser.parse_args()
-    result = qualify(args.lane, kind=args.kind)
+    result = qualify(args.lane, kind=args.kind, attempt=args.attempt)
     print(json.dumps(dict(schema=result["schema"], run_id=result["run_id"], kinds=result["kinds"],
         proof_scope=result["proof_scope"], complete_pair=result["complete_pair"],
         consumers=list(result["consumers"]))))

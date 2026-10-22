@@ -37,9 +37,13 @@ def package_members(members, prefix):
 
 
 def artifact_manifest(proof, lane):
-    if proof.get("schema") != "qms-release-installed-pair-v1":
+    if proof.get("schema") == "quantbt.m5_12.local_artifacts.v1":
+        from tools.m5_12_local_artifacts import verify_local_artifacts
+        verify_local_artifacts(proof)
+    elif proof.get("schema") == "qms-release-installed-pair-v1":
+        verify_pair(proof)
+    else:
         raise ValueError("ordinary exact release-pair proof required; no historical adaptation")
-    verify_pair(proof)
     core, native = declared_pair()
     paths = {}
     for ref in proof["artifact_refs"]:
