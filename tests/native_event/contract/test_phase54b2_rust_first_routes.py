@@ -70,7 +70,18 @@ def _assert_accounting_equal(left, right) -> None:
     np.testing.assert_allclose(left.margin.to_numpy(), right.margin.to_numpy(), rtol=0.0, atol=1e-12)
     assert left.liquidated == right.liquidated
     assert left.liquidation_bar == right.liquidation_bar
-    assert left.metadata["lifecycle_counters"] == right.metadata["lifecycle_counters"]
+    terminal_counters = {"canceled_order_count", "canceled_event_count"}
+    legacy_counters = []
+    for result in (left, right):
+        counters = result.metadata["lifecycle_counters"]
+        legacy_counters.append({key: value for key, value in counters.items() if key not in terminal_counters})
+        if terminal_counters & counters.keys():
+            assert terminal_counters <= counters.keys()
+            assert result.metadata["native_terminal_state_v1"]["available"]
+            assert counters["canceled_order_count"] == int(result.diagnostics.canceled_orders.sum())
+            events = result.metadata["event_ledger"]
+            assert counters["canceled_event_count"] == int(np.count_nonzero(np.asarray(events["kind"]) == 1))
+    assert legacy_counters[0] == legacy_counters[1]
     certificate = assert_native_event_full_parity(left, right)
     assert certificate["passed"] is True
     assert left.metadata["canonical_trace_fingerprint"] == right.metadata["canonical_trace_fingerprint"]
