@@ -179,6 +179,12 @@ def test_actual_retained_register_maps_all_ids_and_keeps_pending_qualification_s
     assert result["phases"][-1]["recorded_status"] == "MAIN_REPORT_NOT_SUPPLIED"
     assert all(row["evidence_state"] == "MAIN_CURRENT_QUALIFICATION_REQUIRED"
                for row in result["requirements"][110:])
+    if not (ROOT / trace.PRIVATE).exists():
+        # A public checkout has no private custody; do not invent its assertions.
+        assert all(row["evidence_state"] == "INSUFFICIENT_RECORDED_ASSERTIONS"
+                   for row in result["requirements"][:110])
+        assert not any(name == "quantbt" or name.startswith("quantbt.") for name in set(sys.modules) - before)
+        return
     assert all(row["assertions"] or row["number"] == 77 for row in result["requirements"][:110])
     assert result["requirements"][76]["evidence_state"] == "RETAINED_REANALYSIS_NOT_NEW_EXECUTION"
     legacy = result["requirements"][90]["legacy_mode_regression"]
@@ -190,6 +196,23 @@ def test_actual_retained_register_maps_all_ids_and_keeps_pending_qualification_s
     assert not any(name == "quantbt" or name.startswith("quantbt.") for name in set(sys.modules) - before)
     assert all(not item["economic_default_promotion"] for item in result["coverage_inventory"])
     assert len(result["product_gates"]) == 10
+
+
+def test_public_checkout_without_private_custody_keeps_all_historical_gaps(tmp_path):
+    import shutil
+    for name in (trace.GUIDE, *(trace.PUBLIC + phase.seal for phase in trace.PHASES)):
+        destination = tmp_path/name
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(ROOT/name, destination)
+    assert not (tmp_path/trace.PRIVATE).exists()
+    result = trace.build_inventory(tmp_path)
+    assert len(result["requirements"]) == 120 and len(result["phases"]) == 12
+    assert all(row["evidence_state"] == "INSUFFICIENT_RECORDED_ASSERTIONS"
+               for row in result["requirements"][:110])
+    assert all(row["evidence_state"] == "MAIN_CURRENT_QUALIFICATION_REQUIRED"
+               for row in result["requirements"][110:])
+    assert not result["package_qualified"] and not result["all_120_pass"]
+    assert not result["publication_authorized"]
 
 
 def test_guide_and_seals_are_unchanged_by_read_only_inventory():
