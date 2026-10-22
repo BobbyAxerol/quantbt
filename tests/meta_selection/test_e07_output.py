@@ -8,8 +8,12 @@ from tools.qms08_package import ROOT
 
 @pytest.fixture(scope="module", params=("pct_equity", "intrabar", "event_driven", "order_commands", "reactive_reset"))
 def observed(request):
+    from tests.meta_selection import pre_e06_02_support as ordinary
+
     cell = Cell("domain", request.param, "active")
-    prepared = prepare(cell, ROOT / ".maturin/qms08/pre-e06-05")
+    # Historical serialized witnesses cannot qualify a changed financial source.
+    historical = ordinary.run(cell.route, data=ordinary.tape(cell.route, end="2022-05-31"), numeric="require")
+    prepared = prepare(cell, ROOT / ".maturin/qms08/pre-e06-05", frozen_history=historical.context.history)
     result = execute(prepared, cell)
     return cell, result, prepared[2]
 
