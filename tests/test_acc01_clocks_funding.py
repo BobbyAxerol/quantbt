@@ -393,3 +393,25 @@ def test_f16_public_prepared_identity_and_accounting_share_one_utc_clock(unit, w
     accounting = NativeAccountingArrays.from_result(result)
     np.testing.assert_array_equal(accounting.timestamps, [START_NS, START_NS + HOUR_NS, START_NS + 2 * HOUR_NS])
     assert accounting.datetime_index.equals(result.equity.index)
+
+
+@pytest.mark.parametrize("unit", ("ns", "us"))
+@pytest.mark.parametrize("rate", (0.01, -0.01))
+@pytest.mark.parametrize("with_session", (False, True))
+def test_f16_f17_exact_native_binding_preserves_clock_funding_and_session(unit, rate, with_session):
+    from quantbt.backends.native_intrabar_rust import run_rust_intrabar_kernel
+
+    tape = prepare_market_tape(data=_frame(_clock(unit)), symbols=["BTC"],
+        funding_event_timestamps=_clock("ns")[[1]], funding_event_rates=[rate])
+    session = IntrabarSessionTape.from_index(pd.to_datetime(tape.timestamps_ns, unit="ns", utc=True)) if with_session else None
+    result = run_rust_intrabar_kernel(tape=tape,
+        intent=IntrabarIntentTape.from_arrays(entry_side=[1, 0, 0], entry_size=[1., 0., 0.]),
+        account=AccountConfig(initial_capital=1000.),
+        contract=ExecutionContract.intrabar_bracket(close_on_last_bar=False),
+        fee_rate=0., slippage_rate=0., report_level="audit", session_tape=session,
+        session_policy=SessionExecutionPolicy() if with_session else None)
+    assert result.metadata["rust_intrabar_authority"] is True
+    np.testing.assert_allclose(result.equity, [1000., 1000. - rate * 100., 1000. - rate * 100.], atol=1e-12)
+    np.testing.assert_allclose(result.funding, [0., rate * 100., 0.], atol=1e-12)
+    assert result.equity.index[0] == pd.Timestamp("2024-01-01T00:00:00Z")
+    assert (result.equity.index[-1] - result.equity.index[0]).total_seconds() == 7200

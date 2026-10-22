@@ -223,6 +223,10 @@ class NativeEventConfig:
 
     def __post_init__(self) -> None:
         validate_gross_cross_account(self.account)
+        defaults = ExecutionConfig()
+        for name in ("fill_price_policy", "same_bar_policy", "allow_partial_fill", "reject_on_insufficient_margin"):
+            if getattr(self.execution, name) != getattr(defaults, name):
+                raise NotImplementedError(f"event generic execution.{name} is unsupported; use the named event execution contract")
         if self.execution.slippage_rate >= 1.0:
             raise ValueError("event slippage must produce positive execution prices")
         if not isinstance(self.runtime_budget, RuntimeBudgetV1):

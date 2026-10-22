@@ -1553,7 +1553,11 @@ class QuantBTEndpoint:
             raise ValueError("options endpoint currently supports backend='native_option' only")
         metadata = dict(kwargs.pop("metadata", {}))
         metadata.setdefault("mode_family", "options")
+        from .options.endpoint_validation import validate_option_endpoint, validate_option_config_overrides
+        if option_config is not None:
+            validate_option_config_overrides(kwargs)
         endpoint_config = _config_from_kwargs(mode="options", backend=backend, metadata=metadata, **kwargs)
+        validate_option_endpoint(endpoint_config)
         if option_config is None:
             option_config = NativeOptionConfig(
                 account=endpoint_config.account,
@@ -2727,6 +2731,8 @@ class QuantBTEndpoint:
         if instruments is None:
             raise ValueError("options endpoint requires instruments=OptionInstrumentRegistry/list/mapping")
         config = self.config.option_config
+        from .options.endpoint_validation import validate_option_endpoint
+        validate_option_endpoint(self.config)
         if config is None:
             config = NativeOptionConfig(
                 account=self.config.account,
