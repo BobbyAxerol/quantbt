@@ -65,7 +65,7 @@ def test_remote_workflow_has_all_six_installed_w3_rows_without_publish():
     text = (root / ".github/workflows/qms-candidate.yml").read_text()
     workflow = yaml.load(text, Loader=yaml.BaseLoader)
     assert workflow["permissions"] == {"contents": "read"}
-    assert workflow["on"]["push"]["branches"] == ["feat/meta-selection-samplers"]
+    assert workflow["on"]["push"]["branches"] == ["feat/mode5-diagnostics-first"]
     job = workflow["jobs"]["installed-candidate"]
     assert job["strategy"]["matrix"] == dict(
         runner=["ubuntu-22.04", "ubuntu-24.04"], python=["3.11", "3.12", "3.13"])

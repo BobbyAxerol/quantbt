@@ -2,6 +2,7 @@
 
 import ast
 from copy import deepcopy
+from fnmatch import fnmatchcase
 from hashlib import sha256
 import json
 from pathlib import Path
@@ -95,9 +96,13 @@ def test_e01_t05_all_entrypoints_use_shared_mandatory_consumer_runner():
         assert any(isinstance(n, ast.Call) and isinstance(n.func, ast.Name) and n.func.id == alias for n in ast.walk(tree))
     workflow = yaml.load((ROOT / ".github/workflows/qms-candidate.yml").read_text(), Loader=yaml.BaseLoader)
     filters = workflow["on"]["pull_request"]["paths"]
-    assert "tools/qms_c0*" in filters and "tools/qms_installed_consumers.py" in filters
-    assert "examples/wfo_reactive_samplers.py" in filters
-    assert "src/quantbt/backends/reactive_wfo*.py" in filters
+    for path in (
+        "tools/qms_c02_consumer.py", "tools/qms_c03_consumer.py",
+        "tools/qms_c04_consumer.py", "tools/qms_installed_consumers.py",
+        "examples/wfo_reactive_samplers.py",
+        "src/quantbt/backends/reactive_wfo.py",
+    ):
+        assert any(fnmatchcase(path, pattern) for pattern in filters), path
     assert "installed-w3-proof/**/*.log" in (ROOT / ".github/workflows/qms-candidate.yml").read_text()
     for name in ("native-release.yml", "publish-native.yml"):
         assert "dist/staged/qms-release-consumers/*.log" in (ROOT / ".github/workflows" / name).read_text()
