@@ -63,7 +63,7 @@ jobs:
           cargo fetch --manifest-path rust/native_event/Cargo.toml --locked
       - name: Validate release identities and fail-closed proof gates
         run: |
-          .venv/bin/python -m pytest -q tests/meta_selection/test_release_gaps.py tests/meta_selection/test_e01_installed.py tests/meta_selection/test_e01_docs.py tests/test_phase55a_native_distribution.py tests/test_phase55b_public_release.py tests/test_m5_12_consumer_wiring.py --junitxml=.maturin/qms08/release-gaps.xml
+          .venv/bin/python -m pytest -q tests/meta_selection/test_release_gaps.py tests/meta_selection/test_e01_installed.py tests/meta_selection/test_e01_docs.py tests/test_phase55a_native_distribution.py tests/test_phase55b_public_release.py tests/test_m5_12_consumer_wiring.py tests/test_m5_12_pct_installed.py --junitxml=.maturin/qms08/release-gaps.xml
       - name: Validate typed domain admission and actual public dispatch
         run: |
           .venv/bin/python -m pytest -q tests/meta_selection/test_e02_contracts.py tests/meta_selection/test_e02_inventory.py tests/meta_selection/test_e03_scalar.py tests/meta_selection/test_e03_study_gate.py tests/meta_selection/test_e03_installed.py tests/meta_selection/test_e03_queue.py tests/meta_selection/test_e03_report.py tests/meta_selection/test_e04_portfolio.py tests/meta_selection/test_e04_installed.py tests/meta_selection/test_e04_report.py --junitxml=.maturin/qms08/e02-contracts.xml
@@ -111,6 +111,16 @@ jobs:
         run: |
           lane="$(python -c 'import sys; print("cp" + "".join(map(str, sys.version_info[:2])) )')"
           .venv/bin/python -m tools.m5_12_installed_preflight --lane "$PWD/.maturin/qms08/qualified/$lane" 2>&1 | tee "$PWD/.maturin/qms08/qualified/$lane/m5-12-preflight.log"
+      - name: Prove 19 installed pct and alias cases from core wheel
+        shell: bash
+        run: |
+          lane="$(python -c 'import sys; print("cp" + "".join(map(str, sys.version_info[:2])) )')"
+          .venv/bin/python -B -m tools.m5_12_pct_installed --lane "$PWD/.maturin/qms08/qualified/$lane" --kind pair
+      - name: Prove 19 installed pct and alias cases from core sdist
+        shell: bash
+        run: |
+          lane="$(python -c 'import sys; print("cp" + "".join(map(str, sys.version_info[:2])) )')"
+          .venv/bin/python -B -m tools.m5_12_pct_installed --lane "$PWD/.maturin/qms08/qualified/$lane" --kind sdist
       - name: Retain installed consumer and build receipts
         if: always()
         uses: actions/upload-artifact@v4
@@ -130,6 +140,10 @@ jobs:
             .maturin/qms08/qualified/cp*/installed-execution-proof/*
             .maturin/qms08/qualified/cp*/installed-m5-12-proof.json
             .maturin/qms08/qualified/cp*/installed-m5-12-proof/*
+            .maturin/qms08/qualified/cp*/installed-pct-*-proof.json
+            .maturin/qms08/qualified/cp*/installed-pct-*-proof/*.json
+            .maturin/qms08/qualified/cp*/installed-pct-*-proof/*.xml
+            .maturin/qms08/qualified/cp*/installed-pct-*-proof/*.log
             .maturin/qms08/qualified/cp*/*.log
             .maturin/qms08/qualified/cp*/installed-w3-proof/**/*.log
             .maturin/qms08/qualified/cp*/installed-scalar-proof/*.log

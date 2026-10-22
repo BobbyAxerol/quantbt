@@ -14,11 +14,14 @@ ROOT = Path(__file__).resolve().parents[1]
 MODULES = {"tests/test_phase77_2_pct_equity_native.py": 16, "tests/test_m5_12_pct_alias.py": 3}
 SCHEMA = "quantbt.m5_12.installed_pct.v1"
 PROOF_SCHEMA = "quantbt.m5_12.local_artifacts.v2"
+RELEASE_PROOF_SCHEMA = "qms-release-installed-pair-v1"
+PROOF_SCHEMAS = frozenset((PROOF_SCHEMA, RELEASE_PROOF_SCHEMA))
 CAPABILITY = "PCT_EQUITY_ACCEPTED_QTY_ACTIVITY_V1"
 ACTIVITY = "accepted_qty_position_states_v1"
 COUNTS = dict(tests=19, failures=0, errors=0, skipped=0)
 NUMERIC_THREADS = dict(blas_threads=1, openmp_threads=1, numba_threads=1)
 PINNED_FILES = (*MODULES, "tools/m5_12_pct_installed.py", "tools/qms_e08_consumer.py",
+    "tools/qms08_gate.py", "tools/qms08_package.py",
     "tools/qms_installed_execution.py", "tools/m5_12_consumer_artifacts.py",
     "tools/m5_12_local_artifacts.py", "tools/m5_12_native_build.py",
     "tools/m5_12_source_guard.py", "tools/m5_12_pct_source_amendment.py",
@@ -45,6 +48,22 @@ def source_pins():
             raise ValueError("missing/linked public proof source: " + name)
         result[name] = digest(path)
     return result
+
+
+def qualified_source(proof):
+    if proof["schema"] == PROOF_SCHEMA:
+        return proof["source"]
+    from tools.m5_12_source_guard import verify_current_source
+    return verify_current_source()
+
+
+def validate_proof_binding(manifest, proof, proof_hash):
+    schema = proof.get("schema")
+    if (schema not in PROOF_SCHEMAS or manifest.get("package_proof_schema") != schema
+            or manifest.get("package_proof_sha256") != proof_hash
+            or not isinstance(manifest.get("source"), dict) or not manifest["source"]
+            or schema == PROOF_SCHEMA and manifest["source"] != proof.get("source")):
+        raise ValueError("unknown, stale or mismatched pct package-proof binding")
 
 
 def counts_from_xml(path):
@@ -135,11 +154,9 @@ def consume(lane, kind, request):
     scratch = directory / (kind + "-fixtures")
     if any(path.exists() or path.is_symlink() for path in (output, output.with_suffix(".xml"), scratch)):
         raise ValueError("pct output/fixture scratch already exists")
+    validate_proof_binding(manifest, proof, sha256(proof_raw).hexdigest())
     if (manifest.get("schema") != SCHEMA or manifest.get("kind") != kind
             or manifest.get("prefixes") != {kind: str(lane / kind)}
-            or manifest.get("package_proof_schema") != PROOF_SCHEMA
-            or proof.get("schema") != PROOF_SCHEMA or manifest.get("source") != proof.get("source")
-            or manifest.get("package_proof_sha256") != sha256(proof_raw).hexdigest()
             or manifest.get("source_sha256") != source_pins()):
         raise ValueError("changed/unbound pct execution request")
     preload_installed()
@@ -166,6 +183,7 @@ def consume(lane, kind, request):
     row = dict(schema=SCHEMA, kind=kind, identity=after, capability=ACTIVITY, counts=counts,
         collected=outcomes.collected, reports=outcomes.reports, modules=outcomes.modules, xfail=False,
         manifest_sha256=sha256(raw).hexdigest(), package_proof_sha256=manifest["package_proof_sha256"],
+        package_proof_schema=manifest["package_proof_schema"],
         source=manifest["source"], source_sha256=manifest["source_sha256"], threads=threads,
         native_worker_scope="existing module includes explicit two-worker parity; numeric pools fixed at one",
         junit_sha256=digest(output.with_suffix(".xml")), publication=False, complete_pair=False)
@@ -190,14 +208,15 @@ def qualify(lane, *, kind):
     from tools.m5_12_consumer_artifacts import artifact_manifest
     proof_path = lane / "proof.json"
     proof = json.loads(proof_path.read_bytes())
-    if proof.get("schema") != PROOF_SCHEMA:
-        raise ValueError("fresh-native v2 provenance required; no historical proof overlay")
+    if proof.get("schema") not in PROOF_SCHEMAS:
+        raise ValueError("ordinary release-pair or fresh-native v2 provenance required; no historical proof overlay")
     proof_hash = verify_proof_custody(proof_path, proof)
     artifacts = artifact_manifest(proof, lane)
+    source = qualified_source(proof)
     pins = source_pins()
     manifest = dict(schema=SCHEMA, kind=kind, **artifacts, prefixes={kind: str(prefix)},
-        interpreter=lane.name, source=proof["source"], source_sha256=pins,
-        package_proof_schema=PROOF_SCHEMA, package_proof_sha256=proof_hash)
+        interpreter=lane.name, source=source, source_sha256=pins,
+        package_proof_schema=proof["schema"], package_proof_sha256=proof_hash)
     directory.mkdir()
     request = directory / "manifest.json"
     write_json(request, manifest)
@@ -232,7 +251,8 @@ def qualify(lane, *, kind):
         validate_outcomes(row["collected"], row["reports"], row["modules"], row["xfail"])
         if (row.get("schema") != SCHEMA or row.get("kind") != kind or row.get("capability") != ACTIVITY
                 or row.get("manifest_sha256") != request_hash or row.get("package_proof_sha256") != proof_hash
-                or row.get("source") != proof["source"] or row.get("source_sha256") != pins
+                or row.get("package_proof_schema") != proof["schema"]
+                or row.get("source") != source or row.get("source_sha256") != pins
                 or row.get("counts") != counts_from_xml(output.with_suffix(".xml"))
                 or row.get("junit_sha256") != digest(output.with_suffix(".xml"))
                 or row.get("publication") is not False or row.get("complete_pair") is not False
@@ -243,17 +263,18 @@ def qualify(lane, *, kind):
         try:
             verify_proof_custody(proof_path, proof, expected_sha256=proof_hash)
             if (artifact_manifest(proof, lane) != artifacts or source_pins() != pins
-                    or digest(request) != request_hash):
+                    or qualified_source(proof) != source or digest(request) != request_hash):
                 raise ValueError("pct source/artifacts/request changed during proof")
         except Exception as exc:
             write_json(directory / "custody.json", dict(status="FAIL_RETAINED", error=str(exc)))
             raise
         write_json(directory / "custody.json", dict(status="PASS", package_proof_sha256=proof_hash,
             manifest_sha256=request_hash, source_sha256=pins))
-    receipt = dict(schema=SCHEMA, kind=kind, consumer=row, source=proof["source"],
+    receipt = dict(schema=SCHEMA, kind=kind, consumer=row, source=source,
+        package_proof_schema=proof["schema"],
         source_sha256=pins, package_proof_sha256=proof_hash, manifest_sha256=request_hash,
         retained_sha256={p.name: digest(p) for p in directory.iterdir() if p.is_file()},
-        complete_pair=False, publication=False, remote=False)
+        complete_pair=False, publication=False, remote=os.environ.get("GITHUB_ACTIONS") == "true")
     write_json(destination, receipt)
     return receipt
 
