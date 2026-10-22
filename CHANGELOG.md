@@ -4,7 +4,18 @@ All notable changes to `quantbt-engine` are documented here.
 
 ## [Unreleased]
 
-### Prepared 1.1.2 / Native 0.4.3
+### Prepared 1.2.0 / Native 0.4.3
+
+- Retargeted the unreleased core candidate from1.1.2to1.2.0 to reflect the
+  diagnostics, Mode4/Mode5, sampler/meta, reporting and account upgrade below.
+  Historical1.1.2receipts retain their original scope; they are not renamed
+  release evidence. Native version remains0.4.3; generated product metadata
+  follows the new pair, requiring fresh matching native artifacts.
+- Reduced full Reporting V1 Python scalar-dispatch and metadata overhead;
+  closed-ledger reason counting uses one pass instead of one scan per reason.
+  Exact before/after output, snapshot/identity and undefined-policy parity are
+  tested. Reporting formulas, financial kernels and WFO selection are unchanged;
+  timing gains are workload-specific and do not imply a universal speedup.
 
 - Added opt-in `reporting=ReportingRequest(...)` on completed endpoint/result
   reports and quick plots. Account-period, execution, closed-trade/action and

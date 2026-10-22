@@ -681,7 +681,7 @@ def certify_release(
             environment=environment,
         )
         qms = {}
-        if (core_version, native_version) == ("1.1.2", "0.4.3"):
+        if (core_version, native_version) in {("1.1.2", "0.4.3"), ("1.2.0", "0.4.3")}:
             from tools.qms_installed_consumers import qualify as qualify_qms
 
             optimization = tomllib.loads(CORE_PYPROJECT.read_text())["project"]["optional-dependencies"]["optimization"]

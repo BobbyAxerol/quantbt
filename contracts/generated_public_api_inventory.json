@@ -632,5 +632,5 @@
   ],
   "schema": "quantbt-public-api-inventory-v1",
   "source": "src/quantbt/__init__.py",
-  "source_sha256": "e9a429f600a09de4899e66c682e1f44051c6ce0506f9c5bb8a6fa02824fcd1c3"
+  "source_sha256": "84a7a2e93d54cb02c77d63d664632f9fb68f04d49bd2355511957196071577c6"
 }

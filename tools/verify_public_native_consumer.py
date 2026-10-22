@@ -438,7 +438,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         python=args.python.resolve(),
         timeout_seconds=int(args.timeout_seconds),
         index_url=str(args.index_url) if args.index_url else None,
-        require_qms=args.require_qms or (args.core_version, args.native_version) == ("1.1.2", "0.4.3"),
+        require_qms=args.require_qms or (args.core_version, args.native_version) in {
+            ("1.1.2", "0.4.3"), ("1.2.0", "0.4.3")},
     )
     try:
         logs = None if args.output is None else args.output.parent / (args.output.stem + "-qms-consumers")

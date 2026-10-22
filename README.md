@@ -42,7 +42,7 @@ Prepared next release pair (not yet published):
 
 | Distribution | Version | Purpose |
 |---|---:|---|
-| `quantbt-engine` | `1.1.2` | Public API, Python/Numba engines, reports, compatibility oracle |
+| `quantbt-engine` | `1.2.0` | Public API, Python/Numba engines, reports, compatibility oracle |
 | `quantbt-native` | `0.4.3` | Internal PyO3 extension, including default QMS numerics and prepared witnesses |
 
 The published `1.1.1 / 0.4.2` pair remains separate from this preparation.
@@ -50,8 +50,10 @@ QMS is opt-in: enabling its compiled capability does not enable meta selection
 or change an existing endpoint/account policy. See the
 [QMS release handoff](docs/meta_selection/RELEASE_HANDOFF.md) for exact artifact,
 installed-W3 and public-consumer gates and the owner-controlled release order.
-The [M5-12 preparation checklist](docs/mode5/M5_12_PREPARATION.md) separates
-current source checks from final artifact, platform and public-index proof.
+The [M5-12 preparation checklist](docs/mode5/M5_12_PREPARATION.md) retains the
+earlier1.1.2candidate qualification. The owner has retargeted the next core
+release to1.2.0, with native0.4.3; new source/artifact qualification is recorded
+separately from old receipts and later platform/public-index proof.
 The [prepared capability map](#prepared-release-capabilities) below describes
 the candidate source, not what an ordinary install command already provides.
 M5-12 records final-source local artifact qualification separately from
@@ -199,7 +201,7 @@ The full parameter, data, result, and support contracts are in the
 
 ## Prepared Release Capabilities
 
-For the prepared **1.1.2 / 0.4.3** pair, choose each research extension
+For the prepared **1.2.0 / 0.4.3** pair, choose each research extension
 explicitly. Installing compiled capabilities does not enable meta, choose a
 sampler/selector, route a strategy or promote a default. Software support,
 registered economic findings and final installed/release certification are

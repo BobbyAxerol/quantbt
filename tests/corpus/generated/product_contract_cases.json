@@ -1,13 +1,13 @@
 {
   "cases": [
     {
-      "core_version": "1.1.2",
+      "core_version": "1.2.0",
       "expected": "compatible",
       "id": "exact_staged_core_native_pair",
       "native_version": "0.4.3"
     },
     {
-      "core_version": "1.1.2",
+      "core_version": "1.2.0",
       "expected": "incompatible",
       "id": "native_version_mismatch",
       "native_version": "0.0.0"
@@ -40,6 +40,6 @@
       "promotion_table_version": "native-event-promotion-v4-phase78-ir-score-a4"
     }
   ],
-  "registry_fingerprint": "b5f12f390a642b6f595e19d82d980c0720a16957d4cb6a10f210eb4f8fcf2820",
+  "registry_fingerprint": "13611bc1d511d011a3c08d3e9ff97896f8de26dd2324db55fd4c9c7fb52c6f37",
   "schema": "quantbt-product-contract-corpus-v1"
 }

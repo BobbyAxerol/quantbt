@@ -14,11 +14,13 @@ required native numeric capabilities need the exact compatible companion:
 pip install quantbt-engine
 ```
 
-The prepared next pair is `quantbt-engine==1.1.2` with
+The prepared next pair is `quantbt-engine==1.2.0` with
 `quantbt-native==0.4.3`; it is not published yet. The documented predecessor
 is `1.1.1 / 0.4.2`. This page is not a live index check.
 See the [QMS release handoff](../meta_selection/RELEASE_HANDOFF.md) and
-[M5-12 preparation](../mode5/M5_12_PREPARATION.md) for final-source gates.
+[M5-12 preparation](../mode5/M5_12_PREPARATION.md) for the earlier1.1.2local
+qualification. The1.2.0candidate requires fresh exact source/artifact gates;
+same native version alone does not authenticate its generated product metadata.
 The core declares the companion as a direct,
 platform-marked dependency, so a normal supported consumer command remains:
 
@@ -70,7 +72,7 @@ PY
 After this pair is published, supported Linux output must contain:
 
 ```text
-quantbt-engine: 1.1.2
+quantbt-engine: 1.2.0
 quantbt-native: 0.4.3
 ```
 

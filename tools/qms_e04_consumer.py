@@ -7,15 +7,29 @@ import json
 from pathlib import Path
 
 
-def consume(example):
+def _installed_pair(quantbt, native, *, core_version=None, native_version=None):
+    from quantbt.core.generated_product_contracts import (
+        NATIVE_EVENT_CORE_PACKAGE_VERSION, NATIVE_EVENT_NATIVE_PACKAGE_VERSION,
+    )
+
+    if (core_version is None) != (native_version is None):
+        raise ValueError("both expected core/native versions are required together")
+    if core_version is None:
+        core_version, native_version = NATIVE_EVENT_CORE_PACKAGE_VERSION, NATIVE_EVENT_NATIVE_PACKAGE_VERSION
+    assert "site-packages" in Path(quantbt.__file__).resolve().parts
+    assert metadata.version("quantbt-engine") == quantbt.__version__ == core_version
+    assert metadata.version("quantbt-native") == native.version() == native_version
+    return quantbt.__version__, native.version()
+
+
+def consume(example, *, core_version=None, native_version=None):
     import numpy as np
     import optuna
     import quantbt
     import _quantbt_native as native
 
-    assert "site-packages" in Path(quantbt.__file__).resolve().parts
-    assert metadata.version("quantbt-engine") == quantbt.__version__ == "1.1.2"
-    assert metadata.version("quantbt-native") == native.version() == "0.4.3"
+    core_version, native_version = _installed_pair(quantbt, native,
+        core_version=core_version, native_version=native_version)
     spec = importlib.util.spec_from_file_location("portfolio_example", example)
     demo = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(demo)
@@ -37,7 +51,7 @@ def consume(example):
         assert all(c.observation.verification == "original_result" for t in side["tasks"] for c in t.candidates)
         rows.append(dict(sizing=sizing, off_shadow_account_exact=True,
                          active_original_witness=True, observer_attempts=side["observer_attempts"]))
-    return dict(schema="qms-e04-installed-portfolio-v1", core="1.1.2", native="0.4.3",
+    return dict(schema="qms-e04-installed-portfolio-v1", core=core_version, native=native_version,
         origin=str(Path(quantbt.__file__).resolve()), cells=rows,
         synthetic_demo=True, publication=False, empirical_promotion=False)
 
@@ -45,4 +59,8 @@ def consume(example):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--example", type=Path, required=True)
-    print(json.dumps(consume(parser.parse_args().example), sort_keys=True))
+    parser.add_argument("--core-version")
+    parser.add_argument("--native-version")
+    args = parser.parse_args()
+    print(json.dumps(consume(args.example, core_version=args.core_version,
+        native_version=args.native_version), sort_keys=True))

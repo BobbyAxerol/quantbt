@@ -144,7 +144,7 @@ def test_declared_release_pair_and_default_features_are_exact():
     import tomllib
     from tools.qms08_package import ROOT, declared_pair
 
-    assert declared_pair() == ("1.1.2", "0.4.3")
+    assert declared_pair() == ("1.2.0", "0.4.3")
     cargo = tomllib.loads((ROOT / "rust/native_event/Cargo.toml").read_text())
     assert cargo["features"]["default"] == ["qms-numeric-candidate", "qms-prepared-witness-candidate"]
     assert cargo["package"]["version"] == "0.4.3"
@@ -192,11 +192,11 @@ def test_remote_and_public_gates_require_actual_qms_proofs():
     assert "tools.qms08_package --release-pair" in candidate
     assert "--features" not in candidate
     public = (ROOT / ".github/workflows/public-native-consumer.yml").read_text()
-    assert "--require-qms" in public and "1.1.2" in public and "0.4.3" in public
-    spec = ConsumerProofSpec("pypi", "1.1.2", "0.4.3", "poetry", Path("/python"), 30, require_qms=True)
+    assert "--require-qms" in public and "1.1.2" in public and "1.2.0" in public and "0.4.3" in public
+    spec = ConsumerProofSpec("pypi", "1.2.0", "0.4.3", "poetry", Path("/python"), 30, require_qms=True)
     commands = poetry_install_commands(spec)
     assert commands[1][2] == "quantbt-engine"
-    assert commands[2][2] == "quantbt-engine[optimization]==1.1.2"
+    assert commands[2][2] == "quantbt-engine[optimization]==1.2.0"
 
 
 @pytest.mark.parametrize("mutation", ["pair", "recipes", "rust", "shadow", "same_pass", "observer"])

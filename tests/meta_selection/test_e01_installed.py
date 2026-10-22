@@ -142,9 +142,15 @@ def test_e01_t05_public_entrypoint_executes_shared_gate_and_propagates_failure(t
     assert len(calls) == 1
 
 
-def test_e01_t05_release_entrypoint_cannot_ignore_consumer_failure(tmp_path, monkeypatch):
+@pytest.mark.parametrize("core_version", ["1.1.2", "1.2.0"])
+def test_e01_t05_release_entrypoint_cannot_ignore_consumer_failure(tmp_path, monkeypatch, core_version):
     from tools import certify_native_release as release
 
+    registry = json.loads(release.PRODUCT_REGISTRY.read_text())
+    registry["versions"]["core_package"]["version"] = core_version
+    registry_path = tmp_path / "product-registry.json"
+    registry_path.write_text(json.dumps(registry))
+    monkeypatch.setattr(release, "PRODUCT_REGISTRY", registry_path)
     monkeypatch.setattr(release, "_release_dependencies", lambda: (
         lambda: [], lambda: {}, lambda: {}, None, lambda *a, **k: {}))
     monkeypatch.setattr(release, "_artifact_evidence", lambda *a: (Path("core.whl"), Path("native.whl"), []))
@@ -156,7 +162,7 @@ def test_e01_t05_release_entrypoint_cannot_ignore_consumer_failure(tmp_path, mon
     def fail(prefix, **kwargs):
         calls.append((prefix, kwargs))
         assert kwargs["logs"] == tmp_path / "qms-release-consumers"
-        assert kwargs["core"] == "1.1.2" and kwargs["native"] == "0.4.3"
+        assert kwargs["core"] == core_version and kwargs["native"] == "0.4.3"
         raise ValueError("C04 proof failed")
 
     monkeypatch.setattr(proof, "qualify", fail)
