@@ -515,8 +515,21 @@ def test_cold_restore_and_strict_payload_failures(data):
         loads_artifact(dumps_artifact(result), max_bytes=1, **kwargs)
 
 
-def test_frozen_sources_and_settings_still_match():
+def test_frozen_sources_and_current_qualified_sources_are_separate():
     from hashlib import sha256
+    import subprocess
+    from tools import portfolio_repair_source_guard as guard
     root = Path(__file__).resolve().parents[2]
     manifest = json.loads((root / "benchmarks/optimization/meta_selection/model_research_v1/ridge_v1_freeze.json").read_text())
-    assert all(sha256((root / p).read_bytes()).hexdigest() == h for p, h in manifest["source_sha256"].items())
+    changed = []
+    for name, expected in manifest["source_sha256"].items():
+        current = (root / name).read_bytes()
+        historical = subprocess.check_output(["git", "show", f"{manifest['source_commit']}:{name}"], cwd=root)
+        assert sha256(historical).hexdigest() == expected
+        if current != historical:
+            changed.append(name)
+    assert "rust/native_event/src/qms_numeric.rs" in changed
+    source = guard.verify_current_source()
+    assert source["current_source_qualified"] and source["historical_receipts_unchanged"]
+    assert set(changed) <= set(source["repair_changed_sources"])
+    assert not source["financial_numeric_source_unchanged"]

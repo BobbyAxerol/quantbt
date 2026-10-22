@@ -13,28 +13,30 @@ from tools.meta_model_research.protocol import (
 )
 
 
-def test_frozen_baseline_source_and_settings():
-    result = verify_freeze()
+@pytest.fixture
+def frozen_inputs(tmp_path):
+    from tests.meta_selection.frozen_ridge_inputs import materialize
+    return materialize(tmp_path)
+
+
+def test_frozen_baseline_source_and_settings(frozen_inputs):
+    result = verify_freeze(root=frozen_inputs)
     assert result["source_files"] == 42 and result["receipts"] == 5
+    with pytest.raises(ValueError, match="frozen comparator input changed: rust/native_event/src/qms_numeric.rs"):
+        verify_freeze()
     changed = deepcopy(read(PUBLIC / "ridge_v1_freeze.json"))
     changed["ridge_settings"]["lambda_reg"] = 11
     with pytest.raises(ValueError, match="content/settings"):
-        verify_freeze(manifest=changed)
+        verify_freeze(root=frozen_inputs, manifest=changed)
 
 
-def test_source_negative_copy(tmp_path):
+def test_source_negative_copy(frozen_inputs):
     manifest = read(PUBLIC / "ridge_v1_freeze.json")
-    from tools.meta_model_research.admission import ROOT
-    for name in ("source_sha256", "existing_evidence_sha256"):
-        for path in manifest[name]:
-            target = tmp_path / path
-            target.parent.mkdir(parents=True, exist_ok=True)
-            target.write_bytes((ROOT / path).read_bytes())
-    assert verify_freeze(root=tmp_path)["verified"]
-    target = tmp_path / next(iter(manifest["source_sha256"]))
+    assert verify_freeze(root=frozen_inputs)["verified"]
+    target = frozen_inputs / next(iter(manifest["source_sha256"]))
     target.write_bytes(target.read_bytes() + b"\n")
     with pytest.raises(ValueError, match="input changed"):
-        verify_freeze(root=tmp_path)
+        verify_freeze(root=frozen_inputs)
 
 
 def test_group_and_role_partition():
@@ -107,8 +109,10 @@ def test_recipe_identity_restore_and_budget():
     assert StudyProtocol(**fields).protocol_id == p.protocol_id
 
 
-def test_group_substitution_fails_before_reading_any_corpus():
+def test_group_substitution_fails_before_reading_any_corpus(frozen_inputs, monkeypatch):
+    from tools.meta_model_research import admission
     from tools.meta_model_research.admission import ROOTS, load_corpus
+    monkeypatch.setattr(admission, "verify_freeze", lambda: verify_freeze(root=frozen_inputs))
     swapped = dict(ROOTS, **{"A-SC": ROOTS["A-HMA"]})
     with pytest.raises(ValueError, match="substitution"):
         load_corpus("A-SC", roots=swapped)
