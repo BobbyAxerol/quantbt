@@ -8,10 +8,13 @@ change obscures the baseline.
 
 from __future__ import annotations
 
-from hashlib import sha256
 import importlib.util
 import json
 from pathlib import Path
+
+import pytest
+
+from support.historical_assets import GitSnapshot
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -21,6 +24,35 @@ MEASUREMENT_PATH = ROOT / "contracts" / "v1_1_measurement_contract.json"
 WHEEL_PATH = ROOT / "benchmarks" / "baselines" / "v1_1_installed_wheel_baseline.json"
 MEASUREMENT_MODULE_PATH = ROOT / "src" / "quantbt" / "benchmarks" / "v1_1_measurement.py"
 GENERATOR_PATH = ROOT / "tools" / "generate_v1_1_baseline.py"
+# The 1.1.1/0.4.2 baseline refresh, distinct from the 1.1.0 wheel receipt.
+BASELINE_SNAPSHOT = "62b8ea1a5490fdea68940db3d40e431dcf9e7858"
+
+
+@pytest.fixture(scope="module")
+def historical_baseline(tmp_path_factory):
+    snapshot = GitSnapshot(BASELINE_SNAPSHOT)
+    outputs = {
+        INVENTORY_PATH.relative_to(ROOT).as_posix(),
+        "docs/generated/v1_1_endpoint_inventory.md",
+        CORPUS_PATH.relative_to(ROOT).as_posix(),
+        "docs/generated/v1_1_corpus_manifest.md",
+        MEASUREMENT_PATH.relative_to(ROOT).as_posix(),
+        "docs/generated/v1_1_measurement_contract.md",
+    }
+    paths = outputs | {GENERATOR_PATH.relative_to(ROOT).as_posix()}
+    for relative in outputs:
+        snapshot.assert_retained(relative)
+    for relative in (INVENTORY_PATH, CORPUS_PATH):
+        payload = snapshot.read_json(relative.relative_to(ROOT).as_posix())
+        records = list(payload["source_fingerprints"].values())
+        for case in payload.get("cases", []):
+            records.extend(case["artifacts"])
+        for record in records:
+            snapshot.assert_record(record)
+            paths.add(record["path"])
+    destination = tmp_path_factory.mktemp("phase56-snapshot")
+    snapshot.materialize(destination, paths)
+    return snapshot, snapshot.load_module(destination, "tools/generate_v1_1_baseline.py")
 
 EXPECTED_CORPUS_CASES = {
     "atomic_package",
@@ -60,24 +92,30 @@ def _load_generator_module():
     return module
 
 
-def test_phase56_generated_baseline_artifacts_are_current() -> None:
-    outputs = _load_generator_module().generated_outputs()
-    assert set(outputs) == {
-        INVENTORY_PATH,
-        ROOT / "docs" / "generated" / "v1_1_endpoint_inventory.md",
-        CORPUS_PATH,
-        ROOT / "docs" / "generated" / "v1_1_corpus_manifest.md",
-        MEASUREMENT_PATH,
-        ROOT / "docs" / "generated" / "v1_1_measurement_contract.md",
+def test_phase56_generated_baseline_artifacts_match_their_git_snapshot(historical_baseline) -> None:
+    snapshot, generator = historical_baseline
+    outputs = generator.generated_outputs()
+    assert {path.relative_to(generator.ROOT).as_posix() for path in outputs} == {
+        INVENTORY_PATH.relative_to(ROOT).as_posix(),
+        "docs/generated/v1_1_endpoint_inventory.md",
+        CORPUS_PATH.relative_to(ROOT).as_posix(),
+        "docs/generated/v1_1_corpus_manifest.md",
+        MEASUREMENT_PATH.relative_to(ROOT).as_posix(),
+        "docs/generated/v1_1_measurement_contract.md",
     }
     for path, expected in outputs.items():
-        assert path.read_text(encoding="utf-8") == expected
+        relative = path.relative_to(generator.ROOT).as_posix()
+        assert snapshot.read_bytes(relative).decode("utf-8") == expected
+        assert (ROOT / relative).read_text(encoding="utf-8") == expected
 
 
-def test_phase56_inventory_covers_every_public_factory_and_separates_authority() -> None:
-    generator = _load_generator_module()
-
-    inventory = _load_json(INVENTORY_PATH)
+@pytest.mark.parametrize("historical", [True, False], ids=["frozen-1.1.1", "current-source"])
+def test_phase56_inventory_covers_every_public_factory_and_separates_authority(
+    historical_baseline, historical: bool,
+) -> None:
+    snapshot, historical_generator = historical_baseline
+    generator = historical_generator if historical else _load_generator_module()
+    inventory = _load_json(INVENTORY_PATH) if historical else generator.build_endpoint_inventory()
     factories = set(generator._endpoint_factories())
     coverage = inventory["endpoint_factory_coverage"]
 
@@ -87,7 +125,8 @@ def test_phase56_inventory_covers_every_public_factory_and_separates_authority()
 
     public_rows = [row for row in inventory["rows"] if row["surface_type"] == "public_endpoint"]
     assert {row["factory"] for row in public_rows} == factories
-    product = _load_json(ROOT / "contracts" / "native_event_product_registry.json")
+    product_path = "contracts/native_event_product_registry.json"
+    product = snapshot.read_json(product_path) if historical else _load_json(ROOT / product_path)
     expected_core_version = str(product["versions"]["core_package"]["version"])
     expected_native_version = str(product["versions"]["native_package"]["version"])
     for row in inventory["rows"]:
@@ -105,7 +144,8 @@ def test_phase56_inventory_covers_every_public_factory_and_separates_authority()
     assert by_id["native_workload::portfolio_target_market_v1"]["auto_promotion"] is False
 
 
-def test_phase56_corpus_hashes_and_measurements_are_complete() -> None:
+def test_phase56_corpus_hashes_and_measurements_are_complete(historical_baseline) -> None:
+    snapshot, _ = historical_baseline
     corpus = _load_json(CORPUS_PATH)
     measurement = _load_measurement_module()
 
@@ -113,10 +153,7 @@ def test_phase56_corpus_hashes_and_measurements_are_complete() -> None:
     assert {case["id"] for case in corpus["cases"]} == EXPECTED_CORPUS_CASES
     for case in corpus["cases"]:
         for artifact in case["artifacts"]:
-            path = ROOT / artifact["path"]
-            assert path.is_file()
-            assert artifact["bytes"] == path.stat().st_size
-            assert artifact["sha256"] == sha256(path.read_bytes()).hexdigest()
+            snapshot.assert_record(artifact)
         assert measurement.validate_measurement_record_v1(case["measurement"]) == []
         if case["status"] == "baseline_available":
             assert case["measurement"]["measurement_status"] == "historical_artifact"
@@ -170,15 +207,18 @@ def test_phase56_installed_wheel_baseline_is_clean_pair_evidence() -> None:
     assert payload["native_distribution"] == {"name": "quantbt-native", "version": "0.4.1"}
     assert payload["wheel_verification"]["source_hash_parity"] is True
     assert payload["wheel_verification"]["clean_install"] is True
-    # This artifact is immutable evidence for the released 1.1.0 wheel pair,
-    # not a hash lock on every later V1.1 source change. A current-tree hash
-    # comparison here would make every post-baseline phase fail before its own
-    # installed-wheel release gate can generate fresh evidence.
-    for fingerprint in payload["source_fingerprints"].values():
-        path = ROOT / fingerprint["path"]
-        assert path.is_file()
-        assert len(fingerprint["sha256"]) == 64
-        assert all(character in "0123456789abcdef" for character in fingerprint["sha256"])
+    # Verify the actual released 1.1.0 source, not the later inventory refresh.
+    snapshot = GitSnapshot(payload["source_revision"]["git_sha"])
+    receipt = GitSnapshot("7d8bc8ff68ddc8a61aaaa1fb78d30f9d1641d1d4")
+    receipt.assert_retained(WHEEL_PATH.relative_to(ROOT).as_posix())
+    assert receipt._git("rev-parse", f"{receipt.commit}^").decode().strip() == snapshot.commit
+    for name, fingerprint in payload["source_fingerprints"].items():
+        if name == "measurement_contract_module":
+            # This adapter was added with the receipt, not shipped in the
+            # preceding wheel source. Verify it there without claiming parity.
+            receipt.assert_record(fingerprint)
+            continue
+        snapshot.assert_record(fingerprint)
     assert len(payload["source_revision"]["git_sha"]) == 40
     assert payload["route_observations"]["core_only_auto_backend"] == "native_unavailable"
     assert payload["route_observations"]["exact_pair_static_auto_backend"] == "auto_rust_certified"
