@@ -277,7 +277,7 @@ class NativePreparedPublicWfoScorerV1:
             score_config = _walkforward_scoring_config(self.config, self.target_mode)
             contract = canonical_metric_contract(
                 trading_days=self.wf_config.scoring_trading_days,
-                accepted_contract_units=(self.target_mode == "pct_equity"),
+                accepted_contract_units=(self.target_mode in {"pct_equity", "%_equity"}),
             )
             economic_id = economics_identity(score_config, symbols=[state.symbol])
             for scenario_id, task in enumerate(entries):

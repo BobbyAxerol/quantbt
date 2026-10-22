@@ -5075,7 +5075,7 @@ class _WalkForwardEndpointScorer:
             from .optimization.meta_selection.observer import ResultMetricAdapter, canonical_metric_contract, economics_identity
             self._meta_adapter = ResultMetricAdapter(canonical_metric_contract(
                 trading_days=wf_config.scoring_trading_days,
-                accepted_contract_units=(self.target_mode == "pct_equity"),
+                accepted_contract_units=(self.target_mode in {"pct_equity", "%_equity"}),
             ))
             self._meta_economics_id = economics_identity(self.score_config, symbols=self.symbols)
         self.use_prepared_cache = bool((wf_config.metadata if wf_config is not None else {}).get("use_prepared_scoring_cache", True))
