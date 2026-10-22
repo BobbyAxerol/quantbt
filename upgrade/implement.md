@@ -2,6 +2,20 @@
 
 ## Current Mode 5 Diagnostics-First Upgrade - Full-Development Decision Support
 
+**Current account/metrics closure proposal (2026-10-22, Asia/Saigon):**
+[ACC-01](#account-metrics-acc-01) is PLANNED_AWAITING_OWNER_APPROVAL /
+IMPLEMENTATION_NOT_STARTED. It is one bounded corrective phase before M5-12,
+covering twelve follow-up findings plus six newly reproduced groups. The
+[expanded review](../docs/portfolio_review/EXPANDED_REVIEW_2026-10-22.md) records
+22 additional tiny synthetic controls, including two rejected hypotheses;
+these are not passing repair tests. The
+[detailed implementation/test guide](../docs/portfolio_review/CURRENT_CAPABILITY_REPAIR_GUIDE.md)
+defines current-capability scope, F01-F18, W00-W08, T01-T18 and final gates.
+The original repair receipt and accepted parent research scope remain intact.
+Only review, evidence and planning were performed: production/runtime, version,
+native artifacts, CI and release are unchanged. ACC-01 needs owner execution
+approval; M5-12 additionally requires this repair's closure and its own launch.
+
 **Current product supplement (2026-10-21, UTC):** the owner-approved
 [M5-11.15](#mode5-m5-11-15) is COMPLETE_LOCAL_REGISTERED_SUPPORT_SCOPE:
 716distinct cold tests PASS; three actual synthetic proofs total36proposals/
@@ -37035,7 +37049,8 @@ bounded subphases, not another open-ended research program.
 | 6 | [M5-11.10..11.13](#mode45-cross-mode-roadmap) | Cross-mode static robustness and prefix-safe assistance | Individually completed registered scopes; 11.13 retains baseline with approved no-new-finance disposition, not hybrid promotion |
 | 7 | [M5-11.14](#mode5-m5-11-14) | Shared diagnostics, researcher worksheet, executable Mode 5 handoff and post-run reconciliation | COMPLETE_LOCAL_REGISTERED_INTEGRATION_SCOPE; owner execution approved; source-only qualification and cleanup complete |
 | 8 | Parent M5-11 disposition | Accept completed scopes and explicit research limits before packaging | COMPLETE_OWNER_ACCEPTED_RESEARCH_SCOPE; explicit owner acceptance on 2026-10-21 UTC, not automatic from test PASS |
-| 9 | [M5-12](#mode5-m5-12) | Exact local package/installed qualification | Existing conditional approval; 11.14 closeout, parent disposition and separate launch review required |
+| 9 | [ACC-01](#account-metrics-acc-01) | Current-capability account/config/metrics corrective closure | PLANNED_AWAITING_OWNER_APPROVAL; one phase for F01-F18, no runtime implementation yet |
+| 10 | [M5-12](#mode5-m5-12) | Exact local package/installed qualification | Existing conditional approval; accepted parent, completed support supplements, ACC-01 closure and separate launch review required |
 | Later | Remote / release | Final-source CI, owner release scope, publication/public proof | Separate owner approval; no workflow/push/tag/upload now |
 
 Read [new detailed reporting/closure guidance](QUANTBT_MODE4_META_LEARNER_RESEARCH_GUIDE_V1.md#mlr-s16).
@@ -39400,6 +39415,172 @@ unchanged-source receipts. M5-12 must certify the final repaired source/native
 pair; historical packaging tools assuming unchanged native bytes are not proof
 for this source.
 
+<a id="account-metrics-acc-01"></a>
+### Phase ACC-01 - Current-Capability Account, Configuration And Metrics Closure
+
+**Status:** PLANNED_AWAITING_OWNER_APPROVAL / IMPLEMENTATION_NOT_STARTED.
+Owner request2026-10-22(Asia/Saigon) authorizes broader read-only attempts and
+one detailed corrective phase for review. It does not authorize runtime repair,
+new account models, a version bump, CI or release. W00-W08 below are internal
+work packages of this single phase, not additional phases needing individual
+launches. Current phase-specific implementation/test gates remain NOT_RUN.
+
+**Goal:** close all eighteen reproduced current-capability findings, making
+effective configuration, accepted financial execution, event time/currency,
+account attribution and metrics agree. Reject invalid/unsupported requests
+explicitly; preserve valid bankruptcy/account reporting and independent groups.
+Keep the present simulation fidelity and endpoint/scientific contracts.
+
+**Entry:** owner approves ACC-01; read this phase and all detailed references;
+freeze actual source/native/evidence identities and preserve unrelated dirty
+files. Previous bounded repair financial source is `9c2bfd9`, follow-up audit
+commit `bd8df95`; neither the earlier 1,544 Python/40 Rust checks nor old research
+receipts certify these newly found cases. Admission requires current RAM/disk/
+inode review and an exact cleanup inventory. Version identity remains unchanged.
+
+**Detailed Guide:**
+[ACC-01 implementation and test contract](../docs/portfolio_review/CURRENT_CAPABILITY_REPAIR_GUIDE.md),
+[F01-F12 original findings](../docs/PORTFOLIO_ACCOUNT_FOLLOWUP_2026-10-21.md),
+[F13-F18 expanded findings and rejected hypotheses](../docs/portfolio_review/EXPANDED_REVIEW_2026-10-22.md),
+[original evidence](../docs/portfolio_review/evidence/followup-review.json),
+[new observations/cleanup receipt](../docs/portfolio_review/evidence/expanded-planning-review.json),
+[Reporting V1](../docs/metrics/REPORTING_CONTRACT_V1.md),
+[execution ownership](../docs/architecture/execution-plan.md#ownership-boundaries),
+[strategy boundary](../docs/adr/ADR-RP-002-strategy-engine-boundary.md),
+[WFO schedule boundary](../docs/adr/ADR-RP-005-wfo-optimizer-schedules.md),
+[option containment](../docs/options_p0_containment.md) and
+[cleanup](../docs/BUILD_TEST_CLEANUP.md).
+
+**Scope / Non-Goals:** supported scalar/legacy/vectorized/portfolio, event orders/
+commands/callbacks, reactive numeric, intrabar bracket/session, bounded packages,
+options and their reporting/prepared/WFO consumers where helpers are shared.
+Keep gross-cross/netting and the existing conservative OHLC liquidation
+convention. Options retain their own existing wallet/margin/snapshot contract.
+No isolated collateral, dual hedge inventory, exchange tiers/mark-price/partial
+liquidation, order-book/latency engine or new option risk formula. No objective,
+sampler, Ridge, selector, scientific gate or private alpha changes. No optimizer
+or long economic rerun; corrected defective accounting must be disclosed, not
+forced to preserve its previous wrong score. No new backend promotion.
+
+**Findings / Required Repair Map:** all rows OPEN pending implementation.
+The guide contains exact source owners, arithmetic and expanded test variants.
+
+| ID / severity | Confirmed observation | Repair/test obligation |
+|---|---|---|
+| F01 / P1 | Event cs=0 admits a position with zero fee/IM | Positive finite financial vectors across all entrypoints; T01 |
+| F02 / P1 | Package liquidates for net-100, leg report says+6 with invented costs/funding | Actual execution attribution and full-bar identity, no replay/last-row plug; T02 |
+| F03 / P1 | Flat option wallet1000 with baseline20000 reports-95% | Validate converted opening wallet against explicit baseline; T03 |
+| F04 / P1 | Fee0.0000021BTC is reported as0.0000021 rather than0.21USD | Currency-correct, event-time common fee series from ledger; T04 |
+| F05 / P2 | Generic event min200 admits fresh notional100 | Enforce documented combined delta-order minima with risk-reduction exemptions; T05 |
+| F06 / P2 | Option generic isolated/hedge/clock/slippage/minimum can be accepted inactive | Supported/rejected/effective-config matrix, preserve option-specific controls; T06 |
+| F07 / P2 | Option NaN margin produces extra liquidation | Finite margin inputs/requirements before admission; T07 |
+| F08 / P2 | Vectorized20000bps short produces negative price/fee | Guard proportional slippage and positive fills; T08 |
+| F09 / P2 | Result us-to-ns reconstruction turns172800seconds into172.8 | Canonical UTC-ns conversion and report/accounting round-trip; T09 |
+| F10 / P2 | Heterogeneous leverage advertises allocation-independent buying power5500 | Explicit unavailable scalar and actual margin/leverage metadata; T10 |
+| F11 / P3 | ndarray dtype mutation keeps stale snapshot/cache identity | Protect/validate headers, deepcopy/pickle/cache parity without O(N) hit hashing; T11 |
+| F12 / P3 | Finite extreme ledger sums overflow strict JSON | Explicit overflow disposition, finite/null provenance; T12 |
+| F13 / P2 | Expiry realized PnL omits entry premium, while cash is correct | Separate gross payoff, retired cost basis and realized PnL per currency; T13 |
+| F14 / P1 | Option NaN cash/FX/fee/settlement reaches equity | Early domain-aware finite validation and truthful reconciliation status; T14 |
+| F15 / P2 | Option fill/ledger stamped1800seconds before decision | Separate quote/source time from effective execution/account time; T15 |
+| F16 / P2 | Intrabar us calendar becomes1970/7.2seconds instead2024/7200seconds | Normalize market/event clocks before signatures/alignment/lowering; T16 |
+| F17 / P1 | Intrabar NaN funding yields NaN equity with finite_ok=True | Reject nonfinite explicit/Series funding before certificate/execution; T17 |
+| F18 / P2 | Period request on `[100,0,0]` aborts valid account report | Keep return-100%/DD100% and independent groups, undefined period statuses; T18 |
+
+**To-Do / Ordered Work Packages:**
+1. **W00 - Evidence and regression admission:** freeze the source/artifact and
+   existing receipts; promote retained reproductions into focused failing tests
+   with independent expected values; map every finding to owning public/direct/
+   prepared routes. Register resource/cleanup paths before any implementation run.
+2. **W01 - Effective config and financial validation:** F01/F05/F06/F07/F08/F14.
+   Resolve generic/instrument/per-run precedence, validate scalar/mapping/native
+   inputs once before mutation, reject unsupported non-defaults. Preserve valid
+   signed funding/debit balances and existing option buffer behavior.
+3. **W02 - Linear attribution and capacity:** F02/F10. Reuse actual per-leg
+   execution buffers; add bounded typed output only when necessary. Reconcile
+   fees, funding, slippage, liquidation loss and equity across all bars/legs.
+   Audit sibling basis/stat/package/event report consumers and buying-power labels.
+4. **W03 - Option accounting/report lifecycle:** F03/F04/F13/F15. Validate opening
+   wallet baseline; use report-currency fees at effective event time; retire
+   remaining entry basis at expiry; check hedge/settlement consumers. Preserve
+   cash on already-correct settlement controls and keep gross payoff separate.
+5. **W04 - Clock and funding boundaries:** F09/F16/F17. Canonical UTC ns for
+   result and market/event packing, strict funded-event alignment, rate finiteness
+   and truthful certificates. Keep generic coarse funding and intrabar event-
+   causal conventions distinct; do not trade chronology for convenient alignment.
+6. **W05 - Reporting/cache hardening:** F11/F12/F18. Header-safe immutable
+   snapshots, strict finite/null JSON, typed undefined-period containment without
+   discarding valid account/ledger/execution reports or swallowing schema errors.
+7. **W06 - Differential and cross-endpoint certification:** complete T01-T18;
+   independent arithmetic plus Python/Numba/Rust parity only for matched supported
+   contracts. Check shared WFO/Mode4/Mode5 consumers, clock/profile independence,
+   pending/OCO/reduce-only/rejection and source-guard negative tests. Qualify actual
+   loaded native bytes if affected, not the old primary-environment extension.
+8. **W07 - Measured overhead:** matched short public calls,2k/100k/1M reporting,
+   representative ledgers, cache hit/miss and affected score/compact/audit. Two
+   warm-ups/seven measured repeats per cell, samples/median/range/RSS retained.
+   Investigate unexplained>10% warmed nontrivial-cell regression; no noisy-cell
+   speed claims, no extra per-bar Python/native work or default audit replay.
+9. **W08 - Docs/source/cleanup closeout:** update effective-config/endpoint/
+   reporting/migration docs and exact source amendment; preserve historical
+   receipts. Complete F01-F18 closure table, final affected regression, source/
+   privacy/link checks and exact cleanup receipt, then hand off to M5-12 review.
+
+**Tests:** [T01-T18 and route matrix](../docs/portfolio_review/CURRENT_CAPABILITY_REPAIR_GUIDE.md#w06---cross-route-and-source-qualification).
+Every defect needs an independent expected-value/rejection test and a valid
+matched control. Cover scalar/mapping overrides, long/short/flat, reductions/
+reversal/rejection/liquidation, multiplier!=1, fees/funding/currency, UTC ns/us/ms/s,
+ledger completeness/horizons, bankruptcy, invalid/overflow inputs, serialization/
+cache and valid configuration. Compare public/backend/prepared consumers and
+supported clocks without conflating their semantics. Positive missing-mark and
+negative-fee rejection controls remain protected. Existing fixture suites can
+be reused when source/contract still match; record unique tests, not sum overlaps.
+No fresh Rust claim follows from Python-only reproductions.
+
+**Deliverables:** fixes and focused regression tests; effective-config/capability
+matrix; per-finding before/after numeric receipts; exact source/native proof where
+needed; docs/migration/examples; measured overhead report; one closure report
+and cleanup receipt, with all historical scientific/failed evidence retained.
+
+**Resource And Cleanup Gate:** reuse current tooling; one financial/test/build
+worker and one numeric thread, RAM available>=512MiB. Proposed retained new
+receipts/artifacts<=128MiB; ordinary test/JIT scratch<=96MiB. Native incremental
+build scratch<=512MiB only after fresh measured admission. Reserve>=5GiB beyond
+forecast incremental growth; current disk observation alone does not admit a
+native build. Review exact ignored inactive paths before reclaiming; no broad
+cache/environment/evidence deletion. Terminal hash/space/process receipt required.
+
+**Exit Gate:** all F01-F18 have passing bounded correctness tests, effective
+configuration and valid report/time/currency/accounting identities; affected
+supported routes pass final-source regression and required native parity.
+Undefined/unavailable cases remain explicit. No unresolved in-scope defect,
+silent ignored non-default config, invented report flow or forged clean receipt.
+Docs/source/privacy/performance disclosure/cleanup complete. Status then becomes
+COMPLETE_LOCAL_CURRENT_CAPABILITY_CLOSURE, not package/public release certified.
+
+**Technical Debt / Gap Policy:** lower-priority F11/F12 are included, not dropped.
+New same-responsibility reproducible defects are recorded and tested; new financial
+models or scientific methodology remain separately scoped. No statement that all
+possible bugs are exhausted. Earlier financial/scientific receipts remain valid
+only for their original source; corrected-source economics is not inferred.
+
+**Commit Boundary:** coherent verified work packages within this one phase;
+record test/source evidence with each meaningful commit. Stage only owned edits
+on the existing feature branch, preserving the owner's unrelated plan hunk/spec.
+No push/merge/tag/version/CI/PyPI action without a later explicit approval.
+
+**Rollback:** scoped commit reversal to recorded source/artifact for diagnosis,
+retain controls and receipts; do not re-enable invalid configurations silently.
+M5-12 will separately qualify the exact accepted core/native package pair.
+
+**Planning Verification (2026-10-22, Asia/Saigon):** one ACC-01 heading before
+M5-12; fourteen required phase fields, eighteen mapped findings/tests and nine
+internal work packages verified. Plan/guide/review local links and anchors PASS;
+`git diff --check` PASS. The 22 additional synthetic controls establish six new
+findings and reject two suspected issues; they do not constitute repair PASS.
+Protected prior receipts/artifact and production/release sources are unchanged.
+No scratch was created, no service/cache/environment was removed, and the
+owner's unrelated plan hunk/spec remain intact. Implementation awaits approval.
+
 <a id="mode5-m5-12"></a>
 ### Phase M5-12 - Local Package Qualification, Regression, Docs And Handoff
 
@@ -39417,6 +39598,10 @@ which is locally complete and included in the separately accepted parent scope.
 The later owner-approved [M5-11.15 support supplement](#mode5-m5-11-15) is also
 locally complete and must be included in exact final-source package/consumer
 qualification; its source receipt is not an installed-artifact certificate.
+The newly planned [ACC-01 corrective phase](#account-metrics-acc-01) must also
+close before package qualification; its execution still awaits owner approval.
+The original portfolio repair is preserved as an earlier bounded certificate,
+not proof that the later eighteen findings are repaired.
 Package gates remain NOT_RUN; parent acceptance is not installed-artifact
 qualification or permission to launch release workflows.
 M5-11.4/11.5 retain their separately approved local closure. This planning
@@ -39425,6 +39610,7 @@ request does not launch M5-12 or any CI, release or publication.
    scientific handoff covering the whole approved program before release approval.
 **Entry:** M5-01..11 including M5-11.4..11.15, M5-11.6.1 and ML-09.C reviewed
    dispositions, explicit owner acceptance of the parent research scope,
+   ACC-01 current-capability correctness closure with final-source evidence,
    no blocking technical debt for claimed capabilities, explicit
    M5-12 approval. Cross-mode planning approval is not execution or scientific
    acceptance. Remote/publish approval remains separate.
