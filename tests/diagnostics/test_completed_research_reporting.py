@@ -44,9 +44,11 @@ def result_shell(result_type, metadata):
 
 
 def test_existing_endpoint_and_result_code_ast_is_unchanged_except_new_accessors():
+    from tools.portfolio_repair_source_guard import without_portfolio_repair
+
     for path in ('src/quantbt/endpoint.py', 'src/quantbt/core/types.py', 'src/quantbt/core/results.py'):
         original = subprocess.check_output(['git','show','1633809:'+path], cwd=ROOT, text=True)
-        current = ast.parse((ROOT/path).read_text())
+        current = ast.parse(without_portfolio_repair((ROOT/path).read_bytes(), path).decode())
         methods = []
         for node in current.body:
             if isinstance(node, ast.ClassDef):

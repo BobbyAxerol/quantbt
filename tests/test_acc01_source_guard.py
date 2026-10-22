@@ -42,3 +42,12 @@ def test_acc01_current_source_never_reissues_historical_financial_claims():
     assert not source["financial_rust_unchanged"]
     assert not source["native_artifacts_qualified"]
     assert not source["historical_guards_reexecuted"]
+
+
+@pytest.mark.parametrize("name", sorted(amendment.first_manifest(guard)["sources"]))
+def test_acc01_first_receipt_blobs_remain_exact_historical_admissions(name):
+    entry = amendment.first_manifest(guard)["sources"][name]
+    after = guard._blob(entry["after_commit"], name, entry["after_sha256"])
+    before = guard._blob(entry["before_commit"], name, entry["before_sha256"]) if entry["before_sha256"] else b""
+    assert amendment.without_acc01(after, name, guard) == before
+    assert amendment.without_acc01(after + b"\n# unknown\n", name, guard) == after + b"\n# unknown\n"
