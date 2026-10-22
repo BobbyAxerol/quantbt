@@ -54,6 +54,13 @@ from ..options.reporting import (
 from ..options.schema import OptionInstrumentRegistry, OptionInstrumentSpec
 from ..options.tape import PreparedOptionTape, prepare_option_tape
 from ..options.validation import conversion_rate as _conversion_rate_to_reporting, currency_amounts, finite_number
+from . import option_validation as _option_validation
+from .option_validation import (
+    _normalize_registry as _normalize_registry,
+    _validate_generic_option_configuration as _validate_generic_option_configuration,
+    _validate_option_requests as _validate_option_requests,
+    _validate_tape_coverage as _validate_tape_coverage,
+)
 
 
 @dataclass(frozen=True)
@@ -155,6 +162,10 @@ class OptionSettlementEvent:
     @property
     def certified_provenance(self) -> bool:
         return self.provenance_status == "official_source"
+
+
+# Preserve runtime annotation introspection without a circular facade import.
+_option_validation.OptionSettlementEvent = OptionSettlementEvent
 
 
 class NativeOptionBackend:
@@ -570,33 +581,6 @@ class NativeOptionBackend:
         return result
 
 
-def _validate_generic_option_configuration(account: AccountConfig, execution: ExecutionConfig) -> None:
-    account_defaults = AccountConfig(initial_capital=account.initial_capital)
-    for name in ("base_currency", "leverage", "maintenance_ratio", "margin_mode", "oms_mode"):
-        if getattr(account, name) != getattr(account_defaults, name):
-            raise OptionCapabilityError(
-                "OPTION_GENERIC_ACCOUNT_CONFIG_UNSUPPORTED",
-                f"account.{name} is inactive for options; only its compatibility default is supported",
-            )
-    execution_defaults = ExecutionConfig()
-    for item in fields(ExecutionConfig):
-        if item.name != "metadata" and getattr(execution, item.name) != getattr(execution_defaults, item.name):
-            raise OptionCapabilityError(
-                "OPTION_GENERIC_EXECUTION_CONFIG_UNSUPPORTED",
-                f"execution.{item.name} is inactive for options; configure option_execution instead",
-            )
-
-
-def _normalize_registry(
-    instruments: OptionInstrumentRegistry | Sequence[OptionInstrumentSpec] | Mapping[str, OptionInstrumentSpec],
-) -> OptionInstrumentRegistry:
-    if isinstance(instruments, OptionInstrumentRegistry):
-        return instruments
-    if isinstance(instruments, Mapping):
-        return OptionInstrumentRegistry.from_iterable(instruments.values())
-    return OptionInstrumentRegistry.from_iterable(tuple(instruments))
-
-
 def _normalize_settlement_events(events: Optional[Sequence[OptionSettlementEvent | Mapping]]) -> tuple[OptionSettlementEvent, ...]:
     if not events:
         return ()
@@ -627,74 +611,6 @@ def _events_by_timestamp(events: Sequence) -> Dict[int, tuple]:
     for event in events:
         grouped.setdefault(int(event.timestamp_ns), []).append(event)
     return {timestamp: tuple(items) for timestamp, items in grouped.items()}
-
-
-def _validate_option_requests(
-    packages: Sequence[OptionPackageIntent],
-    settlement_events: Sequence[OptionSettlementEvent],
-    instruments: Mapping[str, OptionInstrumentSpec],
-    *,
-    settlement_policy: OptionSettlementPolicy,
-) -> None:
-    """Reject unsupported lifecycle shapes before preparing the chain tape."""
-
-    seen_settlements = set()
-    for event in settlement_events:
-        instrument = instruments.get(event.symbol)
-        if instrument is None:
-            raise OptionCapabilityError(
-                "OPTION_SETTLEMENT_UNKNOWN_INSTRUMENT",
-                f"settlement event references unknown instrument {event.symbol!r}",
-            )
-        if event.symbol in seen_settlements:
-            raise OptionCapabilityError(
-                "OPTION_SETTLEMENT_DUPLICATE_EVENT",
-                f"only one settlement event is allowed for {event.symbol!r}",
-            )
-        seen_settlements.add(event.symbol)
-        if int(event.timestamp_ns) < int(instrument.expiry_ns):
-            raise OptionCapabilityError(
-                "OPTION_SETTLEMENT_BEFORE_EXPIRY",
-                f"settlement for {event.symbol!r} precedes its expiry timestamp",
-            )
-        if event.expiry_timestamp_ns is not None and int(event.expiry_timestamp_ns) != int(instrument.expiry_ns):
-            raise OptionCapabilityError(
-                "OPTION_SETTLEMENT_EXPIRY_MISMATCH",
-                f"settlement expiry provenance does not match instrument expiry for {event.symbol!r}",
-            )
-        if event.last_trading_timestamp_ns is not None and int(event.last_trading_timestamp_ns) > int(instrument.expiry_ns):
-            raise OptionCapabilityError(
-                "OPTION_SETTLEMENT_LAST_TRADING_AFTER_EXPIRY",
-                f"last trading timestamp exceeds expiry for {event.symbol!r}",
-            )
-    for package in packages:
-        for leg in package.legs:
-            instrument = instruments.get(leg.instrument_id)
-            if instrument is None:
-                raise OptionCapabilityError(
-                    "OPTION_PACKAGE_UNKNOWN_INSTRUMENT",
-                    f"package {package.package_id!r} references unknown instrument {leg.instrument_id!r}",
-                )
-            if int(package.timestamp_ns) >= int(instrument.expiry_ns):
-                raise OptionCapabilityError(
-                    "OPTION_EXPIRED_INSTRUMENT_ORDER",
-                    f"package {package.package_id!r} is at/after expiry for {instrument.symbol!r}",
-                )
-    if settlement_policy is OptionSettlementPolicy.EXPLICIT_EVENTS_ONLY:
-        return
-    if settlement_policy is not OptionSettlementPolicy.LEGACY_LAST_TAPE_MARK_RESEARCH:
-        raise OptionCapabilityError("OPTION_SETTLEMENT_POLICY_UNSUPPORTED", "unsupported settlement policy")
-
-
-def _validate_tape_coverage(packages: Sequence[OptionPackageIntent], tape: PreparedOptionTape) -> None:
-    first_timestamp = int(tape.timestamp_ns[0])
-    last_timestamp = int(tape.timestamp_ns[-1])
-    for package in packages:
-        if not first_timestamp <= int(package.timestamp_ns) <= last_timestamp:
-            raise OptionCapabilityError(
-                "OPTION_PACKAGE_TIMESTAMP_OUTSIDE_TAPE",
-                f"package {package.package_id!r} timestamp is outside the prepared market tape",
-            )
 
 
 def _snapshot_index_at_or_before(tape: PreparedOptionTape, timestamp_ns: int) -> int:
