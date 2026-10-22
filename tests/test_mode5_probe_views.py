@@ -233,7 +233,10 @@ class CustodyAndRequestTests(unittest.TestCase):
             ("quantbt.core", "quantbt.endpoint", "quantbt.backtester", "_quantbt_native", "quantbt.optimization"))
 
     def test_sealed_bytes_and_exclusive_append(self):
-        with TemporaryDirectory(prefix="probe-views-", dir=os.environ.get("PROBE_VIEW_FIXTURE_ROOT")) as root:
+        fixture_root = os.environ.get("PROBE_VIEW_FIXTURE_ROOT")
+        if fixture_root is not None:
+            Path(fixture_root).mkdir(parents=True, exist_ok=True)
+        with TemporaryDirectory(prefix="probe-views-", dir=fixture_root) as root:
             path = Path(root) / "synthetic.json"
             pin = v.custody.write_new(path, dict(synthetic=True))
             self.assertEqual(v.sealed_json(pin), dict(synthetic=True))
@@ -266,6 +269,13 @@ class CustodyAndRequestTests(unittest.TestCase):
         with patch.object(p, "continuous_annual_rows", wraps=p.continuous_annual_rows) as producer:
             synthetic()
             producer.assert_called_once()
+
+
+def test_configured_custody_fixture_root_is_created(tmp_path, monkeypatch):
+    root = tmp_path / "fresh-attempt" / "cold-fixtures-01"
+    monkeypatch.setenv("PROBE_VIEW_FIXTURE_ROOT", str(root))
+    CustodyAndRequestTests("test_sealed_bytes_and_exclusive_append").test_sealed_bytes_and_exclusive_append()
+    assert root.is_dir() and not list(root.iterdir())
 
 
 if __name__ == "__main__":

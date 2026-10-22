@@ -10,6 +10,14 @@ from unittest.mock import patch
 import pytest
 
 from tools.mode5_research import jobs, probe_closure as c
+from tools.mode5_research import panels as p
+
+
+def completed_cell(*args):
+    # Numeric fixtures use the real public owner; the cold loader is checked
+    # separately in a fresh process, not bypassed in the research driver.
+    with patch.object(c.views, "numeric_owner", return_value=p):
+        return c.completed_cell(*args)
 
 
 def scope():
@@ -263,7 +271,6 @@ def test_reconcile_blocks_unqualified_union(tmp_path, fault):
 
 
 def synthetic_checkpoint(tmp_path, kind="positive", suffix=None, mutate=None):
-    p = c.views.numeric_owner()
     import numpy as np
     start, stop = p._ns("2021-01-01"), p._ns("2024-01-01")
     times = np.arange(start, stop, p.HOUR_NS, dtype=np.int64)
@@ -328,7 +335,7 @@ def synthetic_checkpoint(tmp_path, kind="positive", suffix=None, mutate=None):
 
 def test_cold_rows_are_carried_attribution_and_reconcile_costs(tmp_path):
     reg, entry, item = synthetic_checkpoint(tmp_path)
-    _, rows = c.completed_cell(reg, entry, item)
+    _, rows = completed_cell(reg, entry, item)
     assert [r["environment_id"] for r in rows] == ["whole_path", "2021", "2022", "2023"]
     assert [r["environment_baseline"]["equity"] for r in rows[1:]] == [20000., 40000., 60000.]
     assert all(not r["annual_local_authorized"] and r["union_design_id"] == "union-overlay" for r in rows)
@@ -340,8 +347,8 @@ def test_cold_future_suffix_does_not_change_earlier_attribution(tmp_path):
     import numpy as np
     a = synthetic_checkpoint(tmp_path / "a")
     b = synthetic_checkpoint(tmp_path / "b", suffix=np.linspace(1000., 900000., 365))
-    _, before = c.completed_cell(*a)
-    _, after = c.completed_cell(*b)
+    _, before = completed_cell(*a)
+    _, after = completed_cell(*b)
     for x, y in zip(before[1:3], after[1:3], strict=True):
         assert [{k: val for k, val in m.items() if k != "components"} for m in x["metrics"]] == [
             {k: val for k, val in m.items() if k != "components"} for m in y["metrics"]]
@@ -353,7 +360,7 @@ def test_cold_future_suffix_does_not_change_earlier_attribution(tmp_path):
 @pytest.mark.parametrize("kind", ["flat", "negative"])
 def test_negative_and_no_trade_outputs_retained(tmp_path, kind):
     reg, entry, item = synthetic_checkpoint(tmp_path, kind=kind)
-    _, rows = c.completed_cell(reg, entry, item)
+    _, rows = completed_cell(reg, entry, item)
     utility = c.prior.metric(rows[0], "economic_utility")
     assert utility == 0 if kind == "flat" else utility < 0
     if kind == "flat":
@@ -380,7 +387,7 @@ def test_cold_source_and_calendar_failures(tmp_path, fault):
     elif fault == "request":
         entry["request"]["params"] = dict(x=2)
     with pytest.raises((ValueError, AssertionError)):
-        c.completed_cell(reg, entry, item)
+        completed_cell(reg, entry, item)
 
 
 def test_analyze_rejects_195_only_and_misordered_inputs():
