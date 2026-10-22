@@ -121,6 +121,27 @@ jobs:
         run: |
           lane="$(python -c 'import sys; print("cp" + "".join(map(str, sys.version_info[:2])) )')"
           .venv/bin/python -B -m tools.m5_12_pct_installed --lane "$PWD/.maturin/qms08/qualified/$lane" --kind sdist
+      - name: Annotate qualification failures from retained JUnit
+        if: failure()
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import xml.etree.ElementTree as ET
+
+          def escape(value):
+              return value.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+
+          for path in sorted(Path(".maturin/qms08").glob("*-*.xml")):
+              root = ET.parse(path).getroot()
+              for case in root.iter("testcase"):
+                  for tag in ("failure", "error"):
+                      detail = case.find(tag)
+                      if detail is not None:
+                          node = case.get("classname", "") + "::" + case.get("name", "")
+                          message = node + "\n" + (detail.text or detail.get("message", ""))
+                          print("::error::" + escape(message[:6000]))
+          PY
       - name: Retain installed consumer and build receipts
         if: always()
         uses: actions/upload-artifact@v4
