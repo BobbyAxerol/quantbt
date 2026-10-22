@@ -20,7 +20,9 @@ def without_portfolio_repair(source, name, *, expected_baseline=None):
     from tools.m5_12_pct_alias_amendment import without_pct_alias
     from tools.m5_12_snapshot_amendment import without_snapshot
     from tools.m5_12_release120_amendment import without_release120
+    from tools.m5_12_ci_format_amendment import without_ci_format
     import sys
+    source = without_ci_format(source, name, sys.modules[__name__])
     source = without_release120(source, name, sys.modules[__name__])
     source = without_snapshot(source, name, sys.modules[__name__])
     source = without_pct_alias(source, name, sys.modules[__name__])
@@ -161,11 +163,13 @@ def verify_current_source():
     snapshot, current, snapshot_changed = apply_snapshot(sys.modules[__name__], current, scopes)
     from tools.m5_12_release120_amendment import apply_release120, MANIFEST_SHA256 as release120_digest
     release120, current, release120_changed = apply_release120(sys.modules[__name__], current, scopes)
+    from tools.m5_12_ci_format_amendment import apply_ci_format, MANIFEST_SHA256 as ci_format_digest
+    ci_format, current, ci_format_changed = apply_ci_format(sys.modules[__name__], current, scopes)
     _assert_current_sources(current, scopes)
     all_changed = sorted(name for name in before.keys() | current.keys() if before.get(name) != current.get(name))
     return dict(
         schema="quantbt.portfolio.current_source_qualification.v1",
-        baseline_commit=qualification["baseline_commit"], source_commit=release120["source_commit"],
+        baseline_commit=qualification["baseline_commit"], source_commit=ci_format["source_commit"],
         qualification_sha256=QUALIFICATION_SHA256, repair_amendment_sha256=MANIFEST_SHA256,
         scopes=scopes, current_source_qualified=True, qualified_source_count=len(current),
         acc01_amendment_sha256=acc01_digest, acc01_changed_sources=acc01_changed,
@@ -180,6 +184,10 @@ def verify_current_source():
         m5_12_snapshot_source_commit=snapshot["source_commit"],
         m5_12_release120_amendment_sha256=release120_digest,
         m5_12_release120_changed_sources=release120_changed,
+        m5_12_release120_source_commit=release120["source_commit"],
+        m5_12_ci_format_amendment_sha256=ci_format_digest,
+        m5_12_ci_format_changed_sources=ci_format_changed,
+        ci_rustfmt_only=True,
         m5_12_pct_source_commit=pct["source_commit"],
         pre_m512_source_commit=extraction["source_commit"],
         financial_source_changed=True, financial_numeric_source_unchanged=False,
