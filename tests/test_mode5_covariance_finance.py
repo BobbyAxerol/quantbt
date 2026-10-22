@@ -2,7 +2,6 @@
 
 from collections import Counter
 from copy import deepcopy
-import importlib.util
 import json
 from pathlib import Path
 import subprocess
@@ -24,7 +23,8 @@ def frozen():
         metadata = dict(parameters=[dict(name="period", kind="integer", low=1, high=10000,
             fixed=False, fixed_value=None, categories=[], active_if={})], constraints=[], inactive={})
         geometries[alpha] = metadata
-        cid = lambda params: v.original.effective_id(metadata, params)
+        def cid(params):
+            return v.original.effective_id(metadata, params)
         rows = [dict(admitted=True, effective=dict(period=i+1), candidate_id=cid(dict(period=i+1))) for i in range(128)]
         parent = dict(rows=rows, schema_id=v.digest(metadata), design_id="parent-" + key)
         parents[alpha] = parent
@@ -288,18 +288,54 @@ class ColdTests(unittest.TestCase):
             self.assertTrue(all(c.cell_id.startswith("cov-") for c in specs))
             self.assertTrue(all(c.argv[0] == str(python) and c.argv[2] == str(driver) for c in specs))
 
-    def test_fresh_process_adapter_and_private_hooks_import_no_runtime(self):
-        code = """import importlib.util, sys
+    def _fresh_process_proof(self, private_root=None):
+        code = """import importlib.util, json, sys
+from pathlib import Path
 from tools.mode5_research import covariance_finance as v
-spec = importlib.util.spec_from_file_location('cov_cold_driver', v.DRIVER)
-module = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(module)
-owner = module.load_driver(v.file_pin(v.BASE_DRIVER))
-assert callable(owner.context_factory) and callable(owner.validate_context) and callable(owner.qualify)
+if len(sys.argv) == 2:
+    v.DRIVER, v.BASE_DRIVER = Path(sys.argv[1]) / 'cov_driver.py', Path(sys.argv[1]) / 'driver.py'
+assert callable(v.execute_registered) and callable(v.original.execute_one)
+private_hooks = 'NOT_IN_PUBLIC_CHECKOUT'
+if v.DRIVER.is_file() and v.BASE_DRIVER.is_file():
+    spec = importlib.util.spec_from_file_location('cov_cold_driver', v.DRIVER)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    owner = module.load_driver(v.file_pin(v.BASE_DRIVER))
+    assert callable(owner.context_factory) and callable(owner.validate_context) and callable(owner.qualify)
+    private_hooks = 'AVAILABLE_LOCAL_COLD_IMPORT_PASS'
+else:
+    # Missing private research hooks remain unavailable, never replaced by a
+    # fabricated driver or certified by the public adapter's import test.
+    missing = next(path for path in (v.DRIVER, v.BASE_DRIVER) if not path.is_file())
+    try:
+        v.file_pin(missing)
+    except ValueError as exc:
+        assert 'regular pinned file required' in str(exc) and str(missing) in str(exc)
+    else:
+        raise AssertionError('missing private driver accepted')
 assert not any(n.startswith(('quantbt', '_quantbt_native', 'numpy', 'pandas', 'numba', 'scipy')) or n in {'finance', 'prepared'} for n in sys.modules)
+print(json.dumps(dict(public_adapter='COLD_IMPORT_PASS', private_hooks=private_hooks)))
 """
-        result = subprocess.run([sys.executable, "-B", "-c", code], cwd=v.ROOT, capture_output=True, text=True)
+        command = [sys.executable, "-B", "-c", code]
+        if private_root is not None:
+            command.append(str(private_root))
+        result = subprocess.run(command, cwd=v.ROOT,
+                                capture_output=True, text=True, timeout=30)
         self.assertEqual(result.returncode, 0, result.stderr)
+        proof = json.loads(result.stdout)
+        self.assertEqual(proof["public_adapter"], "COLD_IMPORT_PASS")
+        return proof
+
+    def test_fresh_process_adapter_and_available_private_hooks_import_no_runtime(self):
+        proof = self._fresh_process_proof()
+        self.assertEqual(proof["private_hooks"], "AVAILABLE_LOCAL_COLD_IMPORT_PASS"
+            if v.DRIVER.is_file() and v.BASE_DRIVER.is_file() else "NOT_IN_PUBLIC_CHECKOUT")
+
+    def test_private_absence_is_fail_closed_not_an_implied_hook_certificate(self):
+        with TemporaryDirectory() as root:
+            proof = self._fresh_process_proof(root)
+            self.assertEqual(proof["private_hooks"], "NOT_IN_PUBLIC_CHECKOUT")
+            self.assertFalse(list(Path(root).iterdir()))
 
     def test_preparation_rejects_wrong_or_existing_lane(self):
         with self.assertRaises(ValueError):
