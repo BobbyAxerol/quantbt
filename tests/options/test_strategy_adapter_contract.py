@@ -63,8 +63,10 @@ def test_options_endpoint_delta_hedged_contract_returns_combined_equity():
     )
     result = bt.backtest(chain=chain, instruments=registry, strategy_run=run, underlying=underlying)
 
-    assert len(result.equity) == chain["timestamp_ns"].nunique() + 1
-    assert result.equity.iloc[0] == pytest.approx(100_000.0)
+    assert len(result.equity) == chain["timestamp_ns"].nunique()
+    assert result.initial_capital == 100_000.0
+    assert result.equity.iloc[0] == pytest.approx(99_990.0)
+    assert result.returns.iloc[0] == pytest.approx(-.0001)
     assert result.option_equity.index.equals(result.combined_equity.index)
     assert result.equity.equals(result.combined_equity)
     assert not result.hedge_report.empty

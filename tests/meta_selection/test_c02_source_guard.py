@@ -1,0 +1,55 @@
+"""Historical receipts and current C02 financial/scientific source scope."""
+
+import pytest
+
+from tools.qms_c02_source_guard import ROOT, ENTRY, TOKEN_GETTER, validate_changes, validate_rust_control
+from tools.qms_c02_source_guard import without_c02_witness
+import subprocess
+
+
+def test_c02_t08_current_source_guard():
+    from tools.portfolio_repair_source_guard import verify_current_source
+
+    source = verify_current_source()
+    assert source["current_source_qualified"]
+    assert source["financial_rust_unchanged"] is False
+    assert source["historical_receipts"]["c02"]["source"]["financial_rust_unchanged"] is True
+
+
+@pytest.mark.parametrize("name", ["src/quantbt/walkforward.py", "src/quantbt/metrics/performance.py",
+                                  "src/quantbt/optimization/meta_selection/ridge.py",
+                                  "rust/crates/quantbt-engine/src/account.rs"])
+def test_c02_t08_guard_rejects_scope_expansion(name):
+    with pytest.raises(AssertionError, match="unapproved"):
+        validate_changes([name])
+
+
+def test_c02_t08_rust_getter_is_additive_only():
+    from tools.m5_12_ci_format_amendment import without_ci_format
+    from tools import portfolio_repair_source_guard as guard
+
+    name = "rust/native_event/src/reactive_numeric.rs"
+    original = subprocess.check_output(["git", "show", f"{ENTRY}:{name}"], cwd=ROOT)
+    current = (ROOT / name).read_bytes()
+    source = without_ci_format(current, name, guard)
+    assert source != current
+    with pytest.raises(AssertionError, match="unapproved"):
+        validate_rust_control(current, original)
+    validate_rust_control(source, original)
+    for invalid in (source + b"\n// other change\n", source.replace(TOKEN_GETTER, b""),
+                    source.replace(b".map(|candidate| candidate.core.cancellation_token(py))",
+                                   b".map(|candidate| candidate.core.reset())")):
+        with pytest.raises(AssertionError, match="unapproved"):
+            validate_rust_control(invalid, original)
+
+
+@pytest.mark.parametrize("name", ["src/quantbt/backends/native_event.py",
+                                  "src/quantbt/backends/_native_event_rust.py",
+                                  "src/quantbt/backends/reactive_wfo_workers.py",
+                                  "src/quantbt/endpoint.py",
+                                  "src/quantbt/optimization/meta_selection/observer.py"])
+def test_c02_t08_cannot_hide_other_arithmetic_in_reviewed_adapter(name):
+    source = (ROOT / name).read_bytes()
+    without_c02_witness(source, name)
+    with pytest.raises(AssertionError, match="unapproved"):
+        without_c02_witness(source + b"\n# unreviewed accounting change\n", name)

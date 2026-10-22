@@ -21,6 +21,7 @@
       "PortfolioMarginAllocationPolicy",
       "PortfolioRebalancePolicy",
       "ProtectiveExitReentryPolicy",
+      "ReportingContractV1",
       "SameBarPolicy",
       "SessionExecutionPolicy",
       "SizingPolicy",
@@ -101,6 +102,17 @@
     ]
   },
   "exports": [
+    "AlphaDiagnostics",
+    "AlphaDiagnosticReport",
+    "DiagnosticContext",
+    "DiagnosticObservation",
+    "DiagnosticAdvice",
+    "DiagnosticAnalysis",
+    "DiagnosticBudget",
+    "ReportingRequest",
+    "ReportingContractV1",
+    "ReportingCoverageV1",
+    "ReportingCache",
     "BacktestEngine",
     "BacktestEngineV2",
     "EndpointConfig",
@@ -620,5 +632,5 @@
   ],
   "schema": "quantbt-public-api-inventory-v1",
   "source": "src/quantbt/__init__.py",
-  "source_sha256": "1b3e6280930667cfead1d983010b1997055b60fcd0decea402c44a2a21703566"
+  "source_sha256": "84a7a2e93d54cb02c77d63d664632f9fb68f04d49bd2355511957196071577c6"
 }

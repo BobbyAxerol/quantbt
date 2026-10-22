@@ -13,6 +13,7 @@ from enum import Enum
 from typing import Dict, Iterable, Optional, Tuple
 
 from ..core.schema import AssetType, InstrumentSpec
+from .validation import finite_number
 
 
 class OptionKind(str, Enum):
@@ -100,8 +101,7 @@ class OptionInstrumentSpec(InstrumentSpec):
             raise ValueError("venue is required")
         if not self.underlying_id or not self.underlying_index_id:
             raise ValueError("underlying identifiers are required")
-        if self.strike <= 0.0:
-            raise ValueError("strike must be > 0")
+        finite_number(self.strike, "strike", positive=True)
         if int(self.expiry_ns) <= 0:
             raise ValueError("expiry_ns must be > 0")
         object.__setattr__(self, "expiry_ns", int(self.expiry_ns))
@@ -109,12 +109,10 @@ class OptionInstrumentSpec(InstrumentSpec):
             raise ValueError("settlement_time_ns must be > 0")
         if self.settlement_time_ns is not None:
             object.__setattr__(self, "settlement_time_ns", int(self.settlement_time_ns))
-        if self.multiplier <= 0.0:
-            raise ValueError("multiplier must be > 0")
+        finite_number(self.multiplier, "multiplier", positive=True)
         if abs(float(self.multiplier) - float(self.contract_size)) > 1e-15:
             raise ValueError("multiplier must match contract_size")
-        if self.qty_step < 0.0:
-            raise ValueError("qty_step must be >= 0")
+        finite_number(self.qty_step, "qty_step", minimum=0.0)
         _normalize_quantity_step_alias(self)
         for field_name in ("settlement_currency", "premium_currency", "quote_currency"):
             value = getattr(self, field_name)

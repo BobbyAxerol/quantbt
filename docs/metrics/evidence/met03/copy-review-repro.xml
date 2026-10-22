@@ -1,0 +1,712 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="36" skipped="0" tests="40" time="5.373" timestamp="2026-10-08T16:11:33.267869+00:00" hostname="Bobby"><testcase classname="tests.metrics.test_snapshot_roundtrip" name="test_account_return_roundtrip_is_immutable_and_exact[copy]" time="0.041"><failure message="assert array([ 0, 10, 20]) is not array([ 0, 10, 20])">clone = &lt;function copy at 0x7f4dc15de0c0&gt;
+
+    @pytest.mark.parametrize("clone", CLONES)
+    def test_account_return_roundtrip_is_immutable_and_exact(clone):
+        original = snapshot()
+        restored = clone(original)
+        assert restored.identity == original.identity
+        for left, right in zip(arrays(original), arrays(restored)):
+            np.testing.assert_array_equal(left, right)
+&gt;           assert left is not right
+E           assert array([ 0, 10, 20]) is not array([ 0, 10, 20])
+
+tests/metrics/test_snapshot_roundtrip.py:45: AssertionError</failure></testcase><testcase classname="tests.metrics.test_snapshot_roundtrip" name="test_account_return_roundtrip_is_immutable_and_exact[deepcopy]" time="0.002"><failure message="Failed: DID NOT RAISE ValueError">clone = &lt;function deepcopy at 0x7f4dc15de480&gt;
+
+    @pytest.mark.parametrize("clone", CLONES)
+    def test_account_return_roundtrip_is_immutable_and_exact(clone):
+        original = snapshot()
+        restored = clone(original)
+        assert restored.identity == original.identity
+        for left, right in zip(arrays(original), arrays(restored)):
+            np.testing.assert_array_equal(left, right)
+            assert left is not right
+&gt;           with pytest.raises(ValueError):
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^
+E           Failed: DID NOT RAISE ValueError
+
+tests/metrics/test_snapshot_roundtrip.py:46: Failed</failure></testcase><testcase classname="tests.metrics.test_snapshot_roundtrip" name="test_account_return_roundtrip_is_immutable_and_exact[pickle-0]" time="0.003"><failure message="Failed: DID NOT RAISE ValueError">clone = &lt;function &lt;lambda&gt; at 0x7f4dc0a69ee0&gt;
+
+    @pytest.mark.parametrize("clone", CLONES)
+    def test_account_return_roundtrip_is_immutable_and_exact(clone):
+        original = snapshot()
+        restored = clone(original)
+        assert restored.identity == original.identity
+        for left, right in zip(arrays(original), arrays(restored)):
+            np.testing.assert_array_equal(left, right)
+            assert left is not right
+&gt;           with pytest.raises(ValueError):
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^
+E           Failed: DID NOT RAISE ValueError
+
+tests/metrics/test_snapshot_roundtrip.py:46: Failed</failure></testcase><testcase classname="tests.metrics.test_snapshot_roundtrip" name="test_account_return_roundtrip_is_immutable_and_exact[pickle-1]" time="0.002"><failure message="Failed: DID NOT RAISE ValueError">clone = &lt;function &lt;lambda&gt; at 0x7f4daf5587c0&gt;
+
+    @pytest.mark.parametrize("clone", CLONES)
+    def test_account_return_roundtrip_is_immutable_and_exact(clone):
+        original = snapshot()
+        restored = clone(original)
+        assert restored.identity == original.identity
+        for left, right in zip(arrays(original), arrays(restored)):
+            np.testing.assert_array_equal(left, right)
+            assert left is not right
+&gt;           with pytest.raises(ValueError):
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^
+E           Failed: DID NOT RAISE ValueError
+
+tests/metrics/test_snapshot_roundtrip.py:46: Failed</failure></testcase><testcase classname="tests.metrics.test_snapshot_roundtrip" name="test_account_return_roundtrip_is_immutable_and_exact[pickle-2]" time="0.002"><failure message="Failed: DID NOT RAISE ValueError">clone = &lt;function &lt;lambda&gt; at 0x7f4daed2cd60&gt;
+
+    @pytest.mark.parametrize("clone", CLONES)
+    def test_account_return_roundtrip_is_immutable_and_exact(clone):
+        original = snapshot()
+        restored = clone(original)
+        assert restored.identity == original.identity
+        for left, right in zip(arrays(original), arrays(restored)):
+            np.testing.assert_array_equal(left, right)
+            assert left is not right
+&gt;           with pytest.raises(ValueError):
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^
+E           Failed: DID NOT RAISE ValueError
+
+tests/metrics/test_snapshot_roundtrip.py:46: Failed</failure></testcase><testcase classname="tests.metrics.test_snapshot_roundtrip" name="test_account_return_roundtrip_is_immutable_and_exact[pickle-3]" time="0.002"><failure message="Failed: DID NOT RAISE ValueError">clone = &lt;function &lt;lambda&gt; at 0x7f4daed2df80&gt;
+
+    @pytest.mark.parametrize("clone", CLONES)
+    def test_account_return_roundtrip_is_immutable_and_exact(clone):
+        original = snapshot()
+        restored = clone(original)
+        assert restored.identity == original.identity
+        for left, right in zip(arrays(original), arrays(restored)):
+            np.testing.assert_array_equal(left, right)
+            assert left is not right
+&gt;           with pytest.raises(ValueError):
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^
+E           Failed: DID NOT RAISE ValueError
+
+tests/metrics/test_snapshot_roundtrip.py:46: Failed</failure></testcase><testcase classname="tests.metrics.test_snapshot_roundtrip" name="test_account_return_roundtrip_is_immutable_and_exact[pickle-4]" time="0.002"><failure message="Failed: DID NOT RAISE ValueError">clone = &lt;function &lt;lambda&gt; at 0x7f4daed2e020&gt;
+
+    @pytest.mark.parametrize("clone", CLONES)
+    def test_account_return_roundtrip_is_immutable_and_exact(clone):
+        original = snapshot()
+        restored = clone(original)
+        assert restored.identity == original.identity
+        for left, right in zip(arrays(original), arrays(restored)):
+            np.testing.assert_array_equal(left, right)
+            assert left is not right
+&gt;           with pytest.raises(ValueError):
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^
+E           Failed: DID NOT RAISE ValueError
+
+tests/metrics/test_snapshot_roundtrip.py:46: Failed</failure></testcase><testcase classname="tests.metrics.test_snapshot_roundtrip" name="test_account_return_roundtrip_is_immutable_and_exact[pickle-5]" time="0.008" /><testcase classname="tests.metrics.test_snapshot_roundtrip" name="test_roundtrip_cannot_reproduce_stale_cached_return[copy]" time="0.008" /><testcase classname="tests.metrics.test_snapshot_roundtrip" name="test_roundtrip_cannot_reproduce_stale_cached_return[deepcopy]" time="0.003"><failure message="Failed: DID NOT RAISE ValueError">clone = &lt;function deepcopy at 0x7f4dc15de480&gt;
+
+    @pytest.mark.parametrize("clone", CLONES)
+    def test_roundtrip_cannot_reproduce_stale_cached_return(clone):
+        original = snapshot()
+        contract = replace(policy([0, 10, 20]), sampling="observed_bar")
+        with ReportingCache() as cache:
+            cached = cache.reduce("account", original, contract)
+            restored = clone(original)
+&gt;           with pytest.raises(ValueError):
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^
+E           Failed: DID NOT RAISE ValueError
+
+tests/metrics/test_snapshot_roundtrip.py:62: Failed</failure></testcase><testcase classname="tests.metrics.test_snapshot_roundtrip" name="test_roundtrip_cannot_reproduce_stale_cached_return[pickle-0]" time="0.004"><failure message="Failed: DID NOT RAISE ValueError">clone = &lt;function &lt;lambda&gt; at 0x7f4dc0a69ee0&gt;
+
+    @pytest.mark.parametrize("clone", CLONES)
+    def test_roundtrip_cannot_reproduce_stale_cached_return(clone):
+        original = snapshot()
+        contract = replace(policy([0, 10, 20]), sampling="observed_bar")
+        with ReportingCache() as cache:
+            cached = cache.reduce("account", original, contract)
+            restored = clone(original)
+&gt;           with pytest.raises(ValueError):
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^
+E           Failed: DID NOT RAISE ValueError
+
+tests/metrics/test_snapshot_roundtrip.py:62: Failed</failure></testcase><testcase classname="tests.metrics.test_snapshot_roundtrip" name="test_roundtrip_cannot_reproduce_stale_cached_return[pickle-1]" time="0.004"><failure message="Failed: DID NOT RAISE ValueError">clone = &lt;function &lt;lambda&gt; at 0x7f4daf5587c0&gt;
+
+    @pytest.mark.parametrize("clone", CLONES)
+    def test_roundtrip_cannot_reproduce_stale_cached_return(clone):
+        original = snapshot()
+        contract = replace(policy([0, 10, 20]), sampling="observed_bar")
+        with ReportingCache() as cache:
+            cached = cache.reduce("account", original, contract)
+            restored = clone(original)
+&gt;           with pytest.raises(ValueError):
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^
+E           Failed: DID NOT RAISE ValueError
+
+tests/metrics/test_snapshot_roundtrip.py:62: Failed</failure></testcase><testcase classname="tests.metrics.test_snapshot_roundtrip" name="test_roundtrip_cannot_reproduce_stale_cached_return[pickle-2]" time="0.003"><failure message="Failed: DID NOT RAISE ValueError">clone = &lt;function &lt;lambda&gt; at 0x7f4daed2cd60&gt;
+
+    @pytest.mark.parametrize("clone", CLONES)
+    def test_roundtrip_cannot_reproduce_stale_cached_return(clone):
+        original = snapshot()
+        contract = replace(policy([0, 10, 20]), sampling="observed_bar")
+        with ReportingCache() as cache:
+            cached = cache.reduce("account", original, contract)
+            restored = clone(original)
+&gt;           with pytest.raises(ValueError):
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^
+E           Failed: DID NOT RAISE ValueError
+
+tests/metrics/test_snapshot_roundtrip.py:62: Failed</failure></testcase><testcase classname="tests.metrics.test_snapshot_roundtrip" name="test_roundtrip_cannot_reproduce_stale_cached_return[pickle-3]" time="0.004"><failure message="Failed: DID NOT RAISE ValueError">clone = &lt;function &lt;lambda&gt; at 0x7f4daed2df80&gt;
+
+    @pytest.mark.parametrize("clone", CLONES)
+    def test_roundtrip_cannot_reproduce_stale_cached_return(clone):
+        original = snapshot()
+        contract = replace(policy([0, 10, 20]), sampling="observed_bar")
+        with ReportingCache() as cache:
+            cached = cache.reduce("account", original, contract)
+            restored = clone(original)
+&gt;           with pytest.raises(ValueError):
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^
+E           Failed: DID NOT RAISE ValueError
+
+tests/metrics/test_snapshot_roundtrip.py:62: Failed</failure></testcase><testcase classname="tests.metrics.test_snapshot_roundtrip" name="test_roundtrip_cannot_reproduce_stale_cached_return[pickle-4]" time="0.004"><failure message="Failed: DID NOT RAISE ValueError">clone = &lt;function &lt;lambda&gt; at 0x7f4daed2e020&gt;
+
+    @pytest.mark.parametrize("clone", CLONES)
+    def test_roundtrip_cannot_reproduce_stale_cached_return(clone):
+        original = snapshot()
+        contract = replace(policy([0, 10, 20]), sampling="observed_bar")
+        with ReportingCache() as cache:
+            cached = cache.reduce("account", original, contract)
+            restored = clone(original)
+&gt;           with pytest.raises(ValueError):
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^
+E           Failed: DID NOT RAISE ValueError
+
+tests/metrics/test_snapshot_roundtrip.py:62: Failed</failure></testcase><testcase classname="tests.metrics.test_snapshot_roundtrip" name="test_roundtrip_cannot_reproduce_stale_cached_return[pickle-5]" time="0.008" /><testcase classname="tests.metrics.test_snapshot_roundtrip" name="test_execution_paths_roundtrip_and_cache[copy]" time="0.003"><failure message="AssertionError: assert array([ 0, 10, 20]) is not array([ 0, 10, 20])&#10; +  where array([ 0, 10, 20]) = ExecutionObservations(coverage=ReportingCoverageV1(result_identity='copy-review', producer='recorded synthetic marks',...), paths=(('fees', array([1., 2., 3.])),), identity='ef94f8ed2d204593e2a87b08b86ed786c2b0fd62bc1377c49178ffb0a172f45b').times_ns&#10; +  and   array([ 0, 10, 20]) = ExecutionObservations(coverage=ReportingCoverageV1(result_identity='copy-review', producer='recorded synthetic marks',...), paths=(('fees', array([1., 2., 3.])),), identity='ef94f8ed2d204593e2a87b08b86ed786c2b0fd62bc1377c49178ffb0a172f45b').times_ns">clone = &lt;function copy at 0x7f4dc15de0c0&gt;
+
+    @pytest.mark.parametrize("clone", CLONES)
+    def test_execution_paths_roundtrip_and_cache(clone):
+        account = snapshot()
+        execution = ExecutionObservations(coverage=account.coverage, currency="USDT", scope_start_ns=0,
+            scope_end_ns=20, witness="recorded complete fee path", times_ns=account.times_ns,
+            paths=(("fees", np.array([1., 2., 3.])),))
+        restored = clone(execution)
+        assert restored.identity == execution.identity
+&gt;       assert restored.times_ns is not execution.times_ns
+E       AssertionError: assert array([ 0, 10, 20]) is not array([ 0, 10, 20])
+E        +  where array([ 0, 10, 20]) = ExecutionObservations(coverage=ReportingCoverageV1(result_identity='copy-review', producer='recorded synthetic marks',...), paths=(('fees', array([1., 2., 3.])),), identity='ef94f8ed2d204593e2a87b08b86ed786c2b0fd62bc1377c49178ffb0a172f45b').times_ns
+E        +  and   array([ 0, 10, 20]) = ExecutionObservations(coverage=ReportingCoverageV1(result_identity='copy-review', producer='recorded synthetic marks',...), paths=(('fees', array([1., 2., 3.])),), identity='ef94f8ed2d204593e2a87b08b86ed786c2b0fd62bc1377c49178ffb0a172f45b').times_ns
+
+tests/metrics/test_snapshot_roundtrip.py:82: AssertionError</failure></testcase><testcase classname="tests.metrics.test_snapshot_roundtrip" name="test_execution_paths_roundtrip_and_cache[deepcopy]" time="0.001"><failure message="Failed: DID NOT RAISE ValueError">clone = &lt;function deepcopy at 0x7f4dc15de480&gt;
+
+    @pytest.mark.parametrize("clone", CLONES)
+    def test_execution_paths_roundtrip_and_cache(clone):
+        account = snapshot()
+        execution = ExecutionObservations(coverage=account.coverage, currency="USDT", scope_start_ns=0,
+            scope_end_ns=20, witness="recorded complete fee path", times_ns=account.times_ns,
+            paths=(("fees", np.array([1., 2., 3.])),))
+        restored = clone(execution)
+        assert restored.identity == execution.identity
+        assert restored.times_ns is not execution.times_ns
+&gt;       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/metrics/test_snapshot_roundtrip.py:83: Failed</failure></testcase><testcase classname="tests.metrics.test_snapshot_roundtrip" name="test_execution_paths_roundtrip_and_cache[pickle-0]" time="0.002"><failure message="Failed: DID NOT RAISE ValueError">clone = &lt;function &lt;lambda&gt; at 0x7f4dc0a69ee0&gt;
+
+    @pytest.mark.parametrize("clone", CLONES)
+    def test_execution_paths_roundtrip_and_cache(clone):
+        account = snapshot()
+        execution = ExecutionObservations(coverage=account.coverage, currency="USDT", scope_start_ns=0,
+            scope_end_ns=20, witness="recorded complete fee path", times_ns=account.times_ns,
+            paths=(("fees", np.array([1., 2., 3.])),))
+        restored = clone(execution)
+        assert restored.identity == execution.identity
+        assert restored.times_ns is not execution.times_ns
+&gt;       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/metrics/test_snapshot_roundtrip.py:83: Failed</failure></testcase><testcase classname="tests.metrics.test_snapshot_roundtrip" name="test_execution_paths_roundtrip_and_cache[pickle-1]" time="0.002"><failure message="Failed: DID NOT RAISE ValueError">clone = &lt;function &lt;lambda&gt; at 0x7f4daf5587c0&gt;
+
+    @pytest.mark.parametrize("clone", CLONES)
+    def test_execution_paths_roundtrip_and_cache(clone):
+        account = snapshot()
+        execution = ExecutionObservations(coverage=account.coverage, currency="USDT", scope_start_ns=0,
+            scope_end_ns=20, witness="recorded complete fee path", times_ns=account.times_ns,
+            paths=(("fees", np.array([1., 2., 3.])),))
+        restored = clone(execution)
+        assert restored.identity == execution.identity
+        assert restored.times_ns is not execution.times_ns
+&gt;       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/metrics/test_snapshot_roundtrip.py:83: Failed</failure></testcase><testcase classname="tests.metrics.test_snapshot_roundtrip" name="test_execution_paths_roundtrip_and_cache[pickle-2]" time="0.002"><failure message="Failed: DID NOT RAISE ValueError">clone = &lt;function &lt;lambda&gt; at 0x7f4daed2cd60&gt;
+
+    @pytest.mark.parametrize("clone", CLONES)
+    def test_execution_paths_roundtrip_and_cache(clone):
+        account = snapshot()
+        execution = ExecutionObservations(coverage=account.coverage, currency="USDT", scope_start_ns=0,
+            scope_end_ns=20, witness="recorded complete fee path", times_ns=account.times_ns,
+            paths=(("fees", np.array([1., 2., 3.])),))
+        restored = clone(execution)
+        assert restored.identity == execution.identity
+        assert restored.times_ns is not execution.times_ns
+&gt;       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/metrics/test_snapshot_roundtrip.py:83: Failed</failure></testcase><testcase classname="tests.metrics.test_snapshot_roundtrip" name="test_execution_paths_roundtrip_and_cache[pickle-3]" time="0.002"><failure message="Failed: DID NOT RAISE ValueError">clone = &lt;function &lt;lambda&gt; at 0x7f4daed2df80&gt;
+
+    @pytest.mark.parametrize("clone", CLONES)
+    def test_execution_paths_roundtrip_and_cache(clone):
+        account = snapshot()
+        execution = ExecutionObservations(coverage=account.coverage, currency="USDT", scope_start_ns=0,
+            scope_end_ns=20, witness="recorded complete fee path", times_ns=account.times_ns,
+            paths=(("fees", np.array([1., 2., 3.])),))
+        restored = clone(execution)
+        assert restored.identity == execution.identity
+        assert restored.times_ns is not execution.times_ns
+&gt;       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/metrics/test_snapshot_roundtrip.py:83: Failed</failure></testcase><testcase classname="tests.metrics.test_snapshot_roundtrip" name="test_execution_paths_roundtrip_and_cache[pickle-4]" time="0.002"><failure message="Failed: DID NOT RAISE ValueError">clone = &lt;function &lt;lambda&gt; at 0x7f4daed2e020&gt;
+
+    @pytest.mark.parametrize("clone", CLONES)
+    def test_execution_paths_roundtrip_and_cache(clone):
+        account = snapshot()
+        execution = ExecutionObservations(coverage=account.coverage, currency="USDT", scope_start_ns=0,
+            scope_end_ns=20, witness="recorded complete fee path", times_ns=account.times_ns,
+            paths=(("fees", np.array([1., 2., 3.])),))
+        restored = clone(execution)
+        assert restored.identity == execution.identity
+        assert restored.times_ns is not execution.times_ns
+&gt;       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/metrics/test_snapshot_roundtrip.py:83: Failed</failure></testcase><testcase classname="tests.metrics.test_snapshot_roundtrip" name="test_execution_paths_roundtrip_and_cache[pickle-5]" time="0.003" /><testcase classname="tests.metrics.test_snapshot_roundtrip" name="test_result_episode_roundtrip_preserves_readonly_headers[copy]" time="0.001"><failure message="ValueError: return sampling does not match reporting contract">clone = &lt;function copy at 0x7f4dc15de0c0&gt;
+
+    @pytest.mark.parametrize("clone", CLONES)
+    def test_result_episode_roundtrip_preserves_readonly_headers(clone):
+&gt;       report = reduce_account(snapshot(), policy([0, 10, 20]), retain_episodes=True)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/metrics/test_snapshot_roundtrip.py:96: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/quantbt/metrics/reporting/account.py:63: in reduce_account
+    observations.validate_contract(contract)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = AccountObservations(times_ns=array([ 0, 10, 20]), equity=array([100.,  90., 110.]), coverage=ReportingCoverageV1(resul...tness='three complete synthetic periods'), identity='eb0e66a117f07f3b6c522a21b70d1560a120775b514d6ebec24f8f21a4311022')
+contract = ReportingContractV1(scope='full', unit='account_period', currency='USDT', baseline_equity=100.0, baseline_time_ns=0, s...none', ledger_scope='none', disjoint_scope='reject', recovery_relative_tolerance=0.0, breakeven_currency_tolerance=0.0)
+
+    def validate_contract(self, contract: ReportingContractV1):
+        validate_account_scope(self.times_ns, contract)
+        if self.returns is not None:
+            if self.returns.sampling != contract.sampling:
+&gt;               raise ValueError("return sampling does not match reporting contract")
+E               ValueError: return sampling does not match reporting contract
+
+src/quantbt/metrics/reporting/inputs.py:120: ValueError</failure></testcase><testcase classname="tests.metrics.test_snapshot_roundtrip" name="test_result_episode_roundtrip_preserves_readonly_headers[deepcopy]" time="0.002"><failure message="ValueError: return sampling does not match reporting contract">clone = &lt;function deepcopy at 0x7f4dc15de480&gt;
+
+    @pytest.mark.parametrize("clone", CLONES)
+    def test_result_episode_roundtrip_preserves_readonly_headers(clone):
+&gt;       report = reduce_account(snapshot(), policy([0, 10, 20]), retain_episodes=True)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/metrics/test_snapshot_roundtrip.py:96: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/quantbt/metrics/reporting/account.py:63: in reduce_account
+    observations.validate_contract(contract)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = AccountObservations(times_ns=array([ 0, 10, 20]), equity=array([100.,  90., 110.]), coverage=ReportingCoverageV1(resul...tness='three complete synthetic periods'), identity='eb0e66a117f07f3b6c522a21b70d1560a120775b514d6ebec24f8f21a4311022')
+contract = ReportingContractV1(scope='full', unit='account_period', currency='USDT', baseline_equity=100.0, baseline_time_ns=0, s...none', ledger_scope='none', disjoint_scope='reject', recovery_relative_tolerance=0.0, breakeven_currency_tolerance=0.0)
+
+    def validate_contract(self, contract: ReportingContractV1):
+        validate_account_scope(self.times_ns, contract)
+        if self.returns is not None:
+            if self.returns.sampling != contract.sampling:
+&gt;               raise ValueError("return sampling does not match reporting contract")
+E               ValueError: return sampling does not match reporting contract
+
+src/quantbt/metrics/reporting/inputs.py:120: ValueError</failure></testcase><testcase classname="tests.metrics.test_snapshot_roundtrip" name="test_result_episode_roundtrip_preserves_readonly_headers[pickle-0]" time="0.001"><failure message="ValueError: return sampling does not match reporting contract">clone = &lt;function &lt;lambda&gt; at 0x7f4dc0a69ee0&gt;
+
+    @pytest.mark.parametrize("clone", CLONES)
+    def test_result_episode_roundtrip_preserves_readonly_headers(clone):
+&gt;       report = reduce_account(snapshot(), policy([0, 10, 20]), retain_episodes=True)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/metrics/test_snapshot_roundtrip.py:96: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/quantbt/metrics/reporting/account.py:63: in reduce_account
+    observations.validate_contract(contract)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = AccountObservations(times_ns=array([ 0, 10, 20]), equity=array([100.,  90., 110.]), coverage=ReportingCoverageV1(resul...tness='three complete synthetic periods'), identity='eb0e66a117f07f3b6c522a21b70d1560a120775b514d6ebec24f8f21a4311022')
+contract = ReportingContractV1(scope='full', unit='account_period', currency='USDT', baseline_equity=100.0, baseline_time_ns=0, s...none', ledger_scope='none', disjoint_scope='reject', recovery_relative_tolerance=0.0, breakeven_currency_tolerance=0.0)
+
+    def validate_contract(self, contract: ReportingContractV1):
+        validate_account_scope(self.times_ns, contract)
+        if self.returns is not None:
+            if self.returns.sampling != contract.sampling:
+&gt;               raise ValueError("return sampling does not match reporting contract")
+E               ValueError: return sampling does not match reporting contract
+
+src/quantbt/metrics/reporting/inputs.py:120: ValueError</failure></testcase><testcase classname="tests.metrics.test_snapshot_roundtrip" name="test_result_episode_roundtrip_preserves_readonly_headers[pickle-1]" time="0.002"><failure message="ValueError: return sampling does not match reporting contract">clone = &lt;function &lt;lambda&gt; at 0x7f4daf5587c0&gt;
+
+    @pytest.mark.parametrize("clone", CLONES)
+    def test_result_episode_roundtrip_preserves_readonly_headers(clone):
+&gt;       report = reduce_account(snapshot(), policy([0, 10, 20]), retain_episodes=True)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/metrics/test_snapshot_roundtrip.py:96: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/quantbt/metrics/reporting/account.py:63: in reduce_account
+    observations.validate_contract(contract)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = AccountObservations(times_ns=array([ 0, 10, 20]), equity=array([100.,  90., 110.]), coverage=ReportingCoverageV1(resul...tness='three complete synthetic periods'), identity='eb0e66a117f07f3b6c522a21b70d1560a120775b514d6ebec24f8f21a4311022')
+contract = ReportingContractV1(scope='full', unit='account_period', currency='USDT', baseline_equity=100.0, baseline_time_ns=0, s...none', ledger_scope='none', disjoint_scope='reject', recovery_relative_tolerance=0.0, breakeven_currency_tolerance=0.0)
+
+    def validate_contract(self, contract: ReportingContractV1):
+        validate_account_scope(self.times_ns, contract)
+        if self.returns is not None:
+            if self.returns.sampling != contract.sampling:
+&gt;               raise ValueError("return sampling does not match reporting contract")
+E               ValueError: return sampling does not match reporting contract
+
+src/quantbt/metrics/reporting/inputs.py:120: ValueError</failure></testcase><testcase classname="tests.metrics.test_snapshot_roundtrip" name="test_result_episode_roundtrip_preserves_readonly_headers[pickle-2]" time="0.002"><failure message="ValueError: return sampling does not match reporting contract">clone = &lt;function &lt;lambda&gt; at 0x7f4daed2cd60&gt;
+
+    @pytest.mark.parametrize("clone", CLONES)
+    def test_result_episode_roundtrip_preserves_readonly_headers(clone):
+&gt;       report = reduce_account(snapshot(), policy([0, 10, 20]), retain_episodes=True)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/metrics/test_snapshot_roundtrip.py:96: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/quantbt/metrics/reporting/account.py:63: in reduce_account
+    observations.validate_contract(contract)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = AccountObservations(times_ns=array([ 0, 10, 20]), equity=array([100.,  90., 110.]), coverage=ReportingCoverageV1(resul...tness='three complete synthetic periods'), identity='eb0e66a117f07f3b6c522a21b70d1560a120775b514d6ebec24f8f21a4311022')
+contract = ReportingContractV1(scope='full', unit='account_period', currency='USDT', baseline_equity=100.0, baseline_time_ns=0, s...none', ledger_scope='none', disjoint_scope='reject', recovery_relative_tolerance=0.0, breakeven_currency_tolerance=0.0)
+
+    def validate_contract(self, contract: ReportingContractV1):
+        validate_account_scope(self.times_ns, contract)
+        if self.returns is not None:
+            if self.returns.sampling != contract.sampling:
+&gt;               raise ValueError("return sampling does not match reporting contract")
+E               ValueError: return sampling does not match reporting contract
+
+src/quantbt/metrics/reporting/inputs.py:120: ValueError</failure></testcase><testcase classname="tests.metrics.test_snapshot_roundtrip" name="test_result_episode_roundtrip_preserves_readonly_headers[pickle-3]" time="0.002"><failure message="ValueError: return sampling does not match reporting contract">clone = &lt;function &lt;lambda&gt; at 0x7f4daed2df80&gt;
+
+    @pytest.mark.parametrize("clone", CLONES)
+    def test_result_episode_roundtrip_preserves_readonly_headers(clone):
+&gt;       report = reduce_account(snapshot(), policy([0, 10, 20]), retain_episodes=True)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/metrics/test_snapshot_roundtrip.py:96: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/quantbt/metrics/reporting/account.py:63: in reduce_account
+    observations.validate_contract(contract)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = AccountObservations(times_ns=array([ 0, 10, 20]), equity=array([100.,  90., 110.]), coverage=ReportingCoverageV1(resul...tness='three complete synthetic periods'), identity='eb0e66a117f07f3b6c522a21b70d1560a120775b514d6ebec24f8f21a4311022')
+contract = ReportingContractV1(scope='full', unit='account_period', currency='USDT', baseline_equity=100.0, baseline_time_ns=0, s...none', ledger_scope='none', disjoint_scope='reject', recovery_relative_tolerance=0.0, breakeven_currency_tolerance=0.0)
+
+    def validate_contract(self, contract: ReportingContractV1):
+        validate_account_scope(self.times_ns, contract)
+        if self.returns is not None:
+            if self.returns.sampling != contract.sampling:
+&gt;               raise ValueError("return sampling does not match reporting contract")
+E               ValueError: return sampling does not match reporting contract
+
+src/quantbt/metrics/reporting/inputs.py:120: ValueError</failure></testcase><testcase classname="tests.metrics.test_snapshot_roundtrip" name="test_result_episode_roundtrip_preserves_readonly_headers[pickle-4]" time="0.002"><failure message="ValueError: return sampling does not match reporting contract">clone = &lt;function &lt;lambda&gt; at 0x7f4daed2e020&gt;
+
+    @pytest.mark.parametrize("clone", CLONES)
+    def test_result_episode_roundtrip_preserves_readonly_headers(clone):
+&gt;       report = reduce_account(snapshot(), policy([0, 10, 20]), retain_episodes=True)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/metrics/test_snapshot_roundtrip.py:96: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/quantbt/metrics/reporting/account.py:63: in reduce_account
+    observations.validate_contract(contract)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = AccountObservations(times_ns=array([ 0, 10, 20]), equity=array([100.,  90., 110.]), coverage=ReportingCoverageV1(resul...tness='three complete synthetic periods'), identity='eb0e66a117f07f3b6c522a21b70d1560a120775b514d6ebec24f8f21a4311022')
+contract = ReportingContractV1(scope='full', unit='account_period', currency='USDT', baseline_equity=100.0, baseline_time_ns=0, s...none', ledger_scope='none', disjoint_scope='reject', recovery_relative_tolerance=0.0, breakeven_currency_tolerance=0.0)
+
+    def validate_contract(self, contract: ReportingContractV1):
+        validate_account_scope(self.times_ns, contract)
+        if self.returns is not None:
+            if self.returns.sampling != contract.sampling:
+&gt;               raise ValueError("return sampling does not match reporting contract")
+E               ValueError: return sampling does not match reporting contract
+
+src/quantbt/metrics/reporting/inputs.py:120: ValueError</failure></testcase><testcase classname="tests.metrics.test_snapshot_roundtrip" name="test_result_episode_roundtrip_preserves_readonly_headers[pickle-5]" time="0.002"><failure message="ValueError: return sampling does not match reporting contract">clone = &lt;function &lt;lambda&gt; at 0x7f4daed2e0c0&gt;
+
+    @pytest.mark.parametrize("clone", CLONES)
+    def test_result_episode_roundtrip_preserves_readonly_headers(clone):
+&gt;       report = reduce_account(snapshot(), policy([0, 10, 20]), retain_episodes=True)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/metrics/test_snapshot_roundtrip.py:96: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/quantbt/metrics/reporting/account.py:63: in reduce_account
+    observations.validate_contract(contract)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = AccountObservations(times_ns=array([ 0, 10, 20]), equity=array([100.,  90., 110.]), coverage=ReportingCoverageV1(resul...tness='three complete synthetic periods'), identity='eb0e66a117f07f3b6c522a21b70d1560a120775b514d6ebec24f8f21a4311022')
+contract = ReportingContractV1(scope='full', unit='account_period', currency='USDT', baseline_equity=100.0, baseline_time_ns=0, s...none', ledger_scope='none', disjoint_scope='reject', recovery_relative_tolerance=0.0, breakeven_currency_tolerance=0.0)
+
+    def validate_contract(self, contract: ReportingContractV1):
+        validate_account_scope(self.times_ns, contract)
+        if self.returns is not None:
+            if self.returns.sampling != contract.sampling:
+&gt;               raise ValueError("return sampling does not match reporting contract")
+E               ValueError: return sampling does not match reporting contract
+
+src/quantbt/metrics/reporting/inputs.py:120: ValueError</failure></testcase><testcase classname="tests.metrics.test_snapshot_roundtrip" name="test_nested_request_snapshot_and_cached_result_roundtrip[copy]" time="0.014"><failure message="ValueError: return sampling does not match reporting contract">clone = &lt;function copy at 0x7f4dc15de0c0&gt;
+
+    @pytest.mark.parametrize("clone", CLONES)
+    def test_nested_request_snapshot_and_cached_result_roundtrip(clone):
+        obs = snapshot()
+        contract = policy([0, 10, 20])
+        execution = ExecutionObservations(coverage=obs.coverage, currency="USDT", scope_start_ns=0,
+            scope_end_ns=20, witness="complete fee path", times_ns=obs.times_ns,
+            paths=(("fees", np.array([1., 2., 3.])),))
+        with ReportingCache() as cache:
+&gt;           cache.reduce("account", obs, contract, retain_episodes=True)
+
+tests/metrics/test_snapshot_roundtrip.py:116: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/quantbt/metrics/reporting/cache.py:46: in reduce
+    result = reducers[kind](observations, contract, **options)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/quantbt/metrics/reporting/account.py:63: in reduce_account
+    observations.validate_contract(contract)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = AccountObservations(times_ns=array([ 0, 10, 20]), equity=array([100.,  90., 110.]), coverage=ReportingCoverageV1(resul...tness='three complete synthetic periods'), identity='eb0e66a117f07f3b6c522a21b70d1560a120775b514d6ebec24f8f21a4311022')
+contract = ReportingContractV1(scope='full', unit='account_period', currency='USDT', baseline_equity=100.0, baseline_time_ns=0, s...none', ledger_scope='none', disjoint_scope='reject', recovery_relative_tolerance=0.0, breakeven_currency_tolerance=0.0)
+
+    def validate_contract(self, contract: ReportingContractV1):
+        validate_account_scope(self.times_ns, contract)
+        if self.returns is not None:
+            if self.returns.sampling != contract.sampling:
+&gt;               raise ValueError("return sampling does not match reporting contract")
+E               ValueError: return sampling does not match reporting contract
+
+src/quantbt/metrics/reporting/inputs.py:120: ValueError</failure></testcase><testcase classname="tests.metrics.test_snapshot_roundtrip" name="test_nested_request_snapshot_and_cached_result_roundtrip[deepcopy]" time="0.002"><failure message="ValueError: return sampling does not match reporting contract">clone = &lt;function deepcopy at 0x7f4dc15de480&gt;
+
+    @pytest.mark.parametrize("clone", CLONES)
+    def test_nested_request_snapshot_and_cached_result_roundtrip(clone):
+        obs = snapshot()
+        contract = policy([0, 10, 20])
+        execution = ExecutionObservations(coverage=obs.coverage, currency="USDT", scope_start_ns=0,
+            scope_end_ns=20, witness="complete fee path", times_ns=obs.times_ns,
+            paths=(("fees", np.array([1., 2., 3.])),))
+        with ReportingCache() as cache:
+&gt;           cache.reduce("account", obs, contract, retain_episodes=True)
+
+tests/metrics/test_snapshot_roundtrip.py:116: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/quantbt/metrics/reporting/cache.py:46: in reduce
+    result = reducers[kind](observations, contract, **options)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/quantbt/metrics/reporting/account.py:63: in reduce_account
+    observations.validate_contract(contract)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = AccountObservations(times_ns=array([ 0, 10, 20]), equity=array([100.,  90., 110.]), coverage=ReportingCoverageV1(resul...tness='three complete synthetic periods'), identity='eb0e66a117f07f3b6c522a21b70d1560a120775b514d6ebec24f8f21a4311022')
+contract = ReportingContractV1(scope='full', unit='account_period', currency='USDT', baseline_equity=100.0, baseline_time_ns=0, s...none', ledger_scope='none', disjoint_scope='reject', recovery_relative_tolerance=0.0, breakeven_currency_tolerance=0.0)
+
+    def validate_contract(self, contract: ReportingContractV1):
+        validate_account_scope(self.times_ns, contract)
+        if self.returns is not None:
+            if self.returns.sampling != contract.sampling:
+&gt;               raise ValueError("return sampling does not match reporting contract")
+E               ValueError: return sampling does not match reporting contract
+
+src/quantbt/metrics/reporting/inputs.py:120: ValueError</failure></testcase><testcase classname="tests.metrics.test_snapshot_roundtrip" name="test_nested_request_snapshot_and_cached_result_roundtrip[pickle-0]" time="0.002"><failure message="ValueError: return sampling does not match reporting contract">clone = &lt;function &lt;lambda&gt; at 0x7f4dc0a69ee0&gt;
+
+    @pytest.mark.parametrize("clone", CLONES)
+    def test_nested_request_snapshot_and_cached_result_roundtrip(clone):
+        obs = snapshot()
+        contract = policy([0, 10, 20])
+        execution = ExecutionObservations(coverage=obs.coverage, currency="USDT", scope_start_ns=0,
+            scope_end_ns=20, witness="complete fee path", times_ns=obs.times_ns,
+            paths=(("fees", np.array([1., 2., 3.])),))
+        with ReportingCache() as cache:
+&gt;           cache.reduce("account", obs, contract, retain_episodes=True)
+
+tests/metrics/test_snapshot_roundtrip.py:116: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/quantbt/metrics/reporting/cache.py:46: in reduce
+    result = reducers[kind](observations, contract, **options)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/quantbt/metrics/reporting/account.py:63: in reduce_account
+    observations.validate_contract(contract)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = AccountObservations(times_ns=array([ 0, 10, 20]), equity=array([100.,  90., 110.]), coverage=ReportingCoverageV1(resul...tness='three complete synthetic periods'), identity='eb0e66a117f07f3b6c522a21b70d1560a120775b514d6ebec24f8f21a4311022')
+contract = ReportingContractV1(scope='full', unit='account_period', currency='USDT', baseline_equity=100.0, baseline_time_ns=0, s...none', ledger_scope='none', disjoint_scope='reject', recovery_relative_tolerance=0.0, breakeven_currency_tolerance=0.0)
+
+    def validate_contract(self, contract: ReportingContractV1):
+        validate_account_scope(self.times_ns, contract)
+        if self.returns is not None:
+            if self.returns.sampling != contract.sampling:
+&gt;               raise ValueError("return sampling does not match reporting contract")
+E               ValueError: return sampling does not match reporting contract
+
+src/quantbt/metrics/reporting/inputs.py:120: ValueError</failure></testcase><testcase classname="tests.metrics.test_snapshot_roundtrip" name="test_nested_request_snapshot_and_cached_result_roundtrip[pickle-1]" time="0.002"><failure message="ValueError: return sampling does not match reporting contract">clone = &lt;function &lt;lambda&gt; at 0x7f4daf5587c0&gt;
+
+    @pytest.mark.parametrize("clone", CLONES)
+    def test_nested_request_snapshot_and_cached_result_roundtrip(clone):
+        obs = snapshot()
+        contract = policy([0, 10, 20])
+        execution = ExecutionObservations(coverage=obs.coverage, currency="USDT", scope_start_ns=0,
+            scope_end_ns=20, witness="complete fee path", times_ns=obs.times_ns,
+            paths=(("fees", np.array([1., 2., 3.])),))
+        with ReportingCache() as cache:
+&gt;           cache.reduce("account", obs, contract, retain_episodes=True)
+
+tests/metrics/test_snapshot_roundtrip.py:116: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/quantbt/metrics/reporting/cache.py:46: in reduce
+    result = reducers[kind](observations, contract, **options)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/quantbt/metrics/reporting/account.py:63: in reduce_account
+    observations.validate_contract(contract)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = AccountObservations(times_ns=array([ 0, 10, 20]), equity=array([100.,  90., 110.]), coverage=ReportingCoverageV1(resul...tness='three complete synthetic periods'), identity='eb0e66a117f07f3b6c522a21b70d1560a120775b514d6ebec24f8f21a4311022')
+contract = ReportingContractV1(scope='full', unit='account_period', currency='USDT', baseline_equity=100.0, baseline_time_ns=0, s...none', ledger_scope='none', disjoint_scope='reject', recovery_relative_tolerance=0.0, breakeven_currency_tolerance=0.0)
+
+    def validate_contract(self, contract: ReportingContractV1):
+        validate_account_scope(self.times_ns, contract)
+        if self.returns is not None:
+            if self.returns.sampling != contract.sampling:
+&gt;               raise ValueError("return sampling does not match reporting contract")
+E               ValueError: return sampling does not match reporting contract
+
+src/quantbt/metrics/reporting/inputs.py:120: ValueError</failure></testcase><testcase classname="tests.metrics.test_snapshot_roundtrip" name="test_nested_request_snapshot_and_cached_result_roundtrip[pickle-2]" time="0.002"><failure message="ValueError: return sampling does not match reporting contract">clone = &lt;function &lt;lambda&gt; at 0x7f4daed2cd60&gt;
+
+    @pytest.mark.parametrize("clone", CLONES)
+    def test_nested_request_snapshot_and_cached_result_roundtrip(clone):
+        obs = snapshot()
+        contract = policy([0, 10, 20])
+        execution = ExecutionObservations(coverage=obs.coverage, currency="USDT", scope_start_ns=0,
+            scope_end_ns=20, witness="complete fee path", times_ns=obs.times_ns,
+            paths=(("fees", np.array([1., 2., 3.])),))
+        with ReportingCache() as cache:
+&gt;           cache.reduce("account", obs, contract, retain_episodes=True)
+
+tests/metrics/test_snapshot_roundtrip.py:116: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/quantbt/metrics/reporting/cache.py:46: in reduce
+    result = reducers[kind](observations, contract, **options)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/quantbt/metrics/reporting/account.py:63: in reduce_account
+    observations.validate_contract(contract)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = AccountObservations(times_ns=array([ 0, 10, 20]), equity=array([100.,  90., 110.]), coverage=ReportingCoverageV1(resul...tness='three complete synthetic periods'), identity='eb0e66a117f07f3b6c522a21b70d1560a120775b514d6ebec24f8f21a4311022')
+contract = ReportingContractV1(scope='full', unit='account_period', currency='USDT', baseline_equity=100.0, baseline_time_ns=0, s...none', ledger_scope='none', disjoint_scope='reject', recovery_relative_tolerance=0.0, breakeven_currency_tolerance=0.0)
+
+    def validate_contract(self, contract: ReportingContractV1):
+        validate_account_scope(self.times_ns, contract)
+        if self.returns is not None:
+            if self.returns.sampling != contract.sampling:
+&gt;               raise ValueError("return sampling does not match reporting contract")
+E               ValueError: return sampling does not match reporting contract
+
+src/quantbt/metrics/reporting/inputs.py:120: ValueError</failure></testcase><testcase classname="tests.metrics.test_snapshot_roundtrip" name="test_nested_request_snapshot_and_cached_result_roundtrip[pickle-3]" time="0.002"><failure message="ValueError: return sampling does not match reporting contract">clone = &lt;function &lt;lambda&gt; at 0x7f4daed2df80&gt;
+
+    @pytest.mark.parametrize("clone", CLONES)
+    def test_nested_request_snapshot_and_cached_result_roundtrip(clone):
+        obs = snapshot()
+        contract = policy([0, 10, 20])
+        execution = ExecutionObservations(coverage=obs.coverage, currency="USDT", scope_start_ns=0,
+            scope_end_ns=20, witness="complete fee path", times_ns=obs.times_ns,
+            paths=(("fees", np.array([1., 2., 3.])),))
+        with ReportingCache() as cache:
+&gt;           cache.reduce("account", obs, contract, retain_episodes=True)
+
+tests/metrics/test_snapshot_roundtrip.py:116: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/quantbt/metrics/reporting/cache.py:46: in reduce
+    result = reducers[kind](observations, contract, **options)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/quantbt/metrics/reporting/account.py:63: in reduce_account
+    observations.validate_contract(contract)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = AccountObservations(times_ns=array([ 0, 10, 20]), equity=array([100.,  90., 110.]), coverage=ReportingCoverageV1(resul...tness='three complete synthetic periods'), identity='eb0e66a117f07f3b6c522a21b70d1560a120775b514d6ebec24f8f21a4311022')
+contract = ReportingContractV1(scope='full', unit='account_period', currency='USDT', baseline_equity=100.0, baseline_time_ns=0, s...none', ledger_scope='none', disjoint_scope='reject', recovery_relative_tolerance=0.0, breakeven_currency_tolerance=0.0)
+
+    def validate_contract(self, contract: ReportingContractV1):
+        validate_account_scope(self.times_ns, contract)
+        if self.returns is not None:
+            if self.returns.sampling != contract.sampling:
+&gt;               raise ValueError("return sampling does not match reporting contract")
+E               ValueError: return sampling does not match reporting contract
+
+src/quantbt/metrics/reporting/inputs.py:120: ValueError</failure></testcase><testcase classname="tests.metrics.test_snapshot_roundtrip" name="test_nested_request_snapshot_and_cached_result_roundtrip[pickle-4]" time="0.002"><failure message="ValueError: return sampling does not match reporting contract">clone = &lt;function &lt;lambda&gt; at 0x7f4daed2e020&gt;
+
+    @pytest.mark.parametrize("clone", CLONES)
+    def test_nested_request_snapshot_and_cached_result_roundtrip(clone):
+        obs = snapshot()
+        contract = policy([0, 10, 20])
+        execution = ExecutionObservations(coverage=obs.coverage, currency="USDT", scope_start_ns=0,
+            scope_end_ns=20, witness="complete fee path", times_ns=obs.times_ns,
+            paths=(("fees", np.array([1., 2., 3.])),))
+        with ReportingCache() as cache:
+&gt;           cache.reduce("account", obs, contract, retain_episodes=True)
+
+tests/metrics/test_snapshot_roundtrip.py:116: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/quantbt/metrics/reporting/cache.py:46: in reduce
+    result = reducers[kind](observations, contract, **options)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/quantbt/metrics/reporting/account.py:63: in reduce_account
+    observations.validate_contract(contract)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = AccountObservations(times_ns=array([ 0, 10, 20]), equity=array([100.,  90., 110.]), coverage=ReportingCoverageV1(resul...tness='three complete synthetic periods'), identity='eb0e66a117f07f3b6c522a21b70d1560a120775b514d6ebec24f8f21a4311022')
+contract = ReportingContractV1(scope='full', unit='account_period', currency='USDT', baseline_equity=100.0, baseline_time_ns=0, s...none', ledger_scope='none', disjoint_scope='reject', recovery_relative_tolerance=0.0, breakeven_currency_tolerance=0.0)
+
+    def validate_contract(self, contract: ReportingContractV1):
+        validate_account_scope(self.times_ns, contract)
+        if self.returns is not None:
+            if self.returns.sampling != contract.sampling:
+&gt;               raise ValueError("return sampling does not match reporting contract")
+E               ValueError: return sampling does not match reporting contract
+
+src/quantbt/metrics/reporting/inputs.py:120: ValueError</failure></testcase><testcase classname="tests.metrics.test_snapshot_roundtrip" name="test_nested_request_snapshot_and_cached_result_roundtrip[pickle-5]" time="0.002"><failure message="ValueError: return sampling does not match reporting contract">clone = &lt;function &lt;lambda&gt; at 0x7f4daed2e0c0&gt;
+
+    @pytest.mark.parametrize("clone", CLONES)
+    def test_nested_request_snapshot_and_cached_result_roundtrip(clone):
+        obs = snapshot()
+        contract = policy([0, 10, 20])
+        execution = ExecutionObservations(coverage=obs.coverage, currency="USDT", scope_start_ns=0,
+            scope_end_ns=20, witness="complete fee path", times_ns=obs.times_ns,
+            paths=(("fees", np.array([1., 2., 3.])),))
+        with ReportingCache() as cache:
+&gt;           cache.reduce("account", obs, contract, retain_episodes=True)
+
+tests/metrics/test_snapshot_roundtrip.py:116: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/quantbt/metrics/reporting/cache.py:46: in reduce
+    result = reducers[kind](observations, contract, **options)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/quantbt/metrics/reporting/account.py:63: in reduce_account
+    observations.validate_contract(contract)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = AccountObservations(times_ns=array([ 0, 10, 20]), equity=array([100.,  90., 110.]), coverage=ReportingCoverageV1(resul...tness='three complete synthetic periods'), identity='eb0e66a117f07f3b6c522a21b70d1560a120775b514d6ebec24f8f21a4311022')
+contract = ReportingContractV1(scope='full', unit='account_period', currency='USDT', baseline_equity=100.0, baseline_time_ns=0, s...none', ledger_scope='none', disjoint_scope='reject', recovery_relative_tolerance=0.0, breakeven_currency_tolerance=0.0)
+
+    def validate_contract(self, contract: ReportingContractV1):
+        validate_account_scope(self.times_ns, contract)
+        if self.returns is not None:
+            if self.returns.sampling != contract.sampling:
+&gt;               raise ValueError("return sampling does not match reporting contract")
+E               ValueError: return sampling does not match reporting contract
+
+src/quantbt/metrics/reporting/inputs.py:120: ValueError</failure></testcase></testsuite></testsuites>

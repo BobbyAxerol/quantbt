@@ -8,7 +8,7 @@ use quantbt_domain::ids::OrderHandle;
 /// replacement alias resolves to the newest live order. The reverse mapping
 /// makes terminal cleanup proportional to aliases owned by that order instead
 /// of every live alias in the session. Both directions are mutated only here.
-#[derive(Debug, Default)]
+#[derive(Clone, Debug, Default)]
 pub struct ExternalOrderAliases {
     forward: HashMap<i64, OrderHandle>,
     reverse: HashMap<OrderHandle, Vec<i64>>,

@@ -1,0 +1,1885 @@
+{
+  "artifact_scope": "source local only; unchanged certified native reused; current core wheel qualification M5-12",
+  "billing": {
+    "all_new_actual_account_bars": 192720,
+    "all_new_actual_account_calls": 22,
+    "all_pilot_calls": 16,
+    "cached_financial_reexecutions": 0,
+    "cached_reverified_bars": 175200,
+    "cached_reverified_daily_observations": 7300,
+    "cached_reverified_paths": 20,
+    "duplicate_technical_attempt_calls": 8,
+    "inventory_peak_rss_mib": 296.4375,
+    "inventory_seconds": 8.465955844032578,
+    "qualified_pilot_attempt_calls": 8,
+    "reason": "minimal finite work and authorized cache reuse, not a matched performance benchmark",
+    "speedup_claim": false,
+    "statistically_qualified_origins": 1,
+    "stress_calls": 6,
+    "stress_peak_rss_mib": 404.4296875,
+    "stress_seconds": 22.78887729498092,
+    "timings": {
+      "A-RSI": {
+        "account_bars": 35040,
+        "account_calls": 4,
+        "includes_public_search_replay_and_returned_account": true,
+        "one_worker": true,
+        "peak_rss_mib": 343.734375,
+        "seconds": 13.194705008063465,
+        "trial_count": 2,
+        "unique_vectors": 2
+      },
+      "A-SC": {
+        "account_bars": 35040,
+        "account_calls": 4,
+        "includes_public_search_replay_and_returned_account": true,
+        "one_worker": true,
+        "peak_rss_mib": 402.7890625,
+        "seconds": 33.514309916994534,
+        "trial_count": 2,
+        "unique_vectors": 2
+      }
+    },
+    "total_query_attempts_including_artifact_replays": 8,
+    "unique_registered_coordinates": 4
+  },
+  "blocked_alphas": 3,
+  "calibration_eligible_alphas": 2,
+  "cleanup": {
+    "status": "PASS",
+    "host_processes": 159,
+    "host_scratch_references": 0,
+    "host_inspection_errors": 0,
+    "protected_verified": 3620,
+    "initial_hashes_unchanged": 3619,
+    "authorized_source_exceptions": 1,
+    "retained_files_verified": 115,
+    "current_source_harness_verified": 329,
+    "observed_free_change_bytes": 16257024,
+    "exact_native_extraction_requires_restoration": true,
+    "current_tooling_retained": true
+  },
+  "deployment_authorized": false,
+  "economic_disposition": "INCONCLUSIVE; selected recipes coincide; no meaningful comparative improvement established",
+  "formal": [
+    {
+      "accounts": [
+        {
+          "accepted_fills": null,
+          "campaigns": null,
+          "candidate_role": "SOURCE_SELECTED_ANCHOR",
+          "daily_loss_es": 0.018597568777456074,
+          "days": 365,
+          "final_equity": 36337.784000507054,
+          "max_drawdown": 0.10231236359631934,
+          "mean_daily_log_growth": 0.0016359611176216175,
+          "mean_daily_net": 0.00171356043224874,
+          "net_return": 0.8168892000253527,
+          "period": "Y2021",
+          "pf": {
+            "closed_campaigns": null,
+            "currency": "USDT",
+            "gross_loss": null,
+            "gross_profit": null,
+            "reason": "accepted closed-campaign ledger unavailable",
+            "status": "UNAVAILABLE",
+            "value": null
+          },
+          "psr": {
+            "components": [
+              [
+                "z",
+                3.4680021163455237
+              ],
+              [
+                "denominator_squared",
+                0.5590654149297686
+              ],
+              [
+                "sr_period",
+                0.13591267972285329
+              ],
+              [
+                "reference_period",
+                0.0
+              ],
+              [
+                "moment_estimator",
+                "central_population_v1"
+              ]
+            ],
+            "metric_id": "mode5.classical_psr_plugin_v1",
+            "reason": null,
+            "sample_count": 365,
+            "status": "VALID",
+            "unit": "probability",
+            "value": 0.9997378284204167
+          },
+          "sharpe": 2.596608100185339
+        },
+        {
+          "accepted_fills": null,
+          "campaigns": null,
+          "candidate_role": "SOURCE_SELECTED_ANCHOR",
+          "daily_loss_es": 0.018733417303232202,
+          "days": 365,
+          "final_equity": 23706.062614745962,
+          "max_drawdown": 0.12035473175873712,
+          "mean_daily_log_growth": 0.00046574944768095237,
+          "mean_daily_net": 0.0005002703985239052,
+          "net_return": 0.1853031307372981,
+          "period": "Y2025",
+          "pf": {
+            "closed_campaigns": null,
+            "currency": "USDT",
+            "gross_loss": null,
+            "gross_profit": null,
+            "reason": "accepted closed-campaign ledger unavailable",
+            "status": "UNAVAILABLE",
+            "value": null
+          },
+          "psr": {
+            "components": [
+              [
+                "z",
+                1.1675900887136443
+              ],
+              [
+                "denominator_squared",
+                0.9642191107474241
+              ],
+              [
+                "sr_period",
+                0.0600935105444853
+              ],
+              [
+                "reference_period",
+                0.0
+              ],
+              [
+                "moment_estimator",
+                "central_population_v1"
+              ]
+            ],
+            "metric_id": "mode5.classical_psr_plugin_v1",
+            "reason": null,
+            "sample_count": 365,
+            "status": "VALID",
+            "unit": "probability",
+            "value": 0.8785139249980995
+          },
+          "sharpe": 1.1480849069164965
+        },
+        {
+          "accepted_fills": null,
+          "campaigns": null,
+          "candidate_role": "EXPLORATION_PANEL",
+          "daily_loss_es": 0.02354717649148051,
+          "days": 365,
+          "final_equity": 21697.377254427724,
+          "max_drawdown": 0.12358144631352863,
+          "mean_daily_log_growth": 0.0002231756598261439,
+          "mean_daily_net": 0.0002598834794423581,
+          "net_return": 0.08486886272138627,
+          "period": "Y2021",
+          "pf": {
+            "closed_campaigns": null,
+            "currency": "USDT",
+            "gross_loss": null,
+            "gross_profit": null,
+            "reason": "accepted closed-campaign ledger unavailable",
+            "status": "UNAVAILABLE",
+            "value": null
+          },
+          "psr": {
+            "components": [
+              [
+                "z",
+                0.5731094545673258
+              ],
+              [
+                "denominator_squared",
+                1.021104412887361
+              ],
+              [
+                "sr_period",
+                0.03035442131457854
+              ],
+              [
+                "reference_period",
+                0.0
+              ],
+              [
+                "moment_estimator",
+                "central_population_v1"
+              ]
+            ],
+            "metric_id": "mode5.classical_psr_plugin_v1",
+            "reason": null,
+            "sample_count": 365,
+            "status": "VALID",
+            "unit": "probability",
+            "value": 0.716714706968353
+          },
+          "sharpe": 0.5799204049437932
+        },
+        {
+          "accepted_fills": null,
+          "campaigns": null,
+          "candidate_role": "EXPLORATION_PANEL",
+          "daily_loss_es": 0.02298979237469863,
+          "days": 365,
+          "final_equity": 30543.40781353187,
+          "max_drawdown": 0.10193169035801242,
+          "mean_daily_log_growth": 0.0011600454938663605,
+          "mean_daily_net": 0.0012309587087151119,
+          "net_return": 0.5271703906765934,
+          "period": "Y2025",
+          "pf": {
+            "closed_campaigns": null,
+            "currency": "USDT",
+            "gross_loss": null,
+            "gross_profit": null,
+            "reason": "accepted closed-campaign ledger unavailable",
+            "status": "UNAVAILABLE",
+            "value": null
+          },
+          "psr": {
+            "components": [
+              [
+                "z",
+                2.1415807502334903
+              ],
+              [
+                "denominator_squared",
+                0.8408539092739589
+              ],
+              [
+                "sr_period",
+                0.10293048911378717
+              ],
+              [
+                "reference_period",
+                0.0
+              ],
+              [
+                "moment_estimator",
+                "central_population_v1"
+              ]
+            ],
+            "metric_id": "mode5.classical_psr_plugin_v1",
+            "reason": null,
+            "sample_count": 365,
+            "status": "VALID",
+            "unit": "probability",
+            "value": 0.9838863829362358
+          },
+          "sharpe": 1.9664842333614736
+        }
+      ],
+      "alpha": "A-RSI",
+      "coordinate_diagnostic": {
+        "intervals": {
+          "decay_change": [
+            -8.413674368147378,
+            3.59505969005399
+          ],
+          "forward_mean_net_change": [
+            -0.001321084596500843,
+            0.003052060776201343
+          ],
+          "forward_sharpe_change": [
+            -2.751945949850156,
+            4.5958970356116335
+          ]
+        },
+        "invalid_draws": 0,
+        "observed": {
+          "decay_change": -2.835087021686523,
+          "development_sharpe_change": -2.016687695241546,
+          "forward_mean_net_change": 0.0007306883101912067,
+          "forward_sharpe_change": 0.8183993264449771
+        },
+        "scope": "neutral minus post-selected anchor, not a recipe effect",
+        "status": "INCONCLUSIVE",
+        "support": {
+          "gaps": [
+            {
+              "field": "fills",
+              "observed": null,
+              "path": 0,
+              "required": 30
+            },
+            {
+              "field": "campaigns",
+              "observed": null,
+              "path": 0,
+              "required": 20
+            },
+            {
+              "field": "fills",
+              "observed": null,
+              "path": 1,
+              "required": 30
+            },
+            {
+              "field": "campaigns",
+              "observed": null,
+              "path": 1,
+              "required": 20
+            },
+            {
+              "field": "fills",
+              "observed": null,
+              "path": 2,
+              "required": 30
+            },
+            {
+              "field": "campaigns",
+              "observed": null,
+              "path": 2,
+              "required": 20
+            },
+            {
+              "field": "fills",
+              "observed": null,
+              "path": 3,
+              "required": 30
+            },
+            {
+              "field": "campaigns",
+              "observed": null,
+              "path": 3,
+              "required": 20
+            },
+            {
+              "field": "qualified_origins",
+              "observed": 1,
+              "required": 3
+            }
+          ],
+          "status": "INSUFFICIENT_EVIDENCE"
+        }
+      },
+      "formal": {
+        "accounting_max_difference": 0.0,
+        "calibration_claim": "none_full_sample_calibration",
+        "development": {
+          "accepted_fills": null,
+          "campaigns": null,
+          "candidate_role": "SOURCE_SELECTED_ANCHOR",
+          "daily_loss_es": 0.018597568777456074,
+          "days": 365,
+          "final_equity": 36337.784000507054,
+          "max_drawdown": 0.10231236359631934,
+          "mean_daily_log_growth": 0.0016359611176216175,
+          "mean_daily_net": 0.00171356043224874,
+          "net_return": 0.8168892000253527,
+          "period": "Y2021",
+          "pf": {
+            "closed_campaigns": null,
+            "currency": "USDT",
+            "gross_loss": null,
+            "gross_profit": null,
+            "reason": "accepted closed-campaign ledger unavailable",
+            "status": "UNAVAILABLE",
+            "value": null
+          },
+          "psr": {
+            "components": [
+              [
+                "z",
+                3.4680021163455237
+              ],
+              [
+                "denominator_squared",
+                0.5590654149297686
+              ],
+              [
+                "sr_period",
+                0.13591267972285329
+              ],
+              [
+                "reference_period",
+                0.0
+              ],
+              [
+                "moment_estimator",
+                "central_population_v1"
+              ]
+            ],
+            "metric_id": "mode5.classical_psr_plugin_v1",
+            "reason": null,
+            "sample_count": 365,
+            "status": "VALID",
+            "unit": "probability",
+            "value": 0.9997378284204167
+          },
+          "sharpe": 2.596608100185339
+        },
+        "forward": {
+          "accepted_fills": null,
+          "campaigns": null,
+          "candidate_role": "SOURCE_SELECTED_ANCHOR",
+          "daily_loss_es": 0.018733417303232202,
+          "days": 365,
+          "final_equity": 23706.062614745962,
+          "max_drawdown": 0.12035473175873712,
+          "mean_daily_log_growth": 0.00046574944768095237,
+          "mean_daily_net": 0.0005002703985239052,
+          "net_return": 0.1853031307372981,
+          "period": "Y2025",
+          "pf": {
+            "closed_campaigns": null,
+            "currency": "USDT",
+            "gross_loss": null,
+            "gross_profit": null,
+            "reason": "accepted closed-campaign ledger unavailable",
+            "status": "UNAVAILABLE",
+            "value": null
+          },
+          "psr": {
+            "components": [
+              [
+                "z",
+                1.1675900887136443
+              ],
+              [
+                "denominator_squared",
+                0.9642191107474241
+              ],
+              [
+                "sr_period",
+                0.0600935105444853
+              ],
+              [
+                "reference_period",
+                0.0
+              ],
+              [
+                "moment_estimator",
+                "central_population_v1"
+              ]
+            ],
+            "metric_id": "mode5.classical_psr_plugin_v1",
+            "reason": null,
+            "sample_count": 365,
+            "status": "VALID",
+            "unit": "probability",
+            "value": 0.8785139249980995
+          },
+          "sharpe": 1.1480849069164965
+        },
+        "forward_role": "REVIEWED_EXPLORATORY",
+        "intervals": {
+          "decay_change": [
+            0.0,
+            0.0
+          ],
+          "forward_mean_net_change": [
+            0.0,
+            0.0
+          ],
+          "forward_sharpe_change": [
+            0.0,
+            0.0
+          ]
+        },
+        "new_forward_execution": false,
+        "observed": {
+          "decay_change": 0.0,
+          "development_sharpe_change": 0.0,
+          "forward_mean_net_change": 0.0,
+          "forward_sharpe_change": 0.0
+        },
+        "paired_status": "INCONCLUSIVE",
+        "same_selected_vector": true,
+        "selected_role": "anchor",
+        "support": {
+          "gaps": [
+            {
+              "field": "fills",
+              "observed": null,
+              "path": 0,
+              "required": 30
+            },
+            {
+              "field": "campaigns",
+              "observed": null,
+              "path": 0,
+              "required": 20
+            },
+            {
+              "field": "fills",
+              "observed": null,
+              "path": 1,
+              "required": 30
+            },
+            {
+              "field": "campaigns",
+              "observed": null,
+              "path": 1,
+              "required": 20
+            },
+            {
+              "field": "fills",
+              "observed": null,
+              "path": 2,
+              "required": 30
+            },
+            {
+              "field": "campaigns",
+              "observed": null,
+              "path": 2,
+              "required": 20
+            },
+            {
+              "field": "fills",
+              "observed": null,
+              "path": 3,
+              "required": 30
+            },
+            {
+              "field": "campaigns",
+              "observed": null,
+              "path": 3,
+              "required": 20
+            },
+            {
+              "field": "qualified_origins",
+              "observed": 1,
+              "required": 3
+            }
+          ],
+          "status": "INSUFFICIENT_EVIDENCE"
+        }
+      },
+      "independent": false,
+      "origin_count": 1,
+      "status": "APPROVED_FINITE_PILOT"
+    },
+    {
+      "accounts": [
+        {
+          "accepted_fills": 92,
+          "campaigns": 46,
+          "candidate_role": "SOURCE_SELECTED_ANCHOR",
+          "daily_loss_es": 0.008091066917914832,
+          "days": 365,
+          "final_equity": 20992.62792954726,
+          "max_drawdown": 0.05836578126357295,
+          "mean_daily_log_growth": 0.00013270973030869655,
+          "mean_daily_net": 0.00013945311431330513,
+          "net_return": 0.04963139647736292,
+          "period": "Y2021",
+          "pf": {
+            "closed_campaigns": 46,
+            "currency": "USDT",
+            "gross_loss": 2468.2260304572014,
+            "gross_profit": 3460.853960004401,
+            "population": "actual_closed_net_campaigns",
+            "reason": null,
+            "status": "VALID",
+            "value": 1.402162491319051
+          },
+          "psr": {
+            "components": [
+              [
+                "z",
+                0.7303573409877714
+              ],
+              [
+                "denominator_squared",
+                0.9811283654218519
+              ],
+              [
+                "sr_period",
+                0.03791819213816647
+              ],
+              [
+                "reference_period",
+                0.0
+              ],
+              [
+                "moment_estimator",
+                "central_population_v1"
+              ]
+            ],
+            "metric_id": "mode5.classical_psr_plugin_v1",
+            "reason": null,
+            "sample_count": 365,
+            "status": "VALID",
+            "unit": "probability",
+            "value": 0.7674141066539886
+          },
+          "sharpe": 0.72442604362683
+        },
+        {
+          "accepted_fills": 86,
+          "campaigns": 43,
+          "candidate_role": "SOURCE_SELECTED_ANCHOR",
+          "daily_loss_es": 0.005869320987830865,
+          "days": 365,
+          "final_equity": 20264.335266220358,
+          "max_drawdown": 0.07076460904858684,
+          "mean_daily_log_growth": 3.597310664826287e-05,
+          "mean_daily_net": 4.032430116994342e-05,
+          "net_return": 0.013216763311017843,
+          "period": "Y2025",
+          "pf": {
+            "closed_campaigns": 43,
+            "currency": "USDT",
+            "gross_loss": 2229.8248511164,
+            "gross_profit": 2494.1601173368,
+            "population": "actual_closed_net_campaigns",
+            "reason": null,
+            "status": "VALID",
+            "value": 1.1185453046180087
+          },
+          "psr": {
+            "components": [
+              [
+                "z",
+                0.2631777791457771
+              ],
+              [
+                "denominator_squared",
+                0.9759499224470077
+              ],
+              [
+                "sr_period",
+                0.013627377693023619
+              ],
+              [
+                "reference_period",
+                0.0
+              ],
+              [
+                "moment_estimator",
+                "central_population_v1"
+              ]
+            ],
+            "metric_id": "mode5.classical_psr_plugin_v1",
+            "reason": null,
+            "sample_count": 365,
+            "status": "VALID",
+            "unit": "probability",
+            "value": 0.6037932215311368
+          },
+          "sharpe": 0.26035068526457916
+        },
+        {
+          "accepted_fills": 13,
+          "campaigns": 6,
+          "candidate_role": "EXPLORATION_PANEL",
+          "daily_loss_es": 0.014469071045619345,
+          "days": 365,
+          "final_equity": 22302.768303574103,
+          "max_drawdown": 0.07431283758002605,
+          "mean_daily_log_growth": 0.0002985713325511765,
+          "mean_daily_net": 0.00031546865974268226,
+          "net_return": 0.11513841517870516,
+          "period": "Y2021",
+          "pf": {
+            "closed_campaigns": 6,
+            "currency": "USDT",
+            "gross_loss": 409.82642601879985,
+            "gross_profit": 3054.5650138295996,
+            "population": "actual_closed_net_campaigns",
+            "reason": "closed-campaign support below registration",
+            "status": "INSUFFICIENT",
+            "value": null
+          },
+          "psr": {
+            "components": [
+              [
+                "z",
+                1.0060530917814563
+              ],
+              [
+                "denominator_squared",
+                1.0629812236533307
+              ],
+              [
+                "sr_period",
+                0.0543667040410857
+              ],
+              [
+                "reference_period",
+                0.0
+              ],
+              [
+                "moment_estimator",
+                "central_population_v1"
+              ]
+            ],
+            "metric_id": "mode5.classical_psr_plugin_v1",
+            "reason": null,
+            "sample_count": 365,
+            "status": "VALID",
+            "unit": "probability",
+            "value": 0.8428049842055119
+          },
+          "sharpe": 1.0386744222932498
+        },
+        {
+          "accepted_fills": 13,
+          "campaigns": 6,
+          "candidate_role": "EXPLORATION_PANEL",
+          "daily_loss_es": 0.007336634431737011,
+          "days": 365,
+          "final_equity": 21214.08541275278,
+          "max_drawdown": 0.046801214819018444,
+          "mean_daily_log_growth": 0.00016146053086513643,
+          "mean_daily_net": 0.00016748502817297026,
+          "net_return": 0.060704270637638835,
+          "period": "Y2025",
+          "pf": {
+            "closed_campaigns": 6,
+            "currency": "USDT",
+            "gross_loss": 839.7608205524,
+            "gross_profit": 2070.4686853896005,
+            "population": "actual_closed_net_campaigns",
+            "reason": "closed-campaign support below registration",
+            "status": "INSUFFICIENT",
+            "value": null
+          },
+          "psr": {
+            "components": [
+              [
+                "z",
+                0.9509640027500715
+              ],
+              [
+                "denominator_squared",
+                0.9330933607434962
+              ],
+              [
+                "sr_period",
+                0.04814774320224848
+              ],
+              [
+                "reference_period",
+                0.0
+              ],
+              [
+                "moment_estimator",
+                "central_population_v1"
+              ]
+            ],
+            "metric_id": "mode5.classical_psr_plugin_v1",
+            "reason": null,
+            "sample_count": 365,
+            "status": "VALID",
+            "unit": "probability",
+            "value": 0.8291886751706841
+          },
+          "sharpe": 0.9198613422937326
+        }
+      ],
+      "alpha": "A-SC",
+      "coordinate_diagnostic": {
+        "intervals": {
+          "decay_change": [
+            -4.420258708886181,
+            3.332480508243612
+          ],
+          "forward_mean_net_change": [
+            -0.00026667866594427673,
+            0.0004059081988004074
+          ],
+          "forward_sharpe_change": [
+            -1.6264610129562025,
+            2.773186554619326
+          ]
+        },
+        "invalid_draws": 0,
+        "observed": {
+          "decay_change": -0.3452622783627337,
+          "development_sharpe_change": 0.31424837866641975,
+          "forward_mean_net_change": 0.00012716072700302684,
+          "forward_sharpe_change": 0.6595106570291535
+        },
+        "scope": "neutral minus post-selected anchor, not a recipe effect",
+        "status": "INCONCLUSIVE",
+        "support": {
+          "gaps": [
+            {
+              "field": "fills",
+              "observed": 13,
+              "path": 1,
+              "required": 30
+            },
+            {
+              "field": "campaigns",
+              "observed": 6,
+              "path": 1,
+              "required": 20
+            },
+            {
+              "field": "fills",
+              "observed": 13,
+              "path": 3,
+              "required": 30
+            },
+            {
+              "field": "campaigns",
+              "observed": 6,
+              "path": 3,
+              "required": 20
+            },
+            {
+              "field": "qualified_origins",
+              "observed": 1,
+              "required": 3
+            }
+          ],
+          "status": "INSUFFICIENT_EVIDENCE"
+        }
+      },
+      "formal": {
+        "accounting_max_difference": 0.0,
+        "calibration_claim": "none_full_sample_calibration",
+        "development": {
+          "accepted_fills": 13,
+          "campaigns": 6,
+          "candidate_role": "EXPLORATION_PANEL",
+          "daily_loss_es": 0.014469071045619345,
+          "days": 365,
+          "final_equity": 22302.768303574103,
+          "max_drawdown": 0.07431283758002605,
+          "mean_daily_log_growth": 0.0002985713325511765,
+          "mean_daily_net": 0.00031546865974268226,
+          "net_return": 0.11513841517870516,
+          "period": "Y2021",
+          "pf": {
+            "closed_campaigns": 6,
+            "currency": "USDT",
+            "gross_loss": 409.82642601879985,
+            "gross_profit": 3054.5650138295996,
+            "population": "actual_closed_net_campaigns",
+            "reason": "closed-campaign support below registration",
+            "status": "INSUFFICIENT",
+            "value": null
+          },
+          "psr": {
+            "components": [
+              [
+                "z",
+                1.0060530917814563
+              ],
+              [
+                "denominator_squared",
+                1.0629812236533307
+              ],
+              [
+                "sr_period",
+                0.0543667040410857
+              ],
+              [
+                "reference_period",
+                0.0
+              ],
+              [
+                "moment_estimator",
+                "central_population_v1"
+              ]
+            ],
+            "metric_id": "mode5.classical_psr_plugin_v1",
+            "reason": null,
+            "sample_count": 365,
+            "status": "VALID",
+            "unit": "probability",
+            "value": 0.8428049842055119
+          },
+          "sharpe": 1.0386744222932498
+        },
+        "forward": {
+          "accepted_fills": 13,
+          "campaigns": 6,
+          "candidate_role": "EXPLORATION_PANEL",
+          "daily_loss_es": 0.007336634431737011,
+          "days": 365,
+          "final_equity": 21214.08541275278,
+          "max_drawdown": 0.046801214819018444,
+          "mean_daily_log_growth": 0.00016146053086513643,
+          "mean_daily_net": 0.00016748502817297026,
+          "net_return": 0.060704270637638835,
+          "period": "Y2025",
+          "pf": {
+            "closed_campaigns": 6,
+            "currency": "USDT",
+            "gross_loss": 839.7608205524,
+            "gross_profit": 2070.4686853896005,
+            "population": "actual_closed_net_campaigns",
+            "reason": "closed-campaign support below registration",
+            "status": "INSUFFICIENT",
+            "value": null
+          },
+          "psr": {
+            "components": [
+              [
+                "z",
+                0.9509640027500715
+              ],
+              [
+                "denominator_squared",
+                0.9330933607434962
+              ],
+              [
+                "sr_period",
+                0.04814774320224848
+              ],
+              [
+                "reference_period",
+                0.0
+              ],
+              [
+                "moment_estimator",
+                "central_population_v1"
+              ]
+            ],
+            "metric_id": "mode5.classical_psr_plugin_v1",
+            "reason": null,
+            "sample_count": 365,
+            "status": "VALID",
+            "unit": "probability",
+            "value": 0.8291886751706841
+          },
+          "sharpe": 0.9198613422937326
+        },
+        "forward_role": "REVIEWED_EXPLORATORY",
+        "intervals": {
+          "decay_change": [
+            0.0,
+            0.0
+          ],
+          "forward_mean_net_change": [
+            0.0,
+            0.0
+          ],
+          "forward_sharpe_change": [
+            0.0,
+            0.0
+          ]
+        },
+        "new_forward_execution": false,
+        "observed": {
+          "decay_change": 0.0,
+          "development_sharpe_change": 0.0,
+          "forward_mean_net_change": 0.0,
+          "forward_sharpe_change": 0.0
+        },
+        "paired_status": "INCONCLUSIVE",
+        "same_selected_vector": true,
+        "selected_role": "neutral",
+        "support": {
+          "gaps": [
+            {
+              "field": "fills",
+              "observed": 13,
+              "path": 0,
+              "required": 30
+            },
+            {
+              "field": "campaigns",
+              "observed": 6,
+              "path": 0,
+              "required": 20
+            },
+            {
+              "field": "fills",
+              "observed": 13,
+              "path": 1,
+              "required": 30
+            },
+            {
+              "field": "campaigns",
+              "observed": 6,
+              "path": 1,
+              "required": 20
+            },
+            {
+              "field": "fills",
+              "observed": 13,
+              "path": 2,
+              "required": 30
+            },
+            {
+              "field": "campaigns",
+              "observed": 6,
+              "path": 2,
+              "required": 20
+            },
+            {
+              "field": "fills",
+              "observed": 13,
+              "path": 3,
+              "required": 30
+            },
+            {
+              "field": "campaigns",
+              "observed": 6,
+              "path": 3,
+              "required": 20
+            },
+            {
+              "field": "qualified_origins",
+              "observed": 1,
+              "required": 3
+            }
+          ],
+          "status": "INSUFFICIENT_EVIDENCE"
+        }
+      },
+      "independent": false,
+      "origin_count": 1,
+      "status": "APPROVED_FINITE_PILOT"
+    },
+    {
+      "accounts": [
+        {
+          "accepted_fills": 1012,
+          "campaigns": 506,
+          "candidate_role": "SOURCE_SELECTED_ANCHOR",
+          "daily_loss_es": 0.00872841227552608,
+          "days": 365,
+          "final_equity": 22023.902213889454,
+          "max_drawdown": 0.03968840211834124,
+          "mean_daily_log_growth": 0.00026409877889552256,
+          "mean_daily_net": 0.00027208773877131383,
+          "net_return": 0.10119511069447262,
+          "period": "Y2021",
+          "pf": {
+            "closed_campaigns": 506,
+            "currency": "USDT",
+            "gross_loss": 12881.928491588491,
+            "gross_profit": 14905.83070547795,
+            "population": "actual_closed_net_campaigns",
+            "reason": null,
+            "status": "VALID",
+            "value": 1.1571117410883787
+          },
+          "psr": {
+            "components": [
+              [
+                "z",
+                1.3069626572728752
+              ],
+              [
+                "denominator_squared",
+                0.9879249343665586
+              ],
+              [
+                "sr_period",
+                0.06808860878792608
+              ],
+              [
+                "reference_period",
+                0.0
+              ],
+              [
+                "moment_estimator",
+                "central_population_v1"
+              ]
+            ],
+            "metric_id": "mode5.classical_psr_plugin_v1",
+            "reason": null,
+            "sample_count": 365,
+            "status": "VALID",
+            "unit": "probability",
+            "value": 0.9043873028579457
+          },
+          "sharpe": 1.3008310443852669
+        },
+        {
+          "accepted_fills": 936,
+          "campaigns": 468,
+          "candidate_role": "SOURCE_SELECTED_ANCHOR",
+          "daily_loss_es": 0.005368883961500672,
+          "days": 365,
+          "final_equity": 19876.456618000077,
+          "max_drawdown": 0.04496781417644202,
+          "mean_daily_log_growth": -1.6976237652387313e-05,
+          "mean_daily_net": -1.4420568034600098e-05,
+          "net_return": -0.006177169099996216,
+          "period": "Y2025",
+          "pf": {
+            "closed_campaigns": 468,
+            "currency": "USDT",
+            "gross_loss": 8419.533901776482,
+            "gross_profit": 8295.990519776618,
+            "population": "actual_closed_net_campaigns",
+            "reason": null,
+            "status": "VALID",
+            "value": 0.9853265770479531
+          },
+          "psr": {
+            "components": [
+              [
+                "z",
+                -0.12183107443788112
+              ],
+              [
+                "denominator_squared",
+                0.9960294559781475
+              ],
+              [
+                "sr_period",
+                -0.0063729934712087755
+              ],
+              [
+                "reference_period",
+                0.0
+              ],
+              [
+                "moment_estimator",
+                "central_population_v1"
+              ]
+            ],
+            "metric_id": "mode5.classical_psr_plugin_v1",
+            "reason": null,
+            "sample_count": 365,
+            "status": "VALID",
+            "unit": "probability",
+            "value": 0.4515164017070852
+          },
+          "sharpe": -0.12175586930898005
+        },
+        {
+          "accepted_fills": 390,
+          "campaigns": 195,
+          "candidate_role": "EXPLORATION_PANEL",
+          "daily_loss_es": 0.010788727144199019,
+          "days": 365,
+          "final_equity": 17735.868431380244,
+          "max_drawdown": 0.12357672696672706,
+          "mean_daily_log_growth": -0.00032915950530150684,
+          "mean_daily_net": -0.0003192356701584077,
+          "net_return": -0.1132065784309878,
+          "period": "Y2021",
+          "pf": {
+            "closed_campaigns": 195,
+            "currency": "USDT",
+            "gross_loss": 10282.52035630393,
+            "gross_profit": 8018.388787684138,
+            "population": "actual_closed_net_campaigns",
+            "reason": null,
+            "status": "VALID",
+            "value": 0.7798077231880494
+          },
+          "psr": {
+            "components": [
+              [
+                "z",
+                -1.394187430765046
+              ],
+              [
+                "denominator_squared",
+                0.9660390473523456
+              ],
+              [
+                "sr_period",
+                -0.07182370622829967
+              ],
+              [
+                "reference_period",
+                0.0
+              ],
+              [
+                "moment_estimator",
+                "central_population_v1"
+              ]
+            ],
+            "metric_id": "mode5.classical_psr_plugin_v1",
+            "reason": null,
+            "sample_count": 365,
+            "status": "VALID",
+            "unit": "probability",
+            "value": 0.0816305062688098
+          },
+          "sharpe": -1.3721899807879079
+        },
+        {
+          "accepted_fills": 367,
+          "campaigns": 183,
+          "candidate_role": "EXPLORATION_PANEL",
+          "daily_loss_es": 0.006076132784053414,
+          "days": 365,
+          "final_equity": 19695.633962995595,
+          "max_drawdown": 0.05193252572876128,
+          "mean_daily_log_growth": -4.201448936068707e-05,
+          "mean_daily_net": -3.904270577277259e-05,
+          "net_return": -0.015218301850220217,
+          "period": "Y2025",
+          "pf": {
+            "closed_campaigns": 183,
+            "currency": "USDT",
+            "gross_loss": 5330.609240732006,
+            "gross_profit": 5054.9204747899485,
+            "population": "actual_closed_net_campaigns",
+            "reason": null,
+            "status": "VALID",
+            "value": 0.9482819404890014
+          },
+          "psr": {
+            "components": [
+              [
+                "z",
+                -0.3064635138991199
+              ],
+              [
+                "denominator_squared",
+                0.9923866123770951
+              ],
+              [
+                "sr_period",
+                -0.016001788778675797
+              ],
+              [
+                "reference_period",
+                0.0
+              ],
+              [
+                "moment_estimator",
+                "central_population_v1"
+              ]
+            ],
+            "metric_id": "mode5.classical_psr_plugin_v1",
+            "reason": null,
+            "sample_count": 365,
+            "status": "VALID",
+            "unit": "probability",
+            "value": 0.3796258779464115
+          },
+          "sharpe": -0.3057137453613011
+        }
+      ],
+      "alpha": "A-HMA",
+      "coordinate_diagnostic": {
+        "intervals": {
+          "decay_change": [
+            -6.628225686169362,
+            2.10982028078442
+          ],
+          "forward_mean_net_change": [
+            -0.000420818767380787,
+            0.0004339090421729249
+          ],
+          "forward_sharpe_change": [
+            -3.338947633636211,
+            3.3730580915892383
+          ]
+        },
+        "invalid_draws": 0,
+        "observed": {
+          "decay_change": -2.489063149120854,
+          "development_sharpe_change": -2.673021025173175,
+          "forward_mean_net_change": -2.4622137738172494e-05,
+          "forward_sharpe_change": -0.18395787605232103
+        },
+        "scope": "neutral minus post-selected anchor, not a recipe effect",
+        "status": "INCONCLUSIVE",
+        "support": {
+          "gaps": [
+            {
+              "field": "qualified_origins",
+              "observed": 1,
+              "required": 3
+            }
+          ],
+          "status": "INSUFFICIENT_EVIDENCE"
+        }
+      },
+      "formal": null,
+      "independent": false,
+      "origin_count": 1,
+      "status": "BLOCKED_BY_ORIGINAL_ADVISORY_NO_NEW_SEARCH"
+    },
+    {
+      "accounts": [
+        {
+          "accepted_fills": 1198,
+          "campaigns": 422,
+          "candidate_role": "SOURCE_SELECTED_ANCHOR",
+          "daily_loss_es": 0.004987785063489254,
+          "days": 365,
+          "final_equity": 19130.096300764024,
+          "max_drawdown": 0.07775006188451794,
+          "mean_daily_log_growth": -0.00012183412629182236,
+          "mean_daily_net": -0.00011837429881562698,
+          "net_return": -0.04349518496179883,
+          "period": "Y2021",
+          "pf": {
+            "closed_campaigns": 422,
+            "currency": "USDT",
+            "gross_loss": 9509.833820761713,
+            "gross_profit": 8581.455158508272,
+            "population": "actual_closed_net_campaigns",
+            "reason": null,
+            "status": "VALID",
+            "value": 0.902376983683288
+          },
+          "psr": {
+            "components": [
+              [
+                "z",
+                -0.8515498893372954
+              ],
+              [
+                "denominator_squared",
+                1.0154715793912825
+              ],
+              [
+                "sr_period",
+                -0.04497729072918214
+              ],
+              [
+                "reference_period",
+                0.0
+              ],
+              [
+                "moment_estimator",
+                "central_population_v1"
+              ]
+            ],
+            "metric_id": "mode5.classical_psr_plugin_v1",
+            "reason": null,
+            "sample_count": 365,
+            "status": "VALID",
+            "unit": "probability",
+            "value": 0.19723198115890078
+          },
+          "sharpe": -0.8592899328446374
+        },
+        {
+          "accepted_fills": 736,
+          "campaigns": 258,
+          "candidate_role": "SOURCE_SELECTED_ANCHOR",
+          "daily_loss_es": 0.004385830622193453,
+          "days": 365,
+          "final_equity": 19790.49113100955,
+          "max_drawdown": 0.05021715570516894,
+          "mean_daily_log_growth": -2.8851224978385228e-05,
+          "mean_daily_net": -2.6685386223966464e-05,
+          "net_return": -0.010475443449522559,
+          "period": "Y2025",
+          "pf": {
+            "closed_campaigns": 258,
+            "currency": "USDT",
+            "gross_loss": 5711.698874157679,
+            "gross_profit": 5452.760735193371,
+            "population": "actual_closed_net_campaigns",
+            "reason": null,
+            "status": "VALID",
+            "value": 0.9546653027988115
+          },
+          "psr": {
+            "components": [
+              [
+                "z",
+                -0.24408990849600706
+              ],
+              [
+                "denominator_squared",
+                1.0016702233504726
+              ],
+              [
+                "sr_period",
+                -0.012804467277421128
+              ],
+              [
+                "reference_period",
+                0.0
+              ],
+              [
+                "moment_estimator",
+                "central_population_v1"
+              ]
+            ],
+            "metric_id": "mode5.classical_psr_plugin_v1",
+            "reason": null,
+            "sample_count": 365,
+            "status": "VALID",
+            "unit": "probability",
+            "value": 0.4035805940326511
+          },
+          "sharpe": -0.24462900384944172
+        },
+        {
+          "accepted_fills": 11,
+          "campaigns": 3,
+          "candidate_role": "EXPLORATION_PANEL",
+          "daily_loss_es": 0.0002689966886670037,
+          "days": 365,
+          "final_equity": 19995.381312379417,
+          "max_drawdown": 0.004917792333101301,
+          "mean_daily_log_growth": -6.327700013187814e-07,
+          "mean_daily_net": -5.801691587662421e-07,
+          "net_return": -0.00023093438102916863,
+          "period": "Y2021",
+          "pf": {
+            "closed_campaigns": 3,
+            "currency": "USDT",
+            "gross_loss": 114.39823900890332,
+            "gross_profit": 16.917210791691133,
+            "population": "actual_closed_net_campaigns",
+            "reason": "closed-campaign support below registration",
+            "status": "INSUFFICIENT",
+            "value": null
+          },
+          "psr": {
+            "components": [
+              [
+                "z",
+                -0.03397949534392977
+              ],
+              [
+                "denominator_squared",
+                1.0053031655896678
+              ],
+              [
+                "sr_period",
+                -0.0017857257360416531
+              ],
+              [
+                "reference_period",
+                0.0
+              ],
+              [
+                "moment_estimator",
+                "central_population_v1"
+              ]
+            ],
+            "metric_id": "mode5.classical_psr_plugin_v1",
+            "reason": null,
+            "sample_count": 365,
+            "status": "VALID",
+            "unit": "probability",
+            "value": 0.4864467508014852
+          },
+          "sharpe": -0.03411624228416648
+        },
+        {
+          "accepted_fills": 232,
+          "campaigns": 83,
+          "candidate_role": "EXPLORATION_PANEL",
+          "daily_loss_es": 0.00386800514856145,
+          "days": 365,
+          "final_equity": 19811.621563387867,
+          "max_drawdown": 0.04572830156180796,
+          "mean_daily_log_growth": -2.592756272341092e-05,
+          "mean_daily_net": -2.4908159129164533e-05,
+          "net_return": -0.009418921830606664,
+          "period": "Y2025",
+          "pf": {
+            "closed_campaigns": 83,
+            "currency": "USDT",
+            "gross_loss": 2288.92219754938,
+            "gross_profit": 2057.1895260243923,
+            "population": "actual_closed_net_campaigns",
+            "reason": null,
+            "status": "VALID",
+            "value": 0.8987590439845046
+          },
+          "psr": {
+            "components": [
+              [
+                "z",
+                -0.33369293113858023
+              ],
+              [
+                "denominator_squared",
+                0.9927943308606447
+              ],
+              [
+                "sr_period",
+                -0.017427133544881804
+              ],
+              [
+                "reference_period",
+                0.0
+              ],
+              [
+                "moment_estimator",
+                "central_population_v1"
+              ]
+            ],
+            "metric_id": "mode5.classical_psr_plugin_v1",
+            "reason": null,
+            "sample_count": 365,
+            "status": "VALID",
+            "unit": "probability",
+            "value": 0.36930564213722183
+          },
+          "sharpe": -0.3329449188841418
+        }
+      ],
+      "alpha": "A-HASH",
+      "coordinate_diagnostic": {
+        "intervals": {
+          "decay_change": [
+            -3.3093362026492104,
+            6.002235315441361
+          ],
+          "forward_mean_net_change": [
+            -0.0002449898545857368,
+            0.0003477166169367471
+          ],
+          "forward_sharpe_change": [
+            -2.722884215260858,
+            3.7631145948730267
+          ]
+        },
+        "invalid_draws": 0,
+        "observed": {
+          "decay_change": 0.913489605595171,
+          "development_sharpe_change": 0.825173690560471,
+          "forward_mean_net_change": 1.777227094801931e-06,
+          "forward_sharpe_change": -0.08831591503470007
+        },
+        "scope": "neutral minus post-selected anchor, not a recipe effect",
+        "status": "INCONCLUSIVE",
+        "support": {
+          "gaps": [
+            {
+              "field": "fills",
+              "observed": 11,
+              "path": 1,
+              "required": 30
+            },
+            {
+              "field": "campaigns",
+              "observed": 3,
+              "path": 1,
+              "required": 20
+            },
+            {
+              "field": "qualified_origins",
+              "observed": 1,
+              "required": 3
+            }
+          ],
+          "status": "INSUFFICIENT_EVIDENCE"
+        }
+      },
+      "formal": null,
+      "independent": false,
+      "origin_count": 1,
+      "status": "BLOCKED_BY_ORIGINAL_ADVISORY_NO_NEW_SEARCH"
+    },
+    {
+      "accounts": [
+        {
+          "accepted_fills": 290,
+          "campaigns": 145,
+          "candidate_role": "SOURCE_SELECTED_ANCHOR",
+          "daily_loss_es": 0.0039575008638990375,
+          "days": 365,
+          "final_equity": 20007.250034268134,
+          "max_drawdown": 0.019877950163730618,
+          "mean_daily_log_growth": 9.92975412422757e-07,
+          "mean_daily_net": 2.0521307695243053e-06,
+          "net_return": 0.00036250171340679316,
+          "period": "Y2021",
+          "pf": {
+            "closed_campaigns": 145,
+            "currency": "USDT",
+            "gross_loss": 2510.0688921914334,
+            "gross_profit": 2517.3189264595576,
+            "population": "actual_closed_net_campaigns",
+            "reason": null,
+            "status": "VALID",
+            "value": 1.0028883805901416
+          },
+          "psr": {
+            "components": [
+              [
+                "z",
+                0.02686232477407973
+              ],
+              [
+                "denominator_squared",
+                1.0003466305542985
+              ],
+              [
+                "sr_period",
+                0.0014082123882768302
+              ],
+              [
+                "reference_period",
+                0.0
+              ],
+              [
+                "moment_estimator",
+                "central_population_v1"
+              ]
+            ],
+            "metric_id": "mode5.classical_psr_plugin_v1",
+            "reason": null,
+            "sample_count": 365,
+            "status": "VALID",
+            "unit": "probability",
+            "value": 0.5107152284296493
+          },
+          "sharpe": 0.02690385990208769
+        },
+        {
+          "accepted_fills": 228,
+          "campaigns": 114,
+          "candidate_role": "SOURCE_SELECTED_ANCHOR",
+          "daily_loss_es": 0.002280804807583585,
+          "days": 365,
+          "final_equity": 20040.854830109925,
+          "max_drawdown": 0.010906387985745947,
+          "mean_daily_log_growth": 5.590843687765108e-06,
+          "mean_daily_net": 5.851873952128111e-06,
+          "net_return": 0.002042741505496215,
+          "period": "Y2025",
+          "pf": {
+            "closed_campaigns": 114,
+            "currency": "USDT",
+            "gross_loss": 1209.7054215056498,
+            "gross_profit": 1250.5602516155109,
+            "population": "actual_closed_net_campaigns",
+            "reason": null,
+            "status": "VALID",
+            "value": 1.0337725444422754
+          },
+          "psr": {
+            "components": [
+              [
+                "z",
+                0.15360794701439434
+              ],
+              [
+                "denominator_squared",
+                1.009775965544494
+              ],
+              [
+                "sr_period",
+                0.008090502710737957
+              ],
+              [
+                "reference_period",
+                0.0
+              ],
+              [
+                "moment_estimator",
+                "central_population_v1"
+              ]
+            ],
+            "metric_id": "mode5.classical_psr_plugin_v1",
+            "reason": null,
+            "sample_count": 365,
+            "status": "VALID",
+            "unit": "probability",
+            "value": 0.5610405647486854
+          },
+          "sharpe": 0.1545688372572145
+        },
+        {
+          "accepted_fills": 0,
+          "campaigns": 0,
+          "candidate_role": "EXPLORATION_PANEL",
+          "daily_loss_es": -0.0,
+          "days": 365,
+          "final_equity": 20000.0,
+          "max_drawdown": 0.0,
+          "mean_daily_log_growth": 0.0,
+          "mean_daily_net": 0.0,
+          "net_return": 0.0,
+          "period": "Y2021",
+          "pf": {
+            "closed_campaigns": 0,
+            "currency": "USDT",
+            "gross_loss": 0.0,
+            "gross_profit": 0.0,
+            "population": "actual_closed_net_campaigns",
+            "reason": "closed-campaign support below registration",
+            "status": "INSUFFICIENT",
+            "value": null
+          },
+          "psr": {
+            "components": [],
+            "metric_id": "mode5.classical_psr_plugin_v1",
+            "reason": "zero return variance",
+            "sample_count": 365,
+            "status": "UNDEFINED",
+            "unit": "probability",
+            "value": null
+          },
+          "sharpe": null
+        },
+        {
+          "accepted_fills": 0,
+          "campaigns": 0,
+          "candidate_role": "EXPLORATION_PANEL",
+          "daily_loss_es": -0.0,
+          "days": 365,
+          "final_equity": 20000.0,
+          "max_drawdown": 0.0,
+          "mean_daily_log_growth": 0.0,
+          "mean_daily_net": 0.0,
+          "net_return": 0.0,
+          "period": "Y2025",
+          "pf": {
+            "closed_campaigns": 0,
+            "currency": "USDT",
+            "gross_loss": 0.0,
+            "gross_profit": 0.0,
+            "population": "actual_closed_net_campaigns",
+            "reason": "closed-campaign support below registration",
+            "status": "INSUFFICIENT",
+            "value": null
+          },
+          "psr": {
+            "components": [],
+            "metric_id": "mode5.classical_psr_plugin_v1",
+            "reason": "zero return variance",
+            "sample_count": 365,
+            "status": "UNDEFINED",
+            "unit": "probability",
+            "value": null
+          },
+          "sharpe": null
+        }
+      ],
+      "alpha": "A-VWAP",
+      "coordinate_diagnostic": {
+        "intervals": {
+          "decay_change": null,
+          "forward_mean_net_change": [
+            -0.0001063890416738366,
+            0.00010185095598882641
+          ],
+          "forward_sharpe_change": null
+        },
+        "invalid_draws": 1024,
+        "observed": {
+          "decay_change": null,
+          "development_sharpe_change": null,
+          "forward_mean_net_change": -5.851873952128111e-06,
+          "forward_sharpe_change": null
+        },
+        "scope": "neutral minus post-selected anchor, not a recipe effect",
+        "status": "INCONCLUSIVE",
+        "support": {
+          "gaps": [
+            {
+              "field": "fills",
+              "observed": 0,
+              "path": 1,
+              "required": 30
+            },
+            {
+              "field": "campaigns",
+              "observed": 0,
+              "path": 1,
+              "required": 20
+            },
+            {
+              "field": "fills",
+              "observed": 0,
+              "path": 3,
+              "required": 30
+            },
+            {
+              "field": "campaigns",
+              "observed": 0,
+              "path": 3,
+              "required": 20
+            },
+            {
+              "field": "qualified_origins",
+              "observed": 1,
+              "required": 3
+            }
+          ],
+          "status": "INSUFFICIENT_EVIDENCE"
+        }
+      },
+      "formal": null,
+      "independent": false,
+      "origin_count": 1,
+      "status": "BLOCKED_BY_ORIGINAL_ADVISORY_NO_NEW_SEARCH"
+    }
+  ],
+  "independent_validation": false,
+  "marginal_confidence": 0.998,
+  "method_superiority": false,
+  "owner_protocol_approved": true,
+  "protocol": {
+    "annual_periods": 365.0,
+    "block_days": 7,
+    "development_days": 365,
+    "draws": 1024,
+    "family_confidence": 0.99,
+    "family_size": 5,
+    "forward_days": 365,
+    "mean_hurdle_daily": 5e-05,
+    "minimum_campaigns": 20,
+    "minimum_fills": 30,
+    "minimum_origins": 3,
+    "protocol_id": "M511-owner-approved-2026-10-10",
+    "seed": 731,
+    "version": "mode5.economic_protocol.v1"
+  },
+  "publication": false,
+  "qualified_paths": 20,
+  "regression": {
+    "failed": 0,
+    "latest_focused_math_tests": 50,
+    "seconds": 52.047,
+    "skipped": 0,
+    "tests": 654
+  },
+  "remote": false,
+  "schema": "m5-11.economic_report.v1",
+  "source_amendment": {
+    "causal_and_legacy_cutoffs_unchanged": true,
+    "financial_source_changed": false,
+    "path": "src/quantbt/optimization/wfo_study.py",
+    "sealed_retrospective_cutoff_only": true,
+    "sha256": "05823cf9f4ba2d9a7befc5b7e17d0a12a5c57cb89714b3a557309345a83b7637"
+  },
+  "source_bound_inputs": [
+    {
+      "bytes": 8761,
+      "name": "pilot_registration.json",
+      "sha256": "4951d70deecc944c109b3ae52efed730602d49ea251f2d3977faff66548f77ab"
+    },
+    {
+      "bytes": 411972,
+      "name": "inventory.json",
+      "sha256": "7bb9c7d39e719bdd910e1ef7a6c54675ceef67ab835c3395bc8a2bd63273aff5"
+    },
+    {
+      "bytes": 42400,
+      "name": "stress.json",
+      "sha256": "b54d313a5d479827c3faa935c7f2365312ab289e33d018d6884664cc92e75dc2"
+    },
+    {
+      "bytes": 6928,
+      "name": "actual_access_rights.json",
+      "sha256": "c314924c9fa1ee436cf99f06b38190a16cf83603bc1a0c6bc98283832ef5c137"
+    },
+    {
+      "bytes": 722,
+      "name": "native_artifact_reuse.json",
+      "sha256": "4ccb13187e0cd3b76d9f118a28ac7e4e4845dfedc3f9005ecbdcc66c38393275"
+    },
+    {
+      "bytes": 94864,
+      "name": "regression-02.xml",
+      "sha256": "8dbeb95caae99183f8c226e4b96f4866944889818a173d0166941470d5365250"
+    },
+    {
+      "bytes": 7409,
+      "name": "economics-final-06.xml",
+      "sha256": "216c41892def9262a3fad53eefc0c624452fdf370d5b5274d5e767fc8edfc296"
+    }
+  ],
+  "status": "COMPLETE_LOCAL_FINITE_PILOT_EXPLORATORY",
+  "untouched_available": false
+}

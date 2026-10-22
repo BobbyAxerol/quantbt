@@ -1,0 +1,37 @@
+{
+  "baseline_commit": "b4c4f934a33465b379657bbe1b73745280db84fe",
+  "correction_scope": "Both existing pct spelling aliases declare accepted-contract activity; no formula/execution/Rust changes",
+  "financial_numeric_source_unchanged": false,
+  "financial_rust_changed": false,
+  "financial_rust_unchanged": false,
+  "historical_financial_invariance_claim_reissued": false,
+  "native_artifacts_qualified": false,
+  "native_rebuild_required": false,
+  "native_source_unchanged_relative_to": "b4c4f934a33465b379657bbe1b73745280db84fe",
+  "publication": false,
+  "schema": "quantbt.m5_12.pct_activity_alias.v1",
+  "scopes": [
+    "src",
+    "rust",
+    "pyproject.toml",
+    "uv.lock",
+    "contracts",
+    "upgrade/QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md"
+  ],
+  "source_commit": "45fd6ec5bc0f2556ff024ffd1314469e06c0b07a",
+  "source_only": true,
+  "sources": {
+    "src/quantbt/backends/native_wfo_public.py": {
+      "after_commit": "45fd6ec5bc0f2556ff024ffd1314469e06c0b07a",
+      "after_sha256": "219169dcf385586cb605d67fae877f48768429e4896e31ea8e1d8bd3a6ad7cec",
+      "before_commit": "b4c4f934a33465b379657bbe1b73745280db84fe",
+      "before_sha256": "a01ef57e3ec82fee6d129c9977300414a3e31138df82a672935f25da1bc37ea6"
+    },
+    "src/quantbt/endpoint.py": {
+      "after_commit": "45fd6ec5bc0f2556ff024ffd1314469e06c0b07a",
+      "after_sha256": "71d8fa32c5080e1bcf6199a402d57e525f517ad8d87551750c657680e10ed052",
+      "before_commit": "b4c4f934a33465b379657bbe1b73745280db84fe",
+      "before_sha256": "587f79b53228441382c7dee96f54b2a71e8ba82d579026c961721d7bd57b1d37"
+    }
+  }
+}

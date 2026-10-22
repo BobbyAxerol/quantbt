@@ -8,6 +8,13 @@ It complements the full [methodology](walkforward_methodology_vi.md) and the
 complete [endpoint reference](endpoint.md#walk-forward). Start here when
 selecting a schedule for a notebook, service, or stakeholder report.
 
+Completed feature-branch Mode 4 runs with typed observer evidence can use the
+opt-in [fold research report](diagnostics/FOLD_DECISION_REPORTS.md) for exact
+cohorts, R/Q/IS, predicted versus realized decisions and original account scope.
+Reporting grants no access to future data and does not change the chosen schedule.
+Read the [coverage/handoff](diagnostics/REPORTING_COVERAGE_AND_HANDOFF.md) before
+treating an available helper as support for another meta mode or financial route.
+
 ## Install
 
 The base package can run ordinary backtests. Parameter search requires the
@@ -39,6 +46,38 @@ arbitrary indicator implementation itself uses future values.
 
 `optimization_mode` defines the scoring and candidate-selection mathematics.
 `optimization_schedule` defines when a new Optuna study is created.
+
+The QMS-02 feature-branch [sampler bridge](meta_selection/SAMPLERS.md) selects
+the proposal algorithm inside each existing study. It does not change this
+schedule/causality table or enable meta-selection. Warm-start requires params
+already available before each study's IS cutoff and always rescores them.
+
+Feature-branch QMS-05 adds a separate opt-in
+[causal meta-selector](meta_selection/INTEGRATION.md) to Mode 4/per-fold-causal.
+Native search still uses current IS only. Active final selection may additionally
+use compatible **past matured forward** labels, never the current fold's OOS.
+It therefore reports adaptive-meta information scope rather than a stock
+IS-only claim. Shadow keeps native params/accounting with separate proposal
+diagnostics. The ordinary schedule table below describes meta-off behavior.
+
+QMS-06 qualifies the same hook on prepared scalar W0/W1/W2 with original-pass
+metric evidence, without changing same-close timing or sequential trials.
+Published native 0.4.2 still requires observable fallback or explicit `require`
+failure. [Portable handoff](meta_selection/HANDOFF.md) preserves snapshots and
+readiness; export is not activation. The local follow-up additionally qualifies
+[sequential/reset-flat W3 meta](meta_selection/INTEGRATION.md#w3-sequential-meta)
+without replacing its native reactive account with a scalar target proxy.
+
+QMS-08 [usage](meta_selection/USAGE.md) and [qualification](meta_selection/QUALIFICATION.md)
+separate private installed-artifact proof from empirical/live acceptance. No
+global/per-fold schedule semantics are changed, and per-fold optimization still
+requires `param_ranges`, not one fixed parameter dictionary.
+
+Local [execution WFO](meta_selection/EXECUTION_WFO.md) additionally accepts
+typed intrabar intent/session, callback factories, command tapes and bounded
+quarterly pre-expiry flatten/roll through `execution_endpoint`. The same causal
+meta hook uses original financial outcomes, not a position/signal proxy. This
+amendment does not change the ordinary schedule table or activate W3 carry.
 
 | Mode and schedule | Parameter lifecycle | What the reported outer OOS means |
 |---|---|---|
@@ -119,6 +158,12 @@ the outer IS cannot create at least `inner_min_folds`; it never silently falls
 back to `per_fold_decay`.
 
 ## Strict Mode 4 Configuration
+
+The separately approved PRE-E06-03 [nested Mode 1 meta cohort](meta_selection/NESTED_MODE1.md)
+supports five scalar targets with true inner validation inside outer IS. It
+preserves the native inner-decay anchor and acquires original full outer-IS
+observations for the entire eligible pool. It does not enable other domains,
+global schedules or current-outer-OOS decay selection for causal meta.
 
 Use Mode 4 when selection must use IS evidence only. The selector combines
 subperiod stability with a high-scoring parameter plateau and does not need

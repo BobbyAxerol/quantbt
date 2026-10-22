@@ -25,6 +25,8 @@ GRID_EXTERNAL_TESTS = {
     "test_phase47c_grid_parity.py",
     "test_phase47d_grid_optimizer.py",
 }
+SINGLE_THREAD_PARENT_TESTS = {"meta_selection/test_pre04_public.py"}
+HOST_PID_VIEW_TESTS = {"test_mode5_research_jobs.py"}
 
 
 def _chunks(values: list[Path], size: int) -> Iterable[list[Path]]:
@@ -59,7 +61,20 @@ def _collect(profile: str) -> list[list[Path]]:
             grouped["options"].append(path)
         else:
             grouped["core"].append(path)
-    return [grouped[name] for name in ("core", "options", "native") if grouped[name]]
+    groups: list[list[Path]] = []
+    for name in ("core", "options", "native"):
+        current: list[Path] = []
+        for path in grouped[name]:
+            if path.relative_to(TEST_ROOT).as_posix() in SINGLE_THREAD_PARENT_TESTS | HOST_PID_VIEW_TESTS:
+                if current:
+                    groups.append(current)
+                    current = []
+                groups.append([path])
+            else:
+                current.append(path)
+        if current:
+            groups.append(current)
+    return groups
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -67,6 +82,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--profile", choices=("release", "ci-core", "native"), default="release")
     parser.add_argument("--max-files-per-shard", type=int, default=8)
     parser.add_argument("--list", action="store_true", help="print the commands without running pytest")
+    parser.add_argument("--keep-going", action="store_true", help="run all shards and summarize failures")
+    parser.add_argument("--sudo-host-tests", action="store_true",
+                        help="use sudo -n only for the isolated fake-worker host PID-view integration suite")
     args = parser.parse_args(argv)
     if args.max_files_per_shard <= 0:
         parser.error("--max-files-per-shard must be > 0")
@@ -74,17 +92,38 @@ def main(argv: list[str] | None = None) -> int:
     env = os.environ.copy()
     env.setdefault("MPLCONFIGDIR", "/tmp")
     shard_number = 0
+    failures: list[tuple[int, int, list[Path]]] = []
     for group in _collect(args.profile):
         for shard in _chunks(group, args.max_files_per_shard):
             shard_number += 1
             command = [sys.executable, "-m", "pytest", "-q", *[str(path.relative_to(PROJECT_ROOT)) for path in shard]]
+            host_test = any(path.relative_to(TEST_ROOT).as_posix() in HOST_PID_VIEW_TESTS for path in shard)
+            if host_test:
+                if len(shard) != 1:
+                    raise ValueError("host PID-view tests must run in a dedicated singleton shard")
+                if args.sudo_host_tests and os.geteuid() != 0:
+                    command = ["sudo", "-n", "--", *command]
             print(f"[{shard_number}] {' '.join(command)}", flush=True)
             if args.list:
                 continue
-            completed = subprocess.run(command, cwd=PROJECT_ROOT, env=env, check=False)
+            child_env = env
+            if any(path.relative_to(TEST_ROOT).as_posix() in SINGLE_THREAD_PARENT_TESTS for path in shard):
+                child_env = dict(env, OPENBLAS_NUM_THREADS="1", MKL_NUM_THREADS="1",
+                                 OMP_NUM_THREADS="1", NUMBA_NUM_THREADS="1")
+            completed = subprocess.run(command, cwd=PROJECT_ROOT, env=child_env, check=False)
             if completed.returncode:
-                return completed.returncode
+                if not args.keep_going:
+                    return completed.returncode
+                failures.append((shard_number, completed.returncode, shard))
     print(f"completed {shard_number} isolated pytest shard(s)")
+    if failures:
+        print(f"failed {len(failures)} of {shard_number} isolated pytest shard(s):", flush=True)
+        for number, returncode, shard in failures:
+            paths = " ".join(str(path.relative_to(PROJECT_ROOT)) for path in shard)
+            print(f"[{number}] exit code {returncode}: {paths}", flush=True)
+        returncode = failures[0][1]
+        # subprocess uses negative signal numbers; expose a nonzero shell status.
+        return returncode if returncode > 0 else 128 - returncode
     return 0
 
 

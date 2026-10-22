@@ -1,0 +1,78 @@
+{
+  "artifacts": {
+    "sdist": {
+      "bytes": 926477,
+      "modules": 260,
+      "sha256": "da337eb708c5a979f73a4bdf8c271662d8764d65998ddc58492632db8f295e85"
+    },
+    "wheel": {
+      "bytes": 1042937,
+      "modules": 260,
+      "sha256": "9bac93c15118487abf3926c6879b54c322379b368ed5f8cd40a425f6baa6a9f1"
+    }
+  },
+  "cleanup_sha256": "1a2da7e7aad94bc948c74b241b8d62b56b2ff584c386d83f76628a7b11838c4d",
+  "distinct_source_pass": 342,
+  "economic": "REAL_MARKET_NOT_ASSESSED_NOT_PROMOTED",
+  "entry": "1a0f892",
+  "evidence": {
+    "sdist": {
+      "cells": 30,
+      "rerun_tests": 36,
+      "sha256": "34a4ca9fe343a7edd8a33f40f35ee2bec0c056585f743b74321c6300b755fa48"
+    },
+    "source": {
+      "cells": 90,
+      "sha256": "259f00bc5bbe9950ad94bda9c8add2a2dab149133d17aea1c41cd6d7ad0c4a6b"
+    },
+    "wheel": {
+      "cells": 30,
+      "rerun_tests": 36,
+      "sha256": "90ed2cef88e99aa4810daf3b5dbe8db5c7312d2c46ac1ea6b2af7e7c6f563164"
+    }
+  },
+  "financial_replay_for_reporting": 0,
+  "freed_bytes": 1207279616,
+  "guide_sha256": "adad24b16024ec5d9f3bdaf3a4098a8c60305c1fc181f1c30a0ff0f648a8170d",
+  "installed_rerun_pass": 72,
+  "installed_reruns_not_new_distinct_tests": true,
+  "mature_process_cells": 3,
+  "meta_default_changed": false,
+  "native_rebuilt": false,
+  "native_sha256": "f5fe1ec4d9268752733ba2c7023cc0e2548215986a8cd73fb6fafb285422a3b6",
+  "next_phase_started": false,
+  "observability_sha256": "8d59a3eb0a7baa44cb0d6b31a5cae4181dd8c4dae0e3514ff0c7b114552c65e4",
+  "phase": "QMS-E07",
+  "privacy": {
+    "files": 21,
+    "private_alpha_access": false,
+    "private_data_access": false,
+    "publication": false,
+    "source_amendment": "three_exact_opt_in_output_insertions"
+  },
+  "protected_files": 941,
+  "publication": false,
+  "remote": "DEFERRED_E08_OWNER_APPROVAL",
+  "runtime_change": "three_exact_opt_in_output_insertions_only",
+  "runtime_files": 322,
+  "runtime_inventory_sha256": "824a71362361203903dd5466bc8f08a58fb2dcda1742ad0dd42e26893eccced3",
+  "schema": "qms-e07-local-closure-v1",
+  "scope": "mode4_causal_event_callback_commands_continuous_numeric_w3_reset_flat",
+  "status": "COMPLETE_LOCAL_SOFTWARE_QUALIFIED_OPT_IN",
+  "unexpected_skip": 0,
+  "verification_source_sha256": {
+    "examples/wfo_meta_reactive_grid.py": "d5e0a01bec18865ef32307aeaf39f2efc8fe6239807294041034557bb9b19694",
+    "tests/meta_selection/e07_support.py": "f48e2acbd349b38be1e36385d38c46658af6f00ae45d5f2799241392177245fb",
+    "tests/meta_selection/test_e07_closure.py": "012fe4027a1f8bfdd5dbfd1d066ae46c043e9525464a3666a5ba35c53a787367",
+    "tests/meta_selection/test_e07_gate.py": "1ce37c1b5e99c7291bfa1f24ca37b4eb5cb26b3dc10e8cbfe2422400c93c4b6d",
+    "tests/meta_selection/test_e07_lifecycle.py": "a828d09e4eddf08a7ab6b0655defeb05d0a88ce42861ed6703b08f66fec368ee",
+    "tests/meta_selection/test_e07_mature.py": "83615a07bcbc99c90917820238e1fe038e22c865382ac38989e886a38855d094",
+    "tests/meta_selection/test_e07_order_bounds.py": "9894e450c18eb6ffc191e77318ef5fe08514012effc2dde80fbb83b0e3d058d6",
+    "tests/meta_selection/test_e07_output.py": "a9ccb1d66fe61edbafdae1fba6dcc7453f436e577c677ef26e079e4f9117575a",
+    "tools/qms_e07_closure.py": "a8c8b7dd6f6e945796a0b8d00078e075370da7ea22019b1740a40d06d0446867",
+    "tools/qms_e07_contract.py": "e0ca9ed21b4483d8eaf03b4ab88994ede85098deecbc62c3b9d63ba5052ddb90",
+    "tools/qms_e07_observability.py": "ce637ce3bc7cd46be93b819266270e1af3479eb384e0afe3aec7326db9617133",
+    "tools/qms_e07_package.py": "eb241eaa96583187dcd2ca3da9d67c7a5acb56032d1f31b829b5084169a1992c",
+    "tools/qms_e07_qualification.py": "31781b5ba5789603fb925bf551d1dfbe7fdbc162a6c1d76c9540f0617cc2200e"
+  }
+}

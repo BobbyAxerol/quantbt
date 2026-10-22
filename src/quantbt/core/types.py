@@ -44,6 +44,12 @@ class BacktestResult:
     liquidation_bar:    int                     = -1
     metadata:           Dict                    = field(default_factory=dict)
 
+    def research_report(self, *, access, source_ref, **options):
+        """Read original WFO evidence without rerunning this result."""
+        from ..diagnostics import ResearchDecisionReport
+
+        return ResearchDecisionReport.from_result(self, access=access, source_ref=source_ref, **options)
+
     # ── computed on first access ──────────────────────────────────────────
     @property
     def drawdown(self) -> pd.Series:
@@ -59,23 +65,34 @@ class BacktestResult:
     def daily_returns(self) -> pd.Series:
         return self.daily_equity.pct_change().dropna()
 
-    def full_report(self, trading_days: int = 365, scope: str = "auto") -> Dict:
+    def full_report(self, trading_days: int = 365, scope: str = "auto", *, reporting=None) -> Dict:
         """Return the standard QuantBT metrics dictionary for this result."""
+        if reporting is not None:
+            from ..metrics.reporting.public import reporting_metadata
+            return reporting_metadata(self, reporting, scope=scope)
         from .scopes import scoped_result
         from ..metrics.performance import full_report
 
         return full_report(scoped_result(self, scope=scope), trading_days=trading_days)
 
-    def show_metrics(self, trading_days: int = 365, scope: str = "auto") -> Dict:
+    def show_metrics(self, trading_days: int = 365, scope: str = "auto", *, reporting=None) -> Dict:
         """Print a legacy-style metrics report and return the metrics dict."""
+        if reporting is not None:
+            from ..metrics.reporting.public import format_reporting_report
+            report = self.full_report(scope=scope, reporting=reporting)
+            print(format_reporting_report(report))
+            return report
         from ..endpoint import format_metrics_report
 
         report = self.full_report(trading_days=trading_days, scope=scope)
         print(format_metrics_report(report))
         return report
 
-    def quick_plot(self, theme: str = "dark", figsize: tuple = (14, 6), scope: str = "auto"):
+    def quick_plot(self, theme: str = "dark", figsize: tuple = (14, 6), scope: str = "auto", *, reporting=None):
         """Plot cumulative return and drawdown for this result."""
+        if reporting is not None:
+            from ..metrics.reporting.public import plot_completed_report
+            return plot_completed_report(self, reporting, scope=scope, theme=theme, figsize=figsize)
         from ..viz import quick_plot
 
         return quick_plot(self, theme=theme, figsize=figsize, scope=scope)

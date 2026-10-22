@@ -1,0 +1,45 @@
+{
+  "cold_report_assembly_each_repeat": true,
+  "global_cache": false,
+  "imports_excluded": true,
+  "limitations": "Five serial report repeats; RSS includes imported package. No WFO/native/meta on-off speed claim.",
+  "metrics": 2,
+  "numeric_axes": 2,
+  "observations": 128,
+  "peak_process_rss_mib": 208.94140625,
+  "results": {
+    "adaptive": {
+      "bootstrap_resamples": 0,
+      "financial_calls": 0,
+      "maximum_output_bytes": 17780,
+      "p50_ms": 26.106809033080935,
+      "p95_ms": 28.538004169240594,
+      "repeats": 5,
+      "report_identity": "e45371e024db5c97b7bc0af4e867bd449fdad07823f6869cb7282c733e40c89a",
+      "wall_seconds": [
+        0.024859694065526128,
+        0.024570525158196688,
+        0.026106809033080935,
+        0.02751964912749827,
+        0.028792592929676175
+      ]
+    },
+    "outcome_blind": {
+      "bootstrap_resamples": 64,
+      "financial_calls": 0,
+      "maximum_output_bytes": 22625,
+      "p50_ms": 195.20983495749533,
+      "p95_ms": 200.65216696821153,
+      "repeats": 5,
+      "report_identity": "65aac76426f70a8820d10a2bbb968846bb758315fe404caa467a8083c01f951d",
+      "wall_seconds": [
+        0.20178857096470892,
+        0.19610655098222196,
+        0.1935160900466144,
+        0.19520983495749533,
+        0.1901257410645485
+      ]
+    }
+  },
+  "schema": "quantbt.shared_diagnostics_benchmark.v1"
+}

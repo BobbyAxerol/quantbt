@@ -4,6 +4,8 @@ include CHANGELOG.md
 include pyproject.toml
 
 recursive-include src/quantbt *.py py.typed
+include src/quantbt/benchmarks/README.md
+include src/quantbt/benchmarks/phase7_thresholds.json
 
 global-exclude *.pem
 global-exclude *.key
@@ -14,6 +16,8 @@ global-exclude .pypirc
 prune upgrade/private
 prune upgrade/local
 prune upgrade/drafts
+prune upgrade/alphas
+exclude upgrade/MODE5_INVARIANT_AND_ALPHA_PROFILING_SPEC_V1.md
 prune benchmarks
 prune artifacts
 prune data/raw

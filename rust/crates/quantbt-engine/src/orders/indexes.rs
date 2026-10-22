@@ -17,7 +17,7 @@ pub struct IndexOrderState {
 
 /// Indexes all live orders, not order history. Matching uses stable sequence
 /// priority; expiry/parent/OCO operations visit only their relevant members.
-#[derive(Default)]
+#[derive(Clone, Default)]
 pub struct LifecycleIndexes {
     active_by_symbol: Vec<Vec<OrderHandle>>,
     active_by_sequence: BTreeMap<u64, OrderHandle>,

@@ -1,0 +1,27 @@
+{
+  "disabled_gate": {
+    "owner_accepted": false,
+    "status": "MEASURED_OWNER_BUDGET_PENDING",
+    "working_p50_budget": 0.03,
+    "working_p95_budget": 0.05,
+    "working_targets_pass": true
+  },
+  "empirical": "NOT_ASSESSED",
+  "evidence_sha256": "2ae3f1b8860c5bd4c21122904509bc8b44e23b4c1e97f7da5888d890bb68d59a",
+  "groups": {
+    "q7_t01": 4,
+    "q7_t02": 1,
+    "q7_t03": 13,
+    "q7_t04": 3,
+    "q7_t05": 2,
+    "q7_t06": 2,
+    "q7_t07": 5,
+    "q7_t08": 1
+  },
+  "junit_sha256": "92ff0ffcc50a19e01dda1ff99534213ef0a2fa6d9818bd9806b6253d35314b69",
+  "owner_review": "PENDING",
+  "release_promoted": false,
+  "schema": "qms07-gate-receipt-v1",
+  "technical_gate": "PASS",
+  "tests": 467
+}

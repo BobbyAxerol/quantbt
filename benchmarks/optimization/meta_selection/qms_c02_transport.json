@@ -1,0 +1,362 @@
+{
+  "claim": "transport qualification; not representative alpha speed or economic improvement",
+  "exact_paired_parity": true,
+  "fingerprint": "9f91ca0eb3deac2a9d8c8d2360ce10b56d0b1a71ed2fd65f914566955e51938b",
+  "fixture": {
+    "account": "reset_flat",
+    "bars": 180,
+    "candidate_directions": [
+      -1.0,
+      1.0
+    ],
+    "folds": 4,
+    "is_subperiods": 2,
+    "market": "synthetic_daily",
+    "meta": "shadow",
+    "native_policy": "reference",
+    "trials_per_fold": 8,
+    "warmup_excluded": true
+  },
+  "median_seconds": {
+    "inprocess": 0.934987999004079,
+    "process": 1.4445363089907914
+  },
+  "memory_note": "same-process high-water mark, not fresh-process baseline or summed worker RSS",
+  "native_extension_sha256": "ae43be6e2187e57fcd6a8e8f59e0689172ca24ca5efed27651894c1e7ab1b56a",
+  "publication": false,
+  "repeats": 3,
+  "same_process_peak_rss_mib": 250.3671875,
+  "samples": {
+    "inprocess": [
+      {
+        "observer_attempts": 8,
+        "observer_failures": 0,
+        "score_bars": 1260,
+        "score_seconds": 0.5583921909856144,
+        "wall_seconds": 0.9138465599971823,
+        "witness_transport": {
+          "batch_public_meta_activation": false,
+          "continuous_carry": false,
+          "cooperative_native_deadline": null,
+          "financial_replays": 0,
+          "market_ipc_bytes_per_task": 0,
+          "max_packet_bytes": 1594,
+          "multi_symbol": false,
+          "original_window_paths_temporarily_retained": true,
+          "packet_bytes_encoding": "json_utf8_not_pipe_envelope",
+          "packet_bytes_total": 63494,
+          "retained_result_paths": 0,
+          "schema": "quantbt-reactive-witness-transport-v1",
+          "verified_calls": 40,
+          "worker_mode": "inprocess"
+        },
+        "worker": {}
+      },
+      {
+        "observer_attempts": 8,
+        "observer_failures": 0,
+        "score_bars": 1260,
+        "score_seconds": 0.5828292599180713,
+        "wall_seconds": 0.934987999004079,
+        "witness_transport": {
+          "batch_public_meta_activation": false,
+          "continuous_carry": false,
+          "cooperative_native_deadline": null,
+          "financial_replays": 0,
+          "market_ipc_bytes_per_task": 0,
+          "max_packet_bytes": 1594,
+          "multi_symbol": false,
+          "original_window_paths_temporarily_retained": true,
+          "packet_bytes_encoding": "json_utf8_not_pipe_envelope",
+          "packet_bytes_total": 63494,
+          "retained_result_paths": 0,
+          "schema": "quantbt-reactive-witness-transport-v1",
+          "verified_calls": 40,
+          "worker_mode": "inprocess"
+        },
+        "worker": {}
+      },
+      {
+        "observer_attempts": 8,
+        "observer_failures": 0,
+        "score_bars": 1260,
+        "score_seconds": 0.596995159983635,
+        "wall_seconds": 0.9582979349943344,
+        "witness_transport": {
+          "batch_public_meta_activation": false,
+          "continuous_carry": false,
+          "cooperative_native_deadline": null,
+          "financial_replays": 0,
+          "market_ipc_bytes_per_task": 0,
+          "max_packet_bytes": 1594,
+          "multi_symbol": false,
+          "original_window_paths_temporarily_retained": true,
+          "packet_bytes_encoding": "json_utf8_not_pipe_envelope",
+          "packet_bytes_total": 63494,
+          "retained_result_paths": 0,
+          "schema": "quantbt-reactive-witness-transport-v1",
+          "verified_calls": 40,
+          "worker_mode": "inprocess"
+        },
+        "worker": {}
+      }
+    ],
+    "process": [
+      {
+        "observer_attempts": 8,
+        "observer_failures": 0,
+        "score_bars": 1260,
+        "score_seconds": 0.9899469830270391,
+        "wall_seconds": 1.4445363089907914,
+        "witness_transport": {
+          "batch_public_meta_activation": false,
+          "continuous_carry": false,
+          "cooperative_native_deadline": null,
+          "financial_replays": 0,
+          "market_ipc_bytes_per_task": 0,
+          "max_packet_bytes": 1594,
+          "multi_symbol": false,
+          "original_window_paths_temporarily_retained": true,
+          "packet_bytes_encoding": "json_utf8_not_pipe_envelope",
+          "packet_bytes_total": 63494,
+          "retained_result_paths": 0,
+          "schema": "quantbt-reactive-witness-transport-v1",
+          "verified_calls": 40,
+          "worker_mode": "process"
+        },
+        "worker": {
+          "closed": true,
+          "fork_parent_os_threads": 1,
+          "fork_parent_thread_contract": "one_kernel_thread_before_fork_v1",
+          "max_wall_time_ms": null,
+          "parallelism": {
+            "blas_threads": 1,
+            "constrained_by": [],
+            "host_cpus": 4,
+            "numba_threads": 1,
+            "openmp_threads": 1,
+            "python_processes": 1,
+            "rust_workers": 1
+          },
+          "worker_generation": 2,
+          "worker_market_ipc_bytes_per_task": 0,
+          "worker_memory": {
+            "private_bytes": 17571840,
+            "pss_bytes": 92255232,
+            "rss_bytes": 170967040,
+            "shared_bytes": 153395200
+          },
+          "worker_metric_ipc": "detached_original_witness_v1",
+          "worker_mode": "process",
+          "worker_pid": null,
+          "worker_poison_recoveries": 0,
+          "worker_pool_creations": 1,
+          "worker_scalar_sessions": {
+            "active_native_score": false,
+            "closed": false,
+            "financial_replays": 0,
+            "max_wall_time_ms": null,
+            "retained_result_paths": 0,
+            "schema": "quantbt-reactive-original-witness-executor-v1",
+            "session_runs": 40,
+            "witness": {
+              "closed": false,
+              "entries": 32,
+              "evictions": 0,
+              "header_hits": 24,
+              "header_misses": 16,
+              "market_hits": 25,
+              "market_misses": 16,
+              "max_bytes": 8000000,
+              "max_entries": 256,
+              "owned_row_hash_bytes": 1440,
+              "reference_fallbacks": 0,
+              "retained_bytes": 19344,
+              "schema": "qms-prepared-witness-v1"
+            }
+          },
+          "worker_tasks_completed": 40,
+          "worker_transport": "fork_copy_on_write_v1"
+        }
+      },
+      {
+        "observer_attempts": 8,
+        "observer_failures": 0,
+        "score_bars": 1260,
+        "score_seconds": 1.1282805389491841,
+        "wall_seconds": 1.773042707995046,
+        "witness_transport": {
+          "batch_public_meta_activation": false,
+          "continuous_carry": false,
+          "cooperative_native_deadline": null,
+          "financial_replays": 0,
+          "market_ipc_bytes_per_task": 0,
+          "max_packet_bytes": 1594,
+          "multi_symbol": false,
+          "original_window_paths_temporarily_retained": true,
+          "packet_bytes_encoding": "json_utf8_not_pipe_envelope",
+          "packet_bytes_total": 63494,
+          "retained_result_paths": 0,
+          "schema": "quantbt-reactive-witness-transport-v1",
+          "verified_calls": 40,
+          "worker_mode": "process"
+        },
+        "worker": {
+          "closed": true,
+          "fork_parent_os_threads": 1,
+          "fork_parent_thread_contract": "one_kernel_thread_before_fork_v1",
+          "max_wall_time_ms": null,
+          "parallelism": {
+            "blas_threads": 1,
+            "constrained_by": [],
+            "host_cpus": 4,
+            "numba_threads": 1,
+            "openmp_threads": 1,
+            "python_processes": 1,
+            "rust_workers": 1
+          },
+          "worker_generation": 2,
+          "worker_market_ipc_bytes_per_task": 0,
+          "worker_memory": {
+            "private_bytes": 70340608,
+            "pss_bytes": 119462912,
+            "rss_bytes": 172613632,
+            "shared_bytes": 102273024
+          },
+          "worker_metric_ipc": "detached_original_witness_v1",
+          "worker_mode": "process",
+          "worker_pid": null,
+          "worker_poison_recoveries": 0,
+          "worker_pool_creations": 1,
+          "worker_scalar_sessions": {
+            "active_native_score": false,
+            "closed": false,
+            "financial_replays": 0,
+            "max_wall_time_ms": null,
+            "retained_result_paths": 0,
+            "schema": "quantbt-reactive-original-witness-executor-v1",
+            "session_runs": 40,
+            "witness": {
+              "closed": false,
+              "entries": 32,
+              "evictions": 0,
+              "header_hits": 24,
+              "header_misses": 16,
+              "market_hits": 25,
+              "market_misses": 16,
+              "max_bytes": 8000000,
+              "max_entries": 256,
+              "owned_row_hash_bytes": 1440,
+              "reference_fallbacks": 0,
+              "retained_bytes": 19344,
+              "schema": "qms-prepared-witness-v1"
+            }
+          },
+          "worker_tasks_completed": 40,
+          "worker_transport": "fork_copy_on_write_v1"
+        }
+      },
+      {
+        "observer_attempts": 8,
+        "observer_failures": 0,
+        "score_bars": 1260,
+        "score_seconds": 0.989703846978955,
+        "wall_seconds": 1.4228881290182471,
+        "witness_transport": {
+          "batch_public_meta_activation": false,
+          "continuous_carry": false,
+          "cooperative_native_deadline": null,
+          "financial_replays": 0,
+          "market_ipc_bytes_per_task": 0,
+          "max_packet_bytes": 1594,
+          "multi_symbol": false,
+          "original_window_paths_temporarily_retained": true,
+          "packet_bytes_encoding": "json_utf8_not_pipe_envelope",
+          "packet_bytes_total": 63494,
+          "retained_result_paths": 0,
+          "schema": "quantbt-reactive-witness-transport-v1",
+          "verified_calls": 40,
+          "worker_mode": "process"
+        },
+        "worker": {
+          "closed": true,
+          "fork_parent_os_threads": 1,
+          "fork_parent_thread_contract": "one_kernel_thread_before_fork_v1",
+          "max_wall_time_ms": null,
+          "parallelism": {
+            "blas_threads": 1,
+            "constrained_by": [],
+            "host_cpus": 4,
+            "numba_threads": 1,
+            "openmp_threads": 1,
+            "python_processes": 1,
+            "rust_workers": 1
+          },
+          "worker_generation": 2,
+          "worker_market_ipc_bytes_per_task": 0,
+          "worker_memory": {
+            "private_bytes": 19812352,
+            "pss_bytes": 94229504,
+            "rss_bytes": 172675072,
+            "shared_bytes": 152862720
+          },
+          "worker_metric_ipc": "detached_original_witness_v1",
+          "worker_mode": "process",
+          "worker_pid": null,
+          "worker_poison_recoveries": 0,
+          "worker_pool_creations": 1,
+          "worker_scalar_sessions": {
+            "active_native_score": false,
+            "closed": false,
+            "financial_replays": 0,
+            "max_wall_time_ms": null,
+            "retained_result_paths": 0,
+            "schema": "quantbt-reactive-original-witness-executor-v1",
+            "session_runs": 40,
+            "witness": {
+              "closed": false,
+              "entries": 32,
+              "evictions": 0,
+              "header_hits": 24,
+              "header_misses": 16,
+              "market_hits": 25,
+              "market_misses": 16,
+              "max_bytes": 8000000,
+              "max_entries": 256,
+              "owned_row_hash_bytes": 1440,
+              "reference_fallbacks": 0,
+              "retained_bytes": 19344,
+              "schema": "qms-prepared-witness-v1"
+            }
+          },
+          "worker_tasks_completed": 40,
+          "worker_transport": "fork_copy_on_write_v1"
+        }
+      }
+    ]
+  },
+  "schema": "qms-c02-transport-evidence-v1",
+  "source_guard": {
+    "additive_atomic_token_getter": true,
+    "allowed_changes": [
+      "rust/native_event/src/reactive_numeric.rs",
+      "src/quantbt/backends/_native_event_rust.py",
+      "src/quantbt/backends/native_event.py",
+      "src/quantbt/backends/reactive_wfo.py",
+      "src/quantbt/backends/reactive_wfo_batch.py",
+      "src/quantbt/backends/reactive_wfo_workers.py",
+      "src/quantbt/endpoint.py",
+      "src/quantbt/optimization/meta_selection/observer.py",
+      "src/quantbt/optimization/meta_selection/reactive.py",
+      "src/quantbt/optimization/meta_selection/reactive_batch_witness.py",
+      "src/quantbt/optimization/meta_selection/reactive_execution.py",
+      "src/quantbt/optimization/meta_selection/reactive_transport.py"
+    ],
+    "baseline": "0bb77b5",
+    "financial_rust_unchanged": true,
+    "guide_sha256": "adad24b16024ec5d9f3bdaf3a4098a8c60305c1fc181f1c30a0ff0f648a8170d",
+    "release_identity_unchanged": true,
+    "schema": "qms-c02-source-guard-v1"
+  },
+  "source_revision": "2b9f05a427e56db3015a41062b2ee3fd49b498f8"
+}

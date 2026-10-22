@@ -44,6 +44,17 @@ def _quantize_signed_qty(qty: float, price: float, contract_size: float, qty_ste
 
 
 @njit(cache=True)
+def _delta_order_allowed(current, target, price, contract_size, min_qty, min_notional):
+    if not np.isfinite(target) or not np.isfinite(price) or price <= 0.0:
+        return False
+    reduction = current * target >= 0.0 and abs(target) <= abs(current)
+    if reduction:
+        return True
+    delta = abs(target - current)
+    return delta + 1e-12 >= min_qty and delta * price * contract_size + 1e-12 >= min_notional
+
+
+@njit(cache=True)
 def _engine_units(
     n_bars:          int,
     n_syms:          int,
@@ -59,6 +70,11 @@ def _engine_units(
     fee_rate:        float,
     contract_sizes:  np.ndarray,   # (n_syms,)        float64
     slippage:        float,
+    accepted_positions=None,
+    qty_steps=None,
+    min_qtys=None,
+    min_notionals=None,
+    tradable=None,
 ):
     equity_curve = np.zeros(n_bars, dtype=np.float64)
     equity       = init_capital
@@ -135,11 +151,20 @@ def _engine_units(
 
         for s in range(n_syms):
             target = signals[i, s]
+            if qty_steps is not None:
+                target = _quantize_signed_qty(target, closes[i, s], contract_sizes[s], qty_steps[s], 0.0, 0.0)
             if abs(target - current_pos[s]) < 1e-12:
+                continue
+            if not np.isfinite(target) or closes[i, s] <= 0.0 or not np.isfinite(closes[i, s]):
+                continue
+            if tradable is not None and not tradable[i, s]:
                 continue
 
             delta  = target - current_pos[s]
             exec_p = closes[i, s] * (1.0 + slippage if delta > 0.0 else 1.0 - slippage)
+            if min_qtys is not None and min_notionals is not None:
+                if not _delta_order_allowed(current_pos[s], target, closes[i, s], contract_sizes[s], min_qtys[s], min_notionals[s]):
+                    continue
 
             fee_cost   = abs(delta) * exec_p * contract_sizes[s] * fee_rate
             # equity already marked to close; exec_p deviates → always a cost
@@ -149,14 +174,23 @@ def _engine_units(
             new_im = abs(target) * exec_p * contract_sizes[s] / leverage
             required = (new_im - old_im) + fee_cost + slip_cost
 
-            if required > avail:
+            reduction = current_pos[s] * target >= 0.0 and abs(target) <= abs(current_pos[s])
+            if (not reduction and required > avail) or equity < fee_cost + slip_cost:
                 continue  # order rejected: insufficient margin
 
             equity -= fee_cost + slip_cost
             current_pos[s] = target
             avail -= required
+            if reduction:
+                cur_im = 0.0
+                for k in range(n_syms):
+                    cur_im += abs(current_pos[k]) * closes[i, k] * contract_sizes[k] / leverage
+                avail = max(0.0, equity - cur_im)
 
         equity_curve[i] = equity
+        if accepted_positions is not None:
+            for s in range(n_syms):
+                accepted_positions[i, s] = current_pos[s]
 
     return equity_curve, liq_flag, liq_idx
 
@@ -181,6 +215,8 @@ def _engine_pct_equity(
     qty_steps:       np.ndarray,
     min_qtys:        np.ndarray,
     min_notionals:   np.ndarray,
+    accepted_positions=None,
+    tradable=None,
 ):
     """
     Target units = equity × alloc_pct[s] × weight[i,s] / (close[i,s] × cs[s])
@@ -266,14 +302,18 @@ def _engine_pct_equity(
 
             target = (equity * alloc_pct[s] * signals[i, s]) / denom
             target = _quantize_signed_qty(
-                target, closes[i, s], contract_sizes[s], qty_steps[s], min_qtys[s], min_notionals[s]
+                target, closes[i, s], contract_sizes[s], qty_steps[s], 0.0, 0.0
             )
 
             if abs(target - current_pos[s]) < 1e-12:
                 continue
+            if tradable is not None and not tradable[i, s]:
+                continue
 
             delta  = target - current_pos[s]
             exec_p = closes[i, s] * (1.0 + slippage if delta > 0.0 else 1.0 - slippage)
+            if not _delta_order_allowed(current_pos[s], target, closes[i, s], contract_sizes[s], min_qtys[s], min_notionals[s]):
+                continue
 
             fee_cost  = abs(delta) * exec_p * contract_sizes[s] * fee_rate
             slip_cost = abs(delta) * abs(exec_p - closes[i, s]) * contract_sizes[s]
@@ -282,14 +322,23 @@ def _engine_pct_equity(
             new_im = abs(target) * exec_p * contract_sizes[s] / leverage
             required = (new_im - old_im) + fee_cost + slip_cost
 
-            if required > avail:
+            reduction = current_pos[s] * target >= 0.0 and abs(target) <= abs(current_pos[s])
+            if (not reduction and required > avail) or equity < fee_cost + slip_cost:
                 continue
 
             equity -= fee_cost + slip_cost
             current_pos[s] = target
             avail -= required
+            if reduction:
+                cur_im = 0.0
+                for k in range(n_syms):
+                    cur_im += abs(current_pos[k]) * closes[i, k] * contract_sizes[k] / leverage
+                avail = max(0.0, equity - cur_im)
 
         equity_curve[i] = equity
+        if accepted_positions is not None:
+            for s in range(n_syms):
+                accepted_positions[i, s] = current_pos[s]
 
     return equity_curve, liq_flag, liq_idx
 
@@ -499,7 +548,7 @@ def _engine_dca_ladder(
 
             # Base order: market-at-close when a cycle starts.
             if current_lvl[s] == 0:
-                delta = desired_side * base_notional[s] / c
+                delta = desired_side * base_notional[s] / (c * cs)
                 exec_p = c * (1.0 + market_slippage if delta > 0.0 else 1.0 - market_slippage)
                 delta = _quantize_signed_qty(delta, exec_p, cs, qty_steps[s], min_qtys[s], min_notionals[s])
                 if delta == 0.0:
@@ -554,7 +603,7 @@ def _engine_dca_ladder(
                     mult *= volume_scale[s]
                 notional *= mult
 
-                delta = current_side[s] * notional / trigger
+                delta = current_side[s] * notional / (trigger * cs)
                 delta = _quantize_signed_qty(delta, trigger, cs, qty_steps[s], min_qtys[s], min_notionals[s])
                 if delta == 0.0:
                     break
@@ -630,6 +679,19 @@ def _engine_dca_ladder(
 
 
 @njit(cache=True)
+def _allocate_portfolio_liquidation(equity, current_pos, closes, contract_sizes, current_pnl, attribution, bar):
+    gross = 0.0
+    for s in range(len(current_pos)):
+        gross += abs(current_pos[s]) * closes[s] * contract_sizes[s]
+    if gross > 0.0:
+        for s in range(len(current_pos)):
+            adjustment = equity * abs(current_pos[s]) * closes[s] * contract_sizes[s] / gross
+            current_pnl[s] -= adjustment
+            if attribution is not None:
+                attribution[bar, s, 3] += adjustment
+
+
+@njit(cache=True)
 def _engine_portfolio(
     n_bars:          int,
     n_syms:          int,
@@ -647,6 +709,11 @@ def _engine_portfolio(
     contract_sizes:  np.ndarray,
     use_funding:     bool,
     tradable:         np.ndarray,
+    qty_steps=None,
+    min_qtys=None,
+    min_notionals=None,
+    funding_paid=None,
+    attribution=None,
 ):
     """
     Numba portfolio simulation kernel.
@@ -700,6 +767,7 @@ def _engine_portfolio(
         if worst_mm > 0.0 and worst_equity <= worst_mm:
             liq_flag = True
             liq_idx  = i
+            _allocate_portfolio_liquidation(equity, current_pos, closes[i], contract_sizes, current_pnl, attribution, i)
             equity   = 0.0
             for s in range(n_syms):
                 current_pos[s] = 0.0
@@ -716,6 +784,10 @@ def _engine_portfolio(
                     fc = p * closes[i, s] * contract_sizes[s] * funding_rates[i, s]
                     equity -= fc
                     current_pnl[s] -= fc
+                    if funding_paid is not None:
+                        funding_paid[i] += fc
+                    if attribution is not None:
+                        attribution[i, s, 2] += fc
 
         close_mm = 0.0
         for s in range(n_syms):
@@ -726,6 +798,7 @@ def _engine_portfolio(
         if close_mm > 0.0 and equity <= close_mm:
             liq_flag = True
             liq_idx  = i
+            _allocate_portfolio_liquidation(equity, current_pos, closes[i], contract_sizes, current_pnl, attribution, i)
             equity   = 0.0
             for s in range(n_syms):
                 current_pos[s] = 0.0
@@ -741,6 +814,7 @@ def _engine_portfolio(
         fee_est = 0.0
         slip_est = 0.0
         invalid_target = False
+        pure_reduction = True
         for s in range(n_syms):
             c = closes[i, s]
             cs = contract_sizes[s]
@@ -750,18 +824,25 @@ def _engine_portfolio(
             target_mm += abs(target_pos[i, s]) * c * cs * maint_ratio
 
             delta = target_pos[i, s] - current_pos[s]
+            if not np.isfinite(target_pos[i, s]):
+                invalid_target = True
+            if current_pos[s] * target_pos[i, s] < 0.0 or abs(target_pos[i, s]) > abs(current_pos[s]) + 1e-12:
+                pure_reduction = False
             if abs(delta) > 1e-12:
                 if not tradable[i, s] or c <= 0.0 or not np.isfinite(c):
                     invalid_target = True
                     continue
                 exec_price = c * (1.0 + slippage_rate) if delta > 0.0 else c * (1.0 - slippage_rate)
+                if min_qtys is not None and min_notionals is not None:
+                    if not _delta_order_allowed(current_pos[s], target_pos[i, s], c, cs, min_qtys[s], min_notionals[s]):
+                        invalid_target = True
                 trade_notional = abs(delta) * exec_price * cs
                 fee_est += trade_notional * fee_rate
                 slip_est += abs(delta) * c * cs * slippage_rate
 
         can_rebalance = True
         post_trade_equity = equity - fee_est - slip_est
-        if invalid_target or post_trade_equity < target_im or post_trade_equity < target_mm:
+        if invalid_target or (not pure_reduction and post_trade_equity < target_im) or post_trade_equity < target_mm or post_trade_equity < 0.0:
             can_rebalance = False
 
         # 5. Execute accepted target at close.
@@ -779,6 +860,9 @@ def _engine_portfolio(
                     current_pnl[s] -= fee + slip
                     fee_arr[i] += fee
                     slip_arr[i] += slip
+                    if attribution is not None:
+                        attribution[i, s, 0] += fee
+                        attribution[i, s, 1] += slip
 
                     turn_arr[i] += tv
                     current_pos[s] = target_pos[i, s]
@@ -793,6 +877,7 @@ def _engine_portfolio(
         if close_mm > 0.0 and equity <= close_mm:
             liq_flag = True
             liq_idx  = i
+            _allocate_portfolio_liquidation(equity, current_pos, closes[i], contract_sizes, current_pnl, attribution, i)
             equity   = 0.0
             for s in range(n_syms):
                 current_pos[s] = 0.0
@@ -838,6 +923,8 @@ def _engine_portfolio_equity_sizing(
     min_qtys: np.ndarray,
     min_notionals: np.ndarray,
     tradable: np.ndarray,
+    funding_paid=None,
+    attribution=None,
 ):
     """
     Portfolio kernel for sizing modes which depend on live equity.
@@ -897,6 +984,7 @@ def _engine_portfolio_equity_sizing(
         if worst_mm > 0.0 and worst_equity <= worst_mm:
             liq_flag = True
             liq_idx = i
+            _allocate_portfolio_liquidation(equity, current_pos, closes[i], contract_sizes, current_pnl, attribution, i)
             equity = 0.0
             for s in range(n_syms):
                 current_pos[s] = 0.0
@@ -912,6 +1000,10 @@ def _engine_portfolio_equity_sizing(
                     fc = p * closes[i, s] * contract_sizes[s] * funding_rates[i, s]
                     equity -= fc
                     current_pnl[s] -= fc
+                    if funding_paid is not None:
+                        funding_paid[i] += fc
+                    if attribution is not None:
+                        attribution[i, s, 2] += fc
 
         close_mm = 0.0
         for s in range(n_syms):
@@ -922,6 +1014,7 @@ def _engine_portfolio_equity_sizing(
         if close_mm > 0.0 and equity <= close_mm:
             liq_flag = True
             liq_idx = i
+            _allocate_portfolio_liquidation(equity, current_pos, closes[i], contract_sizes, current_pnl, attribution, i)
             equity = 0.0
             for s in range(n_syms):
                 current_pos[s] = 0.0
@@ -971,7 +1064,7 @@ def _engine_portfolio_equity_sizing(
             else:
                 target_units[s] = 0.0
             target_units[s] = _quantize_signed_qty(
-                target_units[s], closes[i, s], contract_sizes[s], qty_steps[s], min_qtys[s], min_notionals[s]
+                target_units[s], closes[i, s], contract_sizes[s], qty_steps[s], 0.0, 0.0
             )
             target_out[i, s] = target_units[s]
 
@@ -981,6 +1074,7 @@ def _engine_portfolio_equity_sizing(
         fee_est = 0.0
         slip_est = 0.0
         invalid_target = False
+        pure_reduction = True
         for s in range(n_syms):
             c = closes[i, s]
             cs = contract_sizes[s]
@@ -989,18 +1083,24 @@ def _engine_portfolio_equity_sizing(
             target_im += abs(target_units[s]) * c * cs / lev
             target_mm += abs(target_units[s]) * c * cs * maint_ratio
             delta = target_units[s] - current_pos[s]
+            if not np.isfinite(target_units[s]):
+                invalid_target = True
+            if current_pos[s] * target_units[s] < 0.0 or abs(target_units[s]) > abs(current_pos[s]) + 1e-12:
+                pure_reduction = False
             if abs(delta) > 1e-12:
                 if not tradable[i, s] or c <= 0.0 or not np.isfinite(c):
                     invalid_target = True
                     continue
                 exec_price = c * (1.0 + slippage_rate) if delta > 0.0 else c * (1.0 - slippage_rate)
+                if not _delta_order_allowed(current_pos[s], target_units[s], c, cs, min_qtys[s], min_notionals[s]):
+                    invalid_target = True
                 trade_notional = abs(delta) * exec_price * cs
                 fee_est += trade_notional * fee_rate
                 slip_est += abs(delta) * c * cs * slippage_rate
 
         can_rebalance = True
         post_trade_equity = equity - fee_est - slip_est
-        if invalid_target or post_trade_equity < target_im or post_trade_equity < target_mm:
+        if invalid_target or (not pure_reduction and post_trade_equity < target_im) or post_trade_equity < target_mm or post_trade_equity < 0.0:
             can_rebalance = False
 
         if can_rebalance:
@@ -1017,6 +1117,9 @@ def _engine_portfolio_equity_sizing(
                     current_pnl[s] -= fee + slip
                     fee_arr[i] += fee
                     slip_arr[i] += slip
+                    if attribution is not None:
+                        attribution[i, s, 0] += fee
+                        attribution[i, s, 1] += slip
                     turn_arr[i] += tv
                     current_pos[s] = target_units[s]
 
@@ -1029,6 +1132,7 @@ def _engine_portfolio_equity_sizing(
         if close_mm > 0.0 and equity <= close_mm:
             liq_flag = True
             liq_idx = i
+            _allocate_portfolio_liquidation(equity, current_pos, closes[i], contract_sizes, current_pnl, attribution, i)
             equity = 0.0
             for s in range(n_syms):
                 current_pos[s] = 0.0

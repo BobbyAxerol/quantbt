@@ -1,0 +1,125 @@
+{
+  "cleanup": {
+    "after_available_bytes": 27059539968,
+    "before_available_bytes": 26483904512,
+    "cleaned_consumer_requires_reinstall": true,
+    "current_g01_tooling_retained": true,
+    "removed": [
+      ".maturin/qms08/execution-package-v4/consumer",
+      ".maturin/qms08/execution-package-v4/stage/build"
+    ],
+    "source_stage_and_artifacts_retained": true
+  },
+  "economics": "NOT_PROMOTED_SYNTHETIC_ONLY",
+  "failed_exact_names_rerun": true,
+  "installed_proof_sha256": "b434bb42e180e6382ddc28fa9e33e2a9a0d64086db8b332cd41a63af1066cb93",
+  "publication": false,
+  "remote": "DEFERRED_OWNER_GATE",
+  "retained_sha256": {
+    ".maturin/qms08/execution-package-v4/build.log": "8527439300d9879a4f2ca5d93b281acb3592c158fa09df8196f7f5200f505f4f",
+    ".maturin/qms08/execution-package-v4/dependencies.log": "867547ad2be3bb8417b42cd3f71db2c35482186b3d72a2912498b6fa9c64c17d",
+    ".maturin/qms08/execution-package-v4/dist/quantbt_engine-1.1.2-py3-none-any.whl": "df2e097ea78501accd951b8eac02c505d0de3d2e1a8cbe48c61356c020685024",
+    ".maturin/qms08/execution-package-v4/dist/quantbt_engine-1.1.2.tar.gz": "ab3ecd718dfa440a134ea9e616cab8ecef0e384c948787e142910694fe715435",
+    ".maturin/qms08/execution-package-v4/install.log": "38b7136b67a162a16329274ce4325fbcd915b8d545097df733c2932f693e14c5",
+    ".maturin/qms08/execution-package-v4/native-supplement.json": "e08a53ec915aa368df31ad71bcf786b1797c1f89d944401843b6d307a78effbc",
+    ".maturin/qms08/execution-package-v4/native-supplement.log": "a3c19f61adf369f38bfb15b2d87b3d5184a68727e77785dac7578645fbb08592",
+    ".maturin/qms08/execution-package-v4/proof.json": "b434bb42e180e6382ddc28fa9e33e2a9a0d64086db8b332cd41a63af1066cb93",
+    ".maturin/qms08/execution-package-v4/sdist-consumer.log": "7d3c02e2a185e80f6eadbf6412f87e5f53cb38574ce1e21b64f5ccccbeec0abf",
+    ".maturin/qms08/execution-package-v4/sdist-install.log": "7dcd1cb4516692912f369a28717496a014c6aeb1aa3befeddb3a8437130f8e0e",
+    ".maturin/qms08/execution-package-v4/test-logs/qms-execution-final.xml": "914a3c24792fe8613f1247ba6e23f8cc3f638cab1762252be38f8cbb159ea389",
+    ".maturin/qms08/execution-package-v4/test-logs/qms-execution-funding.xml": "152511f09d11edc5c0247578255fff0e811f7116222efad7c5ec5cc07843fdda",
+    ".maturin/qms08/execution-package-v4/test-logs/qms-execution-prepared.xml": "6f9e56d98d1bc5148c88305f97743ea48e2d337b05c7427a6071d722fc35e837",
+    ".maturin/qms08/execution-package-v4/test-logs/qms-execution-regression.xml": "80190c6b08dfd94658e443d925f92ad89c41c552874ff9678ebb9afaea52f52d",
+    ".maturin/qms08/execution-package-v4/test-logs/qms-execution-tests.xml": "bb2ba42aa5ad864d28368fd87a03f583096f999f1279223a54ebb004ab484f29",
+    ".maturin/qms08/execution-package-v4/venv.log": "1e385d0dcbf24b8339b666894c489a320f938d30eb70f7f40fe227eb3b3c3e9a",
+    ".maturin/qms08/execution-package-v4/wheel-consumer.log": "7d3c02e2a185e80f6eadbf6412f87e5f53cb38574ce1e21b64f5ccccbeec0abf",
+    ".maturin/qms08/g01-package-v1-native/quantbt_native-0.4.3-cp312-cp312-manylinux_2_34_x86_64.whl": "f5fe1ec4d9268752733ba2c7023cc0e2548215986a8cd73fb6fafb285422a3b6",
+    "benchmarks/optimization/meta_selection/qms_execution_synthetic_study_intrabar_off.log": "fe817a0473a132811473300cad844dbcee8057ec5cffa1566853571855ac535d",
+    "benchmarks/optimization/meta_selection/qms_execution_synthetic_study_intrabar_shadow.log": "82e729ce905fc63efba1aaabc3cc0e94c7f65b8fc42611a57b7556c03d287178",
+    "benchmarks/optimization/meta_selection/qms_execution_synthetic_study_v2_delivery_arbitrage_active.log": "9b00bed3767231746c7d0b37225eb13d97748cdea5168c4762cf60bce3bc5bc7",
+    "benchmarks/optimization/meta_selection/qms_execution_synthetic_study_v2_delivery_arbitrage_off.log": "319ebb0bc8d5b9556284c8b6ff285d004d286e3333ecbb30d2cc8eb46a2a9fb7",
+    "benchmarks/optimization/meta_selection/qms_execution_synthetic_study_v2_delivery_arbitrage_shadow.log": "c36e19f7041c68a6f8b2e2bc6026a0174088f7b556945da6132dfaea627fee1f",
+    "benchmarks/optimization/meta_selection/qms_execution_synthetic_study_v2_event_driven_active.log": "0fbe68d805712c7d83cb197dc63874a8c595c68a38fd896d15c10934b889985e",
+    "benchmarks/optimization/meta_selection/qms_execution_synthetic_study_v2_event_driven_off.log": "648c409cbfd30c98f4185e7f36bac531fcd5d0e253f4824d2d7e970b68beadc5",
+    "benchmarks/optimization/meta_selection/qms_execution_synthetic_study_v2_event_driven_shadow.log": "116a61aed4aadb43f68e09eaeb86ea6a5c2b46637bf4867f651dd300af3a37ae",
+    "benchmarks/optimization/meta_selection/qms_execution_synthetic_study_v2_intrabar_active.log": "44312213cc3d70af8087f7acf31fe0c74904f4a483ca5450c57a94af46834773",
+    "benchmarks/optimization/meta_selection/qms_execution_synthetic_study_v2_intrabar_off.log": "476c6320528c1cf04b9266bd6e4be7b25bf9523e6144c711ab3d30dbb50aac7f",
+    "benchmarks/optimization/meta_selection/qms_execution_synthetic_study_v2_intrabar_shadow.log": "9896f1ace60098444b894d4adda2b8ecf55a828b312ad8ab367b40a04d5c54dd",
+    "benchmarks/optimization/meta_selection/qms_execution_synthetic_study_v2_order_commands_active.log": "e088fbca70091dd5a26e8acfb674ec241cee2b0ee7f1b6ec5c3a579bac9fa597",
+    "benchmarks/optimization/meta_selection/qms_execution_synthetic_study_v2_order_commands_off.log": "130219bb08be13d2c1678ffde79c1c9b6ccc47a21fb7d26f1560425c10f783a6",
+    "benchmarks/optimization/meta_selection/qms_execution_synthetic_study_v2_order_commands_shadow.log": "f7a886031269399819fd6e3eabfa94b1a64053e430b93175ebd2db02cb5cba54",
+    "benchmarks/optimization/meta_selection/qms_execution_synthetic_study_v3.json": "76f984f65a5e31480884d729c2af9b4817e3078b161e6bcd3a491901b94e78d4",
+    "benchmarks/optimization/meta_selection/qms_execution_synthetic_study_v3_delivery_arbitrage_active.log": "21c6529b0bbfb460a3440af67abb113a67fd0feac16f33894db825b2253b225b",
+    "benchmarks/optimization/meta_selection/qms_execution_synthetic_study_v3_delivery_arbitrage_off.log": "7af8add11dd7d4fa2d339d59de64ca31b8652980020a1c8ce095e850748d9216",
+    "benchmarks/optimization/meta_selection/qms_execution_synthetic_study_v3_delivery_arbitrage_shadow.log": "10a0d2f3e5c4b37c1566888e3bf1bd400e25b9b5d969342ac03f18bed89d0a69",
+    "benchmarks/optimization/meta_selection/qms_execution_synthetic_study_v3_event_driven_active.log": "125d7aac3e16511119e00298cdea161a2193a42223c32958ec8c9b9c13dec937",
+    "benchmarks/optimization/meta_selection/qms_execution_synthetic_study_v3_event_driven_off.log": "619d703cae7b0422b616c70bfa9298566cef6f17f56920d1a48e22e435d17642",
+    "benchmarks/optimization/meta_selection/qms_execution_synthetic_study_v3_event_driven_shadow.log": "019e043fc8725cf46433152ef95b4737b3696ec5f85dfd1cb88eb0ac15b94aa9",
+    "benchmarks/optimization/meta_selection/qms_execution_synthetic_study_v3_intrabar_active.log": "e6248d3070a47a51acab7733a1bf54127908d3c8364b3122a8b86304297e0e04",
+    "benchmarks/optimization/meta_selection/qms_execution_synthetic_study_v3_intrabar_off.log": "404b901edf1ca614f5b61c3c0b4679b7821e74bac21c0c4631a6e547cae62e91",
+    "benchmarks/optimization/meta_selection/qms_execution_synthetic_study_v3_intrabar_shadow.log": "6a50b107e589d80ab243a611f75b4f0071edfaa31af53f9bbaceeea3d09f70db",
+    "benchmarks/optimization/meta_selection/qms_execution_synthetic_study_v3_order_commands_active.log": "fa9e89a3ed05469468b58ed6e48eba14b224c6301a753e41a8248c9aed6b3f19",
+    "benchmarks/optimization/meta_selection/qms_execution_synthetic_study_v3_order_commands_off.log": "6e8571b620c26277532ff9011b96be0e6448df255f81df3aa1e48299da633ee2",
+    "benchmarks/optimization/meta_selection/qms_execution_synthetic_study_v3_order_commands_shadow.log": "78feeb0007a766d0c27b6af98078a26f8d16930ba5056fd321e2f1a806282d22",
+    "examples/wfo_meta_execution.py": "f247024c878c52cae16fee4685e41c417598a39a2cf942e9c113cd3d38568a6b",
+    "tools/qms_execution_consumer.py": "53df24a24d8b78351cf2d6c3763ac8e5d6a31c78d79e6bb718edbe6f889d9598",
+    "tools/qms_execution_package.py": "4cc7c508135823e446e08749410da39ec4c0defeee90360f15e47f265fea23fc",
+    "tools/qms_execution_study.py": "539b68befe5467136f22133b9d9979ec31b1cab979667a90f07db40880d20a34",
+    "upgrade/QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md": "adad24b16024ec5d9f3bdaf3a4098a8c60305c1fc181f1c30a0ff0f648a8170d"
+  },
+  "schema": "qms-execution-local-closeout-v1",
+  "software": "PASS_LOCAL_BOUNDED",
+  "source_guard": {
+    "baseline": "566adcb",
+    "cash_settlement": false,
+    "native_financial_kernel_changed": false,
+    "publication": false,
+    "quarterly_policy": "pre_expiry_flatten_v1",
+    "schema": "qms-execution-route-exact-amendment-v1",
+    "scientific_estimator_changed": false,
+    "source_sha256": {
+      "src/quantbt/core/delivery_lifecycle.py": "d312627bb67bfe346fd806e5301292e6f7d47d42e6c6772a8459e916df064017",
+      "src/quantbt/endpoint.py": "47e91585a8cd2d11a56d3351d27c475ca2aaffdbfc7866efe1c20de2457ed878",
+      "src/quantbt/engines.py": "56254b5c929e331b0be583d2479194fce5882bc4bcce2b348fec0d5d0813358b",
+      "src/quantbt/optimization/meta_selection/config.py": "58b7a04bdbd24a9ea15fcedd82ef628a8e5faa8b16501d21911de173b06f1264",
+      "src/quantbt/optimization/meta_selection/domains/execution.py": "bac75f0e5a05052557f87039561dd1052062d84c76c1d4866bfd507eab21eec9",
+      "src/quantbt/optimization/meta_selection/domains/registry.py": "eee3507560a0013624218ad6726cc895e5b9b1e545946b0c0d24743f6b975f45",
+      "src/quantbt/optimization/meta_selection/observer.py": "f99bacf83fd70e4e4b09e1ae1bd98fbdcb32d64ff23c67f72286b0bfa2887d87",
+      "src/quantbt/walkforward.py": "5ca65d7d4956a2b63c1fd94edb8231baa3723e222d5a609e71233baac693bf6a",
+      "src/quantbt/wfo_execution.py": "200b5867cc8b0a1bb525aba0c6397a594a2ff4996f3ce382fe55b0ee28331331"
+    }
+  },
+  "suites": {
+    "final": {
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0,
+      "tests": 151
+    },
+    "funding": {
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0,
+      "tests": 2
+    },
+    "prepared": {
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0,
+      "tests": 4
+    },
+    "regression": {
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0,
+      "tests": 103
+    },
+    "tests": {
+      "errors": 0,
+      "failures": 4,
+      "skipped": 0,
+      "tests": 48
+    }
+  },
+  "unique_passed_tests": 153
+}

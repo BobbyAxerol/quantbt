@@ -1,0 +1,23 @@
+{
+  "after_available_bytes": 27089944576,
+  "before_available_bytes": 26514309120,
+  "consumer_requires_reinstall": true,
+  "financial_qualification": false,
+  "removed": [
+    ".maturin/qms08/execution-package-v3/consumer",
+    ".maturin/qms08/execution-package-v3/stage/build"
+  ],
+  "retained_sha256": {
+    ".maturin/qms08/execution-package-v3/build.log": "03ed63e0bbd02a8f565c151cfaa7d2179a35c1ad261e1243aa00db806892152f",
+    ".maturin/qms08/execution-package-v3/dependencies.log": "e9330a57d48eeca594135cc06c517bcbf0282de82422d70be9c8a46b016500af",
+    ".maturin/qms08/execution-package-v3/dist/quantbt_engine-1.1.2-py3-none-any.whl": "a30fd9b5bc1b6e977370dc6b6c446d08c8a11763c299b86742afb530b69c7778",
+    ".maturin/qms08/execution-package-v3/dist/quantbt_engine-1.1.2.tar.gz": "328c930b2459c25d3013f1e9b6310dc23e6072ee1242180f758664419f4467ac",
+    ".maturin/qms08/execution-package-v3/install.log": "38355a28281183b630bd3470d7af747fe370496251b6dd4fe98373ce7b34ca08",
+    ".maturin/qms08/execution-package-v3/proof.json": "a365620ec027d723809df8127b5e139e055f44b05124930147f5846f8331fd77",
+    ".maturin/qms08/execution-package-v3/sdist-consumer.log": "f578355cee077524a509393512cad0bb8b7fa6e8dbc3ae086c6cc2be16872547",
+    ".maturin/qms08/execution-package-v3/sdist-install.log": "ba8ee538e6215c18197755a1fa487d69e8a59abf72dd8a195845195d4c5ca76c",
+    ".maturin/qms08/execution-package-v3/venv.log": "f1cd36f6325e11889cf2b85302aa026c5e28f149520e253d5fe4986c87a0e317",
+    ".maturin/qms08/execution-package-v3/wheel-consumer.log": "f578355cee077524a509393512cad0bb8b7fa6e8dbc3ae086c6cc2be16872547",
+    ".maturin/qms08/g01-package-v1-native/quantbt_native-0.4.3-cp312-cp312-manylinux_2_34_x86_64.whl": "f5fe1ec4d9268752733ba2c7023cc0e2548215986a8cd73fb6fafb285422a3b6"
+  }
+}

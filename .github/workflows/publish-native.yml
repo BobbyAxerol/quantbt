@@ -61,6 +61,7 @@ jobs:
           command: build
           args: >-
             --release
+            --locked
             --manifest-path rust/native_event/Cargo.toml
             --interpreter python${{ matrix.python-version }}
             --out dist/native
@@ -157,12 +158,14 @@ jobs:
             --output native-release-evidence/phase78-public-promotion.json
 
       - name: Upload pair certification evidence
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: native-public-release-certification
           path: |
             native-release-evidence/*.json
             dist/core/*
+            dist/staged/qms-release-consumers/*.log
           if-no-files-found: error
 
   publish-testpypi:

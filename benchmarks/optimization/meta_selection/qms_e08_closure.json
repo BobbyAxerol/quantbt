@@ -1,0 +1,119 @@
+{
+  "artifacts": [
+    {
+      "bytes": 1043483,
+      "path": ".maturin/qms08/e08-qualification-v1/package-v1/cp312/dist/quantbt_engine-1.1.2-py3-none-any.whl",
+      "sha256": "c693003b8f9a070ffdb795784997bf1335f125722553acb2ebbb2b0989568620"
+    },
+    {
+      "bytes": 927287,
+      "path": ".maturin/qms08/e08-qualification-v1/package-v1/cp312/dist/quantbt_engine-1.1.2.tar.gz",
+      "sha256": "5f98bcb3ed453513a3bf4abd45f7b2a91be34474e244c68d8c54737ca17ee5c5"
+    },
+    {
+      "bytes": 1185262,
+      "path": ".maturin/qms08/g01-package-v1-native/quantbt_native-0.4.3-cp312-cp312-manylinux_2_34_x86_64.whl",
+      "sha256": "f5fe1ec4d9268752733ba2c7023cc0e2548215986a8cd73fb6fafb285422a3b6"
+    }
+  ],
+  "cleanup_sha256": "16ae39fb33347b5d8cdce417d64405cd13fb3c53f6554c3747cea827cbc99517",
+  "economic_promotion": false,
+  "freed_bytes": 1212022784,
+  "installed_execution_pass": 298,
+  "installed_execution_sha256": "37499ad2b77fdac561f3c23361606b316666fcbb35908e7b9d1b43f0bd345884",
+  "installed_integrated_consumers": 16,
+  "integrated_installed_sha256": "6ec102eed2c6c28e2881e64513eb64fba2850e77a6226285a5921afb4bd68254",
+  "phase": "QMS-E08",
+  "privacy": {
+    "checked_files": 39,
+    "private_alpha_access": false,
+    "private_study": false,
+    "publication": false
+  },
+  "protected_files": 410,
+  "public": "PENDING_OWNER_APPROVED_PUBLICATION",
+  "publication": false,
+  "regressions": {
+    "account": {
+      "admitted_skips": 0,
+      "distinct_pass": 160,
+      "receipt": ".maturin/qms08/e08-qualification-v1/account-regression-v3.json",
+      "registration_sha256": "f5a0e493b4d26cc0a9977eba4213a58de050094f60dbca79ad8c373db2727a84",
+      "repaired_failures": [],
+      "sha256": "9b0095e9c3de0b544bbf57411df911d89ae977b098c5262a32e0c4e66edfb669",
+      "status": "PASS"
+    },
+    "meta": {
+      "admitted_skips": 30,
+      "distinct_pass": 2458,
+      "receipt": ".maturin/qms08/e08-qualification-v1/meta-regression-v1.json",
+      "registration_sha256": "f1df9c912e18a4a59599a1c4db7de868b9de989a05804f480ec4481716f61621",
+      "repair": {
+        "admitted_skips": 0,
+        "distinct_pass": 73,
+        "receipt": ".maturin/qms08/e08-qualification-v1/meta-repair-regression-v3.json",
+        "registration_sha256": "9cabec1538fde1af572bcfb1f1cdad514d3ced0cb817b297465d66c0eddc8016",
+        "repaired_failures": [],
+        "sha256": "f77beded10c53676603b2aed4de5c63edd0e576c260fe2073c85e20d492c1dab"
+      },
+      "repaired_failures": [
+        [
+          "tests.meta_selection.test_pre_e06_06_exit",
+          "test_privacy_gate_current_public_patch"
+        ]
+      ],
+      "sha256": "7217fe29de94a4e26b20bfc3a8e09d247a96371f1f7802e0cb3fe486d68e4d2f",
+      "status": "PASS_AFTER_NARROW_VERIFICATION_REPAIR"
+    },
+    "plot": {
+      "admitted_skips": 0,
+      "distinct_pass": 1,
+      "receipt": ".maturin/qms08/e08-qualification-v1/plot-regression-v3.json",
+      "registration_sha256": "234fa28a7bbd594d5dadd7d8f252a0f29c8a9365b09f8af357b98b4306fdbe06",
+      "repaired_failures": [],
+      "sha256": "57be94fbf8e5920a02ef27da5255cc3ccf5cd13b8bb85c887b192304df745801",
+      "status": "PASS"
+    },
+    "wfo": {
+      "admitted_skips": 0,
+      "distinct_pass": 162,
+      "receipt": ".maturin/qms08/e08-qualification-v1/wfo-regression-v3.json",
+      "registration_sha256": "71fcb6d8c5d9c3fb64b51384557cafb20bd1e6a8f303d3bb2ecdf54f84e58241",
+      "repaired_failures": [],
+      "sha256": "e07c90a13ff92aa502652a4498aadbb36fa1a15cdc09b9b70b01c55be03f1dac",
+      "status": "PASS"
+    }
+  },
+  "remote": "DEFERRED_BY_OWNER_LOCAL_ONLY",
+  "schema": "qms-e08-local-closure-v1",
+  "source_distinct_pass": 2797,
+  "source_guard": {
+    "baseline": "0da632e",
+    "native_rebuild_required": false,
+    "publication": false,
+    "schema": "qms-e08-exact-source-guard-v1",
+    "scientific_or_accounting_changed": false,
+    "source_sha256": {
+      "src/quantbt/optimization/meta_selection/telemetry.py": "abf5021ec17e1dfce06bb8298fb03bced05bece095e74f647ffdc5b213fa2b60",
+      "src/quantbt/wfo_execution.py": "5df31a8e270afb7f0f82855f15df325c84132631d77eeef82cf3541b961ca1f2"
+    }
+  },
+  "source_sha256": {
+    "tests/meta_selection/test_e08_bracket_incident.py": "e2182c669571dc234af120390a7598d88dd517f8603707e8c54039c57bf983d5",
+    "tests/meta_selection/test_e08_cleanup.py": "c6ed55fa58001e4ea8bba56e0d4ff8f56ca0f4aa364a31d274ee37e9e1a8e60d",
+    "tests/meta_selection/test_e08_closure.py": "d081b2834463b9b5f0faaf0bc4936d31da1b75af9e5355e4b470121343b363e1",
+    "tests/meta_selection/test_e08_installed_gate.py": "09169ef40710f5848c611735c9041866e740e7624994300eb347f218e767c624",
+    "tests/meta_selection/test_e08_related_gate.py": "7aa8b70d5e57c6869ad7a12c9b28a151f4cc18fc7cb073caeada0ac6be651d4e",
+    "tests/meta_selection/test_e08_source_guard.py": "ec4a45eabf2a04975dde858bd79ce864a62ae24560907fab3b19410793b49903",
+    "tests/meta_selection/test_e08_telemetry.py": "047af32270e147475f4da6f71e68a026e23521e56177240d01750220bd1189ba",
+    "tests/meta_selection/test_e08_v3_mature.py": "008f722260b6dec96e4b6941af2ac7f701af6971cf82307cee5cc48c7df43e08",
+    "tools/qms_e08_closure.py": "44c36b2123f30a4cee42bb7094ac3043c2f949807d7e1fa38fecd84dbda812ca",
+    "tools/qms_e08_consumer.py": "4a9ae5e247f80481b7ace93314fb58e1eb6e2e9b23abd8124bdbe59d9dca2f22",
+    "tools/qms_e08_integrated.py": "edb2a5ab2acf9a39bdf0d80adecf3e6f576fa9ee15984cfe736bd0c9923e85df",
+    "tools/qms_e08_package.py": "bddc988dc34d63e215ff538d29a41b1c2861beb9b7789d885235527eb9114786",
+    "tools/qms_e08_regression.py": "72c4b37a8f00b2a6fbcd6209c5475d7dd077b55c75492fb730796b00c6ab4bf3",
+    "tools/qms_e08_related_consumer.py": "e28fb5aa2a0260902b2c38b1c567f8b8ad0809d6199cf37137b78ce022e74905",
+    "tools/qms_e08_source_guard.py": "316a2f4184ebf8c74f151cfe74c5f3aa04745da705832804b9b0a594e1b34013"
+  },
+  "status": "COMPLETE_LOCAL_SOFTWARE_QUALIFIED_OPT_IN"
+}

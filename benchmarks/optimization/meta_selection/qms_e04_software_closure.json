@@ -1,0 +1,165 @@
+{
+  "empirical_gate": "NOT_RUN",
+  "empirical_promotion": false,
+  "evidence": [
+    {
+      "path": ".maturin/qms08/e04-profile-v2.json",
+      "sha256": "b2e72a7ff9afb858e67678537de23bff8a7b5c6b5ce9564d3537c3f7d9c0ebd7"
+    },
+    {
+      "path": ".maturin/qms08/e04-source-parity-v1.json",
+      "sha256": "db4232fdb60ab29a6878d0de76ea9dbe1441adee9ef96b4742626cebc7d7f3d3"
+    }
+  ],
+  "installed": {
+    "path": ".maturin/qms08/e04-package-v4/e04-proof.json",
+    "sha256": "479d0dd0f63ec3df3a7ac3ea3d87ee77f81b504d49927852bd3e3fe3cc4269e5"
+  },
+  "installed_gate": "PASS",
+  "owner_promotion": "PENDING",
+  "pair": [
+    "1.1.2",
+    "0.4.3"
+  ],
+  "profile": {
+    "bars": 730,
+    "economic_claim": false,
+    "exact_parity": true,
+    "financial_authority": "original_native_portfolio_numba",
+    "prepared_reference_speedup": 1.751408346039284,
+    "publication": false,
+    "real_alpha": false,
+    "repeats": 2,
+    "rows": {
+      "off": {
+        "arm": "off",
+        "attempted_trials": 24,
+        "cold_seconds": 2.8632676739944145,
+        "folds": 4,
+        "fresh_process_peak_rss_mib": 281.9765625,
+        "identity": {
+          "account": "372e83f90c101ba9387cc0732ba4636a6a74a6e02977aac79ddbdd2d07185a1b",
+          "params": "ee02769c9e38a001320154edf6a64365620ab27981b5b574c23e76fa6ddc41d9",
+          "pool": null,
+          "trials": "1f492c85e56b93b16715447f776de0aab9ee4b59d1e1d35599a51b9862ada07b"
+        },
+        "observer_attempts": 0,
+        "observer_failures": 0,
+        "warm_median_seconds": 1.1827702704904368,
+        "warm_seconds": [
+          1.1583923760044854,
+          1.2071481649763882
+        ],
+        "witness": null
+      },
+      "prepared": {
+        "arm": "prepared",
+        "attempted_trials": 24,
+        "cold_seconds": 3.8094458490086254,
+        "folds": 4,
+        "fresh_process_peak_rss_mib": 287.125,
+        "identity": {
+          "account": "372e83f90c101ba9387cc0732ba4636a6a74a6e02977aac79ddbdd2d07185a1b",
+          "params": "ee02769c9e38a001320154edf6a64365620ab27981b5b574c23e76fa6ddc41d9",
+          "pool": "f07fed1d3c6da3c114cfc89ff7fa9e7d4b4392a5061f6eaecbf784d5c41e5445",
+          "trials": "1f492c85e56b93b16715447f776de0aab9ee4b59d1e1d35599a51b9862ada07b"
+        },
+        "observer_attempts": 22,
+        "observer_failures": 0,
+        "warm_median_seconds": 2.527185910992557,
+        "warm_seconds": [
+          2.6177909289835952,
+          2.436580893001519
+        ],
+        "witness": {
+          "closed": false,
+          "entries": 53,
+          "evictions": 0,
+          "financial_state_cached": false,
+          "header_hits": 94,
+          "header_misses": 20,
+          "market_hits": 101,
+          "market_misses": 33,
+          "max_bytes": 8000000,
+          "max_entries": 256,
+          "owned_row_hash_bytes": 11680,
+          "reference_fallbacks": 0,
+          "retained_bytes": 29440,
+          "schema": "qms-portfolio-prepared-witness-v1",
+          "universe": [
+            "SYNTH-A",
+            "SYNTH-B"
+          ]
+        }
+      },
+      "reference": {
+        "arm": "reference",
+        "attempted_trials": 24,
+        "cold_seconds": 5.908674851001706,
+        "folds": 4,
+        "fresh_process_peak_rss_mib": 286.05078125,
+        "identity": {
+          "account": "372e83f90c101ba9387cc0732ba4636a6a74a6e02977aac79ddbdd2d07185a1b",
+          "params": "ee02769c9e38a001320154edf6a64365620ab27981b5b574c23e76fa6ddc41d9",
+          "pool": "f07fed1d3c6da3c114cfc89ff7fa9e7d4b4392a5061f6eaecbf784d5c41e5445",
+          "trials": "1f492c85e56b93b16715447f776de0aab9ee4b59d1e1d35599a51b9862ada07b"
+        },
+        "observer_attempts": 22,
+        "observer_failures": 0,
+        "warm_median_seconds": 4.426134496505256,
+        "warm_seconds": [
+          4.30036173100234,
+          4.5519072620081715
+        ],
+        "witness": null
+      }
+    },
+    "schema": "qms-e04-public-portfolio-profile-v1",
+    "seed": 731,
+    "symbols": 2,
+    "threads": 1,
+    "trials_per_fold": 6
+  },
+  "publication": false,
+  "remote_gate": "NOT_RUN_FOR_CURRENT_BYTES",
+  "schema": "qms-e04-software-closure-v1",
+  "software_gate": "PASS",
+  "source": {
+    "baseline": "7b83ba4",
+    "financial_numeric_source_unchanged": true,
+    "publication": false,
+    "schema": "qms-e04-exact-source-v1",
+    "source_sha256": {
+      "src/quantbt/endpoint.py": "a9688c49416167955a01054f4f596c571b793d62c5b19fb34bd4d125e5d5de8c",
+      "src/quantbt/optimization/meta_selection/config.py": "7045e938ed951b233e3cb4fc7e3f374fb42c0fcc1f326921f78f13b151e5f4ec",
+      "src/quantbt/optimization/meta_selection/domains/portfolio.py": "d01b9525c9cedba7e05eca13ef2e2f221966fd853dc001761c46ac36f6915980",
+      "src/quantbt/optimization/meta_selection/domains/portfolio_contract.py": "a81f4805ec052fbf81f895971082c6fa3c56d52344b1f56d8d21fc93004b7a39",
+      "src/quantbt/optimization/meta_selection/domains/portfolio_witness.py": "637735a33edbdeea1e1a5288bec55f3375668c89124d1df5a79a25db0ac66748",
+      "src/quantbt/optimization/meta_selection/domains/registry.py": "d818c4d83143b6cf655d52be5e5c71cdaa349876e84a4bca18c0e458051d3199",
+      "src/quantbt/optimization/meta_selection/observer.py": "0476769a47d791f4badcae3180a506ce52148120b0165e8278476f03e2ccbabd",
+      "src/quantbt/optimization/meta_selection/runtime.py": "476fa8d40b6c20f733ee9234ef04548cf3c0279d338479f8843ac30446d50b96",
+      "src/quantbt/walkforward.py": "f39b48cea35de46aaaa1d4a3914ca52f694785f6397111ef62247a4fc735896f"
+    }
+  },
+  "tests": {
+    "distinct_tests": 122,
+    "empirical_t05": "NOT_RUN",
+    "evidence": [
+      {
+        "path": ".maturin/qms08/e04-closure-software-v1.xml",
+        "sha256": "11a1224866c54658e31445859988dc569cd4b30c979ee4cd56637195ca00d231"
+      },
+      {
+        "path": ".maturin/qms08/e04-report-tests-v1.xml",
+        "sha256": "99c776a289607561bd3ee9f53e31d6ec0dc73387188f00eb09065a91fc63e50f"
+      }
+    ],
+    "groups": {
+      "T01": 19,
+      "T02": 17,
+      "T03": 5,
+      "T04": 11,
+      "T06": 16
+    }
+  }
+}

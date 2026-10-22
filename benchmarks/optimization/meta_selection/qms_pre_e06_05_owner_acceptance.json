@@ -1,0 +1,105 @@
+{
+  "schema": "qms-pre-e06-05-owner-cost-disposition-v1",
+  "phase": "PRE-E06-05",
+  "status": "COMPLETE_LOCAL_OWNER_ACCEPTED_COST_EXCEPTION",
+  "decision_date": "2026-10-07",
+  "decision_timezone": "Asia/Saigon",
+  "owner_instruction_quote": "Nới 1 xíu rồi đạt gate luôn di, cũng du di được á, chúng ta còn công việc khác nữa mà, bạn đóng lại cho xong rồi báo ljia tôi còn những phase nào nhé",
+  "approval_basis": "Explicit owner instruction in the current conversation after the complete measured report",
+  "acceptance_kind": "RETROSPECTIVE_SOURCE_BOUND_ENGINEERING_EXCEPTION",
+  "phase_engineering_cost_gate": "CLOSED_OWNER_ACCEPTED_EXCEPTION",
+  "original_measured_point_budget_gate": "NOT_MET",
+  "original_budget_pct": {
+    "p50": 3,
+    "p95": 5
+  },
+  "original_disabled_cells": 32,
+  "original_disabled_pass": 25,
+  "original_disabled_not_met": 7,
+  "accepted_exceptions": [
+    {
+      "cell": "legacy-signal_notional-off-mode_1_decay-per_fold_decay-false-false",
+      "p50_change_pct": 1.7145067148156556,
+      "p95_change_pct": 9.840287925841217,
+      "original_point_budget": "NOT_MET"
+    },
+    {
+      "cell": "legacy-signal_notional-off-mode_1_decay-per_fold_causal-false-false",
+      "p50_change_pct": 1.1025308191006333,
+      "p95_change_pct": 7.223467501292169,
+      "original_point_budget": "NOT_MET"
+    },
+    {
+      "cell": "legacy-signal_notional-off-mode_3_flat_minima-global-false-false",
+      "p50_change_pct": -1.6109863572437044,
+      "p95_change_pct": 23.495450368113403,
+      "original_point_budget": "NOT_MET"
+    },
+    {
+      "cell": "legacy-signal_notional-off-mode_4_is_only_robust-global-false-false",
+      "p50_change_pct": 0.904726196954253,
+      "p95_change_pct": 17.832900711480136,
+      "original_point_budget": "NOT_MET"
+    },
+    {
+      "cell": "domain-unit-off-mode_4_is_only_robust-per_fold_causal-false-false",
+      "p50_change_pct": 0.9133932605963846,
+      "p95_change_pct": 8.491668184530422,
+      "original_point_budget": "NOT_MET"
+    },
+    {
+      "cell": "domain-reactive_reset-off-mode_4_is_only_robust-per_fold_causal-false-false",
+      "p50_change_pct": 1.6399120672200285,
+      "p95_change_pct": 9.475978698791154,
+      "original_point_budget": "NOT_MET"
+    },
+    {
+      "cell": "nested-pct_equity-off-mode_1_decay-per_fold_causal-false-false",
+      "p50_change_pct": 3.356887930138952,
+      "p95_change_pct": -6.597203943508623,
+      "original_point_budget": "NOT_MET"
+    }
+  ],
+  "max_exception_p50_pct": 3.356887930138952,
+  "max_exception_p95_pct": 23.495450368113403,
+  "sealed_evidence_sha256": {
+    "benchmarks/optimization/meta_selection/qms_pre_e06_05_closure.json": "0237038ba7e97efd136d28c646b660e6e17986201bf302ae4dd42e644a97bd76",
+    "benchmarks/optimization/meta_selection/qms_pre_e06_05_cost.json": "a99c6c24ea620f0ed3a2b7673e2711086c5e9018a7be21cdceeca470334cc3b0",
+    "benchmarks/optimization/meta_selection/qms_pre_e06_05_reviewed_source_v2.json": "4a6eae854cb2389234cbd67bef51e9f547942bf14bc80029788c39156e1aee2b"
+  },
+  "runtime_source_sha256": {
+    "src/quantbt/optimization/meta_selection/common.py": "ff2fa5e96c4aa72f0962a24eff398505375439c4058cd1195e9e549276a7fd51"
+  },
+  "native_provider_sha256": "e338a0f1549395211dc42332ed15eb43c0bb92f71728ca3181b0268f56a57aba",
+  "guide_sha256": "adad24b16024ec5d9f3bdaf3a4098a8c60305c1fc181f1c30a0ff0f648a8170d",
+  "followup_validation": {
+    "status": "PASS_DOCS_AND_EXACT_EVIDENCE_BINDING",
+    "docs_checks_pass": 14,
+    "docs_junit_path": ".maturin/qms08/pre-e06-05/owner-acceptance-docs.xml",
+    "docs_junit_sha256": "5f0cadfd22c119fb4145ac82f25e86d7295ae84f73dd4e90bfb562a6e808acfd",
+    "protected_file_hashes_rechecked": 2931,
+    "scope": "Documentation, exact seven-row acceptance, original budget and receipt/source/native/guide preservation; no financial rerun"
+  },
+  "followup_resources": {
+    "incremental_ceiling_bytes": 1048576,
+    "incremental_test_allocated_bytes": 40960,
+    "test_files_retained": 10,
+    "available_bytes_observed_after_docs_tests": 26515222528,
+    "free_inodes_observed_after_docs_tests": 5601176,
+    "deleted_paths": [],
+    "new_environment": false,
+    "new_native_build": false,
+    "cleanup_status": "PASS_ZERO_DELETION_RETAINED_SMALL_DOC_TEST_EVIDENCE"
+  },
+  "measurement_record_rewritten": false,
+  "statistical_noninferiority_certified": false,
+  "future_threshold_changed": false,
+  "new_runtime_or_scientific_change": false,
+  "correctness_rng_accounting_tolerances_waived": false,
+  "economic_or_default_promotion": false,
+  "installed_remote_public_qualification": false,
+  "inheritance_to_other_sources_or_workloads": false,
+  "additional_benchmark_or_build": false,
+  "next_phase_started": false,
+  "push_ci_merge_tag_publication_authorized": false
+}

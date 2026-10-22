@@ -483,7 +483,11 @@ not broad optimizer sweeps.
 
 ## Shared Configuration
 
-All factories accept the common account and execution fields below.
+Factories expose common account and execution fields, but their effective
+support is domain-specific. See the
+[ACC-01 configuration matrix and migration guide](portfolio_review/ACC01_CONFIGURATION_AND_MIGRATION.md)
+for applied settings, inactive defaults, explicit errors and the final sibling
+admission controls. Options use their own wallet, execution and margin authorities.
 
 ```python
 bt = QuantBTEndpoint.signal_notional(
@@ -508,7 +512,9 @@ bt = QuantBTEndpoint.signal_notional(
 Important conventions:
 
 - `initial_capital` is account equity / initial margin;
-- buying power is `initial_capital * leverage`;
+- buying power is `initial_capital * leverage` for common leverage only;
+  heterogeneous leverage has no allocation-independent scalar capacity
+  (`initial_buying_power=None`); use per-symbol leverage and actual margin;
 - `alloc_per_trade` is not multiplied by leverage by the endpoint;
 - legacy `fee` is round-trip and is converted to canonical one-way fee at the
   compatibility boundary;
@@ -580,6 +586,17 @@ lows = {"BTCUSDT": btc_low, "ETHUSDT": eth_low}
 All time indexes are normalized to UTC and aligned to the run index.
 
 ## Helper Methods
+
+Report-only additions are opt-in: `bt.full_report(reporting=request)`,
+`bt.show_metrics(reporting=request)` and `bt.quick_plot(reporting=request)`
+accept a lazy-exported `ReportingRequest` with a `ReportingContractV1`. The
+same keywords are available on completed result helpers. Without the keyword,
+the legacy output, automatic scope and scientific/WFO behavior below stay
+unchanged. New output separates account-period, recorded execution,
+closed-trade and closed-action populations; absent ledger attribution is N/A,
+not a guessed zero count. Exact scoped baseline/currency/frequency and episode
+clock are declared in the request. Read [Reporting V1](metrics/PUBLIC_REPORTING.md)
+for a complete example, validity policies, raw-coverage matrix and migration.
 
 ```python
 result = bt.backtest(...)
@@ -2452,6 +2469,13 @@ Routing:
 
 Use this for a position matrix across many symbols.
 
+See the [account correctness repair and metric migration](portfolio_review/REPAIR_REPORT.md)
+for supported account/fill contracts, corrected contract multipliers, funding
+interval aggregation, risk reductions and exact cost attribution. Generic
+portfolio executes gross-cross netting targets at close; unsupported isolated,
+hedging and alternate fill clocks raise explicitly. `native_portfolio` remains
+Numba-owned; the Rust shared-account helper is a separate declared route.
+
 ```python
 bt = QuantBTEndpoint.portfolio(
     portfolio_mode="longshort",
@@ -2799,6 +2823,146 @@ Routing:
 - engine: `BacktestEngineV2` with Nautilus adapter.
 
 ## Walk-Forward
+
+Feature-branch QMS-02: optional `optimization_config["sampler_config"]` accepts
+the canonical `SamplerConfig` or a mapping for TPE legacy, multivariate/group
+TPE, CMA-ES and Sobol. Omitted config preserves the existing trajectory.
+See [WFO sampler syntax, constraints, warm-start and telemetry](meta_selection/SAMPLERS.md)
+and the [complete runnable example](../examples/wfo_samplers.py). This addition
+is not yet published in core 1.1.1; it does not enable meta-selection, change
+the endpoint signature, objectives or financial execution contract.
+
+Later feature-branch PRE-E06-04 adds opt-in `SamplerConfig.sobol_policy` and
+`flat_selector="feasible_support_projection_v1"` through the same configuration.
+Read [exact versioned geometry, route limits and continuation](meta_selection/CONDITIONAL_POLICIES.md).
+Old defaults/guards remain; installed-final-source proof is tracked in
+[PRE-E06-06](meta_selection/PRE_E06_06_REPORT.md), independently of publication.
+
+Feature-branch QMS-03 adds an internal, opt-in original-result observer and
+causal history foundation, **not** a public meta-selection parameter. Normal
+endpoint calls retain their existing search, selection, financial execution
+and result tables, with no new history/panel work. See
+[history/descriptor/label contracts](meta_selection/HISTORY.md) and the
+[phase report](meta_selection/QMS03_REPORT.md). QMS-04 now implements internal
+[origin-sum Ridge, Q guard and model/decision bundles](meta_selection/MODEL.md),
+with tested versioned native numeric candidate blocks and explicit baseline
+NumPy fallback. It does not activate a public selector, alter financial backend
+resolution or add an endpoint argument. Public active/shadow WFO integration
+was separately gated QMS-05 work; see the [QMS-04 historical evidence](meta_selection/QMS04_REPORT.md).
+
+Feature-branch QMS-05 now supports
+`optimization_config["meta_selection"]={"mode": "shadow" | "active", ...}`
+on `mode_4_is_only_robust + per_fold_causal`, with scalar endpoint original-result
+or QMS-06 qualified original-pass prepared-witness scoring, isolated
+strategy lifecycle and continuous carry-position accounting. Bind the caller-owned
+typed context through keyword-only `backtest(..., meta_history=context)`.
+Off/omitted follows the existing path with no archive/observer/RNG work.
+Active selected params really generate the OOS signal; shadow keeps native.
+Current outer OOS is excluded, but active learned selection uses past matured
+forward labels and gets distinct information-policy claims. Unsupported routes
+fail before search. Read [complete syntax, clocks, sidecar and account contract](meta_selection/INTEGRATION.md),
+the [executed report](meta_selection/QMS05_REPORT.md), and
+[runnable public example](../examples/wfo_meta_selection.py).
+
+E03 adds bounded software research opt-ins for scalar `notional`, `unit` and
+structural `dca_ladder`, plus canonical aliases. See the
+[scalar domain contract](meta_selection/DOMAIN_ADAPTER_CONTRACT.md#e03-scalar-amendment)
+and [runnable example](../examples/wfo_meta_scalar.py). Mode/schedule stay
+Mode 4 / `per_fold_causal`; endpoint scoring is explicit. Original vectorized,
+native-event rebalance or legacy high/low accounting remains authoritative.
+Per-cell empirical/owner promotion is separate; no defaults or dynamic-order
+capabilities are changed. The [completed E03 assessment](meta_selection/QMSE03_REPORT.md)
+reports 0/8 economic gates passing and a real prepared-unit objective/selection
+failure after liquidation. Use original prepared-off scoring for affected
+contracts until the bounded repair is qualified; ordinary scalar software
+admission does not certify all prepared liquidation paths.
+
+E04 extends the same public WFO constructor to bounded portfolio meta research
+opt-ins, preserving the original native shared account. See the exact
+[market/position/account contract](meta_selection/DOMAIN_ADAPTER_CONTRACT.md#e04-portfolio-amendment),
+[example](../examples/wfo_meta_portfolio.py) and [local software evidence](meta_selection/QMSE04_REPORT.md).
+This does not qualify W3 multi-symbol carry, another financial backend or a
+portfolio alpha's forward economic improvement.
+
+E05 adds bounded basket/basis/statistical-pair meta software opt-ins on the
+original package account with explicit endpoint scoring. See the
+[package contract](meta_selection/DOMAIN_ADAPTER_CONTRACT.md#e05-package-amendment)
+and [sanitized example](../examples/wfo_meta_package.py). Missing calendar,
+delivery/roll, dynamic hedge and unbound quantity-policy requests fail closed;
+existing meta-off proxy defaults are unchanged. This is not a real-alpha
+economic or exchange-native atomicity certificate.
+
+This is not yet in published core 1.1.1. QMS-06 qualifies prepared scalar W0/W1/W2
+under the [exact capability/fallback matrix](meta_selection/INTEGRATION.md#prepared-capability-and-policy)
+and adds [portable host handoff](meta_selection/HANDOFF.md).
+Published native 0.4.2 lacks the witness: prepared `auto` falls back observably,
+`require` fails. W3 reactive/reset-flat meta supports local sequential
+inprocess and safe Linux fork/COW process original-result witnesses described in
+[W3 sequential meta](meta_selection/INTEGRATION.md#w3-sequential-meta);
+no automatic deployment or state reset is added.
+The [C02 transport/account contract](meta_selection/W3_TRANSPORT_AND_ACCOUNT_CONTRACTS.md)
+qualifies cooperative native witness deadlines and the private R3B witness
+primitive. Public meta batches, account carry and multi-symbol W3 still reject
+before execution. No endpoint is renamed or financial model replaced.
+
+C03 locally qualifies the four shared sampler recipes on W3 sequential/safe
+process and versioned global/inprocess R3B. Use the existing
+`WalkForwardConfig.sampler_config`; read
+[`sampler_studies` and proposal-order semantics](meta_selection/W3_SAMPLER_SCHEDULES.md).
+Fixed matrices are replay, not samplers. This does not activate extra meta modes,
+continuous carry, multi-symbol or public meta batching.
+
+The owner-approved local execution amendment adds four explicit WFO target
+routes: `intrabar`, `event_driven`, `order_commands`, `delivery_arbitrage`.
+Pass `execution_endpoint=financial_endpoint` to the existing constructor;
+the strategy returns `WfoExecutionWindow`, not an effective signal proxy.
+Read [stable calls and fold-account semantics](meta_selection/EXECUTION_WFO.md).
+Meta admission for these execution routes remains Mode 4/per-fold-causal, with synthetic software evidence
+separate from economic promotion. Delivery uses explicit pre-expiry flatten/roll,
+not cash settlement. Existing standalone endpoints/defaults are unchanged.
+
+Intrabar accepted local software qualification is now complete in
+[QMS-E06](meta_selection/QMSE06_REPORT.md): mature intent-only/session x explicit
+Numba/Rust, original measurements, no-leakage controls, carried protection/
+session/account parity and exact installed wheel/sdist proof. Public signatures
+and financial defaults are unchanged. Real-market economic promotion, E08
+qualification and publication remain separate gates.
+
+Accepted local event qualification now completes
+[QMS-E07](meta_selection/QMSE07_REPORT.md): generic callback/command Python/Rust
+and numeric W3 have actual mature fit/rank, no-leakage, original measurement,
+account/lifecycle and source-exact installed proof. Generic final accounts
+continue across folds; W3 stays segmented reset-flat. The financial endpoint's
+declared clock is authoritative; an effective command timestamp is not a
+callback observation timestamp. No new engine, optimizer or default promotion.
+
+The optional sidecar additionally returns original **current-run**
+`observed_revisions`: candidate panels, raw forward observations, typed statuses,
+labels and availability clocks, alongside existing tasks/models/snapshots/
+records and actual applied parameters. For generic WFO use
+`result.metadata["walk_forward"]["meta_selection"]`; for prepared W3 use
+`result.metadata["meta_selection"]`. Meta off adds no sidecar. See the
+[inspection/measurement recipe](meta_selection/EXECUTION_WFO.md#inspect-the-actual-meta-run).
+Returning these immutable references does not replay execution or copy all
+archive history; exports are caller-controlled and may reveal an alpha.
+
+QMS-C04 adds a separate [owned persisted sampler journal](meta_selection/EXACT_CONTINUATION.md)
+through `quantbt.optimization.continuation`; it adds no endpoint argument or
+automatic study/fold resume. Existing WFO and generic storage semantics stay
+unchanged, and finance/strategy/model state is not serialized by that utility.
+
+For QMS-08 candidate users, start with the [complete user guide](meta_selection/USAGE.md)
+and [installed-artifact qualification](meta_selection/QUALIFICATION.md). The
+public signature remains the same; `meta_history` is the additive keyword-only
+runtime binding. Core/native `1.1.1/0.4.2` are not overwritten. Private QMS
+candidate success does not enable meta by default or certify arbitrary reactive
+W3 process/batch/deadline contracts. W3 keeps segmented reset-flat accounts,
+and `meta_history` is an additive typed `.backtest(...)` argument.
+For the current prepared local 1.1.2/0.4.3 pair, the exact artifact gate is
+[PRE-E06-06](meta_selection/PRE_E06_06_REPORT.md). It exercises existing routes
+without adding an endpoint or changing execution, objective, fee or estimator
+contracts. C02/C03's sequential safe-process and cooperative-deadline scope is
+distinct from unsupported public meta batches, carry and shared multi-symbol.
 
 Performance compatibility: `optimization_config={"use_numba": True}` also
 accelerates stationary bootstrap index construction using the same NumPy RNG
@@ -3258,6 +3422,13 @@ All other calls retain their historical final route. `mode_2_sbb` retains its
 bounded proxy path; `native_prepared_wfo="require"` therefore raises for it.
 `auto` records the unsupported reason and runs the historical scorer.
 
+The [E03 liquidation assessment](meta_selection/QMSE03_REPORT.md#prepared-study-and-parity-blocker)
+narrows this historical certificate: a full prepared-unit study changes metric
+sample inclusion and Optuna selection after zero equity, despite exact financial
+arrays. Other liquidation-capable prepared contracts may be affected. Current
+auto/require does not detect this mismatch. Use `native_prepared_wfo="off"`
+for the affected contract until the approved compatibility repair passes.
+
 ```python
 pct_wfo = QuantBTEndpoint.walk_forward(
     strategy_class=strategy,
@@ -3594,6 +3765,16 @@ Important rules:
   `full_plateau_robust` (dense parameter plateau only),
   `full_temporal_robust` (best subperiod stability among top trials), and
   `full_best` (best full-sample objective, highest overfit risk);
+- opt-in diagnostics-first Mode 5 uses a typed
+  `optimization_config.mode5_calibration` to bind verified dossier, sealed
+  researcher recipe, data rights and original endpoint execution. Its four
+  research selector slots do not replace the legacy selectors above. See
+  [Public Diagnostics-First Mode 5](mode5/PUBLIC_CALIBRATION_V1.md) for exact
+  sampler, prepared retention, failure, measurement and selected-audit rules;
+- source-branch opt-in [winner qualification and archive donors](diagnostics/MODE5_WINNER_QUALIFICATION.md)
+  add exact-candidate evidence and current-contract coordinate reevaluation on
+  the existing endpoint/result interfaces. Researchers choose whether to use
+  them; no automatic router, default replacement or new financial engine;
 - numba accelerates repeated scoring/bootstrap loops when installed; Python /
   NumPy fallback remains available for debug and equivalence tests.
 
@@ -3991,6 +4172,15 @@ Useful config:
   during a hedged run, QuantBT computes the path from executed option positions
   and observable chain Greeks.
 
+ACC-01 requires the converted opening wallet to match `initial_capital`
+(`rel_tol=1e-10`, `abs_tol=1e-8` in reporting currency); `{}` follows the omitted
+wallet default. Non-default generic account/execution settings that options do
+not implement now raise `OptionCapabilityError`. Use option-specific controls.
+Applied common fees are in reporting currency at effective execution time, with
+original denomination and quote time retained separately. See the
+[option migration details](portfolio_review/ACC01_CONFIGURATION_AND_MIGRATION.md#option-wallet-and-financial-admission)
+for config precedence, currency/basis examples and the limits of reconciliation.
+
 Prepared cache pattern:
 
 ```python
@@ -4056,8 +4246,9 @@ selected = result.metadata["selected_contracts"]
 
 For delta-hedged runs, `result.equity` is the combined option-plus-hedge
 equity curve. The option-only curve remains available as `result.option_equity`.
-QuantBT adds a pre-trade row at `first_timestamp - 1ns` so metrics begin from
-the declared initial capital before the first option fill.
+The account path retains effective event snapshots, without a synthetic
+`first_timestamp - 1ns` row. First-event returns include initial fill costs
+relative to declared capital; hedge adaptation preserves the option ledger path.
 
 Returned result:
 

@@ -202,7 +202,16 @@ class _ReactiveSelectionEngine(WalkForwardEngine):
         # This stub is never invoked because W3 overrides the batch score
         # boundary below, but retaining the normal config keeps all selection
         # formulas and parameter validation unchanged.
-        super().__init__(strategy=_reactive_marker_strategy, config=config, scorer=_reactive_unused_scorer)
+        from dataclasses import replace
+
+        super().__init__(strategy=_reactive_marker_strategy,
+                         config=replace(config, meta_selection=None), scorer=_reactive_unused_scorer)
+        self.config = config
+        if config.meta_selection is not None or config.flat_selector == "feasible_support_projection_v1":
+            from ..optimization.meta_selection.reactive import ReactiveMetricBoundary
+
+            self.scorer = ReactiveMetricBoundary(runtime)
+            self.strategy = runtime.strategy_factory
         self._reactive_runtime = runtime
         self._precomputed_score_rows: dict[tuple[str, int, str, int, int], dict[str, float]] | None = None
         self._precomputed_failures: dict[tuple[str, int, str, int, int], dict[str, object]] = {}
@@ -376,7 +385,6 @@ class _ReactiveSelectionEngine(WalkForwardEngine):
         # fields are accepted so WalkForwardEngine can retain one provenance
         # signature across static and reactive schedules; they do not enable
         # static terminal-score reuse for reactive callbacks.
-        del execution_seed, study_id
         fold_metrics: list[dict[str, object]] = []
         is_scores: list[float] = []
         score_tasks: list[tuple[ReactiveWfoScoreMarkerV1, pd.DatetimeIndex, WalkForwardFold, Dict[str, Any], str]] = []
@@ -462,6 +470,8 @@ class _ReactiveSelectionEngine(WalkForwardEngine):
                     "is_required_trades": required_trades,
                     "is_trade_penalty": penalty,
                     "oos_evaluated": False,
+                    **({"meta_observation": is_metrics["meta_observation"]}
+                       if "meta_observation" in is_metrics else {}),
                     **shard_stats,
                 }
             )
@@ -474,7 +484,7 @@ class _ReactiveSelectionEngine(WalkForwardEngine):
             fallback=mean_is,
         )
         temporal_stats["is_subperiod_count"] = temporal_stats["temporal_count"]
-        return WalkForwardTrialRecord(
+        record = WalkForwardTrialRecord(
             trial_id=int(trial_id),
             params=dict(params),
             objective=mean_is,
@@ -491,6 +501,10 @@ class _ReactiveSelectionEngine(WalkForwardEngine):
                 **temporal_stats,
             },
         )
+        if self.config.flat_selector == "feasible_support_projection_v1":
+            from ..optimization.representatives import bind_is_record
+            record = bind_is_record(self, data, folds, record, execution_seed, study_id)
+        return record
 
 
 def _reactive_marker_strategy(*_args, **_kwargs):  # pragma: no cover - never executed directly

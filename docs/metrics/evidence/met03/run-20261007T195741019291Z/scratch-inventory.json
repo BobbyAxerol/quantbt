@@ -1,0 +1,66 @@
+[
+  {
+    "path": "source-env/pyvenv.cfg",
+    "bytes": 114
+  },
+  {
+    "path": "source-env/.lock",
+    "bytes": 0
+  },
+  {
+    "path": "source-env/.gitignore",
+    "bytes": 1
+  },
+  {
+    "path": "source-env/CACHEDIR.TAG",
+    "bytes": 43
+  },
+  {
+    "path": "source-env/bin/deactivate.bat",
+    "bytes": 1730
+  },
+  {
+    "path": "source-env/bin/activate_this.py",
+    "bytes": 2383
+  },
+  {
+    "path": "source-env/bin/activate.nu",
+    "bytes": 3949
+  },
+  {
+    "path": "source-env/bin/activate.bat",
+    "bytes": 2671
+  },
+  {
+    "path": "source-env/bin/activate.csh",
+    "bytes": 2621
+  },
+  {
+    "path": "source-env/bin/pydoc.bat",
+    "bytes": 1219
+  },
+  {
+    "path": "source-env/bin/activate.xsh",
+    "bytes": 3867
+  },
+  {
+    "path": "source-env/bin/activate",
+    "bytes": 4091
+  },
+  {
+    "path": "source-env/bin/activate.ps1",
+    "bytes": 2765
+  },
+  {
+    "path": "source-env/bin/activate.fish",
+    "bytes": 4332
+  },
+  {
+    "path": "source-env/lib/python3.12/site-packages/_virtualenv.pth",
+    "bytes": 18
+  },
+  {
+    "path": "source-env/lib/python3.12/site-packages/_virtualenv.py",
+    "bytes": 5246
+  }
+]

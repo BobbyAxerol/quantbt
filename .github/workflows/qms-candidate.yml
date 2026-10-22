@@ -1,0 +1,178 @@
+name: QMS Installed Candidate Qualification
+
+on:
+  push:
+    branches: [feat/mode5-diagnostics-first]
+    paths: &m512_candidate_paths
+      - "src/quantbt/**"
+      - "rust/**"
+      - "tools/**"
+      - "examples/**"
+      - "tests/**"
+      - ".github/workflows/qms-candidate.yml"
+      - ".github/workflows/native-release.yml"
+      - ".github/workflows/publish-native.yml"
+      - ".github/workflows/public-native-consumer.yml"
+      - "pyproject.toml"
+      - "uv.lock"
+      - "contracts/**"
+      - "docs/meta_selection/**"
+      - "docs/mode5/**"
+      - "docs/diagnostics/**"
+      - "docs/portfolio_review/**"
+      - "docs/metrics/**"
+      - "docs/maintenance/**"
+      - "MANIFEST.in"
+      - "README.md"
+      - "CHANGELOG.md"
+  pull_request:
+    branches: [dev, main]
+    paths: *m512_candidate_paths
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  installed-candidate:
+    name: ${{ matrix.runner }} / CPython ${{ matrix.python }}
+    runs-on: ${{ matrix.runner }}
+    env:
+      OPENBLAS_NUM_THREADS: "1"
+      MKL_NUM_THREADS: "1"
+      OMP_NUM_THREADS: "1"
+      NUMBA_NUM_THREADS: "1"
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-22.04, ubuntu-24.04]
+        python: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: astral-sh/setup-uv@v6
+      - name: Install pinned tooling and populate Cargo cache
+        run: |
+          uv sync --locked --extra optimization --dev
+          uv pip install --python .venv/bin/python 'maturin>=1.9,<2' 'PyYAML==6.0.3'
+          cargo fetch --manifest-path rust/native_event/Cargo.toml --locked
+      - name: Validate release identities and fail-closed proof gates
+        run: |
+          .venv/bin/python -m pytest -q tests/meta_selection/test_release_gaps.py tests/meta_selection/test_e01_installed.py tests/meta_selection/test_e01_docs.py tests/test_phase55a_native_distribution.py tests/test_phase55b_public_release.py tests/test_m5_12_consumer_wiring.py tests/test_m5_12_pct_installed.py tests/test_pre_m512_extraction_contract.py tests/test_pre_m512_source_guard.py tests/test_version_pair_120.py tests/test_qms_candidate_diagnostics.py --junitxml=.maturin/qms08/release-gaps.xml
+      - name: Validate typed domain admission and actual public dispatch
+        run: |
+          .venv/bin/python -m pytest -q tests/meta_selection/test_e02_contracts.py tests/meta_selection/test_e02_inventory.py tests/meta_selection/test_e03_scalar.py tests/meta_selection/test_e03_study_gate.py tests/meta_selection/test_e03_installed.py tests/meta_selection/test_e03_queue.py tests/meta_selection/test_e03_report.py tests/meta_selection/test_e04_portfolio.py tests/meta_selection/test_e04_installed.py tests/meta_selection/test_e04_report.py --junitxml=.maturin/qms08/e02-contracts.xml
+      - name: Build and prove exact release artifacts with default QMS (no publishing)
+        run: |
+          .venv/bin/python -m tools.qms08_package --release-pair --python "$(command -v python)" --output "$PWD/.maturin/qms08/qualified"
+      - name: Validate bounded package meta admission and original accounts
+        run: |
+          .venv/bin/python -m pytest -q tests/meta_selection/test_e05_package.py tests/meta_selection/test_e05_installed.py --junitxml=.maturin/qms08/e05-contracts.xml
+      - name: Validate liquidation compatibility and replay fail-closed gates
+        run: |
+          .venv/bin/python -m pytest -q tests/meta_selection/test_g01_metric_compatibility.py tests/meta_selection/test_g01_study_replay.py tests/meta_selection/test_g01_installed.py --junitxml=.maturin/qms08/g01-contracts.xml
+      - name: Prove installed W3 on this exact interpreter (no source imports)
+        shell: bash
+        run: |
+          lane="$(python -c 'import sys; print("cp" + "".join(map(str, sys.version_info[:2])) )')"
+          .venv/bin/python -m tools.qms_installed_w3 --lane "$PWD/.maturin/qms08/qualified/$lane"
+      - name: Prove eight installed scalar cells on this exact interpreter
+        shell: bash
+        run: |
+          lane="$(python -c 'import sys; print("cp" + "".join(map(str, sys.version_info[:2])) )')"
+          .venv/bin/python -m tools.qms_e03_installed --lane "$PWD/.maturin/qms08/qualified/$lane"
+      - name: Prove installed shared-account portfolio on this exact interpreter
+        shell: bash
+        run: |
+          lane="$(python -c 'import sys; print("cp" + "".join(map(str, sys.version_info[:2])) )')"
+          .venv/bin/python -m tools.qms_e04_installed --lane "$PWD/.maturin/qms08/qualified/$lane"
+      - name: Prove installed bounded packages on this exact interpreter
+        shell: bash
+        run: |
+          lane="$(python -c 'import sys; print("cp" + "".join(map(str, sys.version_info[:2])) )')"
+          .venv/bin/python -m tools.qms_e05_installed --lane "$PWD/.maturin/qms08/qualified/$lane"
+      - name: Prove repaired liquidation metrics from installed wheel and sdist
+        shell: bash
+        run: |
+          lane="$(python -c 'import sys; print("cp" + "".join(map(str, sys.version_info[:2])) )')"
+          .venv/bin/python -m tools.qms_g01_installed --lane "$PWD/.maturin/qms08/qualified/$lane"
+      - name: Prove installed intrabar sessions, generic v2/v3, commands and W3 with mature meta
+        shell: bash
+        run: |
+          lane="$(python -c 'import sys; print("cp" + "".join(map(str, sys.version_info[:2])) )')"
+          .venv/bin/python -m tools.qms_installed_execution --lane "$PWD/.maturin/qms08/qualified/$lane"
+      - name: Prove installed bounded Mode5 execution, ReportingV1 and ACC synthetic consumers
+        shell: bash
+        run: |
+          lane="$(python -c 'import sys; print("cp" + "".join(map(str, sys.version_info[:2])) )')"
+          .venv/bin/python -m tools.m5_12_installed_preflight --lane "$PWD/.maturin/qms08/qualified/$lane" 2>&1 | tee "$PWD/.maturin/qms08/qualified/$lane/m5-12-preflight.log"
+      - name: Prove 19 installed pct and alias cases from core wheel
+        shell: bash
+        run: |
+          lane="$(python -c 'import sys; print("cp" + "".join(map(str, sys.version_info[:2])) )')"
+          .venv/bin/python -B -m tools.m5_12_pct_installed --lane "$PWD/.maturin/qms08/qualified/$lane" --kind pair
+      - name: Prove 19 installed pct and alias cases from core sdist
+        shell: bash
+        run: |
+          lane="$(python -c 'import sys; print("cp" + "".join(map(str, sys.version_info[:2])) )')"
+          .venv/bin/python -B -m tools.m5_12_pct_installed --lane "$PWD/.maturin/qms08/qualified/$lane" --kind sdist
+      - name: Annotate qualification failures from retained JUnit
+        if: failure()
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import xml.etree.ElementTree as ET
+
+          def escape(value):
+              return value.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+
+          for path in sorted(Path(".maturin/qms08").glob("*-*.xml")):
+              root = ET.parse(path).getroot()
+              for case in root.iter("testcase"):
+                  for tag in ("failure", "error"):
+                      detail = case.find(tag)
+                      if detail is not None:
+                          node = case.get("classname", "") + "::" + case.get("name", "")
+                          message = node + "\n" + (detail.text or detail.get("message", ""))
+                          print("::error::" + escape(message[:6000]))
+          PY
+      - name: Retain installed consumer and build receipts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qms-candidate-${{ matrix.runner }}-cp${{ matrix.python }}
+          retention-days: 7
+          path: |
+            .maturin/qms08/qualified/cp*/dist/*.whl
+            .maturin/qms08/qualified/cp*/dist/*.tar.gz
+            .maturin/qms08/qualified/cp*/proof.json
+            .maturin/qms08/qualified/cp*/installed-w3-proof.json
+            .maturin/qms08/qualified/cp*/installed-scalar-proof.json
+            .maturin/qms08/qualified/cp*/installed-portfolio-proof.json
+            .maturin/qms08/qualified/cp*/installed-package-proof.json
+            .maturin/qms08/qualified/cp*/installed-g01-proof.json
+            .maturin/qms08/qualified/cp*/installed-execution-proof.json
+            .maturin/qms08/qualified/cp*/installed-execution-proof/*
+            .maturin/qms08/qualified/cp*/installed-m5-12-proof.json
+            .maturin/qms08/qualified/cp*/installed-m5-12-proof/*
+            .maturin/qms08/qualified/cp*/installed-pct-*-proof.json
+            .maturin/qms08/qualified/cp*/installed-pct-*-proof/*.json
+            .maturin/qms08/qualified/cp*/installed-pct-*-proof/*.xml
+            .maturin/qms08/qualified/cp*/installed-pct-*-proof/*.log
+            .maturin/qms08/qualified/cp*/*.log
+            .maturin/qms08/qualified/cp*/installed-w3-proof/**/*.log
+            .maturin/qms08/qualified/cp*/installed-scalar-proof/*.log
+            .maturin/qms08/qualified/cp*/installed-portfolio-proof/*.log
+            .maturin/qms08/qualified/cp*/installed-package-proof/*.log
+            .maturin/qms08/qualified/cp*/installed-g01-proof/*.log
+            .maturin/qms08/release-gaps.xml
+            .maturin/qms08/e02-contracts.xml
+            .maturin/qms08/e05-contracts.xml
+            .maturin/qms08/g01-contracts.xml
+          if-no-files-found: error

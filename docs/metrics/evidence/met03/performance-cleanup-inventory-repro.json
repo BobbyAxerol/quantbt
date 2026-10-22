@@ -1,0 +1,16 @@
+{
+  "command": [
+    ".venv/bin/python",
+    "tools/metrics/close_met03.py",
+    "--performance",
+    "--source",
+    "docs/metrics/evidence/met03/run-20261007T215523607051Z",
+    "--package",
+    "docs/metrics/evidence/met03/run-20261007T220807135175Z"
+  ],
+  "exit_code": 1,
+  "stdout": "",
+  "stderr": "Traceback (most recent call last):\n  File \"/root/bobby/pool_alpha/quantbt/tools/metrics/close_met03.py\", line 166, in <module>\n    print(json.dumps(dict(status=closure[\"status\"], gates=closure[\"gates\"], removed=cleaned)))\n    ^^^^^^\n  File \"/root/bobby/pool_alpha/quantbt/tools/metrics/close_met03.py\", line 109, in main\n    links = [p for p in focused_plots.rglob(\"*\") if p.is_symlink()]\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n",
+  "reason": "pytest generated one internal current symlink not present in cleanup inventory; guard stopped before deletion",
+  "publication": false
+}

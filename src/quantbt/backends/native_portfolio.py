@@ -19,7 +19,8 @@ import numpy as np
 import pandas as pd
 
 from ..core.engine import _engine_portfolio, _engine_portfolio_equity_sizing
-from ..core.constraints import build_quantity_constraints, quantize_target_units_matrix
+from ..core.constraints import QuantityConstraints, build_quantity_constraints, quantize_target_units_matrix
+from ..core.portfolio_validation import validate_portfolio_configuration
 from ..core.portfolio import (
     NATIVE_PORTFOLIO_SUPPORTED_SIZING_MODES,
     PortfolioDomainSpec,
@@ -31,6 +32,7 @@ from ..core.preprocessor import (
     PreparedMarketArrays,
     align_series,
     build_market_arrays,
+    build_tradable_matrix,
     build_signal_matrix,
     market_data_signature,
     prepare_funding,
@@ -40,6 +42,7 @@ from ..core.results import BacktestResultV2, BacktestScalarScoreResult
 from ..core.schema import AccountConfig
 from ..core.schema import ExecutionConfig, InstrumentSpec
 from ..sizing.fast import scale_signal_notional_matrix
+from . import portfolio_reports as _portfolio_reports
 
 
 @dataclass(frozen=True)
@@ -51,8 +54,9 @@ class NativePortfolioConfig:
     report_level: str = "full"
 
     def __post_init__(self) -> None:
-        if float(self.fee_rate) < 0.0:
+        if not np.isfinite(self.fee_rate) or float(self.fee_rate) < 0.0:
             raise ValueError("fee_rate must be >= 0")
+        validate_portfolio_configuration(self.account, self.execution)
         object.__setattr__(self, "report_level", _normalize_report_level(self.report_level))
 
 
@@ -147,6 +151,10 @@ class NativePortfolioBackend:
             min_qty=min_qty,
             min_notional=min_notional,
         )
+        constraints = QuantityConstraints(
+            constraints.symbols, constraints.qty_step, constraints.min_qty,
+            np.maximum(constraints.min_notional, self.config.execution.min_order_notional),
+        )
         lev_arr = self._per_symbol_array(
             self.config.account.leverage if leverage is None else leverage,
             symbol_list,
@@ -154,6 +162,10 @@ class NativePortfolioBackend:
         )
         alloc_arr = self._per_symbol_array(alloc_per_trade, symbol_list, default=100_000.0)
         maint_ratio = self.config.account.maintenance_ratio if maintenance_ratio is None else float(maintenance_ratio)
+        if np.any(cs_arr <= 0.0) or np.any(lev_arr <= 0.0) or np.any(alloc_arr < 0.0):
+            raise ValueError("contract_size/leverage must be positive and allocation nonnegative")
+        if not np.isfinite(maint_ratio) or maint_ratio < 0.0:
+            raise ValueError("maintenance_ratio must be finite and nonnegative")
 
         beta_arr = self._per_symbol_array(betas, symbol_list, default=1.0)
         tradable_mask = self._tradable_matrix(
@@ -167,6 +179,10 @@ class NativePortfolioBackend:
         inv_vol = np.divide(1.0, risk_vol, out=np.zeros_like(risk_vol), where=risk_vol > 0.0)
         equity_aware = sizing_mode in {"%_equity", "target_weight", "gross_exposure", "net_exposure"}
         slippage_rate = float(self.config.execution.slippage_rate)
+        level = _normalize_report_level(self.config.report_level if report_level is None else report_level)
+        funding_paid = np.zeros(len(idx), dtype=np.float64) if _scalar_score_trading_days is None else None
+        attribution = (np.zeros((len(idx), len(symbol_list), 4), dtype=np.float64)
+                       if _scalar_score_trading_days is None and level in {"full", "standard"} else None)
 
         if equity_aware:
             (
@@ -206,6 +222,8 @@ class NativePortfolioBackend:
                 min_qtys=constraints.min_qty,
                 min_notionals=constraints.min_notional,
                 tradable=tradable_mask,
+                funding_paid=funding_paid,
+                attribution=attribution,
             )
         else:
             target_units = self._scale_target_units(
@@ -224,7 +242,7 @@ class NativePortfolioBackend:
                 betas=beta_arr,
                 risk_vol=risk_vol,
             )
-            target_units = quantize_target_units_matrix(target_units, market.closes, cs_arr, constraints)
+            target_units = quantize_target_units_matrix(target_units, market.closes, cs_arr, constraints, check_minima=False)
 
             (
                 equity_arr,
@@ -252,6 +270,11 @@ class NativePortfolioBackend:
                 contract_sizes=cs_arr,
                 use_funding=bool(self.config.use_funding),
                 tradable=tradable_mask,
+                qty_steps=constraints.qty_step,
+                min_qtys=constraints.min_qty,
+                min_notionals=constraints.min_notional,
+                funding_paid=funding_paid,
+                attribution=attribution,
             )
 
         if _scalar_score_trading_days is not None:
@@ -323,6 +346,8 @@ class NativePortfolioBackend:
             quantity_constraints=constraints.as_dict(),
             tradable_mask=tradable_mask,
             report_level=self.config.report_level if report_level is None else report_level,
+            funding_paid=funding_paid,
+            attribution=attribution,
         )
         spec = PortfolioDomainSpec(mode=portfolio_mode, sizing_mode=sizing_mode)
         if result.metadata.get("report_level") == "minimal":
@@ -530,15 +555,13 @@ class NativePortfolioBackend:
         quantity_constraints: Dict[str, Dict[str, float]],
         tradable_mask: np.ndarray,
         report_level: str,
+        funding_paid: np.ndarray,
+        attribution: Optional[np.ndarray] = None,
     ) -> BacktestResultV2:
         level = _normalize_report_level(report_level)
         equity = pd.Series(equity_arr, index=idx, name="equity")
-        close_report = pd.DataFrame(closes_m, index=idx, columns=symbol_list, copy=False)
         target_units_report = pd.DataFrame(target_m, index=idx, columns=symbol_list, copy=False)
         accepted_units_report = pd.DataFrame(pos_arr, index=idx, columns=symbol_list, copy=False)
-        cs = pd.Series({s: float(contract_sizes[j]) for j, s in enumerate(symbol_list)})
-        lev = pd.Series({s: float(leverages[j]) for j, s in enumerate(symbol_list)})
-        beta_s = pd.Series({s: float(betas[j]) for j, s in enumerate(symbol_list)})
         cs_row = contract_sizes.reshape(1, -1)
         target_notional_arr = target_m * closes_m * cs_row
         accepted_notional_arr = pos_arr * closes_m * cs_row
@@ -550,9 +573,7 @@ class NativePortfolioBackend:
         fees = pd.Series(fee_arr, index=idx, name="fees")
         slippage = pd.Series(slippage_arr, index=idx, name="slippage")
         turnover = pd.Series(turnover_arr, index=idx, name="turnover")
-        prev_units = np.vstack([np.zeros((1, len(symbol_list)), dtype=np.float64), pos_arr[:-1]])
-        funding_cost_arr = prev_units * closes_m * cs_row * funding_m
-        funding_cost_arr = np.where(is_funding_bar.reshape(-1, 1).astype(bool), funding_cost_arr, 0.0).sum(axis=1)
+        funding_cost_arr = funding_paid
         abs_accepted = np.abs(accepted_notional_arr)
         margin = pd.DataFrame(
             {
@@ -588,8 +609,16 @@ class NativePortfolioBackend:
             "hedge_type": hedge_type,
             "engine": "native_portfolio_v1",
             "report_level": level,
-            "initial_buying_power": self.config.account.initial_capital * float(np.mean(leverages)),
-            "funding_rate_unit": "per_event",
+            "initial_buying_power": (self.config.account.initial_capital * float(leverages[0])
+                                     if np.all(leverages == leverages[0]) else None),
+            "funding_rate_unit": "per_event_or_carried_interval_sum",
+            "funding_calendar": "utc_8h_events_close_proxy_interval_settlement_v2",
+            "account_contract": "linear_gross_cross_netting_close_v2",
+            "liquidation_contract": "simultaneous_adverse_ohlc_zero_equity_legacy",
+            "position_mode": "netting",
+            "margin_mode": "cross",
+            "leverage_by_symbol": dict(zip(symbol_list, leverages.tolist())),
+            "quantity_minimum_policy": "increasing_delta_order_reduce_exempt_v2",
             "target_units_report": target_units_report,
             "accepted_units_report": accepted_units_report,
             "beta": {s: float(betas[j]) for j, s in enumerate(symbol_list)},
@@ -627,6 +656,7 @@ class NativePortfolioBackend:
                 contract_sizes=contract_sizes,
                 fee_arr=fee_arr,
                 slippage_arr=slippage_arr,
+                attribution=attribution,
             )
             metadata.update(
                 {
@@ -707,201 +737,22 @@ class NativePortfolioBackend:
             metadata=metadata,
         )
 
-    @staticmethod
-    def _build_symbol_pnl_report(
-        *,
-        idx: pd.DatetimeIndex,
-        symbols: List[str],
-        accepted_units_arr: np.ndarray,
-        closes_arr: np.ndarray,
-        funding_rates_arr: np.ndarray,
-        is_funding_bar: np.ndarray,
-        contract_sizes: np.ndarray,
-        fee_arr: np.ndarray,
-        slippage_arr: np.ndarray,
-    ) -> pd.DataFrame:
-        n_bars, n_syms = accepted_units_arr.shape
-        if n_bars == 0 or n_syms == 0:
-            return pd.DataFrame()
-        prev_units = np.vstack([np.zeros((1, n_syms), dtype=np.float64), accepted_units_arr[:-1]])
-        prev_close = np.vstack([closes_arr[0:1], closes_arr[:-1]])
-        cs = contract_sizes.reshape(1, -1)
-        mark_pnl = prev_units * (closes_arr - prev_close) * cs
-        funding_cost = prev_units * closes_arr * cs * funding_rates_arr
-        funding_cost = np.where(is_funding_bar.reshape(-1, 1).astype(bool), funding_cost, 0.0)
-        trade_delta = np.abs(accepted_units_arr - prev_units)
-        trade_notional = trade_delta * closes_arr * cs
-        total_trade_notional = trade_notional.sum(axis=1, keepdims=True)
-        share = np.divide(
-            trade_notional,
-            total_trade_notional,
-            out=np.zeros_like(trade_notional),
-            where=total_trade_notional != 0.0,
-        )
-        fee = fee_arr.reshape(-1, 1) * share
-        slippage = slippage_arr.reshape(-1, 1) * share
-        total_pnl = mark_pnl - funding_cost - fee - slippage
-
-        return pd.DataFrame(
-            {
-                "timestamp": np.tile(np.asarray(idx, dtype=object), n_syms),
-                "symbol": np.repeat(np.asarray(symbols, dtype=object), n_bars),
-                "position_units": accepted_units_arr.T.reshape(-1),
-                "close": closes_arr.T.reshape(-1),
-                "mark_pnl": mark_pnl.T.reshape(-1),
-                "funding_cost": funding_cost.T.reshape(-1),
-                "funding_pnl": (-funding_cost).T.reshape(-1),
-                "fee": fee.T.reshape(-1),
-                "fee_pnl": (-fee).T.reshape(-1),
-                "slippage_cost": slippage.T.reshape(-1),
-                "slippage_pnl": (-slippage).T.reshape(-1),
-                "total_pnl": total_pnl.T.reshape(-1),
-            }
-        )
-
-    @staticmethod
-    def _build_exposure_report(
-        *,
-        accepted_notional_arr: np.ndarray,
-        target_notional_arr: np.ndarray,
-        equity_arr: np.ndarray,
-        idx: pd.DatetimeIndex,
-        leverages: np.ndarray,
-        maintenance_ratio: float,
-        betas: np.ndarray,
-    ) -> pd.DataFrame:
-        abs_accepted = np.abs(accepted_notional_arr)
-        gross = abs_accepted.sum(axis=1)
-        net = accepted_notional_arr.sum(axis=1)
-        initial_margin = (abs_accepted / leverages.reshape(1, -1)).sum(axis=1)
-        maintenance_margin = gross * float(maintenance_ratio)
-        beta_exposure = (accepted_notional_arr * betas.reshape(1, -1)).sum(axis=1)
-        target_gross = np.abs(target_notional_arr).sum(axis=1)
-        target_beta_exposure = (target_notional_arr * betas.reshape(1, -1)).sum(axis=1)
-        mean_leverage = float(np.mean(leverages))
-        gross_leverage = np.divide(gross, equity_arr, out=np.zeros_like(gross), where=equity_arr != 0.0)
-        net_exposure_pct = np.divide(net, equity_arr, out=np.zeros_like(net), where=equity_arr != 0.0)
-        return pd.DataFrame(
-            {
-                "long_notional": np.where(accepted_notional_arr > 0.0, accepted_notional_arr, 0.0).sum(axis=1),
-                "short_notional": np.where(accepted_notional_arr < 0.0, -accepted_notional_arr, 0.0).sum(axis=1),
-                "gross_notional": gross,
-                "net_notional": net,
-                "beta_exposure_notional": beta_exposure,
-                "target_gross_notional": target_gross,
-                "target_beta_exposure_notional": target_beta_exposure,
-                "initial_margin": initial_margin,
-                "maintenance_margin": maintenance_margin,
-                "equity": equity_arr,
-                "available_equity_after_im": equity_arr - initial_margin,
-                "buying_power": equity_arr * mean_leverage,
-                "gross_leverage": gross_leverage,
-                "net_exposure_pct": net_exposure_pct,
-            },
-            index=idx,
-        )
-
-    @staticmethod
-    def _build_rebalance_report(
-        *,
-        idx: pd.DatetimeIndex,
-        symbols: List[str],
-        target_units_arr: np.ndarray,
-        accepted_units_arr: np.ndarray,
-        closes_arr: np.ndarray,
-        contract_sizes: np.ndarray,
-        tradable_mask: np.ndarray,
-        quantity_constraints: Dict[str, Dict[str, float]],
-    ) -> pd.DataFrame:
-        diff = target_units_arr - accepted_units_arr
-        row_idx, col_idx = np.nonzero(np.abs(diff) > 1e-10)
-        if len(row_idx) == 0:
-            return pd.DataFrame(
-                columns=["timestamp", "symbol", "target_units", "accepted_units", "unit_diff", "notional_diff", "reason"]
-            )
-        unit_diff = diff[row_idx, col_idx]
-        notional_diff = unit_diff * closes_arr[row_idx, col_idx] * contract_sizes[col_idx]
-        symbol_arr = np.asarray(symbols, dtype=object)
-        reasons = []
-        for r, c in zip(row_idx, col_idx):
-            symbol = symbols[int(c)]
-            target = float(target_units_arr[r, c])
-            close = float(closes_arr[r, c])
-            cs = float(contract_sizes[c])
-            constraints = quantity_constraints.get(symbol, {})
-            min_qty = float(constraints.get("min_qty", 0.0) or 0.0)
-            min_notional = float(constraints.get("min_notional", 0.0) or 0.0)
-            abs_target = abs(target)
-            notional = abs_target * close * cs if np.isfinite(close) else np.nan
-            if not np.isfinite(target):
-                reasons.append("INVALID_TARGET")
-            elif not np.isfinite(close) or close <= 0.0:
-                reasons.append("NON_TRADABLE")
-            elif not bool(tradable_mask[r, c]):
-                reasons.append("STALE_PRICE")
-            elif min_qty > 0.0 and 0.0 < abs_target < min_qty:
-                reasons.append("MIN_QTY")
-            elif min_notional > 0.0 and np.isfinite(notional) and 0.0 < notional < min_notional:
-                reasons.append("MIN_NOTIONAL")
-            else:
-                reasons.append("POST_COST_MARGIN")
-        return pd.DataFrame(
-            {
-                "timestamp": idx.take(row_idx),
-                "symbol": symbol_arr[col_idx],
-                "target_units": target_units_arr[row_idx, col_idx],
-                "accepted_units": accepted_units_arr[row_idx, col_idx],
-                "unit_diff": unit_diff,
-                "notional_diff": notional_diff,
-                "reason": reasons,
-            }
-        )
-
-    @staticmethod
-    def _build_reconciliation_report(
-        *,
-        initial_capital: float,
-        equity_arr: np.ndarray,
-        fee_arr: np.ndarray,
-        slippage_arr: np.ndarray,
-        turnover_arr: np.ndarray,
-        positions: pd.DataFrame,
-        target_units_report: pd.DataFrame,
-        accepted_units_report: pd.DataFrame,
-        symbol_pnl_report: pd.DataFrame,
-    ) -> Dict[str, float]:
-        if symbol_pnl_report is None or symbol_pnl_report.empty:
-            symbol_fee = 0.0
-            symbol_slippage = 0.0
-            symbol_pnl = 0.0
-        else:
-            symbol_fee = float(symbol_pnl_report["fee"].sum())
-            symbol_slippage = float(symbol_pnl_report["slippage_cost"].sum())
-            symbol_pnl = float(symbol_pnl_report["total_pnl"].sum())
-        positions_values = positions.to_numpy(dtype=np.float64, copy=False)
-        accepted_values = accepted_units_report.to_numpy(dtype=np.float64, copy=False)
-        return {
-            "fee_total": float(np.sum(fee_arr)),
-            "symbol_fee_total": symbol_fee,
-            "fee_diff": float(np.sum(fee_arr) - symbol_fee),
-            "slippage_total": float(np.sum(slippage_arr)),
-            "symbol_slippage_total": symbol_slippage,
-            "slippage_diff": float(np.sum(slippage_arr) - symbol_slippage),
-            "turnover_total": float(np.sum(turnover_arr)),
-            "symbol_total_pnl": symbol_pnl,
-            "equity_pnl": float(equity_arr[-1] - initial_capital) if len(equity_arr) else 0.0,
-            "equity_symbol_pnl_diff": float((equity_arr[-1] - initial_capital) - symbol_pnl) if len(equity_arr) else 0.0,
-            "max_result_position_diff": float(np.nanmax(np.abs(positions_values - accepted_values))) if positions_values.size else 0.0,
-            "max_target_accepted_diff": float(np.nanmax(np.abs(target_units_report.to_numpy(dtype=np.float64, copy=False) - accepted_values))) if accepted_values.size else 0.0,
-        }
+    _build_symbol_pnl_report = staticmethod(_portfolio_reports._build_symbol_pnl_report)
+    _build_exposure_report = staticmethod(_portfolio_reports._build_exposure_report)
+    _build_rebalance_report = staticmethod(_portfolio_reports._build_rebalance_report)
+    _build_reconciliation_report = staticmethod(_portfolio_reports._build_reconciliation_report)
 
     @staticmethod
     def _per_symbol_array(value, symbols: List[str], default: float) -> np.ndarray:
         if value is None:
-            return np.full(len(symbols), float(default), dtype=np.float64)
-        if isinstance(value, dict):
-            return np.array([float(value.get(symbol, default)) for symbol in symbols], dtype=np.float64)
-        return np.full(len(symbols), float(value), dtype=np.float64)
+            out = np.full(len(symbols), float(default), dtype=np.float64)
+        elif isinstance(value, dict):
+            out = np.array([float(value.get(symbol, default)) for symbol in symbols], dtype=np.float64)
+        else:
+            out = np.full(len(symbols), float(value), dtype=np.float64)
+        if not np.isfinite(out).all():
+            raise ValueError("per-symbol financial configuration must be finite")
+        return out
 
     @staticmethod
     def _risk_volatility_matrix(closes: np.ndarray, lookback: int) -> np.ndarray:
@@ -923,32 +774,7 @@ class NativePortfolioBackend:
         market: PreparedMarketArrays,
         max_stale_bars: int = 0,
     ) -> np.ndarray:
-        out = np.isfinite(market.closes) & (market.closes > 0.0)
-        if closes is None:
-            return np.ascontiguousarray(out, dtype=np.bool_)
-        max_stale = max(0, int(max_stale_bars))
-        for j, symbol in enumerate(symbols):
-            raw = closes[symbol]
-            if not isinstance(raw, pd.Series):
-                raw = pd.Series(raw, index=idx)
-            raw_idx = raw.index
-            if isinstance(raw_idx, pd.DatetimeIndex):
-                if raw_idx.tz is None:
-                    raw = raw.copy()
-                    raw.index = raw.index.tz_localize("UTC")
-                else:
-                    raw = raw.copy()
-                    raw.index = raw.index.tz_convert("UTC")
-            observed = raw[~raw.index.duplicated(keep="first")].reindex(idx)
-            values = observed.to_numpy(dtype=np.float64)
-            stale = max_stale + 1
-            for i in range(len(idx)):
-                if np.isfinite(values[i]) and values[i] > 0.0:
-                    stale = 0
-                else:
-                    stale += 1
-                out[i, j] = bool(out[i, j] and stale <= max_stale)
-        return np.ascontiguousarray(out, dtype=np.bool_)
+        return build_tradable_matrix(closes, idx, symbols, market.closes, max_stale_bars=max_stale_bars)
 
     @staticmethod
     def _sizing_mode_id(sizing_mode: str) -> int:

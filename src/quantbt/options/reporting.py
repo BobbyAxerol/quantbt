@@ -15,6 +15,7 @@ from .ledger import OptionLedger
 from .margin import OptionLiquidationAudit, OptionMarginRequirement
 from .schema import OptionInstrumentRegistry, OptionInstrumentSpec
 from .tape import PreparedOptionTape
+from .validation import conversion_rate as _conversion_rate_to_reporting, finite_number
 
 
 def snapshot_marks(tape: PreparedOptionTape, snapshot_idx: int) -> Dict[str, float]:
@@ -62,19 +63,17 @@ def build_option_result(
     liquidated: bool,
     metadata: Dict,
 ) -> OptionBacktestResult:
+    # Several transitions can share an instant; retain their final account state.
+    snapshots = list({int(snap["timestamp_ns"]): snap for snap in snapshots}.values())
     index = pd.DatetimeIndex(
         pd.to_datetime([snap["timestamp_ns"] for snap in snapshots], utc=True)
     ).tz_convert(None)
     equity = pd.Series(
         [snap["equity"] for snap in snapshots], index=index, name="equity"
     )
-    if len(equity.index) != len(set(equity.index)):
-        values = equity.index.view("int64").copy()
-        for index_position in range(1, len(values)):
-            if values[index_position] <= values[index_position - 1]:
-                values[index_position] = values[index_position - 1] + 1
-        equity.index = pd.DatetimeIndex(values)
     returns = equity.pct_change().replace([np.inf, -np.inf], np.nan).fillna(0.0)
+    if len(returns):
+        returns.iloc[0] = equity.iloc[0] / account.initial_capital - 1.0
 
     symbols = list(registry.symbols)
     positions = pd.DataFrame(
@@ -102,7 +101,15 @@ def build_option_result(
     cash_report = _cash_report(snapshots, equity.index)
     marks_report = _marks_report(tape)
     greeks_report = _greeks_report(tape)
-    fills_report = _fills_report(fills_with_fees)
+    fills_report = _fills_report(fills_with_fees, conversion_rates, report_ccy)
+    fees = pd.Series(0.0, index=equity.index, name="fees")
+    event_rows = {int(snap["timestamp_ns"]): idx for idx, snap in enumerate(snapshots)}
+    if not fills_report.empty:
+        for row in fills_report.itertuples(index=False):
+            if int(row.timestamp) not in event_rows:
+                raise ValueError("applied option fee timestamp is missing from the account timeline")
+            idx = event_rows[int(row.timestamp)]
+            fees.iloc[idx] = finite_number(fees.iloc[idx] + row.fee_reporting_value, "event fee reporting value", minimum=0.0)
     settlements_report = _settlements_report(settlements, settlement_records)
     margin_timeline_report = pd.DataFrame(margin_timeline)
     liquidation_report = _liquidation_report(liquidation_audits)
@@ -111,6 +118,11 @@ def build_option_result(
     )
     accounting_reconciliation = _accounting_reconciliation(
         fills_report, ledger, conversion_rates, report_ccy
+    )
+    accounting_reconciliation["common_fee_reporting_value"] = finite_number(float(fees.sum()), "common fee total", minimum=0.0)
+    accounting_reconciliation["reconciled"] = bool(
+        accounting_reconciliation["reconciled"]
+        and np.isclose(fees.sum(), accounting_reconciliation["ledger_fee_reporting_value"], rtol=1e-10, atol=1e-8)
     )
     run_manifest = {
         "backend": "native_option",
@@ -186,14 +198,6 @@ def build_option_result(
             reporting_currency=report_ccy,
         ),
     }
-    fees = pd.Series(0.0, index=equity.index, name="fees")
-    if len(fees) > 0:
-        fees.iloc[-1] = float(
-            sum(
-                (fee.fee if fee is not None else fill.fee)
-                for fill, fee in fills_with_fees
-            )
-        )
     return OptionBacktestResult(
         equity=equity,
         returns=returns,
@@ -236,22 +240,13 @@ def attach_delta_hedge_contract(
     account: AccountConfig,
     report_ccy: str,
 ) -> OptionBacktestResult:
-    path_timestamps = np.concatenate(
-        (
-            np.array([int(tape.timestamp_ns[0]) - 1], dtype=np.int64),
-            tape.timestamp_ns.astype(np.int64),
-        )
-    )
+    path_timestamps = np.array([stamp.value for stamp in result.equity.index], dtype=np.int64)
     index = _datetime_index_from_ns(path_timestamps)
-    option_equity, positions, closes, fees = _linear_quote_option_path(
-        result,
-        tape,
-        registry,
-        account,
-        report_ccy,
-        index,
-        path_timestamps,
-    )
+    option_equity = result.equity.copy().rename("option_equity")
+    positions = result.positions.copy()
+    closes = result.closes.copy()
+    fees = result.fees.copy()
+    result.metadata["option_path_method"] = "authoritative_event_snapshots"
     deltas = _normalize_net_delta(
         net_option_delta, result.greeks_report, positions, registry, index
     )
@@ -274,6 +269,8 @@ def attach_delta_hedge_contract(
     combined_returns = (
         combined.pct_change().replace([np.inf, -np.inf], np.nan).fillna(0.0)
     )
+    if len(combined_returns):
+        combined_returns.iloc[0] = combined.iloc[0] / account.initial_capital - 1.0
 
     result.option_equity = option_equity
     result.hedge_report = hedge_report
@@ -321,98 +318,6 @@ def _stable_hash(value: str) -> str:
     return hashlib.sha256(value.encode("utf-8")).hexdigest()[:16]
 
 
-def _linear_quote_option_path(
-    result: OptionBacktestResult,
-    tape: PreparedOptionTape,
-    registry: OptionInstrumentRegistry,
-    account: AccountConfig,
-    report_ccy: str,
-    index: pd.DatetimeIndex,
-    path_timestamps: np.ndarray,
-) -> tuple[pd.Series, pd.DataFrame, pd.DataFrame, pd.Series]:
-    symbols = list(registry.symbols)
-    linear_quote_exact = all(
-        instrument.premium_currency.upper() == report_ccy
-        and instrument.settlement_currency.upper() == report_ccy
-        for instrument in registry.instruments
-    )
-    if not linear_quote_exact:
-        option_equity = result.equity.reindex(index).ffill().bfill().rename(
-            "option_equity"
-        )
-        positions = result.positions.reindex(index).ffill().fillna(0.0)
-        closes = result.closes.reindex(index).ffill().bfill()
-        fees = result.fees.reindex(index).fillna(0.0)
-        result.metadata["option_path_method"] = (
-            "event_equity_reindexed_non_quote_currency"
-        )
-        return option_equity, positions, closes, fees
-
-    cash = float(account.initial_capital)
-    pos = {symbol: 0.0 for symbol in symbols}
-    fills = (
-        result.fills_report.sort_values("timestamp")
-        if not result.fills_report.empty
-        else pd.DataFrame()
-    )
-    fill_idx = 0
-    equity_rows = []
-    position_rows = []
-    close_rows = []
-    fee_values = []
-    mark_by_ts_symbol = _mark_lookup(tape)
-
-    for ts, _dt in zip(path_timestamps, index):
-        snap_idx = max(
-            0, int(np.searchsorted(tape.timestamp_ns, int(ts), side="right") - 1)
-        )
-        fee_at_ts = 0.0
-        while (
-            not fills.empty
-            and fill_idx < len(fills)
-            and int(fills.iloc[fill_idx]["timestamp"]) <= int(ts)
-        ):
-            row = fills.iloc[fill_idx]
-            qty = float(row["qty"])
-            price = float(row["price"])
-            fee = float(row.get("applied_fee", row.get("execution_fee", 0.0)))
-            symbol = str(row["symbol"])
-            side = str(row["side"]).lower()
-            if side == "buy":
-                cash -= qty * price + fee
-                pos[symbol] = pos.get(symbol, 0.0) + qty
-            else:
-                cash += qty * price - fee
-                pos[symbol] = pos.get(symbol, 0.0) - qty
-            fee_at_ts += fee
-            fill_idx += 1
-        mark_ts = int(tape.timestamp_ns[snap_idx])
-        marks = {
-            symbol: mark_by_ts_symbol.get((mark_ts, symbol), np.nan)
-            for symbol in symbols
-        }
-        marked_value = sum(
-            pos.get(symbol, 0.0) * marks[symbol]
-            for symbol in symbols
-            if np.isfinite(marks[symbol])
-        )
-        equity_rows.append(cash + marked_value)
-        position_rows.append(
-            {f"Position_{symbol}": pos.get(symbol, 0.0) for symbol in symbols}
-        )
-        close_rows.append(
-            {f"Close_{symbol}": marks[symbol] for symbol in symbols}
-        )
-        fee_values.append(fee_at_ts)
-
-    option_equity = pd.Series(equity_rows, index=index, name="option_equity")
-    positions = pd.DataFrame(position_rows, index=index).fillna(0.0)
-    closes = pd.DataFrame(close_rows, index=index).ffill().bfill()
-    fees = pd.Series(fee_values, index=index, name="fees")
-    result.metadata["option_path_method"] = "linear_quote_replay"
-    return option_equity, positions, closes, fees
-
-
 def _normalize_net_delta(
     net_option_delta: Optional[pd.Series],
     greeks_report: pd.DataFrame,
@@ -423,10 +328,7 @@ def _normalize_net_delta(
     if net_option_delta is not None:
         series = _coerce_series_index(net_option_delta, "net_option_delta")
         return (
-            series.reindex(index)
-            .ffill()
-            .bfill()
-            .fillna(0.0)
+            series.sort_index().reindex(index, method="ffill")
             .rename("net_option_delta")
         )
     if greeks_report.empty:
@@ -518,8 +420,8 @@ def _align_price_series(
 ) -> pd.Series:
     out = series.sort_index()
     out = out[~out.index.duplicated(keep="last")]
-    out = out.reindex(index).ffill().bfill()
-    if out.isna().any() or bool((out <= 0.0).any()):
+    out = out.reindex(index, method="ffill")
+    if not np.isfinite(out.to_numpy(dtype=np.float64)).all() or bool((out <= 0.0).any()):
         raise ValueError("underlying prices must align to option tape and be finite > 0")
     return out.rename("underlying_price")
 
@@ -617,12 +519,18 @@ def _greeks_report(tape: PreparedOptionTape) -> pd.DataFrame:
     )
 
 
-def _fills_report(fills_with_fees: Sequence[tuple]) -> pd.DataFrame:
+def _fills_report(fills_with_fees: Sequence[tuple], conversion_rates: Mapping[str, float], reporting_currency: str) -> pd.DataFrame:
     rows = []
     for fill, fee in fills_with_fees:
+        amount = finite_number(fee.fee if fee is not None else fill.fee, "applied fee", minimum=0.0)
+        currency = fee.currency if fee is not None else str(fill.metadata.get("fee_currency", ""))
+        rate = _conversion_rate_to_reporting(currency, conversion_rates, reporting_currency)
         rows.append(
             {
                 "timestamp": fill.timestamp,
+                "effective_timestamp_ns": int(fill.timestamp),
+                "decision_timestamp_ns": fill.metadata.get("decision_timestamp_ns", int(fill.timestamp)),
+                "quote_timestamp_ns": fill.metadata.get("quote_timestamp_ns"),
                 "symbol": fill.symbol,
                 "side": fill.side.value,
                 "qty": float(fill.qty),
@@ -634,10 +542,13 @@ def _fills_report(fills_with_fees: Sequence[tuple]) -> pd.DataFrame:
                 "execution_fee": float(
                     fill.metadata.get("quoted_execution_fee", fill.fee)
                 ),
-                "applied_fee": float(fee.fee if fee is not None else fill.fee),
-                "fee_currency": fee.currency
-                if fee is not None
-                else str(fill.metadata.get("fee_currency", "")),
+                "applied_fee": amount,
+                "fee_currency": currency,
+                "fee_conversion_rate": rate,
+                "fee_reporting_currency": reporting_currency,
+                "fee_reporting_value": finite_number(amount * rate, "fee reporting value", minimum=0.0),
+                "fee_conversion_timestamp_ns": int(fill.timestamp),
+                "fee_conversion_policy": "constant_run_rate_at_effective_event",
                 "liquidity": fill.liquidity.value,
                 "order_id": fill.order_id,
                 "package_id": fill.metadata.get("package_id"),
@@ -666,6 +577,7 @@ def _settlements_report(
                 "representation": item.representation.value,
                 "itm": item.itm,
                 "position_closed": item.position_closed,
+                "realized_pnl_by_currency": dict(item.realized_pnl_by_currency),
                 **dict(provenance),
             }
         )
@@ -691,23 +603,6 @@ def _liquidation_report(
     return pd.DataFrame(rows)
 
 
-def _conversion_rate_to_reporting(
-    currency: str,
-    conversion_rates: Mapping[str, float],
-    reporting_currency: str,
-) -> float:
-    ccy = str(currency).upper()
-    report = str(reporting_currency).upper()
-    if ccy == report:
-        return 1.0
-    if ccy not in conversion_rates:
-        raise ValueError(f"missing conversion rate for {ccy}->{report}")
-    rate = float(conversion_rates[ccy])
-    if rate <= 0.0:
-        raise ValueError(f"conversion rate for {ccy}->{report} must be > 0")
-    return rate
-
-
 def _accounting_reconciliation(
     fills_report: pd.DataFrame,
     ledger: OptionLedger,
@@ -716,10 +611,15 @@ def _accounting_reconciliation(
 ) -> Dict:
     fill_fees: Dict[str, float] = {}
     if not fills_report.empty:
+        for amount in fills_report["applied_fee"]:
+            finite_number(amount, "applied fee", minimum=0.0)
         for currency, group in fills_report.groupby("fee_currency", dropna=False):
             key = str(currency or "").upper()
-            if key:
-                fill_fees[key] = float(group["applied_fee"].sum())
+            if not key or key == "NAN":
+                raise ValueError("applied fee currency is required")
+            fill_fees[key] = finite_number(float(group["applied_fee"].sum()), "fill fee total", minimum=0.0)
+    for amount in ledger.fees.values():
+        finite_number(amount, "ledger fee total", minimum=0.0)
     currencies = sorted(set(fill_fees).union(ledger.fees))
     per_currency = {
         currency: {
@@ -746,10 +646,11 @@ def _accounting_reconciliation(
         for currency, values in per_currency.items()
     )
     return {
+        "reconciliation_scope": "applied_fill_fees_equal_ledger_fees_not_full_account_reconciliation",
         "reporting_currency": str(reporting_currency).upper(),
         "per_currency": per_currency,
-        "fills_fee_reporting_value": float(total_fills),
-        "ledger_fee_reporting_value": float(total_ledger),
+        "fills_fee_reporting_value": finite_number(total_fills, "fill fees reporting total", minimum=0.0),
+        "ledger_fee_reporting_value": finite_number(total_ledger, "ledger fees reporting total", minimum=0.0),
         "reconciled": bool(
             all(
                 abs(values["difference"]) <= 1e-12

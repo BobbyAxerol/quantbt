@@ -4,12 +4,13 @@ Option lifecycle and expiry settlement.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 from typing import Union
 
 from .ledger import OptionLedger
 from .schema import OptionInstrumentSpec, OptionKind, PremiumConvention, SettlementStyle
+from .validation import finite_number
 
 
 class OptionSettlementRepresentation(str, Enum):
@@ -28,13 +29,12 @@ class OptionSettlementResult:
     representation: OptionSettlementRepresentation
     itm: bool
     position_closed: bool
+    realized_pnl_by_currency: dict[str, float] = field(default_factory=dict)
 
 
 def option_expiry_payoff_per_unit(instrument: OptionInstrumentSpec, settlement_price: float) -> float:
     """Return payoff per 1 option unit in the instrument settlement currency."""
-    price = float(settlement_price)
-    if price <= 0.0:
-        raise ValueError("settlement_price must be > 0")
+    price = finite_number(settlement_price, "settlement_price", positive=True)
     strike = float(instrument.strike)
     if instrument.option_kind is OptionKind.CALL:
         intrinsic_quote = max(price - strike, 0.0)
@@ -75,6 +75,7 @@ def settle_option_expiry(
         representation=rep,
         itm=bool(payoff > 0.0),
         position_closed=True,
+        realized_pnl_by_currency=dict(ledger.events[-1].get("realized_pnl_by_currency", {})),
     )
 
 

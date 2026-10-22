@@ -1,0 +1,732 @@
+{
+  "alpha_coverage": {
+    "HMA": "NO_ELIGIBLE_FORMAL_COHORT_IN_REGISTERED_MANDATE_NOT_NO_EDGE",
+    "current_private_fixed_controls": [
+      "A-RSI",
+      "A-SC",
+      "A-HMA",
+      "A-HASH",
+      "A-VWAP"
+    ],
+    "formal_mode5_cells": [
+      "A-RSI",
+      "A-SC",
+      "A-HASH",
+      "A-VWAP",
+      "N1",
+      "N2"
+    ],
+    "planned": [
+      "A-RSI",
+      "A-SC",
+      "A-HMA",
+      "A-HASH",
+      "A-VWAP",
+      "N1",
+      "N2"
+    ],
+    "registered_research": "OWNER_ACCEPTED_WITH_LIMITATIONS"
+  },
+  "candidate_artifacts": [
+    {
+      "bytes": 1352811,
+      "path": ".maturin/qms08/m5-12-local-v6/cp312/dist/quantbt_engine-1.1.2-py3-none-any.whl",
+      "sha256": "016c166438481cfec3bd1d6c5d646870b3152f387328af9fc0b16649ce0f0450"
+    },
+    {
+      "bytes": 1183679,
+      "path": ".maturin/qms08/m5-12-local-v6/cp312/dist/quantbt_engine-1.1.2.tar.gz",
+      "sha256": "039b654190ecc7760aebe33ee3320165bb2fdcda13ae7d30003fb91199683d31"
+    },
+    {
+      "bytes": 1222936,
+      "path": ".maturin/qms08/m5-12-local-v6/cp312/dist/quantbt_native-0.4.3-cp312-cp312-manylinux_2_34_x86_64.whl",
+      "sha256": "36661d59decd7a3d45e9a08aa0a96d2f6d422083869c49332b8b0d5300db11a9"
+    }
+  ],
+  "completion_status": "LOCAL_TECHNICAL_GATES_RECORDED_OPERATIONAL_REVIEW_PENDING",
+  "diagnostics_first": "EXPLICIT_OPT_IN_SOFTWARE_QUALIFIED_NO_AUTOMATIC_ROUTER",
+  "evidence_integrity": {
+    "bytes": 492,
+    "path": "upgrade/private/mode5_upgrade_v1/m5-12/attempt-01/cleanup-v6-terminal.json",
+    "sha256": "cd565c57f21bc5d9d57e50a9e06239af925f356a70b9ddf45015caa72c9a6151"
+  },
+  "formula_registry": {
+    "formulas": {
+      "environment_floor_mean_v1": {
+        "definition": "min(v) + mean_coefficient * weighted_mean(v) - activity_penalty",
+        "family": "environment",
+        "required_coefficients": [
+          "mean"
+        ]
+      },
+      "environment_lower_tail_v2": {
+        "definition": "floor_coefficient * min(v) + tail_coefficient * lower_probability_mass_mean(v,alpha) - dispersion_coefficient * weighted_lower_tie_MAD(v) - activity_penalty",
+        "family": "environment",
+        "required_coefficients": [
+          "floor",
+          "tail",
+          "dispersion",
+          "alpha"
+        ]
+      },
+      "finite_panel_minimax_regret_v1": {
+        "definition": "-max(benchmark-economic_utility) - activity_penalty",
+        "family": "environment",
+        "required_coefficients": []
+      },
+      "legacy_floor_mean_regret_v1": {
+        "definition": "min(v) - mean_coefficient * weighted_mean(benchmark-v) - activity_penalty",
+        "family": "environment",
+        "required_coefficients": [
+          "mean"
+        ]
+      },
+      "legacy_spec_1_1_quantile": {
+        "definition": "floor_coefficient * min(v) + tail_coefficient * linear_quantile(v,alpha) - dispersion_coefficient * unweighted_midpoint_MAD(v) - activity_penalty",
+        "family": "environment",
+        "required_coefficients": [
+          "floor",
+          "tail",
+          "dispersion",
+          "alpha"
+        ]
+      },
+      "local_downside_v1": {
+        "definition": "weighted_mean(center) - gamma * max(0,weighted_mean(center)-min(probe_aggregates)) - activity_penalty",
+        "family": "local",
+        "required_coefficients": [
+          "gamma"
+        ]
+      },
+      "pareto_chebyshev_v1": {
+        "definition": "-max(weight * frozen_normalized_gap) - rho * sum(weight * frozen_normalized_gap) - activity_penalty",
+        "family": "pareto",
+        "required_coefficients": [
+          "rho"
+        ]
+      },
+      "unified_same_channel_v1": {
+        "definition": "floor_coefficient * min(v) + mean_coefficient * weighted_mean(v) - dispersion_coefficient * population_weighted_SD(v) - fragility_coefficient * local_downside - activity_penalty",
+        "family": "unified",
+        "required_coefficients": [
+          "floor",
+          "mean",
+          "dispersion",
+          "fragility"
+        ]
+      }
+    },
+    "identity": "894d389b962c895d5513e8196858de94fef977ceda3fbd3d769b97636689e09b",
+    "local_scope": "schema union optional covariance; finite observed probes, not a global robust ball",
+    "null_policy": "retain incomplete/failed rows; no favorable default or silent environment drop",
+    "pareto_scope": "post-selection on actual generation; no NSGA-II generation or hypervolume claim",
+    "public_activation": false,
+    "references": "frozen per stage; full-panel revision for changes",
+    "schema": "mode5.formulas.v1",
+    "tie_policy": "candidate_id_lexicographic_v1",
+    "units": "all scalar components and penalties have the explicitly selected channel unit"
+  },
+  "guide": "QUANTBT-MODE5-UPGRADE-V1",
+  "independent_validation": "NO_NEW_INDEPENDENT_OOS_QUALIFICATION",
+  "limitations": [
+    "Remote Ubuntu22.04/24.04 x CPython3.11..3.13 NOT_RUN and needs owner approval.",
+    "Publication and public consumer proof NOT_RUN; native0.4.3/core1.1.2 are local candidate artifacts here.",
+    "Owner final local handoff/release review remains pending; no default methodology/model promotion.",
+    "Existing seven-alpha economic scope and negative/inconclusive observations are retained; no new independent OOS.",
+    "Gross-cross/netting and conservative OHLC liquidation only; unsupported isolated/hedge inventory is explicit."
+  ],
+  "mode4_and_legacy_regression": {
+    "bytes": 187257,
+    "path": "upgrade/private/mode5_upgrade_v1/m5-12/attempt-01/regression-reconciliation.json",
+    "sha256": "27b70430d383720aa4c85044d29a3fba698991671dbe8b95068faaf7e33f1866"
+  },
+  "phases": [
+    {
+      "current_disposition": {
+        "evidence": {
+          "bytes": 1889,
+          "path": "docs/mode5/evidence/m5-01-exit-review.json",
+          "sha256": "d1ce6713f580350f34b93796b331ac592609d2f89f5abf444cf9b78511264eb8"
+        },
+        "owner_exit": "EXTRACTED_MEMBERS_ACCEPTED",
+        "scientific_scope": "Original observation and later accepted parent limitations retained",
+        "scope": "Registered historical scope; not current installed qualification",
+        "task": "VERIFIED_EXISTING"
+      },
+      "current_installed_certificate": false,
+      "id": "M5-01",
+      "json": {
+        "bytes": 1619,
+        "path": "docs/mode5/evidence/m5-01.json",
+        "sha256": "1e9a5f9b3d05eb498f2fe125ebc64297a2e7e55c069a16f90afb9b53ec4a4148",
+        "status": "RETAINED"
+      },
+      "markdown": {
+        "bytes": 12866,
+        "path": "docs/mode5/M5_01_BASELINE_REPORT.md",
+        "sha256": "1a95297cb5253bb9281027ef749677bdef36e32ff144bb332bdf3113bb1cb71f",
+        "status": "RETAINED"
+      },
+      "recorded_source": {
+        "committed_tested_phase_source": "14dd9b825087352176e3120ce790e0edef63c275"
+      },
+      "recorded_status": "INPUT_EXIT_PENDING",
+      "scope": "source/helper/artifact controls; extracted-member exit approved separately"
+    },
+    {
+      "current_disposition": {
+        "scientific_scope": "Original observation and later accepted parent limitations retained",
+        "scope": "Registered historical scope; not current installed qualification",
+        "task": "VERIFIED_EXISTING"
+      },
+      "current_installed_certificate": false,
+      "id": "M5-02",
+      "json": {
+        "bytes": 8384,
+        "path": "docs/mode5/evidence/m5-02.json",
+        "sha256": "92ed2a0dd505f274ea70053cd959782f4275aa05f4d50cbb1cbac3dc8bd8be76",
+        "status": "RETAINED"
+      },
+      "markdown": {
+        "bytes": 9545,
+        "path": "docs/mode5/M5_02_ADMISSION_REPORT.md",
+        "sha256": "b70cf343c66d8a545b2cf7da65117b9ab8555d0cf7f7ba58e2933c60deeac9e6",
+        "status": "RETAINED"
+      },
+      "recorded_source": {
+        "qualified_phase_commits": [
+          "7fd721c04c3236fd72d07a3a49254ccdcf621687",
+          "09810dbbe5dbc45c17f276332147e892fb545e8c"
+        ]
+      },
+      "recorded_status": "COMPLETE_LOCAL_ADMISSION",
+      "scope": "actual five-alpha binding admission; short reviewed window, not economic transfer"
+    },
+    {
+      "current_disposition": {
+        "scientific_scope": "Original observation and later accepted parent limitations retained",
+        "scope": "Registered historical scope; not current installed qualification",
+        "task": "VERIFIED_EXISTING"
+      },
+      "current_installed_certificate": false,
+      "id": "M5-03",
+      "json": {
+        "bytes": 9160,
+        "path": "docs/mode5/evidence/m5-03.json",
+        "sha256": "bb822500528ec2a9a09922f9d33757a16bbb34e9bb8a0537f5d42aa372220e98",
+        "status": "RETAINED"
+      },
+      "markdown": {
+        "bytes": 8666,
+        "path": "docs/mode5/M5_03_STATISTICS_REPORT.md",
+        "sha256": "c1a2ce2f57266741786c645fb36900fbf1e6371e4dc83f1508dc5b89ffcf4af4",
+        "status": "RETAINED"
+      },
+      "recorded_source": {},
+      "recorded_status": "COMPLETE_LOCAL_STATISTICS",
+      "scope": "metric/oracle and synthetic financial streams; not a trading performance certificate"
+    },
+    {
+      "current_disposition": {
+        "scientific_scope": "Original observation and later accepted parent limitations retained",
+        "scope": "Registered historical scope; not current installed qualification",
+        "task": "VERIFIED_EXISTING"
+      },
+      "current_installed_certificate": false,
+      "id": "M5-04",
+      "json": {
+        "bytes": 2938,
+        "path": "docs/mode5/evidence/m5-04-final.json",
+        "sha256": "e06c6a488466c6f71d986f61516cec9acdbd47cc65a7602be0ee3a00fa164e1d",
+        "status": "RETAINED"
+      },
+      "markdown": {
+        "bytes": 5419,
+        "path": "docs/mode5/M5_04_REUSE_REPORT.md",
+        "sha256": "5ccfc229aac777d96420b29f25c04eb43d8fe6f414e3750fe8005997cf243588",
+        "status": "RETAINED"
+      },
+      "recorded_source": {
+        "implementation_source_sha": "783994afa5c932546164f56af52c23fbc7bcb9cb"
+      },
+      "recorded_status": "COMPLETE_LOCAL_REUSE",
+      "scope": "planner/cache/rights/audit controls; stored history is not an adaptive rerun"
+    },
+    {
+      "current_disposition": {
+        "scientific_scope": "Original observation and later accepted parent limitations retained",
+        "scope": "Registered historical scope; not current installed qualification",
+        "task": "VERIFIED_EXISTING"
+      },
+      "current_installed_certificate": false,
+      "id": "M5-05",
+      "json": {
+        "bytes": 3892,
+        "path": "docs/mode5/evidence/m5-05.json",
+        "sha256": "50c28bd3dbf4cc29b0ab3da6d5f6dd43beacd48473a5339e20aaee9d9343eeb6",
+        "status": "RETAINED"
+      },
+      "markdown": {
+        "bytes": 5383,
+        "path": "docs/mode5/M5_05_ENVIRONMENT_REPORT.md",
+        "sha256": "5c998138f46225d47504dca2af8ea06dd7c27d0a90bbf2e1c4d674b220c8a86a",
+        "status": "RETAINED"
+      },
+      "recorded_source": {
+        "implementation_source_sha": "b5648eb44f5fc0b55d331891d1f8e94225ff92c1"
+      },
+      "recorded_status": "COMPLETE_LOCAL_ENVIRONMENTS",
+      "scope": "environment rights, continuous attribution and explicit reset controls"
+    },
+    {
+      "current_disposition": {
+        "scientific_scope": "Original observation and later accepted parent limitations retained",
+        "scope": "Registered historical scope; not current installed qualification",
+        "task": "VERIFIED_EXISTING"
+      },
+      "current_installed_certificate": false,
+      "id": "M5-06",
+      "json": {
+        "bytes": 11438,
+        "path": "docs/mode5/evidence/m5-06.json",
+        "sha256": "0d14cd06721dde1a731ed266c3e4ebcd321ceaf35ccdfb4110b7537e82687427",
+        "status": "RETAINED"
+      },
+      "markdown": {
+        "bytes": 8974,
+        "path": "docs/mode5/M5_06_GEOMETRY_REPORT.md",
+        "sha256": "f1f30631ad7f35ee0264aa4dbf1bb515a805953961277993ddfda3d5738ea715",
+        "status": "RETAINED"
+      },
+      "recorded_source": {
+        "implementation_source_sha": "36e9895ba9cb74d3e2a01c203842110663d867ac"
+      },
+      "recorded_status": "COMPLETE_LOCAL_GEOMETRY",
+      "scope": "feasible geometry and finite probes; no all-alpha global sensitivity or basin guarantee"
+    },
+    {
+      "current_disposition": {
+        "scientific_scope": "Original observation and later accepted parent limitations retained",
+        "scope": "Registered historical scope; not current installed qualification",
+        "task": "VERIFIED_EXISTING"
+      },
+      "current_installed_certificate": false,
+      "id": "M5-07",
+      "json": {
+        "bytes": 4293,
+        "path": "docs/mode5/evidence/m5-07.json",
+        "sha256": "845827491cba3cad16dbd276001ebde9183ac7083705d1edaa1ef424d319f846",
+        "status": "RETAINED"
+      },
+      "markdown": {
+        "bytes": 7881,
+        "path": "docs/mode5/M5_07_SELECTION_REPORT.md",
+        "sha256": "c04d1f9b5e04bc9c7b334526a949ff4bb7aecad506f289b625fb07b73f171b8e",
+        "status": "RETAINED"
+      },
+      "recorded_source": {
+        "tested_source_head": "45f5a5a64d62b89c2e7e57557955df76c5eff81d"
+      },
+      "recorded_status": "COMPLETE_LOCAL_OBJECTIVES",
+      "scope": "versioned formulas and selector arithmetic; guide math assertions are not market observations"
+    },
+    {
+      "current_disposition": {
+        "scientific_scope": "Original observation and later accepted parent limitations retained",
+        "scope": "Registered historical scope; not current installed qualification",
+        "task": "VERIFIED_EXISTING"
+      },
+      "current_installed_certificate": false,
+      "id": "M5-08",
+      "json": {
+        "bytes": 1411,
+        "path": "docs/mode5/evidence/m5-08.json",
+        "sha256": "bc8663a3ac44ef5e90236aceeb0eba3b1b21e5890cad649715776efcbc0ba937",
+        "status": "RETAINED"
+      },
+      "markdown": {
+        "bytes": 9814,
+        "path": "docs/mode5/M5_08_BATTERY_REPORT.md",
+        "sha256": "e9c58e69214801d2f39ea43dae5135d1ee4b0006d3b032ca56f4c6fd237f26ee",
+        "status": "RETAINED"
+      },
+      "recorded_source": {},
+      "recorded_status": "COMPLETE_LOCAL_TARGETED_DIAGNOSTICS",
+      "scope": "registered targeted diagnostics; later studies have distinct scope and access history"
+    },
+    {
+      "current_disposition": {
+        "scientific_scope": "Original observation and later accepted parent limitations retained",
+        "scope": "Registered historical scope; not current installed qualification",
+        "task": "VERIFIED_EXISTING"
+      },
+      "current_installed_certificate": false,
+      "id": "M5-09",
+      "json": {
+        "bytes": 1780,
+        "path": "docs/mode5/evidence/m5-09.json",
+        "sha256": "66b3e6c4fec5f893927f3f46f77c1cfd07d88a2d90fb9aa8551d99d1ac2640b3",
+        "status": "RETAINED"
+      },
+      "markdown": {
+        "bytes": 6058,
+        "path": "docs/mode5/M5_09_DOSSIER_REPORT.md",
+        "sha256": "2a8b1babac4c19cdc96441792375a13c939c3f46e6957021f84f65dd8b9a56af",
+        "status": "RETAINED"
+      },
+      "recorded_source": {},
+      "recorded_status": "COMPLETE_LOCAL_DOSSIER_GOVERNANCE",
+      "scope": "dossier/plan/advisory governance; no automatic router qualification"
+    },
+    {
+      "current_disposition": {
+        "scientific_scope": "Original observation and later accepted parent limitations retained",
+        "scope": "Registered historical scope; not current installed qualification",
+        "task": "VERIFIED_EXISTING"
+      },
+      "current_installed_certificate": false,
+      "id": "M5-10",
+      "json": {
+        "bytes": 5199,
+        "path": "docs/mode5/evidence/m5-10.json",
+        "sha256": "440716e1dc09736e8e63daf68f5387dd7e8a823814727529dd7d2abab05a1084",
+        "status": "RETAINED"
+      },
+      "markdown": {
+        "bytes": 14095,
+        "path": "docs/mode5/M5_10_PUBLIC_RUNTIME_REPORT.md",
+        "sha256": "6d465760f0d223abef9fae7195cab33f9b1718c1be2cf17885c99398072ad38f",
+        "status": "RETAINED"
+      },
+      "recorded_source": {
+        "qualified_code_commit": "bf11409895a30d47f08b53bc3d0cf9e1f453c2ba"
+      },
+      "recorded_status": "COMPLETE_LOCAL_PUBLIC_OPT_IN",
+      "scope": "historical opt-in runtime and installed pair; not the ACC-repaired final artifact"
+    },
+    {
+      "current_disposition": {
+        "current_coverage_ledger": "docs/mode5/M5_11_RESEARCH_COVERAGE_DISPOSITION.md",
+        "evidence": {
+          "bytes": 2449,
+          "path": "docs/mode5/evidence/m5-11-parent-disposition.json",
+          "sha256": "6b5c822c29af2b968b2a770b927f9a6e25981f61c20b239bcb08bd06d262896c"
+        },
+        "owner_exit": "ACCEPT_COMPLETED_REGISTERED_SCOPES_WITH_LIMITATIONS",
+        "scientific_scope": "Original observation and later accepted parent limitations retained",
+        "scope": "Registered historical scope; not current installed qualification",
+        "task": "VERIFIED_EXISTING"
+      },
+      "current_installed_certificate": false,
+      "id": "M5-11",
+      "json": {
+        "bytes": 56219,
+        "path": "docs/mode5/evidence/m5-11.json",
+        "sha256": "4103e4b8b9bd7df7b37c57a6be4e1ff3243f5939da0ecb214d27fc40f17c4ed6",
+        "status": "RETAINED"
+      },
+      "markdown": {
+        "bytes": 12813,
+        "path": "docs/mode5/M5_11_ECONOMIC_REPORT.md",
+        "sha256": "e0749aac023902f7255caaa164c967be0a043a6a7b8c1ae0910e535913b93c8e",
+        "status": "RETAINED"
+      },
+      "recorded_source": {},
+      "recorded_status": "COMPLETE_LOCAL_FINITE_PILOT_EXPLORATORY",
+      "scope": "historical finite exploratory pilot; accepted parent ledger supplies the subsequent scope disposition"
+    },
+    {
+      "current_disposition": {
+        "current_receipts": [
+          {
+            "bytes": 98252,
+            "path": ".maturin/qms08/m5-12-local-v6/cp312/installed-m5-12-pair-proof.json",
+            "sha256": "1eebe38514770b5c51025651810a603e8841559afe9f97d5b84401114264cd90"
+          },
+          {
+            "bytes": 98573,
+            "path": ".maturin/qms08/m5-12-local-v6/cp312/installed-m5-12-sdist-proof.json",
+            "sha256": "1f4f123df913169d62101940c0255890bdc85198914d278afba7c185ef25be18"
+          }
+        ],
+        "owner_final_review": "PENDING",
+        "scope": "Exact local wheel and sdist with native companion; not remote/public or live authority",
+        "task": "IMPLEMENTED_VERIFIED",
+        "technical_status": "PARTIAL_TECHNICAL_CLOSURE"
+      },
+      "current_installed_certificate": false,
+      "id": "M5-12",
+      "json": {
+        "bytes": 85124,
+        "path": "docs/mode5/evidence/m5-12.json",
+        "sha256": "852ad3d20a384cb5bd589257361cc22b8b1474e39dfc63f521d98ff61eee43fd",
+        "status": "RETAINED"
+      },
+      "markdown": {
+        "bytes": 86554,
+        "path": "docs/mode5/M5_12_REPORT.md",
+        "sha256": "c85066249d761c908cc90b1a0b58be5f21a084da8bcd2dff28e4a6079c4e8329",
+        "status": "RETAINED"
+      },
+      "recorded_status": "MAIN_REPORT_REFERENCED_NOT_CERTIFIED",
+      "scope": "current-source local qualification"
+    }
+  ],
+  "protected_sources_unchanged": {
+    "approved_runtime_amendments": [
+      "b4c4f93",
+      "45fd6ec",
+      "bf3f919"
+    ],
+    "cleanup": {
+      "bytes": 492,
+      "path": "upgrade/private/mode5_upgrade_v1/m5-12/attempt-01/cleanup-v6-terminal.json",
+      "sha256": "cd565c57f21bc5d9d57e50a9e06239af925f356a70b9ddf45015caa72c9a6151"
+    },
+    "guide": true,
+    "historical_receipts": true,
+    "original_inputs": true,
+    "owner_uncommitted_plan_hunk": "PRESERVED_UNSTAGED"
+  },
+  "public_integration": "LOCAL_EXACT_WHEEL_AND_SDIST_CONSUMERS_RECORDED",
+  "publish_or_live_authorized": false,
+  "remote_workflow_authorized": false,
+  "reports": [
+    {
+      "bytes": 85124,
+      "path": "docs/mode5/evidence/m5-12.json",
+      "sha256": "852ad3d20a384cb5bd589257361cc22b8b1474e39dfc63f521d98ff61eee43fd"
+    },
+    {
+      "bytes": 86554,
+      "path": "docs/mode5/M5_12_REPORT.md",
+      "sha256": "c85066249d761c908cc90b1a0b58be5f21a084da8bcd2dff28e4a6079c4e8329"
+    },
+    {
+      "bytes": 227253,
+      "path": "docs/mode5/evidence/m5-12-traceability.json",
+      "sha256": "dd38d0851551789308df6f5feb53472fa0deae004115284f24a27788ac75c1f3"
+    }
+  ],
+  "research_claims": [
+    "docs/mode5/M5_12_SCIENTIFIC_SCOPE.md",
+    "docs/mode5/M5_11_RESEARCH_COVERAGE_DISPOSITION.md"
+  ],
+  "rollback": "Disable opt-in extensions or pin a previously approved compatible pair with its own smoke proof; preserve immutable research/artifacts.",
+  "schema": "quantbt.mode5_upgrade.handoff.v1",
+  "source": {
+    "acc01_amendment_sha256": "95af947a570cc5c10bc6655c922b7dd8497f02e6da422aa3479af0163a94e0f1",
+    "acc01_changed_sources": [
+      "rust/crates/quantbt-execution/src/target.rs",
+      "rust/native_event/src/lib.rs",
+      "src/quantbt/backends/native_event.py",
+      "src/quantbt/backends/native_option.py",
+      "src/quantbt/backends/native_vectorized.py",
+      "src/quantbt/core/account_metadata.py",
+      "src/quantbt/core/event.py",
+      "src/quantbt/core/market_tape.py",
+      "src/quantbt/core/results.py",
+      "src/quantbt/core/vectorized.py",
+      "src/quantbt/endpoint.py",
+      "src/quantbt/metrics/reporting/account.py",
+      "src/quantbt/metrics/reporting/adapters.py",
+      "src/quantbt/metrics/reporting/cache.py",
+      "src/quantbt/metrics/reporting/drawdown.py",
+      "src/quantbt/metrics/reporting/execution.py",
+      "src/quantbt/metrics/reporting/inputs.py",
+      "src/quantbt/metrics/reporting/ledger.py",
+      "src/quantbt/metrics/reporting/results.py",
+      "src/quantbt/metrics/reporting/snapshots.py",
+      "src/quantbt/options/authority.py",
+      "src/quantbt/options/endpoint_validation.py",
+      "src/quantbt/options/execution.py",
+      "src/quantbt/options/fees.py",
+      "src/quantbt/options/hedging.py",
+      "src/quantbt/options/ledger.py",
+      "src/quantbt/options/lifecycle.py",
+      "src/quantbt/options/margin.py",
+      "src/quantbt/options/packages.py",
+      "src/quantbt/options/reporting.py",
+      "src/quantbt/options/schema.py",
+      "src/quantbt/options/strategy.py",
+      "src/quantbt/options/validation.py",
+      "src/quantbt/reporting/executed_attribution.py"
+    ],
+    "acc01_source_commit": "70fe9f7c9b14469e6ea935e75f180f26ca1c175e",
+    "baseline_commit": "59275659778e1e3306b35a3c92c7623a7e17c0c3",
+    "cold_extraction_semantics_unchanged": true,
+    "current_source_qualified": true,
+    "financial_numeric_source_unchanged": false,
+    "financial_rust_unchanged": false,
+    "financial_source_changed": true,
+    "historical_guards_reexecuted": false,
+    "historical_receipts": {
+      "c02": {
+        "claim_scope": "historical_only",
+        "path": "benchmarks/optimization/meta_selection/qms_c02_transport.json",
+        "sha256": "e2b6a11e5b47602a8758895424d6ec8df13454cee12811818268b766765d250d",
+        "source": {
+          "additive_atomic_token_getter": true,
+          "allowed_changes": [
+            "rust/native_event/src/reactive_numeric.rs",
+            "src/quantbt/backends/_native_event_rust.py",
+            "src/quantbt/backends/native_event.py",
+            "src/quantbt/backends/reactive_wfo.py",
+            "src/quantbt/backends/reactive_wfo_batch.py",
+            "src/quantbt/backends/reactive_wfo_workers.py",
+            "src/quantbt/endpoint.py",
+            "src/quantbt/optimization/meta_selection/observer.py",
+            "src/quantbt/optimization/meta_selection/reactive.py",
+            "src/quantbt/optimization/meta_selection/reactive_batch_witness.py",
+            "src/quantbt/optimization/meta_selection/reactive_execution.py",
+            "src/quantbt/optimization/meta_selection/reactive_transport.py"
+          ],
+          "baseline": "0bb77b5",
+          "financial_rust_unchanged": true,
+          "guide_sha256": "adad24b16024ec5d9f3bdaf3a4098a8c60305c1fc181f1c30a0ff0f648a8170d",
+          "release_identity_unchanged": true,
+          "schema": "qms-c02-source-guard-v1"
+        }
+      },
+      "e04": {
+        "claim_scope": "historical_only",
+        "path": "benchmarks/optimization/meta_selection/qms_e04_software_closure.json",
+        "sha256": "92220636ad363547e52a57af95bcbbe52259fd1f11bccb98c29973e5c3ea387a",
+        "source": {
+          "baseline": "7b83ba4",
+          "financial_numeric_source_unchanged": true,
+          "publication": false,
+          "schema": "qms-e04-exact-source-v1",
+          "source_sha256": {
+            "src/quantbt/endpoint.py": "a9688c49416167955a01054f4f596c571b793d62c5b19fb34bd4d125e5d5de8c",
+            "src/quantbt/optimization/meta_selection/config.py": "7045e938ed951b233e3cb4fc7e3f374fb42c0fcc1f326921f78f13b151e5f4ec",
+            "src/quantbt/optimization/meta_selection/domains/portfolio.py": "d01b9525c9cedba7e05eca13ef2e2f221966fd853dc001761c46ac36f6915980",
+            "src/quantbt/optimization/meta_selection/domains/portfolio_contract.py": "a81f4805ec052fbf81f895971082c6fa3c56d52344b1f56d8d21fc93004b7a39",
+            "src/quantbt/optimization/meta_selection/domains/portfolio_witness.py": "637735a33edbdeea1e1a5288bec55f3375668c89124d1df5a79a25db0ac66748",
+            "src/quantbt/optimization/meta_selection/domains/registry.py": "d818c4d83143b6cf655d52be5e5c71cdaa349876e84a4bca18c0e458051d3199",
+            "src/quantbt/optimization/meta_selection/observer.py": "0476769a47d791f4badcae3180a506ce52148120b0165e8278476f03e2ccbabd",
+            "src/quantbt/optimization/meta_selection/runtime.py": "476fa8d40b6c20f733ee9234ef04548cf3c0279d338479f8843ac30446d50b96",
+            "src/quantbt/walkforward.py": "f39b48cea35de46aaaa1d4a3914ca52f694785f6397111ef62247a4fc735896f"
+          }
+        }
+      }
+    },
+    "historical_receipts_unchanged": true,
+    "m5_12_pct_alias_amendment_sha256": "98cb60821074a8d3e4f320c0235c23f9bf5e0fa8c9ba0fef8d2bee878a023e36",
+    "m5_12_pct_alias_changed_sources": [
+      "src/quantbt/backends/native_wfo_public.py",
+      "src/quantbt/endpoint.py"
+    ],
+    "m5_12_pct_alias_source_commit": "45fd6ec5bc0f2556ff024ffd1314469e06c0b07a",
+    "m5_12_pct_amendment_sha256": "cef8e2dfa6995197367ec896123a21747a6baf34dba48fcfa19de93c85d4d784",
+    "m5_12_pct_changed_sources": [
+      "rust/crates/quantbt-execution/src/target.rs",
+      "rust/native_event/src/lib.rs",
+      "src/quantbt/backends/native_prepared_evaluation.py",
+      "src/quantbt/backends/native_wfo_public.py",
+      "src/quantbt/endpoint.py",
+      "src/quantbt/optimization/meta_selection/observer.py"
+    ],
+    "m5_12_pct_source_commit": "b4c4f934a33465b379657bbe1b73745280db84fe",
+    "m5_12_snapshot_amendment_sha256": "0efc267ed8f2f000669916badc99b365b10d2eb8a03ce4acc96256c1a92fe8ab",
+    "m5_12_snapshot_changed_sources": [
+      "src/quantbt/mode5/continuous.py",
+      "src/quantbt/mode5/continuous_retention.py"
+    ],
+    "native_artifacts_qualified": false,
+    "pre_m512_amendment_sha256": "f1d4115f7000b4c7d266157a13cb80f9cc4c26e5fca5ad474267888990ce1b24",
+    "pre_m512_extracted_sources": [
+      "src/quantbt/backends/native_option.py",
+      "src/quantbt/backends/native_portfolio.py",
+      "src/quantbt/backends/option_validation.py",
+      "src/quantbt/backends/portfolio_reports.py"
+    ],
+    "pre_m512_source_commit": "77af917f4184e4061a908c68557420223434e2db",
+    "previous_source_commit": "9c2bfd95c65f71618f52c736dfff341953066961",
+    "publication": false,
+    "qualification_sha256": "e3e557086c940971f8cd3573fcf812fce24fe862564367d417abac9887050e6c",
+    "qualified_source_count": 466,
+    "repair_amendment_sha256": "490806eab1e5118675dab4b5013df19ea0b3a3bde633632d9e0d3c4a99253edb",
+    "repair_changed_sources": [
+      "contracts/generated_public_api_inventory.json",
+      "rust/crates/quantbt-execution/src/target.rs",
+      "rust/crates/quantbt-portfolio/src/lib.rs",
+      "rust/native_event/src/lib.rs",
+      "src/quantbt/backends/native_event.py",
+      "src/quantbt/backends/native_intrabar_rust.py",
+      "src/quantbt/backends/native_option.py",
+      "src/quantbt/backends/native_portfolio.py",
+      "src/quantbt/backends/native_prepared_evaluation.py",
+      "src/quantbt/backends/native_vectorized.py",
+      "src/quantbt/backends/native_wfo_public.py",
+      "src/quantbt/backends/option_validation.py",
+      "src/quantbt/backends/portfolio_reports.py",
+      "src/quantbt/backtester.py",
+      "src/quantbt/core/account_metadata.py",
+      "src/quantbt/core/constraints.py",
+      "src/quantbt/core/engine.py",
+      "src/quantbt/core/event.py",
+      "src/quantbt/core/intrabar_kernel.py",
+      "src/quantbt/core/intrabar_reference.py",
+      "src/quantbt/core/market_tape.py",
+      "src/quantbt/core/portfolio_validation.py",
+      "src/quantbt/core/preprocessor.py",
+      "src/quantbt/core/results.py",
+      "src/quantbt/core/schema.py",
+      "src/quantbt/core/vectorized.py",
+      "src/quantbt/endpoint.py",
+      "src/quantbt/engines.py",
+      "src/quantbt/metrics/performance.py",
+      "src/quantbt/metrics/reporting/account.py",
+      "src/quantbt/metrics/reporting/adapters.py",
+      "src/quantbt/metrics/reporting/cache.py",
+      "src/quantbt/metrics/reporting/drawdown.py",
+      "src/quantbt/metrics/reporting/execution.py",
+      "src/quantbt/metrics/reporting/inputs.py",
+      "src/quantbt/metrics/reporting/ledger.py",
+      "src/quantbt/metrics/reporting/results.py",
+      "src/quantbt/metrics/reporting/snapshots.py",
+      "src/quantbt/mode5/continuous.py",
+      "src/quantbt/mode5/continuous_retention.py",
+      "src/quantbt/optimization/meta_selection/observer.py",
+      "src/quantbt/options/authority.py",
+      "src/quantbt/options/endpoint_validation.py",
+      "src/quantbt/options/execution.py",
+      "src/quantbt/options/fees.py",
+      "src/quantbt/options/hedging.py",
+      "src/quantbt/options/ledger.py",
+      "src/quantbt/options/lifecycle.py",
+      "src/quantbt/options/margin.py",
+      "src/quantbt/options/packages.py",
+      "src/quantbt/options/reporting.py",
+      "src/quantbt/options/schema.py",
+      "src/quantbt/options/strategy.py",
+      "src/quantbt/options/validation.py",
+      "src/quantbt/portfolio.py",
+      "src/quantbt/reporting/executed_attribution.py",
+      "src/quantbt/reporting/portfolio_audit.py",
+      "src/quantbt/sizing/fast.py",
+      "src/quantbt/sizing/modes.py"
+    ],
+    "schema": "quantbt.portfolio.current_source_qualification.v1",
+    "scopes": [
+      "src",
+      "rust",
+      "pyproject.toml",
+      "uv.lock",
+      "contracts",
+      "upgrade/QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md"
+    ],
+    "source_commit": "bf3f919550a82ac97d6c4c81073a52880d5e3331",
+    "source_metadata_amendments": [
+      {
+        "after_sha256": "dc348140142390a81f078d4dcf9562ad032d4a60f99e106e7d63b041f15c439f",
+        "before_sha256": "522e7ff87b95e5dba73369f4a0b7395e094d271443c72a31e05be3377a709103",
+        "financial_source_changed": false,
+        "path": "contracts/generated_public_api_inventory.json"
+      }
+    ]
+  },
+  "status": "PARTIAL_TECHNICAL_CLOSURE"
+}

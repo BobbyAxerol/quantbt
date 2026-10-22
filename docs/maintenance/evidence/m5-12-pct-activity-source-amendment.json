@@ -1,0 +1,69 @@
+{
+  "baseline_commit": "77af917f4184e4061a908c68557420223434e2db",
+  "correction_scope": "Public accepted quantities, accepted-position activity counter, stale binary/history/cache identity",
+  "financial_numeric_source_unchanged": false,
+  "financial_rust_unchanged": false,
+  "historical_financial_invariance_claim_reissued": false,
+  "native_artifacts_qualified": false,
+  "owner_approval": "Narrow accepted positions/activity parity and local native requalification; no push/CI/publication",
+  "publication": false,
+  "schema": "quantbt.m5_12.pct_activity_source.v1",
+  "scopes": [
+    "src",
+    "rust",
+    "pyproject.toml",
+    "uv.lock",
+    "contracts",
+    "upgrade/QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md"
+  ],
+  "source_commit": "b4c4f934a33465b379657bbe1b73745280db84fe",
+  "source_only": true,
+  "sources": {
+    "rust/crates/quantbt-execution/src/target.rs": {
+      "after_commit": "b4c4f934a33465b379657bbe1b73745280db84fe",
+      "after_sha256": "6f5dc451b19891f9b4988cb14ffff06435314bb81e9c6dbe139df3065e2e9453",
+      "before_commit": "77af917f4184e4061a908c68557420223434e2db",
+      "before_sha256": "4c3061ceb4791879e9c54c72fae9070bc771bde130fe1287688dd52bc1778994"
+    },
+    "rust/native_event/src/lib.rs": {
+      "after_commit": "b4c4f934a33465b379657bbe1b73745280db84fe",
+      "after_sha256": "e225b7bd6c74b9d5836f57f83e3c8af4fdf953faae598b23103c841008cd9b33",
+      "before_commit": "77af917f4184e4061a908c68557420223434e2db",
+      "before_sha256": "839ec0cf7d8ffdb3583e646cb9ea8e931ca7c41ccf6ed943803ed6a217b25cac"
+    },
+    "src/quantbt/backends/native_prepared_evaluation.py": {
+      "after_commit": "b4c4f934a33465b379657bbe1b73745280db84fe",
+      "after_sha256": "381001e1ba8fb80897edc2538940616062b279f455b52a9c67e152427b1ef8ca",
+      "before_commit": "77af917f4184e4061a908c68557420223434e2db",
+      "before_sha256": "a4ea2c8f7e7bdc7699e5e90b40d53edebd4ff19537d5e9c0649edeec4ce5ecc0"
+    },
+    "src/quantbt/backends/native_wfo_public.py": {
+      "after_commit": "b4c4f934a33465b379657bbe1b73745280db84fe",
+      "after_sha256": "a01ef57e3ec82fee6d129c9977300414a3e31138df82a672935f25da1bc37ea6",
+      "before_commit": "77af917f4184e4061a908c68557420223434e2db",
+      "before_sha256": "52cc5adec699e04fe47404ee1096a68882a0cd0f865b3d79b1ece37fa5d3ce66"
+    },
+    "src/quantbt/endpoint.py": {
+      "after_commit": "b4c4f934a33465b379657bbe1b73745280db84fe",
+      "after_sha256": "587f79b53228441382c7dee96f54b2a71e8ba82d579026c961721d7bd57b1d37",
+      "before_commit": "77af917f4184e4061a908c68557420223434e2db",
+      "before_sha256": "fb0e75dcfdde1d8b2a957eab49c260bb1de1a92b69f54809dc46653d058b16f2"
+    },
+    "src/quantbt/optimization/meta_selection/observer.py": {
+      "after_commit": "b4c4f934a33465b379657bbe1b73745280db84fe",
+      "after_sha256": "060741f97c5e94d1aff14590dbe00eac66d7dc0229f99596cd9e4c22d65607fe",
+      "before_commit": "77af917f4184e4061a908c68557420223434e2db",
+      "before_sha256": "f99bacf83fd70e4e4b09e1ae1bd98fbdcb32d64ff23c67f72286b0bfa2887d87"
+    }
+  },
+  "unchanged_execution_scope": [
+    "fills",
+    "equity",
+    "fees",
+    "funding",
+    "margin",
+    "sampler",
+    "Ridge",
+    "Sharpe formula"
+  ]
+}

@@ -1,0 +1,354 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="6" skipped="0" tests="9" time="3.636" timestamp="2026-10-17T01:59:08.833449+00:00" hostname="Bobby"><testcase classname="tests.meta_selection.test_mlr03_learners" name="test_history_basis_and_bayesian_mean_match_independent_augmented_oracle" time="0.033"><failure message="quantbt.optimization.meta_selection.common.MetaRecordError: META_PAYLOAD_INVALID: nonportable/nonfinite ndarray">def test_history_basis_and_bayesian_mean_match_independent_augmented_oracle():
+&gt;       data, engine, artifact = setup()
+                                 ^^^^^^^
+
+tests/meta_selection/test_mlr03_learners.py:30: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/meta_selection/test_mlr03_learners.py:24: in setup
+    fitted = engine.fit(FamilySpec(code), data[0], data[2], fit_completed_at=data[3].decision_sealed_at)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/meta_model_research/learners.py:181: in fit
+    model, wire(prepared.scaler), training)
+           ^^^^^^^^^^^^^^^^^^^^^
+src/quantbt/optimization/meta_selection/common.py:52: in wire
+    return {f.name: wire(getattr(value, f.name)) for f in fields(value)}
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+value = array([0.01785714, 0.        , 0.        , 0.        , 0.        ,
+       0.        , 0.150515  , 0.        , 2.5       , 2.46199236])
+
+    def wire(value):
+        # Exact built-ins dominate portable records; subclasses retain the old dispatch.
+        kind = type(value)
+        if value is None or kind is str or kind is bool or kind is int:
+            return value
+        if kind is float and math.isfinite(value):
+            return value
+        if kind is dict:
+            if any(not isinstance(k, str) for k in value):
+                raise MetaRecordError("portable mappings require string keys")
+            return {k: wire(v) for k, v in value.items()}
+        if kind is tuple or kind is list:
+            return [wire(v) for v in value]
+        if isinstance(value, Enum):
+            return value.value
+        if isinstance(value, pd.Timestamp):
+            return utc(value).isoformat()
+        if is_dataclass(value):
+            return {f.name: wire(getattr(value, f.name)) for f in fields(value)}
+        if isinstance(value, Mapping):
+            if any(not isinstance(k, str) for k in value):
+                raise MetaRecordError("portable mappings require string keys")
+            return {k: wire(v) for k, v in value.items()}
+        if isinstance(value, (tuple, list)):
+            return [wire(v) for v in value]
+        if isinstance(value, np.generic):
+            return wire(value.item())
+        if value is None or isinstance(value, (str, bool, int)):
+            return value
+        if isinstance(value, float) and math.isfinite(value):
+            return value
+&gt;       raise MetaRecordError(
+            f"META_PAYLOAD_INVALID: nonportable/nonfinite {type(value).__name__}"
+        )
+E       quantbt.optimization.meta_selection.common.MetaRecordError: META_PAYLOAD_INVALID: nonportable/nonfinite ndarray
+
+src/quantbt/optimization/meta_selection/common.py:65: MetaRecordError</failure></testcase><testcase classname="tests.meta_selection.test_mlr03_learners" name="test_full_pool_head_and_portable_roundtrip[B1]" time="0.029"><failure message="quantbt.optimization.meta_selection.common.MetaRecordError: META_PAYLOAD_INVALID: nonportable/nonfinite ndarray">code = 'B1'
+
+    @pytest.mark.parametrize("code",["B1","H135","H200"])
+    def test_full_pool_head_and_portable_roundtrip(code):
+&gt;       data, engine, artifact = setup(code=code)
+                                 ^^^^^^^^^^^^^^^^
+
+tests/meta_selection/test_mlr03_learners.py:44: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/meta_selection/test_mlr03_learners.py:24: in setup
+    fitted = engine.fit(FamilySpec(code), data[0], data[2], fit_completed_at=data[3].decision_sealed_at)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/meta_model_research/learners.py:181: in fit
+    model, wire(prepared.scaler), training)
+           ^^^^^^^^^^^^^^^^^^^^^
+src/quantbt/optimization/meta_selection/common.py:52: in wire
+    return {f.name: wire(getattr(value, f.name)) for f in fields(value)}
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+value = array([0.01785714, 0.        , 0.        , 0.        , 0.        ,
+       0.        , 0.150515  , 0.        , 2.5       , 2.46199236])
+
+    def wire(value):
+        # Exact built-ins dominate portable records; subclasses retain the old dispatch.
+        kind = type(value)
+        if value is None or kind is str or kind is bool or kind is int:
+            return value
+        if kind is float and math.isfinite(value):
+            return value
+        if kind is dict:
+            if any(not isinstance(k, str) for k in value):
+                raise MetaRecordError("portable mappings require string keys")
+            return {k: wire(v) for k, v in value.items()}
+        if kind is tuple or kind is list:
+            return [wire(v) for v in value]
+        if isinstance(value, Enum):
+            return value.value
+        if isinstance(value, pd.Timestamp):
+            return utc(value).isoformat()
+        if is_dataclass(value):
+            return {f.name: wire(getattr(value, f.name)) for f in fields(value)}
+        if isinstance(value, Mapping):
+            if any(not isinstance(k, str) for k in value):
+                raise MetaRecordError("portable mappings require string keys")
+            return {k: wire(v) for k, v in value.items()}
+        if isinstance(value, (tuple, list)):
+            return [wire(v) for v in value]
+        if isinstance(value, np.generic):
+            return wire(value.item())
+        if value is None or isinstance(value, (str, bool, int)):
+            return value
+        if isinstance(value, float) and math.isfinite(value):
+            return value
+&gt;       raise MetaRecordError(
+            f"META_PAYLOAD_INVALID: nonportable/nonfinite {type(value).__name__}"
+        )
+E       quantbt.optimization.meta_selection.common.MetaRecordError: META_PAYLOAD_INVALID: nonportable/nonfinite ndarray
+
+src/quantbt/optimization/meta_selection/common.py:65: MetaRecordError</failure></testcase><testcase classname="tests.meta_selection.test_mlr03_learners" name="test_full_pool_head_and_portable_roundtrip[H135]" time="1.290"><failure message="quantbt.optimization.meta_selection.common.MetaRecordError: META_PAYLOAD_INVALID: nonportable/nonfinite ndarray">code = 'H135'
+
+    @pytest.mark.parametrize("code",["B1","H135","H200"])
+    def test_full_pool_head_and_portable_roundtrip(code):
+&gt;       data, engine, artifact = setup(code=code)
+                                 ^^^^^^^^^^^^^^^^
+
+tests/meta_selection/test_mlr03_learners.py:44: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/meta_selection/test_mlr03_learners.py:24: in setup
+    fitted = engine.fit(FamilySpec(code), data[0], data[2], fit_completed_at=data[3].decision_sealed_at)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/meta_model_research/learners.py:181: in fit
+    model, wire(prepared.scaler), training)
+           ^^^^^^^^^^^^^^^^^^^^^
+src/quantbt/optimization/meta_selection/common.py:52: in wire
+    return {f.name: wire(getattr(value, f.name)) for f in fields(value)}
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+value = array([0.01785714, 0.        , 0.        , 0.        , 0.        ,
+       0.        , 0.150515  , 0.        , 2.5       , 2.46199236])
+
+    def wire(value):
+        # Exact built-ins dominate portable records; subclasses retain the old dispatch.
+        kind = type(value)
+        if value is None or kind is str or kind is bool or kind is int:
+            return value
+        if kind is float and math.isfinite(value):
+            return value
+        if kind is dict:
+            if any(not isinstance(k, str) for k in value):
+                raise MetaRecordError("portable mappings require string keys")
+            return {k: wire(v) for k, v in value.items()}
+        if kind is tuple or kind is list:
+            return [wire(v) for v in value]
+        if isinstance(value, Enum):
+            return value.value
+        if isinstance(value, pd.Timestamp):
+            return utc(value).isoformat()
+        if is_dataclass(value):
+            return {f.name: wire(getattr(value, f.name)) for f in fields(value)}
+        if isinstance(value, Mapping):
+            if any(not isinstance(k, str) for k in value):
+                raise MetaRecordError("portable mappings require string keys")
+            return {k: wire(v) for k, v in value.items()}
+        if isinstance(value, (tuple, list)):
+            return [wire(v) for v in value]
+        if isinstance(value, np.generic):
+            return wire(value.item())
+        if value is None or isinstance(value, (str, bool, int)):
+            return value
+        if isinstance(value, float) and math.isfinite(value):
+            return value
+&gt;       raise MetaRecordError(
+            f"META_PAYLOAD_INVALID: nonportable/nonfinite {type(value).__name__}"
+        )
+E       quantbt.optimization.meta_selection.common.MetaRecordError: META_PAYLOAD_INVALID: nonportable/nonfinite ndarray
+
+src/quantbt/optimization/meta_selection/common.py:65: MetaRecordError</failure></testcase><testcase classname="tests.meta_selection.test_mlr03_learners" name="test_full_pool_head_and_portable_roundtrip[H200]" time="0.059"><failure message="quantbt.optimization.meta_selection.common.MetaRecordError: META_PAYLOAD_INVALID: nonportable/nonfinite ndarray">code = 'H200'
+
+    @pytest.mark.parametrize("code",["B1","H135","H200"])
+    def test_full_pool_head_and_portable_roundtrip(code):
+&gt;       data, engine, artifact = setup(code=code)
+                                 ^^^^^^^^^^^^^^^^
+
+tests/meta_selection/test_mlr03_learners.py:44: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/meta_selection/test_mlr03_learners.py:24: in setup
+    fitted = engine.fit(FamilySpec(code), data[0], data[2], fit_completed_at=data[3].decision_sealed_at)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/meta_model_research/learners.py:181: in fit
+    model, wire(prepared.scaler), training)
+           ^^^^^^^^^^^^^^^^^^^^^
+src/quantbt/optimization/meta_selection/common.py:52: in wire
+    return {f.name: wire(getattr(value, f.name)) for f in fields(value)}
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+value = array([0.01785714, 0.        , 0.        , 0.        , 0.        ,
+       0.        , 0.150515  , 0.        , 2.5       , 2.46199236])
+
+    def wire(value):
+        # Exact built-ins dominate portable records; subclasses retain the old dispatch.
+        kind = type(value)
+        if value is None or kind is str or kind is bool or kind is int:
+            return value
+        if kind is float and math.isfinite(value):
+            return value
+        if kind is dict:
+            if any(not isinstance(k, str) for k in value):
+                raise MetaRecordError("portable mappings require string keys")
+            return {k: wire(v) for k, v in value.items()}
+        if kind is tuple or kind is list:
+            return [wire(v) for v in value]
+        if isinstance(value, Enum):
+            return value.value
+        if isinstance(value, pd.Timestamp):
+            return utc(value).isoformat()
+        if is_dataclass(value):
+            return {f.name: wire(getattr(value, f.name)) for f in fields(value)}
+        if isinstance(value, Mapping):
+            if any(not isinstance(k, str) for k in value):
+                raise MetaRecordError("portable mappings require string keys")
+            return {k: wire(v) for k, v in value.items()}
+        if isinstance(value, (tuple, list)):
+            return [wire(v) for v in value]
+        if isinstance(value, np.generic):
+            return wire(value.item())
+        if value is None or isinstance(value, (str, bool, int)):
+            return value
+        if isinstance(value, float) and math.isfinite(value):
+            return value
+&gt;       raise MetaRecordError(
+            f"META_PAYLOAD_INVALID: nonportable/nonfinite {type(value).__name__}"
+        )
+E       quantbt.optimization.meta_selection.common.MetaRecordError: META_PAYLOAD_INVALID: nonportable/nonfinite ndarray
+
+src/quantbt/optimization/meta_selection/common.py:65: MetaRecordError</failure></testcase><testcase classname="tests.meta_selection.test_mlr03_learners" name="test_support_budget_clock_and_unknown_artifact_fail_closed" time="0.108"><failure message="quantbt.optimization.meta_selection.common.MetaRecordError: META_PAYLOAD_INVALID: nonportable/nonfinite ndarray">def test_support_budget_clock_and_unknown_artifact_fail_closed():
+        data, engine, artifact = setup(11)
+        assert artifact.fit.model is None and engine.fits == 0
+        assert artifact.decision.status == "META_SUPPORT_INSUFFICIENT"
+        data = corpus()
+        with pytest.raises(MetaRecordError,match="BUDGET"):
+            FamilyResearch(max_fits=0).fit(FamilySpec("B1"),data[0],data[2],fit_completed_at=data[3].decision_sealed_at)
+        with pytest.raises(MetaRecordError,match="CLOCK"):
+            FamilyResearch().fit(FamilySpec("B1"),data[0],data[2],fit_completed_at="1999-01-01")
+&gt;       data,engine,artifact = setup()
+                               ^^^^^^^
+
+tests/meta_selection/test_mlr03_learners.py:75: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/meta_selection/test_mlr03_learners.py:24: in setup
+    fitted = engine.fit(FamilySpec(code), data[0], data[2], fit_completed_at=data[3].decision_sealed_at)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/meta_model_research/learners.py:181: in fit
+    model, wire(prepared.scaler), training)
+           ^^^^^^^^^^^^^^^^^^^^^
+src/quantbt/optimization/meta_selection/common.py:52: in wire
+    return {f.name: wire(getattr(value, f.name)) for f in fields(value)}
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+value = array([0.01785714, 0.        , 0.        , 0.        , 0.        ,
+       0.        , 0.150515  , 0.        , 2.5       , 2.46199236])
+
+    def wire(value):
+        # Exact built-ins dominate portable records; subclasses retain the old dispatch.
+        kind = type(value)
+        if value is None or kind is str or kind is bool or kind is int:
+            return value
+        if kind is float and math.isfinite(value):
+            return value
+        if kind is dict:
+            if any(not isinstance(k, str) for k in value):
+                raise MetaRecordError("portable mappings require string keys")
+            return {k: wire(v) for k, v in value.items()}
+        if kind is tuple or kind is list:
+            return [wire(v) for v in value]
+        if isinstance(value, Enum):
+            return value.value
+        if isinstance(value, pd.Timestamp):
+            return utc(value).isoformat()
+        if is_dataclass(value):
+            return {f.name: wire(getattr(value, f.name)) for f in fields(value)}
+        if isinstance(value, Mapping):
+            if any(not isinstance(k, str) for k in value):
+                raise MetaRecordError("portable mappings require string keys")
+            return {k: wire(v) for k, v in value.items()}
+        if isinstance(value, (tuple, list)):
+            return [wire(v) for v in value]
+        if isinstance(value, np.generic):
+            return wire(value.item())
+        if value is None or isinstance(value, (str, bool, int)):
+            return value
+        if isinstance(value, float) and math.isfinite(value):
+            return value
+&gt;       raise MetaRecordError(
+            f"META_PAYLOAD_INVALID: nonportable/nonfinite {type(value).__name__}"
+        )
+E       quantbt.optimization.meta_selection.common.MetaRecordError: META_PAYLOAD_INVALID: nonportable/nonfinite ndarray
+
+src/quantbt/optimization/meta_selection/common.py:65: MetaRecordError</failure></testcase><testcase classname="tests.meta_selection.test_mlr03_learners" name="test_own_past_correction_changes_context_but_reordering_does_not" time="0.032"><failure message="quantbt.optimization.meta_selection.common.MetaRecordError: META_PAYLOAD_INVALID: nonportable/nonfinite ndarray">def test_own_past_correction_changes_context_but_reordering_does_not():
+&gt;       data,engine,artifact = setup()
+                               ^^^^^^^
+
+tests/meta_selection/test_mlr03_learners.py:86: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/meta_selection/test_mlr03_learners.py:24: in setup
+    fitted = engine.fit(FamilySpec(code), data[0], data[2], fit_completed_at=data[3].decision_sealed_at)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/meta_model_research/learners.py:181: in fit
+    model, wire(prepared.scaler), training)
+           ^^^^^^^^^^^^^^^^^^^^^
+src/quantbt/optimization/meta_selection/common.py:52: in wire
+    return {f.name: wire(getattr(value, f.name)) for f in fields(value)}
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+value = array([0.01785714, 0.        , 0.        , 0.        , 0.        ,
+       0.        , 0.150515  , 0.        , 2.5       , 2.46199236])
+
+    def wire(value):
+        # Exact built-ins dominate portable records; subclasses retain the old dispatch.
+        kind = type(value)
+        if value is None or kind is str or kind is bool or kind is int:
+            return value
+        if kind is float and math.isfinite(value):
+            return value
+        if kind is dict:
+            if any(not isinstance(k, str) for k in value):
+                raise MetaRecordError("portable mappings require string keys")
+            return {k: wire(v) for k, v in value.items()}
+        if kind is tuple or kind is list:
+            return [wire(v) for v in value]
+        if isinstance(value, Enum):
+            return value.value
+        if isinstance(value, pd.Timestamp):
+            return utc(value).isoformat()
+        if is_dataclass(value):
+            return {f.name: wire(getattr(value, f.name)) for f in fields(value)}
+        if isinstance(value, Mapping):
+            if any(not isinstance(k, str) for k in value):
+                raise MetaRecordError("portable mappings require string keys")
+            return {k: wire(v) for k, v in value.items()}
+        if isinstance(value, (tuple, list)):
+            return [wire(v) for v in value]
+        if isinstance(value, np.generic):
+            return wire(value.item())
+        if value is None or isinstance(value, (str, bool, int)):
+            return value
+        if isinstance(value, float) and math.isfinite(value):
+            return value
+&gt;       raise MetaRecordError(
+            f"META_PAYLOAD_INVALID: nonportable/nonfinite {type(value).__name__}"
+        )
+E       quantbt.optimization.meta_selection.common.MetaRecordError: META_PAYLOAD_INVALID: nonportable/nonfinite ndarray
+
+src/quantbt/optimization/meta_selection/common.py:65: MetaRecordError</failure></testcase><testcase classname="tests.meta_selection.test_mlr03_family_protocol" name="test_common_roster_ignores_heldout_and_future_and_keeps_complete_blocks" time="0.015" /><testcase classname="tests.meta_selection.test_mlr03_family_protocol" name="test_update_requires_new_mature_support_and_not_current_forward" time="0.006" /><testcase classname="tests.meta_selection.test_mlr03_family_protocol" name="test_keep_simpler_recipe_and_actual_changed_allowed_past_control" time="0.009" /></testsuite></testsuites>

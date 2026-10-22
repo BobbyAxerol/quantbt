@@ -265,6 +265,14 @@ def compile_walkforward_computation_plan(config: Any) -> RequiredComputationPlan
         intermediate_paths.append("full_is_parameter_plateau")
         reducers.append("full_sample_robustness")
 
+    mode5_calibration = getattr(config, "mode5_calibration", None)
+    if mode5_calibration is not None:
+        observation_kinds.extend(("actual_account_path", "utc_daily_return", "mode5_versioned_component"))
+        intermediate_paths.extend(("mode5_daily_support_and_tail", "mode5_environment_component_rows",
+                                   "mode5_selected_original_audit"))
+        reducers.extend(("mode5_daily_moments_psr", "mode5_weighted_tail", "mode5_sealed_selector"))
+        notes.append("Mode5 opt-in requires original account paths, not native scalar placeholders or synthetic replay.")
+
     if opaque_custom_metric:
         intermediate_paths.append("full_execution_observation_stream")
         reducers.append("opaque_custom_metric")
@@ -285,6 +293,8 @@ def compile_walkforward_computation_plan(config: Any) -> RequiredComputationPlan
         sinks.append(f"selected_financial_{retention_plan.financial_retention}")
     if bool(getattr(config, "optuna_trials", 0)):
         sinks.append("pruner_checkpoint_stream")
+    if mode5_calibration is not None:
+        sinks.extend(("mode5_complete_attempt_ledger", "mode5_components_and_selected_audit"))
     return RequiredComputationPlanV1(
         route_id="QuantBTEndpoint.walk_forward",
         optimization_mode=mode,
@@ -298,7 +308,7 @@ def compile_walkforward_computation_plan(config: Any) -> RequiredComputationPlan
         output_sinks=tuple(sinks),
         requires_intermediate_checkpoints=bool(getattr(config, "optuna_trials", 0)),
         opaque_custom_metric=opaque_custom_metric,
-        native_score_eligible=not opaque_custom_metric,
+        native_score_eligible=not opaque_custom_metric and mode5_calibration is None,
         notes=tuple(notes),
     )
 

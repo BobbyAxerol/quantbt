@@ -1,0 +1,3137 @@
+{
+  "schema": "quantbt-qms02-sampler-evidence-v1",
+  "phase_entry_sha": "5f8a732",
+  "release_baseline_sha": "2c811a7faaed3c274e93c60650e16207949f0a59",
+  "baseline_manifest_sha256": "f8066d5253d3b4c5d9f0641d771a0f2bd873c738c7c6d74045752b7c2e7c40da",
+  "guide_sha256": "adad24b16024ec5d9f3bdaf3a4098a8c60305c1fc181f1c30a0ff0f648a8170d",
+  "branch": "feat/meta-selection-samplers",
+  "versions": {
+    "quantbt-engine": "1.1.1",
+    "quantbt-native": "0.4.2",
+    "optuna": "4.8.0",
+    "cmaes": "0.12.0"
+  },
+  "source_hashes": {
+    "examples/wfo_samplers.py": "b0c7e35f973579e83b95a5e45eb9b44c190024e93347db9256834086df0ed7f4",
+    "pyproject.toml": "34f50e101797be3a63326cf25ff09872d06b7cf0ea5e1b67e9eb907d5dc16978",
+    "src/quantbt/endpoint.py": "b11aed2ff1a9765d882a00d86962d20d5f15729e54ff50dc5b42185af5c84332",
+    "src/quantbt/optimization/__init__.py": "e6acdade5a4e40d2cdc0508001ae6660cceea1b033c38f91bc236a14cd139432",
+    "src/quantbt/optimization/config.py": "087e373b27c21c15fb3ea3f65b9677b9f6f466b2897d23f8f05fb47eb8d83b6a",
+    "src/quantbt/optimization/optimizer.py": "975dfb1e991d51c9a1c2ff8f8bb6eaa052da7820a37a3d02d94a7457c0c36ba9",
+    "src/quantbt/optimization/parameter_space.py": "58e789bed5988b5da37fe072ac5d28266deff78967e826cc8ebb336ad3a57d18",
+    "src/quantbt/optimization/samplers.py": "1ef9cfa2beb7f4ddc80e883f2ea22048e8d093baf4a4036b213270e1ac804bdb",
+    "src/quantbt/optimization/space.py": "f19c93bda0025fdd5fb948e387b50686c56f396dd255dc7a64db29e975fc2df3",
+    "src/quantbt/optimization/wfo_study.py": "15847fba5e0b2c0082d32d1411e13d67758fd99bd6406f6470fc5d5d969a099e",
+    "src/quantbt/walkforward.py": "9bbc3559a1587fde7ac9702566f796d1ff5e52c489ded9b550c879670dc840be",
+    "tests/meta_selection/test_qms02_samplers.py": "2d774ee9d16297d7b0f88fcc16f888c277a4fdc11cdf39943d79bcec8fb4898e",
+    "tools/qms02_evidence.py": "d76af6b44a9b079346d39acf53c00ba33fdb2a1eb0dccfc87fa9479997db210d",
+    "upgrade/QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md": "adad24b16024ec5d9f3bdaf3a4098a8c60305c1fc181f1c30a0ff0f648a8170d",
+    "uv.lock": "55368be595814ddee20a2e02d4d725957ffd893f83b3287242de8e385f491830"
+  },
+  "budget": {
+    "recipes": [
+      "tpe_legacy",
+      "tpe_multivariate_group",
+      "cmaes",
+      "sobol"
+    ],
+    "bars": 547,
+    "attempts_per_study": 12,
+    "outer_folds": 2,
+    "warmup_repetitions": 1,
+    "measured_repetitions": 3,
+    "seed": 731,
+    "workers": 1,
+    "economic_study": false
+  },
+  "measurements": [
+    {
+      "recipe": "tpe_legacy",
+      "repetitions": [
+        {
+          "repeat": 0,
+          "warmup": true,
+          "wall_seconds": 2.1008176280010957,
+          "cpu_seconds": 2.0823103229999997,
+          "before": {
+            "peak_rss_mib": 160.73828125,
+            "rss_mib": 160.73828125,
+            "pss_mib": 150.763671875
+          },
+          "after": {
+            "peak_rss_mib": 285.76171875,
+            "rss_mib": 285.76171875,
+            "pss_mib": 275.6650390625
+          },
+          "equity_sha256": "142a54f332b69b4d0d5ff144b961ef92590f671e4ecfcb4d5a44010c9b16b29f"
+        },
+        {
+          "repeat": 1,
+          "warmup": false,
+          "wall_seconds": 0.3667499180010054,
+          "cpu_seconds": 0.36642456400000034,
+          "before": {
+            "peak_rss_mib": 285.76171875,
+            "rss_mib": 285.76171875,
+            "pss_mib": 275.6650390625
+          },
+          "after": {
+            "peak_rss_mib": 286.27734375,
+            "rss_mib": 286.27734375,
+            "pss_mib": 276.1572265625
+          },
+          "equity_sha256": "142a54f332b69b4d0d5ff144b961ef92590f671e4ecfcb4d5a44010c9b16b29f"
+        },
+        {
+          "repeat": 2,
+          "warmup": false,
+          "wall_seconds": 0.36095244900207035,
+          "cpu_seconds": 0.35956146499999964,
+          "before": {
+            "peak_rss_mib": 286.27734375,
+            "rss_mib": 286.27734375,
+            "pss_mib": 276.1572265625
+          },
+          "after": {
+            "peak_rss_mib": 286.53515625,
+            "rss_mib": 286.53515625,
+            "pss_mib": 276.5361328125
+          },
+          "equity_sha256": "142a54f332b69b4d0d5ff144b961ef92590f671e4ecfcb4d5a44010c9b16b29f"
+        },
+        {
+          "repeat": 3,
+          "warmup": false,
+          "wall_seconds": 0.343348040994897,
+          "cpu_seconds": 0.342179604,
+          "before": {
+            "peak_rss_mib": 286.53515625,
+            "rss_mib": 286.53515625,
+            "pss_mib": 276.5361328125
+          },
+          "after": {
+            "peak_rss_mib": 286.53515625,
+            "rss_mib": 286.53515625,
+            "pss_mib": 276.6103515625
+          },
+          "equity_sha256": "142a54f332b69b4d0d5ff144b961ef92590f671e4ecfcb4d5a44010c9b16b29f"
+        }
+      ],
+      "median_warm_ms": 360.95244900207035,
+      "studies": [
+        {
+          "schema": "quantbt-wfo-sampler-study-v1",
+          "recipe": "tpe_legacy",
+          "sampler_class": "TPESampler",
+          "optuna_version": "4.8.0",
+          "cmaes_version": null,
+          "kwargs": {
+            "seed": 731
+          },
+          "seed": 731,
+          "stage": "is_search",
+          "objective_scope": "current_is_study_folds",
+          "is_cutoff": "2020-12-31T00:00:00+00:00",
+          "space": {
+            "schema": "quantbt-parameter-space-v1",
+            "parameters": [
+              {
+                "name": "window",
+                "kind": "integer",
+                "low": 3,
+                "high": 31,
+                "step": 2,
+                "scale": "linear",
+                "categories": [],
+                "active_if": {},
+                "fixed": false,
+                "fixed_value": null
+              },
+              {
+                "name": "threshold",
+                "kind": "float",
+                "low": 0.0001,
+                "high": 0.01,
+                "step": null,
+                "scale": "log",
+                "categories": [],
+                "active_if": {},
+                "fixed": false,
+                "fixed_value": null
+              }
+            ],
+            "effective_builder": "omit_explicit_inactive_v1"
+          },
+          "space_identity": "73b3ee2f6a632626d7506f6256e37b2ba149836c7b9ce1aa6be18b5105fff3f0",
+          "constraint_mode": "sampler",
+          "mixed_space_policy": "reject",
+          "requested_trials": 12,
+          "attempts": 12,
+          "states": {
+            "COMPLETE": 12
+          },
+          "unique_effective_candidates": 12,
+          "feasible_complete": 12,
+          "warm_start_attempts": 0,
+          "duplicate_attempts": 0,
+          "independent_sample_calls": {
+            "window": 12,
+            "threshold": 12
+          },
+          "relative_proposal_trials": 0,
+          "joint_numeric_candidates": "see_relative_dimensions",
+          "conditional_branches": {},
+          "qmc_dimension_order": null,
+          "qmc_sequence_position": null,
+          "startup_policy": 10,
+          "completed_generations": "not_exposed",
+          "group_decomposition": "not_exposed",
+          "startup_adaptive_counts": "not_exposed",
+          "sampler_wall_seconds": 0.009611149995180313,
+          "ask_tell_digest": "10bd8a446d68699be0f3323ccd3944d2c675ac5d8b334f5bf89cf26244c1d1d6",
+          "rows": [
+            {
+              "trial_id": 0,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 15,
+                "threshold": 0.007883991311131681
+              },
+              "effective_params": {
+                "window": 15,
+                "threshold": 0.007883991311131681
+              },
+              "candidate_id": "15a8c588cd166e5fa03166a6a1c93795f19afe0faa039d214c46426bf2705a9d",
+              "source": "sampled",
+              "objective": [
+                19.58281772897512
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": []
+            },
+            {
+              "trial_id": 1,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 9,
+                "threshold": 0.0009753452939810186
+              },
+              "effective_params": {
+                "window": 9,
+                "threshold": 0.0009753452939810186
+              },
+              "candidate_id": "41817a273d209fba15fce9e1db507d6eee1c1e22fecf4923074f447bb4d1a1eb",
+              "source": "sampled",
+              "objective": [
+                30.156909183471317
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": []
+            },
+            {
+              "trial_id": 2,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 11,
+                "threshold": 0.0009353256248604613
+              },
+              "effective_params": {
+                "window": 11,
+                "threshold": 0.0009353256248604613
+              },
+              "candidate_id": "3850799f1b9c4ebf9ffe39bb652fc0be51bd79cc1882c650f0b41b34e4af0758",
+              "source": "sampled",
+              "objective": [
+                28.17523139994184
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": []
+            },
+            {
+              "trial_id": 3,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 11,
+                "threshold": 0.00044591275523896254
+              },
+              "effective_params": {
+                "window": 11,
+                "threshold": 0.00044591275523896254
+              },
+              "candidate_id": "7b8b86e8337ae20b5d5511ce0eeef0d3bf0e3b04dacf8f370c32d70ad9f1e69f",
+              "source": "sampled",
+              "objective": [
+                27.912514220717004
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": []
+            },
+            {
+              "trial_id": 4,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 13,
+                "threshold": 0.0025203720796346776
+              },
+              "effective_params": {
+                "window": 13,
+                "threshold": 0.0025203720796346776
+              },
+              "candidate_id": "366a32040459f1fda41ab6b1fd095f7343b7ee76c38587479da167738f3835c3",
+              "source": "sampled",
+              "objective": [
+                26.237909868023344
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": []
+            },
+            {
+              "trial_id": 5,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 11,
+                "threshold": 0.007537411825491779
+              },
+              "effective_params": {
+                "window": 11,
+                "threshold": 0.007537411825491779
+              },
+              "candidate_id": "892ad9ed967f99841c2510e1edfef3bdfe57786c51ff7892c5502d8c0441ecb6",
+              "source": "sampled",
+              "objective": [
+                16.1319659893798
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": []
+            },
+            {
+              "trial_id": 6,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 23,
+                "threshold": 0.0038442644013141902
+              },
+              "effective_params": {
+                "window": 23,
+                "threshold": 0.0038442644013141902
+              },
+              "candidate_id": "079283d079b799d7338a019cfd8d79e0e89231ef1458b4981d13bf8f307b340a",
+              "source": "sampled",
+              "objective": [
+                19.038128132374183
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": []
+            },
+            {
+              "trial_id": 7,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 31,
+                "threshold": 0.006654933476339802
+              },
+              "effective_params": {
+                "window": 31,
+                "threshold": 0.006654933476339802
+              },
+              "candidate_id": "69a919f6335c24c10a9f768375e9b1b2c1f25a23807ecb33370025e461ee6fd1",
+              "source": "sampled",
+              "objective": [
+                14.229835561644794
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": []
+            },
+            {
+              "trial_id": 8,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 27,
+                "threshold": 0.003975299812010113
+              },
+              "effective_params": {
+                "window": 27,
+                "threshold": 0.003975299812010113
+              },
+              "candidate_id": "745514988383ce842dcad17dcf530bb755b3b7a2f635a14f3cf5d09f9198162d",
+              "source": "sampled",
+              "objective": [
+                16.287267711868598
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": []
+            },
+            {
+              "trial_id": 9,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 27,
+                "threshold": 0.0015422591737423031
+              },
+              "effective_params": {
+                "window": 27,
+                "threshold": 0.0015422591737423031
+              },
+              "candidate_id": "567b9fde4223385c030df36ef46fd35212c69824194919b164415c339e1c80c1",
+              "source": "sampled",
+              "objective": [
+                15.964775324768919
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": []
+            },
+            {
+              "trial_id": 10,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 5,
+                "threshold": 0.00010376099124130747
+              },
+              "effective_params": {
+                "window": 5,
+                "threshold": 0.00010376099124130747
+              },
+              "candidate_id": "58d90457e76d9f9e332955d684ca8948b5dbb63b1aa51c74255efe2ccfbea32d",
+              "source": "sampled",
+              "objective": [
+                32.90104306865987
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": []
+            },
+            {
+              "trial_id": 11,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 3,
+                "threshold": 0.0001590158302334177
+              },
+              "effective_params": {
+                "window": 3,
+                "threshold": 0.0001590158302334177
+              },
+              "candidate_id": "e2e08b6e5274fe85ee4e9a8e1fbeaeb939f0f575d3934f4540199ad90979ffdd",
+              "source": "sampled",
+              "objective": [
+                33.54982489429698
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": []
+            }
+          ],
+          "resume": "owned_in_process_study_only",
+          "study_id": 0,
+          "optimization_mode": "mode_4_is_only_robust",
+          "optimization_schedule": "per_fold_causal"
+        },
+        {
+          "schema": "quantbt-wfo-sampler-study-v1",
+          "recipe": "tpe_legacy",
+          "sampler_class": "TPESampler",
+          "optuna_version": "4.8.0",
+          "cmaes_version": null,
+          "kwargs": {
+            "seed": 1000734
+          },
+          "seed": 1000734,
+          "stage": "is_search",
+          "objective_scope": "current_is_study_folds",
+          "is_cutoff": "2021-03-31T00:00:00+00:00",
+          "space": {
+            "schema": "quantbt-parameter-space-v1",
+            "parameters": [
+              {
+                "name": "window",
+                "kind": "integer",
+                "low": 3,
+                "high": 31,
+                "step": 2,
+                "scale": "linear",
+                "categories": [],
+                "active_if": {},
+                "fixed": false,
+                "fixed_value": null
+              },
+              {
+                "name": "threshold",
+                "kind": "float",
+                "low": 0.0001,
+                "high": 0.01,
+                "step": null,
+                "scale": "log",
+                "categories": [],
+                "active_if": {},
+                "fixed": false,
+                "fixed_value": null
+              }
+            ],
+            "effective_builder": "omit_explicit_inactive_v1"
+          },
+          "space_identity": "73b3ee2f6a632626d7506f6256e37b2ba149836c7b9ce1aa6be18b5105fff3f0",
+          "constraint_mode": "sampler",
+          "mixed_space_policy": "reject",
+          "requested_trials": 12,
+          "attempts": 12,
+          "states": {
+            "COMPLETE": 12
+          },
+          "unique_effective_candidates": 12,
+          "feasible_complete": 12,
+          "warm_start_attempts": 0,
+          "duplicate_attempts": 0,
+          "independent_sample_calls": {
+            "window": 12,
+            "threshold": 12
+          },
+          "relative_proposal_trials": 0,
+          "joint_numeric_candidates": "see_relative_dimensions",
+          "conditional_branches": {},
+          "qmc_dimension_order": null,
+          "qmc_sequence_position": null,
+          "startup_policy": 10,
+          "completed_generations": "not_exposed",
+          "group_decomposition": "not_exposed",
+          "startup_adaptive_counts": "not_exposed",
+          "sampler_wall_seconds": 0.009293662988056894,
+          "ask_tell_digest": "d2368000f7e614e0460bb804c4e0b753d3572dec24e1ce2d7cb134588b5f2a97",
+          "rows": [
+            {
+              "trial_id": 0,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 31,
+                "threshold": 0.0002960707116621675
+              },
+              "effective_params": {
+                "window": 31,
+                "threshold": 0.0002960707116621675
+              },
+              "candidate_id": "206234731353bda1f5313ebd6541186be29ec27345c836312e7e4547d589aa54",
+              "source": "sampled",
+              "objective": [
+                15.714559646046549
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": []
+            },
+            {
+              "trial_id": 1,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 3,
+                "threshold": 0.00010606984739219465
+              },
+              "effective_params": {
+                "window": 3,
+                "threshold": 0.00010606984739219465
+              },
+              "candidate_id": "d356ccf745e2503ad65099ee4ea4fb1e73381180558e272dddf828a55e8d49c3",
+              "source": "sampled",
+              "objective": [
+                34.809797268726946
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": []
+            },
+            {
+              "trial_id": 2,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 23,
+                "threshold": 0.0002397964549653057
+              },
+              "effective_params": {
+                "window": 23,
+                "threshold": 0.0002397964549653057
+              },
+              "candidate_id": "45c6eb98a29477a0ff85b50bed074d3debdb1e385944fffd627819e460db5523",
+              "source": "sampled",
+              "objective": [
+                20.33618586369895
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": []
+            },
+            {
+              "trial_id": 3,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 19,
+                "threshold": 0.0007618884342693481
+              },
+              "effective_params": {
+                "window": 19,
+                "threshold": 0.0007618884342693481
+              },
+              "candidate_id": "16f9ff2b24c2f77359298b57f721dc6cecfb65adfa95b49e9d6a984c8b3d8787",
+              "source": "sampled",
+              "objective": [
+                24.113332756705912
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": []
+            },
+            {
+              "trial_id": 4,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 3,
+                "threshold": 0.0009349807376030325
+              },
+              "effective_params": {
+                "window": 3,
+                "threshold": 0.0009349807376030325
+              },
+              "candidate_id": "4eee7be289df22243108116155d5d3b244e2e9886843aeb1dc1b627a1800979e",
+              "source": "sampled",
+              "objective": [
+                26.77552818864767
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": []
+            },
+            {
+              "trial_id": 5,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 27,
+                "threshold": 0.00053649127983532
+              },
+              "effective_params": {
+                "window": 27,
+                "threshold": 0.00053649127983532
+              },
+              "candidate_id": "620c562a0eca54568cc797397c9f3c6db4d83e7ee86687e6b2cfddcd7c0e1a84",
+              "source": "sampled",
+              "objective": [
+                17.981868358742922
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": []
+            },
+            {
+              "trial_id": 6,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 9,
+                "threshold": 0.0006127242818887185
+              },
+              "effective_params": {
+                "window": 9,
+                "threshold": 0.0006127242818887185
+              },
+              "candidate_id": "f6c68aef0e9c8c610838f025de2dc5cb3593f3e340805a74d22e60019935accb",
+              "source": "sampled",
+              "objective": [
+                31.547910113326886
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": []
+            },
+            {
+              "trial_id": 7,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 15,
+                "threshold": 0.008563259365321093
+              },
+              "effective_params": {
+                "window": 15,
+                "threshold": 0.008563259365321093
+              },
+              "candidate_id": "c7e0778a8f278ae90469b007db22c4b0baa10537adc89c4e9ef0d2c7fa6b07bd",
+              "source": "sampled",
+              "objective": [
+                20.423390649008148
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": []
+            },
+            {
+              "trial_id": 8,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 11,
+                "threshold": 0.002064351744076703
+              },
+              "effective_params": {
+                "window": 11,
+                "threshold": 0.002064351744076703
+              },
+              "candidate_id": "f61fb48fefcec305b33a7d99b0c2d93df0af1eb897eeea7ad3abf7d27531bc72",
+              "source": "sampled",
+              "objective": [
+                29.280972889362577
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": []
+            },
+            {
+              "trial_id": 9,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 23,
+                "threshold": 0.005603270720901454
+              },
+              "effective_params": {
+                "window": 23,
+                "threshold": 0.005603270720901454
+              },
+              "candidate_id": "713257b561d999c603dd8572076b44d3bf403310e94ccd1b9c5c83058e386ab1",
+              "source": "sampled",
+              "objective": [
+                21.501619875625327
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": []
+            },
+            {
+              "trial_id": 10,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 5,
+                "threshold": 0.0001005786096332403
+              },
+              "effective_params": {
+                "window": 5,
+                "threshold": 0.0001005786096332403
+              },
+              "candidate_id": "d3d772c870fe440c7c421a5dfca5ba8e7fd564e41b5bd60b42c5e66f71fbb747",
+              "source": "sampled",
+              "objective": [
+                33.56044477732384
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": []
+            },
+            {
+              "trial_id": 11,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 3,
+                "threshold": 0.0001101224124632638
+              },
+              "effective_params": {
+                "window": 3,
+                "threshold": 0.0001101224124632638
+              },
+              "candidate_id": "51c7913a42842ab72685e2be9b20324a67d4c57ec423a4859486223f5d6c0ba3",
+              "source": "sampled",
+              "objective": [
+                34.809797268726946
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": []
+            }
+          ],
+          "resume": "owned_in_process_study_only",
+          "study_id": 1,
+          "optimization_mode": "mode_4_is_only_robust",
+          "optimization_schedule": "per_fold_causal"
+        }
+      ],
+      "profile": {
+        "enabled": true,
+        "strategy_calls": 26,
+        "score_calls": 98,
+        "data_alignment_fold_prepare_seconds": 0.01097659399965778,
+        "strategy_seconds": 0.07100902797537856,
+        "score_seconds": 0.1384160180023173
+      },
+      "params_by_fold": {
+        "0": {
+          "window": 11,
+          "threshold": 0.00044591275523896254
+        },
+        "1": {
+          "window": 9,
+          "threshold": 0.0006127242818887185
+        }
+      },
+      "bars": 547
+    },
+    {
+      "recipe": "tpe_multivariate_group",
+      "repetitions": [
+        {
+          "repeat": 0,
+          "warmup": true,
+          "wall_seconds": 0.3471361420015455,
+          "cpu_seconds": 0.34519120700000006,
+          "before": {
+            "peak_rss_mib": 286.53515625,
+            "rss_mib": 286.53515625,
+            "pss_mib": 276.6103515625
+          },
+          "after": {
+            "peak_rss_mib": 287.046875,
+            "rss_mib": 287.046875,
+            "pss_mib": 277.1083984375
+          },
+          "equity_sha256": "4573acba87dae5fd154d97bf6da7d169d087bea5341dcb34860e80d132739534"
+        },
+        {
+          "repeat": 1,
+          "warmup": false,
+          "wall_seconds": 0.3542388310015667,
+          "cpu_seconds": 0.35156027400000056,
+          "before": {
+            "peak_rss_mib": 287.046875,
+            "rss_mib": 287.046875,
+            "pss_mib": 277.1083984375
+          },
+          "after": {
+            "peak_rss_mib": 287.3046875,
+            "rss_mib": 287.3046875,
+            "pss_mib": 277.3427734375
+          },
+          "equity_sha256": "4573acba87dae5fd154d97bf6da7d169d087bea5341dcb34860e80d132739534"
+        },
+        {
+          "repeat": 2,
+          "warmup": false,
+          "wall_seconds": 0.35323293900000863,
+          "cpu_seconds": 0.3475103119999998,
+          "before": {
+            "peak_rss_mib": 287.3046875,
+            "rss_mib": 287.3046875,
+            "pss_mib": 277.3427734375
+          },
+          "after": {
+            "peak_rss_mib": 287.5625,
+            "rss_mib": 287.5625,
+            "pss_mib": 277.6669921875
+          },
+          "equity_sha256": "4573acba87dae5fd154d97bf6da7d169d087bea5341dcb34860e80d132739534"
+        },
+        {
+          "repeat": 3,
+          "warmup": false,
+          "wall_seconds": 0.3511914449991309,
+          "cpu_seconds": 0.34945189899999995,
+          "before": {
+            "peak_rss_mib": 287.5625,
+            "rss_mib": 287.5625,
+            "pss_mib": 277.6669921875
+          },
+          "after": {
+            "peak_rss_mib": 288.078125,
+            "rss_mib": 288.078125,
+            "pss_mib": 278.0185546875
+          },
+          "equity_sha256": "4573acba87dae5fd154d97bf6da7d169d087bea5341dcb34860e80d132739534"
+        }
+      ],
+      "median_warm_ms": 353.2329390000086,
+      "studies": [
+        {
+          "schema": "quantbt-wfo-sampler-study-v1",
+          "recipe": "tpe_multivariate_group",
+          "sampler_class": "TPESampler",
+          "optuna_version": "4.8.0",
+          "cmaes_version": null,
+          "kwargs": {
+            "multivariate": true,
+            "group": true,
+            "seed": 731
+          },
+          "seed": 731,
+          "stage": "is_search",
+          "objective_scope": "current_is_study_folds",
+          "is_cutoff": "2020-12-31T00:00:00+00:00",
+          "space": {
+            "schema": "quantbt-parameter-space-v1",
+            "parameters": [
+              {
+                "name": "window",
+                "kind": "integer",
+                "low": 3,
+                "high": 31,
+                "step": 2,
+                "scale": "linear",
+                "categories": [],
+                "active_if": {},
+                "fixed": false,
+                "fixed_value": null
+              },
+              {
+                "name": "threshold",
+                "kind": "float",
+                "low": 0.0001,
+                "high": 0.01,
+                "step": null,
+                "scale": "log",
+                "categories": [],
+                "active_if": {},
+                "fixed": false,
+                "fixed_value": null
+              }
+            ],
+            "effective_builder": "omit_explicit_inactive_v1"
+          },
+          "space_identity": "73b3ee2f6a632626d7506f6256e37b2ba149836c7b9ce1aa6be18b5105fff3f0",
+          "constraint_mode": "sampler",
+          "mixed_space_policy": "reject",
+          "requested_trials": 12,
+          "attempts": 12,
+          "states": {
+            "COMPLETE": 12
+          },
+          "unique_effective_candidates": 12,
+          "feasible_complete": 12,
+          "warm_start_attempts": 0,
+          "duplicate_attempts": 0,
+          "independent_sample_calls": {
+            "window": 10,
+            "threshold": 10
+          },
+          "relative_proposal_trials": 2,
+          "joint_numeric_candidates": "see_relative_dimensions",
+          "conditional_branches": {},
+          "qmc_dimension_order": null,
+          "qmc_sequence_position": null,
+          "startup_policy": 10,
+          "completed_generations": "not_exposed",
+          "group_decomposition": "not_exposed",
+          "startup_adaptive_counts": "not_exposed",
+          "sampler_wall_seconds": 0.00858283200795995,
+          "ask_tell_digest": "77eeaf2c0ca128b85a8ea2bb8a30e982f41024235b1790a310cd868374d8276a",
+          "rows": [
+            {
+              "trial_id": 0,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 15,
+                "threshold": 0.007883991311131681
+              },
+              "effective_params": {
+                "window": 15,
+                "threshold": 0.007883991311131681
+              },
+              "candidate_id": "15a8c588cd166e5fa03166a6a1c93795f19afe0faa039d214c46426bf2705a9d",
+              "source": "sampled",
+              "objective": [
+                19.58281772897512
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": []
+            },
+            {
+              "trial_id": 1,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 9,
+                "threshold": 0.0009753452939810186
+              },
+              "effective_params": {
+                "window": 9,
+                "threshold": 0.0009753452939810186
+              },
+              "candidate_id": "41817a273d209fba15fce9e1db507d6eee1c1e22fecf4923074f447bb4d1a1eb",
+              "source": "sampled",
+              "objective": [
+                30.156909183471317
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": []
+            },
+            {
+              "trial_id": 2,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 11,
+                "threshold": 0.0009353256248604613
+              },
+              "effective_params": {
+                "window": 11,
+                "threshold": 0.0009353256248604613
+              },
+              "candidate_id": "3850799f1b9c4ebf9ffe39bb652fc0be51bd79cc1882c650f0b41b34e4af0758",
+              "source": "sampled",
+              "objective": [
+                28.17523139994184
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": []
+            },
+            {
+              "trial_id": 3,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 11,
+                "threshold": 0.00044591275523896254
+              },
+              "effective_params": {
+                "window": 11,
+                "threshold": 0.00044591275523896254
+              },
+              "candidate_id": "7b8b86e8337ae20b5d5511ce0eeef0d3bf0e3b04dacf8f370c32d70ad9f1e69f",
+              "source": "sampled",
+              "objective": [
+                27.912514220717004
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": []
+            },
+            {
+              "trial_id": 4,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 13,
+                "threshold": 0.0025203720796346776
+              },
+              "effective_params": {
+                "window": 13,
+                "threshold": 0.0025203720796346776
+              },
+              "candidate_id": "366a32040459f1fda41ab6b1fd095f7343b7ee76c38587479da167738f3835c3",
+              "source": "sampled",
+              "objective": [
+                26.237909868023344
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": []
+            },
+            {
+              "trial_id": 5,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 11,
+                "threshold": 0.007537411825491779
+              },
+              "effective_params": {
+                "window": 11,
+                "threshold": 0.007537411825491779
+              },
+              "candidate_id": "892ad9ed967f99841c2510e1edfef3bdfe57786c51ff7892c5502d8c0441ecb6",
+              "source": "sampled",
+              "objective": [
+                16.1319659893798
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": []
+            },
+            {
+              "trial_id": 6,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 23,
+                "threshold": 0.0038442644013141902
+              },
+              "effective_params": {
+                "window": 23,
+                "threshold": 0.0038442644013141902
+              },
+              "candidate_id": "079283d079b799d7338a019cfd8d79e0e89231ef1458b4981d13bf8f307b340a",
+              "source": "sampled",
+              "objective": [
+                19.038128132374183
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": []
+            },
+            {
+              "trial_id": 7,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 31,
+                "threshold": 0.006654933476339802
+              },
+              "effective_params": {
+                "window": 31,
+                "threshold": 0.006654933476339802
+              },
+              "candidate_id": "69a919f6335c24c10a9f768375e9b1b2c1f25a23807ecb33370025e461ee6fd1",
+              "source": "sampled",
+              "objective": [
+                14.229835561644794
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": []
+            },
+            {
+              "trial_id": 8,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 27,
+                "threshold": 0.003975299812010113
+              },
+              "effective_params": {
+                "window": 27,
+                "threshold": 0.003975299812010113
+              },
+              "candidate_id": "745514988383ce842dcad17dcf530bb755b3b7a2f635a14f3cf5d09f9198162d",
+              "source": "sampled",
+              "objective": [
+                16.287267711868598
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": []
+            },
+            {
+              "trial_id": 9,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 27,
+                "threshold": 0.0015422591737423031
+              },
+              "effective_params": {
+                "window": 27,
+                "threshold": 0.0015422591737423031
+              },
+              "candidate_id": "567b9fde4223385c030df36ef46fd35212c69824194919b164415c339e1c80c1",
+              "source": "sampled",
+              "objective": [
+                15.964775324768919
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": []
+            },
+            {
+              "trial_id": 10,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 25,
+                "threshold": 0.00017679574138344594
+              },
+              "effective_params": {
+                "window": 25,
+                "threshold": 0.00017679574138344594
+              },
+              "candidate_id": "3d3cd6923f2939470131950122e538eeaf19c9dd6b4caa1fbf857ee9cf0d887a",
+              "source": "sampled",
+              "objective": [
+                16.392717233052792
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": [
+                "threshold",
+                "window"
+              ]
+            },
+            {
+              "trial_id": 11,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 3,
+                "threshold": 0.0012699824859171665
+              },
+              "effective_params": {
+                "window": 3,
+                "threshold": 0.0012699824859171665
+              },
+              "candidate_id": "0cb4d3265ecf16f66533682d152ef1bc6f0c96696b32b8fb60c3734c85985d93",
+              "source": "sampled",
+              "objective": [
+                20.884321148778568
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": [
+                "threshold",
+                "window"
+              ]
+            }
+          ],
+          "resume": "owned_in_process_study_only",
+          "study_id": 0,
+          "optimization_mode": "mode_4_is_only_robust",
+          "optimization_schedule": "per_fold_causal"
+        },
+        {
+          "schema": "quantbt-wfo-sampler-study-v1",
+          "recipe": "tpe_multivariate_group",
+          "sampler_class": "TPESampler",
+          "optuna_version": "4.8.0",
+          "cmaes_version": null,
+          "kwargs": {
+            "multivariate": true,
+            "group": true,
+            "seed": 1000734
+          },
+          "seed": 1000734,
+          "stage": "is_search",
+          "objective_scope": "current_is_study_folds",
+          "is_cutoff": "2021-03-31T00:00:00+00:00",
+          "space": {
+            "schema": "quantbt-parameter-space-v1",
+            "parameters": [
+              {
+                "name": "window",
+                "kind": "integer",
+                "low": 3,
+                "high": 31,
+                "step": 2,
+                "scale": "linear",
+                "categories": [],
+                "active_if": {},
+                "fixed": false,
+                "fixed_value": null
+              },
+              {
+                "name": "threshold",
+                "kind": "float",
+                "low": 0.0001,
+                "high": 0.01,
+                "step": null,
+                "scale": "log",
+                "categories": [],
+                "active_if": {},
+                "fixed": false,
+                "fixed_value": null
+              }
+            ],
+            "effective_builder": "omit_explicit_inactive_v1"
+          },
+          "space_identity": "73b3ee2f6a632626d7506f6256e37b2ba149836c7b9ce1aa6be18b5105fff3f0",
+          "constraint_mode": "sampler",
+          "mixed_space_policy": "reject",
+          "requested_trials": 12,
+          "attempts": 12,
+          "states": {
+            "COMPLETE": 12
+          },
+          "unique_effective_candidates": 12,
+          "feasible_complete": 12,
+          "warm_start_attempts": 0,
+          "duplicate_attempts": 0,
+          "independent_sample_calls": {
+            "window": 10,
+            "threshold": 10
+          },
+          "relative_proposal_trials": 2,
+          "joint_numeric_candidates": "see_relative_dimensions",
+          "conditional_branches": {},
+          "qmc_dimension_order": null,
+          "qmc_sequence_position": null,
+          "startup_policy": 10,
+          "completed_generations": "not_exposed",
+          "group_decomposition": "not_exposed",
+          "startup_adaptive_counts": "not_exposed",
+          "sampler_wall_seconds": 0.008878506974724587,
+          "ask_tell_digest": "c7d23fee08466128e629a3912d4bb70ad74ac9246d005dd6ace0bd69212da909",
+          "rows": [
+            {
+              "trial_id": 0,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 31,
+                "threshold": 0.0002960707116621675
+              },
+              "effective_params": {
+                "window": 31,
+                "threshold": 0.0002960707116621675
+              },
+              "candidate_id": "206234731353bda1f5313ebd6541186be29ec27345c836312e7e4547d589aa54",
+              "source": "sampled",
+              "objective": [
+                15.714559646046549
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": []
+            },
+            {
+              "trial_id": 1,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 3,
+                "threshold": 0.00010606984739219465
+              },
+              "effective_params": {
+                "window": 3,
+                "threshold": 0.00010606984739219465
+              },
+              "candidate_id": "d356ccf745e2503ad65099ee4ea4fb1e73381180558e272dddf828a55e8d49c3",
+              "source": "sampled",
+              "objective": [
+                34.809797268726946
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": []
+            },
+            {
+              "trial_id": 2,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 23,
+                "threshold": 0.0002397964549653057
+              },
+              "effective_params": {
+                "window": 23,
+                "threshold": 0.0002397964549653057
+              },
+              "candidate_id": "45c6eb98a29477a0ff85b50bed074d3debdb1e385944fffd627819e460db5523",
+              "source": "sampled",
+              "objective": [
+                20.33618586369895
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": []
+            },
+            {
+              "trial_id": 3,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 19,
+                "threshold": 0.0007618884342693481
+              },
+              "effective_params": {
+                "window": 19,
+                "threshold": 0.0007618884342693481
+              },
+              "candidate_id": "16f9ff2b24c2f77359298b57f721dc6cecfb65adfa95b49e9d6a984c8b3d8787",
+              "source": "sampled",
+              "objective": [
+                24.113332756705912
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": []
+            },
+            {
+              "trial_id": 4,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 3,
+                "threshold": 0.0009349807376030325
+              },
+              "effective_params": {
+                "window": 3,
+                "threshold": 0.0009349807376030325
+              },
+              "candidate_id": "4eee7be289df22243108116155d5d3b244e2e9886843aeb1dc1b627a1800979e",
+              "source": "sampled",
+              "objective": [
+                26.77552818864767
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": []
+            },
+            {
+              "trial_id": 5,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 27,
+                "threshold": 0.00053649127983532
+              },
+              "effective_params": {
+                "window": 27,
+                "threshold": 0.00053649127983532
+              },
+              "candidate_id": "620c562a0eca54568cc797397c9f3c6db4d83e7ee86687e6b2cfddcd7c0e1a84",
+              "source": "sampled",
+              "objective": [
+                17.981868358742922
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": []
+            },
+            {
+              "trial_id": 6,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 9,
+                "threshold": 0.0006127242818887185
+              },
+              "effective_params": {
+                "window": 9,
+                "threshold": 0.0006127242818887185
+              },
+              "candidate_id": "f6c68aef0e9c8c610838f025de2dc5cb3593f3e340805a74d22e60019935accb",
+              "source": "sampled",
+              "objective": [
+                31.547910113326886
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": []
+            },
+            {
+              "trial_id": 7,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 15,
+                "threshold": 0.008563259365321093
+              },
+              "effective_params": {
+                "window": 15,
+                "threshold": 0.008563259365321093
+              },
+              "candidate_id": "c7e0778a8f278ae90469b007db22c4b0baa10537adc89c4e9ef0d2c7fa6b07bd",
+              "source": "sampled",
+              "objective": [
+                20.423390649008148
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": []
+            },
+            {
+              "trial_id": 8,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 11,
+                "threshold": 0.002064351744076703
+              },
+              "effective_params": {
+                "window": 11,
+                "threshold": 0.002064351744076703
+              },
+              "candidate_id": "f61fb48fefcec305b33a7d99b0c2d93df0af1eb897eeea7ad3abf7d27531bc72",
+              "source": "sampled",
+              "objective": [
+                29.280972889362577
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": []
+            },
+            {
+              "trial_id": 9,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 23,
+                "threshold": 0.005603270720901454
+              },
+              "effective_params": {
+                "window": 23,
+                "threshold": 0.005603270720901454
+              },
+              "candidate_id": "713257b561d999c603dd8572076b44d3bf403310e94ccd1b9c5c83058e386ab1",
+              "source": "sampled",
+              "objective": [
+                21.501619875625327
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": []
+            },
+            {
+              "trial_id": 10,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 3,
+                "threshold": 0.00016518644046625887
+              },
+              "effective_params": {
+                "window": 3,
+                "threshold": 0.00016518644046625887
+              },
+              "candidate_id": "c051b7496256f556f5ff666a1aa4a11b5842f9ac95566bb9ac9a2a4ff3a19531",
+              "source": "sampled",
+              "objective": [
+                34.79480722430062
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": [
+                "threshold",
+                "window"
+              ]
+            },
+            {
+              "trial_id": 11,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 7,
+                "threshold": 0.0001356949867823353
+              },
+              "effective_params": {
+                "window": 7,
+                "threshold": 0.0001356949867823353
+              },
+              "candidate_id": "b3c79eb4d336a487627b2908b40eef6d888d170b1c700813dbedd8accc41a02f",
+              "source": "sampled",
+              "objective": [
+                32.52806424315398
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": [
+                "threshold",
+                "window"
+              ]
+            }
+          ],
+          "resume": "owned_in_process_study_only",
+          "study_id": 1,
+          "optimization_mode": "mode_4_is_only_robust",
+          "optimization_schedule": "per_fold_causal"
+        }
+      ],
+      "profile": {
+        "enabled": true,
+        "strategy_calls": 26,
+        "score_calls": 98,
+        "data_alignment_fold_prepare_seconds": 0.012171930997283198,
+        "strategy_seconds": 0.07221247399866115,
+        "score_seconds": 0.1407846119836904
+      },
+      "params_by_fold": {
+        "0": {
+          "window": 9,
+          "threshold": 0.0009753452939810186
+        },
+        "1": {
+          "window": 9,
+          "threshold": 0.0006127242818887185
+        }
+      },
+      "bars": 547
+    },
+    {
+      "recipe": "cmaes",
+      "repetitions": [
+        {
+          "repeat": 0,
+          "warmup": true,
+          "wall_seconds": 0.37745845400058897,
+          "cpu_seconds": 0.37394847900000006,
+          "before": {
+            "peak_rss_mib": 288.078125,
+            "rss_mib": 288.078125,
+            "pss_mib": 278.0185546875
+          },
+          "after": {
+            "peak_rss_mib": 288.078125,
+            "rss_mib": 288.078125,
+            "pss_mib": 279.1474609375
+          },
+          "equity_sha256": "8e34dd7e3aab65388bfcac36df920ce3bcafdfeaedf9371bdfa8573c7742932c"
+        },
+        {
+          "repeat": 1,
+          "warmup": false,
+          "wall_seconds": 0.35734210499504115,
+          "cpu_seconds": 0.3563227170000003,
+          "before": {
+            "peak_rss_mib": 288.078125,
+            "rss_mib": 288.078125,
+            "pss_mib": 279.1474609375
+          },
+          "after": {
+            "peak_rss_mib": 289.3125,
+            "rss_mib": 289.3125,
+            "pss_mib": 279.3037109375
+          },
+          "equity_sha256": "8e34dd7e3aab65388bfcac36df920ce3bcafdfeaedf9371bdfa8573c7742932c"
+        },
+        {
+          "repeat": 2,
+          "warmup": false,
+          "wall_seconds": 0.37402957800077274,
+          "cpu_seconds": 0.3714856099999997,
+          "before": {
+            "peak_rss_mib": 289.3125,
+            "rss_mib": 289.3125,
+            "pss_mib": 279.3037109375
+          },
+          "after": {
+            "peak_rss_mib": 289.5703125,
+            "rss_mib": 289.5703125,
+            "pss_mib": 279.6044921875
+          },
+          "equity_sha256": "8e34dd7e3aab65388bfcac36df920ce3bcafdfeaedf9371bdfa8573c7742932c"
+        },
+        {
+          "repeat": 3,
+          "warmup": false,
+          "wall_seconds": 0.37652492000052007,
+          "cpu_seconds": 0.3757489139999999,
+          "before": {
+            "peak_rss_mib": 289.5703125,
+            "rss_mib": 289.5703125,
+            "pss_mib": 279.6044921875
+          },
+          "after": {
+            "peak_rss_mib": 289.5703125,
+            "rss_mib": 289.5703125,
+            "pss_mib": 279.7021484375
+          },
+          "equity_sha256": "8e34dd7e3aab65388bfcac36df920ce3bcafdfeaedf9371bdfa8573c7742932c"
+        }
+      ],
+      "median_warm_ms": 374.02957800077274,
+      "studies": [
+        {
+          "schema": "quantbt-wfo-sampler-study-v1",
+          "recipe": "cmaes",
+          "sampler_class": "CmaEsSampler",
+          "optuna_version": "4.8.0",
+          "cmaes_version": "0.12.0",
+          "kwargs": {
+            "seed": 731
+          },
+          "seed": 731,
+          "stage": "is_search",
+          "objective_scope": "current_is_study_folds",
+          "is_cutoff": "2020-12-31T00:00:00+00:00",
+          "space": {
+            "schema": "quantbt-parameter-space-v1",
+            "parameters": [
+              {
+                "name": "window",
+                "kind": "integer",
+                "low": 3,
+                "high": 31,
+                "step": 2,
+                "scale": "linear",
+                "categories": [],
+                "active_if": {},
+                "fixed": false,
+                "fixed_value": null
+              },
+              {
+                "name": "threshold",
+                "kind": "float",
+                "low": 0.0001,
+                "high": 0.01,
+                "step": null,
+                "scale": "log",
+                "categories": [],
+                "active_if": {},
+                "fixed": false,
+                "fixed_value": null
+              }
+            ],
+            "effective_builder": "omit_explicit_inactive_v1"
+          },
+          "space_identity": "73b3ee2f6a632626d7506f6256e37b2ba149836c7b9ce1aa6be18b5105fff3f0",
+          "constraint_mode": "sampler",
+          "mixed_space_policy": "reject",
+          "requested_trials": 12,
+          "attempts": 12,
+          "states": {
+            "COMPLETE": 12
+          },
+          "unique_effective_candidates": 12,
+          "feasible_complete": 12,
+          "warm_start_attempts": 0,
+          "duplicate_attempts": 0,
+          "independent_sample_calls": {
+            "window": 1,
+            "threshold": 1
+          },
+          "relative_proposal_trials": 11,
+          "joint_numeric_candidates": [
+            "window",
+            "threshold"
+          ],
+          "conditional_branches": {},
+          "qmc_dimension_order": null,
+          "qmc_sequence_position": null,
+          "startup_policy": 1,
+          "completed_generations": "not_exposed",
+          "group_decomposition": "not_exposed",
+          "startup_adaptive_counts": "not_exposed",
+          "sampler_wall_seconds": 0.012449919006030541,
+          "ask_tell_digest": "c7e330eee11db2289ae4d4bd15cd051657ef1bc45b7ec813f9fa738ec57de5f1",
+          "rows": [
+            {
+              "trial_id": 0,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 15,
+                "threshold": 0.007883991311131681
+              },
+              "effective_params": {
+                "window": 15,
+                "threshold": 0.007883991311131681
+              },
+              "candidate_id": "15a8c588cd166e5fa03166a6a1c93795f19afe0faa039d214c46426bf2705a9d",
+              "source": "sampled",
+              "objective": [
+                19.58281772897512
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": []
+            },
+            {
+              "trial_id": 1,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 15,
+                "threshold": 0.0008129217154951893
+              },
+              "effective_params": {
+                "window": 15,
+                "threshold": 0.0008129217154951893
+              },
+              "candidate_id": "66c38caa479ed775a904f182ff6749ff8dd7bd4f721ac92caf2b3273284820b6",
+              "source": "sampled",
+              "objective": [
+                24.684048549880405
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": [
+                "threshold",
+                "window"
+              ]
+            },
+            {
+              "trial_id": 2,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 11,
+                "threshold": 0.0008807481134994519
+              },
+              "effective_params": {
+                "window": 11,
+                "threshold": 0.0008807481134994519
+              },
+              "candidate_id": "879e3929b224d519d37f1d831834bafae3fbf97a707f135b40c7fb915844d834",
+              "source": "sampled",
+              "objective": [
+                28.19557218583193
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": [
+                "threshold",
+                "window"
+              ]
+            },
+            {
+              "trial_id": 3,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 17,
+                "threshold": 0.0012202153468303524
+              },
+              "effective_params": {
+                "window": 17,
+                "threshold": 0.0012202153468303524
+              },
+              "candidate_id": "4ce9f70435fd67a498a4b82aa82144e65ab21ba24b9e6a34989cc35a4a696579",
+              "source": "sampled",
+              "objective": [
+                23.31557587625265
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": [
+                "threshold",
+                "window"
+              ]
+            },
+            {
+              "trial_id": 4,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 25,
+                "threshold": 0.00029792723408895625
+              },
+              "effective_params": {
+                "window": 25,
+                "threshold": 0.00029792723408895625
+              },
+              "candidate_id": "2e20a9315fec8854eacc4bf31b7459bd53e7140d6357b34c5fed2667b0abeda2",
+              "source": "sampled",
+              "objective": [
+                16.7175278722549
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": [
+                "threshold",
+                "window"
+              ]
+            },
+            {
+              "trial_id": 5,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 17,
+                "threshold": 0.0002632967880323201
+              },
+              "effective_params": {
+                "window": 17,
+                "threshold": 0.0002632967880323201
+              },
+              "candidate_id": "f908cf432cccb4c2971cfd979788c990dca53f6545063600d6dbfa53400ba4aa",
+              "source": "sampled",
+              "objective": [
+                22.617036262455635
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": [
+                "threshold",
+                "window"
+              ]
+            },
+            {
+              "trial_id": 6,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 21,
+                "threshold": 0.0010200692280707313
+              },
+              "effective_params": {
+                "window": 21,
+                "threshold": 0.0010200692280707313
+              },
+              "candidate_id": "2081cbc371fbeed6319cea2051764a09d047323496d11198bc15f10ca0e3ce28",
+              "source": "sampled",
+              "objective": [
+                19.81937760189823
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": [
+                "threshold",
+                "window"
+              ]
+            },
+            {
+              "trial_id": 7,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 17,
+                "threshold": 0.002394504335531344
+              },
+              "effective_params": {
+                "window": 17,
+                "threshold": 0.002394504335531344
+              },
+              "candidate_id": "f385bd07b05a82db5479b82a0652ca94780345ea0e06de9f493641eb0310fa75",
+              "source": "sampled",
+              "objective": [
+                23.19856402792899
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": [
+                "threshold",
+                "window"
+              ]
+            },
+            {
+              "trial_id": 8,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 5,
+                "threshold": 0.0008469328818960409
+              },
+              "effective_params": {
+                "window": 5,
+                "threshold": 0.0008469328818960409
+              },
+              "candidate_id": "c3779ba1b20687c9cf9e83ee15d7fa43ff34fb7dadef173a81e41a8ecb2aec67",
+              "source": "sampled",
+              "objective": [
+                30.725683025287005
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": [
+                "threshold",
+                "window"
+              ]
+            },
+            {
+              "trial_id": 9,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 11,
+                "threshold": 0.0010657689047149281
+              },
+              "effective_params": {
+                "window": 11,
+                "threshold": 0.0010657689047149281
+              },
+              "candidate_id": "a41988ecbbab7bc5ddd92933b8cfdb8b1a1a5730dbe0e122d640c40df89dca6e",
+              "source": "sampled",
+              "objective": [
+                27.93263427696885
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": [
+                "threshold",
+                "window"
+              ]
+            },
+            {
+              "trial_id": 10,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 17,
+                "threshold": 0.0006488674586361157
+              },
+              "effective_params": {
+                "window": 17,
+                "threshold": 0.0006488674586361157
+              },
+              "candidate_id": "6356d22f788b71c3654507e52cfb89c6291b8cb1ef189a79ad0b10aca9c71cda",
+              "source": "sampled",
+              "objective": [
+                22.87522096170836
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": [
+                "threshold",
+                "window"
+              ]
+            },
+            {
+              "trial_id": 11,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 17,
+                "threshold": 0.0002818421998400399
+              },
+              "effective_params": {
+                "window": 17,
+                "threshold": 0.0002818421998400399
+              },
+              "candidate_id": "bdc93e9eb9ece7efea8b1a74b770559f10a2667fa5cc0ab3184332e9a12ae992",
+              "source": "sampled",
+              "objective": [
+                22.617036262455635
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": [
+                "threshold",
+                "window"
+              ]
+            }
+          ],
+          "resume": "owned_in_process_study_only",
+          "study_id": 0,
+          "optimization_mode": "mode_4_is_only_robust",
+          "optimization_schedule": "per_fold_causal"
+        },
+        {
+          "schema": "quantbt-wfo-sampler-study-v1",
+          "recipe": "cmaes",
+          "sampler_class": "CmaEsSampler",
+          "optuna_version": "4.8.0",
+          "cmaes_version": "0.12.0",
+          "kwargs": {
+            "seed": 1000734
+          },
+          "seed": 1000734,
+          "stage": "is_search",
+          "objective_scope": "current_is_study_folds",
+          "is_cutoff": "2021-03-31T00:00:00+00:00",
+          "space": {
+            "schema": "quantbt-parameter-space-v1",
+            "parameters": [
+              {
+                "name": "window",
+                "kind": "integer",
+                "low": 3,
+                "high": 31,
+                "step": 2,
+                "scale": "linear",
+                "categories": [],
+                "active_if": {},
+                "fixed": false,
+                "fixed_value": null
+              },
+              {
+                "name": "threshold",
+                "kind": "float",
+                "low": 0.0001,
+                "high": 0.01,
+                "step": null,
+                "scale": "log",
+                "categories": [],
+                "active_if": {},
+                "fixed": false,
+                "fixed_value": null
+              }
+            ],
+            "effective_builder": "omit_explicit_inactive_v1"
+          },
+          "space_identity": "73b3ee2f6a632626d7506f6256e37b2ba149836c7b9ce1aa6be18b5105fff3f0",
+          "constraint_mode": "sampler",
+          "mixed_space_policy": "reject",
+          "requested_trials": 12,
+          "attempts": 12,
+          "states": {
+            "COMPLETE": 12
+          },
+          "unique_effective_candidates": 12,
+          "feasible_complete": 12,
+          "warm_start_attempts": 0,
+          "duplicate_attempts": 0,
+          "independent_sample_calls": {
+            "window": 1,
+            "threshold": 1
+          },
+          "relative_proposal_trials": 11,
+          "joint_numeric_candidates": [
+            "window",
+            "threshold"
+          ],
+          "conditional_branches": {},
+          "qmc_dimension_order": null,
+          "qmc_sequence_position": null,
+          "startup_policy": 1,
+          "completed_generations": "not_exposed",
+          "group_decomposition": "not_exposed",
+          "startup_adaptive_counts": "not_exposed",
+          "sampler_wall_seconds": 0.012351787008810788,
+          "ask_tell_digest": "b689e2d193c7061d98b360dccba56e04fbfdfc9437cfb1ff4c4495726194851e",
+          "rows": [
+            {
+              "trial_id": 0,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 31,
+                "threshold": 0.0002960707116621675
+              },
+              "effective_params": {
+                "window": 31,
+                "threshold": 0.0002960707116621675
+              },
+              "candidate_id": "206234731353bda1f5313ebd6541186be29ec27345c836312e7e4547d589aa54",
+              "source": "sampled",
+              "objective": [
+                15.714559646046549
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": []
+            },
+            {
+              "trial_id": 1,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 11,
+                "threshold": 0.000764615040704117
+              },
+              "effective_params": {
+                "window": 11,
+                "threshold": 0.000764615040704117
+              },
+              "candidate_id": "32f7b83d3f5f50a111bd2f8975d713d5be2d25095b1bc1ee5da1cdce2999cda1",
+              "source": "sampled",
+              "objective": [
+                30.239994811494803
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": [
+                "threshold",
+                "window"
+              ]
+            },
+            {
+              "trial_id": 2,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 15,
+                "threshold": 0.0035048832431527387
+              },
+              "effective_params": {
+                "window": 15,
+                "threshold": 0.0035048832431527387
+              },
+              "candidate_id": "3fb0ead27ea891c1791005d7fb7e3e4c20417ff7757edebdf44a99c6e9770479",
+              "source": "sampled",
+              "objective": [
+                26.863769892890076
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": [
+                "threshold",
+                "window"
+              ]
+            },
+            {
+              "trial_id": 3,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 21,
+                "threshold": 0.00033976595669459394
+              },
+              "effective_params": {
+                "window": 21,
+                "threshold": 0.00033976595669459394
+              },
+              "candidate_id": "b1a9b193335024fb48ef8dae5f00f0102bc4cbe76e759fb813def111db5fdc88",
+              "source": "sampled",
+              "objective": [
+                22.18628094660156
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": [
+                "threshold",
+                "window"
+              ]
+            },
+            {
+              "trial_id": 4,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 19,
+                "threshold": 0.0015017705172433295
+              },
+              "effective_params": {
+                "window": 19,
+                "threshold": 0.0015017705172433295
+              },
+              "candidate_id": "3e31c1a6982996a7f8b2a4aecbac453cdad6b7b98fc84774eb1a7eb4ab977ce1",
+              "source": "sampled",
+              "objective": [
+                23.97278963778055
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": [
+                "threshold",
+                "window"
+              ]
+            },
+            {
+              "trial_id": 5,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 17,
+                "threshold": 0.000571599134751222
+              },
+              "effective_params": {
+                "window": 17,
+                "threshold": 0.000571599134751222
+              },
+              "candidate_id": "690d57977c617694d4403b33da2412696dfe9f56b2e8c73ab348246aba91fff5",
+              "source": "sampled",
+              "objective": [
+                25.021566488676466
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": [
+                "threshold",
+                "window"
+              ]
+            },
+            {
+              "trial_id": 6,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 15,
+                "threshold": 0.0009595436800938218
+              },
+              "effective_params": {
+                "window": 15,
+                "threshold": 0.0009595436800938218
+              },
+              "candidate_id": "839dae779ce061e3f843f28dd08172374137b98cb7fb870db65ccd9646ebac02",
+              "source": "sampled",
+              "objective": [
+                27.089174405646695
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": [
+                "threshold",
+                "window"
+              ]
+            },
+            {
+              "trial_id": 7,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 13,
+                "threshold": 0.0008399092240931675
+              },
+              "effective_params": {
+                "window": 13,
+                "threshold": 0.0008399092240931675
+              },
+              "candidate_id": "a876ec41c3e94a9d72be22055da837b0a607699acb261ca5f2a32210f0a23d60",
+              "source": "sampled",
+              "objective": [
+                28.268752772450977
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": [
+                "threshold",
+                "window"
+              ]
+            },
+            {
+              "trial_id": 8,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 7,
+                "threshold": 0.0006150415542353221
+              },
+              "effective_params": {
+                "window": 7,
+                "threshold": 0.0006150415542353221
+              },
+              "candidate_id": "a8966715bfe91ccb91b0c9f8c92aaed065ab87080721a4e4ff8de161643e2d3d",
+              "source": "sampled",
+              "objective": [
+                32.62720339738261
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": [
+                "threshold",
+                "window"
+              ]
+            },
+            {
+              "trial_id": 9,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 11,
+                "threshold": 0.0014006351913308306
+              },
+              "effective_params": {
+                "window": 11,
+                "threshold": 0.0014006351913308306
+              },
+              "candidate_id": "d95c3390f11a305e2307a8f9ae58d1941baeb1a3dd33f7f1fa341d80925ba442",
+              "source": "sampled",
+              "objective": [
+                29.73366625431355
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": [
+                "threshold",
+                "window"
+              ]
+            },
+            {
+              "trial_id": 10,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 13,
+                "threshold": 0.002629584317296837
+              },
+              "effective_params": {
+                "window": 13,
+                "threshold": 0.002629584317296837
+              },
+              "candidate_id": "42595b3d651e88c769cdbf2174dfa39117dcc0f92eb8f345d65bc1c8bde425cf",
+              "source": "sampled",
+              "objective": [
+                28.08649269305988
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": [
+                "threshold",
+                "window"
+              ]
+            },
+            {
+              "trial_id": 11,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 11,
+                "threshold": 0.00060490098924102
+              },
+              "effective_params": {
+                "window": 11,
+                "threshold": 0.00060490098924102
+              },
+              "candidate_id": "50e180372f7ace8e95fb3034340b98dfbbaf9ed11290fcb1f04dfdbe2c45af29",
+              "source": "sampled",
+              "objective": [
+                29.944620361762965
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": [
+                "threshold",
+                "window"
+              ]
+            }
+          ],
+          "resume": "owned_in_process_study_only",
+          "study_id": 1,
+          "optimization_mode": "mode_4_is_only_robust",
+          "optimization_schedule": "per_fold_causal"
+        }
+      ],
+      "profile": {
+        "enabled": true,
+        "strategy_calls": 26,
+        "score_calls": 98,
+        "data_alignment_fold_prepare_seconds": 0.011143994001031388,
+        "strategy_seconds": 0.07588258999021491,
+        "score_seconds": 0.14985572696605232
+      },
+      "params_by_fold": {
+        "0": {
+          "window": 11,
+          "threshold": 0.0010657689047149281
+        },
+        "1": {
+          "window": 11,
+          "threshold": 0.000764615040704117
+        }
+      },
+      "bars": 547
+    },
+    {
+      "recipe": "sobol",
+      "repetitions": [
+        {
+          "repeat": 0,
+          "warmup": true,
+          "wall_seconds": 0.3843561009998666,
+          "cpu_seconds": 0.3829741050000006,
+          "before": {
+            "peak_rss_mib": 289.828125,
+            "rss_mib": 289.828125,
+            "pss_mib": 279.7060546875
+          },
+          "after": {
+            "peak_rss_mib": 294.57421875,
+            "rss_mib": 293.33984375,
+            "pss_mib": 283.3779296875
+          },
+          "equity_sha256": "cafdf66249e768862f272a0bee8df4cd7d2eb630e2481f521c9bd066cd4f9e91"
+        },
+        {
+          "repeat": 1,
+          "warmup": false,
+          "wall_seconds": 0.36603412400290836,
+          "cpu_seconds": 0.36392451000000037,
+          "before": {
+            "peak_rss_mib": 294.57421875,
+            "rss_mib": 293.33984375,
+            "pss_mib": 283.3779296875
+          },
+          "after": {
+            "peak_rss_mib": 294.57421875,
+            "rss_mib": 293.59765625,
+            "pss_mib": 283.5185546875
+          },
+          "equity_sha256": "cafdf66249e768862f272a0bee8df4cd7d2eb630e2481f521c9bd066cd4f9e91"
+        },
+        {
+          "repeat": 2,
+          "warmup": false,
+          "wall_seconds": 0.35953739599790424,
+          "cpu_seconds": 0.3582453889999986,
+          "before": {
+            "peak_rss_mib": 294.57421875,
+            "rss_mib": 293.59765625,
+            "pss_mib": 283.5185546875
+          },
+          "after": {
+            "peak_rss_mib": 294.57421875,
+            "rss_mib": 293.59765625,
+            "pss_mib": 283.7216796875
+          },
+          "equity_sha256": "cafdf66249e768862f272a0bee8df4cd7d2eb630e2481f521c9bd066cd4f9e91"
+        },
+        {
+          "repeat": 3,
+          "warmup": false,
+          "wall_seconds": 0.35918942900025286,
+          "cpu_seconds": 0.35606868500000033,
+          "before": {
+            "peak_rss_mib": 294.57421875,
+            "rss_mib": 293.59765625,
+            "pss_mib": 283.7216796875
+          },
+          "after": {
+            "peak_rss_mib": 294.57421875,
+            "rss_mib": 293.85546875,
+            "pss_mib": 283.9169921875
+          },
+          "equity_sha256": "cafdf66249e768862f272a0bee8df4cd7d2eb630e2481f521c9bd066cd4f9e91"
+        }
+      ],
+      "median_warm_ms": 359.53739599790424,
+      "studies": [
+        {
+          "schema": "quantbt-wfo-sampler-study-v1",
+          "recipe": "sobol",
+          "sampler_class": "QMCSampler",
+          "optuna_version": "4.8.0",
+          "cmaes_version": null,
+          "kwargs": {
+            "qmc_type": "sobol",
+            "scramble": true,
+            "seed": 731
+          },
+          "seed": 731,
+          "stage": "is_search",
+          "objective_scope": "current_is_study_folds",
+          "is_cutoff": "2020-12-31T00:00:00+00:00",
+          "space": {
+            "schema": "quantbt-parameter-space-v1",
+            "parameters": [
+              {
+                "name": "window",
+                "kind": "integer",
+                "low": 3,
+                "high": 31,
+                "step": 2,
+                "scale": "linear",
+                "categories": [],
+                "active_if": {},
+                "fixed": false,
+                "fixed_value": null
+              },
+              {
+                "name": "threshold",
+                "kind": "float",
+                "low": 0.0001,
+                "high": 0.01,
+                "step": null,
+                "scale": "log",
+                "categories": [],
+                "active_if": {},
+                "fixed": false,
+                "fixed_value": null
+              }
+            ],
+            "effective_builder": "omit_explicit_inactive_v1"
+          },
+          "space_identity": "73b3ee2f6a632626d7506f6256e37b2ba149836c7b9ce1aa6be18b5105fff3f0",
+          "constraint_mode": "sampler",
+          "mixed_space_policy": "reject",
+          "requested_trials": 12,
+          "attempts": 12,
+          "states": {
+            "COMPLETE": 12
+          },
+          "unique_effective_candidates": 12,
+          "feasible_complete": 12,
+          "warm_start_attempts": 0,
+          "duplicate_attempts": 0,
+          "independent_sample_calls": {
+            "window": 1,
+            "threshold": 1
+          },
+          "relative_proposal_trials": 11,
+          "joint_numeric_candidates": [
+            "window",
+            "threshold"
+          ],
+          "conditional_branches": {},
+          "qmc_dimension_order": [
+            "window",
+            "threshold"
+          ],
+          "qmc_sequence_position": 11,
+          "startup_policy": "first_independent_trial",
+          "completed_generations": "not_exposed",
+          "group_decomposition": "not_exposed",
+          "startup_adaptive_counts": "not_exposed",
+          "sampler_wall_seconds": 0.009056887982296757,
+          "ask_tell_digest": "ca4f0b2cf8207a29714c4fcfbbe71fceb460b1506cab493625fb38ceda963f5c",
+          "rows": [
+            {
+              "trial_id": 0,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 15,
+                "threshold": 0.007883991311131681
+              },
+              "effective_params": {
+                "window": 15,
+                "threshold": 0.007883991311131681
+              },
+              "candidate_id": "15a8c588cd166e5fa03166a6a1c93795f19afe0faa039d214c46426bf2705a9d",
+              "source": "sampled",
+              "objective": [
+                19.58281772897512
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": []
+            },
+            {
+              "trial_id": 1,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 11,
+                "threshold": 0.00013886801021964314
+              },
+              "effective_params": {
+                "window": 11,
+                "threshold": 0.00013886801021964314
+              },
+              "candidate_id": "846febfdba89db5b4e50b7e8ed7931121e0e06b6e22bedc77bc9280b17ea90b2",
+              "source": "sampled",
+              "objective": [
+                27.75329589362093
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": [
+                "window",
+                "threshold"
+              ]
+            },
+            {
+              "trial_id": 2,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 29,
+                "threshold": 0.003400138025298814
+              },
+              "effective_params": {
+                "window": 29,
+                "threshold": 0.003400138025298814
+              },
+              "candidate_id": "50d93460f155aeffd8e3c90b007850a7cc0e595439282b28c2d2ee0e258df093",
+              "source": "sampled",
+              "objective": [
+                14.708673582488602
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": [
+                "window",
+                "threshold"
+              ]
+            },
+            {
+              "trial_id": 3,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 21,
+                "threshold": 0.0004897033202070353
+              },
+              "effective_params": {
+                "window": 21,
+                "threshold": 0.0004897033202070353
+              },
+              "candidate_id": "433ede7f9263535b4d14ccc95c38e4f1d3425630b14041259b58788cc3da8007",
+              "source": "sampled",
+              "objective": [
+                19.62333661007024
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": [
+                "window",
+                "threshold"
+              ]
+            },
+            {
+              "trial_id": 4,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 3,
+                "threshold": 0.0012870665187096348
+              },
+              "effective_params": {
+                "window": 3,
+                "threshold": 0.0012870665187096348
+              },
+              "candidate_id": "b01ff2cc8cf498fe631aa5a2e51d95142c469681eadda86d9e7cdbb2683c74b1",
+              "source": "sampled",
+              "objective": [
+                20.453690735901027
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": [
+                "window",
+                "threshold"
+              ]
+            },
+            {
+              "trial_id": 5,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 7,
+                "threshold": 0.000905574531913889
+              },
+              "effective_params": {
+                "window": 7,
+                "threshold": 0.000905574531913889
+              },
+              "candidate_id": "452c6b0700870a41f48968a3f23d921694fe5274d828dd4e70b676bb9af6f55b",
+              "source": "sampled",
+              "objective": [
+                30.877447806681324
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": [
+                "window",
+                "threshold"
+              ]
+            },
+            {
+              "trial_id": 6,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 17,
+                "threshold": 0.002214909584482795
+              },
+              "effective_params": {
+                "window": 17,
+                "threshold": 0.002214909584482795
+              },
+              "candidate_id": "569a1a52642c365539cc58f39783ed2647c8565e9a743b6902a1bb911913299c",
+              "source": "sampled",
+              "objective": [
+                23.189399605734717
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": [
+                "window",
+                "threshold"
+              ]
+            },
+            {
+              "trial_id": 7,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 25,
+                "threshold": 0.00023906235027047791
+              },
+              "effective_params": {
+                "window": 25,
+                "threshold": 0.00023906235027047791
+              },
+              "candidate_id": "37264346566edb680089c3ad546a0d109be3f510c13ed699470d73e3c4295c61",
+              "source": "sampled",
+              "objective": [
+                16.7175278722549
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": [
+                "window",
+                "threshold"
+              ]
+            },
+            {
+              "trial_id": 8,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 15,
+                "threshold": 0.006290726283930048
+              },
+              "effective_params": {
+                "window": 15,
+                "threshold": 0.006290726283930048
+              },
+              "candidate_id": "f6d44961fef50b7fa09edeb443302c426e340e25dd4bcda45aed7e2c338ae070",
+              "source": "sampled",
+              "objective": [
+                21.906246454741396
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": [
+                "window",
+                "threshold"
+              ]
+            },
+            {
+              "trial_id": 9,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 15,
+                "threshold": 0.0004101040553005159
+              },
+              "effective_params": {
+                "window": 15,
+                "threshold": 0.0004101040553005159
+              },
+              "candidate_id": "6c049165dfda154ccf73db25e25d87c97386e11e340d9f21745c5b1ef50e0b4a",
+              "source": "sampled",
+              "objective": [
+                24.483614920991176
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": [
+                "window",
+                "threshold"
+              ]
+            },
+            {
+              "trial_id": 10,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 27,
+                "threshold": 0.0015463844906498214
+              },
+              "effective_params": {
+                "window": 27,
+                "threshold": 0.0015463844906498214
+              },
+              "candidate_id": "a20245a3b1eaa56c0a5b6bbac65cae43d8e827db7fe3d81c611db52bfce80cd0",
+              "source": "sampled",
+              "objective": [
+                15.964775324768919
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": [
+                "window",
+                "threshold"
+              ]
+            },
+            {
+              "trial_id": 11,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 21,
+                "threshold": 0.00010840229267575194
+              },
+              "effective_params": {
+                "window": 21,
+                "threshold": 0.00010840229267575194
+              },
+              "candidate_id": "f861a3bee123a6ba7463470de589c7f79cbc907eb6d1c8bb21cfab9c96cf3a11",
+              "source": "sampled",
+              "objective": [
+                19.106606117505425
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": [
+                "window",
+                "threshold"
+              ]
+            }
+          ],
+          "resume": "owned_in_process_study_only",
+          "study_id": 0,
+          "optimization_mode": "mode_4_is_only_robust",
+          "optimization_schedule": "per_fold_causal"
+        },
+        {
+          "schema": "quantbt-wfo-sampler-study-v1",
+          "recipe": "sobol",
+          "sampler_class": "QMCSampler",
+          "optuna_version": "4.8.0",
+          "cmaes_version": null,
+          "kwargs": {
+            "qmc_type": "sobol",
+            "scramble": true,
+            "seed": 1000734
+          },
+          "seed": 1000734,
+          "stage": "is_search",
+          "objective_scope": "current_is_study_folds",
+          "is_cutoff": "2021-03-31T00:00:00+00:00",
+          "space": {
+            "schema": "quantbt-parameter-space-v1",
+            "parameters": [
+              {
+                "name": "window",
+                "kind": "integer",
+                "low": 3,
+                "high": 31,
+                "step": 2,
+                "scale": "linear",
+                "categories": [],
+                "active_if": {},
+                "fixed": false,
+                "fixed_value": null
+              },
+              {
+                "name": "threshold",
+                "kind": "float",
+                "low": 0.0001,
+                "high": 0.01,
+                "step": null,
+                "scale": "log",
+                "categories": [],
+                "active_if": {},
+                "fixed": false,
+                "fixed_value": null
+              }
+            ],
+            "effective_builder": "omit_explicit_inactive_v1"
+          },
+          "space_identity": "73b3ee2f6a632626d7506f6256e37b2ba149836c7b9ce1aa6be18b5105fff3f0",
+          "constraint_mode": "sampler",
+          "mixed_space_policy": "reject",
+          "requested_trials": 12,
+          "attempts": 12,
+          "states": {
+            "COMPLETE": 12
+          },
+          "unique_effective_candidates": 12,
+          "feasible_complete": 12,
+          "warm_start_attempts": 0,
+          "duplicate_attempts": 0,
+          "independent_sample_calls": {
+            "window": 1,
+            "threshold": 1
+          },
+          "relative_proposal_trials": 11,
+          "joint_numeric_candidates": [
+            "window",
+            "threshold"
+          ],
+          "conditional_branches": {},
+          "qmc_dimension_order": [
+            "window",
+            "threshold"
+          ],
+          "qmc_sequence_position": 11,
+          "startup_policy": "first_independent_trial",
+          "completed_generations": "not_exposed",
+          "group_decomposition": "not_exposed",
+          "startup_adaptive_counts": "not_exposed",
+          "sampler_wall_seconds": 0.00878296199516626,
+          "ask_tell_digest": "0d858c92c5b82493ea0d9ad5cbc4305498978701ea448711eef5718d84372613",
+          "rows": [
+            {
+              "trial_id": 0,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 31,
+                "threshold": 0.0002960707116621675
+              },
+              "effective_params": {
+                "window": 31,
+                "threshold": 0.0002960707116621675
+              },
+              "candidate_id": "206234731353bda1f5313ebd6541186be29ec27345c836312e7e4547d589aa54",
+              "source": "sampled",
+              "objective": [
+                15.714559646046549
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": []
+            },
+            {
+              "trial_id": 1,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 21,
+                "threshold": 0.0006311673802399858
+              },
+              "effective_params": {
+                "window": 21,
+                "threshold": 0.0006311673802399858
+              },
+              "candidate_id": "3cd64ddd650085d1a7df2e439175b648185fa78ae05f6dfbeb34d04c859a718f",
+              "source": "sampled",
+              "objective": [
+                22.18628094660156
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": [
+                "window",
+                "threshold"
+              ]
+            },
+            {
+              "trial_id": 2,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 5,
+                "threshold": 0.002094622531073454
+              },
+              "effective_params": {
+                "window": 5,
+                "threshold": 0.002094622531073454
+              },
+              "candidate_id": "a49aaabd2f817de6889779c002092cd08757f64fe968ceff7814ceb12b96a238",
+              "source": "sampled",
+              "objective": [
+                25.648269752304945
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": [
+                "window",
+                "threshold"
+              ]
+            },
+            {
+              "trial_id": 3,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 11,
+                "threshold": 0.00029888355853871664
+              },
+              "effective_params": {
+                "window": 11,
+                "threshold": 0.00029888355853871664
+              },
+              "candidate_id": "6cb62f74b205d09423aef5a2f4e53a30037c1463d9c098631be2f43ead00176b",
+              "source": "sampled",
+              "objective": [
+                29.723219720060133
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": [
+                "window",
+                "threshold"
+              ]
+            },
+            {
+              "trial_id": 4,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 31,
+                "threshold": 0.008013029536914624
+              },
+              "effective_params": {
+                "window": 31,
+                "threshold": 0.008013029536914624
+              },
+              "candidate_id": "467e113156e4ebb522be06676d683c11b8b9091569723706299b276421429ee2",
+              "source": "sampled",
+              "objective": [
+                16.360469295662
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": [
+                "window",
+                "threshold"
+              ]
+            },
+            {
+              "trial_id": 5,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 25,
+                "threshold": 0.00016111250331150558
+              },
+              "effective_params": {
+                "window": 25,
+                "threshold": 0.00016111250331150558
+              },
+              "candidate_id": "9e6b1a379d79fe2f59edd5ec5033e012b0b1970a4bd6985ff85ac875f2d4c0f2",
+              "source": "sampled",
+              "objective": [
+                18.783322404208008
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": [
+                "window",
+                "threshold"
+              ]
+            },
+            {
+              "trial_id": 6,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 15,
+                "threshold": 0.00469294210468544
+              },
+              "effective_params": {
+                "window": 15,
+                "threshold": 0.00469294210468544
+              },
+              "candidate_id": "b697f262197dd4cf25980fefd3cb4993eda353fe62066dd7ec5f232a571ce92d",
+              "source": "sampled",
+              "objective": [
+                25.77062384308639
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": [
+                "window",
+                "threshold"
+              ]
+            },
+            {
+              "trial_id": 7,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 5,
+                "threshold": 0.00031741507684711025
+              },
+              "effective_params": {
+                "window": 5,
+                "threshold": 0.00031741507684711025
+              },
+              "candidate_id": "c7a96b81958e6113f777f2fecd85bc175a6faaaa273d47cc2c774c5fe89d1611",
+              "source": "sampled",
+              "objective": [
+                33.97068004232593
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": [
+                "window",
+                "threshold"
+              ]
+            },
+            {
+              "trial_id": 8,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 21,
+                "threshold": 0.0013163473609153176
+              },
+              "effective_params": {
+                "window": 21,
+                "threshold": 0.0013163473609153176
+              },
+              "candidate_id": "8bef64c6e84812381e58835145ccf3e826579bb53598746cc80ec8eaccf2ed34",
+              "source": "sampled",
+              "objective": [
+                22.516479741761593
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": [
+                "window",
+                "threshold"
+              ]
+            },
+            {
+              "trial_id": 9,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 17,
+                "threshold": 0.0002279924013555828
+              },
+              "effective_params": {
+                "window": 17,
+                "threshold": 0.0002279924013555828
+              },
+              "candidate_id": "ab1abca6394ffae9fea71a8aff075d5fcf0178ee137659ce01829cc9fbc4071c",
+              "source": "sampled",
+              "objective": [
+                24.817116286942753
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": [
+                "window",
+                "threshold"
+              ]
+            },
+            {
+              "trial_id": 10,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 9,
+                "threshold": 0.00589637645790118
+              },
+              "effective_params": {
+                "window": 9,
+                "threshold": 0.00589637645790118
+              },
+              "candidate_id": "538307c3a770d494bca023e4b70c233722e54ce1e857467f61fbab71c00f9433",
+              "source": "sampled",
+              "objective": [
+                18.58779975361044
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": [
+                "window",
+                "threshold"
+              ]
+            },
+            {
+              "trial_id": 11,
+              "state": "COMPLETE",
+              "requested_params": {
+                "window": 15,
+                "threshold": 0.0008566568507503273
+              },
+              "effective_params": {
+                "window": 15,
+                "threshold": 0.0008566568507503273
+              },
+              "candidate_id": "d577e02fa813a0c97d4367dd3816c0a9100d7c5909ad573322089837cd1f91f5",
+              "source": "sampled",
+              "objective": [
+                27.014661611897054
+              ],
+              "constraints": [],
+              "reason": null,
+              "relative_dimensions": [
+                "window",
+                "threshold"
+              ]
+            }
+          ],
+          "resume": "owned_in_process_study_only",
+          "study_id": 1,
+          "optimization_mode": "mode_4_is_only_robust",
+          "optimization_schedule": "per_fold_causal"
+        }
+      ],
+      "profile": {
+        "enabled": true,
+        "strategy_calls": 26,
+        "score_calls": 98,
+        "data_alignment_fold_prepare_seconds": 0.011173314000188839,
+        "strategy_seconds": 0.07506013099191478,
+        "score_seconds": 0.1458035750183626
+      },
+      "params_by_fold": {
+        "0": {
+          "window": 7,
+          "threshold": 0.000905574531913889
+        },
+        "1": {
+          "window": 15,
+          "threshold": 0.0008566568507503273
+        }
+      },
+      "bars": 547
+    }
+  ],
+  "performance_claim": "MEASURED_COST_ONLY; different recipes have different proposal pools",
+  "memory_method": "same-process Linux peak RSS/PSS; cumulative imports/JIT, not isolated recipe RSS or plateau"
+}

@@ -1,0 +1,2 @@
+error: Failed to initialize cache at `/root/.cache/uv`
+  cause: failed to create directory `/root/.cache/uv`: Read-only file system (os error 30)

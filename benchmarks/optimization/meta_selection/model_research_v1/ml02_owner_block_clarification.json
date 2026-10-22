@@ -1,0 +1,18 @@
+{
+  "schema": "m4.ml02.owner-block-clarification.v1",
+  "recorded_at_utc": "2026-10-17T01:32:06Z",
+  "question_reference": "call_82d98b76a45b4d4db4bfb80e7ebf18b1",
+  "owner_answer": "Duyet block du 3 thang/nhom; P2 giu V1 khi thieu support (Khuyen nghi)",
+  "decision": "APPROVED_COMPLETE_THREE_MONTHS_PER_GROUP_PER_BLOCK",
+  "required_complete_blocks": 3,
+  "months_per_block": 3,
+  "all_training_groups_required_in_every_month": true,
+  "fallback": "P0_FROZEN_V1",
+  "review_timing": "Clarifies sealed wording after code audit and review of existing outcomes; not a new untouched preregistration.",
+  "retained_registration": "ml02_registration_v3.json",
+  "prior_failure": "replay-01 remains FAIL_RETAINED; partial-block P2 decisions are excluded.",
+  "unchanged": ["target", "estimator", "lambda_grid", "Q_guard", "minimum_matured_origins", "chronology", "macro_weights", "acceptance_margins", "budget", "scientific_receipts"],
+  "new_financial_calls": 0,
+  "new_optimizer_proposals": 0,
+  "default_or_public_activation": false
+}

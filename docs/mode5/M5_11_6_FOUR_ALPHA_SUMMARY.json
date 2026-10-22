@@ -1,0 +1,3146 @@
+{
+  "alphas": {
+    "A-HASH": {
+      "accounts": {
+        "active": {
+          "actual_fill_count": 1034,
+          "campaigns": {
+            "activity_support_certified": false,
+            "closed_count": null,
+            "open_count": null,
+            "reason": "ORIGINAL_FILLS_LACK_NON_NULL_CAMPAIGN_ID_AND_CLOSURE_ROSTER",
+            "status": "UNAVAILABLE"
+          },
+          "costs": {
+            "full_calendar_fees_path_sum": 604.1690302291547,
+            "full_calendar_funding_path_sum": 0.0,
+            "funding_sign": "ORIGINAL_RETAINED_PATH_SIGN_NOT_REINTERPRETED",
+            "oos_fees_path_sum": 604.1690302291548,
+            "oos_funding_path_sum": 0.0
+          },
+          "metric_scope": "LEGACY_FULL_CALENDAR_INCLUDES_FLAT_PRE_OOS_NOT_MEAN_FOLD_SHARPE",
+          "original_metrics": {
+            "final_equity": 17707.962185502878,
+            "initial_capital": 20000.0,
+            "liquidated": false,
+            "max_drawdown_pct": 17.0331224154429,
+            "sharpe": -0.6824070154656933,
+            "total_return_pct": -11.460189072485608
+          },
+          "participation": {
+            "definition": "NONZERO_ORIGINAL_POSITION_ON_REGISTERED_HOURLY_OOS_BARS",
+            "occupied_bars": 36487,
+            "oos_bars": 41616,
+            "time_in_market_pct": 87.67541330257593
+          },
+          "retained_six_paths_and_fills_exact": true
+        },
+        "native": {
+          "actual_fill_count": 910,
+          "campaigns": {
+            "activity_support_certified": false,
+            "closed_count": null,
+            "open_count": null,
+            "reason": "ORIGINAL_FILLS_LACK_NON_NULL_CAMPAIGN_ID_AND_CLOSURE_ROSTER",
+            "status": "UNAVAILABLE"
+          },
+          "costs": {
+            "full_calendar_fees_path_sum": 509.9461669141266,
+            "full_calendar_funding_path_sum": 0.0,
+            "funding_sign": "ORIGINAL_RETAINED_PATH_SIGN_NOT_REINTERPRETED",
+            "oos_fees_path_sum": 509.9461669141267,
+            "oos_funding_path_sum": 0.0
+          },
+          "metric_scope": "LEGACY_FULL_CALENDAR_INCLUDES_FLAT_PRE_OOS_NOT_MEAN_FOLD_SHARPE",
+          "original_metrics": {
+            "final_equity": 20067.184251876835,
+            "initial_capital": 20000.0,
+            "liquidated": false,
+            "max_drawdown_pct": 9.620215489610553,
+            "sharpe": 0.03204015945538357,
+            "total_return_pct": 0.33592125938417666
+          },
+          "participation": {
+            "definition": "NONZERO_ORIGINAL_POSITION_ON_REGISTERED_HOURLY_OOS_BARS",
+            "occupied_bars": 36820,
+            "oos_bars": 41616,
+            "time_in_market_pct": 88.47558631295655
+          },
+          "retained_six_paths_and_fills_exact": true
+        }
+      },
+      "all57": {
+        "Q_signs": {
+          "negative": 20,
+          "positive": 19,
+          "zero": 18
+        },
+        "calendar_days": 1734,
+        "calendar_folds": 57,
+        "calendar_months": [
+          "2022-01",
+          "2022-02",
+          "2022-03",
+          "2022-04",
+          "2022-05",
+          "2022-06",
+          "2022-07",
+          "2022-08",
+          "2022-09",
+          "2022-10",
+          "2022-11",
+          "2022-12",
+          "2023-01",
+          "2023-02",
+          "2023-03",
+          "2023-04",
+          "2023-05",
+          "2023-06",
+          "2023-07",
+          "2023-08",
+          "2023-09",
+          "2023-10",
+          "2023-11",
+          "2023-12",
+          "2024-01",
+          "2024-02",
+          "2024-03",
+          "2024-04",
+          "2024-05",
+          "2024-06",
+          "2024-07",
+          "2024-08",
+          "2024-09",
+          "2024-10",
+          "2024-11",
+          "2024-12",
+          "2025-01",
+          "2025-02",
+          "2025-03",
+          "2025-04",
+          "2025-05",
+          "2025-06",
+          "2025-07",
+          "2025-08",
+          "2025-09",
+          "2025-10",
+          "2025-11",
+          "2025-12",
+          "2026-01",
+          "2026-02",
+          "2026-03",
+          "2026-04",
+          "2026-05",
+          "2026-06",
+          "2026-07",
+          "2026-08",
+          "2026-09"
+        ],
+        "contrasts": {
+          "D_meta": {
+            "mean": -0.11397643116143058,
+            "median": -0.38105111328331
+          },
+          "D_native": {
+            "mean": 1.3729212280026137,
+            "median": 1.623323479703687
+          },
+          "IS_effect": {
+            "mean": 1.3137218628158678,
+            "median": 1.412423975611268
+          },
+          "Q": {
+            "mean": 0.17317579634817654,
+            "median": 0.0
+          },
+          "R": {
+            "mean": 1.4868976591640444,
+            "median": 0.0
+          }
+        },
+        "paired_calendar_days": 1734,
+        "paired_valid_folds": 57,
+        "raw_sharpe_levels_same_valid_pairs": {
+          "meta_forward": {
+            "mean": 0.22145999885389092,
+            "median": 0.5745489758792783
+          },
+          "meta_is": {
+            "mean": 0.10748356769246034,
+            "median": 0.004689417956157923
+          },
+          "native_forward": {
+            "mean": 0.048284202505714344,
+            "median": 0.011082504722118743
+          },
+          "native_is": {
+            "mean": 1.4212054305083281,
+            "median": 1.4894928662363078
+          }
+        },
+        "status_counts": {
+          "PAIRED_VALID": 57
+        },
+        "undefined": []
+      },
+      "annual_evaluation": {
+        "2024": {
+          "Q_signs": {
+            "negative": 4,
+            "positive": 6,
+            "zero": 1
+          },
+          "calendar_days": 335,
+          "calendar_folds": 11,
+          "calendar_months": [
+            "2024-02",
+            "2024-03",
+            "2024-04",
+            "2024-05",
+            "2024-06",
+            "2024-07",
+            "2024-08",
+            "2024-09",
+            "2024-10",
+            "2024-11",
+            "2024-12"
+          ],
+          "contrasts": {
+            "D_meta": {
+              "mean": -2.070206634624855,
+              "median": -3.444552551195211
+            },
+            "D_native": {
+              "mean": 0.8678256736876201,
+              "median": 0.3268526384255298
+            },
+            "IS_effect": {
+              "mean": 2.0149789346257045,
+              "median": 2.2042229905148902
+            },
+            "Q": {
+              "mean": 0.9230533736867705,
+              "median": 2.755132921640329
+            },
+            "R": {
+              "mean": 2.9380323083124753,
+              "median": 4.959355912155219
+            }
+          },
+          "paired_calendar_days": 335,
+          "paired_valid_folds": 11,
+          "raw_sharpe_levels_same_valid_pairs": {
+            "meta_forward": {
+              "mean": 1.4671181012066523,
+              "median": 3.4218387876513
+            },
+            "meta_is": {
+              "mean": -0.6030885334182029,
+              "median": -0.9935247524517447
+            },
+            "native_forward": {
+              "mean": 0.5440647275198817,
+              "median": 0.781876338677919
+            },
+            "native_is": {
+              "mean": 1.4118904012075018,
+              "median": 1.3964809316264541
+            }
+          },
+          "status_counts": {
+            "PAIRED_VALID": 11
+          },
+          "undefined": []
+        },
+        "2025": {
+          "Q_signs": {
+            "negative": 6,
+            "positive": 4,
+            "zero": 2
+          },
+          "calendar_days": 365,
+          "calendar_folds": 12,
+          "calendar_months": [
+            "2025-01",
+            "2025-02",
+            "2025-03",
+            "2025-04",
+            "2025-05",
+            "2025-06",
+            "2025-07",
+            "2025-08",
+            "2025-09",
+            "2025-10",
+            "2025-11",
+            "2025-12"
+          ],
+          "contrasts": {
+            "D_meta": {
+              "mean": 1.3751792226222772,
+              "median": 1.7849521511954096
+            },
+            "D_native": {
+              "mean": 2.441548917515727,
+              "median": 1.855203813971524
+            },
+            "IS_effect": {
+              "mean": 1.5687767167816409,
+              "median": 1.4890357215387324
+            },
+            "Q": {
+              "mean": -0.502407021888191,
+              "median": -0.07681341409419518
+            },
+            "R": {
+              "mean": 1.0663696948934498,
+              "median": 0.4874549940998078
+            }
+          },
+          "paired_calendar_days": 365,
+          "paired_valid_folds": 12,
+          "raw_sharpe_levels_same_valid_pairs": {
+            "meta_forward": {
+              "mean": -1.50043506634356,
+              "median": -1.5087831386962547
+            },
+            "meta_is": {
+              "mean": -0.12525584372128262,
+              "median": -0.24964820205947266
+            },
+            "native_forward": {
+              "mean": -0.9980280444553687,
+              "median": -0.2986234537331594
+            },
+            "native_is": {
+              "mean": 1.4435208730603584,
+              "median": 1.5134692165556145
+            }
+          },
+          "status_counts": {
+            "PAIRED_VALID": 12
+          },
+          "undefined": []
+        },
+        "2026": {
+          "Q_signs": {
+            "negative": 4,
+            "positive": 4,
+            "zero": 1
+          },
+          "calendar_days": 273,
+          "calendar_folds": 9,
+          "calendar_months": [
+            "2026-01",
+            "2026-02",
+            "2026-03",
+            "2026-04",
+            "2026-05",
+            "2026-06",
+            "2026-07",
+            "2026-08",
+            "2026-09"
+          ],
+          "contrasts": {
+            "D_meta": {
+              "mean": -1.5601708561359025,
+              "median": -2.689361852640976
+            },
+            "D_native": {
+              "mean": 0.2835601089456027,
+              "median": -2.0989683875748484
+            },
+            "IS_effect": {
+              "mean": 1.431353101939955,
+              "median": 1.412423975611268
+            },
+            "Q": {
+              "mean": 0.41237786314155,
+              "median": 0.0
+            },
+            "R": {
+              "mean": 1.843730965081505,
+              "median": 0.21930381920629838
+            }
+          },
+          "paired_calendar_days": 273,
+          "paired_valid_folds": 9,
+          "raw_sharpe_levels_same_valid_pairs": {
+            "meta_forward": {
+              "mean": 1.2485889391225355,
+              "median": 2.8037459512779486
+            },
+            "meta_is": {
+              "mean": -0.3115819170133667,
+              "median": -0.5507498723399802
+            },
+            "native_forward": {
+              "mean": 0.8362110759809853,
+              "median": 2.960642490846136
+            },
+            "native_is": {
+              "mean": 1.1197711849265883,
+              "median": 1.1136161187665994
+            }
+          },
+          "status_counts": {
+            "PAIRED_VALID": 9
+          },
+          "undefined": []
+        }
+      },
+      "evaluation_support": {
+        "calendar_folds": 32,
+        "mature_paired_calendar_days": 973,
+        "mature_paired_valid_folds": 32,
+        "paired_calendar_days": 973,
+        "paired_valid_folds": 32,
+        "reasons": [],
+        "required_mature_origins": 12,
+        "required_paired_calendar_days": 365,
+        "required_paired_folds": 12,
+        "status": "ADEQUATE_REGISTERED_SUPPORT"
+      },
+      "observer_labels": {
+        "statuses": {
+          "VALID": 948
+        },
+        "total": 948
+      },
+      "pools": {
+        "attempted_slots": 7296,
+        "eligible_is_pool": {
+          "maximum": 128,
+          "minimum": 112,
+          "total": 7028
+        },
+        "native_selector_counts": {
+          "fallback_best_is_temporal": 39,
+          "medoid": 18
+        },
+        "retained_trials": {
+          "maximum": 128,
+          "minimum": 128,
+          "total": 7296
+        },
+        "robust_shortlist": {
+          "maximum": 14,
+          "minimum": 13,
+          "total": 787
+        },
+        "states": {
+          "COMPLETE": 7028,
+          "PRUNED": 268
+        }
+      },
+      "primary_evaluation": {
+        "Q_signs": {
+          "negative": 14,
+          "positive": 14,
+          "zero": 4
+        },
+        "calendar_days": 973,
+        "calendar_folds": 32,
+        "calendar_months": [
+          "2024-02",
+          "2024-03",
+          "2024-04",
+          "2024-05",
+          "2024-06",
+          "2024-07",
+          "2024-08",
+          "2024-09",
+          "2024-10",
+          "2024-11",
+          "2024-12",
+          "2025-01",
+          "2025-02",
+          "2025-03",
+          "2025-04",
+          "2025-05",
+          "2025-06",
+          "2025-07",
+          "2025-08",
+          "2025-09",
+          "2025-10",
+          "2025-11",
+          "2025-12",
+          "2026-01",
+          "2026-02",
+          "2026-03",
+          "2026-04",
+          "2026-05",
+          "2026-06",
+          "2026-07",
+          "2026-08",
+          "2026-09"
+        ],
+        "contrasts": {
+          "D_meta": {
+            "mean": -0.6347393754571625,
+            "median": -1.8978288115673374
+          },
+          "D_native": {
+            "mean": 1.2936472000394679,
+            "median": 1.1085911773099963
+          },
+          "IS_effect": {
+            "mean": 1.6835083374913136,
+            "median": 1.8241539602894623
+          },
+          "Q": {
+            "mean": 0.24487823800531672,
+            "median": 0.0
+          },
+          "R": {
+            "mean": 1.9283865754966305,
+            "median": 1.0152194493211322
+          }
+        },
+        "paired_calendar_days": 973,
+        "paired_valid_folds": 32,
+        "raw_sharpe_levels_same_valid_pairs": {
+          "meta_forward": {
+            "mean": 0.2928243365391649,
+            "median": 1.8458572945591667
+          },
+          "meta_is": {
+            "mean": -0.3419150389179976,
+            "median": -0.5970394265856411
+          },
+          "native_forward": {
+            "mean": 0.047946098533848194,
+            "median": 0.47817004419132836
+          },
+          "native_is": {
+            "mean": 1.341593298573316,
+            "median": 1.3739149555513057
+          }
+        },
+        "status_counts": {
+          "PAIRED_VALID": 32
+        },
+        "undefined": []
+      },
+      "progress": {
+        "changed_evaluation_folds": 28,
+        "changed_folds": 39,
+        "final_selection_reason_counts": {
+          "META_MODEL_PROPOSAL": 44,
+          "META_SUPPORT_INSUFFICIENT": 13
+        },
+        "first_fitted_origin": "2023-02",
+        "fit_rank_decisions": 44,
+        "fitted_model_records": 44
+      },
+      "retained_completed_search_cost_not_total_queue": {
+        "duplicate_attempts": 0,
+        "sampler_seconds_median": 3.1384011916816235,
+        "sampler_seconds_sum": 180.21687268232927,
+        "search_seconds_max": 2055.919490103144,
+        "search_seconds_median": 790.0156447639456,
+        "search_seconds_min": 323.37829031900037,
+        "search_seconds_sum": 50272.87578386185
+      },
+      "units": "ARITHMETIC_MEAN_MONTHLY_RAW_SHARPE_CONTRASTS_NOT_ACCOUNT_SHARPE"
+    },
+    "A-HMA": {
+      "accounts": {
+        "active": {
+          "actual_fill_count": 1813,
+          "campaigns": {
+            "activity_support_certified": false,
+            "closed_count": null,
+            "open_count": null,
+            "reason": "ORIGINAL_FILLS_LACK_NON_NULL_CAMPAIGN_ID_AND_CLOSURE_ROSTER",
+            "status": "UNAVAILABLE"
+          },
+          "costs": {
+            "full_calendar_fees_path_sum": 1450.8626847836056,
+            "full_calendar_funding_path_sum": 0.0,
+            "funding_sign": "ORIGINAL_RETAINED_PATH_SIGN_NOT_REINTERPRETED",
+            "oos_fees_path_sum": 1450.8626847836056,
+            "oos_funding_path_sum": 0.0
+          },
+          "metric_scope": "LEGACY_FULL_CALENDAR_INCLUDES_FLAT_PRE_OOS_NOT_MEAN_FOLD_SHARPE",
+          "original_metrics": {
+            "final_equity": 17204.898217791262,
+            "initial_capital": 20000.0,
+            "liquidated": false,
+            "max_drawdown_pct": 18.191460820299316,
+            "sharpe": -0.5220199511066971,
+            "total_return_pct": -13.975508911043688
+          },
+          "participation": {
+            "definition": "NONZERO_ORIGINAL_POSITION_ON_REGISTERED_HOURLY_OOS_BARS",
+            "occupied_bars": 24559,
+            "oos_bars": 41616,
+            "time_in_market_pct": 59.01336024605921
+          },
+          "retained_six_paths_and_fills_exact": true
+        },
+        "native": {
+          "actual_fill_count": 2075,
+          "campaigns": {
+            "activity_support_certified": false,
+            "closed_count": null,
+            "open_count": null,
+            "reason": "ORIGINAL_FILLS_LACK_NON_NULL_CAMPAIGN_ID_AND_CLOSURE_ROSTER",
+            "status": "UNAVAILABLE"
+          },
+          "costs": {
+            "full_calendar_fees_path_sum": 1659.9458997091374,
+            "full_calendar_funding_path_sum": 0.0,
+            "funding_sign": "ORIGINAL_RETAINED_PATH_SIGN_NOT_REINTERPRETED",
+            "oos_fees_path_sum": 1659.9458997091374,
+            "oos_funding_path_sum": 0.0
+          },
+          "metric_scope": "LEGACY_FULL_CALENDAR_INCLUDES_FLAT_PRE_OOS_NOT_MEAN_FOLD_SHARPE",
+          "original_metrics": {
+            "final_equity": 19563.287094195333,
+            "initial_capital": 20000.0,
+            "liquidated": false,
+            "max_drawdown_pct": 10.301698915069837,
+            "sharpe": -0.06725075388479736,
+            "total_return_pct": -2.1835645290233336
+          },
+          "participation": {
+            "definition": "NONZERO_ORIGINAL_POSITION_ON_REGISTERED_HOURLY_OOS_BARS",
+            "occupied_bars": 22552,
+            "oos_bars": 41616,
+            "time_in_market_pct": 54.19069588619762
+          },
+          "retained_six_paths_and_fills_exact": true
+        }
+      },
+      "all57": {
+        "Q_signs": {
+          "negative": 28,
+          "positive": 16,
+          "zero": 13
+        },
+        "calendar_days": 1734,
+        "calendar_folds": 57,
+        "calendar_months": [
+          "2022-01",
+          "2022-02",
+          "2022-03",
+          "2022-04",
+          "2022-05",
+          "2022-06",
+          "2022-07",
+          "2022-08",
+          "2022-09",
+          "2022-10",
+          "2022-11",
+          "2022-12",
+          "2023-01",
+          "2023-02",
+          "2023-03",
+          "2023-04",
+          "2023-05",
+          "2023-06",
+          "2023-07",
+          "2023-08",
+          "2023-09",
+          "2023-10",
+          "2023-11",
+          "2023-12",
+          "2024-01",
+          "2024-02",
+          "2024-03",
+          "2024-04",
+          "2024-05",
+          "2024-06",
+          "2024-07",
+          "2024-08",
+          "2024-09",
+          "2024-10",
+          "2024-11",
+          "2024-12",
+          "2025-01",
+          "2025-02",
+          "2025-03",
+          "2025-04",
+          "2025-05",
+          "2025-06",
+          "2025-07",
+          "2025-08",
+          "2025-09",
+          "2025-10",
+          "2025-11",
+          "2025-12",
+          "2026-01",
+          "2026-02",
+          "2026-03",
+          "2026-04",
+          "2026-05",
+          "2026-06",
+          "2026-07",
+          "2026-08",
+          "2026-09"
+        ],
+        "contrasts": {
+          "D_meta": {
+            "mean": 0.9520641652752283,
+            "median": 0.6528917617191989
+          },
+          "D_native": {
+            "mean": 1.699801659315543,
+            "median": 1.930562081845538
+          },
+          "IS_effect": {
+            "mean": 1.396500815756137,
+            "median": 1.488547991020703
+          },
+          "Q": {
+            "mean": -0.6487633217158224,
+            "median": 0.0
+          },
+          "R": {
+            "mean": 0.7477374940403146,
+            "median": 0.0
+          }
+        },
+        "paired_calendar_days": 1734,
+        "paired_valid_folds": 57,
+        "raw_sharpe_levels_same_valid_pairs": {
+          "meta_forward": {
+            "mean": -0.8374240180351838,
+            "median": -0.5828155068165218
+          },
+          "meta_is": {
+            "mean": 0.11464014724004447,
+            "median": -0.008723794562878192
+          },
+          "native_forward": {
+            "mean": -0.18866069631936147,
+            "median": -0.5116027052396611
+          },
+          "native_is": {
+            "mean": 1.5111409629961814,
+            "median": 1.4605769536895497
+          }
+        },
+        "status_counts": {
+          "PAIRED_VALID": 57
+        },
+        "undefined": []
+      },
+      "annual_evaluation": {
+        "2024": {
+          "Q_signs": {
+            "negative": 8,
+            "positive": 3,
+            "zero": 0
+          },
+          "calendar_days": 335,
+          "calendar_folds": 11,
+          "calendar_months": [
+            "2024-02",
+            "2024-03",
+            "2024-04",
+            "2024-05",
+            "2024-06",
+            "2024-07",
+            "2024-08",
+            "2024-09",
+            "2024-10",
+            "2024-11",
+            "2024-12"
+          ],
+          "contrasts": {
+            "D_meta": {
+              "mean": 2.0530260780989433,
+              "median": 1.5356596712538364
+            },
+            "D_native": {
+              "mean": 1.975004354143981,
+              "median": 2.7188746856024806
+            },
+            "IS_effect": {
+              "mean": 1.8089787344303183,
+              "median": 1.810936169200977
+            },
+            "Q": {
+              "mean": -1.8870004583852802,
+              "median": -1.9141016811524896
+            },
+            "R": {
+              "mean": -0.07802172395496201,
+              "median": -0.9135094316972376
+            }
+          },
+          "paired_calendar_days": 335,
+          "paired_valid_folds": 11,
+          "raw_sharpe_levels_same_valid_pairs": {
+            "meta_forward": {
+              "mean": -2.2086533628668024,
+              "median": -2.473403765201081
+            },
+            "meta_is": {
+              "mean": -0.1556272847678594,
+              "median": -0.12682558771618982
+            },
+            "native_forward": {
+              "mean": -0.32165290448152223,
+              "median": -0.6720914022678269
+            },
+            "native_is": {
+              "mean": 1.6533514496624588,
+              "median": 1.7356532063664039
+            }
+          },
+          "status_counts": {
+            "PAIRED_VALID": 11
+          },
+          "undefined": []
+        },
+        "2025": {
+          "Q_signs": {
+            "negative": 7,
+            "positive": 5,
+            "zero": 0
+          },
+          "calendar_days": 365,
+          "calendar_folds": 12,
+          "calendar_months": [
+            "2025-01",
+            "2025-02",
+            "2025-03",
+            "2025-04",
+            "2025-05",
+            "2025-06",
+            "2025-07",
+            "2025-08",
+            "2025-09",
+            "2025-10",
+            "2025-11",
+            "2025-12"
+          ],
+          "contrasts": {
+            "D_meta": {
+              "mean": 0.08377571199284256,
+              "median": -0.2639191005422424
+            },
+            "D_native": {
+              "mean": 0.7056026468181088,
+              "median": -0.1175060489448837
+            },
+            "IS_effect": {
+              "mean": 1.6494938029862563,
+              "median": 1.4831796565555486
+            },
+            "Q": {
+              "mean": -1.02766686816099,
+              "median": -0.557032448267858
+            },
+            "R": {
+              "mean": 0.6218269348252663,
+              "median": 1.0422429172956247
+            }
+          },
+          "paired_calendar_days": 365,
+          "paired_valid_folds": 12,
+          "raw_sharpe_levels_same_valid_pairs": {
+            "meta_forward": {
+              "mean": -0.5764929524553059,
+              "median": 0.39608140427850563
+            },
+            "meta_is": {
+              "mean": -0.49271724046246335,
+              "median": -0.6013444727160302
+            },
+            "native_forward": {
+              "mean": 0.45117391570568394,
+              "median": 1.3183863388796633
+            },
+            "native_is": {
+              "mean": 1.156776562523793,
+              "median": 1.2412826758244417
+            }
+          },
+          "status_counts": {
+            "PAIRED_VALID": 12
+          },
+          "undefined": []
+        },
+        "2026": {
+          "Q_signs": {
+            "negative": 4,
+            "positive": 5,
+            "zero": 0
+          },
+          "calendar_days": 273,
+          "calendar_folds": 9,
+          "calendar_months": [
+            "2026-01",
+            "2026-02",
+            "2026-03",
+            "2026-04",
+            "2026-05",
+            "2026-06",
+            "2026-07",
+            "2026-08",
+            "2026-09"
+          ],
+          "contrasts": {
+            "D_meta": {
+              "mean": 0.8874430912121052,
+              "median": 0.3045949201200333
+            },
+            "D_native": {
+              "mean": 4.447166563630052,
+              "median": 4.203756369609057
+            },
+            "IS_effect": {
+              "mean": 2.0431060854099448,
+              "median": 2.0401585783509475
+            },
+            "Q": {
+              "mean": 1.5166173870080015,
+              "median": 1.3109699435919921
+            },
+            "R": {
+              "mean": 3.5597234724179465,
+              "median": 2.709124149760641
+            }
+          },
+          "paired_calendar_days": 273,
+          "paired_valid_folds": 9,
+          "raw_sharpe_levels_same_valid_pairs": {
+            "meta_forward": {
+              "mean": -1.757933419978843,
+              "median": -0.7886384142721955
+            },
+            "meta_is": {
+              "mean": -0.8704903287667378,
+              "median": -0.881652960238372
+            },
+            "native_forward": {
+              "mean": -3.274550806986845,
+              "median": -3.0592272459517402
+            },
+            "native_is": {
+              "mean": 1.172615756643207,
+              "median": 1.1380433984761795
+            }
+          },
+          "status_counts": {
+            "PAIRED_VALID": 9
+          },
+          "undefined": []
+        }
+      },
+      "evaluation_support": {
+        "calendar_folds": 32,
+        "mature_paired_calendar_days": 973,
+        "mature_paired_valid_folds": 32,
+        "paired_calendar_days": 973,
+        "paired_valid_folds": 32,
+        "reasons": [],
+        "required_mature_origins": 12,
+        "required_paired_calendar_days": 365,
+        "required_paired_folds": 12,
+        "status": "ADEQUATE_REGISTERED_SUPPORT"
+      },
+      "observer_labels": {
+        "statuses": {
+          "NO_VARIANCE": 15,
+          "VALID": 930
+        },
+        "total": 945
+      },
+      "pools": {
+        "attempted_slots": 7296,
+        "eligible_is_pool": {
+          "maximum": 128,
+          "minimum": 119,
+          "total": 7151
+        },
+        "native_selector_counts": {
+          "fallback_best_is_temporal": 21,
+          "medoid": 36
+        },
+        "retained_trials": {
+          "maximum": 128,
+          "minimum": 128,
+          "total": 7296
+        },
+        "robust_shortlist": {
+          "maximum": 14,
+          "minimum": 13,
+          "total": 797
+        },
+        "states": {
+          "COMPLETE": 7151,
+          "PRUNED": 145
+        }
+      },
+      "primary_evaluation": {
+        "Q_signs": {
+          "negative": 19,
+          "positive": 13,
+          "zero": 0
+        },
+        "calendar_days": 973,
+        "calendar_folds": 32,
+        "calendar_months": [
+          "2024-02",
+          "2024-03",
+          "2024-04",
+          "2024-05",
+          "2024-06",
+          "2024-07",
+          "2024-08",
+          "2024-09",
+          "2024-10",
+          "2024-11",
+          "2024-12",
+          "2025-01",
+          "2025-02",
+          "2025-03",
+          "2025-04",
+          "2025-05",
+          "2025-06",
+          "2025-07",
+          "2025-08",
+          "2025-09",
+          "2025-10",
+          "2025-11",
+          "2025-12",
+          "2026-01",
+          "2026-02",
+          "2026-03",
+          "2026-04",
+          "2026-05",
+          "2026-06",
+          "2026-07",
+          "2026-08",
+          "2026-09"
+        ],
+        "contrasts": {
+          "D_meta": {
+            "mean": 0.9867369757472322,
+            "median": 0.8371965808119395
+          },
+          "D_native": {
+            "mean": 2.1942743353147365,
+            "median": 2.4592980493214363
+          },
+          "IS_effect": {
+            "mean": 1.815020202601815,
+            "median": 1.7379385932271028
+          },
+          "Q": {
+            "mean": -0.6074828430343108,
+            "median": -0.5340817543703691
+          },
+          "R": {
+            "mean": 1.207537359567504,
+            "median": 1.4065804659275445
+          }
+        },
+        "paired_calendar_days": 973,
+        "paired_valid_folds": 32,
+        "raw_sharpe_levels_same_valid_pairs": {
+          "meta_forward": {
+            "mean": -1.4698282250252526,
+            "median": -1.2978673709340278
+          },
+          "meta_is": {
+            "mean": -0.48309124927802044,
+            "median": -0.46912104909468766
+          },
+          "native_forward": {
+            "mean": -0.8623453819909419,
+            "median": -1.0170448862195391
+          },
+          "native_is": {
+            "mean": 1.3319289533237946,
+            "median": 1.3418526947865785
+          }
+        },
+        "status_counts": {
+          "PAIRED_VALID": 32
+        },
+        "undefined": []
+      },
+      "progress": {
+        "changed_evaluation_folds": 32,
+        "changed_folds": 44,
+        "final_selection_reason_counts": {
+          "META_MODEL_PROPOSAL": 44,
+          "META_SUPPORT_INSUFFICIENT": 13
+        },
+        "first_fitted_origin": "2023-02",
+        "fit_rank_decisions": 44,
+        "fitted_model_records": 44
+      },
+      "retained_completed_search_cost_not_total_queue": {
+        "duplicate_attempts": 0,
+        "sampler_seconds_median": 3.6591017621103674,
+        "sampler_seconds_sum": 208.7600384678226,
+        "search_seconds_max": 1930.097686793073,
+        "search_seconds_median": 1307.8499515650328,
+        "search_seconds_min": 1007.4378836590331,
+        "search_seconds_sum": 76651.73427080258
+      },
+      "units": "ARITHMETIC_MEAN_MONTHLY_RAW_SHARPE_CONTRASTS_NOT_ACCOUNT_SHARPE"
+    },
+    "A-SC": {
+      "accounts": {
+        "active": {
+          "actual_fill_count": 558,
+          "campaigns": {
+            "activity_support_certified": false,
+            "closed_count": null,
+            "open_count": null,
+            "reason": "ORIGINAL_FILLS_LACK_NON_NULL_CAMPAIGN_ID_AND_CLOSURE_ROSTER",
+            "status": "UNAVAILABLE"
+          },
+          "costs": {
+            "full_calendar_fees_path_sum": 446.9948649432,
+            "full_calendar_funding_path_sum": 0.0,
+            "funding_sign": "ORIGINAL_RETAINED_PATH_SIGN_NOT_REINTERPRETED",
+            "oos_fees_path_sum": 446.99486494320007,
+            "oos_funding_path_sum": 0.0
+          },
+          "metric_scope": "LEGACY_FULL_CALENDAR_INCLUDES_FLAT_PRE_OOS_NOT_MEAN_FOLD_SHARPE",
+          "original_metrics": {
+            "final_equity": 21110.115485056624,
+            "initial_capital": 20000.0,
+            "liquidated": false,
+            "max_drawdown_pct": 8.247501670541356,
+            "sharpe": 0.22089555858241872,
+            "total_return_pct": 5.550577425283118
+          },
+          "participation": {
+            "definition": "NONZERO_ORIGINAL_POSITION_ON_REGISTERED_HOURLY_OOS_BARS",
+            "occupied_bars": 20650,
+            "oos_bars": 41616,
+            "time_in_market_pct": 49.620338331411
+          },
+          "retained_six_paths_and_fills_exact": true
+        },
+        "native": {
+          "actual_fill_count": 155,
+          "campaigns": {
+            "activity_support_certified": false,
+            "closed_count": null,
+            "open_count": null,
+            "reason": "ORIGINAL_FILLS_LACK_NON_NULL_CAMPAIGN_ID_AND_CLOSURE_ROSTER",
+            "status": "UNAVAILABLE"
+          },
+          "costs": {
+            "full_calendar_fees_path_sum": 125.47946670840003,
+            "full_calendar_funding_path_sum": 0.0,
+            "funding_sign": "ORIGINAL_RETAINED_PATH_SIGN_NOT_REINTERPRETED",
+            "oos_fees_path_sum": 125.4794667084,
+            "oos_funding_path_sum": 0.0
+          },
+          "metric_scope": "LEGACY_FULL_CALENDAR_INCLUDES_FLAT_PRE_OOS_NOT_MEAN_FOLD_SHARPE",
+          "original_metrics": {
+            "final_equity": 24160.9915502915,
+            "initial_capital": 20000.0,
+            "liquidated": false,
+            "max_drawdown_pct": 5.728762327796943,
+            "sharpe": 0.661856612647447,
+            "total_return_pct": 20.804957751457493
+          },
+          "participation": {
+            "definition": "NONZERO_ORIGINAL_POSITION_ON_REGISTERED_HOURLY_OOS_BARS",
+            "occupied_bars": 21798,
+            "oos_bars": 41616,
+            "time_in_market_pct": 52.37889273356401
+          },
+          "retained_six_paths_and_fills_exact": true
+        }
+      },
+      "all57": {
+        "Q_signs": {
+          "negative": 10,
+          "positive": 17,
+          "zero": 13
+        },
+        "calendar_days": 1734,
+        "calendar_folds": 57,
+        "calendar_months": [
+          "2022-01",
+          "2022-02",
+          "2022-03",
+          "2022-04",
+          "2022-05",
+          "2022-06",
+          "2022-07",
+          "2022-08",
+          "2022-09",
+          "2022-10",
+          "2022-11",
+          "2022-12",
+          "2023-01",
+          "2023-02",
+          "2023-03",
+          "2023-04",
+          "2023-05",
+          "2023-06",
+          "2023-07",
+          "2023-08",
+          "2023-09",
+          "2023-10",
+          "2023-11",
+          "2023-12",
+          "2024-01",
+          "2024-02",
+          "2024-03",
+          "2024-04",
+          "2024-05",
+          "2024-06",
+          "2024-07",
+          "2024-08",
+          "2024-09",
+          "2024-10",
+          "2024-11",
+          "2024-12",
+          "2025-01",
+          "2025-02",
+          "2025-03",
+          "2025-04",
+          "2025-05",
+          "2025-06",
+          "2025-07",
+          "2025-08",
+          "2025-09",
+          "2025-10",
+          "2025-11",
+          "2025-12",
+          "2026-01",
+          "2026-02",
+          "2026-03",
+          "2026-04",
+          "2026-05",
+          "2026-06",
+          "2026-07",
+          "2026-08",
+          "2026-09"
+        ],
+        "contrasts": {
+          "D_meta": {
+            "mean": 1.073974962220346,
+            "median": 1.1106150958302141
+          },
+          "D_native": {
+            "mean": 1.9850276264830988,
+            "median": 2.4028356648372657
+          },
+          "IS_effect": {
+            "mean": 0.44265153133375507,
+            "median": 0.3765184393330929
+          },
+          "Q": {
+            "mean": 0.4684011329289977,
+            "median": 0.0
+          },
+          "R": {
+            "mean": 0.9110526642627527,
+            "median": 0.0
+          }
+        },
+        "paired_calendar_days": 1217,
+        "paired_valid_folds": 40,
+        "raw_sharpe_levels_same_valid_pairs": {
+          "meta_forward": {
+            "mean": -0.12705640617244676,
+            "median": -0.21822218910599644
+          },
+          "meta_is": {
+            "mean": 0.9469185560478992,
+            "median": 0.8222533960375693
+          },
+          "native_forward": {
+            "mean": -0.5954575391014444,
+            "median": -1.1206990810867175
+          },
+          "native_is": {
+            "mean": 1.3895700873816543,
+            "median": 1.2931854373220786
+          }
+        },
+        "status_counts": {
+          "INVALID": 17,
+          "PAIRED_VALID": 40
+        },
+        "undefined": [
+          {
+            "month": "2022-08",
+            "reasons": [
+              "native_forward:NO_VARIANCE",
+              "meta_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2022-12",
+            "reasons": [
+              "native_forward:NO_VARIANCE",
+              "meta_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2023-04",
+            "reasons": [
+              "native_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2023-11",
+            "reasons": [
+              "native_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2024-01",
+            "reasons": [
+              "native_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2024-02",
+            "reasons": [
+              "native_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2024-04",
+            "reasons": [
+              "native_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2025-05",
+            "reasons": [
+              "meta_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2025-07",
+            "reasons": [
+              "native_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2025-08",
+            "reasons": [
+              "native_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2025-09",
+            "reasons": [
+              "native_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2025-11",
+            "reasons": [
+              "native_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2026-04",
+            "reasons": [
+              "native_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2026-05",
+            "reasons": [
+              "native_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2026-06",
+            "reasons": [
+              "native_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2026-07",
+            "reasons": [
+              "native_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2026-09",
+            "reasons": [
+              "native_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          }
+        ]
+      },
+      "annual_evaluation": {
+        "2024": {
+          "Q_signs": {
+            "negative": 3,
+            "positive": 6,
+            "zero": 0
+          },
+          "calendar_days": 335,
+          "calendar_folds": 11,
+          "calendar_months": [
+            "2024-02",
+            "2024-03",
+            "2024-04",
+            "2024-05",
+            "2024-06",
+            "2024-07",
+            "2024-08",
+            "2024-09",
+            "2024-10",
+            "2024-11",
+            "2024-12"
+          ],
+          "contrasts": {
+            "D_meta": {
+              "mean": -0.07436363311441511,
+              "median": 0.42819727589156764
+            },
+            "D_native": {
+              "mean": 1.4689250998539531,
+              "median": 1.1237327752975588
+            },
+            "IS_effect": {
+              "mean": 0.5271538112149659,
+              "median": 0.5752962253789542
+            },
+            "Q": {
+              "mean": 1.0161349217534021,
+              "median": 0.565440084552549
+            },
+            "R": {
+              "mean": 1.5432887329683682,
+              "median": 0.7762496664060605
+            }
+          },
+          "paired_calendar_days": 276,
+          "paired_valid_folds": 9,
+          "raw_sharpe_levels_same_valid_pairs": {
+            "meta_forward": {
+              "mean": 0.921991599214458,
+              "median": 0.6664594557441356
+            },
+            "meta_is": {
+              "mean": 0.8476279661000428,
+              "median": 0.8293187374499906
+            },
+            "native_forward": {
+              "mean": -0.09414332253894442,
+              "median": 0.11663111494669315
+            },
+            "native_is": {
+              "mean": 1.3747817773150086,
+              "median": 1.240363890244252
+            }
+          },
+          "status_counts": {
+            "INVALID": 2,
+            "PAIRED_VALID": 9
+          },
+          "undefined": [
+            {
+              "month": "2024-02",
+              "reasons": [
+                "native_forward:NO_VARIANCE"
+              ],
+              "status": "INVALID"
+            },
+            {
+              "month": "2024-04",
+              "reasons": [
+                "native_forward:NO_VARIANCE"
+              ],
+              "status": "INVALID"
+            }
+          ]
+        },
+        "2025": {
+          "Q_signs": {
+            "negative": 3,
+            "positive": 4,
+            "zero": 0
+          },
+          "calendar_days": 365,
+          "calendar_folds": 12,
+          "calendar_months": [
+            "2025-01",
+            "2025-02",
+            "2025-03",
+            "2025-04",
+            "2025-05",
+            "2025-06",
+            "2025-07",
+            "2025-08",
+            "2025-09",
+            "2025-10",
+            "2025-11",
+            "2025-12"
+          ],
+          "contrasts": {
+            "D_meta": {
+              "mean": 2.6746904553941233,
+              "median": 1.8427647882326084
+            },
+            "D_native": {
+              "mean": 3.165834748010898,
+              "median": 3.215185192668504
+            },
+            "IS_effect": {
+              "mean": 0.64619406585841,
+              "median": 0.5492505862698611
+            },
+            "Q": {
+              "mean": -0.15504977324163574,
+              "median": 0.41106492077517287
+            },
+            "R": {
+              "mean": 0.4911442926167743,
+              "median": 0.9260203116772243
+            }
+          },
+          "paired_calendar_days": 212,
+          "paired_valid_folds": 7,
+          "raw_sharpe_levels_same_valid_pairs": {
+            "meta_forward": {
+              "mean": -1.884453972199286,
+              "median": -1.063142764215648
+            },
+            "meta_is": {
+              "mean": 0.7902364831948377,
+              "median": 0.7256029523152112
+            },
+            "native_forward": {
+              "mean": -1.7294041989576503,
+              "median": -1.4264643940033417
+            },
+            "native_is": {
+              "mean": 1.4364305490532476,
+              "median": 1.2734104751100277
+            }
+          },
+          "status_counts": {
+            "INVALID": 5,
+            "PAIRED_VALID": 7
+          },
+          "undefined": [
+            {
+              "month": "2025-05",
+              "reasons": [
+                "meta_forward:NO_VARIANCE"
+              ],
+              "status": "INVALID"
+            },
+            {
+              "month": "2025-07",
+              "reasons": [
+                "native_forward:NO_VARIANCE"
+              ],
+              "status": "INVALID"
+            },
+            {
+              "month": "2025-08",
+              "reasons": [
+                "native_forward:NO_VARIANCE"
+              ],
+              "status": "INVALID"
+            },
+            {
+              "month": "2025-09",
+              "reasons": [
+                "native_forward:NO_VARIANCE"
+              ],
+              "status": "INVALID"
+            },
+            {
+              "month": "2025-11",
+              "reasons": [
+                "native_forward:NO_VARIANCE"
+              ],
+              "status": "INVALID"
+            }
+          ]
+        },
+        "2026": {
+          "Q_signs": {
+            "negative": 2,
+            "positive": 2,
+            "zero": 0
+          },
+          "calendar_days": 273,
+          "calendar_folds": 9,
+          "calendar_months": [
+            "2026-01",
+            "2026-02",
+            "2026-03",
+            "2026-04",
+            "2026-05",
+            "2026-06",
+            "2026-07",
+            "2026-08",
+            "2026-09"
+          ],
+          "contrasts": {
+            "D_meta": {
+              "mean": 0.546127431366399,
+              "median": 0.12814719535494246
+            },
+            "D_native": {
+              "mean": 1.035634498163566,
+              "median": 2.260285634216024
+            },
+            "IS_effect": {
+              "mean": 0.6624781471085884,
+              "median": 0.7758045568941261
+            },
+            "Q": {
+              "mean": -0.17297108031142142,
+              "median": -0.30751843649607064
+            },
+            "R": {
+              "mean": 0.489507066797167,
+              "median": 0.2416333008269801
+            }
+          },
+          "paired_calendar_days": 121,
+          "paired_valid_folds": 4,
+          "raw_sharpe_levels_same_valid_pairs": {
+            "meta_forward": {
+              "mean": -0.1650812810714299,
+              "median": 0.11101933144609533
+            },
+            "meta_is": {
+              "mean": 0.381046150294969,
+              "median": 0.4592260428723082
+            },
+            "native_forward": {
+              "mean": 0.007889799239991557,
+              "median": -1.1027314433529023
+            },
+            "native_is": {
+              "mean": 1.0435242974035575,
+              "median": 1.0153037066896067
+            }
+          },
+          "status_counts": {
+            "INVALID": 5,
+            "PAIRED_VALID": 4
+          },
+          "undefined": [
+            {
+              "month": "2026-04",
+              "reasons": [
+                "native_forward:NO_VARIANCE"
+              ],
+              "status": "INVALID"
+            },
+            {
+              "month": "2026-05",
+              "reasons": [
+                "native_forward:NO_VARIANCE"
+              ],
+              "status": "INVALID"
+            },
+            {
+              "month": "2026-06",
+              "reasons": [
+                "native_forward:NO_VARIANCE"
+              ],
+              "status": "INVALID"
+            },
+            {
+              "month": "2026-07",
+              "reasons": [
+                "native_forward:NO_VARIANCE"
+              ],
+              "status": "INVALID"
+            },
+            {
+              "month": "2026-09",
+              "reasons": [
+                "native_forward:NO_VARIANCE"
+              ],
+              "status": "INVALID"
+            }
+          ]
+        }
+      },
+      "evaluation_support": {
+        "calendar_folds": 32,
+        "mature_paired_calendar_days": 609,
+        "mature_paired_valid_folds": 20,
+        "paired_calendar_days": 609,
+        "paired_valid_folds": 20,
+        "reasons": [],
+        "required_mature_origins": 12,
+        "required_paired_calendar_days": 365,
+        "required_paired_folds": 12,
+        "status": "ADEQUATE_REGISTERED_SUPPORT"
+      },
+      "observer_labels": {
+        "statuses": {
+          "NO_VARIANCE": 320,
+          "VALID": 621
+        },
+        "total": 941
+      },
+      "pools": {
+        "attempted_slots": 7296,
+        "eligible_is_pool": {
+          "maximum": 128,
+          "minimum": 128,
+          "total": 7296
+        },
+        "native_selector_counts": {
+          "medoid": 57
+        },
+        "retained_trials": {
+          "maximum": 128,
+          "minimum": 128,
+          "total": 7296
+        },
+        "robust_shortlist": {
+          "maximum": 14,
+          "minimum": 14,
+          "total": 798
+        },
+        "states": {
+          "COMPLETE": 7296
+        }
+      },
+      "primary_evaluation": {
+        "Q_signs": {
+          "negative": 8,
+          "positive": 12,
+          "zero": 0
+        },
+        "calendar_days": 973,
+        "calendar_folds": 32,
+        "calendar_months": [
+          "2024-02",
+          "2024-03",
+          "2024-04",
+          "2024-05",
+          "2024-06",
+          "2024-07",
+          "2024-08",
+          "2024-09",
+          "2024-10",
+          "2024-11",
+          "2024-12",
+          "2025-01",
+          "2025-02",
+          "2025-03",
+          "2025-04",
+          "2025-05",
+          "2025-06",
+          "2025-07",
+          "2025-08",
+          "2025-09",
+          "2025-10",
+          "2025-11",
+          "2025-12",
+          "2026-01",
+          "2026-02",
+          "2026-03",
+          "2026-04",
+          "2026-05",
+          "2026-06",
+          "2026-07",
+          "2026-08",
+          "2026-09"
+        ],
+        "contrasts": {
+          "D_meta": {
+            "mean": 1.0119035107597363,
+            "median": 1.1106150958302141
+          },
+          "D_native": {
+            "mean": 1.9761853563708063,
+            "median": 2.260285634216024
+          },
+          "IS_effect": {
+            "mean": 0.5958827675188958,
+            "median": 0.586905703373846
+          },
+          "Q": {
+            "mean": 0.3683990780921742,
+            "median": 0.38867220842750483
+          },
+          "R": {
+            "mean": 0.96428184561107,
+            "median": 0.8511349890416424
+          }
+        },
+        "paired_calendar_days": 609,
+        "paired_valid_folds": 20,
+        "raw_sharpe_levels_same_valid_pairs": {
+          "meta_forward": {
+            "mean": -0.27767892683753,
+            "median": -0.2213508867262275
+          },
+          "meta_is": {
+            "mean": 0.7342245839222062,
+            "median": 0.744183715017144
+          },
+          "native_forward": {
+            "mean": -0.6460780049297042,
+            "median": -0.9987462220060832
+          },
+          "native_is": {
+            "mean": 1.3301073514411021,
+            "median": 1.2604363330124828
+          }
+        },
+        "status_counts": {
+          "INVALID": 12,
+          "PAIRED_VALID": 20
+        },
+        "undefined": [
+          {
+            "month": "2024-02",
+            "reasons": [
+              "native_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2024-04",
+            "reasons": [
+              "native_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2025-05",
+            "reasons": [
+              "meta_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2025-07",
+            "reasons": [
+              "native_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2025-08",
+            "reasons": [
+              "native_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2025-09",
+            "reasons": [
+              "native_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2025-11",
+            "reasons": [
+              "native_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2026-04",
+            "reasons": [
+              "native_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2026-05",
+            "reasons": [
+              "native_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2026-06",
+            "reasons": [
+              "native_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2026-07",
+            "reasons": [
+              "native_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2026-09",
+            "reasons": [
+              "native_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          }
+        ]
+      },
+      "progress": {
+        "changed_evaluation_folds": 32,
+        "changed_folds": 42,
+        "final_selection_reason_counts": {
+          "META_MODEL_PROPOSAL": 42,
+          "META_SUPPORT_INSUFFICIENT": 15
+        },
+        "first_fitted_origin": "2023-04",
+        "fit_rank_decisions": 42,
+        "fitted_model_records": 42
+      },
+      "retained_completed_search_cost_not_total_queue": {
+        "duplicate_attempts": 0,
+        "sampler_seconds_median": 1.1502622850239277,
+        "sampler_seconds_sum": 65.69391402846668,
+        "search_seconds_max": 410.7923951600678,
+        "search_seconds_median": 303.27326802606694,
+        "search_seconds_min": 237.94947102700826,
+        "search_seconds_sum": 17725.115623432677
+      },
+      "units": "ARITHMETIC_MEAN_MONTHLY_RAW_SHARPE_CONTRASTS_NOT_ACCOUNT_SHARPE"
+    },
+    "A-VWAP": {
+      "accounts": {
+        "active": {
+          "actual_fill_count": 456,
+          "campaigns": {
+            "activity_support_certified": false,
+            "closed_count": null,
+            "open_count": null,
+            "reason": "ORIGINAL_FILLS_LACK_NON_NULL_CAMPAIGN_ID_AND_CLOSURE_ROSTER",
+            "status": "UNAVAILABLE"
+          },
+          "costs": {
+            "full_calendar_fees_path_sum": 364.6201547369549,
+            "full_calendar_funding_path_sum": 0.0,
+            "funding_sign": "ORIGINAL_RETAINED_PATH_SIGN_NOT_REINTERPRETED",
+            "oos_fees_path_sum": 364.6201547369548,
+            "oos_funding_path_sum": 0.0
+          },
+          "metric_scope": "LEGACY_FULL_CALENDAR_INCLUDES_FLAT_PRE_OOS_NOT_MEAN_FOLD_SHARPE",
+          "original_metrics": {
+            "final_equity": 19484.16144790789,
+            "initial_capital": 20000.0,
+            "liquidated": false,
+            "max_drawdown_pct": 3.6160249292400337,
+            "sharpe": -0.37360124542632134,
+            "total_return_pct": -2.5791927604605553
+          },
+          "participation": {
+            "definition": "NONZERO_ORIGINAL_POSITION_ON_REGISTERED_HOURLY_OOS_BARS",
+            "occupied_bars": 1505,
+            "oos_bars": 41616,
+            "time_in_market_pct": 3.61639753940792
+          },
+          "retained_six_paths_and_fills_exact": true
+        },
+        "native": {
+          "actual_fill_count": 92,
+          "campaigns": {
+            "activity_support_certified": false,
+            "closed_count": null,
+            "open_count": null,
+            "reason": "ORIGINAL_FILLS_LACK_NON_NULL_CAMPAIGN_ID_AND_CLOSURE_ROSTER",
+            "status": "UNAVAILABLE"
+          },
+          "costs": {
+            "full_calendar_fees_path_sum": 73.70948563261986,
+            "full_calendar_funding_path_sum": 0.0,
+            "funding_sign": "ORIGINAL_RETAINED_PATH_SIGN_NOT_REINTERPRETED",
+            "oos_fees_path_sum": 73.70948563261986,
+            "oos_funding_path_sum": 0.0
+          },
+          "metric_scope": "LEGACY_FULL_CALENDAR_INCLUDES_FLAT_PRE_OOS_NOT_MEAN_FOLD_SHARPE",
+          "original_metrics": {
+            "final_equity": 19723.74266187474,
+            "initial_capital": 20000.0,
+            "liquidated": false,
+            "max_drawdown_pct": 2.453644721515732,
+            "sharpe": -0.2543354566846103,
+            "total_return_pct": -1.3812866906262935
+          },
+          "participation": {
+            "definition": "NONZERO_ORIGINAL_POSITION_ON_REGISTERED_HOURLY_OOS_BARS",
+            "occupied_bars": 1288,
+            "oos_bars": 41616,
+            "time_in_market_pct": 3.094963475586313
+          },
+          "retained_six_paths_and_fills_exact": true
+        }
+      },
+      "all57": {
+        "Q_signs": {
+          "negative": 6,
+          "positive": 5,
+          "zero": 15
+        },
+        "calendar_days": 1734,
+        "calendar_folds": 57,
+        "calendar_months": [
+          "2022-01",
+          "2022-02",
+          "2022-03",
+          "2022-04",
+          "2022-05",
+          "2022-06",
+          "2022-07",
+          "2022-08",
+          "2022-09",
+          "2022-10",
+          "2022-11",
+          "2022-12",
+          "2023-01",
+          "2023-02",
+          "2023-03",
+          "2023-04",
+          "2023-05",
+          "2023-06",
+          "2023-07",
+          "2023-08",
+          "2023-09",
+          "2023-10",
+          "2023-11",
+          "2023-12",
+          "2024-01",
+          "2024-02",
+          "2024-03",
+          "2024-04",
+          "2024-05",
+          "2024-06",
+          "2024-07",
+          "2024-08",
+          "2024-09",
+          "2024-10",
+          "2024-11",
+          "2024-12",
+          "2025-01",
+          "2025-02",
+          "2025-03",
+          "2025-04",
+          "2025-05",
+          "2025-06",
+          "2025-07",
+          "2025-08",
+          "2025-09",
+          "2025-10",
+          "2025-11",
+          "2025-12",
+          "2026-01",
+          "2026-02",
+          "2026-03",
+          "2026-04",
+          "2026-05",
+          "2026-06",
+          "2026-07",
+          "2026-08",
+          "2026-09"
+        ],
+        "contrasts": {
+          "D_meta": {
+            "mean": 0.8556544226530061,
+            "median": 0.602525104543827
+          },
+          "D_native": {
+            "mean": 1.399188824695992,
+            "median": 1.3261208205482065
+          },
+          "IS_effect": {
+            "mean": 0.7796735528181384,
+            "median": 0.17774749310233073
+          },
+          "Q": {
+            "mean": -0.23613915077515243,
+            "median": 0.0
+          },
+          "R": {
+            "mean": 0.543534402042986,
+            "median": 0.0
+          }
+        },
+        "paired_calendar_days": 791,
+        "paired_valid_folds": 26,
+        "raw_sharpe_levels_same_valid_pairs": {
+          "meta_forward": {
+            "mean": 0.022754595361797775,
+            "median": 0.06148214789813555
+          },
+          "meta_is": {
+            "mean": 0.8784090180148038,
+            "median": 1.5362729476842563
+          },
+          "native_forward": {
+            "mean": 0.2588937461369502,
+            "median": 0.705051300186053
+          },
+          "native_is": {
+            "mean": 1.6580825708329423,
+            "median": 1.7332072146665065
+          }
+        },
+        "status_counts": {
+          "INVALID": 31,
+          "PAIRED_VALID": 26
+        },
+        "undefined": [
+          {
+            "month": "2022-04",
+            "reasons": [
+              "native_forward:NO_VARIANCE",
+              "meta_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2022-05",
+            "reasons": [
+              "native_forward:NO_VARIANCE",
+              "meta_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2022-07",
+            "reasons": [
+              "native_forward:NO_VARIANCE",
+              "meta_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2022-09",
+            "reasons": [
+              "native_forward:NO_VARIANCE",
+              "meta_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2022-10",
+            "reasons": [
+              "native_forward:NO_VARIANCE",
+              "meta_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2023-07",
+            "reasons": [
+              "native_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2023-08",
+            "reasons": [
+              "native_forward:NO_VARIANCE",
+              "meta_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2023-09",
+            "reasons": [
+              "native_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2023-11",
+            "reasons": [
+              "native_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2024-01",
+            "reasons": [
+              "native_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2024-02",
+            "reasons": [
+              "meta_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2024-03",
+            "reasons": [
+              "native_forward:NO_VARIANCE",
+              "meta_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2024-05",
+            "reasons": [
+              "native_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2024-06",
+            "reasons": [
+              "native_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2024-07",
+            "reasons": [
+              "native_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2024-09",
+            "reasons": [
+              "native_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2024-10",
+            "reasons": [
+              "native_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2024-11",
+            "reasons": [
+              "native_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2024-12",
+            "reasons": [
+              "native_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2025-01",
+            "reasons": [
+              "native_forward:NO_VARIANCE",
+              "meta_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2025-02",
+            "reasons": [
+              "native_forward:NO_VARIANCE",
+              "meta_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2025-05",
+            "reasons": [
+              "native_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2025-08",
+            "reasons": [
+              "native_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2025-10",
+            "reasons": [
+              "native_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2025-11",
+            "reasons": [
+              "native_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2025-12",
+            "reasons": [
+              "native_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2026-02",
+            "reasons": [
+              "native_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2026-05",
+            "reasons": [
+              "native_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2026-06",
+            "reasons": [
+              "native_forward:NO_VARIANCE",
+              "meta_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2026-08",
+            "reasons": [
+              "native_forward:NO_VARIANCE",
+              "meta_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2026-09",
+            "reasons": [
+              "native_forward:NO_VARIANCE",
+              "meta_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          }
+        ]
+      },
+      "annual_evaluation": {
+        "2024": {
+          "Q_signs": {
+            "negative": 1,
+            "positive": 1,
+            "zero": 0
+          },
+          "calendar_days": 335,
+          "calendar_folds": 11,
+          "calendar_months": [
+            "2024-02",
+            "2024-03",
+            "2024-04",
+            "2024-05",
+            "2024-06",
+            "2024-07",
+            "2024-08",
+            "2024-09",
+            "2024-10",
+            "2024-11",
+            "2024-12"
+          ],
+          "contrasts": {
+            "D_meta": {
+              "mean": 0.479564124241604,
+              "median": 0.479564124241604
+            },
+            "D_native": {
+              "mean": 5.059297770198796,
+              "median": 5.059297770198796
+            },
+            "IS_effect": {
+              "mean": 1.7259301041991622,
+              "median": 1.7259301041991622
+            },
+            "Q": {
+              "mean": 2.8538035417580305,
+              "median": 2.8538035417580305
+            },
+            "R": {
+              "mean": 4.579733645957193,
+              "median": 4.579733645957193
+            }
+          },
+          "paired_calendar_days": 61,
+          "paired_valid_folds": 2,
+          "raw_sharpe_levels_same_valid_pairs": {
+            "meta_forward": {
+              "mean": -1.0484269595861322,
+              "median": -1.0484269595861322
+            },
+            "meta_is": {
+              "mean": -0.5688628353445283,
+              "median": -0.5688628353445283
+            },
+            "native_forward": {
+              "mean": -3.9022305013441625,
+              "median": -3.9022305013441625
+            },
+            "native_is": {
+              "mean": 1.1570672688546337,
+              "median": 1.1570672688546337
+            }
+          },
+          "status_counts": {
+            "INVALID": 9,
+            "PAIRED_VALID": 2
+          },
+          "undefined": [
+            {
+              "month": "2024-02",
+              "reasons": [
+                "meta_forward:NO_VARIANCE"
+              ],
+              "status": "INVALID"
+            },
+            {
+              "month": "2024-03",
+              "reasons": [
+                "native_forward:NO_VARIANCE",
+                "meta_forward:NO_VARIANCE"
+              ],
+              "status": "INVALID"
+            },
+            {
+              "month": "2024-05",
+              "reasons": [
+                "native_forward:NO_VARIANCE"
+              ],
+              "status": "INVALID"
+            },
+            {
+              "month": "2024-06",
+              "reasons": [
+                "native_forward:NO_VARIANCE"
+              ],
+              "status": "INVALID"
+            },
+            {
+              "month": "2024-07",
+              "reasons": [
+                "native_forward:NO_VARIANCE"
+              ],
+              "status": "INVALID"
+            },
+            {
+              "month": "2024-09",
+              "reasons": [
+                "native_forward:NO_VARIANCE"
+              ],
+              "status": "INVALID"
+            },
+            {
+              "month": "2024-10",
+              "reasons": [
+                "native_forward:NO_VARIANCE"
+              ],
+              "status": "INVALID"
+            },
+            {
+              "month": "2024-11",
+              "reasons": [
+                "native_forward:NO_VARIANCE"
+              ],
+              "status": "INVALID"
+            },
+            {
+              "month": "2024-12",
+              "reasons": [
+                "native_forward:NO_VARIANCE"
+              ],
+              "status": "INVALID"
+            }
+          ]
+        },
+        "2025": {
+          "Q_signs": {
+            "negative": 2,
+            "positive": 2,
+            "zero": 1
+          },
+          "calendar_days": 365,
+          "calendar_folds": 12,
+          "calendar_months": [
+            "2025-01",
+            "2025-02",
+            "2025-03",
+            "2025-04",
+            "2025-05",
+            "2025-06",
+            "2025-07",
+            "2025-08",
+            "2025-09",
+            "2025-10",
+            "2025-11",
+            "2025-12"
+          ],
+          "contrasts": {
+            "D_meta": {
+              "mean": 0.23064321895184786,
+              "median": 2.0157710262943627
+            },
+            "D_native": {
+              "mean": 1.382395630929081,
+              "median": 1.7877521481218326
+            },
+            "IS_effect": {
+              "mean": 1.6828140245089942,
+              "median": 1.638987718076149
+            },
+            "Q": {
+              "mean": -0.5310616125317608,
+              "median": 0.0
+            },
+            "R": {
+              "mean": 1.1517524119772333,
+              "median": 1.3805719556293874
+            }
+          },
+          "paired_calendar_days": 152,
+          "paired_valid_folds": 5,
+          "raw_sharpe_levels_same_valid_pairs": {
+            "meta_forward": {
+              "mean": -0.15322237435167635,
+              "median": -1.2297152066984276
+            },
+            "meta_is": {
+              "mean": 0.0774208446001714,
+              "median": -0.5564625585618964
+            },
+            "native_forward": {
+              "mean": 0.3778392381800845,
+              "median": 0.2425418518588402
+            },
+            "native_is": {
+              "mean": 1.7602348691091656,
+              "median": 1.9490805866618015
+            }
+          },
+          "status_counts": {
+            "INVALID": 7,
+            "PAIRED_VALID": 5
+          },
+          "undefined": [
+            {
+              "month": "2025-01",
+              "reasons": [
+                "native_forward:NO_VARIANCE",
+                "meta_forward:NO_VARIANCE"
+              ],
+              "status": "INVALID"
+            },
+            {
+              "month": "2025-02",
+              "reasons": [
+                "native_forward:NO_VARIANCE",
+                "meta_forward:NO_VARIANCE"
+              ],
+              "status": "INVALID"
+            },
+            {
+              "month": "2025-05",
+              "reasons": [
+                "native_forward:NO_VARIANCE"
+              ],
+              "status": "INVALID"
+            },
+            {
+              "month": "2025-08",
+              "reasons": [
+                "native_forward:NO_VARIANCE"
+              ],
+              "status": "INVALID"
+            },
+            {
+              "month": "2025-10",
+              "reasons": [
+                "native_forward:NO_VARIANCE"
+              ],
+              "status": "INVALID"
+            },
+            {
+              "month": "2025-11",
+              "reasons": [
+                "native_forward:NO_VARIANCE"
+              ],
+              "status": "INVALID"
+            },
+            {
+              "month": "2025-12",
+              "reasons": [
+                "native_forward:NO_VARIANCE"
+              ],
+              "status": "INVALID"
+            }
+          ]
+        },
+        "2026": {
+          "Q_signs": {
+            "negative": 2,
+            "positive": 2,
+            "zero": 0
+          },
+          "calendar_days": 273,
+          "calendar_folds": 9,
+          "calendar_months": [
+            "2026-01",
+            "2026-02",
+            "2026-03",
+            "2026-04",
+            "2026-05",
+            "2026-06",
+            "2026-07",
+            "2026-08",
+            "2026-09"
+          ],
+          "contrasts": {
+            "D_meta": {
+              "mean": -1.2111401418948051,
+              "median": -1.2772017494141843
+            },
+            "D_native": {
+              "mean": -0.40978258494439185,
+              "median": -2.1418429513765394
+            },
+            "IS_effect": {
+              "mean": 1.838891601430978,
+              "median": 2.0336374125116894
+            },
+            "Q": {
+              "mean": -1.0375340444805647,
+              "median": -0.06147446056305084
+            },
+            "R": {
+              "mean": 0.8013575569504134,
+              "median": 1.9721629519486386
+            }
+          },
+          "paired_calendar_days": 123,
+          "paired_valid_folds": 4,
+          "raw_sharpe_levels_same_valid_pairs": {
+            "meta_forward": {
+              "mean": 0.5652250042830311,
+              "median": 0.3993573609939255
+            },
+            "meta_is": {
+              "mean": -0.6459151376117742,
+              "median": -0.687405441145504
+            },
+            "native_forward": {
+              "mean": 1.6027590487635957,
+              "median": 3.488074922742725
+            },
+            "native_is": {
+              "mean": 1.1929764638192037,
+              "median": 1.224197261408145
+            }
+          },
+          "status_counts": {
+            "INVALID": 5,
+            "PAIRED_VALID": 4
+          },
+          "undefined": [
+            {
+              "month": "2026-02",
+              "reasons": [
+                "native_forward:NO_VARIANCE"
+              ],
+              "status": "INVALID"
+            },
+            {
+              "month": "2026-05",
+              "reasons": [
+                "native_forward:NO_VARIANCE"
+              ],
+              "status": "INVALID"
+            },
+            {
+              "month": "2026-06",
+              "reasons": [
+                "native_forward:NO_VARIANCE",
+                "meta_forward:NO_VARIANCE"
+              ],
+              "status": "INVALID"
+            },
+            {
+              "month": "2026-08",
+              "reasons": [
+                "native_forward:NO_VARIANCE",
+                "meta_forward:NO_VARIANCE"
+              ],
+              "status": "INVALID"
+            },
+            {
+              "month": "2026-09",
+              "reasons": [
+                "native_forward:NO_VARIANCE",
+                "meta_forward:NO_VARIANCE"
+              ],
+              "status": "INVALID"
+            }
+          ]
+        }
+      },
+      "evaluation_support": {
+        "calendar_folds": 32,
+        "mature_paired_calendar_days": 336,
+        "mature_paired_valid_folds": 11,
+        "paired_calendar_days": 336,
+        "paired_valid_folds": 11,
+        "reasons": [
+          "FEWER_THAN_12_MATURE_PAIRED_VALID_EVALUATION_FOLDS",
+          "LESS_THAN_ONE_YEAR_MATURE_PAIRED_EVALUATION_CALENDAR"
+        ],
+        "required_mature_origins": 12,
+        "required_paired_calendar_days": 365,
+        "required_paired_folds": 12,
+        "status": "INCONCLUSIVE"
+      },
+      "observer_labels": {
+        "statuses": {
+          "NO_VARIANCE": 534,
+          "VALID": 409
+        },
+        "total": 943
+      },
+      "pools": {
+        "attempted_slots": 7296,
+        "eligible_is_pool": {
+          "maximum": 128,
+          "minimum": 124,
+          "total": 7290
+        },
+        "native_selector_counts": {
+          "fallback_best_is_temporal": 9,
+          "medoid": 48
+        },
+        "retained_trials": {
+          "maximum": 128,
+          "minimum": 128,
+          "total": 7296
+        },
+        "robust_shortlist": {
+          "maximum": 14,
+          "minimum": 14,
+          "total": 798
+        },
+        "states": {
+          "COMPLETE": 7290,
+          "PRUNED": 6
+        }
+      },
+      "primary_evaluation": {
+        "Q_signs": {
+          "negative": 5,
+          "positive": 5,
+          "zero": 1
+        },
+        "calendar_days": 973,
+        "calendar_folds": 32,
+        "calendar_months": [
+          "2024-02",
+          "2024-03",
+          "2024-04",
+          "2024-05",
+          "2024-06",
+          "2024-07",
+          "2024-08",
+          "2024-09",
+          "2024-10",
+          "2024-11",
+          "2024-12",
+          "2025-01",
+          "2025-02",
+          "2025-03",
+          "2025-04",
+          "2025-05",
+          "2025-06",
+          "2025-07",
+          "2025-08",
+          "2025-09",
+          "2025-10",
+          "2025-11",
+          "2025-12",
+          "2026-01",
+          "2026-02",
+          "2026-03",
+          "2026-04",
+          "2026-05",
+          "2026-06",
+          "2026-07",
+          "2026-08",
+          "2026-09"
+        ],
+        "contrasts": {
+          "D_meta": {
+            "mean": -0.24838329312152482,
+            "median": -0.06307565955898431
+          },
+          "D_native": {
+            "mean": 1.3992221232059483,
+            "median": 1.7877521481218326
+          },
+          "IS_effect": {
+            "mean": 1.7474087942424734,
+            "median": 1.8099803417373403
+          },
+          "Q": {
+            "mean": -0.0998033779150003,
+            "median": 0.0
+          },
+          "R": {
+            "mean": 1.6476054163274734,
+            "median": 1.3805719556293874
+          }
+        },
+        "paired_calendar_days": 336,
+        "paired_valid_folds": 11,
+        "raw_sharpe_levels_same_valid_pairs": {
+          "meta_forward": {
+            "mean": -0.05473325216350197,
+            "median": -1.0445964527169946
+          },
+          "meta_is": {
+            "mean": -0.3031165452850269,
+            "median": -0.6480166645645388
+          },
+          "native_forward": {
+            "mean": 0.0450701257514983,
+            "median": 0.2425418518588402
+          },
+          "native_is": {
+            "mean": 1.4442922489574466,
+            "median": 1.4636174372840103
+          }
+        },
+        "status_counts": {
+          "INVALID": 21,
+          "PAIRED_VALID": 11
+        },
+        "undefined": [
+          {
+            "month": "2024-02",
+            "reasons": [
+              "meta_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2024-03",
+            "reasons": [
+              "native_forward:NO_VARIANCE",
+              "meta_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2024-05",
+            "reasons": [
+              "native_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2024-06",
+            "reasons": [
+              "native_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2024-07",
+            "reasons": [
+              "native_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2024-09",
+            "reasons": [
+              "native_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2024-10",
+            "reasons": [
+              "native_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2024-11",
+            "reasons": [
+              "native_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2024-12",
+            "reasons": [
+              "native_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2025-01",
+            "reasons": [
+              "native_forward:NO_VARIANCE",
+              "meta_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2025-02",
+            "reasons": [
+              "native_forward:NO_VARIANCE",
+              "meta_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2025-05",
+            "reasons": [
+              "native_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2025-08",
+            "reasons": [
+              "native_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2025-10",
+            "reasons": [
+              "native_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2025-11",
+            "reasons": [
+              "native_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2025-12",
+            "reasons": [
+              "native_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2026-02",
+            "reasons": [
+              "native_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2026-05",
+            "reasons": [
+              "native_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2026-06",
+            "reasons": [
+              "native_forward:NO_VARIANCE",
+              "meta_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2026-08",
+            "reasons": [
+              "native_forward:NO_VARIANCE",
+              "meta_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          },
+          {
+            "month": "2026-09",
+            "reasons": [
+              "native_forward:NO_VARIANCE",
+              "meta_forward:NO_VARIANCE"
+            ],
+            "status": "INVALID"
+          }
+        ]
+      },
+      "progress": {
+        "changed_evaluation_folds": 32,
+        "changed_folds": 39,
+        "final_selection_reason_counts": {
+          "META_MODEL_PROPOSAL": 39,
+          "META_SUPPORT_INSUFFICIENT": 18
+        },
+        "first_fitted_origin": "2023-07",
+        "fit_rank_decisions": 39,
+        "fitted_model_records": 39
+      },
+      "retained_completed_search_cost_not_total_queue": {
+        "duplicate_attempts": 0,
+        "sampler_seconds_median": 3.029904888244346,
+        "sampler_seconds_sum": 171.73976792092435,
+        "search_seconds_max": 740.7428532349877,
+        "search_seconds_median": 517.0316018830054,
+        "search_seconds_min": 370.9209130080417,
+        "search_seconds_sum": 29796.551156120724
+      },
+      "units": "ARITHMETIC_MEAN_MONTHLY_RAW_SHARPE_CONTRASTS_NOT_ACCOUNT_SHARPE"
+    }
+  },
+  "attempts_per_fold": 128,
+  "cleanup": {
+    "files_removed": 324,
+    "observed_free_delta_bytes": 2736128,
+    "protected_files": 11884,
+    "roots_removed": 6,
+    "status": "PASS_EXACT_INACTIVE_FIXTURE_AND_JIT_CLEANUP"
+  },
+  "development_folds": 12,
+  "evaluation_folds": 32,
+  "folds_per_alpha": 57,
+  "history_acquisition_folds": 13,
+  "market": "ETHUSDT",
+  "mode": "mode_4_is_only_robust",
+  "oos_start": "2022-01-01",
+  "oos_stop_exclusive": "2026-10-01",
+  "phase": "M5-11.6",
+  "phase_status": "AWAITING_OWNER_NEXT_EXPERIMENT_NOT_M5_11_7",
+  "qualification": {
+    "focused_tests": 72,
+    "full_new_optimizer_search_proof": false,
+    "harness_elapsed_seconds_not_production_meta_overhead": 5178.043427722994,
+    "new_optimizer_attempts_in_this_closeout": 0,
+    "report_generation_executed_finance": false,
+    "scoped_checkpoint_cells": 100,
+    "status": "PASS_FOUR_ALPHA_SAVED_POOL_PUBLIC_CHECKPOINT_QUALIFICATION"
+  },
+  "sampler": "legacy_tpe",
+  "schedule": "per_fold_causal",
+  "schema": "m5116.public.aggregate.v1",
+  "scope": "LOCAL_SOURCE_QUALIFICATION_NOT_INSTALLED_OR_PUBLIC_RELEASE",
+  "seed": 731,
+  "source_qualification_sha256": "9f20c0d4adea7359e8efabfd9b0f2ca6b1ac068b6a2ccdd974237c81581c860c",
+  "source_readback_sha256": "2a9ea034cffcb52284d9ed1400754236ae02b05422e115b464a8c416fd91d0b8",
+  "timeframe": "1h",
+  "train_window": "730D",
+  "uncertainty": {
+    "adjustment": "BONFERRONI_FIXED_EIGHT_COORDINATES",
+    "block_months": 3,
+    "coordinate_confidence": 0.99375,
+    "coordinates": [
+      "A-SC:R",
+      "A-SC:Q",
+      "A-HMA:R",
+      "A-HMA:Q",
+      "A-HASH:R",
+      "A-HASH:Q",
+      "A-VWAP:R",
+      "A-VWAP:Q"
+    ],
+    "deployment_authorized": false,
+    "directional_claims": {
+      "A-HASH": null,
+      "A-HMA": null,
+      "A-SC": null,
+      "A-VWAP": null
+    },
+    "draws": 16384,
+    "economic_winner_claim": false,
+    "evaluation_calendar": [
+      "2024-02",
+      "2024-03",
+      "2024-04",
+      "2024-05",
+      "2024-06",
+      "2024-07",
+      "2024-08",
+      "2024-09",
+      "2024-10",
+      "2024-11",
+      "2024-12",
+      "2025-01",
+      "2025-02",
+      "2025-03",
+      "2025-04",
+      "2025-05",
+      "2025-06",
+      "2025-07",
+      "2025-08",
+      "2025-09",
+      "2025-10",
+      "2025-11",
+      "2025-12",
+      "2026-01",
+      "2026-02",
+      "2026-03",
+      "2026-04",
+      "2026-05",
+      "2026-06",
+      "2026-07",
+      "2026-08",
+      "2026-09"
+    ],
+    "family_confidence": 0.95,
+    "family_size": 8,
+    "full_pipeline_uncertainty": false,
+    "interval_scope": "FIXED_OBSERVED_SELECTION_PROCESS_NOT_FULL_PIPELINE_UNCERTAINTY",
+    "intervals": {
+      "A-HASH:Q": null,
+      "A-HASH:R": null,
+      "A-HMA:Q": null,
+      "A-HMA:R": null,
+      "A-SC:Q": null,
+      "A-SC:R": null,
+      "A-VWAP:Q": null,
+      "A-VWAP:R": null
+    },
+    "method": "percentile",
+    "missing_months_imputed": false,
+    "owner": "arch.bootstrap.MovingBlockBootstrap",
+    "reasons": [
+      "A-SC:UNSUPPORTED_MISSING_OR_IMMATURE_EVALUATION_PATTERN",
+      "A-VWAP:FEWER_THAN_12_MATURE_PAIRED_VALID_EVALUATION_FOLDS",
+      "A-VWAP:LESS_THAN_ONE_YEAR_MATURE_PAIRED_EVALUATION_CALENDAR",
+      "A-VWAP:UNSUPPORTED_MISSING_OR_IMMATURE_EVALUATION_PATTERN"
+    ],
+    "same_calendar_indices_all_coordinates": true,
+    "schema": "m5116.rolling-monthly.family-economics.v1",
+    "seed": 731,
+    "status": "INCONCLUSIVE"
+  },
+  "window_mode": "rolling"
+}

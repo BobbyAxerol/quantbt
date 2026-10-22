@@ -1,0 +1,216 @@
+{
+  "authority": "Owner approved ACC-01 current-capability account/configuration/metrics closure",
+  "baseline_commit": "9c2bfd95c65f71618f52c736dfff341953066961",
+  "date": "2026-10-22",
+  "guide": "docs/portfolio_review/CURRENT_CAPABILITY_REPAIR_GUIDE.md",
+  "historical_receipts_unchanged": true,
+  "prior_amendment_sha256": "490806eab1e5118675dab4b5013df19ea0b3a3bde633632d9e0d3c4a99253edb",
+  "prior_qualification_sha256": "e3e557086c940971f8cd3573fcf812fce24fe862564367d417abac9887050e6c",
+  "qualification_scope": "exact source only; native/tests/release separate",
+  "schema": "quantbt.acc01.source_amendment.v1",
+  "scopes": [
+    "src",
+    "rust",
+    "pyproject.toml",
+    "uv.lock",
+    "contracts",
+    "upgrade/QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md"
+  ],
+  "source_commit": "0969ffeba78f2f0e905ceaf658c8ad75c46e0dc0",
+  "sources": {
+    "rust/crates/quantbt-execution/src/target.rs": {
+      "after_commit": "0969ffeba78f2f0e905ceaf658c8ad75c46e0dc0",
+      "after_sha256": "4c3061ceb4791879e9c54c72fae9070bc771bde130fe1287688dd52bc1778994",
+      "before_commit": "9c2bfd95c65f71618f52c736dfff341953066961",
+      "before_sha256": "91ba2cad753bf4fb7bb97db5889229e455fcf3d6d7a28efa0149d94e32415b7e"
+    },
+    "rust/native_event/src/lib.rs": {
+      "after_commit": "0969ffeba78f2f0e905ceaf658c8ad75c46e0dc0",
+      "after_sha256": "839ec0cf7d8ffdb3583e646cb9ea8e931ca7c41ccf6ed943803ed6a217b25cac",
+      "before_commit": "9c2bfd95c65f71618f52c736dfff341953066961",
+      "before_sha256": "deb5d582da175dde4e07b242f45d7f723e22636bd7976c9b1afe5766c9068575"
+    },
+    "src/quantbt/backends/native_event.py": {
+      "after_commit": "0969ffeba78f2f0e905ceaf658c8ad75c46e0dc0",
+      "after_sha256": "86ad5e87d2083b4a6894e2903b3188ff322ae3027e5a4d1a97e561865a3c4f88",
+      "before_commit": "9c2bfd95c65f71618f52c736dfff341953066961",
+      "before_sha256": "ec86d9b0a052edbc0565a635070c3f22fe84d437659e7de4acbdb84dfc6c1552"
+    },
+    "src/quantbt/backends/native_option.py": {
+      "after_commit": "0969ffeba78f2f0e905ceaf658c8ad75c46e0dc0",
+      "after_sha256": "f081248f7d1fdeb99e134b37aa7f8c949c5c96ef261a6b3ac2100548eb0203ff",
+      "before_commit": "9c2bfd95c65f71618f52c736dfff341953066961",
+      "before_sha256": "ba284c53a4ccca9cb2c043f53ecdacd67ac69deea5233f5a44b71c3103d2ed23"
+    },
+    "src/quantbt/backends/native_vectorized.py": {
+      "after_commit": "0969ffeba78f2f0e905ceaf658c8ad75c46e0dc0",
+      "after_sha256": "e1ad341ff27e984a5d7e462e1b1e0b6d19f7cb2897f2720dea63ae52287ca116",
+      "before_commit": "9c2bfd95c65f71618f52c736dfff341953066961",
+      "before_sha256": "25a3153f5a6c95ac2850c6d858e8aec0ee9fe70f1351fa66c7f36820577459fe"
+    },
+    "src/quantbt/core/account_metadata.py": {
+      "after_commit": "0969ffeba78f2f0e905ceaf658c8ad75c46e0dc0",
+      "after_sha256": "9adef7dbb4a02311f60f723c77f03b2987a65c1ee6ffd2158841c67385744d42",
+      "before_commit": "9c2bfd95c65f71618f52c736dfff341953066961",
+      "before_sha256": null
+    },
+    "src/quantbt/core/event.py": {
+      "after_commit": "0969ffeba78f2f0e905ceaf658c8ad75c46e0dc0",
+      "after_sha256": "3e80f260ea4eaeef91794b605bfdeab9dfa0e861bb7c5b08a5299729e43b47b7",
+      "before_commit": "9c2bfd95c65f71618f52c736dfff341953066961",
+      "before_sha256": "9f69ec80d4dbfe234dd75fd4ff292ce18f64b6125512ced1f1b41868c0f69bfd"
+    },
+    "src/quantbt/core/market_tape.py": {
+      "after_commit": "0969ffeba78f2f0e905ceaf658c8ad75c46e0dc0",
+      "after_sha256": "e661b010d1dcdcd7d0e73e481ffd98d0845dab5b707f5d380d683ba6ab836253",
+      "before_commit": "9c2bfd95c65f71618f52c736dfff341953066961",
+      "before_sha256": "9d1fef7124b76f07fbd13aa7e4a9ae575a2d5fc5ba5f2d4c64088799592cd1ee"
+    },
+    "src/quantbt/core/results.py": {
+      "after_commit": "0969ffeba78f2f0e905ceaf658c8ad75c46e0dc0",
+      "after_sha256": "bc353f9314b45db19c21611ee08d0f7f8d787fca8e2ffe3ed89d534948044339",
+      "before_commit": "9c2bfd95c65f71618f52c736dfff341953066961",
+      "before_sha256": "f4b45b7fafc3d7da2e2bbb444ed6ba67800c7296ea5941d339a244a2733a51db"
+    },
+    "src/quantbt/core/vectorized.py": {
+      "after_commit": "0969ffeba78f2f0e905ceaf658c8ad75c46e0dc0",
+      "after_sha256": "739133d9d70360a6539d9c9dc184c0b570c3feed731f48dc9ffd136e5c6543da",
+      "before_commit": "9c2bfd95c65f71618f52c736dfff341953066961",
+      "before_sha256": "08e70f5d03595c4a0e6266d46af4025d033e255837403835e60f61be6a8d9ae4"
+    },
+    "src/quantbt/metrics/reporting/account.py": {
+      "after_commit": "0969ffeba78f2f0e905ceaf658c8ad75c46e0dc0",
+      "after_sha256": "e6affee25baf9ed6f2309250e69e287242a8a123fd4a0cf1c81565dfbec3dddc",
+      "before_commit": "9c2bfd95c65f71618f52c736dfff341953066961",
+      "before_sha256": "8129911cfff7a51041d2aab064676644d922198f0859ff149e2786f471855843"
+    },
+    "src/quantbt/metrics/reporting/adapters.py": {
+      "after_commit": "0969ffeba78f2f0e905ceaf658c8ad75c46e0dc0",
+      "after_sha256": "b5b4c73f6260981d123bb45b81ae276ca5f41bc2f7bd86df30bab60ea4d56dba",
+      "before_commit": "9c2bfd95c65f71618f52c736dfff341953066961",
+      "before_sha256": "18a21b110856005826aafb8d52c5f6d172e4c391646ccacbb6215eace39ddbc5"
+    },
+    "src/quantbt/metrics/reporting/cache.py": {
+      "after_commit": "0969ffeba78f2f0e905ceaf658c8ad75c46e0dc0",
+      "after_sha256": "bfb6e0b3014032197f97f3d93c48be83247f200f78686234491be0f75c123647",
+      "before_commit": "9c2bfd95c65f71618f52c736dfff341953066961",
+      "before_sha256": "9742cb33d165d8c4e89df0eb32020798581c44cb9433b03100e44dd0fac50a80"
+    },
+    "src/quantbt/metrics/reporting/drawdown.py": {
+      "after_commit": "0969ffeba78f2f0e905ceaf658c8ad75c46e0dc0",
+      "after_sha256": "1f01f3dd8fa9622705fb5e2a6ff6900f0790702c40034a7a2bb683bce561aa73",
+      "before_commit": "9c2bfd95c65f71618f52c736dfff341953066961",
+      "before_sha256": "5ffdcf772106df8c4f636a25d21c232c8c6a6ee56669dbb206285b5ed786aac5"
+    },
+    "src/quantbt/metrics/reporting/execution.py": {
+      "after_commit": "0969ffeba78f2f0e905ceaf658c8ad75c46e0dc0",
+      "after_sha256": "a226dfc852229545d19d79ca23dc58d26d1cc190f0adbfc8649a1f6ff78b1fdb",
+      "before_commit": "9c2bfd95c65f71618f52c736dfff341953066961",
+      "before_sha256": "3e280a7c7f29d801cbf77b0c132a6b1318f90055bb27ed94f98eaf6c5aaaca2a"
+    },
+    "src/quantbt/metrics/reporting/inputs.py": {
+      "after_commit": "0969ffeba78f2f0e905ceaf658c8ad75c46e0dc0",
+      "after_sha256": "66d10dd3e3fafca1799a6bd0b11272f1415ef9031edcd17f0cf63ecb62ffd854",
+      "before_commit": "9c2bfd95c65f71618f52c736dfff341953066961",
+      "before_sha256": "c624aed7d1d532e7269495dc4759dbeac4088e8409ac1b44c42d306c42264724"
+    },
+    "src/quantbt/metrics/reporting/ledger.py": {
+      "after_commit": "0969ffeba78f2f0e905ceaf658c8ad75c46e0dc0",
+      "after_sha256": "92ca86c72c258810bd813fb3e03fd643e01142c64bf319bb90ec860f9f0e5408",
+      "before_commit": "9c2bfd95c65f71618f52c736dfff341953066961",
+      "before_sha256": "aa1517fdfaca28c4155f0604bcff003d112255521f1a9d4d846b2e8de7144e31"
+    },
+    "src/quantbt/metrics/reporting/results.py": {
+      "after_commit": "0969ffeba78f2f0e905ceaf658c8ad75c46e0dc0",
+      "after_sha256": "291c1d48a1f115e13c1e718fa9c29eb5d57802214836e7f45b86a4fcd37a9a33",
+      "before_commit": "9c2bfd95c65f71618f52c736dfff341953066961",
+      "before_sha256": "59c84e9ee8d55a7e1898c7da7f2495b2542d32ac184fce1a776d6e3a28358989"
+    },
+    "src/quantbt/metrics/reporting/snapshots.py": {
+      "after_commit": "0969ffeba78f2f0e905ceaf658c8ad75c46e0dc0",
+      "after_sha256": "97b38a1904af6aaad88ddd9c03bea6de9110c65d1bb9f1331c02558caec7c1a2",
+      "before_commit": "9c2bfd95c65f71618f52c736dfff341953066961",
+      "before_sha256": "c83f9203e7a6d17453bdd22cc9fcab17a258455e846d93d19bac4b581baf2501"
+    },
+    "src/quantbt/options/authority.py": {
+      "after_commit": "0969ffeba78f2f0e905ceaf658c8ad75c46e0dc0",
+      "after_sha256": "3a6704a0114bc79a3ca2bf8529aa778a1a2c724ae637446db4283461a651ffae",
+      "before_commit": "9c2bfd95c65f71618f52c736dfff341953066961",
+      "before_sha256": "6aa7dd07410f3a6f7e369ca4b844dc2555b562f097c47d9ca46d06be4d3a3622"
+    },
+    "src/quantbt/options/execution.py": {
+      "after_commit": "0969ffeba78f2f0e905ceaf658c8ad75c46e0dc0",
+      "after_sha256": "a5ddf51faaeac24c43bb5a4bbb904b1c57d534ffe310848991af21ed8f51589b",
+      "before_commit": "9c2bfd95c65f71618f52c736dfff341953066961",
+      "before_sha256": "1d7263b60dfdb3728e3d8d905200f2e264bd76491c5681de089296df455066db"
+    },
+    "src/quantbt/options/fees.py": {
+      "after_commit": "0969ffeba78f2f0e905ceaf658c8ad75c46e0dc0",
+      "after_sha256": "8b8d1d8e480fd7af3b81dde8108525bd49ad1dc623baec32c311dea2bc8303b5",
+      "before_commit": "9c2bfd95c65f71618f52c736dfff341953066961",
+      "before_sha256": "e0216ce64999731648983e4ab5f0da069157819eec6e0b5f854bb910be7462bc"
+    },
+    "src/quantbt/options/hedging.py": {
+      "after_commit": "0969ffeba78f2f0e905ceaf658c8ad75c46e0dc0",
+      "after_sha256": "ea88d8488cad6fb3416bbd49ebb9679f7f21b790a4524cb12298832cd45858d5",
+      "before_commit": "9c2bfd95c65f71618f52c736dfff341953066961",
+      "before_sha256": "5cf6c1c7698570e320b2a0efdec2175d8e93ce1e206b36043fdd27c2f14db4b0"
+    },
+    "src/quantbt/options/ledger.py": {
+      "after_commit": "0969ffeba78f2f0e905ceaf658c8ad75c46e0dc0",
+      "after_sha256": "fbb81b2afb5edd7b6df3d2e574577e208ffafde0a71361400a3b4036843cfc82",
+      "before_commit": "9c2bfd95c65f71618f52c736dfff341953066961",
+      "before_sha256": "2edb76cd61638c4d06e0bca6d391f05c68abcdcd4a31335c5d95c764192c73ae"
+    },
+    "src/quantbt/options/lifecycle.py": {
+      "after_commit": "0969ffeba78f2f0e905ceaf658c8ad75c46e0dc0",
+      "after_sha256": "6a7249329a92a4e52421ddc39f885077d0aa59d9d46c1b2ed24284923599d57d",
+      "before_commit": "9c2bfd95c65f71618f52c736dfff341953066961",
+      "before_sha256": "5c457a63109422c36a6ac70ec323097521d75ab07e250fca01819509304c8f86"
+    },
+    "src/quantbt/options/margin.py": {
+      "after_commit": "0969ffeba78f2f0e905ceaf658c8ad75c46e0dc0",
+      "after_sha256": "18506b350c22754f94ef8ca67a55c361e795ece035e7ab6303e8aa799322b9e6",
+      "before_commit": "9c2bfd95c65f71618f52c736dfff341953066961",
+      "before_sha256": "9b5f2d92bd30f8e87c28192d8cd19e33c352bbfbe9042a9dddf1665c5b118784"
+    },
+    "src/quantbt/options/packages.py": {
+      "after_commit": "0969ffeba78f2f0e905ceaf658c8ad75c46e0dc0",
+      "after_sha256": "8fce11ec4bcfd54441a1897f7a5d681f18b00a25786e76a960abb3529df9f5b0",
+      "before_commit": "9c2bfd95c65f71618f52c736dfff341953066961",
+      "before_sha256": "8753c7651b4984a47ecc803fd1bb9b2f9605c15edaa81dde8698b90ac3849c32"
+    },
+    "src/quantbt/options/reporting.py": {
+      "after_commit": "0969ffeba78f2f0e905ceaf658c8ad75c46e0dc0",
+      "after_sha256": "6199c568d4d86d472038e68b1fb8d5f18d94354b4927a076a03cca3ddae2bebd",
+      "before_commit": "9c2bfd95c65f71618f52c736dfff341953066961",
+      "before_sha256": "e293644e55add28559ee0a256cdecc09ad1d1e0f3efd250282d1f87a908da4c1"
+    },
+    "src/quantbt/options/schema.py": {
+      "after_commit": "0969ffeba78f2f0e905ceaf658c8ad75c46e0dc0",
+      "after_sha256": "8411b2375f91899f7ff5fcfc26c8bcbcb51f5bc70c399da1547d8fec9f1a33e7",
+      "before_commit": "9c2bfd95c65f71618f52c736dfff341953066961",
+      "before_sha256": "dafb8be1ebdb304385a22cb7203f83b1fd7ad6060a72d1477a68df664861cf3c"
+    },
+    "src/quantbt/options/strategy.py": {
+      "after_commit": "0969ffeba78f2f0e905ceaf658c8ad75c46e0dc0",
+      "after_sha256": "fdd9236b32cd5e3f5ab0b2d8632e4dcdd4cc08aeee7a7ae97de77e417c191f09",
+      "before_commit": "9c2bfd95c65f71618f52c736dfff341953066961",
+      "before_sha256": "58c3b92ffb0018b0595e16c6fd6619c3b6e5008003e765845f88336d6a8917eb"
+    },
+    "src/quantbt/options/validation.py": {
+      "after_commit": "0969ffeba78f2f0e905ceaf658c8ad75c46e0dc0",
+      "after_sha256": "d5bc84abf21a18252b2c412b7756a8b7304ddbb3db8e2e87bed074679eda2572",
+      "before_commit": "9c2bfd95c65f71618f52c736dfff341953066961",
+      "before_sha256": null
+    },
+    "src/quantbt/reporting/executed_attribution.py": {
+      "after_commit": "0969ffeba78f2f0e905ceaf658c8ad75c46e0dc0",
+      "after_sha256": "2a8db90a5c2bd74d270d1b05ace9b261ccf49f84cd6f5506df99edbea4e157dd",
+      "before_commit": "9c2bfd95c65f71618f52c736dfff341953066961",
+      "before_sha256": null
+    }
+  },
+  "timezone": "Asia/Saigon",
+  "version_bump": false
+}

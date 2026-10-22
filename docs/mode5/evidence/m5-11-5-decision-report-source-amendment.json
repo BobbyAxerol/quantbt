@@ -1,0 +1,18 @@
+{
+  "schema": "mode5.decision_report.source_amendment.v1",
+  "entry": "b6e673651b265771fc81acbaafa1bc92cc6e5999",
+  "scope": "Additive cold descriptive DecisionReport and export only; no simulation, reduction, selection, sampler RNG or default change",
+  "prior_amendment": {
+    "path": "docs/mode5/evidence/m5-11-continuous-event-source-amendment.json",
+    "sha256": "90ec0a075bcff227bcaf4f6a7e418bc2313e297c1f8bf1efee58011e92e60681"
+  },
+  "existing": {
+    "src/quantbt/mode5/__init__.py": "af7ab3d504e3a0ecb88888b17d79cb847f2e21599aba62b835de9519a974b647"
+  },
+  "new": {
+    "src/quantbt/mode5/decision_report.py": "f86c2f7e53fbc19026a5ec769749b4fdba35c2335ac4bf8b4ed3bc778c8cd2f7"
+  },
+  "financial_requalification": "Not substituted by this cold report; actual synthetic endpoint integration and original financial proofs remain separate",
+  "scientific_thresholds_changed": false,
+  "public_defaults_changed": false
+}

@@ -932,7 +932,7 @@ impl NativeExecutionTemplateV1 {
         })
     }
 
-    fn fresh_session(&self) -> Result<FullSession, String> {
+    pub fn fresh_session(&self) -> Result<FullSession, String> {
         let mut session = FullSession::new_window(
             self.market.clone(),
             self.market_start,
@@ -2710,6 +2710,36 @@ mod tests {
         assert!(capped.header_v2.dropped_rows > 0);
         assert_eq!(capped.output.detail_retention().retained_rows, 1);
         assert!(capped.output.detail_retention().truncated());
+    }
+
+    #[test]
+    fn terminal_state_v1_reaches_native_request_result_without_audit_replay() {
+        let audit_request = request(NativeOutputProfileV1::Audit)
+            .with_audit_detail_limit(0)
+            .unwrap();
+        let result = audit_request.execute().unwrap();
+        let NativeExecutionOutputV1::Audit(audit) = &result.output else {
+            panic!("audit expected");
+        };
+        let state = audit.terminal_state.as_ref().unwrap();
+        assert_eq!(state.sorted_index, vec![0, 1]);
+        assert_eq!(state.command_index, vec![0, 1]);
+        assert_eq!(state.status, vec![1, 1]);
+        assert_eq!(state.remaining_qty, vec![0.0, 0.0]);
+        assert_eq!(
+            state.canceled_orders_by_bar,
+            vec![0; audit_request.template.bar_count()]
+        );
+        assert_eq!(state.canceled_event_count, 0);
+        assert!(audit.fills.bar.is_empty() && audit.events.bar.is_empty());
+        assert_eq!(audit.compact.score.fill_count, 2);
+        assert!(result.header_v2.detail_truncated);
+        let score = request(NativeOutputProfileV1::Score).execute().unwrap();
+        assert_eq!(
+            score.header_v2.terminal_fingerprint,
+            result.header_v2.terminal_fingerprint
+        );
+        assert_eq!(score.output.score(), result.output.score());
     }
 
     #[test]

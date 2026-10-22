@@ -1,0 +1,29 @@
+{
+  "schema": "quantbt.m5_12.ci_rust_source.v1",
+  "approved_scope": "PR65 CI: checked atomic fault-injection decrement with unchanged AcqRel/Acquire order and zero behavior; QMS result type aliases with unchanged tuple ABI and numeric bodies",
+  "baseline_commit": "4e02a6077b974e15e9be0a4a4e94c05716193818",
+  "source_commit": "33f22c6473971d45c09026b5f242a40bd7fa13aa",
+  "previous_amendment_sha256": "da2d3b965b2cf7bf8732ca467f9f7e23743376efe099fedf62d984dce7a7be46",
+  "source_only": true,
+  "fresh_native_artifacts_required": true,
+  "native_artifacts_qualified": false,
+  "publication": false,
+  "version_bump": false,
+  "historical_financial_invariance_claim_reissued": false,
+  "financial_numeric_source_unchanged": false,
+  "scopes": ["src", "rust", "pyproject.toml", "uv.lock", "contracts", "upgrade/QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md"],
+  "sources": {
+    "rust/crates/quantbt-batch/src/lib.rs": {
+      "before_commit": "4e02a6077b974e15e9be0a4a4e94c05716193818",
+      "after_commit": "33f22c6473971d45c09026b5f242a40bd7fa13aa",
+      "before_sha256": "bffbda3ebb6ea8b4b99f2f805b342f3af34cedd959fb80dc8aa43e44a87a07d1",
+      "after_sha256": "a46b994f1014bcf37146bd97e04728aa284b5ede0f1bb47712da2b6dc7250be1"
+    },
+    "rust/native_event/src/qms_numeric.rs": {
+      "before_commit": "4e02a6077b974e15e9be0a4a4e94c05716193818",
+      "after_commit": "33f22c6473971d45c09026b5f242a40bd7fa13aa",
+      "before_sha256": "25892ca45fca23fe0668d6592c3bb3b4da8c580425038395e939220c4b7875ea",
+      "after_sha256": "7fc56398b5f96fca59a20f2e7990b99fef9393afaff871fbc20606facedbe403"
+    }
+  }
+}

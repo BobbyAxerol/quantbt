@@ -1,0 +1,13 @@
+{
+  "baseline": "1df2aaf",
+  "source_sha256": {
+    "src/quantbt/endpoint.py": "402189dc01a13dafa62e324784974fef15b96883392bf88004dd1227d487ec4e",
+    "src/quantbt/optimization/meta_selection/config.py": "ba6a9777514ce9d79e29e96d53a6b272324c0f70ae0eb2b625b011a48ac3398a",
+    "src/quantbt/optimization/meta_selection/domains/package.py": "571845727b9066db756c3432c4ba1470d22dd83959256a419ee8ae673aee202a",
+    "src/quantbt/optimization/meta_selection/domains/package_contract.py": "94dd06890d18661ab7bf4e0d5619560ecdc39b09ab9221ffff03c6f46974d688",
+    "src/quantbt/optimization/meta_selection/domains/portfolio.py": "a9d75f29d220f570f4c824976805be4ec157b31f6197fc0d33fe73deac32c495",
+    "src/quantbt/optimization/meta_selection/domains/registry.py": "93f97a210210ed193b1db60d491a35c473bc39af62558485e1a1cef461134091",
+    "src/quantbt/optimization/meta_selection/observer.py": "e3b25cdc7e71319de1e730a1fbb89f1db6dc94172945e657498d8b3aea141222",
+    "src/quantbt/walkforward.py": "0ba7f802ebe62425a828ff905767fefeadbd21166ff9a38274e1bd6e9877bf50"
+  }
+}

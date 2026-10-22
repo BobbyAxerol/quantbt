@@ -10,6 +10,7 @@ final market simulation to existing QuantBT endpoints.
 
 from __future__ import annotations
 
+from copy import deepcopy
 from dataclasses import dataclass, field
 import hashlib
 import json
@@ -27,6 +28,7 @@ from .core.performance_contracts import (
     compile_walkforward_computation_plan,
 )
 from .core.wfo_evaluation import WfoExecutionReuseRuntimeV1
+from .core.wfo_failures import nonpositive_price_cause
 from .core.wfo_preparation import (
     PreparedWfoWindowRegistryV1,
     PreparedWfoWindowV1,
@@ -56,6 +58,9 @@ from .strategies.wfo_prepared import (
 )
 from .optimization.callbacks import SingleObjectiveEarlyStopping as _OptimizationEarlyStopping
 from .optimization.space import stable_params_key, suggest_params as _optimization_suggest_params
+from .optimization.config import SamplerConfig
+from .optimization.exact_is_reuse import qualifies_exact_is_shard_reuse
+from .optimization.samplers import build_sampler
 
 try:  # optional acceleration; Python/NumPy baseline remains available
     from numba import njit
@@ -176,6 +181,7 @@ class PreparedWalkForwardContext:
         compare=False,
     )
     calendar_plan: Optional[CalendarPlanV2] = None
+    _witness_owners: list = field(default_factory=list, repr=False, compare=False)
     _stats: Dict[str, int] = field(
         default_factory=lambda: {
             "strategy_slice_requests": 0,
@@ -292,6 +298,25 @@ class PreparedWalkForwardContext:
         """Reject attempted reuse after any result-affecting source mutation."""
         if _complete_data_hash(data) != self.data_signature:
             raise ValueError("prepared walk-forward context source data signature changed")
+
+    def metric_witness(self, config):
+        from .optimization.meta_selection.witness import PreparedMetricWitness
+
+        if config.mode in {"portfolio", "basket", "arbitrage"} or isinstance(self.data, dict):
+            from .optimization.meta_selection.domains.portfolio_witness import PortfolioMetricWitness
+            owner = PortfolioMetricWitness(self.data, config=config)
+        else:
+            owner = PreparedMetricWitness(self.data, config=config)
+        self._witness_owners.append(owner)
+        return owner
+
+    def close_witnesses(self):
+        try:
+            for owner in self._witness_owners:
+                owner.validate_source()
+        finally:
+            for owner in self._witness_owners:
+                owner.close()
 
     def window_for(self, index: pd.DatetimeIndex) -> PreparedWfoWindowV1 | None:
         """Return a parameter-independent positional score view when exact."""
@@ -484,7 +509,26 @@ class WalkForwardConfig:
     use_numba: bool = True
     metadata: Dict[str, Any] = field(default_factory=dict)
 
+    sampler_config: Optional[Union[SamplerConfig, Mapping[str, Any]]] = None
+    sampler_warm_start: Tuple[Mapping[str, Any], ...] = ()
+    parameter_constraints: Optional[Callable] = None
+    result_constraints: Optional[Callable] = None
+    meta_selection: Any = None
+    mode5_calibration: Any = None
+
     def __post_init__(self) -> None:
+        if self.mode5_calibration is not None:
+            from .mode5.integration_contracts import Mode5Calibration
+            if not isinstance(self.mode5_calibration, Mode5Calibration):
+                raise TypeError("mode5_calibration requires sealed Mode5Calibration")
+        if self.meta_selection is not None:
+            from .optimization.meta_selection.config import normalize_meta_config
+            object.__setattr__(self, "meta_selection", normalize_meta_config(self.meta_selection))
+        if self.sampler_config is not None and not isinstance(self.sampler_config, SamplerConfig):
+            object.__setattr__(self, "sampler_config", SamplerConfig(**dict(self.sampler_config)))
+        for name in ("parameter_constraints", "result_constraints"):
+            if getattr(self, name) is not None and not callable(getattr(self, name)):
+                raise TypeError(f"{name} must be callable")
         freq = self.split_frequency.lower().strip()
         if freq not in {"single", "yearly", "semi_yearly", "quarterly", "monthly", "weekly"}:
             raise ValueError("split_frequency must be single, yearly, semi_yearly, quarterly, monthly, or weekly")
@@ -569,6 +613,14 @@ class WalkForwardConfig:
         if schedule != "global" and self.optuna_trials <= 0:
             raise ValueError("per-fold optimization schedules require optuna_trials > 0")
         object.__setattr__(self, "optimization_schedule", schedule)
+
+        invalid_intent = self.metadata.get("invalid_execution_intent_policy", "raise")
+        if invalid_intent not in {"raise", "prune_nonpositive_price_v1"}:
+            raise ValueError("invalid_execution_intent_policy must be raise or prune_nonpositive_price_v1")
+        if invalid_intent != "raise" and (
+                schedule != "per_fold_causal" or opt_mode != "mode_4_is_only_robust"
+                or self.target_mode not in {"intrabar", "event_driven", "order_commands", "delivery_arbitrage"}):
+            raise NotImplementedError("non-positive-price pruning requires causal Mode 4 execution WFO")
 
         calendar_contract = str(self.calendar_contract).lower().strip()
         if calendar_contract not in {"exact_v2", "intersection_v2", "legacy_v1"}:
@@ -753,8 +805,8 @@ class WalkForwardConfig:
         if self.flat_min_samples <= 0:
             raise ValueError("flat_min_samples must be > 0")
         selector = self.flat_selector.lower().strip()
-        if selector not in {"medoid", "centroid"}:
-            raise ValueError("flat_selector must be medoid or centroid")
+        if selector not in {"medoid", "centroid", "feasible_support_projection_v1"}:
+            raise ValueError("flat_selector must be medoid, centroid or feasible_support_projection_v1")
         object.__setattr__(self, "flat_selector", selector)
         if not 0.0 <= self.plateau_quantile <= 1.0:
             raise ValueError("plateau_quantile must be in [0, 1]")
@@ -806,6 +858,7 @@ class WalkForwardResult:
     candidate_table: pd.DataFrame = field(default_factory=pd.DataFrame)
     best_trial: Optional[Dict[str, Any]] = None
     metadata: Dict[str, Any] = field(default_factory=dict)
+    mode5_continuous_accounts: Any = None
 
     @property
     def oos_positions(self) -> Optional[StrategyOutput]:
@@ -943,7 +996,15 @@ def walkforward_support_matrix(as_dataframe: bool = True):
             notes="Reserved for future WFO parity validation, not routed by walk-forward today.",
         ),
     ]
-    rows = [entry.__dict__ for entry in entries]
+    from .wfo_execution import EXECUTION_ROUTES
+    entries.extend(WalkForwardCompatibilityEntry(target_mode=route,
+        expected_output="WfoExecutionWindow", final_engine="explicit existing execution_endpoint",
+        status="opt_in", notes="Original reset diagnostics; continuous final account; synthetic qualification only.")
+        for route in sorted(EXECUTION_ROUTES))
+    from .optimization.meta_selection.domains.registry import check_route_inventory, route_metadata
+
+    check_route_inventory(entry.target_mode for entry in entries)
+    rows = [{**entry.__dict__, **route_metadata(entry.target_mode)} for entry in entries]
     if as_dataframe:
         return pd.DataFrame(rows)
     return rows
@@ -964,6 +1025,8 @@ class WalkForwardEngine:
         config: Optional[WalkForwardConfig] = None,
         scorer: Optional[Callable[..., Dict[str, float]]] = None,
         native_scorer: Optional[Callable[..., Dict[str, float]]] = None,
+        *,
+        is_pool_observer=None,
     ):
         if strategy is None:
             raise ValueError("WalkForwardEngine requires a strategy callable or strategy class/object")
@@ -974,6 +1037,9 @@ class WalkForwardEngine:
         self._research_full_candidate_records: List[WalkForwardTrialRecord] = []
         self.scorer = scorer
         self.native_scorer = native_scorer
+        self._is_pool_observer = is_pool_observer
+        if is_pool_observer is not None:
+            is_pool_observer.validate(self.config, scorer)
         if self.config.scoring_backend == "endpoint" and self.scorer is None:
             raise ValueError("scoring_backend='endpoint' requires a scorer callback")
         if self.config.scoring_backend == "proxy" and self.config.proxy_validation_mode == "enforce" and self.native_scorer is None:
@@ -981,6 +1047,9 @@ class WalkForwardEngine:
                 "proxy_validation_mode='enforce' requires a native_scorer; "
                 "use an endpoint-backed scorer or disable proxy enforcement"
             )
+        if self.config.meta_selection is not None:
+            from .optimization.meta_selection.config import validate_meta_route
+            validate_meta_route(self.config)
 
     def run(
         self,
@@ -988,8 +1057,17 @@ class WalkForwardEngine:
         params: Optional[Dict[str, Any]] = None,
         param_ranges: Optional[Dict[str, Any]] = None,
         datetime_index: Optional[Union[pd.DatetimeIndex, pd.Series]] = None,
+        *,
+        meta_history=None,
     ) -> WalkForwardResult:
         """Build folds, call the strategy per fold, and stitch OOS output."""
+        self._meta_runtime = None
+        if self.config.meta_selection is not None:
+            from .optimization.meta_selection.runtime import PublicMetaRuntime
+            if params is not None or not param_ranges:
+                raise ValueError("META_METHODOLOGY_UNSUPPORTED: optimizing param_ranges required")
+            self._meta_runtime = PublicMetaRuntime(self, meta_history, param_ranges)
+            self._is_pool_observer = self._meta_runtime.capture
         profile_enabled = bool(self.config.metadata.get("profile_walkforward", False))
         perf01_enabled = bool(self.config.metadata.get("perf_01_profile", False))
         self._performance_profile = {"enabled": profile_enabled, "strategy_calls": 0, "score_calls": 0}
@@ -1041,7 +1119,44 @@ class WalkForwardEngine:
                 calendar_contract=self.config.calendar_contract,
                 calendar_plan=calendar_plan,
             )
-            folds = self.build_folds(idx)
+            account_index = idx
+            if self.config.mode5_calibration is not None:
+                from .mode5.continuous_binding import ContinuousMode5Calibration
+                from .mode5.continuous_scope import ContinuousAccountScope
+                if isinstance(self.config.mode5_calibration, ContinuousMode5Calibration):
+                    account_index = ContinuousAccountScope.from_contract(
+                        self.config.mode5_calibration.continuous_contract, idx).scored_index
+            folds = self.build_folds(account_index)
+            self._mode5_runtime = None
+            if self.config.mode5_calibration is not None:
+                from .mode5.continuous_binding import ContinuousMode5Calibration
+                from .mode5.continuous_runtime import PublicContinuousMode5Runtime
+                from .mode5.runtime import PublicMode5Runtime
+                if params is not None or not param_ranges:
+                    raise ValueError("diagnostics-first Mode5 requires sealed optimizing ranges")
+                runtime = (PublicContinuousMode5Runtime
+                    if isinstance(self.config.mode5_calibration, ContinuousMode5Calibration)
+                    else PublicMode5Runtime)
+                self._mode5_runtime = runtime(self, self.config.mode5_calibration,
+                    data_for_strategy, idx, param_ranges)
+            if self._meta_runtime is not None:
+                self._meta_runtime.validate_market(data_for_strategy, idx, folds)
+            self._sampler_studies = []
+            self._sampler_bridges = None
+            sampler_requested = (self.config.sampler_config is not None or self.config.sampler_warm_start
+                or self.config.flat_selector == "feasible_support_projection_v1"
+                or self.config.parameter_constraints is not None or self.config.result_constraints is not None
+                or any(isinstance(spec, Mapping) for spec in (param_ranges or {}).values()))
+            if sampler_requested:
+                from .optimization.wfo_study import prepare_wfo_studies
+                if params is not None or self.config.optimization_mode == "none" or self.config.optuna_trials <= 0:
+                    raise ValueError("SAMPLER_SPACE_UNSUPPORTED: sampler configuration requires an optimizing WFO study")
+                groups = [(0, folds)] if self.config.optimization_schedule == "global" else [
+                    (fold.fold_id, _build_inner_folds(fold, self.config) if
+                     self.config.optimization_schedule == "per_fold_causal" and self.config.optimization_mode == "mode_1_decay"
+                     else [fold]) for fold in folds]
+                self._sampler_bridges = prepare_wfo_studies(self.config, param_ranges, groups,
+                    strategy_identity=strategy_fingerprint(self.strategy), derive_seed=_derive_fold_seed)
             use_prepared_context = bool(self.config.metadata.get("use_prepared_wfo_context", True))
             prepared_context = (
                 PreparedWalkForwardContext.prepare(
@@ -1088,13 +1203,21 @@ class WalkForwardEngine:
             )
             result = self._run_aligned(
                 data_for_strategy=data_for_strategy,
-                idx=idx,
+                idx=account_index,
                 folds=folds,
                 params=params,
                 param_ranges=param_ranges,
                 prepared_context=prepared_context,
                 calendar_plan=calendar_plan,
             )
+            if self._meta_runtime is not None:
+                self._meta_runtime.finalize(result)
+            if self._mode5_runtime is not None:
+                if isinstance(self._mode5_runtime, PublicContinuousMode5Runtime):
+                    result.mode5_continuous_accounts = self._mode5_runtime.detach_account_retention()
+                result.metadata["mode5_diagnostics_first"] = self._mode5_runtime.metadata
+            if prepared_context is not None and prepared_context._witness_owners:
+                prepared_context.validate_source(data_for_strategy)
             return result
         finally:
             adapter = self._prepared_wfo_strategy_adapter
@@ -1125,6 +1248,15 @@ class WalkForwardEngine:
             self._prepared_context = None
             self._wfo_execution_runtime = None
             self._strategy_market_fingerprints = {}
+            if self._meta_runtime is not None:
+                self._is_pool_observer = None
+                self._meta_runtime.close()
+            if prepared_context is not None:
+                prepared_context.close_witnesses()
+            mode5_runtime = getattr(self, "_mode5_runtime", None)
+            if mode5_runtime is not None:
+                mode5_runtime.close()
+                self._mode5_runtime = None
 
     def _run_aligned(
         self,
@@ -1220,6 +1352,15 @@ class WalkForwardEngine:
             full_index=idx,
             fill_value=self.config.fill_value,
         )
+        from .wfo_execution import EXECUTION_ROUTES, assemble_final_execution
+        assembly_metadata = {}
+        if (self.config.target_mode in EXECUTION_ROUTES
+                and getattr(self.strategy, "assemble_wfo_execution", None) is not None):
+            stitched, assembly_metadata = assemble_final_execution(
+                self.strategy, route=self.config.target_mode, index=idx, folds=folds,
+                params_by_fold=params_by_fold or {f.fold_id: chosen_params for f in folds},
+                windows=outputs, data=data_for_strategy,
+            )
         fold_table = _fold_table(folds)
         boundary_table = _fold_boundary_table(
             stitched,
@@ -1272,18 +1413,12 @@ class WalkForwardEngine:
             )
             causality_claim = "retrospective_global_calibration"
             chronological_validation_claim = "not_causal_multi_fold_global_calibration"
-            oos_used_for_selection = self.config.optimization_mode not in {
-                "mode_2_sbb",
-                "mode_4_is_only_robust",
-                "mode_5_full_robust",
-            } and self.config.candidate_selection_metric not in {
-                "is_plateau_robust",
-                "is_only_robust",
-                "full_robust",
-                "full_plateau_robust",
-                "full_temporal_robust",
-                "full_best",
-            }
+            oos_used_for_selection = bool(
+                optimization_requested
+                and selected_record.selection_metadata.get("stage") == "oos_candidate_selection"
+                and selected_record.selection_metadata.get("selected_by")
+                in {"robust_decay", "mean_oos_sharpe"}
+            )
             params_semantics = "single_global_parameter_set"
 
         execution_runtime = getattr(self, "_wfo_execution_runtime", None)
@@ -1308,6 +1443,7 @@ class WalkForwardEngine:
             best_trial=_trial_to_dict(selected_record),
             metadata={
                 **self.config.metadata,
+                **assembly_metadata,
                 "engine": "walk_forward_phase49a" if schedule != "global" else "walk_forward_phase4",
                 "split_mode": str(self.config.split_mode),
                 "split_frequency": self.config.split_frequency,
@@ -1407,6 +1543,8 @@ class WalkForwardEngine:
                 ),
             },
         )
+        if self._sampler_bridges is not None:
+            result.metadata["sampler_studies"] = list(self._sampler_studies)
         audit_requested = (
             self._research_retention_plan.research_retention != "none"
             or self._research_retention_plan.financial_retention != "score"
@@ -1469,6 +1607,8 @@ class WalkForwardEngine:
         inner_fold_rows: List[Dict[str, Any]] = []
 
         for fold in folds:
+            if self._meta_runtime is not None:
+                self._meta_runtime.begin_fold(fold)
             fold_seed = _derive_fold_seed(self.config.random_seed, fold.fold_id)
             is_nested_mode1 = (
                 schedule == "per_fold_causal"
@@ -1560,11 +1700,15 @@ class WalkForwardEngine:
                     ),
                 },
             )
+            if self._meta_runtime is not None:
+                selected = self._meta_runtime.select(fold, selected)
             params_by_fold[int(fold.fold_id)] = dict(selected.params)
 
             out = self._call_strategy(data=data, params=dict(selected.params), fold=fold)
             out = _slice_output_to_test(out, fold.test_index)
             outputs.append(out)
+            if self._meta_runtime is not None:
+                self._meta_runtime.observe(data, fold)
 
             if oos_used:
                 outer_is = float(selected.mean_is_sharpe)
@@ -1683,6 +1827,9 @@ class WalkForwardEngine:
         research_context: Mapping[str, Any] | None = None,
     ) -> tuple[WalkForwardTrialRecord, List[WalkForwardTrialRecord], List[WalkForwardTrialRecord]]:
         """Run anti-leakage two-stage optimization and return selected params plus ledgers."""
+        mode5_runtime = getattr(self, "_mode5_runtime", None)
+        if mode5_runtime is not None:
+            return mode5_runtime.optimize(data, folds, param_ranges)
         if not param_ranges:
             raise ValueError(f"{self.config.optimization_mode} optimization requires param_ranges")
         validate_param_ranges(param_ranges, context=self.config.optimization_mode)
@@ -1696,11 +1843,34 @@ class WalkForwardEngine:
         compact_ledger = bool(self.config.metadata.get("compact_trial_ledger", True))
         study_seed = int(self.config.random_seed if random_seed is None else random_seed)
         study_identifier = int(study_id)
+        bridge = (getattr(self, "_sampler_bridges", None) or {}).get(study_identifier)
+        if bridge is None and (self.config.sampler_config is not None or self.config.sampler_warm_start
+            or self.config.flat_selector == "feasible_support_projection_v1"
+            or self.config.parameter_constraints is not None or self.config.result_constraints is not None
+            or any(isinstance(spec, Mapping) for spec in param_ranges.values())):
+            from .optimization.wfo_study import prepare_wfo_studies
+            bridge = prepare_wfo_studies(self.config, param_ranges, [(study_identifier, folds)],
+                strategy_identity=strategy_fingerprint(self.strategy), derive_seed=_derive_fold_seed)[study_identifier]
+            if bridge.seed != study_seed:
+                raise ValueError("resolved sampler stage seed differs from execution seed")
+            if not hasattr(self, "_sampler_studies"):
+                self._sampler_studies = []
+
+        def rejected_record(trial, params, reason, *, failure=None):
+            trial.set_user_attr("qms_rejection_reason", reason)
+            records.append(WalkForwardTrialRecord(trial_id=int(trial.number), params=dict(params),
+                objective=-np.inf, mean_is_sharpe=0.0, mean_oos_sharpe=0.0, mean_decay=0.0,
+                std_decay=0.0, fold_metrics=[], pruned=True,
+                selection_metadata={"reason": reason, "state": "PRUNED",
+                    **({"invalid_execution_intent": failure} if failure is not None else {})}))
+            raise optuna.TrialPruned(reason)
 
         def objective(trial):
-            params = _sample_params(trial, param_ranges)
+            requested, params = bridge.suggest(trial) if bridge else (None, _sample_params(trial, param_ranges))
             params_key = stable_params_key(params)
             if params_key in seen_params:
+                if bridge:
+                    rejected_record(trial, params, "DUPLICATE_EFFECTIVE_PARAMS")
                 record = WalkForwardTrialRecord(
                     trial_id=int(trial.number),
                     params=dict(params),
@@ -1715,24 +1885,47 @@ class WalkForwardEngine:
                 records.append(record)
                 raise optuna.TrialPruned("duplicate parameter set")
             seen_params.add(params_key)
-            if self.config.optimization_mode == "mode_2_sbb":
-                record = self.evaluate_params_sbb(
-                    data=data,
-                    folds=folds,
-                    params=params,
-                    trial_id=trial.number,
-                    execution_seed=study_seed,
-                    study_id=study_identifier,
-                )
-            else:
-                record = self.evaluate_params_is(
-                    data=data,
-                    folds=folds,
-                    params=params,
-                    trial_id=trial.number,
-                    execution_seed=study_seed,
-                    study_id=study_identifier,
-                )
+            if bridge and self.config.parameter_constraints is not None:
+                if not bridge.constraints(trial, self.config.parameter_constraints(dict(params))):
+                    rejected_record(trial, params, "PARAMETER_CONSTRAINT")
+            try:
+                if self.config.optimization_mode == "mode_2_sbb":
+                    record = self.evaluate_params_sbb(
+                        data=data,
+                        folds=folds,
+                        params=params,
+                        trial_id=trial.number,
+                        execution_seed=study_seed,
+                        study_id=study_identifier,
+                    )
+                else:
+                    record = self.evaluate_params_is(
+                        data=data,
+                        folds=folds,
+                        params=params,
+                        trial_id=trial.number,
+                        execution_seed=study_seed,
+                        study_id=study_identifier,
+                    )
+            except Exception as error:
+                failure = nonpositive_price_cause(error)
+                if (self.config.metadata.get("invalid_execution_intent_policy", "raise")
+                        != "prune_nonpositive_price_v1" or failure is None):
+                    raise
+                trial.set_user_attr("invalid_execution_intent", failure.metadata())
+                rejected_record(trial, params, failure.reason, failure=failure.metadata())
+            if bridge:
+                if not np.isfinite(record.objective):
+                    rejected_record(trial, params, "NONFINITE_OBJECTIVE")
+                feasible = True
+                if self.config.result_constraints is not None:
+                    feasible = bridge.constraints(trial, self.config.result_constraints(record))
+                record = _with_selection_metadata(record, {**record.selection_metadata,
+                    "requested_params": requested, "effective_params": dict(params),
+                    "candidate_id": trial.user_attrs["qms_candidate_id"], "feasible": feasible,
+                    "source": trial.user_attrs["qms_source"], "optuna_state": "COMPLETE"})
+                if not feasible:
+                    trial.set_user_attr("qms_rejection_reason", "RESULT_CONSTRAINT")
             records.append(record)
             if not compact_ledger:
                 trial.set_user_attr("fold_metrics", record.fold_metrics)
@@ -1743,10 +1936,15 @@ class WalkForwardEngine:
                 trial.set_user_attr("std_decay", record.std_decay)
             return record.objective
 
-        sampler = optuna.samplers.TPESampler(seed=study_seed)
+        sampler = bridge.observed if bridge else build_sampler(SamplerConfig(), seed=study_seed,
+            search_space=param_ranges, objective_count=1)
         pruner = DuplicatePruner()
         study = optuna.create_study(direction="maximize", sampler=sampler, pruner=pruner)
-        callbacks = [logging_callback]
+        if bridge:
+            bridge.enqueue(study, self.config.sampler_warm_start)
+        if bridge:
+            from .optimization.wfo_study import logging_completed
+        callbacks = [logging_callback if bridge is None else logging_completed]
         if self.config.optuna_early_stopping is not None:
             callbacks.append(EarlyStoppingCallback(self.config.optuna_early_stopping))
         study.optimize(
@@ -1755,8 +1953,13 @@ class WalkForwardEngine:
             callbacks=callbacks,
             show_progress_bar=False,
         )
+        if bridge:
+            self._sampler_studies.append({**bridge.metadata(study), "study_id": study_identifier,
+                "optimization_mode": self.config.optimization_mode,
+                "optimization_schedule": self.config.optimization_schedule})
         del study
-        candidates = _select_is_candidate_records(records, param_ranges, self.config)
+        selectable = records if bridge is None else [r for r in records if r.selection_metadata.get("feasible", True)]
+        candidates = _select_is_candidate_records(selectable, param_ranges, self.config)
         if self.config.optimization_mode == "mode_5_full_robust":
             if not candidates:
                 raise ValueError("full-sample robust optimization produced no candidates")
@@ -1797,6 +2000,13 @@ class WalkForwardEngine:
                     "oos_used_for_selection": False,
                 },
             )
+            if self._is_pool_observer is not None:
+                self._is_pool_observer.capture(engine=self, data=data, folds=folds,
+                    param_ranges=param_ranges, selected=selected, records=records,
+                    study_id=study_identifier, seed=study_seed)
+                selected = self._is_pool_observer.strip_support(selected)
+                records = [self._is_pool_observer.strip_support(record) for record in records]
+                candidates = [self._is_pool_observer.strip_support(record) for record in candidates]
             self._capture_research_records(
                 trial_records=records,
                 candidate_records=candidates,
@@ -1835,6 +2045,13 @@ class WalkForwardEngine:
         if not candidate_records:
             raise ValueError("anti-leakage optimization produced no OOS candidates")
         best = _select_oos_candidate_record(candidate_records, self.config)
+        if self._is_pool_observer is not None:
+            self._is_pool_observer.capture(engine=self, data=data, folds=folds,
+                param_ranges=param_ranges, selected=best, records=records,
+                candidate_records=candidate_records, study_id=study_identifier, seed=study_seed)
+            best = self._is_pool_observer.strip_support(best)
+            records = [self._is_pool_observer.strip_support(r) for r in records]
+            candidate_records = [self._is_pool_observer.strip_support(r) for r in candidate_records]
         records.extend(candidate_records)
         self._capture_research_records(
             trial_records=records,
@@ -1866,6 +2083,13 @@ class WalkForwardEngine:
         is_scores = []
         score_tasks = []
         fold_work = []
+        exact_is_shard_aliases = {}
+        reuse_full_is_shard = (
+            self.config.scoring_backend == "endpoint"
+            and self.config.optimization_mode in {"mode_4_is_only_robust", "mode_5_full_robust"}
+            and self.config.is_subperiods == 1
+            and qualifies_exact_is_shard_reuse(self.scorer)
+        )
         for fold in folds:
             is_output = self._call_strategy_for_indices(
                 data=data,
@@ -1887,6 +2111,8 @@ class WalkForwardEngine:
                     if len(shard_index) < 2:
                         continue
                     shard_tasks.append((shard_id, shard_index, len(score_tasks)))
+                    if reuse_full_is_shard and shard_index.equals(fold.train_index):
+                        exact_is_shard_aliases[len(score_tasks)] = is_task
                     score_tasks.append(
                         (
                             _slice_output_to_test(is_output, shard_index),
@@ -1907,6 +2133,7 @@ class WalkForwardEngine:
             adaptive_optimizer=True,
             execution_seed=execution_seed,
             study_id=study_id,
+            exact_is_shard_aliases=exact_is_shard_aliases,
         )
         for fold, is_task, shard_tasks in fold_work:
             is_metrics = scored[is_task]
@@ -1935,6 +2162,8 @@ class WalkForwardEngine:
                     "is_required_trades": required_trades,
                     "is_trade_penalty": penalty,
                     "oos_evaluated": False,
+                    **({"meta_observation": is_metrics["meta_observation"]}
+                       if "meta_observation" in is_metrics else {}),
                     **shard_stats,
                 }
             )
@@ -1948,7 +2177,7 @@ class WalkForwardEngine:
             fallback=mean_is,
         )
         temporal_stats["is_subperiod_count"] = temporal_stats["temporal_count"]
-        return WalkForwardTrialRecord(
+        record = WalkForwardTrialRecord(
             trial_id=int(trial_id),
             params=dict(params),
             objective=mean_is,
@@ -1964,6 +2193,10 @@ class WalkForwardEngine:
                 **temporal_stats,
             },
         )
+        if self.config.flat_selector == "feasible_support_projection_v1":
+            from .optimization.representatives import bind_is_record
+            record = bind_is_record(self, data, folds, record, execution_seed, study_id)
+        return record
 
     def _summarize_is_subperiod_metrics(
         self,
@@ -2439,6 +2672,7 @@ class WalkForwardEngine:
         adaptive_optimizer: bool,
         execution_seed: Optional[int] = None,
         study_id: int = 0,
+        exact_is_shard_aliases: Optional[Mapping[int, int]] = None,
     ) -> list[Dict[str, float]]:
         """Score a batch while attaching an explicit optimizer interaction scope.
 
@@ -2457,6 +2691,10 @@ class WalkForwardEngine:
             "study_id": int(study_id),
         }
         try:
+            if exact_is_shard_aliases:
+                return self._score_strategy_outputs_batch(
+                    data, tasks, exact_is_shard_aliases=exact_is_shard_aliases,
+                )
             return self._score_strategy_outputs_batch(data, tasks)
         finally:
             self._wfo_execution_scope = previous
@@ -2465,6 +2703,8 @@ class WalkForwardEngine:
         self,
         data,
         tasks: Sequence[tuple[StrategyOutput, pd.DatetimeIndex, WalkForwardFold, Dict[str, Any], str]],
+        *,
+        exact_is_shard_aliases: Optional[Mapping[int, int]] = None,
     ) -> list[Dict[str, float]]:
         """Score ordered WFO fold/shard work without changing its formulas.
 
@@ -2489,6 +2729,10 @@ class WalkForwardEngine:
         else:
             missing_positions = tuple(range(len(entries)))
 
+        # Only evaluate_params_is supplies same-candidate, same-fold aliases.
+        # Keep the separate terminal reuse runtime's accounting unchanged.
+        aliases = dict(exact_is_shard_aliases or {}) if reuse_lookup is None else {}
+        physical_positions = tuple(position for position in missing_positions if position not in aliases)
         endpoint_batch = (
             getattr(self.scorer, "score_batch", None)
             if self.config.scoring_backend == "endpoint" and self.scorer is not None
@@ -2496,7 +2740,7 @@ class WalkForwardEngine:
         )
         accepts_prepared_window = callable(endpoint_batch)
         payloads = []
-        for position in missing_positions:
+        for position in physical_positions:
             output, index, fold, params, context = entries[position]
             scoring_data = (
                 data
@@ -2543,8 +2787,14 @@ class WalkForwardEngine:
             if reuse_runtime is not None and reuse_lookup is not None:
                 reuse_runtime.mark_batch_failure(reuse_lookup)
             raise
-        if len(scored_misses) != len(missing_positions):
+        if len(scored_misses) != len(physical_positions):
             raise RuntimeError("walk-forward scorer returned a metric row count different from its task batch")
+        if aliases:
+            physical_metrics = dict(zip(physical_positions, scored_misses, strict=True))
+            scored_misses = [
+                deepcopy(physical_metrics[aliases[position]]) if position in aliases else physical_metrics[position]
+                for position in missing_positions
+            ]
 
         metrics: list[Dict[str, float] | None]
         if reuse_lookup is None:
@@ -2779,7 +3029,7 @@ class WalkForwardEngine:
         # invalidation. They must not seed a causal fold because appending a
         # later bar would otherwise change an already-completed fold.
         run_id = hashlib.sha256(
-            f"{_config_hash(self.config)}:{strategy_fingerprint(self.strategy)}".encode("utf-8")
+            f"{_config_hash(self.config, strategy_rng=True)}:{strategy_fingerprint(self.strategy)}".encode("utf-8")
         ).hexdigest()
         prepared_context = getattr(self, "_prepared_context", None)
         cutoff = pd.Timestamp(test_index[-1])
@@ -3125,6 +3375,10 @@ def validate_walkforward_strategy_output(
     array-like output would silently reindex to all zeros, which is dangerous in
     production research.
     """
+    from .wfo_execution import WfoExecutionWindow
+    if isinstance(output, WfoExecutionWindow):
+        output.slice(expected_index)
+        return output
     contract = WfoIntentContractV1.from_value(intent_contract)
     if contract.kind is WfoIntentKindV1.DESIRED_ORDER:
         raise NotImplementedError(
@@ -3174,6 +3428,10 @@ def validate_param_ranges(param_ranges: Dict[str, Any], context: str = "walk-for
     for name, spec in param_ranges.items():
         if not isinstance(name, str) or not name:
             raise ValueError(f"{context}: parameter names must be non-empty strings")
+        if isinstance(spec, Mapping):
+            from .optimization.parameter_space import NormalizedSearchSpace
+            NormalizedSearchSpace(param_ranges)
+            break
         if isinstance(spec, tuple) and len(spec) in (2, 3) and all(_is_number(x) for x in spec):
             low = float(spec[0])
             high = float(spec[1])
@@ -3885,6 +4143,7 @@ def select_flat_minima_record(
         names=names,
         param_ranges=param_ranges,
         base_params=medoid.params,
+        require_admissible=config.flat_selector == "centroid",
     )
     selected = medoid
     requires_evaluation = False
@@ -3939,11 +4198,18 @@ def select_is_plateau_robust_record(
     completed = [record for record in records if not record.pruned and np.isfinite(record.objective)]
     if not completed:
         raise ValueError("is_plateau_robust selection received no completed trials")
+    projection = None
+    if config.flat_selector == "feasible_support_projection_v1":
+        from .optimization.representatives import EvaluatedSupport
+        projection = EvaluatedSupport(completed, param_ranges)
     ranked = sorted(completed, key=lambda record: record.objective, reverse=True)
     top_n = _candidate_count(len(ranked), config)
     top = ranked[:top_n]
     matrix, names = _param_matrix(top, param_ranges)
     if matrix.shape[0] == 1 or matrix.shape[1] == 0:
+        if projection is not None:
+            return projection.select([top[0]], details=dict(selected_by="is_plateau_robust",
+                objective_mode=config.optimization_mode, reason="insufficient_cluster_points"))
         return _with_selection_metadata(
             top[0],
             {
@@ -3963,6 +4229,9 @@ def select_is_plateau_robust_record(
     )
     cluster_ids = sorted(label for label in set(labels.tolist()) if label >= 0)
     if not cluster_ids:
+        if projection is not None:
+            return projection.select([top[0]], details=dict(selected_by="is_plateau_robust",
+                objective_mode=config.optimization_mode, reason="no_dense_train_plateau"))
         return _with_selection_metadata(
             top[0],
             {
@@ -4005,7 +4274,10 @@ def select_is_plateau_robust_record(
                 "cluster_best_objective": float(np.max(values)),
             }
     assert best_cluster is not None and best_cluster_stats is not None
-
+    if projection is not None:
+        return projection.select([top[i] for i in best_cluster], details={**best_cluster_stats,
+            "selected_by": "is_plateau_robust", "objective_mode": config.optimization_mode,
+            "cluster_size": len(best_cluster), "cluster_method": cluster_method})
     centroid = np.mean(matrix[best_cluster], axis=0)
     distances = np.sqrt(((matrix[best_cluster] - centroid) ** 2).sum(axis=1))
     selected_idx = int(best_cluster[int(np.argmin(distances))])
@@ -4015,6 +4287,7 @@ def select_is_plateau_robust_record(
         names=names,
         param_ranges=param_ranges,
         base_params=medoid.params,
+        require_admissible=config.flat_selector == "centroid",
     )
     selected = medoid
     requires_evaluation = False
@@ -4076,12 +4349,20 @@ def select_is_only_robust_record(
     completed = [record for record in records if not record.pruned and np.isfinite(record.objective)]
     if not completed:
         raise ValueError("is_only_robust selection received no completed trials")
+    projection = None
+    if config.flat_selector == "feasible_support_projection_v1":
+        from .optimization.representatives import EvaluatedSupport
+        projection = EvaluatedSupport(completed, param_ranges)
     ranked = sorted(completed, key=lambda record: record.objective, reverse=True)
     top_n = _candidate_count(len(ranked), config)
     top = ranked[:top_n]
     matrix, names = _param_matrix(top, param_ranges)
     if matrix.shape[0] == 1 or matrix.shape[1] == 0:
         selected = _best_temporal_record(top)
+        if projection is not None:
+            return projection.select([selected], details=dict(selected_by="is_only_robust",
+                objective_mode=config.optimization_mode, reason="insufficient_cluster_points",
+                candidate_selection_complete=True))
         return _with_selection_metadata(
             selected,
             {
@@ -4104,6 +4385,10 @@ def select_is_only_robust_record(
     cluster_ids = sorted(label for label in set(labels.tolist()) if label >= 0)
     if not cluster_ids:
         selected = _best_temporal_record(top)
+        if projection is not None:
+            return projection.select([selected], details=dict(selected_by="is_only_robust",
+                objective_mode=config.optimization_mode, reason="no_dense_train_plateau",
+                candidate_selection_complete=True))
         return _with_selection_metadata(
             selected,
             {
@@ -4180,7 +4465,10 @@ def select_is_only_robust_record(
                 "complexity_penalty": complexity_penalty,
             }
     assert best_cluster is not None and best_cluster_stats is not None
-
+    if projection is not None:
+        return projection.select([top[i] for i in best_cluster], details={**best_cluster_stats,
+            "selected_by": "is_only_robust", "objective_mode": config.optimization_mode,
+            "cluster_size": len(best_cluster), "cluster_method": cluster_method})
     centroid = np.mean(matrix[best_cluster], axis=0)
     distances = np.sqrt(((matrix[best_cluster] - centroid) ** 2).sum(axis=1))
     selected_idx = int(best_cluster[int(np.argmin(distances))])
@@ -4190,6 +4478,7 @@ def select_is_only_robust_record(
         names=names,
         param_ranges=param_ranges,
         base_params=medoid.params,
+        require_admissible=config.flat_selector == "centroid",
     )
     selected = medoid
     requires_evaluation = False
@@ -4519,19 +4808,51 @@ def _param_matrix(
     if not names:
         return np.zeros((len(records), 0), dtype=np.float64), []
     matrix = np.zeros((len(records), len(names)), dtype=np.float64)
+    geometry_names = list(names)
+    extra_geometry_names = []
     for col, name in enumerate(names):
         spec = param_ranges[name]
         values = [record.params.get(name) for record in records]
-        matrix[:, col] = _normalize_param_values(values, spec)
-    return matrix, names
+        if isinstance(spec, Mapping) and spec.get("kind") in {"categorical", "boolean"}:
+            # New categorical geometry is unordered; legacy ordinal syntax stays unchanged.
+            choices = spec.get("choices", [True, False])
+            activity = np.array([float(name in record.params) for record in records])
+            blocks = [np.array([float(v == choice) for v in values]) * activity / np.sqrt(2.0) for choice in choices]
+            matrix[:, col] = blocks[0]
+            geometry_names[col] = f"{name}=={choices[0]}"
+            matrix = np.column_stack([matrix, *blocks[1:]])
+            extra_geometry_names.extend(f"{name}=={value}" for value in choices[1:])
+            if spec.get("active_if"):
+                matrix = np.column_stack([matrix, activity])
+                extra_geometry_names.append(f"{name}__active")
+        else:
+            matrix[:, col] = _normalize_param_values(values, spec)
+            if isinstance(spec, Mapping) and spec.get("active_if"):
+                matrix = np.column_stack([matrix, [float(v is not None) for v in values]])
+                extra_geometry_names.append(f"{name}__active")
+    return matrix, geometry_names + extra_geometry_names
 
 
 def _is_clusterable_param(name: str, spec: Any, records: Sequence[WalkForwardTrialRecord]) -> bool:
+    if isinstance(spec, Mapping):
+        if spec.get("kind") == "fixed":
+            return False
+        return len({stable_params_key({"active": name in record.params, "value": record.params.get(name)})
+                    for record in records}) > 1
     values = [record.params.get(name) for record in records]
     return any(value is not None for value in values) and len(set(map(str, values))) > 1
 
 
 def _normalize_param_values(values: Sequence[Any], spec: Any) -> np.ndarray:
+    if isinstance(spec, Mapping):
+        from .optimization.parameter_space import _parse
+        parsed = _parse("geometry", spec)
+        if parsed.fixed:
+            return np.zeros(len(values), dtype=np.float64)
+        low, high = float(parsed.low), float(parsed.high)
+        transform = np.log if parsed.log else float
+        low, high = transform(low), transform(high)
+        return np.array([0.0 if v is None or high == low else (transform(float(v)) - low) / (high - low) for v in values])
     if isinstance(spec, tuple) and len(spec) in (2, 3) and all(_is_number(x) for x in spec):
         low = float(spec[0])
         high = float(spec[1])
@@ -4561,7 +4882,14 @@ def _centroid_params(
     names: Sequence[str],
     param_ranges: Dict[str, Any],
     base_params: Dict[str, Any],
-) -> Dict[str, Any]:
+    *,
+    require_admissible: bool = True,
+) -> Optional[Dict[str, Any]]:
+    if any(isinstance(spec, Mapping) and (spec.get("active_if") or spec.get("kind") in {"categorical", "boolean"})
+           for spec in param_ranges.values()):
+        if require_admissible:
+            raise ValueError("SAMPLER_SPACE_UNSUPPORTED: categorical/conditional centroid is not an admissible parameter vector; use medoid")
+        return None
     params = dict(base_params)
     for value, name in zip(centroid, names):
         params[name] = _denormalize_param_value(float(value), param_ranges[name])
@@ -4570,6 +4898,19 @@ def _centroid_params(
 
 def _denormalize_param_value(value: float, spec: Any) -> Any:
     clipped = min(1.0, max(0.0, float(value)))
+    if isinstance(spec, Mapping):
+        from .optimization.parameter_space import _parse
+        parsed = _parse("centroid", spec)
+        if parsed.fixed:
+            return parsed.value
+        low, high = float(parsed.low), float(parsed.high)
+        raw = np.exp(np.log(low) + clipped * (np.log(high) - np.log(low))) if parsed.log else low + clipped * (high - low)
+        step = parsed.step or (1 if parsed.kind == "integer" else None)
+        if step:
+            raw = low + round((raw - low) / step) * step
+            high = low + np.floor((high - low) / step + 1e-10) * step
+        raw = min(high, max(low, raw))
+        return int(round(raw)) if parsed.kind == "integer" else float(raw)
     if isinstance(spec, tuple) and len(spec) in (2, 3) and all(_is_number(x) for x in spec):
         low = float(spec[0])
         high = float(spec[1])
@@ -4653,6 +4994,9 @@ def stitch_oos_outputs(
         return None
 
     first = outputs[0]
+    from .wfo_execution import WfoExecutionWindow, stitch_execution_windows
+    if isinstance(first, WfoExecutionWindow):
+        return stitch_execution_windows(outputs, idx)
     if isinstance(first, pd.DataFrame):
         columns = list(first.columns)
         stitched = pd.DataFrame(fill_value, index=idx, columns=columns, dtype=float)
@@ -4952,6 +5296,9 @@ def _fold_boundary_table(
 
 
 def _target_snapshot(output: StrategyOutput, timestamp: pd.Timestamp):
+    from .wfo_execution import WfoExecutionWindow
+    if isinstance(output, WfoExecutionWindow):
+        return None  # Actual holdings belong to the execution result, not intent.
     if isinstance(output, pd.Series):
         return float(output.loc[timestamp])
     if isinstance(output, pd.DataFrame):
@@ -4961,7 +5308,9 @@ def _target_snapshot(output: StrategyOutput, timestamp: pd.Timestamp):
     raise TypeError("unsupported stitched walk-forward target type")
 
 
-def _changed_target_count(before, after, tolerance: float = 1e-12) -> int:
+def _changed_target_count(before, after, tolerance: float = 1e-12) -> Optional[int]:
+    if before is None or after is None:
+        return None
     if isinstance(before, dict) and isinstance(after, dict):
         keys = set(before) | set(after)
         return int(
@@ -5143,6 +5492,9 @@ def _default_params_from_ranges(param_ranges: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def _slice_output_to_test(output: StrategyOutput, test_index: pd.DatetimeIndex) -> StrategyOutput:
+    from .wfo_execution import WfoExecutionWindow
+    if isinstance(output, WfoExecutionWindow):
+        return output.slice(test_index)
     if isinstance(output, pd.DataFrame):
         return _normalize_frame_output(output).reindex(test_index).fillna(0.0)
     if isinstance(output, dict):
@@ -5349,7 +5701,7 @@ def _complete_data_hash(data) -> str:
         return digest.hexdigest()
 
 
-def _config_hash(config: WalkForwardConfig) -> str:
+def _config_hash(config: WalkForwardConfig, *, strategy_rng: bool = False) -> str:
     payload = {
         "split_mode": str(config.split_mode),
         "split_frequency": config.split_frequency,
@@ -5423,4 +5775,17 @@ def _config_hash(config: WalkForwardConfig) -> str:
         "trade_penalty_factor": config.trade_penalty_factor,
         "use_numba": config.use_numba,
     }
+    if config.mode5_calibration is not None:
+        payload["mode5_calibration"] = config.mode5_calibration.identity
+    invalid_intent = config.metadata.get("invalid_execution_intent_policy", "raise")
+    if invalid_intent != "raise" and not strategy_rng:
+        # Admission changes provenance, not the RNG of an otherwise valid call.
+        payload["invalid_execution_intent_policy"] = invalid_intent
+    if config.sampler_config is not None or config.sampler_warm_start or config.parameter_constraints or config.result_constraints:
+        payload["sampler_policy"] = {
+            "config": None if config.sampler_config is None else config.sampler_config.metadata(),
+            "warm_start": config.sampler_warm_start,
+            "parameter_constraints": None if config.parameter_constraints is None else strategy_fingerprint(config.parameter_constraints),
+            "result_constraints": None if config.result_constraints is None else strategy_fingerprint(config.result_constraints),
+        }
     return hashlib.sha256(json.dumps(payload, sort_keys=True, default=str).encode("utf-8")).hexdigest()

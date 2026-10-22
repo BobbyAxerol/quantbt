@@ -1,0 +1,75 @@
+{
+  "artifacts_qualified": false,
+  "cleanup": {
+    "actual_available_byte_delta": 589824,
+    "available_bytes_after": 5603512320,
+    "available_bytes_before": 5602922496,
+    "available_inodes_after": 5508097,
+    "available_inodes_before": 5507981,
+    "deleted": [
+      "upgrade/private/m5_12_preparation/attempt-01/scratch"
+    ],
+    "host_processes_reviewed": 167,
+    "protected_files_verified": 31,
+    "regular_files_removed": 45,
+    "retained_bytes": 113158,
+    "scratch_logical_bytes": 145270
+  },
+  "current_remote_qualified": false,
+  "date": "2026-10-22",
+  "historical_attempts_preserved": true,
+  "log_refs": [
+    {
+      "path": "upgrade/private/m5_12_preparation/attempt-01/registration.json",
+      "sha256": "c3d0c64af8cc62759c09f05bc9f3770cb93965a1694742998a239856a3efec7f"
+    },
+    {
+      "path": "upgrade/private/m5_12_preparation/attempt-01/preflight.json",
+      "sha256": "d898359029a52e05374a0155467fc9980036fbe495bfb7c55f3a099b639de00d"
+    },
+    {
+      "path": "upgrade/private/m5_12_preparation/attempt-01/final-checks.json",
+      "sha256": "4d5d5e65438a857db350bfd95db95c66f55d78ece6feb19021ade12cccc75480"
+    },
+    {
+      "path": "upgrade/private/m5_12_preparation/attempt-01/post-review.json",
+      "sha256": "b3aa251e079cbd4b8a1aa6ffdca2941f76722c86e02dc65f25c6889e317b6346"
+    },
+    {
+      "path": "upgrade/private/m5_12_preparation/attempt-01/post-review.xml",
+      "sha256": "30e8995a28b3debd532be4252e365b2c38164e438483d6d8b3df7826dc280f73"
+    },
+    {
+      "path": "upgrade/private/m5_12_preparation/attempt-01/cleanup.json",
+      "sha256": "297fc55036391b6c5da3c8e60d03b702e15557e80762a0b1c1f0b5802a0ad851"
+    }
+  ],
+  "manylinux_qualified": false,
+  "no_build_install_finance_remote_actions": true,
+  "pair": {
+    "core": "1.1.2",
+    "native": "0.4.3"
+  },
+  "prior_acc_receipts_unchanged": true,
+  "private_owner_draft_preserved": true,
+  "public_pair_qualified": false,
+  "publication_authorized": false,
+  "runtime_commit": "70fe9f7c9b14469e6ea935e75f180f26ca1c175e",
+  "schema": "quantbt.m5-12.preparation.v1",
+  "scope": "source/API/docs/privacy only; M512.01..06 not run",
+  "source_file_count": 464,
+  "source_metadata_amendments": [
+    {
+      "after_sha256": "dc348140142390a81f078d4dcf9562ad032d4a60f99e106e7d63b041f15c439f",
+      "before_sha256": "522e7ff87b95e5dba73369f4a0b7395e094d271443c72a31e05be3377a709103",
+      "financial_source_changed": false,
+      "path": "contracts/generated_public_api_inventory.json"
+    }
+  ],
+  "static_tests": {
+    "failed": 0,
+    "passed": 198,
+    "skipped": 0
+  },
+  "status": "LOCAL_PREPARATION_PASS_NOT_PACKAGE_CERTIFICATION"
+}

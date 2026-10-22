@@ -1,0 +1,43 @@
+{
+  "schema": "quantbt.mode5_baseline.exit_review.v1",
+  "phase": "M5-01",
+  "review_date": "2026-10-09",
+  "reviewed_source_git_sha": "58cfc0fd9f54897bf641587e917da0498066644c",
+  "phase_status": "COMPLETE_LOCAL_BASELINE",
+  "technical_status": "TECHNICALLY_VALID_LOCAL",
+  "scientific_status": "DESCRIPTIVE_ONLY",
+  "whole_phase_exit": "PASS_OWNER_DISPOSITION",
+  "owner_disposition": {
+    "source": "owner message: guide reports were extracted from ZIPs; follow the detailed guide",
+    "accepted_baseline": "AUTHORITATIVE_GUIDE_AND_HASH_VERIFIED_EXTRACTED_MEMBERS",
+    "original_zip_required_before_m5_02": false,
+    "original_zip_hashes_locally_remeasured": false
+  },
+  "guide_sha256": "661a2a3d83eed2b2592bfb98e3b4f8e3aa34bcd9740ec6b50c812f73753b99fe",
+  "parent_seal": {
+    "path": "docs/mode5/evidence/m5-01.json",
+    "sha256": "1e9a5f9b3d05eb498f2fe125ebc64297a2e7e55c069a16f90afb9b53ec4a4148",
+    "historical_pending_status_preserved": true
+  },
+  "retained_test_receipt": {"passed": 76, "failed": 0, "skipped": 0, "new_pytest_execution": false},
+  "review_checks": {
+    "original_receipt_hashes": "PASS",
+    "junit_actual_cases": "PASS",
+    "all_10_acceptance_requirements_exercised": "PASS",
+    "protected_427_hashes": "PASS",
+    "private_paths_ignored_and_untracked": "PASS",
+    "original_financial_source_unchanged": "PASS",
+    "prior_scratch_removed": "PASS"
+  },
+  "remaining_m5_01_blockers": [],
+  "future_preconditions": [
+    "M5-02 separate implementation approval and per-alpha binding/pilot registration",
+    "qualified raw financial streams and permitted snapshots",
+    "preregistered adequate economic support before M5-08/11"
+  ],
+  "cleanup": "NOT_REQUIRED_NO_NEW_SCRATCH; prior cleanup verified",
+  "review_market_evaluations": 0,
+  "review_artifact_builds": 0,
+  "next_phase_started": false,
+  "push_ci_merge_tag_or_publish_authorized": false
+}

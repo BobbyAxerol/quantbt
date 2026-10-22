@@ -5,16 +5,12 @@ from __future__ import annotations
 import importlib.util
 import json
 from pathlib import Path
-import sys
 
 import pytest
 
+from benchmarks.native_event import benchmark_phase77_1_public_matrix as phase77_1
 
 ROOT = Path(__file__).resolve().parents[1]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
-
-from benchmarks.native_event import benchmark_phase77_1_public_matrix as phase77_1
 
 
 def _governance_module():
@@ -75,7 +71,25 @@ def test_phase77_1_pct_equity_transition_contract_is_hand_computable() -> None:
     assert probe["funding_on_carried_position"] is True
     assert probe["rejected_unchanged_signal_is_not_retried"] is True
     assert probe["alloc_fraction_and_percent_alias_match"] is True
-    assert probe["reported_positions_are_raw_weights"] is True
+    assert probe["reported_positions_are_raw_weights"] is False
+
+    import numpy as np
+    import pandas as pd
+    from quantbt import QuantBTEndpoint
+
+    index = pd.date_range("2024-01-01", periods=5, freq="D", tz="UTC")
+    frame = pd.DataFrame({name: [100., 100., 120., 120., 132.]
+                          for name in ("open", "high", "low", "close")}, index=index)
+    output = QuantBTEndpoint.pct_equity(initial_capital=10_000., leverage=3.,
+        alloc_per_trade=.5, fee=0., fee_rate=0., slippage=0., use_funding=False,
+        use_pyramiding=True).backtest(data=frame,
+            signal=pd.Series([0., 1., 1., -1., -1.], index=index), symbols=["BTC"])
+    np.testing.assert_allclose(output.positions.to_numpy().ravel(),
+        [0., 50., 50., -5500. / 120., -5500. / 120.], rtol=0., atol=1e-12)
+    rejected = QuantBTEndpoint.pct_equity(initial_capital=1000., leverage=1.,
+        alloc_per_trade=1., fee=.02, fee_rate=.01, slippage=0., use_funding=False).backtest(
+            data=frame.iloc[:4], signal=pd.Series([0., 1., 1., 0.], index=index[:4]), symbols=["BTC"])
+    np.testing.assert_array_equal(rejected.positions.to_numpy(), 0.)
 
 
 def test_phase77_1_long_profile_is_explicit_opt_in() -> None:

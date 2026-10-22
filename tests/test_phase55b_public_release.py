@@ -110,9 +110,14 @@ def test_phase55b_core_ci_builds_the_native_smoke_wheel_with_the_release_builder
     assert 'manylinux: "2014"' in text
     assert "pip wheel --no-deps --wheel-dir" not in text
     assert "tools/verify_wheels.py --dist dist --skip-install" in text
-    assert text.index("Verify source-to-wheel module parity") < text.index(
-        "Build local native companion for dependency smoke"
-    )
+    steps = _load_yaml(ROOT / ".github" / "workflows" / "ci.yml")["jobs"]["package"]["steps"]
+    names = [step.get("name") for step in steps]
+    assert names.index("Build local native companion for dependency smoke") < names.index(
+        "Install and pin workflow-built native for core parity tests"
+    ) < names.index("Test")
+    # Core parity remains the direct postcondition of the exact core build.
+    assert names.index("Verify source-to-wheel module parity") == names.index("Build package") + 1
+    assert names.index("Verify source-to-wheel module parity") < names.index("Clean wheel install smoke")
 
 
 def test_phase55b_native_workspace_has_one_authoritative_cargo_lock() -> None:

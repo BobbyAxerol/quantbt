@@ -1,0 +1,89 @@
+{
+  "artifacts": [
+    {
+      "bytes": 1023692,
+      "path": ".maturin/qms08/e05-package-v3/dist/quantbt_engine-1.1.2-py3-none-any.whl",
+      "sha256": "9acb2b3009b6bb6dbb61d8a47468daa5a0a4a7094d749be3e16a483d32493c48"
+    },
+    {
+      "bytes": 910725,
+      "path": ".maturin/qms08/e05-package-v3/dist/quantbt_engine-1.1.2.tar.gz",
+      "sha256": "2eb3a01cf812b5e187c7cdd1de6f47ee938c407143ff744bc400c410d6831e73"
+    },
+    {
+      "bytes": 1183960,
+      "path": ".maturin/qms08/c02-native-dist/quantbt_native-0.4.3-cp312-cp312-manylinux_2_34_x86_64.whl",
+      "sha256": "20a9a5116470ad0f385bdfe4ec902ea43ba580a6cdb208920caffda4b8d4ba7a"
+    }
+  ],
+  "economic_promotion": false,
+  "gates": {
+    "empirical": "NOT_RUN_PROTOCOL_OWNER_INPUT_PENDING",
+    "installed_wheel_sdist": "PASS",
+    "original_financial_source": "UNCHANGED",
+    "publication": "NOT_AUTHORIZED",
+    "remote": "NOT_RUN_CURRENT_BYTES",
+    "software": "PASS"
+  },
+  "installed": {
+    "bytes": 3942,
+    "path": ".maturin/qms08/e05-package-v3/e05-proof.json",
+    "sha256": "9cb5e1f9d1056440437d0d04ce995a51f76fd2daa7601e6174359bd867921971"
+  },
+  "pending": {
+    "e03_g01": "SCIENTIFIC_COMPATIBILITY_APPROVAL_REQUIRED",
+    "e04_real_alpha": "PROTOCOL_ALPHA_UNIVERSE_DECISION_PENDING",
+    "e05_real_alpha": "DELIVERY_ROLL_SCOPE_AND_ORIGIN_COVERAGE_UNQUALIFIED"
+  },
+  "publication": false,
+  "schema": "qms-e05-software-closure-v1",
+  "source": {
+    "baseline": "1df2aaf",
+    "financial_numeric_source_unchanged": true,
+    "publication": false,
+    "schema": "qms-e05-exact-source-v1",
+    "source_sha256": {
+      "src/quantbt/endpoint.py": "402189dc01a13dafa62e324784974fef15b96883392bf88004dd1227d487ec4e",
+      "src/quantbt/optimization/meta_selection/config.py": "ba6a9777514ce9d79e29e96d53a6b272324c0f70ae0eb2b625b011a48ac3398a",
+      "src/quantbt/optimization/meta_selection/domains/package.py": "571845727b9066db756c3432c4ba1470d22dd83959256a419ee8ae673aee202a",
+      "src/quantbt/optimization/meta_selection/domains/package_contract.py": "94dd06890d18661ab7bf4e0d5619560ecdc39b09ab9221ffff03c6f46974d688",
+      "src/quantbt/optimization/meta_selection/domains/portfolio.py": "a9d75f29d220f570f4c824976805be4ec157b31f6197fc0d33fe73deac32c495",
+      "src/quantbt/optimization/meta_selection/domains/registry.py": "93f97a210210ed193b1db60d491a35c473bc39af62558485e1a1cef461134091",
+      "src/quantbt/optimization/meta_selection/observer.py": "e3b25cdc7e71319de1e730a1fbb89f1db6dc94172945e657498d8b3aea141222",
+      "src/quantbt/walkforward.py": "0ba7f802ebe62425a828ff905767fefeadbd21166ff9a38274e1bd6e9877bf50"
+    }
+  },
+  "source_checkout_consumer": false,
+  "tests": {
+    "distinct_tests": 206,
+    "empirical_t05": "NOT_RUN",
+    "evidence": [
+      {
+        "path": ".maturin/qms08/e05-final-regression-v1.xml",
+        "sha256": "686bea8d0ce07b6efd43a68eecb54228c2fe3fc62675f6196a3164d311aafa7c"
+      },
+      {
+        "path": ".maturin/qms08/e05-financial-v2.xml",
+        "sha256": "ef4952f83870310e4746d8c977d24ae68ebead2fa80650ea23b93019c9d9da4f"
+      },
+      {
+        "path": ".maturin/qms08/e05-report-v1.xml",
+        "sha256": "d61f48eb951588c4a5fde8774101ea79d9e38b20fb5de403c936128abbafca12"
+      }
+    ],
+    "groups": {
+      "T01": 19,
+      "T02": 17,
+      "T03": 5,
+      "T04": 11,
+      "T06": 16
+    },
+    "package_groups": {
+      "T01": 10,
+      "T02": 19,
+      "T03": 9,
+      "T04": 8,
+      "T06": 14
+    }
+  }
+}

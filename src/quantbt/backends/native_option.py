@@ -8,7 +8,8 @@ venue-specific gaps stay explicit in reports and metadata.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field, replace
+from dataclasses import dataclass, field, fields, replace
+from math import isclose
 from typing import Dict, Mapping, Optional, Sequence
 
 import numpy as np
@@ -52,6 +53,14 @@ from ..options.reporting import (
 )
 from ..options.schema import OptionInstrumentRegistry, OptionInstrumentSpec
 from ..options.tape import PreparedOptionTape, prepare_option_tape
+from ..options.validation import conversion_rate as _conversion_rate_to_reporting, currency_amounts, finite_number
+from . import option_validation as _option_validation
+from .option_validation import (
+    _normalize_registry as _normalize_registry,
+    _validate_generic_option_configuration as _validate_generic_option_configuration,
+    _validate_option_requests as _validate_option_requests,
+    _validate_tape_coverage as _validate_tape_coverage,
+)
 
 
 @dataclass(frozen=True)
@@ -79,9 +88,18 @@ class NativeOptionConfig:
     metadata: Dict = field(default_factory=dict)
 
     def __post_init__(self) -> None:
-        object.__setattr__(self, "reporting_currency", str(self.reporting_currency).upper())
-        if self.account.initial_capital <= 0.0:
-            raise ValueError("account.initial_capital must be > 0")
+        object.__setattr__(self, "reporting_currency", str(self.reporting_currency).strip().upper())
+        if not self.reporting_currency:
+            raise ValueError("reporting_currency is required")
+        _validate_generic_option_configuration(self.account, self.execution)
+        finite_number(self.account.initial_capital, "account.initial_capital", positive=True)
+        finite_number(self.account.margin_buffer, "account.margin_buffer", minimum=0.0)
+        if self.initial_balances is not None:
+            object.__setattr__(self, "initial_balances", currency_amounts(self.initial_balances, "initial_balances"))
+        object.__setattr__(self, "conversion_rates", currency_amounts(self.conversion_rates, "conversion_rates", positive=True))
+        for name in ("max_spread_bps", "max_source_latency_ns"):
+            if getattr(self, name) is not None:
+                finite_number(getattr(self, name), name, minimum=0.0)
         policy = self.settlement_policy
         if policy is None:
             policy = (
@@ -122,8 +140,7 @@ class OptionSettlementEvent:
             raise ValueError("settlement event symbol is required")
         if int(self.timestamp_ns) <= 0:
             raise ValueError("settlement event timestamp_ns must be > 0")
-        if float(self.settlement_price) <= 0.0:
-            raise ValueError("settlement event settlement_price must be > 0")
+        finite_number(self.settlement_price, "settlement event settlement_price", positive=True)
         object.__setattr__(self, "timestamp_ns", int(self.timestamp_ns))
         object.__setattr__(self, "settlement_price", float(self.settlement_price))
         object.__setattr__(self, "source", str(self.source).strip())
@@ -147,6 +164,10 @@ class OptionSettlementEvent:
         return self.provenance_status == "official_source"
 
 
+# Preserve runtime annotation introspection without a circular facade import.
+_option_validation.OptionSettlementEvent = OptionSettlementEvent
+
+
 class NativeOptionBackend:
     """Array-first native option backend returning `OptionBacktestResult`."""
 
@@ -168,6 +189,7 @@ class NativeOptionBackend:
         conversion_rates: Optional[Dict[str, float]] = None,
         reporting_currency: Optional[str] = None,
     ) -> OptionBacktestResult:
+        _validate_generic_option_configuration(self.config.account, self.config.execution)
         registry = _normalize_registry(instruments)
         instrument_map = registry.by_symbol
         capability_assessments = validate_option_capabilities(
@@ -198,12 +220,30 @@ class NativeOptionBackend:
             )
         tape.validate_compatible(registry_signature=registry.signature)
         _validate_tape_coverage(packages_sorted, tape)
-        rates = {**self.config.conversion_rates, **(conversion_rates or {})}
-        report_ccy = str(reporting_currency or self.config.reporting_currency).upper()
+        rates = currency_amounts({**self.config.conversion_rates, **(conversion_rates or {})}, "conversion_rates", positive=True)
+        report_ccy = str(self.config.reporting_currency if reporting_currency is None else reporting_currency).strip().upper()
+        if not report_ccy:
+            raise ValueError("reporting_currency is required")
         if report_ccy not in rates:
             rates[report_ccy] = 1.0
 
         ledger = OptionLedger.from_cash(self.config.initial_balances or {report_ccy: self.config.account.initial_capital})
+        opening_equity = ledger.equity(conversion_rates=rates, reporting_currency=report_ccy)
+        # Report-currency comparison: relative 1e-10, absolute 1e-8 units.
+        if not isclose(opening_equity, self.config.account.initial_capital, rel_tol=1e-10, abs_tol=1e-8):
+            raise ValueError(
+                f"initial_balances reporting value {opening_equity} {report_ccy} must match "
+                f"account.initial_capital {self.config.account.initial_capital} "
+                "(rel_tol=1e-10, abs_tol=1e-8)"
+            )
+        used_symbols = {leg.instrument_id for package in packages_sorted for leg in package.legs}
+        used_symbols.update(event.symbol for event in settlement_events_normalized)
+        for symbol in used_symbols:
+            instrument = instrument_map[symbol]
+            for currency in (instrument.premium_currency, instrument.quote_currency, instrument.settlement_currency):
+                _conversion_rate_to_reporting(currency, rates, report_ccy)
+        if self.config.fee_schedule is not None:
+            _conversion_rate_to_reporting(self.config.fee_schedule.fee_currency, rates, report_ccy)
         order_reports = []
         package_reports = []
         applied_fills = []
@@ -224,7 +264,10 @@ class NativeOptionBackend:
             | set(settlements_by_timestamp)
         )
         quote_config = replace(self.config.option_execution, enforce_package_cash_guard=False)
-        snapshots.append(_snapshot_state(tape, 0, ledger, instrument_map, rates, report_ccy, "initial"))
+        snapshots.append(_snapshot_state(
+            tape, 0, ledger, instrument_map, rates, report_ccy, "initial",
+            timestamp_override_ns=int(tape.timestamp_ns[0]),
+        ))
 
         for timestamp_ns in timeline:
             snapshot_idx = _snapshot_index_at_or_before(tape, timestamp_ns)
@@ -483,6 +526,18 @@ class NativeOptionBackend:
             metadata={
                 "backend": "native_option",
                 "engine": "native_option",
+                "opening_equity": opening_equity,
+                "opening_wallet_policy": "omitted_or_empty_use_capital_in_reporting_currency",
+                "opening_balance_tolerance": {"relative": 1e-10, "absolute": 1e-8},
+                "effective_generic_config": {
+                    "supported_account_fields": ["initial_capital", "margin_buffer"],
+                    "inactive_default_account_fields": ["base_currency", "leverage", "maintenance_ratio", "margin_mode", "oms_mode"],
+                    "inactive_default_execution_fields": [item.name for item in fields(ExecutionConfig) if item.name != "metadata"],
+                    "nondefault_inactive_policy": "explicitly_rejected",
+                    "execution_authority": "option_execution",
+                    "margin_authority": "option_margin",
+                    "reporting_currency_authority": "reporting_currency",
+                },
                 "phase": "phase70_options_p0_containment",
                 "package_count": len(packages_sorted),
                 "fill_count": len(applied_fills),
@@ -526,16 +581,6 @@ class NativeOptionBackend:
         return result
 
 
-def _normalize_registry(
-    instruments: OptionInstrumentRegistry | Sequence[OptionInstrumentSpec] | Mapping[str, OptionInstrumentSpec],
-) -> OptionInstrumentRegistry:
-    if isinstance(instruments, OptionInstrumentRegistry):
-        return instruments
-    if isinstance(instruments, Mapping):
-        return OptionInstrumentRegistry.from_iterable(instruments.values())
-    return OptionInstrumentRegistry.from_iterable(tuple(instruments))
-
-
 def _normalize_settlement_events(events: Optional[Sequence[OptionSettlementEvent | Mapping]]) -> tuple[OptionSettlementEvent, ...]:
     if not events:
         return ()
@@ -566,74 +611,6 @@ def _events_by_timestamp(events: Sequence) -> Dict[int, tuple]:
     for event in events:
         grouped.setdefault(int(event.timestamp_ns), []).append(event)
     return {timestamp: tuple(items) for timestamp, items in grouped.items()}
-
-
-def _validate_option_requests(
-    packages: Sequence[OptionPackageIntent],
-    settlement_events: Sequence[OptionSettlementEvent],
-    instruments: Mapping[str, OptionInstrumentSpec],
-    *,
-    settlement_policy: OptionSettlementPolicy,
-) -> None:
-    """Reject unsupported lifecycle shapes before preparing the chain tape."""
-
-    seen_settlements = set()
-    for event in settlement_events:
-        instrument = instruments.get(event.symbol)
-        if instrument is None:
-            raise OptionCapabilityError(
-                "OPTION_SETTLEMENT_UNKNOWN_INSTRUMENT",
-                f"settlement event references unknown instrument {event.symbol!r}",
-            )
-        if event.symbol in seen_settlements:
-            raise OptionCapabilityError(
-                "OPTION_SETTLEMENT_DUPLICATE_EVENT",
-                f"only one settlement event is allowed for {event.symbol!r}",
-            )
-        seen_settlements.add(event.symbol)
-        if int(event.timestamp_ns) < int(instrument.expiry_ns):
-            raise OptionCapabilityError(
-                "OPTION_SETTLEMENT_BEFORE_EXPIRY",
-                f"settlement for {event.symbol!r} precedes its expiry timestamp",
-            )
-        if event.expiry_timestamp_ns is not None and int(event.expiry_timestamp_ns) != int(instrument.expiry_ns):
-            raise OptionCapabilityError(
-                "OPTION_SETTLEMENT_EXPIRY_MISMATCH",
-                f"settlement expiry provenance does not match instrument expiry for {event.symbol!r}",
-            )
-        if event.last_trading_timestamp_ns is not None and int(event.last_trading_timestamp_ns) > int(instrument.expiry_ns):
-            raise OptionCapabilityError(
-                "OPTION_SETTLEMENT_LAST_TRADING_AFTER_EXPIRY",
-                f"last trading timestamp exceeds expiry for {event.symbol!r}",
-            )
-    for package in packages:
-        for leg in package.legs:
-            instrument = instruments.get(leg.instrument_id)
-            if instrument is None:
-                raise OptionCapabilityError(
-                    "OPTION_PACKAGE_UNKNOWN_INSTRUMENT",
-                    f"package {package.package_id!r} references unknown instrument {leg.instrument_id!r}",
-                )
-            if int(package.timestamp_ns) >= int(instrument.expiry_ns):
-                raise OptionCapabilityError(
-                    "OPTION_EXPIRED_INSTRUMENT_ORDER",
-                    f"package {package.package_id!r} is at/after expiry for {instrument.symbol!r}",
-                )
-    if settlement_policy is OptionSettlementPolicy.EXPLICIT_EVENTS_ONLY:
-        return
-    if settlement_policy is not OptionSettlementPolicy.LEGACY_LAST_TAPE_MARK_RESEARCH:
-        raise OptionCapabilityError("OPTION_SETTLEMENT_POLICY_UNSUPPORTED", "unsupported settlement policy")
-
-
-def _validate_tape_coverage(packages: Sequence[OptionPackageIntent], tape: PreparedOptionTape) -> None:
-    first_timestamp = int(tape.timestamp_ns[0])
-    last_timestamp = int(tape.timestamp_ns[-1])
-    for package in packages:
-        if not first_timestamp <= int(package.timestamp_ns) <= last_timestamp:
-            raise OptionCapabilityError(
-                "OPTION_PACKAGE_TIMESTAMP_OUTSIDE_TAPE",
-                f"package {package.package_id!r} timestamp is outside the prepared market tape",
-            )
 
 
 def _snapshot_index_at_or_before(tape: PreparedOptionTape, timestamp_ns: int) -> int:
@@ -691,20 +668,7 @@ def _cash_delta_in_reporting(
     for currency in currencies:
         amount = float(after.get(currency, 0.0)) - float(before.get(currency, 0.0))
         delta += amount * _conversion_rate_to_reporting(currency, conversion_rates, reporting_currency)
-    return float(delta)
-
-
-def _conversion_rate_to_reporting(currency: str, conversion_rates: Mapping[str, float], reporting_currency: str) -> float:
-    ccy = str(currency).upper()
-    report = str(reporting_currency).upper()
-    if ccy == report:
-        return 1.0
-    if ccy not in conversion_rates:
-        raise ValueError(f"missing conversion rate for {ccy}->{report}")
-    rate = float(conversion_rates[ccy])
-    if rate <= 0.0:
-        raise ValueError(f"conversion rate for {ccy}->{report} must be > 0")
-    return rate
+    return finite_number(delta, "cash delta in reporting currency")
 
 
 def _margin_at_snapshot(

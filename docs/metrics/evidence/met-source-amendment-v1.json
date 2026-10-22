@@ -1,0 +1,170 @@
+{
+  "schema": "met-reviewed-source-amendment-v1",
+  "identity": "met-m5-11-clock-and-m5-11-1-native-output-v1",
+  "review_commit": "d4f91ca4e04f90b5685a208e23c1b951b785b721",
+  "scope": "Exact committed later amendments only; historical MET baselines and m5-10 public amendment remain immutable. Not a financial, native build, public artifact or research completion certificate.",
+  "authorities": {
+    "native": {
+      "plan_commit": "a09c69a2e23e6c9737cb382619b86f5552e75a4e",
+      "plan_section": "upgrade/implement.md#mode5-m5-11-goal-closure, ordered step 2 and Progress Receipt (2026-10-10)",
+      "report": "docs/mode5/M5_11_1_NATIVE_RUNNER_CLOSURE.md",
+      "original_receipts": [
+        "upgrade/private/mode5_upgrade_v1/m5-11-1/attempt-01/goal-native-gate01/registration.json",
+        "upgrade/private/mode5_upgrade_v1/m5-11-1/attempt-01/goal-native-gate01/source_registration.json",
+        "upgrade/private/mode5_upgrade_v1/m5-11-1/attempt-01/goal-native-gate01/oco_projection_receipt.json",
+        "upgrade/private/mode5_upgrade_v1/m5-11-1/attempt-01/goal-native-gate01/artifact_registration.json",
+        "upgrade/private/mode5_upgrade_v1/m5-11-1/attempt-01/goal-native-gate01/gate.json"
+      ],
+      "gate": {
+        "rust_scoped_tests": 72,
+        "python_output_clock_tests": 39,
+        "custody_tests": 34,
+        "status": "LOCAL_OUTPUT_ACCOUNTING_PASS_NOT_PANEL_COMPLETION"
+      },
+      "limitations": "Original failed/prequalification and post-build revisions are retained. Admit only final committed blobs, plus the committed OCO intermediate. No admission of uncommitted intermediate revisions or native artifact identity."
+    },
+    "clock": {
+      "plan_commit": "327b3a5962b254de7cf30843ccd0850215df9f1d",
+      "plan_section": "upgrade/implement.md, Phase M5-11 Owner Protocol Approval (2026-10-10) and Local Completion sealed clock amendment",
+      "report": "docs/mode5/M5_11_ECONOMIC_REPORT.md",
+      "original_receipts": [
+        "upgrade/private/mode5_upgrade_v1/m5-11/attempt-01/authorized_source_revision_02.json"
+      ],
+      "limitations": "Retrospective approved selection policy, not an independent forward or causal rights expansion."
+    }
+  },
+  "sources": {
+    "rust/crates/quantbt-engine/src/output/mod.rs": {
+      "baseline_commit": "dc8edd8d4b09d63e674efbd9f6ca07533e6ad665",
+      "baseline_sha256": "87e464d666fdecbd780de1a7a84901711db4d6722c606539a3636eabd5ad95fb",
+      "authority": "native",
+      "reason": "Export terminal-slot output type and schema/version constants; no execution or accounting change.",
+      "transitions": [
+        {
+          "before_commit": "0f2c0bebedc0b316c7a684cd0aa2e962768f49a2",
+          "after_commit": "87793273df4a7d928d5a453476166feca1ab3382",
+          "before_sha256": "87e464d666fdecbd780de1a7a84901711db4d6722c606539a3636eabd5ad95fb",
+          "after_sha256": "74aafb65bc0b54220b154b25d67505ed9b658356f27f0bb98a13ca80362f068d"
+        }
+      ]
+    },
+    "rust/crates/quantbt-engine/src/output/static_tape.rs": {
+      "baseline_commit": "dc8edd8d4b09d63e674efbd9f6ca07533e6ad665",
+      "baseline_sha256": "a205b56fef10dc6f0f79e5b7097944ffd93de5300c0765e44912efe8323446cd",
+      "authority": "native",
+      "reason": "Add audit-only terminal-slot schema and matched fill order-type provenance; document prequalification working/residual quantity semantics. Legacy static output discards these additive fields.",
+      "transitions": [
+        {
+          "before_commit": "0f2c0bebedc0b316c7a684cd0aa2e962768f49a2",
+          "after_commit": "87793273df4a7d928d5a453476166feca1ab3382",
+          "before_sha256": "a205b56fef10dc6f0f79e5b7097944ffd93de5300c0765e44912efe8323446cd",
+          "after_sha256": "70eeb88d0a6995af6ff197a1276341a783b5aa1b1f61a542f20229e325dca64f"
+        }
+      ]
+    },
+    "rust/crates/quantbt-engine/src/session.rs": {
+      "baseline_commit": "dc8edd8d4b09d63e674efbd9f6ca07533e6ad665",
+      "baseline_sha256": "c09fe1d83d48eec52320d2818a94c22850da64cc5c6affc86e1f62e4b731eb1a",
+      "authority": "native",
+      "reason": "Capture authoritative static audit slots at retirement/run end, cancellation-slot/event units and fill order types; reset/error cleanup and focused fixtures. Matching, fees, accounting and frozen canceled_count remain unchanged. Includes prequalification rejection/working-state corrections.",
+      "transitions": [
+        {
+          "before_commit": "0f2c0bebedc0b316c7a684cd0aa2e962768f49a2",
+          "after_commit": "87793273df4a7d928d5a453476166feca1ab3382",
+          "before_sha256": "c09fe1d83d48eec52320d2818a94c22850da64cc5c6affc86e1f62e4b731eb1a",
+          "after_sha256": "e785c58c978f31ef4281d3d77c1fc665ae43f494281fba4aab305b2217d69426"
+        }
+      ]
+    },
+    "rust/crates/quantbt-execution/src/lib.rs": {
+      "baseline_commit": "dc8edd8d4b09d63e674efbd9f6ca07533e6ad665",
+      "baseline_sha256": "713301a0d17e51df5832f6db866462a19c01ec07f704fb5f053394977c490803",
+      "authority": "native",
+      "reason": "Only a new Rust test verifies terminal output propagation at zero detail retention and score/fingerprint parity; production implementation is unchanged.",
+      "transitions": [
+        {
+          "before_commit": "0f2c0bebedc0b316c7a684cd0aa2e962768f49a2",
+          "after_commit": "87793273df4a7d928d5a453476166feca1ab3382",
+          "before_sha256": "713301a0d17e51df5832f6db866462a19c01ec07f704fb5f053394977c490803",
+          "after_sha256": "52215579b56b6f424ad9fe2b7d0a10977db92520d627cec017c2c1fc83b0e6cd"
+        }
+      ]
+    },
+    "rust/crates/quantbt-execution/src/target.rs": {
+      "baseline_commit": "dc8edd8d4b09d63e674efbd9f6ca07533e6ad665",
+      "baseline_sha256": "9d3e820a3c55c6796d6da6ca38960196080fc3d9952565fe02e20279c9a89596",
+      "authority": "native",
+      "reason": "Explicit unavailable terminal state on direct/shared target routes and market order-type output; no target execution or accounting change.",
+      "transitions": [
+        {
+          "before_commit": "0f2c0bebedc0b316c7a684cd0aa2e962768f49a2",
+          "after_commit": "87793273df4a7d928d5a453476166feca1ab3382",
+          "before_sha256": "9d3e820a3c55c6796d6da6ca38960196080fc3d9952565fe02e20279c9a89596",
+          "after_sha256": "a57966957d1f75a57bd46bc5c64c18856e8ce5df4dc620d71fe262c2372739bd"
+        }
+      ]
+    },
+    "rust/native_event/src/lib.rs": {
+      "baseline_commit": "dc8edd8d4b09d63e674efbd9f6ca07533e6ad665",
+      "baseline_sha256": "d8717455c27da8ee5edc2045ad9f42b24d5577b8588bc781451d1b81a395b326",
+      "authority": "native",
+      "reason": "Export typed terminal-slot/fill-order-type fields and output byte accounting through existing audit adapters; no replay or financial computation change.",
+      "transitions": [
+        {
+          "before_commit": "0f2c0bebedc0b316c7a684cd0aa2e962768f49a2",
+          "after_commit": "87793273df4a7d928d5a453476166feca1ab3382",
+          "before_sha256": "d8717455c27da8ee5edc2045ad9f42b24d5577b8588bc781451d1b81a395b326",
+          "after_sha256": "5d3b8b4852a7b915cd2ed9c7770ee7dd02681fafcf6e2763ce7881ced29377e7"
+        }
+      ]
+    },
+    "src/quantbt/backends/_native_event_rust.py": {
+      "baseline_commit": "dc8edd8d4b09d63e674efbd9f6ca07533e6ad665",
+      "baseline_sha256": "20ed4211a5b8108101ffd176ffe9040ba9662525f220d18631d2642ab423e48c",
+      "authority": "native",
+      "reason": "Consume native terminal state, authoritative cancellation units and legacy liquidity provenance; cold terminal partial-fill quantity/fee sums and weighted price. Includes final retained-fill reducer revision; no account replay.",
+      "transitions": [
+        {
+          "before_commit": "8d7509d058eb1fff393445e21324aa886137b70d",
+          "after_commit": "a09c69a2e23e6c9737cb382619b86f5552e75a4e",
+          "before_sha256": "20ed4211a5b8108101ffd176ffe9040ba9662525f220d18631d2642ab423e48c",
+          "after_sha256": "d868903ad4640c938d2df8de1fc6111a16657ab7bea80ba27751f1d3b952cce5"
+        }
+      ]
+    },
+    "src/quantbt/backends/native_event.py": {
+      "baseline_commit": "dc8edd8d4b09d63e674efbd9f6ca07533e6ad665",
+      "baseline_sha256": "c1397a77021febf76d0db79d465ca3b585aa2bc3d6e3c83400888e2a3473c6d7",
+      "authority": "native",
+      "reason": "OCO winner/cancel-all outcome projection correction followed by authoritative terminal-outcome dispatch when available; legacy fallback retained.",
+      "transitions": [
+        {
+          "before_commit": "dde293d55e42a578154c7c8bbaf75f40b920805d",
+          "after_commit": "0f2c0bebedc0b316c7a684cd0aa2e962768f49a2",
+          "before_sha256": "c1397a77021febf76d0db79d465ca3b585aa2bc3d6e3c83400888e2a3473c6d7",
+          "after_sha256": "de4fc1f5347bc12ae319900b4d2bfe840daad91653925edbc6b91e8711d6c036"
+        },
+        {
+          "before_commit": "8d7509d058eb1fff393445e21324aa886137b70d",
+          "after_commit": "a09c69a2e23e6c9737cb382619b86f5552e75a4e",
+          "before_sha256": "de4fc1f5347bc12ae319900b4d2bfe840daad91653925edbc6b91e8711d6c036",
+          "after_sha256": "f58e4e04cbc408632ff6fc46ef2b280dadcc64f14cd802feac50f1bee7f0ae60"
+        }
+      ]
+    },
+    "src/quantbt/optimization/wfo_study.py": {
+      "baseline_commit": "dc8edd8d4b09d63e674efbd9f6ca07533e6ad665",
+      "baseline_sha256": "b458d58575a7ce2b652e89c067025eba5554b46d14ed05ee2057441c7b0fce75",
+      "authority": "clock",
+      "reason": "Sealed retrospective global Mode5 warm-start authority uses calibration access cutoff; telemetry separates historical market IS end, actual warm-start cutoff and authority. Legacy/unsealed/per-fold causal clocks remain unchanged.",
+      "transitions": [
+        {
+          "before_commit": "f75ecc3fa04c47142edd087c7d421353216b3860",
+          "after_commit": "327b3a5962b254de7cf30843ccd0850215df9f1d",
+          "before_sha256": "b458d58575a7ce2b652e89c067025eba5554b46d14ed05ee2057441c7b0fce75",
+          "after_sha256": "05823cf9f4ba2d9a7befc5b7e17d0a12a5c57cb89714b3a557309345a83b7637"
+        }
+      ]
+    }
+  }
+}

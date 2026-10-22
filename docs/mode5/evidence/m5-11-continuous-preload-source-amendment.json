@@ -1,0 +1,25 @@
+{
+  "schema": "mode5.continuous.source_amendment.v1",
+  "entry": "1507eeccc0bcb4199eebc14ed981f9e9f4e93a6a",
+  "scope": "Exact additive continuous dispatch, immutable retention and required full-prefix/scored-account calendar separation; legacy defaults unchanged",
+  "prior_amendment": {
+    "path": "docs/mode5/evidence/m5-11-continuous-retention-source-amendment.json",
+    "sha256": "1f15324b9d1aec039800044967731b67916a85d8c21a4a3f01787d79f9c6a75f"
+  },
+  "existing": {
+    "src/quantbt/endpoint.py": "66246b4f0637efb993a56cb55cfe706bee489ed17dc4c9443832a490bc87ef14",
+    "src/quantbt/walkforward.py": "4c0ddd8c0c55b145de3457c34c01d3db3391e4715968def90613e52319ad19a3",
+    "src/quantbt/mode5/__init__.py": "23dfabb788673a6373bc61e4c6dc7788915d8aba95a592de2f068efa874e7f05"
+  },
+  "new": {
+    "src/quantbt/mode5/continuous.py": "9801cadabc635d2a35fb2a734c7d72a895d2935a8aed2f034fa9debf66ab66cf",
+    "src/quantbt/mode5/continuous_binding.py": "21311c5f8d75fb1080dc69047c96f01e74b3332cb24abfd511e62a68a8ababa6",
+    "src/quantbt/mode5/continuous_producer.py": "e25bcc912a9075d2c918f67b1d6a4b22714d1e0d700d3e800508fbafc508fc4e",
+    "src/quantbt/mode5/continuous_runtime.py": "bbf108e02b5e2f1edd52fa513b3ce3841d3567731d9df20f5f601438fb6caae8",
+    "src/quantbt/mode5/continuous_retention.py": "77b9ec03baca2963961f874703b83d266755f85242d61ff06d1b23c4ef17c825",
+    "src/quantbt/mode5/continuous_scope.py": "9188f2d17f5aa5208114e31449c6463d2f375f4e9103f13540e8e48c7e314067"
+  },
+  "financial_requalification": false,
+  "scientific_thresholds_changed": false,
+  "pre_hook_source_preservation_sha256": "97e68f6f66e19de153478f195564fea4d48163aa53c334bbb4ee45c5a7e0857d"
+}

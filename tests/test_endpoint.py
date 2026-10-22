@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+import re
+
 import pandas as pd
 
 from quantbt import (
-    AccountConfig,
     BasketLegSpec,
     BasketSpec,
     BracketOrderSpec,
@@ -562,11 +563,41 @@ def test_endpoint_show_metrics_uses_legacy_text_format(capsys):
     output = capsys.readouterr().out
 
     assert report["initial_capital"] == 20_000.0
-    assert "  Initial Capital   $        20,000" in output
-    assert "  Final Equity      $" in output
-    assert "  Max DD Duration" in output
-    assert "  Avg Loss" in output
+    assert report["final_equity"] == 20_200.0
+    assert report["total_return_pct"] == 1.0
+    assert report["num_trades"] == report["position_state_count"] == 3
+    assert "expectancy_pct" in report
+    assert output == format_metrics_report(report) + "\n"
+    lines = output.strip("\n").splitlines()
+    assert all(line.startswith("  ") for line in lines)
+    fields = dict(re.split(r"\s{2,}", line.strip(), maxsplit=1) for line in lines)
+    assert len(fields) == len(lines) == 19
+    assert fields["Initial Capital"] == "$        20,000"
+    assert fields["Final Equity"] == "$     20,200.00"
+    assert fields["Total Return"] == "+1.00%"
+    labels = {
+        "max_dd_duration_days": "Max Underwater Daily Closes",
+        "avg_loss_pct": "Mean Negative Period Return",
+        "period_expected_return_pct": "Mean Period Return",
+        "num_trades": "Position State Count",
+    }
+    for key, label in labels.items():
+        assert report["metric_population"][key]["label"] == label
+        assert label in fields
+    assert fields["Position State Count"] == "3"
+    assert fields["Liquidated"] == "No"
+    assert {"Max DD Duration", "Avg Loss", "Expectancy", "Number of Trades"}.isdisjoint(fields)
     assert "initial_capital:" not in output
+
+    legacy = dict(report)
+    for key in ("metric_population", "period_expected_return_pct", "position_state_count"):
+        legacy.pop(key)
+    legacy_fields = dict(re.split(r"\s{2,}", line.strip(), maxsplit=1)
+        for line in format_metrics_report(legacy).strip("\n").splitlines())
+    assert legacy_fields["Initial Capital"] == fields["Initial Capital"]
+    assert legacy_fields["Final Equity"] == fields["Final Equity"]
+    assert {"Max DD Duration", "Avg Loss", "Expectancy", "Number of Trades"} <= legacy_fields.keys()
+    assert set(labels.values()).isdisjoint(legacy_fields)
 
 
 def test_endpoint_result_objects_expose_metrics_helpers(capsys):

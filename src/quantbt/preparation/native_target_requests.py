@@ -86,6 +86,7 @@ def _build_target_request(
     output_profile: int,
     admission_policy: str | int | None,
     cache_request: bool = True,
+    metric_zero_base_policy: str = "native_skip_zero_base_v1",
 ):
     """Build one cached target request without owning any cache state.
 
@@ -168,6 +169,10 @@ def _build_target_request(
             name="admission_policy",
         )
     profile = int(output_profile)
+    if metric_zero_base_policy not in {"native_skip_zero_base_v1", "legacy_zero_base_v1"}:
+        raise NotImplementedError("unsupported direct-target zero-base return policy")
+    if admission_code is not None and metric_zero_base_policy != "native_skip_zero_base_v1":
+        raise NotImplementedError("legacy zero-base compatibility is certified for direct targets only")
     if profile not in {0, 1, 2}:
         raise ValueError("native direct target output_profile must be 0 (score), 1 (compact), or 2 (audit)")
 
@@ -210,6 +215,9 @@ def _build_target_request(
             equity_fraction_array,
         )
         key = (_REQUEST_SCHEMA, signature)
+        if metric_zero_base_policy != "native_skip_zero_base_v1":
+            signature = _digest(signature, "direct-target-metric-zero-base-policy-v1", metric_zero_base_policy)
+            key = (_REQUEST_SCHEMA, signature)
 
     with cache._lock:
         if key is not None:
@@ -223,6 +231,12 @@ def _build_target_request(
                     "installed quantbt-native extension lacks NativeTargetExecutionRequestCore; "
                     "install a wheel that supports direct target execution"
                 )
+            metric_kwargs = {}
+            if metric_zero_base_policy != "native_skip_zero_base_v1":
+                supported = getattr(native.NativeTargetExecutionRequestCore, "metric_zero_base_policies", None)
+                if supported is None or metric_zero_base_policy not in supported():
+                    raise NotImplementedError("installed native wheel lacks legacy zero-base metric compatibility")
+                metric_kwargs["metric_zero_base_policy"] = metric_zero_base_policy
             core = native.NativeTargetExecutionRequestCore.from_template(
                 template.core,
                 target_array,
@@ -236,6 +250,7 @@ def _build_target_request(
                 min_notional=min_notional_array,
                 equity_fraction=equity_fraction_array,
                 output_profile=profile,
+                **metric_kwargs,
             )
         else:
             if not hasattr(native, "NativeSharedPortfolioTargetRequestCore"):

@@ -1,7 +1,7 @@
 use quantbt_domain::errors::DomainError;
 use quantbt_domain::ids::OrderHandle;
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 struct Slot<T> {
     generation: u32,
     value: Option<T>,
@@ -10,7 +10,7 @@ struct Slot<T> {
 /// Generation-safe slot arena. Terminal order detail belongs in a sink before
 /// `remove`; no hot compaction is needed and stale handles cannot alias a slot
 /// reused by a later order.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct OrderArena<T> {
     slots: Vec<Slot<T>>,
     free_slots: Vec<u32>,

@@ -56,11 +56,13 @@ def test_phase13_native_portfolio_report_optimization_matches_legacy_report_form
         old["rejected_rebalances"].to_numpy(dtype=bool),
     )
     np.testing.assert_allclose(
-        result.metadata["exposure_report"].to_numpy(dtype=float),
+        result.metadata["exposure_report"].reindex(columns=old["exposure_report"].columns).to_numpy(dtype=float),
         old["exposure_report"].to_numpy(dtype=float),
         rtol=0.0,
         atol=1e-10,
     )
+    np.testing.assert_allclose(result.metadata["exposure_report"]["available_margin"],
+                               old["exposure_report"]["available_equity_after_im"].clip(lower=0.0))
     pd.testing.assert_frame_equal(
         result.metadata["rebalance_report"].reset_index(drop=True),
         old["rebalance_report"].reset_index(drop=True),

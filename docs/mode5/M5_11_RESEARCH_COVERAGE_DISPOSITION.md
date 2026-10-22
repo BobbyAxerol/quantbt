@@ -1,0 +1,171 @@
+# Mode 5 Research Coverage Disposition
+
+This is the current scope ledger, including the explicit owner decision below,
+not permission to begin package qualification. Historical receipts remain
+unchanged. See the [unified plan](../../upgrade/implement.md#mode5-m5-11)
+and [additional-alpha research](M5_11_8_RESEARCH_STATUS.md).
+
+**Current owner decision (2026-10-21, UTC):** parent M5-11 is
+**COMPLETE_OWNER_ACCEPTED_RESEARCH_SCOPE**. The owner explicitly accepts this
+overall disposition after M5-11.14 closeout: completed registered scopes and
+their recorded limitations, without extending scientific or deployment claims.
+The [approval record](evidence/m5-11-parent-disposition.json) is a new authority
+record, not a rewrite of older pending/failed/partial receipts. M5-12 remains
+unstarted pending separate launch approval and resource admission; CI/release
+remain separate decisions.
+
+**Latest integration closeout:** [M5-11.14](../diagnostics/M5_11_14_IMPLEMENTATION_REPORT.md)
+completes its approved local source integration: actionable shared diagnostics,
+optional archive review, explicit researcher recipe choice, checked run pack and
+actual-result reconciliation. Seven retained contexts are cold-read, not rerun;
+574distinct affected tests and bounded synthetic endpoint controls pass. This
+does not itself promote archive assistance/regret or accept parent M5-11.
+The subsequent explicit owner decision above now supplies that parent acceptance.
+
+**Latest reconciliation:** [M5-11.13](M5_11_13_CHRONOLOGICAL_DISPOSITION_REPORT.md)
+completes the owner-approved KEEP_BASELINE/no-new-finance scope. Its cold
+approval does not close M5-11.9, accept the parent research scope or qualify
+unexecuted whole-procedure experiments. The private coverage addendum pins 22
+earlier phase/subscope terminal receipts; recorded bounded completion is kept
+separate from universal economic claims and current financial work.
+
+**Current terminal research disposition:** M5-11.9now completes its registered
+local scope. C05seven-alpha JSON/Markdown, original C06qualification and final
+portable recovery completion are verified. Nine formal studies have2,304slots
+with2,248COMPLETE/56PRUNED;534feasible neighbor observations and eighteen actual
+double-fee accounts cover all eighteen registered centers. C06passes76focused
+tests and terminal cleanup. The recovery queue's eight stages actually PASS;
+its later Path receipt-export failure is retained and recovered cold, without
+finance/test reruns. No missing registered M5-11.9execution remains. Broader
+claim limitations below still require owner parent disposition before M5-12.
+
+**Subsequent completion authority,2026-10-21Asia/Saigon:** the owner requests
+completion of the three missing11.9studies and their registered successor tail.
+They resume under a fresh operational deadline, not a scientific-budget change;
+see [continuation status](M5_11_9_RESEARCH_STATUS.md#current-completion-continuation).
+Separately the owner now accepts the remediated11.12scratch exception with all
+evidence preserved. Its old resource gate remains exceeded/not-PASS; the
+acceptance does not certify an unmeasured peak or waive economics/accounting.
+The resumed11.9queue subsequently stops at an actual VWAPinvalid limit price;
+the registered typed-classification control preserves checkpoint/roster and
+does not write scores. The subsequent owner-approved typed-only PRUNED
+amendment permits exact continuation of the remaining attempts, not repricing
+or changing numerical metrics. Before activation HASHrecipe/TPE146/256and
+VWAPchallenger81/256are partial, not additional terminal receipts. The new
+admission preserves1,803committed files;63cold activation tests pass. Final
+winner/regime/synthesis qualification must still execute. Do not infer liveness
+or completion from old progress.
+
+**Current formal reconciliation:** the resumed turn now finds all nine
+registered studies terminal and verifies them through original C04 admission:
+2,304attempts,2,248COMPLETE/56PRUNED. The cold coordinator skips completed
+optimizers. Actual-winner/regime/synthesis/terminal qualification subsequently
+completes as recorded above; neither completion nor a launch accepts the parent.
+
+## Coverage And Meaning
+
+| Work | Evidence Already Available | Remaining Boundary |
+|---|---|---|
+| M5-11.1 / M5-11.4 diagnostics | Broad original five-alpha accounts, bounded probes, matrices and full-development dossiers | Global structured sensitivity is not certified for every alpha; finite-panel/local findings must keep that label |
+| M5-11.2 / M5-11.5 formal search | Actual RSI and completed SC/HASH/VWAP baseline/recipe/sampler studies; selector-only views on the original five-alpha panel | HMA lacked an eligible cohort; single-seed comparisons and finite pools are not universal recipe superiority |
+| M5-11.3 / M5-11.5 transfer | Registered fixed/prefix forward accounts and bounded fixed-schema causality checks, including negative and inconclusive findings | Not a whole-procedure certificate for learned geometry, fitted environments, active/held probes and automatic routing |
+| M5-11.6 / M4-ML research | Original Mode 4 and ML decision evidence, including two additional private alphas | Monthly/quarterly WFO and different execution families are not matched full-development Mode 5 controls |
+| M5-11.7 reporting | Shared source-qualified diagnostics, fold/decision reports, public accessor integration and reporting cost/cleanup | Cold report access does not create missing observations, new financial routes or an economic superiority certificate |
+| M5-11.8 additional-alpha research | Registered two-alpha study complete: 256 diagnostics and six 256-attempt formal studies with original selected replays | Reviewed development, not independent OOS; two new alphas do not silently replace missing formal studies on the original panel |
+| M5-11.9 remaining coverage | All registered formal/winner/state/synthesis/qualification outputs complete; C05/C06 and recovered terminal receipt verified | [Current status](M5_11_9_RESEARCH_STATUS.md); parent acceptance remains separate; finite feasible probes do not certify unmet geometric radii or independent future performance |
+| M5-11.10 archive/rights | Registered cold inventory/access/custody scope complete; 370 origin slots, seven archives, original hash-bound witnesses | Reuse metadata and typed rights do not authorize a new adaptive experiment or backdated full-history dossier |
+| M5-11.11 regret/regions | Two fixed-panel selector comparisons, 68 original reference/selected-account invocations, bounded independent measurement complete | N1 keeps baseline; N2 trade-offs remain inconclusive for full quality noninferiority; no generic replacement |
+| M5-11.12 sampler assistance | 16 studies/4,096 slots, 768 fresh prefix diagnostic accounts, six actual future-prefix controls and actual sampler reconstruction complete locally | Both static registered objectives worsen; reverse prefix effects heterogeneous/sparse. Three-cutoff screen is not long deployment. Scratch deviation is an owner-accepted remediated operational exception, not historical resource PASS |
+| M5-11.13 disposition | KEEP_BASELINE, zero new finance/proposals/fits; 170 final cold rights/measurement/inference/reporting tests PASS | New 365-day whole-procedure, adaptive future mutation and family inference NOT_EVALUATED / DEFERRED_APPROVED; parent/package/release authority not granted |
+| M5-11.14 executable handoff | Shared source-bound worksheet/pack/reconciliation, seven-context cold evidence and actual existing endpoint controls;574distinct affected source tests PASS,14synthetic proposals/23financial invocations including failed work | Source-only; original external Dossier/catalog/producer/access required; annual continuous ranking only; market attrs need a manifest extension; no economic-policy/default promotion, installed-wheel claim or parent acceptance |
+| M5-12 | Registered package plan only | Final-source wheel/sdist, installed consumers, privacy, regression, docs and handoff are not started by this ledger |
+
+Software capability, tested research scope and economic conclusions are separate.
+In particular, a new private original-account research binding does not promote
+a previously unqualified public execution clock. One reviewed full-development
+account and its annual attributions are not independent WFO origins or OOS.
+
+## Completed Registered Terminal Coverage
+
+| Alpha | Raw/TPE COMPLETE/PRUNED | Recipe/TPE | Recipe/challenger | Actual-winner/state checks |
+|---|---:|---:|---:|---|
+| SC |256/0|256/0|256/0|COMPLETE_LOCAL|
+| HASH |250/6|253/3|235/21|COMPLETE_LOCAL|
+| VWAP |231/25|256/0|255/1|COMPLETE_LOCAL|
+
+The completed source-only scope includes original RSI winner qualification,
+N1/N2reuse, all seven regime joins, C05reports and C06/complete.json. Actual
+completion is `continuation-20261021/interrupted-tail-recovery-complete.json`.
+The old interrupted launcher does not receive a fabricated
+`end-to-end-complete.json`; its history and the recovered export failure remain.
+
+### Historical Six-Study Snapshot
+
+The historical M5-11.13 read-only snapshot finds six of nine M5-11.9 formal `complete.json`
+receipts, not nine. This is an evidence-completion check, not worker liveness.
+The subsequent current nine-study reconciliation above supersedes its count,
+without changing that immutable historical snapshot.
+
+| Alpha | Complete Formal Arms | Missing Formal Terminal Receipts |
+|---|---|---|
+| SC | Raw/TPE, recipe/TPE, recipe/challenger | None |
+| HASH | Raw/TPE (250 COMPLETE + 6 PRUNED) | Recipe/TPE, recipe/challenger |
+| VWAP | Raw/TPE (231 COMPLETE + 25 PRUNED), recipe/TPE | Recipe/challenger |
+
+HASH recipe/TPE has 124 partial trial files, not a completed 256-attempt study.
+At that snapshot M5-11.9 `C05/report.json.gz`, `C05/report.md`, `C06/complete.json` and
+`end-to-end-complete.json` were absent. Retained C06 import/successor failures
+remain failures; queue launch is not a terminal certificate. No completed
+optimizer needs repeating to reconcile this gap. Resume/control is not launched
+by this cold review.
+
+M4-ML-01..09 retain their registered completion receipts, bounded outside-cap
+and support limitations and KEEP_FROZEN_V1 disposition. M5-11.6's four57-origin
+accounts are complete; inconclusive economics is not missing execution.
+M5-11.3's 22 bounded forward invocations are likewise complete in scope, not
+evidence that all adaptive learned procedures were qualified. M5-11.7 is
+source-qualified reporting, not an installed package certificate.
+
+The original phase/terminal receipts are unchanged. The new no-finance decision
+does not rewrite their scope, undo earlier meta evidence or require all
+economic outcomes to be positive.
+
+## Owner Decision Before M5-12
+
+The owner now approves **ACCEPT_COMPLETED_REGISTERED_SCOPES_WITH_LIMITATIONS**,
+closing the earlier `REOPENED_RESEARCH_COVERAGE` parent status. This is explicit
+research-scope acceptance, not inferred from a test count or software PASS.
+
+Accepted coverage includes the registered original/additional-alpha diagnostics,
+formal studies and winner checks, bounded forward/economic experiments,
+Mode 4/ML decision research, shared reporting, cross-mode research dispositions
+and M5-11.14 executable handoff. Existing source reports and the coverage table
+define the actual per-alpha/per-method scope; no missing experiment is invented.
+
+The decision preserves these boundaries:
+
+- HMA has no eligible formal cohort in the tested panel/mandate; that finding
+  is not a negative conclusion about all possible HMA parameter dictionaries.
+- Finite local probes do not certify unmet basin radii; global structured
+  sensitivity and broad stress/independent generalization remain unqualified
+  where evidence is insufficient.
+- All favorable, adverse, inconclusive, flat and undefined measurements retain
+  their original units/support/data roles. No gate, estimator or threshold changes.
+- KEEP_BASELINE and the approved-deferred 365-day whole-procedure branch stay
+  unchanged. Deferred work remains NOT_EVALUATED, not PASS.
+- M5-11.14 retains its annual-continuous and market-attrs manifest limitations;
+  no unsupported route or automatic recipe/seed policy is activated.
+
+No optimizer, financial execution, model fit, build or new research experiment
+is required or run to record this approval. A later experiment must address a
+concrete decision under a separately approved protocol; positive economics is
+not a condition for preserving valid completed research.
+
+The next phase is M5-12 final-source package/installed/privacy/regression
+qualification, **only after its separate launch decision and resource admission**.
+Accepting parent research does not certify a wheel/sdist, authorize deployment,
+prove universal superiority or guarantee a live trading result.
+
+CI, merge, version/tag changes, publication and public consumer proof remain
+separately approved final steps. Private alpha sources, parameter dictionaries
+and raw research evidence remain outside Git and distribution artifacts.

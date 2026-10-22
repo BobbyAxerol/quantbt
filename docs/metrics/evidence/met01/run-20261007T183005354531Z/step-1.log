@@ -1,0 +1,564 @@
+..........................FFFFFF........................................ [ 15%]
+........................................................................ [ 31%]
+........................................................................ [ 47%]
+........................................................................ [ 63%]
+........................................................................ [ 79%]
+.......F....FF.......................................................... [ 95%]
+.......FF...........                                                     [100%]
+=================================== FAILURES ===================================
+______________ test_t04_hand_return_distribution_and_denominators ______________
+
+    def test_t04_hand_return_distribution_and_denominators():
+        expected = FIXTURES["periods"]
+>       report = period_statistics(expected["returns"])
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/metrics/test_account_oracle.py:109: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+returns = [0.01, 0.02, -0.01, 0], annual_periods = 1.0, ddof = 1, rf = 0.0
+mar = 0.0, omega_threshold = 0.0, conditional_downside = False
+
+    def period_statistics(returns, *, annual_periods=1., ddof=1, rf=0., mar=0.,
+                          omega_threshold=0., conditional_downside=False):
+        r = list(returns)
+        if not r or any(not math.isfinite(x) for x in r):
+            raise ValueError("explicit finite nonempty return sample required")
+        if ddof not in (0, 1) or annual_periods <= 0:
+            raise ValueError("invalid variance/annualization")
+        n, mean = len(r), sum(r) / len(r)
+        gains = [x for x in r if x > 0]
+        losses = [x for x in r if x < 0]
+    
+        def ratio(g, loss):
+            return g / loss if loss else math.inf if g > 0 else None
+    
+        variance = sum((x - mean) ** 2 for x in r) / (n - ddof) if n > ddof else 0.
+        sharpe = (mean - rf) / math.sqrt(variance) * math.sqrt(annual_periods) if variance else None
+        downside = [x - mar for x in r if x < mar]
+        denominator = len(downside) if conditional_downside else n
+        rms = math.sqrt(sum(x * x for x in downside) / denominator) if denominator else 0.
+        sortino = ratio(mean - mar, rms) * math.sqrt(annual_periods) if rms or mean > mar else None
+        geometric = math.expm1(sum(math.log1p(x) for x in r) / n) if all(x > -1 for x in r) else None
+        omega_g = sum(max(x - omega_threshold, 0) for x in r)
+        omega_l = sum(max(omega_threshold - x, 0) for x in r)
+        growth = math.prod(1 + x for x in r)
+        return dict(
+            count=n, mean_arithmetic=mean, mean_geometric=geometric, sharpe=sharpe,
+            sortino=sortino, omega=ratio(omega_g, omega_l), profit_factor=ratio(sum(gains), -sum(losses)),
+            avg_win=sum(gains) / len(gains) if gains else None,
+            avg_loss=sum(losses) / len(losses) if losses else None,
+>           payoff_ratio=(sum(wins) / len(wins)) / (-sum(losses) / len(losses)) if wins and losses else None,
+                                                                                   ^^^^
+            win_rate=len(gains) / n,
+            nonzero_win_rate=len(gains) / (len(gains) + len(losses)) if gains or losses else None,
+            cagr_period_count=math.expm1(math.log(growth) * annual_periods / n) if growth > 0 and all(x > -1 for x in r) else None,
+        )
+E       NameError: name 'wins' is not defined
+
+tests/metrics/reference_oracle.py:136: NameError
+__________ test_t04_zero_loss_flat_short_and_bankrupt[sample0-None-0] __________
+
+sample = [0, 0], profit_factor = None, geometric = 0
+
+    @pytest.mark.parametrize("sample,profit_factor,geometric", [
+        ([0, 0], None, 0), ([.1, .1], math.inf, .1), ([-.1, -.1], 0, -.1),
+        ([-1, 0], 0, None), ([.1], math.inf, .1),
+    ])
+    def test_t04_zero_loss_flat_short_and_bankrupt(sample, profit_factor, geometric):
+>       report = period_statistics(sample)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/metrics/test_account_oracle.py:125: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+returns = [0, 0], annual_periods = 1.0, ddof = 1, rf = 0.0, mar = 0.0
+omega_threshold = 0.0, conditional_downside = False
+
+    def period_statistics(returns, *, annual_periods=1., ddof=1, rf=0., mar=0.,
+                          omega_threshold=0., conditional_downside=False):
+        r = list(returns)
+        if not r or any(not math.isfinite(x) for x in r):
+            raise ValueError("explicit finite nonempty return sample required")
+        if ddof not in (0, 1) or annual_periods <= 0:
+            raise ValueError("invalid variance/annualization")
+        n, mean = len(r), sum(r) / len(r)
+        gains = [x for x in r if x > 0]
+        losses = [x for x in r if x < 0]
+    
+        def ratio(g, loss):
+            return g / loss if loss else math.inf if g > 0 else None
+    
+        variance = sum((x - mean) ** 2 for x in r) / (n - ddof) if n > ddof else 0.
+        sharpe = (mean - rf) / math.sqrt(variance) * math.sqrt(annual_periods) if variance else None
+        downside = [x - mar for x in r if x < mar]
+        denominator = len(downside) if conditional_downside else n
+        rms = math.sqrt(sum(x * x for x in downside) / denominator) if denominator else 0.
+        sortino = ratio(mean - mar, rms) * math.sqrt(annual_periods) if rms or mean > mar else None
+        geometric = math.expm1(sum(math.log1p(x) for x in r) / n) if all(x > -1 for x in r) else None
+        omega_g = sum(max(x - omega_threshold, 0) for x in r)
+        omega_l = sum(max(omega_threshold - x, 0) for x in r)
+        growth = math.prod(1 + x for x in r)
+        return dict(
+            count=n, mean_arithmetic=mean, mean_geometric=geometric, sharpe=sharpe,
+            sortino=sortino, omega=ratio(omega_g, omega_l), profit_factor=ratio(sum(gains), -sum(losses)),
+            avg_win=sum(gains) / len(gains) if gains else None,
+            avg_loss=sum(losses) / len(losses) if losses else None,
+>           payoff_ratio=(sum(wins) / len(wins)) / (-sum(losses) / len(losses)) if wins and losses else None,
+                                                                                   ^^^^
+            win_rate=len(gains) / n,
+            nonzero_win_rate=len(gains) / (len(gains) + len(losses)) if gains or losses else None,
+            cagr_period_count=math.expm1(math.log(growth) * annual_periods / n) if growth > 0 and all(x > -1 for x in r) else None,
+        )
+E       NameError: name 'wins' is not defined
+
+tests/metrics/reference_oracle.py:136: NameError
+_________ test_t04_zero_loss_flat_short_and_bankrupt[sample1-inf-0.1] __________
+
+sample = [0.1, 0.1], profit_factor = inf, geometric = 0.1
+
+    @pytest.mark.parametrize("sample,profit_factor,geometric", [
+        ([0, 0], None, 0), ([.1, .1], math.inf, .1), ([-.1, -.1], 0, -.1),
+        ([-1, 0], 0, None), ([.1], math.inf, .1),
+    ])
+    def test_t04_zero_loss_flat_short_and_bankrupt(sample, profit_factor, geometric):
+>       report = period_statistics(sample)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/metrics/test_account_oracle.py:125: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+returns = [0.1, 0.1], annual_periods = 1.0, ddof = 1, rf = 0.0, mar = 0.0
+omega_threshold = 0.0, conditional_downside = False
+
+    def period_statistics(returns, *, annual_periods=1., ddof=1, rf=0., mar=0.,
+                          omega_threshold=0., conditional_downside=False):
+        r = list(returns)
+        if not r or any(not math.isfinite(x) for x in r):
+            raise ValueError("explicit finite nonempty return sample required")
+        if ddof not in (0, 1) or annual_periods <= 0:
+            raise ValueError("invalid variance/annualization")
+        n, mean = len(r), sum(r) / len(r)
+        gains = [x for x in r if x > 0]
+        losses = [x for x in r if x < 0]
+    
+        def ratio(g, loss):
+            return g / loss if loss else math.inf if g > 0 else None
+    
+        variance = sum((x - mean) ** 2 for x in r) / (n - ddof) if n > ddof else 0.
+        sharpe = (mean - rf) / math.sqrt(variance) * math.sqrt(annual_periods) if variance else None
+        downside = [x - mar for x in r if x < mar]
+        denominator = len(downside) if conditional_downside else n
+        rms = math.sqrt(sum(x * x for x in downside) / denominator) if denominator else 0.
+        sortino = ratio(mean - mar, rms) * math.sqrt(annual_periods) if rms or mean > mar else None
+        geometric = math.expm1(sum(math.log1p(x) for x in r) / n) if all(x > -1 for x in r) else None
+        omega_g = sum(max(x - omega_threshold, 0) for x in r)
+        omega_l = sum(max(omega_threshold - x, 0) for x in r)
+        growth = math.prod(1 + x for x in r)
+        return dict(
+            count=n, mean_arithmetic=mean, mean_geometric=geometric, sharpe=sharpe,
+            sortino=sortino, omega=ratio(omega_g, omega_l), profit_factor=ratio(sum(gains), -sum(losses)),
+            avg_win=sum(gains) / len(gains) if gains else None,
+            avg_loss=sum(losses) / len(losses) if losses else None,
+>           payoff_ratio=(sum(wins) / len(wins)) / (-sum(losses) / len(losses)) if wins and losses else None,
+                                                                                   ^^^^
+            win_rate=len(gains) / n,
+            nonzero_win_rate=len(gains) / (len(gains) + len(losses)) if gains or losses else None,
+            cagr_period_count=math.expm1(math.log(growth) * annual_periods / n) if growth > 0 and all(x > -1 for x in r) else None,
+        )
+E       NameError: name 'wins' is not defined
+
+tests/metrics/reference_oracle.py:136: NameError
+__________ test_t04_zero_loss_flat_short_and_bankrupt[sample2-0--0.1] __________
+
+sample = [-0.1, -0.1], profit_factor = 0, geometric = -0.1
+
+    @pytest.mark.parametrize("sample,profit_factor,geometric", [
+        ([0, 0], None, 0), ([.1, .1], math.inf, .1), ([-.1, -.1], 0, -.1),
+        ([-1, 0], 0, None), ([.1], math.inf, .1),
+    ])
+    def test_t04_zero_loss_flat_short_and_bankrupt(sample, profit_factor, geometric):
+>       report = period_statistics(sample)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/metrics/test_account_oracle.py:125: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+returns = [-0.1, -0.1], annual_periods = 1.0, ddof = 1, rf = 0.0, mar = 0.0
+omega_threshold = 0.0, conditional_downside = False
+
+    def period_statistics(returns, *, annual_periods=1., ddof=1, rf=0., mar=0.,
+                          omega_threshold=0., conditional_downside=False):
+        r = list(returns)
+        if not r or any(not math.isfinite(x) for x in r):
+            raise ValueError("explicit finite nonempty return sample required")
+        if ddof not in (0, 1) or annual_periods <= 0:
+            raise ValueError("invalid variance/annualization")
+        n, mean = len(r), sum(r) / len(r)
+        gains = [x for x in r if x > 0]
+        losses = [x for x in r if x < 0]
+    
+        def ratio(g, loss):
+            return g / loss if loss else math.inf if g > 0 else None
+    
+        variance = sum((x - mean) ** 2 for x in r) / (n - ddof) if n > ddof else 0.
+        sharpe = (mean - rf) / math.sqrt(variance) * math.sqrt(annual_periods) if variance else None
+        downside = [x - mar for x in r if x < mar]
+        denominator = len(downside) if conditional_downside else n
+        rms = math.sqrt(sum(x * x for x in downside) / denominator) if denominator else 0.
+        sortino = ratio(mean - mar, rms) * math.sqrt(annual_periods) if rms or mean > mar else None
+        geometric = math.expm1(sum(math.log1p(x) for x in r) / n) if all(x > -1 for x in r) else None
+        omega_g = sum(max(x - omega_threshold, 0) for x in r)
+        omega_l = sum(max(omega_threshold - x, 0) for x in r)
+        growth = math.prod(1 + x for x in r)
+        return dict(
+            count=n, mean_arithmetic=mean, mean_geometric=geometric, sharpe=sharpe,
+            sortino=sortino, omega=ratio(omega_g, omega_l), profit_factor=ratio(sum(gains), -sum(losses)),
+            avg_win=sum(gains) / len(gains) if gains else None,
+            avg_loss=sum(losses) / len(losses) if losses else None,
+>           payoff_ratio=(sum(wins) / len(wins)) / (-sum(losses) / len(losses)) if wins and losses else None,
+                                                                                   ^^^^
+            win_rate=len(gains) / n,
+            nonzero_win_rate=len(gains) / (len(gains) + len(losses)) if gains or losses else None,
+            cagr_period_count=math.expm1(math.log(growth) * annual_periods / n) if growth > 0 and all(x > -1 for x in r) else None,
+        )
+E       NameError: name 'wins' is not defined
+
+tests/metrics/reference_oracle.py:136: NameError
+__________ test_t04_zero_loss_flat_short_and_bankrupt[sample3-0-None] __________
+
+sample = [-1, 0], profit_factor = 0, geometric = None
+
+    @pytest.mark.parametrize("sample,profit_factor,geometric", [
+        ([0, 0], None, 0), ([.1, .1], math.inf, .1), ([-.1, -.1], 0, -.1),
+        ([-1, 0], 0, None), ([.1], math.inf, .1),
+    ])
+    def test_t04_zero_loss_flat_short_and_bankrupt(sample, profit_factor, geometric):
+>       report = period_statistics(sample)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/metrics/test_account_oracle.py:125: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+returns = [-1, 0], annual_periods = 1.0, ddof = 1, rf = 0.0, mar = 0.0
+omega_threshold = 0.0, conditional_downside = False
+
+    def period_statistics(returns, *, annual_periods=1., ddof=1, rf=0., mar=0.,
+                          omega_threshold=0., conditional_downside=False):
+        r = list(returns)
+        if not r or any(not math.isfinite(x) for x in r):
+            raise ValueError("explicit finite nonempty return sample required")
+        if ddof not in (0, 1) or annual_periods <= 0:
+            raise ValueError("invalid variance/annualization")
+        n, mean = len(r), sum(r) / len(r)
+        gains = [x for x in r if x > 0]
+        losses = [x for x in r if x < 0]
+    
+        def ratio(g, loss):
+            return g / loss if loss else math.inf if g > 0 else None
+    
+        variance = sum((x - mean) ** 2 for x in r) / (n - ddof) if n > ddof else 0.
+        sharpe = (mean - rf) / math.sqrt(variance) * math.sqrt(annual_periods) if variance else None
+        downside = [x - mar for x in r if x < mar]
+        denominator = len(downside) if conditional_downside else n
+        rms = math.sqrt(sum(x * x for x in downside) / denominator) if denominator else 0.
+        sortino = ratio(mean - mar, rms) * math.sqrt(annual_periods) if rms or mean > mar else None
+        geometric = math.expm1(sum(math.log1p(x) for x in r) / n) if all(x > -1 for x in r) else None
+        omega_g = sum(max(x - omega_threshold, 0) for x in r)
+        omega_l = sum(max(omega_threshold - x, 0) for x in r)
+        growth = math.prod(1 + x for x in r)
+        return dict(
+            count=n, mean_arithmetic=mean, mean_geometric=geometric, sharpe=sharpe,
+            sortino=sortino, omega=ratio(omega_g, omega_l), profit_factor=ratio(sum(gains), -sum(losses)),
+            avg_win=sum(gains) / len(gains) if gains else None,
+            avg_loss=sum(losses) / len(losses) if losses else None,
+>           payoff_ratio=(sum(wins) / len(wins)) / (-sum(losses) / len(losses)) if wins and losses else None,
+                                                                                   ^^^^
+            win_rate=len(gains) / n,
+            nonzero_win_rate=len(gains) / (len(gains) + len(losses)) if gains or losses else None,
+            cagr_period_count=math.expm1(math.log(growth) * annual_periods / n) if growth > 0 and all(x > -1 for x in r) else None,
+        )
+E       NameError: name 'wins' is not defined
+
+tests/metrics/reference_oracle.py:136: NameError
+_________ test_t04_zero_loss_flat_short_and_bankrupt[sample4-inf-0.1] __________
+
+sample = [0.1], profit_factor = inf, geometric = 0.1
+
+    @pytest.mark.parametrize("sample,profit_factor,geometric", [
+        ([0, 0], None, 0), ([.1, .1], math.inf, .1), ([-.1, -.1], 0, -.1),
+        ([-1, 0], 0, None), ([.1], math.inf, .1),
+    ])
+    def test_t04_zero_loss_flat_short_and_bankrupt(sample, profit_factor, geometric):
+>       report = period_statistics(sample)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/metrics/test_account_oracle.py:125: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+returns = [0.1], annual_periods = 1.0, ddof = 1, rf = 0.0, mar = 0.0
+omega_threshold = 0.0, conditional_downside = False
+
+    def period_statistics(returns, *, annual_periods=1., ddof=1, rf=0., mar=0.,
+                          omega_threshold=0., conditional_downside=False):
+        r = list(returns)
+        if not r or any(not math.isfinite(x) for x in r):
+            raise ValueError("explicit finite nonempty return sample required")
+        if ddof not in (0, 1) or annual_periods <= 0:
+            raise ValueError("invalid variance/annualization")
+        n, mean = len(r), sum(r) / len(r)
+        gains = [x for x in r if x > 0]
+        losses = [x for x in r if x < 0]
+    
+        def ratio(g, loss):
+            return g / loss if loss else math.inf if g > 0 else None
+    
+        variance = sum((x - mean) ** 2 for x in r) / (n - ddof) if n > ddof else 0.
+        sharpe = (mean - rf) / math.sqrt(variance) * math.sqrt(annual_periods) if variance else None
+        downside = [x - mar for x in r if x < mar]
+        denominator = len(downside) if conditional_downside else n
+        rms = math.sqrt(sum(x * x for x in downside) / denominator) if denominator else 0.
+        sortino = ratio(mean - mar, rms) * math.sqrt(annual_periods) if rms or mean > mar else None
+        geometric = math.expm1(sum(math.log1p(x) for x in r) / n) if all(x > -1 for x in r) else None
+        omega_g = sum(max(x - omega_threshold, 0) for x in r)
+        omega_l = sum(max(omega_threshold - x, 0) for x in r)
+        growth = math.prod(1 + x for x in r)
+        return dict(
+            count=n, mean_arithmetic=mean, mean_geometric=geometric, sharpe=sharpe,
+            sortino=sortino, omega=ratio(omega_g, omega_l), profit_factor=ratio(sum(gains), -sum(losses)),
+            avg_win=sum(gains) / len(gains) if gains else None,
+            avg_loss=sum(losses) / len(losses) if losses else None,
+>           payoff_ratio=(sum(wins) / len(wins)) / (-sum(losses) / len(losses)) if wins and losses else None,
+                                                                                   ^^^^
+            win_rate=len(gains) / n,
+            nonzero_win_rate=len(gains) / (len(gains) + len(losses)) if gains or losses else None,
+            cagr_period_count=math.expm1(math.log(growth) * annual_periods / n) if growth > 0 and all(x > -1 for x in r) else None,
+        )
+E       NameError: name 'wins' is not defined
+
+tests/metrics/reference_oracle.py:136: NameError
+_________________ test_t06_matched_prepared_return_conventions _________________
+
+qs = <module 'quantstats.stats' from '/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/quantstats/stats.py'>
+
+    def test_t06_matched_prepared_return_conventions(qs):
+        returns = pd.Series([.01, .02, -.01, 0.], index=pd.date_range("2025-01-01", periods=4, tz="UTC"))
+>       oracle = period_statistics(returns, annual_periods=365.)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/metrics/test_comparisons.py:32: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+returns = 2025-01-01 00:00:00+00:00    0.01
+2025-01-02 00:00:00+00:00    0.02
+2025-01-03 00:00:00+00:00   -0.01
+2025-01-04 00:00:00+00:00    0.00
+Freq: D, dtype: float64
+annual_periods = 365.0, ddof = 1, rf = 0.0, mar = 0.0, omega_threshold = 0.0
+conditional_downside = False
+
+    def period_statistics(returns, *, annual_periods=1., ddof=1, rf=0., mar=0.,
+                          omega_threshold=0., conditional_downside=False):
+        r = list(returns)
+        if not r or any(not math.isfinite(x) for x in r):
+            raise ValueError("explicit finite nonempty return sample required")
+        if ddof not in (0, 1) or annual_periods <= 0:
+            raise ValueError("invalid variance/annualization")
+        n, mean = len(r), sum(r) / len(r)
+        gains = [x for x in r if x > 0]
+        losses = [x for x in r if x < 0]
+    
+        def ratio(g, loss):
+            return g / loss if loss else math.inf if g > 0 else None
+    
+        variance = sum((x - mean) ** 2 for x in r) / (n - ddof) if n > ddof else 0.
+        sharpe = (mean - rf) / math.sqrt(variance) * math.sqrt(annual_periods) if variance else None
+        downside = [x - mar for x in r if x < mar]
+        denominator = len(downside) if conditional_downside else n
+        rms = math.sqrt(sum(x * x for x in downside) / denominator) if denominator else 0.
+        sortino = ratio(mean - mar, rms) * math.sqrt(annual_periods) if rms or mean > mar else None
+        geometric = math.expm1(sum(math.log1p(x) for x in r) / n) if all(x > -1 for x in r) else None
+        omega_g = sum(max(x - omega_threshold, 0) for x in r)
+        omega_l = sum(max(omega_threshold - x, 0) for x in r)
+        growth = math.prod(1 + x for x in r)
+        return dict(
+            count=n, mean_arithmetic=mean, mean_geometric=geometric, sharpe=sharpe,
+            sortino=sortino, omega=ratio(omega_g, omega_l), profit_factor=ratio(sum(gains), -sum(losses)),
+            avg_win=sum(gains) / len(gains) if gains else None,
+            avg_loss=sum(losses) / len(losses) if losses else None,
+>           payoff_ratio=(sum(wins) / len(wins)) / (-sum(losses) / len(losses)) if wins and losses else None,
+                                                                                   ^^^^
+            win_rate=len(gains) / n,
+            nonzero_win_rate=len(gains) / (len(gains) + len(losses)) if gains or losses else None,
+            cagr_period_count=math.expm1(math.log(growth) * annual_periods / n) if growth > 0 and all(x > -1 for x in r) else None,
+        )
+E       NameError: name 'wins' is not defined
+
+tests/metrics/reference_oracle.py:136: NameError
+__________ test_t06_zero_denominators_and_cagr_calendar_disagreements __________
+
+qs = <module 'quantstats.stats' from '/root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/quantstats/stats.py'>
+
+    def test_t06_zero_denominators_and_cagr_calendar_disagreements(qs):
+        flat = pd.Series([0., 0.], index=pd.date_range("2025-01-01", periods=2, tz="UTC"))
+        assert math.isnan(qs.sortino(flat))
+        assert qs.profit_factor(flat, prepare_returns=False) == 0.
+        assert math.isinf(legacy._array_profit_factor(flat.to_numpy()))
+>       assert period_statistics(flat)["profit_factor"] is None
+               ^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/metrics/test_comparisons.py:86: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+returns = 2025-01-01 00:00:00+00:00    0.0
+2025-01-02 00:00:00+00:00    0.0
+Freq: D, dtype: float64
+annual_periods = 1.0, ddof = 1, rf = 0.0, mar = 0.0, omega_threshold = 0.0
+conditional_downside = False
+
+    def period_statistics(returns, *, annual_periods=1., ddof=1, rf=0., mar=0.,
+                          omega_threshold=0., conditional_downside=False):
+        r = list(returns)
+        if not r or any(not math.isfinite(x) for x in r):
+            raise ValueError("explicit finite nonempty return sample required")
+        if ddof not in (0, 1) or annual_periods <= 0:
+            raise ValueError("invalid variance/annualization")
+        n, mean = len(r), sum(r) / len(r)
+        gains = [x for x in r if x > 0]
+        losses = [x for x in r if x < 0]
+    
+        def ratio(g, loss):
+            return g / loss if loss else math.inf if g > 0 else None
+    
+        variance = sum((x - mean) ** 2 for x in r) / (n - ddof) if n > ddof else 0.
+        sharpe = (mean - rf) / math.sqrt(variance) * math.sqrt(annual_periods) if variance else None
+        downside = [x - mar for x in r if x < mar]
+        denominator = len(downside) if conditional_downside else n
+        rms = math.sqrt(sum(x * x for x in downside) / denominator) if denominator else 0.
+        sortino = ratio(mean - mar, rms) * math.sqrt(annual_periods) if rms or mean > mar else None
+        geometric = math.expm1(sum(math.log1p(x) for x in r) / n) if all(x > -1 for x in r) else None
+        omega_g = sum(max(x - omega_threshold, 0) for x in r)
+        omega_l = sum(max(omega_threshold - x, 0) for x in r)
+        growth = math.prod(1 + x for x in r)
+        return dict(
+            count=n, mean_arithmetic=mean, mean_geometric=geometric, sharpe=sharpe,
+            sortino=sortino, omega=ratio(omega_g, omega_l), profit_factor=ratio(sum(gains), -sum(losses)),
+            avg_win=sum(gains) / len(gains) if gains else None,
+            avg_loss=sum(losses) / len(losses) if losses else None,
+>           payoff_ratio=(sum(wins) / len(wins)) / (-sum(losses) / len(losses)) if wins and losses else None,
+                                                                                   ^^^^
+            win_rate=len(gains) / n,
+            nonzero_win_rate=len(gains) / (len(gains) + len(losses)) if gains or losses else None,
+            cagr_period_count=math.expm1(math.log(growth) * annual_periods / n) if growth > 0 and all(x > -1 for x in r) else None,
+        )
+E       NameError: name 'wins' is not defined
+
+tests/metrics/reference_oracle.py:136: NameError
+________ test_t06_legacy_first_fee_flat_count_and_expectancy_are_locked ________
+
+    def test_t06_legacy_first_fee_flat_count_and_expectancy_are_locked():
+        idx = pd.date_range("2025-01-01", periods=2, tz="UTC")
+        report = legacy.compute_performance_metrics(timestamps=idx, equity=[90, 90], returns=[-.1, 0],
+                                                    positions=[[0, 0], [0, 0]], symbols=["BTC", "ETH"], initial_capital=100)
+        assert report["total_return_pct"] == -10.
+        assert report["cagr_pct"] == report["max_drawdown_pct"] == 0.
+        assert report["num_trades"] == 2
+        idx = pd.date_range("2025-01-01", periods=4, freq="h", tz="UTC")
+        report = legacy.compute_performance_metrics(timestamps=idx, equity=[20_000, 20_200, 20_099, 20_099],
+                                                    returns=[0, .01, -.005, 0], positions=[0, 1, 1, 0], symbols=["BTC"], initial_capital=20_000)
+        assert report["num_trades"] == 3
+        assert report["expectancy_pct"] == -.125
+>       assert period_statistics([0, .01, -.005, 0])["mean_arithmetic"] == .00125
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/metrics/test_comparisons.py:106: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+returns = [0, 0.01, -0.005, 0], annual_periods = 1.0, ddof = 1, rf = 0.0
+mar = 0.0, omega_threshold = 0.0, conditional_downside = False
+
+    def period_statistics(returns, *, annual_periods=1., ddof=1, rf=0., mar=0.,
+                          omega_threshold=0., conditional_downside=False):
+        r = list(returns)
+        if not r or any(not math.isfinite(x) for x in r):
+            raise ValueError("explicit finite nonempty return sample required")
+        if ddof not in (0, 1) or annual_periods <= 0:
+            raise ValueError("invalid variance/annualization")
+        n, mean = len(r), sum(r) / len(r)
+        gains = [x for x in r if x > 0]
+        losses = [x for x in r if x < 0]
+    
+        def ratio(g, loss):
+            return g / loss if loss else math.inf if g > 0 else None
+    
+        variance = sum((x - mean) ** 2 for x in r) / (n - ddof) if n > ddof else 0.
+        sharpe = (mean - rf) / math.sqrt(variance) * math.sqrt(annual_periods) if variance else None
+        downside = [x - mar for x in r if x < mar]
+        denominator = len(downside) if conditional_downside else n
+        rms = math.sqrt(sum(x * x for x in downside) / denominator) if denominator else 0.
+        sortino = ratio(mean - mar, rms) * math.sqrt(annual_periods) if rms or mean > mar else None
+        geometric = math.expm1(sum(math.log1p(x) for x in r) / n) if all(x > -1 for x in r) else None
+        omega_g = sum(max(x - omega_threshold, 0) for x in r)
+        omega_l = sum(max(omega_threshold - x, 0) for x in r)
+        growth = math.prod(1 + x for x in r)
+        return dict(
+            count=n, mean_arithmetic=mean, mean_geometric=geometric, sharpe=sharpe,
+            sortino=sortino, omega=ratio(omega_g, omega_l), profit_factor=ratio(sum(gains), -sum(losses)),
+            avg_win=sum(gains) / len(gains) if gains else None,
+            avg_loss=sum(losses) / len(losses) if losses else None,
+>           payoff_ratio=(sum(wins) / len(wins)) / (-sum(losses) / len(losses)) if wins and losses else None,
+                                                                                   ^^^^
+            win_rate=len(gains) / n,
+            nonzero_win_rate=len(gains) / (len(gains) + len(losses)) if gains or losses else None,
+            cagr_period_count=math.expm1(math.log(growth) * annual_periods / n) if growth > 0 and all(x > -1 for x in r) else None,
+        )
+E       NameError: name 'wins' is not defined
+
+tests/metrics/reference_oracle.py:136: NameError
+_ test_t05_opposite_legs_are_classified_at_declared_unit[closed_trade-trade_expected] _
+
+unit = 'closed_trade', expected = 'trade_expected'
+
+    @pytest.mark.parametrize("unit,expected", [("closed_trade", "trade_expected"), ("closed_action", "action_expected")])
+    def test_t05_opposite_legs_are_classified_at_declared_unit(unit, expected):
+        records = deepcopy(FIXTURES["closed_records"])
+        before = deepcopy(records)
+        report = closed_outcomes(records, currency="USDT", unit=unit)
+        for key, value in FIXTURES[expected].items():
+            assert report[key] == pytest.approx(value)
+        assert report["avg_pnl"] == report["expected_payoff"]
+>       assert report["payoff_ratio"] == pytest.approx(report["avg_profit"] / abs(report["avg_loss"]))
+               ^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'payoff_ratio'
+
+tests/metrics/test_ledger_oracle.py:22: KeyError
+_ test_t05_opposite_legs_are_classified_at_declared_unit[closed_action-action_expected] _
+
+unit = 'closed_action', expected = 'action_expected'
+
+    @pytest.mark.parametrize("unit,expected", [("closed_trade", "trade_expected"), ("closed_action", "action_expected")])
+    def test_t05_opposite_legs_are_classified_at_declared_unit(unit, expected):
+        records = deepcopy(FIXTURES["closed_records"])
+        before = deepcopy(records)
+        report = closed_outcomes(records, currency="USDT", unit=unit)
+        for key, value in FIXTURES[expected].items():
+            assert report[key] == pytest.approx(value)
+        assert report["avg_pnl"] == report["expected_payoff"]
+>       assert report["payoff_ratio"] == pytest.approx(report["avg_profit"] / abs(report["avg_loss"]))
+               ^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'payoff_ratio'
+
+tests/metrics/test_ledger_oracle.py:22: KeyError
+=========================== short test summary info ============================
+FAILED tests/metrics/test_account_oracle.py::test_t04_hand_return_distribution_and_denominators
+FAILED tests/metrics/test_account_oracle.py::test_t04_zero_loss_flat_short_and_bankrupt[sample0-None-0]
+FAILED tests/metrics/test_account_oracle.py::test_t04_zero_loss_flat_short_and_bankrupt[sample1-inf-0.1]
+FAILED tests/metrics/test_account_oracle.py::test_t04_zero_loss_flat_short_and_bankrupt[sample2-0--0.1]
+FAILED tests/metrics/test_account_oracle.py::test_t04_zero_loss_flat_short_and_bankrupt[sample3-0-None]
+FAILED tests/metrics/test_account_oracle.py::test_t04_zero_loss_flat_short_and_bankrupt[sample4-inf-0.1]
+FAILED tests/metrics/test_comparisons.py::test_t06_matched_prepared_return_conventions
+FAILED tests/metrics/test_comparisons.py::test_t06_zero_denominators_and_cagr_calendar_disagreements
+FAILED tests/metrics/test_comparisons.py::test_t06_legacy_first_fee_flat_count_and_expectancy_are_locked
+FAILED tests/metrics/test_ledger_oracle.py::test_t05_opposite_legs_are_classified_at_declared_unit[closed_trade-trade_expected]
+FAILED tests/metrics/test_ledger_oracle.py::test_t05_opposite_legs_are_classified_at_declared_unit[closed_action-action_expected]
+11 failed, 441 passed in 7.03s

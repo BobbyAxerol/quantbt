@@ -1,0 +1,16 @@
+{
+  "command": [
+    ".venv/bin/python",
+    "-m",
+    "pytest",
+    "-q",
+    "-p",
+    "no:cacheprovider",
+    "tests/metrics/test_public_reporting.py::test_met03_t04_t05_actual_w3_reset_flat_results_remain_independent",
+    "--junitxml=docs/metrics/evidence/met03/performance-tooling-mismatch/pytest.xml"
+  ],
+  "exit_code": 1,
+  "qualification": "FAIL_TOOLING_PAIR",
+  "reason": "source core 1.1.2 / tooling native 0.4.2; primary environment unchanged",
+  "publication": false
+}

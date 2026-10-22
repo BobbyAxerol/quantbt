@@ -28,6 +28,7 @@ from .core.orders import OrderAction, OrderCommand, OrderIntent, order_intents_t
 from .core.instrument_registry_v2 import InstrumentRegistryV2
 from .core.market_calendar_v2 import PreparedMarketHandleV2
 from .core.preprocessor import validate_datetime
+from .core.portfolio_validation import validate_portfolio_configuration
 from .core.results import BacktestResultV2, OptionBacktestResult
 from .core.runtime_governance import RuntimeBudgetV1
 from .core.schema import AccountConfig, BasketSpec, ExecutionConfig, InstrumentSpec, OrderSide, OrderType, TimeInForce
@@ -133,6 +134,7 @@ class BacktestEngineV2:
         self.target_units = target_units
         self.orders = tuple(orders or ())
         self.order_commands = tuple(order_commands or ())
+        self._explicit_order_commands = order_commands is not None
         self.strategy = strategy
         self.event_engine_version = str(event_engine_version).lower().strip()
         self.execution_contract = execution_contract
@@ -377,7 +379,7 @@ class BacktestEngineV2:
             commands = self.order_commands
             if not commands and self.orders:
                 commands = order_intents_to_lifecycle_commands(self.orders)
-            if not commands:
+            if not commands and (not self._explicit_order_commands or self.positions is not None or self.signals is not None):
                 raw_positions = self.positions if self.positions is not None else self.signals
                 if raw_positions is None:
                     raise ValueError("native_event v2 requires order_commands, orders, signals, positions, or a basket")
@@ -390,6 +392,7 @@ class BacktestEngineV2:
                         hedge_type=self.hedge_type,
                         use_pyramiding=self.use_pyramiding,
                         symbols=symbols,
+                        contract_size=self.contract_size,
                     )
                 )
                 commands = order_intents_to_lifecycle_commands(generated_orders)
@@ -461,6 +464,7 @@ class BacktestEngineV2:
                     hedge_type=self.hedge_type,
                     use_pyramiding=self.use_pyramiding,
                     symbols=symbols,
+                    contract_size=self.contract_size,
                 )
             )
         return backend.run_orders(
@@ -742,6 +746,8 @@ class PortfolioBacktestEngine:
             self.run()
 
     def run(self) -> BacktestResultV2:
+        if self.backend in {"legacy", "legacy_portfolio", "portfolio", "native_portfolio", "native_vectorized"}:
+            validate_portfolio_configuration(self.account, self.execution)
         if self.backend in {"legacy", "legacy_portfolio", "portfolio"}:
             asset_type = self.asset_type.lower()
             default_fee = 0.0004 if asset_type == "crypto" else 0.0001
@@ -768,6 +774,15 @@ class PortfolioBacktestEngine:
                 maintenance_ratio=self.maintenance_ratio,
                 highs=self.highs,
                 lows=self.lows,
+                slippage=self.execution.slippage_rate,
+                min_order_notional=self.execution.min_order_notional,
+                use_pyramiding=bool(self.kwargs.get("use_pyramiding", True)),
+                instruments=self.instruments,
+                qty_step=self.qty_step,
+                lot_size=self.lot_size,
+                slot_size=self.slot_size,
+                min_qty=self.min_qty,
+                min_notional=self.min_notional,
                 **legacy_kwargs,
             )
             self.result = BacktestResultV2.from_legacy(self.portfolio.result)
@@ -1035,6 +1050,7 @@ def _build_market_rebalance_orders(
     hedge_type: str,
     use_pyramiding: bool,
     symbols: List[str],
+    contract_size: Union[float, Dict[str, float]] = 1.0,
 ) -> List[OrderIntent]:
     ht = hedge_type.lower().strip()
     if ht in ("%_equity", "pct_equity", "dca_ladder", "dca"):
@@ -1045,6 +1061,7 @@ def _build_market_rebalance_orders(
         )
 
     alloc = _per_symbol_mapping(alloc_per_trade, symbols, default=100_000.0)
+    contracts = _per_symbol_mapping(contract_size, symbols, default=1.0)
     orders: List[OrderIntent] = []
     for symbol in symbols:
         signal = positions[symbol].copy()
@@ -1061,6 +1078,7 @@ def _build_market_rebalance_orders(
             close=close,
             alloc=alloc[symbol],
             use_pyramiding=use_pyramiding,
+            contract_size=contracts[symbol],
         ).fillna(0.0)
         prev = 0.0
         for ts, target in target_units.items():

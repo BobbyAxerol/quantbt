@@ -12,6 +12,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
+from math import isfinite
 from typing import Dict, Optional
 
 
@@ -87,7 +88,7 @@ class FeeModel:
     taker: float = 0.0
 
     def __post_init__(self) -> None:
-        if self.maker < 0.0 or self.taker < 0.0:
+        if not isfinite(self.maker) or not isfinite(self.taker) or self.maker < 0.0 or self.taker < 0.0:
             raise ValueError("fee rates must be >= 0")
 
     def rate_for(self, liquidity: LiquiditySide) -> float:
@@ -111,11 +112,11 @@ class InstrumentSpec:
     def __post_init__(self) -> None:
         if not self.symbol:
             raise ValueError("symbol is required")
-        if self.contract_size <= 0.0:
+        if not isfinite(self.contract_size) or self.contract_size <= 0.0:
             raise ValueError("contract_size must be > 0")
-        if self.tick_size < 0.0 or self.lot_size < 0.0:
+        if not isfinite(self.tick_size) or not isfinite(self.lot_size) or self.tick_size < 0.0 or self.lot_size < 0.0:
             raise ValueError("tick_size and lot_size must be >= 0")
-        if self.min_qty < 0.0 or self.min_notional < 0.0:
+        if not isfinite(self.min_qty) or not isfinite(self.min_notional) or self.min_qty < 0.0 or self.min_notional < 0.0:
             raise ValueError("min_qty and min_notional must be >= 0")
         if self.price_precision is not None and self.price_precision < 0:
             raise ValueError("price_precision must be >= 0")
@@ -135,13 +136,13 @@ class AccountConfig:
     metadata: Dict = field(default_factory=dict)
 
     def __post_init__(self) -> None:
-        if self.initial_capital <= 0.0:
+        if not isfinite(self.initial_capital) or self.initial_capital <= 0.0:
             raise ValueError("initial_capital must be > 0")
-        if self.leverage <= 0.0:
+        if not isfinite(self.leverage) or self.leverage <= 0.0:
             raise ValueError("leverage must be > 0")
-        if self.maintenance_ratio < 0.0:
+        if not isfinite(self.maintenance_ratio) or self.maintenance_ratio < 0.0:
             raise ValueError("maintenance_ratio must be >= 0")
-        if self.margin_buffer < 0.0:
+        if not isfinite(self.margin_buffer) or self.margin_buffer < 0.0:
             raise ValueError("margin_buffer must be >= 0")
 
     @property
@@ -160,9 +161,9 @@ class ExecutionConfig:
     metadata: Dict = field(default_factory=dict)
 
     def __post_init__(self) -> None:
-        if self.slippage_bps < 0.0:
+        if not isfinite(self.slippage_bps) or self.slippage_bps < 0.0:
             raise ValueError("slippage_bps must be >= 0")
-        if self.min_order_notional < 0.0:
+        if not isfinite(self.min_order_notional) or self.min_order_notional < 0.0:
             raise ValueError("min_order_notional must be >= 0")
 
     @property

@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import numpy as np
 from numba import njit
+from .engine import _allocate_portfolio_liquidation
 
 from .generated_native_event_contracts import CONTRACT_CODES
 
@@ -153,6 +154,8 @@ def _engine_event_v1(
     contract_sizes:  np.ndarray,
     slippage:        float,
     use_funding:     bool,
+    attribution=None,
+    order_reduce_only=None,
 ):
     equity_curve = np.zeros(n_bars, dtype=np.float64)
     pos_out      = np.zeros((n_bars, n_syms), dtype=np.float64)
@@ -202,6 +205,9 @@ def _engine_event_v1(
             liq_flag = True
             liq_idx = i
             liq_reason = LIQ_INTRABAR
+            if attribution is not None:
+                _allocate_portfolio_liquidation(equity, current_pos, closes[i], contract_sizes,
+                                                np.zeros(n_syms), attribution, i)
             equity = 0.0
             for s in range(n_syms):
                 current_pos[s] = 0.0
@@ -216,6 +222,8 @@ def _engine_event_v1(
                     cost = p * closes[i, s] * contract_sizes[s] * funding_rates[i, s]
                     equity -= cost
                     funding_arr[i] += cost
+                    if attribution is not None:
+                        attribution[i, s, 2] += cost
 
         _, close_mm = _event_close_margin(
             n_syms, current_pos, closes, contract_sizes, leverages, maint_ratio, i
@@ -224,6 +232,9 @@ def _engine_event_v1(
             liq_flag = True
             liq_idx = i
             liq_reason = LIQ_AFTER_FUNDING
+            if attribution is not None:
+                _allocate_portfolio_liquidation(equity, current_pos, closes[i], contract_sizes,
+                                                np.zeros(n_syms), attribution, i)
             equity = 0.0
             for s in range(n_syms):
                 current_pos[s] = 0.0
@@ -277,6 +288,13 @@ def _engine_event_v1(
                 continue
 
             qty = order_qty[oid]
+            if order_reduce_only is not None and order_reduce_only[oid]:
+                if current_pos[sym] * side >= 0.0:
+                    order_status[oid] = ORDER_STATUS_REJECTED
+                    reject_code[oid] = REJECT_REDUCE_ONLY_NO_POSITION
+                    rejected_bar[i] += 1
+                    continue
+                qty = min(qty, abs(current_pos[sym]))
             delta = qty * side
             cs = contract_sizes[sym]
             c = closes[i, sym]
@@ -293,7 +311,10 @@ def _engine_event_v1(
             if margin_delta > 0.0:
                 required += margin_delta
 
-            if required > equity - cur_im:
+            target = current_pos[sym] + delta
+            reduction = target * current_pos[sym] >= 0.0 and abs(target) <= abs(current_pos[sym])
+            net_fill_cost = fee_cost - delta * (c - exec_price) * cs
+            if (not reduction and required > equity - cur_im) or net_fill_cost > equity + 1e-12:
                 order_status[oid] = ORDER_STATUS_REJECTED
                 reject_code[oid] = REJECT_INSUFFICIENT_MARGIN
                 rejected_bar[i] += 1
@@ -309,6 +330,9 @@ def _engine_event_v1(
             fill_price[oid] = exec_price
             fill_fee[oid] = fee_cost
             fee_arr[i] += fee_cost
+            if attribution is not None:
+                attribution[i, sym, 0] += fee_cost
+                attribution[i, sym, 1] -= delta * (c - exec_price) * cs
             turnover_arr[i] += trade_notional
 
         pending_count = write_count
@@ -321,6 +345,9 @@ def _engine_event_v1(
             liq_flag = True
             liq_idx = i
             liq_reason = LIQ_AFTER_ORDER
+            if attribution is not None:
+                _allocate_portfolio_liquidation(equity, current_pos, closes[i], contract_sizes,
+                                                np.zeros(n_syms), attribution, i)
             equity = 0.0
             for s in range(n_syms):
                 current_pos[s] = 0.0
@@ -378,6 +405,21 @@ def _record_order_event(
         event_related_command[event_count] = related_command_idx
         return event_count + 1
     return event_count
+
+
+@njit(cache=True)
+def _event_margin_allows_fill(
+    reduce_only, current, delta, equity, current_initial_margin,
+    required, close, exec_price, contract_size, fee_cost,
+):
+    # A solvent reduction releases collateral; pre-close free margin is not
+    # the funding source for its fee. Exposure-increasing orders stay unchanged.
+    pure_reduction = (
+        reduce_only and current * delta < 0.0 and abs(delta) <= abs(current)
+    )
+    if pure_reduction:
+        return fee_cost <= equity + delta * (close - exec_price) * contract_size
+    return required <= equity - current_initial_margin
 
 
 @njit(cache=True)
@@ -901,7 +943,10 @@ def _engine_event_v2(
                 n_syms, current_pos, closes, contract_sizes, leverages,
                 maint_ratio, i, sym, delta, exec_price, fee_cost,
             )
-            if required > equity - cur_im:
+            if not _event_margin_allows_fill(
+                command_reduce_only[oid] == 1, current_pos[sym], delta,
+                equity, cur_im, required, c, exec_price, cs, fee_cost,
+            ):
                 active[oid] = 0
                 command_status[oid] = ORDER_STATUS_REJECTED
                 reject_code[oid] = REJECT_INSUFFICIENT_MARGIN

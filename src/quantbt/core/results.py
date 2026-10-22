@@ -36,6 +36,12 @@ class BacktestResultV2:
     diagnostics: pd.DataFrame = field(default_factory=pd.DataFrame)
     metadata: Dict = field(default_factory=dict)
 
+    def research_report(self, *, access, source_ref, **options):
+        """Read original WFO evidence without rerunning this result."""
+        from ..diagnostics import ResearchDecisionReport
+
+        return ResearchDecisionReport.from_result(self, access=access, source_ref=source_ref, **options)
+
     def __post_init__(self) -> None:
         if self.initial_capital <= 0.0:
             raise ValueError("initial_capital must be > 0")
@@ -63,23 +69,34 @@ class BacktestResultV2:
     def daily_returns(self) -> pd.Series:
         return self.daily_equity.pct_change().dropna()
 
-    def full_report(self, trading_days: int = 365, scope: str = "auto") -> Dict:
+    def full_report(self, trading_days: int = 365, scope: str = "auto", *, reporting=None) -> Dict:
         """Return the standard QuantBT metrics dictionary for this result."""
+        if reporting is not None:
+            from ..metrics.reporting.public import reporting_metadata
+            return reporting_metadata(self, reporting, scope=scope)
         from .scopes import scoped_result
         from ..metrics.performance import full_report
 
         return full_report(scoped_result(self, scope=scope), trading_days=trading_days)
 
-    def show_metrics(self, trading_days: int = 365, scope: str = "auto") -> Dict:
+    def show_metrics(self, trading_days: int = 365, scope: str = "auto", *, reporting=None) -> Dict:
         """Print a legacy-style metrics report and return the metrics dict."""
+        if reporting is not None:
+            from ..metrics.reporting.public import format_reporting_report
+            report = self.full_report(scope=scope, reporting=reporting)
+            print(format_reporting_report(report))
+            return report
         from ..endpoint import format_metrics_report
 
         report = self.full_report(trading_days=trading_days, scope=scope)
         print(format_metrics_report(report))
         return report
 
-    def quick_plot(self, theme: str = "dark", figsize: tuple = (14, 6), scope: str = "auto"):
+    def quick_plot(self, theme: str = "dark", figsize: tuple = (14, 6), scope: str = "auto", *, reporting=None):
         """Plot cumulative return and drawdown for this result."""
+        if reporting is not None:
+            from ..metrics.reporting.public import plot_completed_report
+            return plot_completed_report(self, reporting, scope=scope, theme=theme, figsize=figsize)
         from ..viz import quick_plot
 
         return quick_plot(self, theme=theme, figsize=figsize, scope=scope)
@@ -137,8 +154,17 @@ class BacktestScalarScoreResult:
     liquidation_bar: int = -1
     metadata: Mapping[str, object] = field(default_factory=dict)
 
-    def full_report(self, trading_days: int = 365, scope: str = "auto") -> Dict:
+    def research_report(self, *, access, source_ref, **options):
+        """Read retained WFO evidence; missing score-only evidence is explicit."""
+        from ..diagnostics import ResearchDecisionReport
+
+        return ResearchDecisionReport.from_result(self, access=access, source_ref=source_ref, **options)
+
+    def full_report(self, trading_days: int = 365, scope: str = "auto", *, reporting=None) -> Dict:
         """Return the immutable report captured by the score execution."""
+        if reporting is not None:
+            from ..metrics.reporting.public import reporting_metadata
+            return reporting_metadata(self, reporting, scope=scope)
         if str(scope).lower().strip() not in {"auto", "full"}:
             raise ValueError("BacktestScalarScoreResult supports scope='auto' or scope='full'")
         recorded_days = int(self.metadata.get("trading_days", trading_days))
@@ -152,6 +178,12 @@ class BacktestScalarScoreResult:
 
 @dataclass(frozen=True)
 class NativeAccountingArrays:
+    """Accounting paths with UTC epoch-nanosecond timestamps.
+
+    ``datetime_index`` reconstructs a UTC-aware clock, not local wall time.
+    Naive result clocks require the reporting convention ``naive_timezone='UTC'``.
+    """
+
     timestamps: np.ndarray
     equity: np.ndarray
     returns: np.ndarray
@@ -167,10 +199,30 @@ class NativeAccountingArrays:
     liquidation_bar: int = -1
 
     @classmethod
-    def from_result(cls, result: BacktestResultV2) -> "NativeAccountingArrays":
+    def from_result(
+        cls, result: BacktestResultV2, *, naive_timezone: str | None = None,
+    ) -> "NativeAccountingArrays":
+        index = result.equity.index
+        if not isinstance(index, pd.DatetimeIndex):
+            raise ValueError("accounting timestamps require an explicit DatetimeIndex")
+        if len(index) == 0 or index.hasnans:
+            raise ValueError("accounting timestamps must be nonempty and contain no NaT")
+        if naive_timezone not in {None, "UTC"}:
+            raise ValueError("only explicit naive_timezone='UTC' is supported")
+        if index.tz is None:
+            if naive_timezone != "UTC":
+                raise ValueError("naive timestamps require explicit naive_timezone='UTC'")
+            index = index.tz_localize("UTC")
+        # as_unit checks overflow instead of reinterpreting resolution-dependent integers.
+        index = index.tz_convert("UTC").as_unit("ns")
+        timestamps = index.asi8
+        if not bool(np.all(timestamps[1:] > timestamps[:-1])):
+            if not index.is_unique:
+                raise ValueError("accounting timestamps contain duplicate timestamps")
+            raise ValueError("accounting timestamps must be strictly increasing")
         position_cols = [f"Position_{symbol}" for symbol in result.symbols]
         return cls(
-            timestamps=result.equity.index.view("int64").copy(),
+            timestamps=timestamps.copy(),
             equity=result.equity.to_numpy(dtype=np.float64, copy=True),
             returns=result.returns.to_numpy(dtype=np.float64, copy=True),
             positions=result.positions[position_cols].to_numpy(dtype=np.float64, copy=True),
@@ -193,7 +245,7 @@ class NativeAccountingArrays:
 
     @property
     def datetime_index(self) -> pd.DatetimeIndex:
-        return pd.DatetimeIndex(self.timestamps)
+        return pd.DatetimeIndex(pd.to_datetime(self.timestamps, unit="ns", utc=True))
 
 
 @dataclass(frozen=True)
@@ -207,6 +259,12 @@ class NativeEventScoreResult:
     liquidation_bar: int
     metrics: Mapping[str, float]
     metadata: Mapping[str, object] = field(default_factory=dict)
+
+    def research_report(self, *, access, source_ref, **options):
+        """Read retained WFO evidence without account or callback execution."""
+        from ..diagnostics import ResearchDecisionReport
+
+        return ResearchDecisionReport.from_result(self, access=access, source_ref=source_ref, **options)
 
     @property
     def equity(self) -> np.ndarray:
@@ -236,7 +294,10 @@ class NativeEventScoreResult:
     def maintenance_margin(self) -> np.ndarray:
         return self.accounting.maintenance_margin
 
-    def full_report(self, trading_days: int = 365, scope: str = "auto") -> Dict:
+    def full_report(self, trading_days: int = 365, scope: str = "auto", *, reporting=None) -> Dict:
+        if reporting is not None:
+            from ..metrics.reporting.public import reporting_metadata
+            return reporting_metadata(self, reporting, scope=scope)
         if str(scope).lower().strip() not in {"auto", "full"}:
             raise ValueError("NativeEventScoreResult supports scope='auto' or scope='full'")
 
@@ -274,6 +335,12 @@ class NativeEventScalarScoreResult:
     liquidation_bar: int
     metrics: Mapping[str, float]
     metadata: Mapping[str, object] = field(default_factory=dict)
+
+    def research_report(self, *, access, source_ref, **options):
+        """Read retained WFO evidence; never invent discarded path data."""
+        from ..diagnostics import ResearchDecisionReport
+
+        return ResearchDecisionReport.from_result(self, access=access, source_ref=source_ref, **options)
 
     def _lifecycle_counter(self, name: str, default: int = 0) -> int:
         counters = self.metadata.get("lifecycle_counters", {})
@@ -313,13 +380,16 @@ class NativeEventScalarScoreResult:
     def total_turnover(self) -> float:
         return float(self.metadata.get("total_turnover", 0.0))
 
-    def full_report(self, trading_days: int = 365, scope: str = "auto") -> Dict:
+    def full_report(self, trading_days: int = 365, scope: str = "auto", *, reporting=None) -> Dict:
         """Return the online report captured for this score run.
 
         A scalar score has no path from which to recompute a different
         annualization convention.  Callers requesting a different
         ``trading_days`` value must rerun the score with that value.
         """
+        if reporting is not None:
+            from ..metrics.reporting.public import reporting_metadata
+            return reporting_metadata(self, reporting, scope=scope)
         if str(scope).lower().strip() not in {"auto", "full"}:
             raise ValueError("NativeEventScalarScoreResult supports scope='auto' or scope='full'")
         recorded_days = int(self.metadata.get("trading_days", trading_days))

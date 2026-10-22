@@ -8,6 +8,9 @@
 
 use std::sync::Arc;
 
+mod transaction;
+use transaction::BarTransaction;
+
 use crate::execution_model::{
     ExecutionClockStateV1, ExecutionModelPlanV1, ExecutionModelV1, FillCostInputV1, FillDecisionV1,
     LiquidityLedgerV1, MarketBarViewV1, OrderTouchViewV1,
@@ -20,7 +23,7 @@ use crate::orders::{ExternalOrderAliases, IndexOrderState, LifecycleIndexes, Ord
 use crate::output::{
     AuditRetentionV1, NativeAuditOutputV1, NativeCompactOutputV1, NativeEventOutputV1,
     NativeExecutionOutputV1, NativeFillOutputV1, NativePathOutputV1, NativeScoreOutputV1,
-    OutputRequirementsV1, StaticOutputProfile, StaticTapeOutput,
+    NativeTerminalStateOutputV1, OutputRequirementsV1, StaticOutputProfile, StaticTapeOutput,
 };
 use quantbt_domain::commands::{CommandTapeV5, OrderCommandV5};
 use quantbt_domain::ids::{ExternalOrderId, OrderHandle, SymbolId};
@@ -225,6 +228,7 @@ pub struct StepCounters {
     pub replace_count: i64,
     pub rejected_count: i64,
     pub canceled_count: i64,
+    pub canceled_event_count: i64,
 }
 
 #[derive(Default)]
@@ -232,6 +236,7 @@ pub struct FillBuffer {
     pub order_id: Vec<i64>,
     pub symbol: Vec<i64>,
     pub side: Vec<i64>,
+    pub order_type: Vec<i64>,
     pub qty: Vec<f64>,
     pub price: Vec<f64>,
     pub fee: Vec<f64>,
@@ -245,6 +250,7 @@ impl FillBuffer {
         self.order_id.clear();
         self.symbol.clear();
         self.side.clear();
+        self.order_type.clear();
         self.qty.clear();
         self.price.clear();
         self.fee.clear();
@@ -264,10 +270,12 @@ impl FillBuffer {
         fee: f64,
         reason: i64,
         ambiguity: i64,
+        order_type: i64,
     ) {
         self.order_id.push(order_id);
         self.symbol.push(symbol);
         self.side.push(side);
+        self.order_type.push(order_type);
         self.qty.push(qty);
         self.price.push(price);
         self.fee.push(fee);
@@ -489,6 +497,7 @@ impl StepBuffers {
                 self.fills.order_id.shrink_to(max_capacity);
                 self.fills.symbol.shrink_to(max_capacity);
                 self.fills.side.shrink_to(max_capacity);
+                self.fills.order_type.shrink_to(max_capacity);
                 self.fills.qty.shrink_to(max_capacity);
                 self.fills.price.shrink_to(max_capacity);
                 self.fills.fee.shrink_to(max_capacity);
@@ -535,6 +544,15 @@ pub enum DetailSink<'a> {
 }
 
 impl DetailSink<'_> {
+    fn last_reject_code(&self) -> i64 {
+        match self {
+            Self::CountOnly(_) => 0,
+            Self::Collect { buffers, .. } => {
+                buffers.events.reject_code.last().copied().unwrap_or(0)
+            }
+        }
+    }
+
     #[inline]
     pub fn event(
         &mut self,
@@ -548,12 +566,14 @@ impl DetailSink<'_> {
         match self {
             Self::CountOnly(counters) => {
                 counters.event_count += 1;
+                counters.canceled_event_count += i64::from(kind == EVENT_CANCEL);
                 if kind == EVENT_REPLACE {
                     counters.replace_count += 1;
                 }
             }
             Self::Collect { counters, buffers } => {
                 counters.event_count += 1;
+                counters.canceled_event_count += i64::from(kind == EVENT_CANCEL);
                 if kind == EVENT_REPLACE {
                     counters.replace_count += 1;
                 }
@@ -576,14 +596,15 @@ impl DetailSink<'_> {
         fee: f64,
         reason: i64,
         ambiguity: i64,
+        order_type: i64,
     ) {
         match self {
             Self::CountOnly(counters) => counters.fill_count += 1,
             Self::Collect { counters, buffers } => {
                 counters.fill_count += 1;
-                buffers
-                    .fills
-                    .push(order_id, symbol, side, qty, price, fee, reason, ambiguity);
+                buffers.fills.push(
+                    order_id, symbol, side, qty, price, fee, reason, ambiguity, order_type,
+                );
             }
         }
     }
@@ -679,8 +700,9 @@ impl FullMarketData {
 
 #[derive(Clone, Copy)]
 struct OrderState {
-    #[allow(dead_code)]
     command_index: usize,
+    /// Output-only static slot identity. It never participates in matching.
+    terminal_slot: Option<usize>,
     order_id: i64,
     symbol: u32,
     side: i8,
@@ -709,6 +731,123 @@ impl OrderState {
     }
 }
 
+struct StaticTerminalCaptureV1 {
+    output: NativeTerminalStateOutputV1,
+    current_slot: Option<usize>,
+    next_slot: usize,
+    bar: usize,
+}
+
+impl StaticTerminalCaptureV1 {
+    fn new(tape: &CommandTapeV5) -> Self {
+        let mut output = NativeTerminalStateOutputV1::default();
+        for bar in 0..tape.bars() {
+            for command in tape.commands_at(bar) {
+                output.sorted_index.push(output.command_index.len() as i64);
+                output.command_index.push(i64::from(command.command_index));
+                output.original_index.push(-1);
+                output.command_bar.push(bar as i64);
+                output.action.push(command.action as i64);
+                output.order_id.push(command.external_id.0);
+                output.target_id.push(command.target_id.0);
+                output
+                    .symbol
+                    .push(command.symbol.map_or(-1, |id| i64::from(id.0)));
+                output.side.push(command.side.map_or(0, |side| side as i64));
+                output
+                    .order_type
+                    .push(command.order_type.map_or(-1, |kind| kind as i64));
+                output.tif.push(command.tif.map_or(-1, |tif| tif as i64));
+                output.reduce_only.push(command.reduce_only);
+                output.parent_id.push(command.parent_id.0);
+                output.group_id.push(command.group_id);
+                output.oco_id.push(command.oco_id);
+                output
+                    .activation
+                    .push(command.activation.map_or(-1, |policy| policy as i64));
+                output
+                    .expires_bar
+                    .push(command.expire_bar.map_or(-1, i64::from));
+            }
+        }
+        let slots = tape.command_count();
+        output.status = vec![-1; slots];
+        output.reject_code = vec![0; slots];
+        output.processed = vec![false; slots];
+        output.working_state_available = vec![false; slots];
+        output.active = vec![false; slots];
+        output.waiting_parent = vec![false; slots];
+        output.trigger_armed = vec![false; slots];
+        output.qty_semantics = vec![0; slots];
+        output.qty = vec![f64::NAN; slots];
+        output.remaining_qty = vec![f64::NAN; slots];
+        output.price = vec![f64::NAN; slots];
+        output.trigger = vec![f64::NAN; slots];
+        output.event_kind = vec![-1; slots];
+        output.bar = vec![-1; slots];
+        output.canceled_order_count = vec![0; slots];
+        output.canceled_orders_by_bar = vec![0; tape.bars()];
+        Self {
+            output,
+            current_slot: None,
+            next_slot: 0,
+            bar: 0,
+        }
+    }
+
+    fn finish_command(&mut self, action: i64, rejected: bool, reject_code: i64, canceled: i64) {
+        let Some(slot) = self.current_slot.take() else {
+            return;
+        };
+        self.output.processed[slot] = true;
+        self.output.status[slot] = if rejected {
+            STATUS_REJECTED
+        } else if action == ACTION_PLACE || action == ACTION_REPLACE {
+            STATUS_PENDING
+        } else {
+            STATUS_FILLED
+        };
+        self.output.reject_code[slot] = if rejected { reject_code } else { 0 };
+        self.output.canceled_order_count[slot] = canceled;
+        if action == ACTION_CANCEL || action == ACTION_CANCEL_ALL {
+            self.output.qty_semantics[slot] = 2;
+            self.output.qty[slot] = canceled as f64;
+            self.output.remaining_qty[slot] = canceled as f64;
+        }
+    }
+
+    fn snapshot_order(
+        &mut self,
+        order: &OrderState,
+        status: i64,
+        event_kind: i64,
+        filled_qty: f64,
+        reject_code: i64,
+    ) {
+        let Some(slot) = order.terminal_slot else {
+            return;
+        };
+        let retired = event_kind >= 0;
+        self.output.command_index[slot] = order.command_index as i64;
+        self.output.working_state_available[slot] = true;
+        self.output.status[slot] = status;
+        self.output.reject_code[slot] = reject_code;
+        self.output.active[slot] = !retired && order.active;
+        self.output.waiting_parent[slot] = !retired && order.waiting_parent;
+        self.output.trigger_armed[slot] = order.trigger_armed;
+        self.output.qty_semantics[slot] = 1;
+        self.output.qty[slot] = order.qty;
+        self.output.remaining_qty[slot] = (order.qty - filled_qty).max(0.0);
+        self.output.price[slot] = order.price;
+        self.output.trigger[slot] = order.trigger;
+        self.output.event_kind[slot] = event_kind;
+        self.output.bar[slot] = self.bar as i64;
+        if status == STATUS_CANCELED && retired {
+            self.output.canceled_orders_by_bar[self.bar] += 1;
+        }
+    }
+}
+
 #[derive(Clone, Default)]
 pub struct FullStepResult {
     pub equity: f64,
@@ -726,6 +865,7 @@ pub struct FullStepResult {
     pub active_orders: Vec<Vec<f64>>,
     pub rejected_count: i64,
     pub canceled_count: i64,
+    pub canceled_event_count: i64,
     pub fill_count: i64,
     pub event_count: i64,
     pub replace_count: i64,
@@ -846,6 +986,8 @@ pub struct FullSession {
     // final event has reached the selected sink. It replaces the legacy
     // Vec<OrderState> + hot compaction path.
     orders: OrderArena<OrderState>,
+    /// Optional output sink for one static audit, not a second lifecycle owner.
+    terminal_capture: Option<Box<StaticTerminalCaptureV1>>,
     // The Python oracle resolves target_order_id through the latest command
     // slot, including the alias created by REPLACE. The bidirectional index
     // keeps that public behavior while terminal cleanup remains local to the
@@ -878,6 +1020,7 @@ pub struct FullSession {
     matching_scan_count: u64,
     relationship_scan_count: u64,
     last_bar: Option<usize>,
+    bar_transaction: Option<Box<BarTransaction>>,
     pub compaction_count: u64,
     pub terminal_orders_removed: u64,
 }
@@ -962,6 +1105,7 @@ impl FullSession {
             liquidation_bar: -1,
             liquidation_reason: LIQ_NONE,
             orders: OrderArena::new(DEFAULT_MAX_LIVE_ORDERS, DEFAULT_MAX_TOTAL_ORDERS),
+            terminal_capture: None,
             order_aliases: ExternalOrderAliases::default(),
             lifecycle_indexes: LifecycleIndexes::with_symbols(n_symbols),
             next_order_sequence: 0,
@@ -981,6 +1125,7 @@ impl FullSession {
             matching_scan_count: 0,
             relationship_scan_count: 0,
             last_bar: None,
+            bar_transaction: None,
             compaction_count: 0,
             terminal_orders_removed: 0,
         })
@@ -1001,12 +1146,14 @@ impl FullSession {
     }
 
     pub fn reset(&mut self) {
+        self.bar_transaction = None;
         self.positions.fill(0.0);
         self.equity = self.initial_capital;
         self.liquidated = false;
         self.liquidation_bar = -1;
         self.liquidation_reason = LIQ_NONE;
         self.orders.clear();
+        self.terminal_capture = None;
         self.order_aliases.clear();
         self.lifecycle_indexes.clear();
         self.next_order_sequence = 0;
@@ -1047,6 +1194,7 @@ impl FullSession {
     /// and callback coordinates without copying or replaying the tape prefix
     /// whose zero-position accounting cannot affect the fresh account.
     pub fn begin_fresh_at(&mut self, bar: usize) -> Result<(), String> {
+        self.ensure_no_bar_transaction()?;
         if bar >= self.n_bars() {
             return Err("fresh session start is outside the full prepared market tape".to_owned());
         }
@@ -1097,7 +1245,7 @@ impl FullSession {
                 "unsupported native-event contract code {contract_code}"
             ));
         }
-        if self.last_bar.is_some() {
+        if self.last_bar.is_some() || self.bar_transaction.is_some() {
             return Err("event contract cannot change after execution has started".to_owned());
         }
         self.event_contract_code = contract_code;
@@ -1113,7 +1261,7 @@ impl FullSession {
     /// intentionally rejected mid-run so one account trace can never mix
     /// cost/liquidity semantics across bars.
     pub fn set_execution_model(&mut self, model: ExecutionModelPlanV1) -> Result<(), String> {
-        if self.last_bar.is_some() {
+        if self.last_bar.is_some() || self.bar_transaction.is_some() {
             return Err("execution model cannot change after execution has started".to_owned());
         }
         self.execution_model = model;
@@ -1129,7 +1277,7 @@ impl FullSession {
     /// Freeze the standard metric policy before execution. Report formatting
     /// remains outside the session; this only controls native online scalars.
     pub fn set_metric_contract(&mut self, contract: MetricContractV2) -> Result<(), String> {
-        if self.last_bar.is_some() {
+        if self.last_bar.is_some() || self.bar_transaction.is_some() {
             return Err("metric contract cannot change after execution has started".to_owned());
         }
         // Reconstruct through the validated constructor so literal callers
@@ -1697,6 +1845,10 @@ impl FullSession {
         mut order: OrderState,
         aliases: &[i64],
     ) -> Result<OrderHandle, String> {
+        order.terminal_slot = self
+            .terminal_capture
+            .as_ref()
+            .and_then(|capture| capture.current_slot);
         let sequence = self.next_order_sequence;
         self.next_order_sequence = self
             .next_order_sequence
@@ -1721,10 +1873,24 @@ impl FullSession {
     /// O(1), updates every lifecycle index, and invalidates stale handles by
     /// incrementing its generation. There is no hot compaction pass.
     fn release_order(&mut self, handle: OrderHandle) -> Option<OrderState> {
+        self.release_order_with_terminal(handle, STATUS_CANCELED, EVENT_CANCEL, 0.0, 0)
+    }
+
+    fn release_order_with_terminal(
+        &mut self,
+        handle: OrderHandle,
+        status: i64,
+        event_kind: i64,
+        filled_qty: f64,
+        reject_code: i64,
+    ) -> Option<OrderState> {
         let order = self.orders.remove(handle).ok()?;
         self.lifecycle_indexes.remove(handle);
         self.order_aliases.release(handle);
         self.terminal_orders_removed += 1;
+        if let Some(capture) = self.terminal_capture.as_mut() {
+            capture.snapshot_order(&order, status, event_kind, filled_qty, reject_code);
+        }
         Some(order)
     }
 
@@ -1771,6 +1937,7 @@ impl FullSession {
         let active = code[11] == ACTIVATION_IMMEDIATE;
         OrderState {
             command_index: code[12].max(0) as usize,
+            terminal_slot: None,
             order_id: code[6],
             symbol: code[1] as u32,
             side: code[2] as i8,
@@ -2247,6 +2414,14 @@ impl FullSession {
         materialize_rows: bool,
         buffers: &mut StepBuffers,
     ) -> Result<FullStepResult, String> {
+        if self
+            .active_bar_transaction()
+            .is_some_and(|transaction_bar| transaction_bar != bar)
+        {
+            return Err(
+                "commit or abort the current bar transaction before another bar".to_owned(),
+            );
+        }
         buffers.clear();
         let mut counters = StepCounters::default();
         let collect_details = output_mask & (OUTPUT_FILLS | OUTPUT_EVENTS) != 0;
@@ -2381,7 +2556,7 @@ impl FullSession {
                 && order.expires_bar >= 0
                 && bar as i64 >= order.expires_bar
             {
-                self.release_order(handle);
+                self.release_order_with_terminal(handle, STATUS_CANCELED, EVENT_EXPIRE, 0.0, 0);
                 canceled += 1;
                 Self::add_event(
                     &mut sink,
@@ -2400,6 +2575,15 @@ impl FullSession {
             let action = code[0];
             let order_id = code[6];
             let target_id = code[7];
+            let rejected_before = rejected;
+            let canceled_before = self
+                .terminal_capture
+                .as_ref()
+                .map_or(0, |capture| capture.output.canceled_orders_by_bar[bar]);
+            if let Some(capture) = self.terminal_capture.as_mut() {
+                capture.current_slot = Some(capture.next_slot);
+                capture.next_slot += 1;
+            }
             match action {
                 ACTION_PLACE => {
                     if !Self::valid_order(code, value)
@@ -2416,6 +2600,9 @@ impl FullSession {
                             code[1],
                             REJECT_UNSUPPORTED_ORDER_TYPE,
                         );
+                        if let Some(capture) = self.terminal_capture.as_mut() {
+                            capture.finish_command(action, true, REJECT_UNSUPPORTED_ORDER_TYPE, 0);
+                        }
                         continue;
                     }
                     match self.insert_order(
@@ -2523,7 +2710,13 @@ impl FullSession {
                         if !aliases.contains(&order_id) {
                             aliases.push(order_id);
                         }
-                        self.release_order(handle);
+                        self.release_order_with_terminal(
+                            handle,
+                            STATUS_CANCELED,
+                            EVENT_REPLACE,
+                            0.0,
+                            0,
+                        );
                         if !Self::valid_order(code, value)
                             || code[1] < 0
                             || code[1] >= self.market.n_symbols as i64
@@ -2632,6 +2825,15 @@ impl FullSession {
                     );
                 }
             }
+            if let Some(capture) = self.terminal_capture.as_mut() {
+                let canceled_slots = capture.output.canceled_orders_by_bar[bar] - canceled_before;
+                capture.finish_command(
+                    action,
+                    rejected > rejected_before,
+                    sink.last_reject_code(),
+                    canceled_slots,
+                );
+            }
         }
 
         let mut fee_total = 0.0;
@@ -2689,7 +2891,13 @@ impl FullSession {
                     || (current > 0.0 && order.side as i64 == SIDE_BUY)
                     || (current < 0.0 && order.side as i64 == SIDE_SELL)
                 {
-                    self.release_order(handle);
+                    self.release_order_with_terminal(
+                        handle,
+                        STATUS_CANCELED,
+                        EVENT_CANCEL,
+                        0.0,
+                        REJECT_REDUCE_ONLY_NO_POSITION,
+                    );
                     canceled += 1;
                     Self::add_event_with_reject(
                         &mut sink,
@@ -2761,8 +2969,23 @@ impl FullSession {
             let old_initial = current.abs() * close * cs / self.leverages[symbol];
             let new_initial = (current + delta).abs() * exec_price * cs / self.leverages[symbol];
             let required = fee + (new_initial - old_initial).max(0.0);
-            if required > self.equity - cur_initial {
-                self.release_order(handle);
+            // A pure reduce-only fill releases collateral. Its fee must be
+            // affordable from fill-price equity, not pre-close free margin.
+            let pure_reduction =
+                order.reduce_only() && current * delta < 0.0 && delta.abs() <= current.abs();
+            let margin_allowed = if pure_reduction {
+                fee <= self.equity + delta * (close - exec_price) * cs
+            } else {
+                required <= self.equity - cur_initial
+            };
+            if !margin_allowed {
+                self.release_order_with_terminal(
+                    handle,
+                    STATUS_REJECTED,
+                    EVENT_REJECT,
+                    0.0,
+                    REJECT_INSUFFICIENT_MARGIN,
+                );
                 rejected += 1;
                 Self::add_event_with_reject(
                     &mut sink,
@@ -2799,6 +3022,7 @@ impl FullSession {
                 fee,
                 decision.reason,
                 decision.ambiguity,
+                i64::from(order.order_type),
             );
             Self::add_event(
                 &mut sink,
@@ -2812,7 +3036,7 @@ impl FullSession {
             canceled += self.cancel_oco_siblings(order.oco_id, order.order_id, &mut sink);
             if fill.partial {
                 if order.tif as i64 == TIF_IOC {
-                    self.release_order(handle);
+                    self.release_order_with_terminal(handle, STATUS_CANCELED, EVENT_CANCEL, qty, 0);
                     canceled += 1;
                     Self::add_event(
                         &mut sink,
@@ -2827,7 +3051,7 @@ impl FullSession {
                     order_mut.trigger_armed = decision.triggered;
                 }
             } else {
-                self.release_order(handle);
+                self.release_order_with_terminal(handle, STATUS_FILLED, EVENT_FILL, qty, 0);
             }
             cursor += 1;
         }
@@ -2884,6 +3108,7 @@ impl FullSession {
             active_orders: active_rows,
             rejected_count: rejected,
             canceled_count: canceled,
+            canceled_event_count: counters.canceled_event_count,
             fill_count,
             event_count,
             replace_count: counters.replace_count,
@@ -3005,6 +3230,7 @@ impl FullSession {
         command_count: usize,
         profile: StaticOutputProfile,
     ) -> Result<StaticTapeOutput, String> {
+        self.ensure_no_bar_transaction()?;
         if ptr.len() != self.n_bars() + 1
             || ptr.first().copied().unwrap_or(-1) != 0
             || ptr.last().copied().unwrap_or(-1) != command_count as i64
@@ -3207,6 +3433,7 @@ impl FullSession {
         tape: &CommandTapeV5,
         requirements: OutputRequirementsV1,
     ) -> Result<NativeExecutionOutputV1, String> {
+        self.ensure_no_bar_transaction()?;
         requirements.validate()?;
         if tape.bars() != self.n_bars() {
             return Err("typed command tape bars do not match prepared market".to_owned());
@@ -3228,10 +3455,21 @@ impl FullSession {
         let mut step_buffers = StepBuffers::default();
         let mut typed_scratch = TypedCommandScratch::with_capacity(8);
 
+        self.terminal_capture = requirements
+            .retain_detail
+            .then(|| Box::new(StaticTerminalCaptureV1::new(tape)));
+        let mut tape_offset = 0;
+
         for bar in 0..n_bars {
             // Preserve the frozen P0 bar-zero behavior: it is an initial
             // snapshot, not an executable command phase.
             let commands = if bar > 0 { tape.commands_at(bar) } else { &[] };
+            if let Some(capture) = self.terminal_capture.as_mut() {
+                capture.bar = bar;
+                capture.next_slot = tape_offset;
+                capture.current_slot = None;
+            }
+            tape_offset += tape.commands_at(bar).len();
             let step = self.step_typed_with_buffers(
                 bar,
                 commands,
@@ -3243,7 +3481,17 @@ impl FullSession {
                 false,
                 &mut step_buffers,
                 &mut typed_scratch,
-            )?;
+            );
+            let step = match step {
+                Ok(step) => step,
+                Err(error) => {
+                    self.terminal_capture = None;
+                    return Err(error);
+                }
+            };
+            if let Some(capture) = self.terminal_capture.as_mut() {
+                capture.output.canceled_event_count += step.canceled_event_count;
+            }
             if let Some(paths) = paths.as_mut() {
                 paths.equity.push(step.equity);
                 paths.positions.extend_from_slice(&self.positions);
@@ -3272,12 +3520,27 @@ impl FullSession {
             score.liquidated = step.liquidated;
             score.liquidation_bar = step.liquidation_bar;
             score.liquidation_reason = step.liquidation_reason;
-            metric_reducer.observe(
+            let observation = metric_reducer.observe(
                 self.timestamp_ns(bar),
                 step.equity,
                 self.gross_exposure(bar, step.equity),
-            )?;
+            );
+            if let Err(error) = observation {
+                self.terminal_capture = None;
+                return Err(error);
+            }
         }
+        // Each surviving owner slot is copied once, after the final bar. Retired
+        // slots were captured at removal, without retaining/replaying audit rows.
+        let terminal_state = self.terminal_capture.take().map(|capture| {
+            let mut capture = *capture;
+            for handle in self.lifecycle_indexes.live_priority_iter() {
+                if let Some(order) = self.orders.get(handle) {
+                    capture.snapshot_order(order, order.status, -1, 0.0, 0);
+                }
+            }
+            capture.output
+        });
         // This is the only final-position copy in a typed run. In particular,
         // score workloads no longer clone position state once per bar.
         score.final_positions = self.positions.clone();
@@ -3311,6 +3574,7 @@ impl FullSession {
                     events: events.expect("audit output requires event columns"),
                     detail_retention: detail_retention
                         .expect("audit output requires bounded detail retention"),
+                    terminal_state,
                 },
             ))),
         }
@@ -3351,6 +3615,7 @@ impl FullSession {
     where
         F: FnMut(usize, &FullSession, &mut Vec<OrderCommandV5>) -> Result<(), String>,
     {
+        self.ensure_no_bar_transaction()?;
         requirements.validate()?;
         let n_bars = self.n_bars();
         let n_symbols = self.market.n_symbols;
@@ -3456,6 +3721,7 @@ impl FullSession {
                     events: events.expect("audit output requires event columns"),
                     detail_retention: detail_retention
                         .expect("audit output requires bounded detail retention"),
+                    terminal_state: None,
                 }))
             }
         };
@@ -3513,6 +3779,7 @@ fn append_step_details_v1(
         fills.order_id.push(buffers.fills.order_id[index]);
         fills.symbol.push(buffers.fills.symbol[index]);
         fills.side.push(buffers.fills.side[index]);
+        fills.order_type.push(buffers.fills.order_type[index]);
         fills.qty.push(buffers.fills.qty[index]);
         fills.price.push(buffers.fills.price[index]);
         fills.fee.push(buffers.fills.fee[index]);
@@ -3566,6 +3833,7 @@ mod tests {
     fn order(order_type: i64, side: i64, price: f64, trigger: f64) -> OrderState {
         OrderState {
             command_index: 0,
+            terminal_slot: None,
             order_id: 1,
             symbol: 0,
             side: side as i8,
@@ -3689,6 +3957,61 @@ mod tests {
         code[6] = order_id;
         code[11] = ACTIVATION_IMMEDIATE;
         (code, [1.0, 0.0, 0.0])
+    }
+
+    #[test]
+    fn reduce_only_releases_margin_without_weakening_entry_gate() {
+        for (quantity, reduce_only, expected_position) in [
+            (10.0, true, -180.0),
+            (190.0, true, 0.0),
+            (1_000.0, true, 0.0),
+            (190.0, false, -190.0),
+            (300.0, false, -190.0),
+        ] {
+            let prices = vec![100.0, 100.0, 110.0, 110.0];
+            let market = FullMarketData::new(
+                vec![0, 1, 2, 3],
+                prices.clone(),
+                prices.clone(),
+                prices.clone(),
+                prices,
+                vec![10_000.0; 4],
+                vec![0.0; 4],
+                vec![false; 4],
+                1,
+            )
+            .unwrap();
+            let mut engine = FullSession::new(
+                Arc::new(market),
+                vec![1.0],
+                vec![1.0],
+                vec![0.0004],
+                20_000.0,
+                0.005,
+                0.0,
+                false,
+            )
+            .unwrap();
+            engine
+                .set_event_contract(CONTRACT_EVENT_LIFECYCLE_V3_NEXT_OPEN)
+                .unwrap();
+            engine.step(0, &[], &[], &[], 0).unwrap();
+            let (entry, mut entry_values) = place_market(1, SIDE_SELL);
+            entry_values[0] = 190.0;
+            engine.step(1, &entry, &entry_values, &[-1], 1).unwrap();
+            let (mut exit, mut exit_values) = place_market(2, SIDE_BUY);
+            exit[5] = i64::from(reduce_only);
+            exit_values[0] = quantity;
+            engine.step(2, &exit, &exit_values, &[-1], 1).unwrap();
+            assert!(!engine.liquidated);
+            assert_eq!(engine.positions[0], expected_position);
+            let fee = if reduce_only {
+                quantity.min(190.0) * 110.0 * 0.0004
+            } else {
+                0.0
+            };
+            assert!((engine.equity - (18_092.4 - fee)).abs() < 1e-9);
+        }
     }
 
     #[test]
@@ -4288,5 +4611,375 @@ mod tests {
             .unwrap();
         assert!(output.detail_retention().retained_rows <= 1);
         let _ = codes;
+    }
+
+    fn terminal_state_command(id: i64, index: u32) -> OrderCommandV5 {
+        use quantbt_domain::enums::*;
+        OrderCommandV5 {
+            action: CommandAction::Place,
+            symbol: Some(SymbolId(0)),
+            side: Some(Side::Buy),
+            order_type: Some(OrderType::Limit),
+            tif: Some(TimeInForce::Gtc),
+            reduce_only: false,
+            external_id: ExternalOrderId(id),
+            target_id: ExternalOrderId(-1),
+            parent_id: ExternalOrderId(-1),
+            group_id: -1,
+            oco_id: -1,
+            activation: Some(ActivationPolicy::Immediate),
+            command_index: index,
+            qty: 2.0,
+            limit_price: 1.0,
+            stop_price: 0.0,
+            expire_bar: None,
+        }
+    }
+
+    fn terminal_state_tape(bars: Vec<Vec<OrderCommandV5>>) -> CommandTapeV5 {
+        let mut offsets = vec![0];
+        let mut commands = Vec::new();
+        for bar in bars {
+            commands.extend(bar);
+            offsets.push(commands.len() as u32);
+        }
+        CommandTapeV5::new(offsets, commands).unwrap()
+    }
+
+    #[test]
+    fn terminal_state_v1_all_slots_keep_identity_and_actual_amended_working_state() {
+        use quantbt_domain::enums::*;
+        let large_id = (1_i64 << 53) + 1;
+        let skipped = terminal_state_command(99, 91);
+        let mut filled = terminal_state_command(large_id, 7);
+        filled.order_type = Some(OrderType::Market);
+        filled.qty = 1.0;
+        let mut waiting = terminal_state_command(large_id + 1, 27);
+        waiting.activation = Some(ActivationPolicy::OnParentFullFill);
+        waiting.parent_id = ExternalOrderId(999);
+        let live = terminal_state_command(large_id + 2, 7);
+        let mut rejected = terminal_state_command(5, 4);
+        rejected.action = CommandAction::Cancel;
+        rejected.target_id = ExternalOrderId(404);
+        let mut amend = terminal_state_command(6, 5);
+        amend.action = CommandAction::Amend;
+        amend.target_id = live.external_id;
+        amend.qty = 5.0;
+        amend.limit_price = 2.0;
+        amend.stop_price = 4.0;
+        let tape = terminal_state_tape(vec![
+            vec![skipped],
+            vec![filled, waiting, live, rejected],
+            vec![amend],
+        ]);
+        let mut engine = multi_bar_session(3);
+        let NativeExecutionOutputV1::Audit(audit) = engine
+            .run_typed_output_with_requirements_v1(
+                &tape,
+                OutputRequirementsV1::audit_with_detail_limit(0),
+            )
+            .unwrap()
+        else {
+            panic!("audit expected");
+        };
+        let state = audit.terminal_state.as_ref().unwrap();
+        assert_eq!(state.command_index, vec![91, 7, 27, 7, 4, 5]);
+        assert_eq!(state.sorted_index, vec![0, 1, 2, 3, 4, 5]);
+        assert_eq!(state.original_index, vec![-1; 6]);
+        assert_eq!(state.order_id[1], large_id);
+        assert_eq!(
+            state.status,
+            vec![
+                -1,
+                STATUS_FILLED,
+                STATUS_PENDING,
+                STATUS_PENDING,
+                STATUS_REJECTED,
+                STATUS_FILLED
+            ]
+        );
+        assert_eq!(state.processed, vec![false, true, true, true, true, true]);
+        assert_eq!(
+            state.working_state_available,
+            vec![false, true, true, true, false, false]
+        );
+        assert_eq!(state.active, vec![false, false, false, true, false, false]);
+        assert!(state.waiting_parent[2]);
+        assert_eq!(state.parent_id[2], 999);
+        assert_eq!(state.qty[3], 5.0);
+        assert_eq!(state.remaining_qty[1], 0.0);
+        assert_eq!(state.remaining_qty[3], 5.0);
+        assert_eq!(state.price[3], 2.0);
+        assert_eq!(state.trigger[3], 4.0);
+        assert!(state.price[0].is_nan() && state.remaining_qty[0].is_nan());
+        assert!(state.price[4].is_nan());
+        assert_eq!(state.qty_semantics[4], 2);
+        assert_eq!(state.qty[4], 0.0);
+        assert_eq!(state.remaining_qty[4], 0.0);
+        assert_eq!(state.canceled_order_count[4], 0);
+        assert_eq!(state.reject_code[4], REJECT_UNKNOWN_ORDER);
+        assert!(audit.fills.bar.is_empty() && audit.events.bar.is_empty());
+        assert!(audit.detail_retention.truncated());
+        assert!(engine.terminal_capture.is_none());
+        engine.validate_lifecycle_indexes().unwrap();
+    }
+
+    #[test]
+    fn terminal_state_v1_cancel_all_counts_slots_not_event_rows_and_controls_are_counters() {
+        use quantbt_domain::enums::*;
+        let first = terminal_state_command(10, 0);
+        let second = terminal_state_command(11, 1);
+        let mut waiting = terminal_state_command(12, 2);
+        waiting.activation = Some(ActivationPolicy::OnParentFirstFill);
+        waiting.parent_id = ExternalOrderId(99);
+        let mut cancel = terminal_state_command(100, 3);
+        cancel.action = CommandAction::CancelAll;
+        cancel.symbol = None;
+        cancel.side = None;
+        cancel.order_type = None;
+        let noop = OrderCommandV5 {
+            external_id: ExternalOrderId(101),
+            command_index: 4,
+            ..cancel
+        };
+        let tape = terminal_state_tape(vec![
+            vec![],
+            vec![first, second, waiting],
+            vec![cancel, noop],
+        ]);
+        let mut engine = multi_bar_session(3);
+        let audit = engine.run_typed_audit_v1(&tape).unwrap();
+        let state = audit.terminal_state.unwrap();
+        assert_eq!(
+            state.status,
+            vec![
+                STATUS_CANCELED,
+                STATUS_CANCELED,
+                STATUS_CANCELED,
+                STATUS_FILLED,
+                STATUS_FILLED
+            ]
+        );
+        assert!(state.active.iter().all(|value| !value));
+        assert!(state.waiting_parent.iter().all(|value| !value));
+        assert_eq!(state.canceled_orders_by_bar, vec![0, 0, 3]);
+        assert_eq!(state.canceled_event_count, 2);
+        assert_eq!(state.canceled_order_count, vec![0, 0, 0, 3, 0]);
+        assert_eq!(state.qty_semantics, vec![1, 1, 1, 2, 2]);
+        assert_eq!(state.qty[3], 3.0);
+        assert_eq!(state.remaining_qty[3], 3.0);
+        assert_eq!(state.qty[4], 0.0);
+        assert_eq!(audit.compact.score.canceled_count, 3);
+        assert_eq!(engine.orders_len(), 0);
+    }
+
+    #[test]
+    fn terminal_state_v1_replace_retirement_and_alias_cancel_preserve_frozen_scalar() {
+        use quantbt_domain::enums::*;
+        let original = terminal_state_command(10, 81);
+        let mut amend = terminal_state_command(20, 19);
+        amend.action = CommandAction::Amend;
+        amend.target_id = original.external_id;
+        amend.qty = 7.0;
+        amend.limit_price = 3.0;
+        amend.stop_price = 9.0;
+        let mut replace = terminal_state_command(11, 44);
+        replace.action = CommandAction::Replace;
+        replace.target_id = original.external_id;
+        replace.qty = 4.0;
+        let mut cancel = terminal_state_command(21, 93);
+        cancel.action = CommandAction::Cancel;
+        cancel.target_id = original.external_id;
+        let tape = terminal_state_tape(vec![
+            vec![],
+            vec![original],
+            vec![amend, replace],
+            vec![cancel],
+        ]);
+        let mut engine = multi_bar_session(4);
+        let audit = engine.run_typed_audit_v1(&tape).unwrap();
+        let state = audit.terminal_state.unwrap();
+        assert_eq!(
+            state.status,
+            vec![
+                STATUS_CANCELED,
+                STATUS_FILLED,
+                STATUS_CANCELED,
+                STATUS_FILLED
+            ]
+        );
+        assert_eq!(state.event_kind[0], EVENT_REPLACE);
+        assert_eq!(state.event_kind[2], EVENT_CANCEL);
+        assert_eq!(state.qty[0], 7.0);
+        assert_eq!(state.remaining_qty[0], 7.0);
+        assert_eq!(state.price[0], 3.0);
+        assert_eq!(state.trigger[0], 9.0);
+        assert_eq!(state.canceled_orders_by_bar, vec![0, 0, 1, 1]);
+        assert_eq!(state.canceled_order_count[2], 1);
+        assert_eq!(state.canceled_event_count, 1);
+        assert_eq!(audit.compact.score.canceled_count, 1);
+        assert_eq!(engine.orders_len(), 0);
+    }
+
+    #[test]
+    fn terminal_state_v1_oco_waiting_ioc_and_expiry_are_authoritative_with_zero_detail() {
+        use quantbt_domain::enums::*;
+        let mut filled = terminal_state_command(10, 0);
+        filled.order_type = Some(OrderType::Market);
+        filled.oco_id = 7;
+        let sibling = OrderCommandV5 {
+            oco_id: 7,
+            ..terminal_state_command(11, 1)
+        };
+        let mut waiting = OrderCommandV5 {
+            oco_id: 7,
+            ..terminal_state_command(12, 2)
+        };
+        waiting.parent_id = ExternalOrderId(999);
+        waiting.activation = Some(ActivationPolicy::OnParentFirstFill);
+        let mut expiring = terminal_state_command(13, 3);
+        expiring.tif = Some(TimeInForce::Gtd);
+        expiring.expire_bar = Some(2);
+        let mut ioc = terminal_state_command(14, 4);
+        ioc.tif = Some(TimeInForce::Ioc);
+        let tape = terminal_state_tape(vec![
+            vec![],
+            vec![filled, sibling, waiting, expiring, ioc],
+            vec![],
+        ]);
+        let mut engine = multi_bar_session(3);
+        let NativeExecutionOutputV1::Audit(audit) = engine
+            .run_typed_output_with_requirements_v1(
+                &tape,
+                OutputRequirementsV1::audit_with_detail_limit(0),
+            )
+            .unwrap()
+        else {
+            panic!("audit expected");
+        };
+        let state = audit.terminal_state.as_ref().unwrap();
+        assert_eq!(
+            state.status,
+            vec![
+                STATUS_FILLED,
+                STATUS_CANCELED,
+                STATUS_CANCELED,
+                STATUS_CANCELED,
+                STATUS_CANCELED
+            ]
+        );
+        assert_eq!(
+            state.event_kind,
+            vec![
+                EVENT_FILL,
+                EVENT_CANCEL,
+                EVENT_CANCEL,
+                EVENT_EXPIRE,
+                EVENT_CANCEL
+            ]
+        );
+        assert_eq!(state.canceled_orders_by_bar, vec![0, 3, 1]);
+        assert_eq!(state.canceled_event_count, 3);
+        assert_eq!(state.bar, vec![1, 1, 1, 2, 1]);
+        assert!(audit.events.kind.is_empty());
+        assert_eq!(audit.compact.score.canceled_count, 4);
+    }
+
+    #[test]
+    fn terminal_state_v1_partial_gtc_ioc_fok_and_triggered_stop_limit_preserve_owner_residuals() {
+        use quantbt_domain::enums::*;
+        for (tif, status, remaining, canceled) in [
+            (TimeInForce::Gtc, STATUS_PENDING, 0.5, 0),
+            (TimeInForce::Ioc, STATUS_CANCELED, 0.5, 1),
+            (TimeInForce::Fok, STATUS_CANCELED, 1.0, 1),
+        ] {
+            let mut market = terminal_state_command(42, 0);
+            market.order_type = Some(OrderType::Market);
+            market.tif = Some(tif);
+            market.qty = 1.0;
+            let mut stop_limit = terminal_state_command(43, 1);
+            stop_limit.order_type = Some(OrderType::StopLimit);
+            stop_limit.stop_price = 100.0;
+            let tape = terminal_state_tape(vec![vec![], vec![market, stop_limit]]);
+            let mut engine = limited_liquidity_session();
+            engine
+                .set_event_contract(CONTRACT_EVENT_LIFECYCLE_V3_NEXT_OPEN)
+                .unwrap();
+            let audit = engine.run_typed_audit_v1(&tape).unwrap();
+            let state = audit.terminal_state.as_ref().unwrap();
+            assert_eq!(state.status[0], status);
+            assert_eq!(
+                state.qty[0],
+                if tif == TimeInForce::Gtc { 0.5 } else { 1.0 }
+            );
+            assert_eq!(state.remaining_qty[0], remaining);
+            assert_eq!(state.active[0], tif == TimeInForce::Gtc);
+            assert!(state.active[1] && state.trigger_armed[1]);
+            assert_eq!(state.canceled_orders_by_bar, vec![0, canceled]);
+            assert!(
+                audit
+                    .fills
+                    .order_type
+                    .iter()
+                    .all(|kind| *kind == ORDER_MARKET)
+            );
+            engine.reset();
+            assert!(engine.terminal_capture.is_none());
+            let empty = terminal_state_tape(vec![vec![], vec![]]);
+            let reset = engine.run_typed_audit_v1(&empty).unwrap();
+            assert!(reset.terminal_state.unwrap().order_id.is_empty());
+        }
+    }
+
+    #[test]
+    fn terminal_state_v1_fill_types_and_score_compact_audit_financial_parity() {
+        use quantbt_domain::enums::*;
+        let mut commands = Vec::new();
+        for (index, kind) in [
+            OrderType::Market,
+            OrderType::Limit,
+            OrderType::StopMarket,
+            OrderType::StopLimit,
+        ]
+        .into_iter()
+        .enumerate()
+        {
+            let mut command = terminal_state_command(index as i64 + 100, index as u32);
+            command.order_type = Some(kind);
+            command.qty = 1.0;
+            command.limit_price = 300.0;
+            command.stop_price = 100.0;
+            commands.push(command);
+        }
+        let tape = terminal_state_tape(vec![vec![], commands]);
+        let mut score_engine = multi_bar_session(2);
+        let score = score_engine.run_typed_score_v1(&tape).unwrap();
+        assert!(score_engine.terminal_capture.is_none());
+        let mut compact_engine = multi_bar_session(2);
+        let compact = compact_engine.run_typed_compact_v1(&tape).unwrap();
+        assert!(compact_engine.terminal_capture.is_none());
+        let audit = multi_bar_session(2).run_typed_audit_v1(&tape).unwrap();
+        assert_eq!(audit.fills.order_type, vec![0, 1, 2, 3]);
+        assert_eq!(score.final_equity, compact.score.final_equity);
+        assert_eq!(score.final_equity, audit.compact.score.final_equity);
+        assert_eq!(score.final_positions, audit.compact.score.final_positions);
+        assert_eq!(score.total_fee, audit.compact.score.total_fee);
+        assert_eq!(score.fill_count, 4);
+        assert_eq!(score.event_count, audit.compact.score.event_count);
+        let NativeExecutionOutputV1::Audit(capped) = multi_bar_session(2)
+            .run_typed_output_with_requirements_v1(
+                &tape,
+                OutputRequirementsV1::audit_with_detail_limit(2),
+            )
+            .unwrap()
+        else {
+            panic!("audit expected");
+        };
+        assert_eq!(capped.fills.order_type, vec![0, 1]);
+        assert_eq!(
+            capped.terminal_state.unwrap().status,
+            vec![STATUS_FILLED; 4]
+        );
+        assert!(capped.detail_retention.truncated());
     }
 }

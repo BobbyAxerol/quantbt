@@ -544,6 +544,23 @@ single-objective early stopping
 
 Anti-leakage behavior remains locked by WFO regression tests.
 
+The QMS feature branch additionally reuses this factory for explicit WFO
+`optimization_config["sampler_config"]` recipes: legacy TPE, multivariate/group
+TPE, CMA-ES and Sobol. This option alone does not enable learning or change the
+existing schedule. Optional Mode-4 causal meta selection runs after the native
+search and before current outer-OOS execution. It uses compatible past matured
+labels, not current forward metrics. See [stable usage](meta_selection/USAGE.md),
+[search-space constraints and kwargs](meta_selection/SAMPLERS.md) and
+[private package qualification](meta_selection/QUALIFICATION.md). These additions
+are not yet part of published core 1.1.1/native 0.4.2.
+
+QMS-C04 additionally provides an opt-in
+[`ExactStudySession` journal](meta_selection/EXACT_CONTINUATION.md). This owned
+ask/tell utility reconstructs and checks sampler/pruner/duplicate state using
+recorded events; it does not change `OptunaOptimizer(storage=...)`, add an
+endpoint resume flag or import arbitrary serialized callbacks. Seed/database
+reload alone is still not exact continuation.
+
 ## Current Scope
 
 Supported prepared evaluators:

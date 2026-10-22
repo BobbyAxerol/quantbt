@@ -1,0 +1,99 @@
+{
+  "date_utc": "2026-10-21",
+  "baseline_commit": "6e900b5",
+  "disposition": "REVIEW_COMPLETE_FINDINGS_OPEN_NO_RUNTIME_REPAIR",
+  "suites": [
+    {
+      "receipt": "regression-01.xml",
+      "tests": 98,
+      "failures": 1
+    },
+    {
+      "receipt": "qualified-regression-02.xml",
+      "tests": 210,
+      "failures": 1
+    }
+  ],
+  "distinct_final_test_status": {
+    "pass": 271,
+    "fail": 1,
+    "error": 0,
+    "skip": 0
+  },
+  "retained_failed_receipts": [
+    "regression-01.xml",
+    "qualified-regression-02.xml"
+  ],
+  "native_qualified_status": {
+    "version": "0.4.3",
+    "compatible": true,
+    "reason": null
+  },
+  "native_artifact_sha256": [
+    "2959f5388c6a8e57bdef5a6dafe76da3624ef57dba379f7ca686e9bf202ad26b"
+  ],
+  "source_sha256": {
+    "src/quantbt/core/engine.py": "d9a8003c86290a854f740eec4040822b1c99a124528c582cae4bbc8d58a240f5",
+    "src/quantbt/backends/native_portfolio.py": "2bf87fd144945f4b9a28c7832761a820d3d093e48b18d5a71883037c4b9b1a6b",
+    "src/quantbt/portfolio.py": "a15abfcaa5930a8dde733309d705bff8b2f1707ab1bf962cc0a667b976a8cd84",
+    "src/quantbt/core/preprocessor.py": "676ca488602c43d1fd03b1ef46867323efb740ebb35e0940b0279935ac0c141d",
+    "src/quantbt/core/schema.py": "f3100f136858271f4e20ac900c0d455d10a34546ca54017a5af6742330780304",
+    "src/quantbt/engines.py": "56254b5c929e331b0be583d2479194fce5882bc4bcce2b348fec0d5d0813358b",
+    "rust/crates/quantbt-execution/src/target.rs": "a57966957d1f75a57bd46bc5c64c18856e8ce5df4dc620d71fe262c2372739bd"
+  },
+  "reproducer_sha256": "21bc9b7dd9399c33b890005533f9800640d6fdb9a48ef9b5ce2d0222b355d8ce",
+  "synthetic_receipt_sha256": {
+    "reproductions-01.json": "4da6d38a1b857bd386bd6279198c37964a192cc6df55777e7fff2657235dfe79",
+    "registration.json": "c3db31781e4abdbf04413da30f8f778d21f7b6d4e1ca0f2691c761b139c8452a",
+    "regression-01.xml": "1e60b6b4f783dc2e63f937c919099e54c93dfa00484d12131cc8df23177dcf46",
+    "metrics-01.json": "e7dc0bdd73f11c6fe1499b82ae3af4683e12bc177068c2e8f6378c49b7d9485c",
+    "qualified-regression-02.xml": "1dd8f21daf10463ff1c14437f1c0da44285aed95a64d7e64ac37ed900d66e200",
+    "reproductions-02.json": "eb8402a6a6abad2c87a8a4ec15cf0de82ccfb7d5036c887f53a5770747c5002f"
+  },
+  "peak_reproducer_rss_kib": 258000,
+  "synthetic_control_expected_equity": [
+    1000,
+    999.65,
+    1033.8,
+    1033.445
+  ],
+  "liquidation_reported_funding": [
+    0.0,
+    0.0,
+    10.0,
+    0.0
+  ],
+  "liquidation_equity_symbol_pnl_diff": -90.0,
+  "synchronous_pair_stress": {
+    "prices_low_high": [
+      70,
+      130
+    ],
+    "positions": [
+      5,
+      -5
+    ],
+    "initial_equity": 100,
+    "observed_equity": [
+      100,
+      100,
+      0
+    ],
+    "synchronous_path_equity": 100,
+    "maximum_synchronous_mm": 6.5
+  },
+  "cleanup": {
+    "exact_scratch": "upgrade/private/portfolio_account_review/attempt-01/scratch",
+    "absent": true,
+    "reviewed_file_allocated_bytes": 1744896,
+    "before_available_bytes": 6268338176,
+    "after_available_bytes": 6270103552,
+    "observed_shared_filesystem_delta_bytes": 1765376,
+    "protected_pin_count": 9,
+    "all_protected_pins_unchanged": true
+  },
+  "engine_source_changed": false,
+  "private_alpha_runs": 0,
+  "optimizer_runs": 0,
+  "build_install_ci_release": false
+}

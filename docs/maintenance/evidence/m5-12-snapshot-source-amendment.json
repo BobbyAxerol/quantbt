@@ -1,0 +1,38 @@
+{
+  "baseline_commit": "45fd6ec5bc0f2556ff024ffd1314469e06c0b07a",
+  "correction_scope": "Exactly three trailing constructor seals for continuous snapshot copy/pickle; preserve original observations, units, shape and execution",
+  "financial_numeric_source_unchanged": false,
+  "financial_rust_changed": false,
+  "financial_rust_unchanged": false,
+  "historical_financial_invariance_claim_reissued": false,
+  "native_artifacts_qualified": false,
+  "native_rebuild_required": false,
+  "native_source_unchanged_relative_to": "45fd6ec5bc0f2556ff024ffd1314469e06c0b07a",
+  "publication": false,
+  "schema": "quantbt.m5_12.snapshot_source.v1",
+  "scopes": [
+    "src",
+    "rust",
+    "pyproject.toml",
+    "uv.lock",
+    "contracts",
+    "upgrade/QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md"
+  ],
+  "source_commit": "bf3f919550a82ac97d6c4c81073a52880d5e3331",
+  "source_only": true,
+  "sources": {
+    "src/quantbt/mode5/continuous.py": {
+      "after_commit": "bf3f919550a82ac97d6c4c81073a52880d5e3331",
+      "after_sha256": "c760014a29f142df0d074fd4fa34b115f7c410c6e4c57c9436eec7fba75a3f81",
+      "before_commit": "45fd6ec5bc0f2556ff024ffd1314469e06c0b07a",
+      "before_sha256": "b523c17050a9b6af4fc1fc9acaee873eb77656299e437af50c06d71fdaf632ac"
+    },
+    "src/quantbt/mode5/continuous_retention.py": {
+      "after_commit": "bf3f919550a82ac97d6c4c81073a52880d5e3331",
+      "after_sha256": "5344963ca6b844f5113763508fe0bbdb0826ac6f24638030c46c9531d9ec39a4",
+      "before_commit": "45fd6ec5bc0f2556ff024ffd1314469e06c0b07a",
+      "before_sha256": "77b9ec03baca2963961f874703b83d266755f85242d61ff06d1b23c4ef17c825"
+    }
+  },
+  "version_bump": false
+}

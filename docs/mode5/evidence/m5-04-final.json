@@ -1,0 +1,87 @@
+{
+  "benchmark": {
+    "bars": 2000,
+    "cells": {
+      "cold_prepared_no_cache": {
+        "p50_seconds": 0.0014623430324718356,
+        "p95_seconds": 0.0019097805838100607,
+        "repeats": 25
+      },
+      "warm_exact_cache": {
+        "p50_seconds": 0.00023925298592075706,
+        "p95_seconds": 0.00039433462079614386,
+        "repeats": 25
+      }
+    },
+    "interpretation": "no general kernel/WFO/economic speedup claim",
+    "p50_identical_query_reuse_ratio": 6.112120301629916,
+    "pairs": 25,
+    "retained_synthetic_payload_bytes": 128710
+  },
+  "ci_push_publication": false,
+  "cleanup": {
+    "free_bytes": 25313468416,
+    "reclaimed_bytes": 6094848,
+    "retained_payload_bytes": 680184,
+    "scratch_bytes": 4565380
+  },
+  "comparison_cells": {
+    "T1": 60,
+    "T2": 16,
+    "baseline": 80
+  },
+  "compiled_native_sha256": "ae43be6e2187e57fcd6a8e8f59e0689172ca24ca5efed27651894c1e7ab1b56a",
+  "date": "2026-10-09",
+  "evidence_hashes": {
+    "cleanup_receipt.json": "901e49cbc81a33be330c2e1e99ff677e3575b6aacafa3a80911c5b770ec8e685",
+    "contracts-06.json": "1ae0825d83879454c1659e3d9ef6bce40d5bf3c65f0bea27acb751903b01b800",
+    "native_extension_addendum.json": "6477b0d746ed6f0fef9c3e0d30a6d7a08977b109d3917c74abeaee22fc68c6d0",
+    "regression-01.json": "ed164550fd402f0667e2bcc68bce8146ea432ecb39713b373fa6db0a275013fe",
+    "report.json": "3818fe34e235455db39b0f11015bb1934b06107d03d9a0f239f54bf7203eb4fd",
+    "report.md": "ef5a3f4df5e8830fc20af397dec4dc31ee97177d098a287ff4a8a23ca41d1f93",
+    "review-02.json": "1e3f1885a50fadf820c3a84c102678f96ceafa7858704bd9a37e86e9aea82dd3",
+    "technical_closure.json": "73b8007beef2e29fd4541f3444ac85403172588d038d6854892e6ecdc340509b"
+  },
+  "evidence_limits": [
+    "historical full adaptive paths absent from masters",
+    "RSI original campaign/separate-cost streams absent"
+  ],
+  "guide_acceptance_ids": [
+    "M5T-031",
+    "M5T-032",
+    "M5T-033",
+    "M5T-034",
+    "M5T-035",
+    "M5T-036",
+    "M5T-037",
+    "M5T-038",
+    "M5T-039",
+    "M5T-040"
+  ],
+  "implementation_source_sha": "783994afa5c932546164f56af52c23fbc7bcb9cb",
+  "next_phase": "M5-05 separate approval",
+  "optimizer_trials": 0,
+  "phase": "M5-04",
+  "phase_source_hashes": 12,
+  "private_alpha_simulations": 0,
+  "private_content_published": false,
+  "protected_hashes": 743,
+  "release_artifact_certified": false,
+  "retained_alpha_paths": 5,
+  "retained_hashes_at_cleanup": 48,
+  "schema": "quantbt.mode5_upgrade.technical_seal.v1",
+  "scientific": "DESCRIPTIVE_ONLY",
+  "source_unchanged": true,
+  "status": "COMPLETE_LOCAL_REUSE",
+  "supersedes": "m5-04.json; retained historical attempt-01",
+  "technical": "TECHNICALLY_VALID",
+  "tests": {
+    "actual_rust_python_score_retention_parity": true,
+    "failed": 0,
+    "new_passed": 47,
+    "optuna_experimental_warnings": 3,
+    "skipped": 0,
+    "source_regression_passed": 981
+  },
+  "unresolved_implementation_debt": []
+}

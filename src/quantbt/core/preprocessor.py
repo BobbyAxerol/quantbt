@@ -46,7 +46,7 @@ def validate_datetime(dt_input) -> pd.DatetimeIndex:
         idx = idx.tz_localize("UTC")
     else:
         idx = idx.tz_convert("UTC")
-    return idx
+    return idx.as_unit("ns")
 
 
 def align_series(
@@ -82,6 +82,7 @@ def align_series(
             s = pd.Series(s, index=idx)
         else:
             # ensure UTC
+            s = s.copy(deep=False)
             if isinstance(s.index, pd.DatetimeIndex):
                 if s.index.tz is None:
                     s.index = s.index.tz_localize("UTC")
@@ -100,7 +101,25 @@ def prepare_funding(
     symbols: list,
     idx: pd.DatetimeIndex,
 ) -> Dict[str, pd.Series]:
-    """Build per-symbol funding-rate series aligned to idx."""
+    """Align rates, summing all default 8h events in each carried interval.
+
+    Settlement belongs to (previous timestamp, current timestamp]. The kernel
+    values the carried position at the current close; this does not reconstruct
+    intrabar position/mark changes. Explicit event APIs own those finer clocks.
+    """
+    idx = pd.DatetimeIndex(idx)
+    if idx.tz is None:
+        idx = idx.tz_localize("UTC")
+    else:
+        idx = idx.tz_convert("UTC")
+    ns = idx.as_unit("ns").asi8
+    if idx.hasnans or (len(ns) > 1 and np.any(np.diff(ns) <= 0)):
+        raise ValueError("funding calendar must be valid, unique and increasing")
+    step = 8 * 3_600_000_000_000
+    events = (np.arange(ns[0] // step + 1, ns[-1] // step + 1, dtype=np.int64) * step
+              if len(ns) > 1 else np.empty(0, dtype=np.int64))
+    event_index = pd.to_datetime(events, utc=True)
+    event_bars = np.searchsorted(ns, events, side="left")
     out: Dict[str, pd.Series] = {}
     for sym in symbols:
         if isinstance(fr_input, dict):
@@ -115,34 +134,65 @@ def prepare_funding(
         else:
             val = fr_input
 
-        if isinstance(val, (float, int)):
-            out[sym] = pd.Series(float(val), index=idx)
+        if val is None or np.isscalar(val):
+            rate = 0.0 if val is None else float(val)
+            if not np.isfinite(rate):
+                raise ValueError("funding rates must be finite")
+            aligned = pd.Series(rate, index=idx)
+            event_rates = np.full(len(events), rate)
         else:
-            if isinstance(val.index, pd.DatetimeIndex):
-                if val.index.tz is None:
-                    val.index = val.index.tz_localize("UTC")
-                else:
-                    val.index = val.index.tz_convert("UTC")
-            out[sym] = val.reindex(idx, method="ffill").fillna(0.0)
+            source = val.copy(deep=False)
+            source.index = pd.DatetimeIndex(source.index)
+            source.index = (source.index.tz_localize("UTC") if source.index.tz is None
+                            else source.index.tz_convert("UTC"))
+            source = source[~source.index.duplicated(keep="last")].sort_index()
+            aligned = source.reindex(idx, method="ffill").fillna(0.0)
+            event_rates = source.reindex(event_index, method="ffill").fillna(0.0).to_numpy(dtype=float)
+            if not np.isfinite(aligned.to_numpy(dtype=float)).all() or not np.isfinite(event_rates).all():
+                raise ValueError("funding rates must be finite")
+        if len(events):
+            values = aligned.to_numpy(dtype=float, copy=True)
+            sums = np.bincount(event_bars, weights=event_rates, minlength=len(idx))
+            bars = np.unique(event_bars)
+            values[bars] = sums[bars]
+            aligned = pd.Series(values, index=idx)
+        out[sym] = aligned
 
     return out
 
 
 def make_funding_mask(idx: pd.DatetimeIndex) -> np.ndarray:
     """
-    Boolean mask: True on the FIRST bar that enters each funding window.
-    Windows are [00:00, 08:00, 16:00) UTC.  Works for any bar frequency.
+    True when an interval crosses at least one UTC 00/08/16 funding event.
 
-    Compared to np.isin(hour, [0,8,16]) this fires exactly once per window
-    instead of once per bar within the hour.
+    ``prepare_funding`` aggregates multiple event rates for coarse/gapped bars.
+    The first bar is the initial state and has no carried-position settlement.
     """
-    hours = idx.hour.to_numpy()
+    index = pd.DatetimeIndex(idx)
+    index = index.tz_localize("UTC") if index.tz is None else index.tz_convert("UTC")
+    windows = index.as_unit("ns").asi8 // (8 * 3_600_000_000_000)
     mask  = np.zeros(len(idx), dtype=np.bool_)
-    funding_hours = {0, 8, 16}
-    for i in range(1, len(idx)):
-        if hours[i] in funding_hours and hours[i] != hours[i - 1]:
-            mask[i] = True
+    mask[1:] = windows[1:] != windows[:-1]
     return mask
+
+
+def build_tradable_matrix(closes, idx, symbols, market_closes, *, max_stale_bars=0):
+    """Keep carried valuation prices separate from permission to execute."""
+    out = np.isfinite(market_closes) & (market_closes > 0.0)
+    if closes is None:
+        return np.ascontiguousarray(out, dtype=np.bool_)
+    max_stale = max(0, int(max_stale_bars))
+    for j, symbol in enumerate(symbols):
+        raw = closes[symbol] if isinstance(closes, dict) else closes
+        raw = raw.copy(deep=False) if isinstance(raw, pd.Series) else pd.Series(raw, index=idx)
+        raw.index = pd.DatetimeIndex(raw.index)
+        raw.index = raw.index.tz_localize("UTC") if raw.index.tz is None else raw.index.tz_convert("UTC")
+        observed = raw[~raw.index.duplicated(keep="first")].reindex(idx).to_numpy(dtype=float)
+        stale = max_stale + 1
+        for i in range(len(idx)):
+            stale = 0 if np.isfinite(observed[i]) and observed[i] > 0.0 else stale + 1
+            out[i, j] = bool(out[i, j] and stale <= max_stale)
+    return np.ascontiguousarray(out, dtype=np.bool_)
 
 
 def build_arrays(
@@ -204,7 +254,8 @@ def build_market_arrays(
     funding = np.zeros((n, s), dtype=np.float64)
 
     for k, sym in enumerate(symbols):
-        c_ser = closes_dict[sym].fillna(0)
+        raw_close = closes_dict[sym]
+        c_ser = raw_close.where(np.isfinite(raw_close) & (raw_close > 0.0)).ffill().fillna(0.0)
         c     = c_ser.values
         closes[:, k]  = c
         # fillna with close series (same index), then extract values

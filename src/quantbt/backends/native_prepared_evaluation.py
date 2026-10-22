@@ -38,6 +38,7 @@ _CANCELED = "canceled"
 _FAILED = "failed"
 _STATUS_BY_CODE = {0: _SUCCESS, 1: _CANCELED, 2: _FAILED}
 _CERTIFIED_ANNUALIZATION = 365
+_PCT_EQUITY_ACTIVITY_V1 = "accepted_qty_position_states_v1"
 
 
 class NativePreparedWorkloadV1(str, Enum):
@@ -86,6 +87,7 @@ class NativeEvaluationMetricContractV1:
     trading_days: int = _CERTIFIED_ANNUALIZATION
     scope: str = "fold"
     native_metric_contract_version: int = 2
+    zero_base_return_policy: str = "native_skip_zero_base_v1"
     required_fields: tuple[str, ...] = (
         "final_equity",
         "total_fee",
@@ -115,19 +117,24 @@ class NativeEvaluationMetricContractV1:
             )
         if str(self.scope).lower().strip() not in {"fold", "scenario", "full"}:
             raise ValueError("metric scope must be fold, scenario, or full")
+        if self.zero_base_return_policy not in {"native_skip_zero_base_v1", "legacy_zero_base_v1"}:
+            raise NotImplementedError("unsupported prepared zero-base return policy")
         if not self.required_fields or any(not str(value).strip() for value in self.required_fields):
             raise ValueError("metric required_fields must contain non-empty names")
 
     @property
     def fingerprint(self) -> str:
-        payload = json.dumps(
-            {
+        fields = {
                 "contract_id": str(self.contract_id),
                 "trading_days": int(self.trading_days),
                 "scope": str(self.scope).lower().strip(),
                 "native_metric_contract_version": int(self.native_metric_contract_version),
                 "required_fields": tuple(str(value) for value in self.required_fields),
-            },
+            }
+        if self.zero_base_return_policy != "native_skip_zero_base_v1":
+            fields["zero_base_return_policy"] = self.zero_base_return_policy
+        payload = json.dumps(
+            fields,
             sort_keys=True,
             separators=(",", ":"),
         ).encode("utf-8")
@@ -265,6 +272,7 @@ class NativePreparedScoreColumnsV1:
     error_slot: np.ndarray
     errors: tuple[str, ...]
     metadata: Mapping[str, object]
+    metric_support: Mapping[str, np.ndarray] | None = None
 
     def index_by_scenario(self) -> Mapping[int, int]:
         """Return a small boundary lookup after validating unique scenarios."""
@@ -323,6 +331,7 @@ class NativePreparedEvaluationRuntimeV1:
             raise ValueError("prepared evaluation requires at least one worker")
         budget.require_preflight(bars=1, workers=int(plan.rust_workers))
         native = cache._native()
+        self._pct_activity = getattr(native, "PCT_EQUITY_ACCEPTED_QTY_ACTIVITY_V1", None)
         core_type = getattr(native, "NativePreparedEvaluationRuntimeCore", None)
         if core_type is None:
             raise RuntimeError(
@@ -390,6 +399,8 @@ class NativePreparedEvaluationRuntimeV1:
             raise ValueError(
                 f"prepared workload {kind.value!r} cannot bind request workload {request.workload!r}"
             )
+        if kind is NativePreparedWorkloadV1.PCT_EQUITY_TRANSITION and self._pct_activity != _PCT_EQUITY_ACTIVITY_V1:
+            raise NotImplementedError("PCT_EQUITY_ACTIVITY_SUPPORT_MISSING: prepared pct scoring requires a native wheel with accepted quantity position-state activity")
         identifiers = (candidate_id, fold_id, scenario_id)
         if any(isinstance(value, bool) or int(value) < 0 for value in identifiers):
             raise ValueError("candidate_id, fold_id, and scenario_id must be non-negative integers")
@@ -413,6 +424,9 @@ class NativePreparedEvaluationRuntimeV1:
                 "belongs to a separately versioned execution contract"
             )
         metrics = metric_contract or NativeEvaluationMetricContractV1()
+        actual_policy = getattr(request.core, "metric_zero_base_policy", "native_skip_zero_base_v1")
+        if actual_policy != metrics.zero_base_return_policy:
+            raise ValueError("prepared request and metric zero-base policies differ")
         cost = int(estimated_cost) if estimated_cost is not None else max(1, int(request.request_bytes))
         if cost <= 0:
             raise ValueError("estimated_cost must be > 0")
@@ -435,6 +449,7 @@ class NativePreparedEvaluationRuntimeV1:
             evaluation_end=end,
             account_policy=policy,
             metric_contract=metrics.fingerprint,
+            **({"engine_semantic_build": self._pct_activity} if kind is NativePreparedWorkloadV1.PCT_EQUITY_TRANSITION else {}),
         )
         return NativePreparedEvaluationBindingV1(
             request=request,
@@ -500,6 +515,8 @@ class NativePreparedEvaluationRuntimeV1:
     def evaluate_score_columns(
         self,
         bindings: Sequence[NativePreparedEvaluationBindingV1],
+        *,
+        metric_support: bool = False,
     ) -> NativePreparedScoreColumnsV1:
         """Execute one batch through the scalar-only Rust/Python boundary.
 
@@ -540,6 +557,10 @@ class NativePreparedEvaluationRuntimeV1:
                     "install a matching native wheel or use the explicit compatibility scorer"
                 )
             raw_columns = score_columns()
+            support = None
+            if metric_support:
+                from .native_metric_support import extract_prepared_metric_support_v1
+                support = extract_prepared_metric_support_v1(matrix, len(entries))
             errors = tuple(str(value) for value in matrix.errors())
             return _adapt_native_score_columns(
                 entries,
@@ -548,6 +569,7 @@ class NativePreparedEvaluationRuntimeV1:
                 native_bytes=native_bytes,
                 execution_seconds=(perf_counter_ns() - started) / 1_000_000_000.0,
                 runtime=self,
+                metric_support=support,
             )
         finally:
             with self._lock:
@@ -776,6 +798,7 @@ def _adapt_native_score_columns(
     native_bytes: int,
     execution_seconds: float,
     runtime: NativePreparedEvaluationRuntimeV1,
+    metric_support=None,
 ) -> NativePreparedScoreColumnsV1:
     """Validate the compact score boundary without materializing row objects.
 
@@ -841,6 +864,7 @@ def _adapt_native_score_columns(
         report_trade_count=columns["report_trade_count"],
         error_slot=columns["error_slot"],
         errors=errors,
+        metric_support=metric_support,
         metadata={
             "runtime": "native_prepared_evaluation_v1",
             "native_runtime": native["native_runtime"],

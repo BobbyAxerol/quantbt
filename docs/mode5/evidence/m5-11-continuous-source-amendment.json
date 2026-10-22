@@ -1,0 +1,19 @@
+{
+  "schema": "mode5.continuous.source_amendment.v1",
+  "entry": "1507eeccc0bcb4199eebc14ed981f9e9f4e93a6a",
+  "scope": "Exact additive opt-in continuous dispatch and cold account observation; historical reset-flat baseline unchanged",
+  "existing": {
+    "src/quantbt/endpoint.py": "a9448dfacad5fa8fdb2799ca6b51ed6baedc1ce6315b8ddfcfeec6d47779ba1e",
+    "src/quantbt/walkforward.py": "de8717318555dfab4b02fecccef2c467dd41873105eeb78739ff06a36af0b919",
+    "src/quantbt/mode5/__init__.py": "23dfabb788673a6373bc61e4c6dc7788915d8aba95a592de2f068efa874e7f05"
+  },
+  "new": {
+    "src/quantbt/mode5/continuous.py": "9801cadabc635d2a35fb2a734c7d72a895d2935a8aed2f034fa9debf66ab66cf",
+    "src/quantbt/mode5/continuous_binding.py": "d90b6aefb9605193449a21994f20828d4ebd360fe5a86dd1b0978dd62953d261",
+    "src/quantbt/mode5/continuous_producer.py": "e25bcc912a9075d2c918f67b1d6a4b22714d1e0d700d3e800508fbafc508fc4e",
+    "src/quantbt/mode5/continuous_runtime.py": "ed08f9ac5256b5a8bd41540e99e124b7571af40af3074a5e78cf0f85b39390a2"
+  },
+  "financial_requalification": false,
+  "scientific_thresholds_changed": false,
+  "pre_hook_source_preservation_sha256": "97e68f6f66e19de153478f195564fea4d48163aa53c334bbb4ee45c5a7e0857d"
+}

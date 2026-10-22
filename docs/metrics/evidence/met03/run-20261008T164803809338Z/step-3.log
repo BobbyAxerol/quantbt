@@ -1,0 +1,1315 @@
+running egg_info
+creating src/quantbt_engine.egg-info
+writing src/quantbt_engine.egg-info/PKG-INFO
+writing dependency_links to src/quantbt_engine.egg-info/dependency_links.txt
+writing requirements to src/quantbt_engine.egg-info/requires.txt
+writing top-level names to src/quantbt_engine.egg-info/top_level.txt
+writing manifest file 'src/quantbt_engine.egg-info/SOURCES.txt'
+reading manifest file 'src/quantbt_engine.egg-info/SOURCES.txt'
+reading manifest template 'MANIFEST.in'
+adding license file 'LICENSE'
+writing manifest file 'src/quantbt_engine.egg-info/SOURCES.txt'
+running bdist_wheel
+running build
+running build_py
+creating build/lib/quantbt
+copying src/quantbt/endpoint.py -> build/lib/quantbt
+copying src/quantbt/portfolio.py -> build/lib/quantbt
+copying src/quantbt/walkforward.py -> build/lib/quantbt
+copying src/quantbt/engines.py -> build/lib/quantbt
+copying src/quantbt/__init__.py -> build/lib/quantbt
+copying src/quantbt/backtester.py -> build/lib/quantbt
+copying src/quantbt/errors.py -> build/lib/quantbt
+copying src/quantbt/wfo_execution.py -> build/lib/quantbt
+creating build/lib/quantbt/api
+copying src/quantbt/api/event_driven.py -> build/lib/quantbt/api
+copying src/quantbt/api/__init__.py -> build/lib/quantbt/api
+creating build/lib/quantbt/verification
+copying src/quantbt/verification/__init__.py -> build/lib/quantbt/verification
+copying src/quantbt/verification/canonical_trace_v2.py -> build/lib/quantbt/verification
+creating build/lib/quantbt/viz
+copying src/quantbt/viz/themes.py -> build/lib/quantbt/viz
+copying src/quantbt/viz/__init__.py -> build/lib/quantbt/viz
+copying src/quantbt/viz/plots.py -> build/lib/quantbt/viz
+creating build/lib/quantbt/engine_spi
+copying src/quantbt/engine_spi/native_event.py -> build/lib/quantbt/engine_spi
+copying src/quantbt/engine_spi/__init__.py -> build/lib/quantbt/engine_spi
+copying src/quantbt/engine_spi/protocol.py -> build/lib/quantbt/engine_spi
+copying src/quantbt/engine_spi/errors.py -> build/lib/quantbt/engine_spi
+copying src/quantbt/engine_spi/registry.py -> build/lib/quantbt/engine_spi
+creating build/lib/quantbt/planning
+copying src/quantbt/planning/models.py -> build/lib/quantbt/planning
+copying src/quantbt/planning/capabilities.py -> build/lib/quantbt/planning
+copying src/quantbt/planning/__init__.py -> build/lib/quantbt/planning
+copying src/quantbt/planning/output.py -> build/lib/quantbt/planning
+copying src/quantbt/planning/fingerprints.py -> build/lib/quantbt/planning
+copying src/quantbt/planning/resolve.py -> build/lib/quantbt/planning
+creating build/lib/quantbt/metrics
+copying src/quantbt/metrics/__init__.py -> build/lib/quantbt/metrics
+copying src/quantbt/metrics/report_contracts.py -> build/lib/quantbt/metrics
+copying src/quantbt/metrics/performance.py -> build/lib/quantbt/metrics
+copying src/quantbt/metrics/options_analytics.py -> build/lib/quantbt/metrics
+creating build/lib/quantbt/options
+copying src/quantbt/options/ledger.py -> build/lib/quantbt/options
+copying src/quantbt/options/packages.py -> build/lib/quantbt/options
+copying src/quantbt/options/data.py -> build/lib/quantbt/options
+copying src/quantbt/options/conventions.py -> build/lib/quantbt/options
+copying src/quantbt/options/iv.py -> build/lib/quantbt/options
+copying src/quantbt/options/surface.py -> build/lib/quantbt/options
+copying src/quantbt/options/cache.py -> build/lib/quantbt/options
+copying src/quantbt/options/pricing.py -> build/lib/quantbt/options
+copying src/quantbt/options/selectors.py -> build/lib/quantbt/options
+copying src/quantbt/options/capabilities.py -> build/lib/quantbt/options
+copying src/quantbt/options/schema.py -> build/lib/quantbt/options
+copying src/quantbt/options/__init__.py -> build/lib/quantbt/options
+copying src/quantbt/options/hedging.py -> build/lib/quantbt/options
+copying src/quantbt/options/margin.py -> build/lib/quantbt/options
+copying src/quantbt/options/reporting.py -> build/lib/quantbt/options
+copying src/quantbt/options/authority.py -> build/lib/quantbt/options
+copying src/quantbt/options/fees.py -> build/lib/quantbt/options
+copying src/quantbt/options/lifecycle.py -> build/lib/quantbt/options
+copying src/quantbt/options/greeks.py -> build/lib/quantbt/options
+copying src/quantbt/options/execution.py -> build/lib/quantbt/options
+copying src/quantbt/options/strategy.py -> build/lib/quantbt/options
+copying src/quantbt/options/tape.py -> build/lib/quantbt/options
+creating build/lib/quantbt/core
+copying src/quantbt/core/constraints.py -> build/lib/quantbt/core
+copying src/quantbt/core/wfo_preparation.py -> build/lib/quantbt/core
+copying src/quantbt/core/preprocessor.py -> build/lib/quantbt/core
+copying src/quantbt/core/execution_contract.py -> build/lib/quantbt/core
+copying src/quantbt/core/performance_contracts.py -> build/lib/quantbt/core
+copying src/quantbt/core/instrument_contracts.py -> build/lib/quantbt/core
+copying src/quantbt/core/certification.py -> build/lib/quantbt/core
+copying src/quantbt/core/native_event_capabilities.py -> build/lib/quantbt/core
+copying src/quantbt/core/structured_orders.py -> build/lib/quantbt/core
+copying src/quantbt/core/target_intents.py -> build/lib/quantbt/core
+copying src/quantbt/core/portfolio.py -> build/lib/quantbt/core
+copying src/quantbt/core/engine.py -> build/lib/quantbt/core
+copying src/quantbt/core/event.py -> build/lib/quantbt/core
+copying src/quantbt/core/event_contracts.py -> build/lib/quantbt/core
+copying src/quantbt/core/_trace_columns.py -> build/lib/quantbt/core
+copying src/quantbt/core/intrabar_session.py -> build/lib/quantbt/core
+copying src/quantbt/core/execution_trace.py -> build/lib/quantbt/core
+copying src/quantbt/core/native_event_promotion.py -> build/lib/quantbt/core
+copying src/quantbt/core/basket.py -> build/lib/quantbt/core
+copying src/quantbt/core/research_audit_artifact.py -> build/lib/quantbt/core
+copying src/quantbt/core/arbitrage.py -> build/lib/quantbt/core
+copying src/quantbt/core/package_execution_v2.py -> build/lib/quantbt/core
+copying src/quantbt/core/schema.py -> build/lib/quantbt/core
+copying src/quantbt/core/__init__.py -> build/lib/quantbt/core
+copying src/quantbt/core/accounting_contracts.py -> build/lib/quantbt/core
+copying src/quantbt/core/prepared_execution_v2.py -> build/lib/quantbt/core
+copying src/quantbt/core/instrument_registry_v2.py -> build/lib/quantbt/core
+copying src/quantbt/core/intrabar_reference.py -> build/lib/quantbt/core
+copying src/quantbt/core/orders.py -> build/lib/quantbt/core
+copying src/quantbt/core/native_event_parity.py -> build/lib/quantbt/core
+copying src/quantbt/core/runtime_governance.py -> build/lib/quantbt/core
+copying src/quantbt/core/delivery_lifecycle.py -> build/lib/quantbt/core
+copying src/quantbt/core/portfolio_execution_contracts.py -> build/lib/quantbt/core
+copying src/quantbt/core/vectorized.py -> build/lib/quantbt/core
+copying src/quantbt/core/types.py -> build/lib/quantbt/core
+copying src/quantbt/core/product_contracts.py -> build/lib/quantbt/core
+copying src/quantbt/core/intrabar_kernel.py -> build/lib/quantbt/core
+copying src/quantbt/core/execution_depth.py -> build/lib/quantbt/core
+copying src/quantbt/core/native_result_v2.py -> build/lib/quantbt/core
+copying src/quantbt/core/order_compiler.py -> build/lib/quantbt/core
+copying src/quantbt/core/reactive.py -> build/lib/quantbt/core
+copying src/quantbt/core/generated_native_event_contracts.py -> build/lib/quantbt/core
+copying src/quantbt/core/package_execution_contracts.py -> build/lib/quantbt/core
+copying src/quantbt/core/market_calendar_v2.py -> build/lib/quantbt/core
+copying src/quantbt/core/scopes.py -> build/lib/quantbt/core
+copying src/quantbt/core/market_tape.py -> build/lib/quantbt/core
+copying src/quantbt/core/results.py -> build/lib/quantbt/core
+copying src/quantbt/core/generated_product_contracts.py -> build/lib/quantbt/core
+copying src/quantbt/core/research_audit.py -> build/lib/quantbt/core
+copying src/quantbt/core/wfo_contracts.py -> build/lib/quantbt/core
+copying src/quantbt/core/fill_replay_v2.py -> build/lib/quantbt/core
+copying src/quantbt/core/wfo_evaluation.py -> build/lib/quantbt/core
+creating build/lib/quantbt/preparation
+copying src/quantbt/preparation/models.py -> build/lib/quantbt/preparation
+copying src/quantbt/preparation/native_event.py -> build/lib/quantbt/preparation
+copying src/quantbt/preparation/native_intrabar_requests.py -> build/lib/quantbt/preparation
+copying src/quantbt/preparation/cache.py -> build/lib/quantbt/preparation
+copying src/quantbt/preparation/__init__.py -> build/lib/quantbt/preparation
+copying src/quantbt/preparation/native_package_requests.py -> build/lib/quantbt/preparation
+copying src/quantbt/preparation/native_target_requests.py -> build/lib/quantbt/preparation
+copying src/quantbt/preparation/native_execution.py -> build/lib/quantbt/preparation
+creating build/lib/quantbt/strategies
+copying src/quantbt/strategies/commands.py -> build/lib/quantbt/strategies
+copying src/quantbt/strategies/wfo_prepared.py -> build/lib/quantbt/strategies
+copying src/quantbt/strategies/driver.py -> build/lib/quantbt/strategies
+copying src/quantbt/strategies/__init__.py -> build/lib/quantbt/strategies
+copying src/quantbt/strategies/native_ir.py -> build/lib/quantbt/strategies
+copying src/quantbt/strategies/reactive_wfo.py -> build/lib/quantbt/strategies
+copying src/quantbt/strategies/reactive_protocols.py -> build/lib/quantbt/strategies
+copying src/quantbt/strategies/requirements.py -> build/lib/quantbt/strategies
+copying src/quantbt/strategies/context.py -> build/lib/quantbt/strategies
+creating build/lib/quantbt/reporting
+copying src/quantbt/reporting/arbitrage_audit.py -> build/lib/quantbt/reporting
+copying src/quantbt/reporting/portfolio_audit.py -> build/lib/quantbt/reporting
+copying src/quantbt/reporting/__init__.py -> build/lib/quantbt/reporting
+copying src/quantbt/reporting/portfolio_nautilus.py -> build/lib/quantbt/reporting
+copying src/quantbt/reporting/nautilus_diagnostics.py -> build/lib/quantbt/reporting
+copying src/quantbt/reporting/parity.py -> build/lib/quantbt/reporting
+copying src/quantbt/reporting/nautilus_certification.py -> build/lib/quantbt/reporting
+copying src/quantbt/reporting/nautilus_bundle.py -> build/lib/quantbt/reporting
+creating build/lib/quantbt/results
+copying src/quantbt/results/raw.py -> build/lib/quantbt/results
+copying src/quantbt/results/__init__.py -> build/lib/quantbt/results
+creating build/lib/quantbt/backends
+copying src/quantbt/backends/native_metric_support.py -> build/lib/quantbt/backends
+copying src/quantbt/backends/native_option.py -> build/lib/quantbt/backends
+copying src/quantbt/backends/native_event.py -> build/lib/quantbt/backends
+copying src/quantbt/backends/native_wfo_support.py -> build/lib/quantbt/backends
+copying src/quantbt/backends/_native_event_rust.py -> build/lib/quantbt/backends
+copying src/quantbt/backends/native_portfolio.py -> build/lib/quantbt/backends
+copying src/quantbt/backends/native_intrabar_rust.py -> build/lib/quantbt/backends
+copying src/quantbt/backends/reactive_wfo_batch.py -> build/lib/quantbt/backends
+copying src/quantbt/backends/native_portfolio_package.py -> build/lib/quantbt/backends
+copying src/quantbt/backends/__init__.py -> build/lib/quantbt/backends
+copying src/quantbt/backends/native_package_arbitrage.py -> build/lib/quantbt/backends
+copying src/quantbt/backends/reactive_wfo_batch_selection.py -> build/lib/quantbt/backends
+copying src/quantbt/backends/reactive_wfo.py -> build/lib/quantbt/backends
+copying src/quantbt/backends/reactive_wfo_workers.py -> build/lib/quantbt/backends
+copying src/quantbt/backends/native_wfo.py -> build/lib/quantbt/backends
+copying src/quantbt/backends/reactive_wfo_support.py -> build/lib/quantbt/backends
+copying src/quantbt/backends/native_prepared_evaluation.py -> build/lib/quantbt/backends
+copying src/quantbt/backends/native_vectorized.py -> build/lib/quantbt/backends
+copying src/quantbt/backends/reactive_wfo_sampling.py -> build/lib/quantbt/backends
+copying src/quantbt/backends/native_wfo_target.py -> build/lib/quantbt/backends
+copying src/quantbt/backends/native_wfo_public.py -> build/lib/quantbt/backends
+copying src/quantbt/backends/native_strategy_ir.py -> build/lib/quantbt/backends
+copying src/quantbt/backends/reactive_wfo_preparation.py -> build/lib/quantbt/backends
+creating build/lib/quantbt/benchmarks
+copying src/quantbt/benchmarks/run_phase12_benchmark_nautilus_cert.py -> build/lib/quantbt/benchmarks
+copying src/quantbt/benchmarks/profile_phase7.py -> build/lib/quantbt/benchmarks
+copying src/quantbt/benchmarks/run_phase14_service_loop.py -> build/lib/quantbt/benchmarks
+copying src/quantbt/benchmarks/run_phase7.py -> build/lib/quantbt/benchmarks
+copying src/quantbt/benchmarks/gamma_scalping_backtestsample.py -> build/lib/quantbt/benchmarks
+copying src/quantbt/benchmarks/run_phase49b_wfo_performance.py -> build/lib/quantbt/benchmarks
+copying src/quantbt/benchmarks/run_phase34b_native_event_prepared_score.py -> build/lib/quantbt/benchmarks
+copying src/quantbt/benchmarks/run_phase12_arbitrage_cert.py -> build/lib/quantbt/benchmarks
+copying src/quantbt/benchmarks/compare_phase9_parity.py -> build/lib/quantbt/benchmarks
+copying src/quantbt/benchmarks/__init__.py -> build/lib/quantbt/benchmarks
+copying src/quantbt/benchmarks/run_phase15a_nautilus_certification.py -> build/lib/quantbt/benchmarks
+copying src/quantbt/benchmarks/run_phase34c_native_event_single_pass.py -> build/lib/quantbt/benchmarks
+copying src/quantbt/benchmarks/v1_1_measurement.py -> build/lib/quantbt/benchmarks
+copying src/quantbt/benchmarks/run_phase16_performance_debt.py -> build/lib/quantbt/benchmarks
+copying src/quantbt/benchmarks/run_pct_equity_nautilus_smoke.py -> build/lib/quantbt/benchmarks
+copying src/quantbt/benchmarks/run_phase13_portfolio_report.py -> build/lib/quantbt/benchmarks
+copying src/quantbt/benchmarks/run_phase15b_synthetic_depth.py -> build/lib/quantbt/benchmarks
+copying src/quantbt/benchmarks/run_phase30e_reactive_runner.py -> build/lib/quantbt/benchmarks
+copying src/quantbt/benchmarks/run_portfolio_real_parity.py -> build/lib/quantbt/benchmarks
+copying src/quantbt/benchmarks/run_phase13_wfo_cache.py -> build/lib/quantbt/benchmarks
+copying src/quantbt/benchmarks/run_phase34a_native_event_memory.py -> build/lib/quantbt/benchmarks
+copying src/quantbt/benchmarks/run_options_engine.py -> build/lib/quantbt/benchmarks
+copying src/quantbt/benchmarks/run_optimization_overhead.py -> build/lib/quantbt/benchmarks
+copying src/quantbt/benchmarks/run_phase31_intrabar.py -> build/lib/quantbt/benchmarks
+copying src/quantbt/benchmarks/run_arbitrage_phase_e.py -> build/lib/quantbt/benchmarks
+creating build/lib/quantbt/optimization
+copying src/quantbt/optimization/constraints.py -> build/lib/quantbt/optimization
+copying src/quantbt/optimization/representatives.py -> build/lib/quantbt/optimization
+copying src/quantbt/optimization/multiseed.py -> build/lib/quantbt/optimization
+copying src/quantbt/optimization/conditional_sobol.py -> build/lib/quantbt/optimization
+copying src/quantbt/optimization/candidate_selection.py -> build/lib/quantbt/optimization
+copying src/quantbt/optimization/parameter_space.py -> build/lib/quantbt/optimization
+copying src/quantbt/optimization/objectives.py -> build/lib/quantbt/optimization
+copying src/quantbt/optimization/optimizer.py -> build/lib/quantbt/optimization
+copying src/quantbt/optimization/callbacks.py -> build/lib/quantbt/optimization
+copying src/quantbt/optimization/__init__.py -> build/lib/quantbt/optimization
+copying src/quantbt/optimization/sampler_space.py -> build/lib/quantbt/optimization
+copying src/quantbt/optimization/config.py -> build/lib/quantbt/optimization
+copying src/quantbt/optimization/result.py -> build/lib/quantbt/optimization
+copying src/quantbt/optimization/bootstrap.py -> build/lib/quantbt/optimization
+copying src/quantbt/optimization/wfo_study.py -> build/lib/quantbt/optimization
+copying src/quantbt/optimization/evaluator.py -> build/lib/quantbt/optimization
+copying src/quantbt/optimization/space.py -> build/lib/quantbt/optimization
+copying src/quantbt/optimization/samplers.py -> build/lib/quantbt/optimization
+creating build/lib/quantbt/sizing
+copying src/quantbt/sizing/modes.py -> build/lib/quantbt/sizing
+copying src/quantbt/sizing/__init__.py -> build/lib/quantbt/sizing
+copying src/quantbt/sizing/fast.py -> build/lib/quantbt/sizing
+creating build/lib/quantbt/adapters
+copying src/quantbt/adapters/__init__.py -> build/lib/quantbt/adapters
+creating build/lib/quantbt/metrics/reporting
+copying src/quantbt/metrics/reporting/ledger.py -> build/lib/quantbt/metrics/reporting
+copying src/quantbt/metrics/reporting/drawdown.py -> build/lib/quantbt/metrics/reporting
+copying src/quantbt/metrics/reporting/request.py -> build/lib/quantbt/metrics/reporting
+copying src/quantbt/metrics/reporting/ledger_inputs.py -> build/lib/quantbt/metrics/reporting
+copying src/quantbt/metrics/reporting/account.py -> build/lib/quantbt/metrics/reporting
+copying src/quantbt/metrics/reporting/cache.py -> build/lib/quantbt/metrics/reporting
+copying src/quantbt/metrics/reporting/adapters.py -> build/lib/quantbt/metrics/reporting
+copying src/quantbt/metrics/reporting/__init__.py -> build/lib/quantbt/metrics/reporting
+copying src/quantbt/metrics/reporting/plot.py -> build/lib/quantbt/metrics/reporting
+copying src/quantbt/metrics/reporting/results.py -> build/lib/quantbt/metrics/reporting
+copying src/quantbt/metrics/reporting/inputs.py -> build/lib/quantbt/metrics/reporting
+copying src/quantbt/metrics/reporting/execution.py -> build/lib/quantbt/metrics/reporting
+copying src/quantbt/metrics/reporting/snapshots.py -> build/lib/quantbt/metrics/reporting
+copying src/quantbt/metrics/reporting/public.py -> build/lib/quantbt/metrics/reporting
+creating build/lib/quantbt/options/templates
+copying src/quantbt/options/templates/packages.py -> build/lib/quantbt/options/templates
+copying src/quantbt/options/templates/__init__.py -> build/lib/quantbt/options/templates
+creating build/lib/quantbt/optimization/continuation
+copying src/quantbt/optimization/continuation/contract.py -> build/lib/quantbt/optimization/continuation
+copying src/quantbt/optimization/continuation/storage.py -> build/lib/quantbt/optimization/continuation
+copying src/quantbt/optimization/continuation/__init__.py -> build/lib/quantbt/optimization/continuation
+copying src/quantbt/optimization/continuation/session.py -> build/lib/quantbt/optimization/continuation
+creating build/lib/quantbt/optimization/evaluators
+copying src/quantbt/optimization/evaluators/options.py -> build/lib/quantbt/optimization/evaluators
+copying src/quantbt/optimization/evaluators/portfolio.py -> build/lib/quantbt/optimization/evaluators
+copying src/quantbt/optimization/evaluators/native_event.py -> build/lib/quantbt/optimization/evaluators
+copying src/quantbt/optimization/evaluators/grid_dca.py -> build/lib/quantbt/optimization/evaluators
+copying src/quantbt/optimization/evaluators/arbitrage.py -> build/lib/quantbt/optimization/evaluators
+copying src/quantbt/optimization/evaluators/generic.py -> build/lib/quantbt/optimization/evaluators
+copying src/quantbt/optimization/evaluators/intrabar.py -> build/lib/quantbt/optimization/evaluators
+copying src/quantbt/optimization/evaluators/__init__.py -> build/lib/quantbt/optimization/evaluators
+copying src/quantbt/optimization/evaluators/signal.py -> build/lib/quantbt/optimization/evaluators
+creating build/lib/quantbt/optimization/meta_selection
+copying src/quantbt/optimization/meta_selection/reactive_batch_witness.py -> build/lib/quantbt/optimization/meta_selection
+copying src/quantbt/optimization/meta_selection/witness.py -> build/lib/quantbt/optimization/meta_selection
+copying src/quantbt/optimization/meta_selection/prepared.py -> build/lib/quantbt/optimization/meta_selection
+copying src/quantbt/optimization/meta_selection/reactive_transport.py -> build/lib/quantbt/optimization/meta_selection
+copying src/quantbt/optimization/meta_selection/selection.py -> build/lib/quantbt/optimization/meta_selection
+copying src/quantbt/optimization/meta_selection/records.py -> build/lib/quantbt/optimization/meta_selection
+copying src/quantbt/optimization/meta_selection/common.py -> build/lib/quantbt/optimization/meta_selection
+copying src/quantbt/optimization/meta_selection/capture.py -> build/lib/quantbt/optimization/meta_selection
+copying src/quantbt/optimization/meta_selection/telemetry.py -> build/lib/quantbt/optimization/meta_selection
+copying src/quantbt/optimization/meta_selection/numerics.py -> build/lib/quantbt/optimization/meta_selection
+copying src/quantbt/optimization/meta_selection/__init__.py -> build/lib/quantbt/optimization/meta_selection
+copying src/quantbt/optimization/meta_selection/nested.py -> build/lib/quantbt/optimization/meta_selection
+copying src/quantbt/optimization/meta_selection/descriptors.py -> build/lib/quantbt/optimization/meta_selection
+copying src/quantbt/optimization/meta_selection/persistence.py -> build/lib/quantbt/optimization/meta_selection
+copying src/quantbt/optimization/meta_selection/model.py -> build/lib/quantbt/optimization/meta_selection
+copying src/quantbt/optimization/meta_selection/artifacts.py -> build/lib/quantbt/optimization/meta_selection
+copying src/quantbt/optimization/meta_selection/config.py -> build/lib/quantbt/optimization/meta_selection
+copying src/quantbt/optimization/meta_selection/runtime.py -> build/lib/quantbt/optimization/meta_selection
+copying src/quantbt/optimization/meta_selection/panel.py -> build/lib/quantbt/optimization/meta_selection
+copying src/quantbt/optimization/meta_selection/observer.py -> build/lib/quantbt/optimization/meta_selection
+copying src/quantbt/optimization/meta_selection/reactive.py -> build/lib/quantbt/optimization/meta_selection
+copying src/quantbt/optimization/meta_selection/work_cache.py -> build/lib/quantbt/optimization/meta_selection
+copying src/quantbt/optimization/meta_selection/handoff.py -> build/lib/quantbt/optimization/meta_selection
+copying src/quantbt/optimization/meta_selection/history.py -> build/lib/quantbt/optimization/meta_selection
+copying src/quantbt/optimization/meta_selection/reactive_execution.py -> build/lib/quantbt/optimization/meta_selection
+copying src/quantbt/optimization/meta_selection/memo.py -> build/lib/quantbt/optimization/meta_selection
+creating build/lib/quantbt/optimization/meta_selection/domains
+copying src/quantbt/optimization/meta_selection/domains/portfolio.py -> build/lib/quantbt/optimization/meta_selection/domains
+copying src/quantbt/optimization/meta_selection/domains/base.py -> build/lib/quantbt/optimization/meta_selection/domains
+copying src/quantbt/optimization/meta_selection/domains/scalar_contract.py -> build/lib/quantbt/optimization/meta_selection/domains
+copying src/quantbt/optimization/meta_selection/domains/package.py -> build/lib/quantbt/optimization/meta_selection/domains
+copying src/quantbt/optimization/meta_selection/domains/__init__.py -> build/lib/quantbt/optimization/meta_selection/domains
+copying src/quantbt/optimization/meta_selection/domains/portfolio_witness.py -> build/lib/quantbt/optimization/meta_selection/domains
+copying src/quantbt/optimization/meta_selection/domains/portfolio_contract.py -> build/lib/quantbt/optimization/meta_selection/domains
+copying src/quantbt/optimization/meta_selection/domains/contracts.py -> build/lib/quantbt/optimization/meta_selection/domains
+copying src/quantbt/optimization/meta_selection/domains/scalar.py -> build/lib/quantbt/optimization/meta_selection/domains
+copying src/quantbt/optimization/meta_selection/domains/reactive.py -> build/lib/quantbt/optimization/meta_selection/domains
+copying src/quantbt/optimization/meta_selection/domains/registry.py -> build/lib/quantbt/optimization/meta_selection/domains
+copying src/quantbt/optimization/meta_selection/domains/execution.py -> build/lib/quantbt/optimization/meta_selection/domains
+copying src/quantbt/optimization/meta_selection/domains/package_contract.py -> build/lib/quantbt/optimization/meta_selection/domains
+creating build/lib/quantbt/adapters/nautilus
+copying src/quantbt/adapters/nautilus/_dependency.py -> build/lib/quantbt/adapters/nautilus
+copying src/quantbt/adapters/nautilus/options.py -> build/lib/quantbt/adapters/nautilus
+copying src/quantbt/adapters/nautilus/reports.py -> build/lib/quantbt/adapters/nautilus
+copying src/quantbt/adapters/nautilus/instruments.py -> build/lib/quantbt/adapters/nautilus
+copying src/quantbt/adapters/nautilus/__init__.py -> build/lib/quantbt/adapters/nautilus
+copying src/quantbt/adapters/nautilus/backend.py -> build/lib/quantbt/adapters/nautilus
+running egg_info
+writing src/quantbt_engine.egg-info/PKG-INFO
+writing dependency_links to src/quantbt_engine.egg-info/dependency_links.txt
+writing requirements to src/quantbt_engine.egg-info/requires.txt
+writing top-level names to src/quantbt_engine.egg-info/top_level.txt
+reading manifest file 'src/quantbt_engine.egg-info/SOURCES.txt'
+reading manifest template 'MANIFEST.in'
+adding license file 'LICENSE'
+writing manifest file 'src/quantbt_engine.egg-info/SOURCES.txt'
+copying src/quantbt/py.typed -> build/lib/quantbt
+installing to build/bdist.linux-x86_64/wheel
+running install
+running install_lib
+creating build/bdist.linux-x86_64/wheel
+creating build/bdist.linux-x86_64/wheel/quantbt
+creating build/bdist.linux-x86_64/wheel/quantbt/api
+copying build/lib/quantbt/api/event_driven.py -> build/bdist.linux-x86_64/wheel/./quantbt/api
+copying build/lib/quantbt/api/__init__.py -> build/bdist.linux-x86_64/wheel/./quantbt/api
+copying build/lib/quantbt/endpoint.py -> build/bdist.linux-x86_64/wheel/./quantbt
+creating build/bdist.linux-x86_64/wheel/quantbt/verification
+copying build/lib/quantbt/verification/__init__.py -> build/bdist.linux-x86_64/wheel/./quantbt/verification
+copying build/lib/quantbt/verification/canonical_trace_v2.py -> build/bdist.linux-x86_64/wheel/./quantbt/verification
+copying build/lib/quantbt/portfolio.py -> build/bdist.linux-x86_64/wheel/./quantbt
+copying build/lib/quantbt/walkforward.py -> build/bdist.linux-x86_64/wheel/./quantbt
+copying build/lib/quantbt/py.typed -> build/bdist.linux-x86_64/wheel/./quantbt
+copying build/lib/quantbt/engines.py -> build/bdist.linux-x86_64/wheel/./quantbt
+copying build/lib/quantbt/__init__.py -> build/bdist.linux-x86_64/wheel/./quantbt
+creating build/bdist.linux-x86_64/wheel/quantbt/viz
+copying build/lib/quantbt/viz/themes.py -> build/bdist.linux-x86_64/wheel/./quantbt/viz
+copying build/lib/quantbt/viz/__init__.py -> build/bdist.linux-x86_64/wheel/./quantbt/viz
+copying build/lib/quantbt/viz/plots.py -> build/bdist.linux-x86_64/wheel/./quantbt/viz
+creating build/bdist.linux-x86_64/wheel/quantbt/engine_spi
+copying build/lib/quantbt/engine_spi/native_event.py -> build/bdist.linux-x86_64/wheel/./quantbt/engine_spi
+copying build/lib/quantbt/engine_spi/__init__.py -> build/bdist.linux-x86_64/wheel/./quantbt/engine_spi
+copying build/lib/quantbt/engine_spi/protocol.py -> build/bdist.linux-x86_64/wheel/./quantbt/engine_spi
+copying build/lib/quantbt/engine_spi/errors.py -> build/bdist.linux-x86_64/wheel/./quantbt/engine_spi
+copying build/lib/quantbt/engine_spi/registry.py -> build/bdist.linux-x86_64/wheel/./quantbt/engine_spi
+creating build/bdist.linux-x86_64/wheel/quantbt/planning
+copying build/lib/quantbt/planning/models.py -> build/bdist.linux-x86_64/wheel/./quantbt/planning
+copying build/lib/quantbt/planning/capabilities.py -> build/bdist.linux-x86_64/wheel/./quantbt/planning
+copying build/lib/quantbt/planning/__init__.py -> build/bdist.linux-x86_64/wheel/./quantbt/planning
+copying build/lib/quantbt/planning/output.py -> build/bdist.linux-x86_64/wheel/./quantbt/planning
+copying build/lib/quantbt/planning/fingerprints.py -> build/bdist.linux-x86_64/wheel/./quantbt/planning
+copying build/lib/quantbt/planning/resolve.py -> build/bdist.linux-x86_64/wheel/./quantbt/planning
+creating build/bdist.linux-x86_64/wheel/quantbt/metrics
+copying build/lib/quantbt/metrics/__init__.py -> build/bdist.linux-x86_64/wheel/./quantbt/metrics
+copying build/lib/quantbt/metrics/report_contracts.py -> build/bdist.linux-x86_64/wheel/./quantbt/metrics
+copying build/lib/quantbt/metrics/performance.py -> build/bdist.linux-x86_64/wheel/./quantbt/metrics
+creating build/bdist.linux-x86_64/wheel/quantbt/metrics/reporting
+copying build/lib/quantbt/metrics/reporting/ledger.py -> build/bdist.linux-x86_64/wheel/./quantbt/metrics/reporting
+copying build/lib/quantbt/metrics/reporting/drawdown.py -> build/bdist.linux-x86_64/wheel/./quantbt/metrics/reporting
+copying build/lib/quantbt/metrics/reporting/request.py -> build/bdist.linux-x86_64/wheel/./quantbt/metrics/reporting
+copying build/lib/quantbt/metrics/reporting/ledger_inputs.py -> build/bdist.linux-x86_64/wheel/./quantbt/metrics/reporting
+copying build/lib/quantbt/metrics/reporting/account.py -> build/bdist.linux-x86_64/wheel/./quantbt/metrics/reporting
+copying build/lib/quantbt/metrics/reporting/cache.py -> build/bdist.linux-x86_64/wheel/./quantbt/metrics/reporting
+copying build/lib/quantbt/metrics/reporting/adapters.py -> build/bdist.linux-x86_64/wheel/./quantbt/metrics/reporting
+copying build/lib/quantbt/metrics/reporting/__init__.py -> build/bdist.linux-x86_64/wheel/./quantbt/metrics/reporting
+copying build/lib/quantbt/metrics/reporting/plot.py -> build/bdist.linux-x86_64/wheel/./quantbt/metrics/reporting
+copying build/lib/quantbt/metrics/reporting/results.py -> build/bdist.linux-x86_64/wheel/./quantbt/metrics/reporting
+copying build/lib/quantbt/metrics/reporting/inputs.py -> build/bdist.linux-x86_64/wheel/./quantbt/metrics/reporting
+copying build/lib/quantbt/metrics/reporting/execution.py -> build/bdist.linux-x86_64/wheel/./quantbt/metrics/reporting
+copying build/lib/quantbt/metrics/reporting/snapshots.py -> build/bdist.linux-x86_64/wheel/./quantbt/metrics/reporting
+copying build/lib/quantbt/metrics/reporting/public.py -> build/bdist.linux-x86_64/wheel/./quantbt/metrics/reporting
+copying build/lib/quantbt/metrics/options_analytics.py -> build/bdist.linux-x86_64/wheel/./quantbt/metrics
+creating build/bdist.linux-x86_64/wheel/quantbt/options
+copying build/lib/quantbt/options/ledger.py -> build/bdist.linux-x86_64/wheel/./quantbt/options
+copying build/lib/quantbt/options/packages.py -> build/bdist.linux-x86_64/wheel/./quantbt/options
+copying build/lib/quantbt/options/data.py -> build/bdist.linux-x86_64/wheel/./quantbt/options
+copying build/lib/quantbt/options/conventions.py -> build/bdist.linux-x86_64/wheel/./quantbt/options
+copying build/lib/quantbt/options/iv.py -> build/bdist.linux-x86_64/wheel/./quantbt/options
+copying build/lib/quantbt/options/surface.py -> build/bdist.linux-x86_64/wheel/./quantbt/options
+copying build/lib/quantbt/options/cache.py -> build/bdist.linux-x86_64/wheel/./quantbt/options
+copying build/lib/quantbt/options/pricing.py -> build/bdist.linux-x86_64/wheel/./quantbt/options
+copying build/lib/quantbt/options/selectors.py -> build/bdist.linux-x86_64/wheel/./quantbt/options
+copying build/lib/quantbt/options/capabilities.py -> build/bdist.linux-x86_64/wheel/./quantbt/options
+copying build/lib/quantbt/options/schema.py -> build/bdist.linux-x86_64/wheel/./quantbt/options
+copying build/lib/quantbt/options/__init__.py -> build/bdist.linux-x86_64/wheel/./quantbt/options
+copying build/lib/quantbt/options/hedging.py -> build/bdist.linux-x86_64/wheel/./quantbt/options
+copying build/lib/quantbt/options/margin.py -> build/bdist.linux-x86_64/wheel/./quantbt/options
+copying build/lib/quantbt/options/reporting.py -> build/bdist.linux-x86_64/wheel/./quantbt/options
+copying build/lib/quantbt/options/authority.py -> build/bdist.linux-x86_64/wheel/./quantbt/options
+copying build/lib/quantbt/options/fees.py -> build/bdist.linux-x86_64/wheel/./quantbt/options
+copying build/lib/quantbt/options/lifecycle.py -> build/bdist.linux-x86_64/wheel/./quantbt/options
+creating build/bdist.linux-x86_64/wheel/quantbt/options/templates
+copying build/lib/quantbt/options/templates/packages.py -> build/bdist.linux-x86_64/wheel/./quantbt/options/templates
+copying build/lib/quantbt/options/templates/__init__.py -> build/bdist.linux-x86_64/wheel/./quantbt/options/templates
+copying build/lib/quantbt/options/greeks.py -> build/bdist.linux-x86_64/wheel/./quantbt/options
+copying build/lib/quantbt/options/execution.py -> build/bdist.linux-x86_64/wheel/./quantbt/options
+copying build/lib/quantbt/options/strategy.py -> build/bdist.linux-x86_64/wheel/./quantbt/options
+copying build/lib/quantbt/options/tape.py -> build/bdist.linux-x86_64/wheel/./quantbt/options
+creating build/bdist.linux-x86_64/wheel/quantbt/core
+copying build/lib/quantbt/core/constraints.py -> build/bdist.linux-x86_64/wheel/./quantbt/core
+copying build/lib/quantbt/core/wfo_preparation.py -> build/bdist.linux-x86_64/wheel/./quantbt/core
+copying build/lib/quantbt/core/preprocessor.py -> build/bdist.linux-x86_64/wheel/./quantbt/core
+copying build/lib/quantbt/core/execution_contract.py -> build/bdist.linux-x86_64/wheel/./quantbt/core
+copying build/lib/quantbt/core/performance_contracts.py -> build/bdist.linux-x86_64/wheel/./quantbt/core
+copying build/lib/quantbt/core/instrument_contracts.py -> build/bdist.linux-x86_64/wheel/./quantbt/core
+copying build/lib/quantbt/core/certification.py -> build/bdist.linux-x86_64/wheel/./quantbt/core
+copying build/lib/quantbt/core/native_event_capabilities.py -> build/bdist.linux-x86_64/wheel/./quantbt/core
+copying build/lib/quantbt/core/structured_orders.py -> build/bdist.linux-x86_64/wheel/./quantbt/core
+copying build/lib/quantbt/core/target_intents.py -> build/bdist.linux-x86_64/wheel/./quantbt/core
+copying build/lib/quantbt/core/portfolio.py -> build/bdist.linux-x86_64/wheel/./quantbt/core
+copying build/lib/quantbt/core/engine.py -> build/bdist.linux-x86_64/wheel/./quantbt/core
+copying build/lib/quantbt/core/event.py -> build/bdist.linux-x86_64/wheel/./quantbt/core
+copying build/lib/quantbt/core/event_contracts.py -> build/bdist.linux-x86_64/wheel/./quantbt/core
+copying build/lib/quantbt/core/_trace_columns.py -> build/bdist.linux-x86_64/wheel/./quantbt/core
+copying build/lib/quantbt/core/intrabar_session.py -> build/bdist.linux-x86_64/wheel/./quantbt/core
+copying build/lib/quantbt/core/execution_trace.py -> build/bdist.linux-x86_64/wheel/./quantbt/core
+copying build/lib/quantbt/core/native_event_promotion.py -> build/bdist.linux-x86_64/wheel/./quantbt/core
+copying build/lib/quantbt/core/basket.py -> build/bdist.linux-x86_64/wheel/./quantbt/core
+copying build/lib/quantbt/core/research_audit_artifact.py -> build/bdist.linux-x86_64/wheel/./quantbt/core
+copying build/lib/quantbt/core/arbitrage.py -> build/bdist.linux-x86_64/wheel/./quantbt/core
+copying build/lib/quantbt/core/package_execution_v2.py -> build/bdist.linux-x86_64/wheel/./quantbt/core
+copying build/lib/quantbt/core/schema.py -> build/bdist.linux-x86_64/wheel/./quantbt/core
+copying build/lib/quantbt/core/__init__.py -> build/bdist.linux-x86_64/wheel/./quantbt/core
+copying build/lib/quantbt/core/accounting_contracts.py -> build/bdist.linux-x86_64/wheel/./quantbt/core
+copying build/lib/quantbt/core/prepared_execution_v2.py -> build/bdist.linux-x86_64/wheel/./quantbt/core
+copying build/lib/quantbt/core/instrument_registry_v2.py -> build/bdist.linux-x86_64/wheel/./quantbt/core
+copying build/lib/quantbt/core/intrabar_reference.py -> build/bdist.linux-x86_64/wheel/./quantbt/core
+copying build/lib/quantbt/core/orders.py -> build/bdist.linux-x86_64/wheel/./quantbt/core
+copying build/lib/quantbt/core/native_event_parity.py -> build/bdist.linux-x86_64/wheel/./quantbt/core
+copying build/lib/quantbt/core/runtime_governance.py -> build/bdist.linux-x86_64/wheel/./quantbt/core
+copying build/lib/quantbt/core/delivery_lifecycle.py -> build/bdist.linux-x86_64/wheel/./quantbt/core
+copying build/lib/quantbt/core/portfolio_execution_contracts.py -> build/bdist.linux-x86_64/wheel/./quantbt/core
+copying build/lib/quantbt/core/vectorized.py -> build/bdist.linux-x86_64/wheel/./quantbt/core
+copying build/lib/quantbt/core/types.py -> build/bdist.linux-x86_64/wheel/./quantbt/core
+copying build/lib/quantbt/core/product_contracts.py -> build/bdist.linux-x86_64/wheel/./quantbt/core
+copying build/lib/quantbt/core/intrabar_kernel.py -> build/bdist.linux-x86_64/wheel/./quantbt/core
+copying build/lib/quantbt/core/execution_depth.py -> build/bdist.linux-x86_64/wheel/./quantbt/core
+copying build/lib/quantbt/core/native_result_v2.py -> build/bdist.linux-x86_64/wheel/./quantbt/core
+copying build/lib/quantbt/core/order_compiler.py -> build/bdist.linux-x86_64/wheel/./quantbt/core
+copying build/lib/quantbt/core/reactive.py -> build/bdist.linux-x86_64/wheel/./quantbt/core
+copying build/lib/quantbt/core/generated_native_event_contracts.py -> build/bdist.linux-x86_64/wheel/./quantbt/core
+copying build/lib/quantbt/core/package_execution_contracts.py -> build/bdist.linux-x86_64/wheel/./quantbt/core
+copying build/lib/quantbt/core/market_calendar_v2.py -> build/bdist.linux-x86_64/wheel/./quantbt/core
+copying build/lib/quantbt/core/scopes.py -> build/bdist.linux-x86_64/wheel/./quantbt/core
+copying build/lib/quantbt/core/market_tape.py -> build/bdist.linux-x86_64/wheel/./quantbt/core
+copying build/lib/quantbt/core/results.py -> build/bdist.linux-x86_64/wheel/./quantbt/core
+copying build/lib/quantbt/core/generated_product_contracts.py -> build/bdist.linux-x86_64/wheel/./quantbt/core
+copying build/lib/quantbt/core/research_audit.py -> build/bdist.linux-x86_64/wheel/./quantbt/core
+copying build/lib/quantbt/core/wfo_contracts.py -> build/bdist.linux-x86_64/wheel/./quantbt/core
+copying build/lib/quantbt/core/fill_replay_v2.py -> build/bdist.linux-x86_64/wheel/./quantbt/core
+copying build/lib/quantbt/core/wfo_evaluation.py -> build/bdist.linux-x86_64/wheel/./quantbt/core
+creating build/bdist.linux-x86_64/wheel/quantbt/preparation
+copying build/lib/quantbt/preparation/models.py -> build/bdist.linux-x86_64/wheel/./quantbt/preparation
+copying build/lib/quantbt/preparation/native_event.py -> build/bdist.linux-x86_64/wheel/./quantbt/preparation
+copying build/lib/quantbt/preparation/native_intrabar_requests.py -> build/bdist.linux-x86_64/wheel/./quantbt/preparation
+copying build/lib/quantbt/preparation/cache.py -> build/bdist.linux-x86_64/wheel/./quantbt/preparation
+copying build/lib/quantbt/preparation/__init__.py -> build/bdist.linux-x86_64/wheel/./quantbt/preparation
+copying build/lib/quantbt/preparation/native_package_requests.py -> build/bdist.linux-x86_64/wheel/./quantbt/preparation
+copying build/lib/quantbt/preparation/native_target_requests.py -> build/bdist.linux-x86_64/wheel/./quantbt/preparation
+copying build/lib/quantbt/preparation/native_execution.py -> build/bdist.linux-x86_64/wheel/./quantbt/preparation
+creating build/bdist.linux-x86_64/wheel/quantbt/strategies
+copying build/lib/quantbt/strategies/commands.py -> build/bdist.linux-x86_64/wheel/./quantbt/strategies
+copying build/lib/quantbt/strategies/wfo_prepared.py -> build/bdist.linux-x86_64/wheel/./quantbt/strategies
+copying build/lib/quantbt/strategies/driver.py -> build/bdist.linux-x86_64/wheel/./quantbt/strategies
+copying build/lib/quantbt/strategies/__init__.py -> build/bdist.linux-x86_64/wheel/./quantbt/strategies
+copying build/lib/quantbt/strategies/native_ir.py -> build/bdist.linux-x86_64/wheel/./quantbt/strategies
+copying build/lib/quantbt/strategies/reactive_wfo.py -> build/bdist.linux-x86_64/wheel/./quantbt/strategies
+copying build/lib/quantbt/strategies/reactive_protocols.py -> build/bdist.linux-x86_64/wheel/./quantbt/strategies
+copying build/lib/quantbt/strategies/requirements.py -> build/bdist.linux-x86_64/wheel/./quantbt/strategies
+copying build/lib/quantbt/strategies/context.py -> build/bdist.linux-x86_64/wheel/./quantbt/strategies
+creating build/bdist.linux-x86_64/wheel/quantbt/reporting
+copying build/lib/quantbt/reporting/arbitrage_audit.py -> build/bdist.linux-x86_64/wheel/./quantbt/reporting
+copying build/lib/quantbt/reporting/portfolio_audit.py -> build/bdist.linux-x86_64/wheel/./quantbt/reporting
+copying build/lib/quantbt/reporting/__init__.py -> build/bdist.linux-x86_64/wheel/./quantbt/reporting
+copying build/lib/quantbt/reporting/portfolio_nautilus.py -> build/bdist.linux-x86_64/wheel/./quantbt/reporting
+copying build/lib/quantbt/reporting/nautilus_diagnostics.py -> build/bdist.linux-x86_64/wheel/./quantbt/reporting
+copying build/lib/quantbt/reporting/parity.py -> build/bdist.linux-x86_64/wheel/./quantbt/reporting
+copying build/lib/quantbt/reporting/nautilus_certification.py -> build/bdist.linux-x86_64/wheel/./quantbt/reporting
+copying build/lib/quantbt/reporting/nautilus_bundle.py -> build/bdist.linux-x86_64/wheel/./quantbt/reporting
+creating build/bdist.linux-x86_64/wheel/quantbt/results
+copying build/lib/quantbt/results/raw.py -> build/bdist.linux-x86_64/wheel/./quantbt/results
+copying build/lib/quantbt/results/__init__.py -> build/bdist.linux-x86_64/wheel/./quantbt/results
+copying build/lib/quantbt/backtester.py -> build/bdist.linux-x86_64/wheel/./quantbt
+creating build/bdist.linux-x86_64/wheel/quantbt/backends
+copying build/lib/quantbt/backends/native_metric_support.py -> build/bdist.linux-x86_64/wheel/./quantbt/backends
+copying build/lib/quantbt/backends/native_option.py -> build/bdist.linux-x86_64/wheel/./quantbt/backends
+copying build/lib/quantbt/backends/native_event.py -> build/bdist.linux-x86_64/wheel/./quantbt/backends
+copying build/lib/quantbt/backends/native_wfo_support.py -> build/bdist.linux-x86_64/wheel/./quantbt/backends
+copying build/lib/quantbt/backends/_native_event_rust.py -> build/bdist.linux-x86_64/wheel/./quantbt/backends
+copying build/lib/quantbt/backends/native_portfolio.py -> build/bdist.linux-x86_64/wheel/./quantbt/backends
+copying build/lib/quantbt/backends/native_intrabar_rust.py -> build/bdist.linux-x86_64/wheel/./quantbt/backends
+copying build/lib/quantbt/backends/reactive_wfo_batch.py -> build/bdist.linux-x86_64/wheel/./quantbt/backends
+copying build/lib/quantbt/backends/native_portfolio_package.py -> build/bdist.linux-x86_64/wheel/./quantbt/backends
+copying build/lib/quantbt/backends/__init__.py -> build/bdist.linux-x86_64/wheel/./quantbt/backends
+copying build/lib/quantbt/backends/native_package_arbitrage.py -> build/bdist.linux-x86_64/wheel/./quantbt/backends
+copying build/lib/quantbt/backends/reactive_wfo_batch_selection.py -> build/bdist.linux-x86_64/wheel/./quantbt/backends
+copying build/lib/quantbt/backends/reactive_wfo.py -> build/bdist.linux-x86_64/wheel/./quantbt/backends
+copying build/lib/quantbt/backends/reactive_wfo_workers.py -> build/bdist.linux-x86_64/wheel/./quantbt/backends
+copying build/lib/quantbt/backends/native_wfo.py -> build/bdist.linux-x86_64/wheel/./quantbt/backends
+copying build/lib/quantbt/backends/reactive_wfo_support.py -> build/bdist.linux-x86_64/wheel/./quantbt/backends
+copying build/lib/quantbt/backends/native_prepared_evaluation.py -> build/bdist.linux-x86_64/wheel/./quantbt/backends
+copying build/lib/quantbt/backends/native_vectorized.py -> build/bdist.linux-x86_64/wheel/./quantbt/backends
+copying build/lib/quantbt/backends/reactive_wfo_sampling.py -> build/bdist.linux-x86_64/wheel/./quantbt/backends
+copying build/lib/quantbt/backends/native_wfo_target.py -> build/bdist.linux-x86_64/wheel/./quantbt/backends
+copying build/lib/quantbt/backends/native_wfo_public.py -> build/bdist.linux-x86_64/wheel/./quantbt/backends
+copying build/lib/quantbt/backends/native_strategy_ir.py -> build/bdist.linux-x86_64/wheel/./quantbt/backends
+copying build/lib/quantbt/backends/reactive_wfo_preparation.py -> build/bdist.linux-x86_64/wheel/./quantbt/backends
+creating build/bdist.linux-x86_64/wheel/quantbt/benchmarks
+copying build/lib/quantbt/benchmarks/run_phase12_benchmark_nautilus_cert.py -> build/bdist.linux-x86_64/wheel/./quantbt/benchmarks
+copying build/lib/quantbt/benchmarks/profile_phase7.py -> build/bdist.linux-x86_64/wheel/./quantbt/benchmarks
+copying build/lib/quantbt/benchmarks/run_phase14_service_loop.py -> build/bdist.linux-x86_64/wheel/./quantbt/benchmarks
+copying build/lib/quantbt/benchmarks/run_phase7.py -> build/bdist.linux-x86_64/wheel/./quantbt/benchmarks
+copying build/lib/quantbt/benchmarks/gamma_scalping_backtestsample.py -> build/bdist.linux-x86_64/wheel/./quantbt/benchmarks
+copying build/lib/quantbt/benchmarks/run_phase49b_wfo_performance.py -> build/bdist.linux-x86_64/wheel/./quantbt/benchmarks
+copying build/lib/quantbt/benchmarks/run_phase34b_native_event_prepared_score.py -> build/bdist.linux-x86_64/wheel/./quantbt/benchmarks
+copying build/lib/quantbt/benchmarks/run_phase12_arbitrage_cert.py -> build/bdist.linux-x86_64/wheel/./quantbt/benchmarks
+copying build/lib/quantbt/benchmarks/compare_phase9_parity.py -> build/bdist.linux-x86_64/wheel/./quantbt/benchmarks
+copying build/lib/quantbt/benchmarks/__init__.py -> build/bdist.linux-x86_64/wheel/./quantbt/benchmarks
+copying build/lib/quantbt/benchmarks/run_phase15a_nautilus_certification.py -> build/bdist.linux-x86_64/wheel/./quantbt/benchmarks
+copying build/lib/quantbt/benchmarks/run_phase34c_native_event_single_pass.py -> build/bdist.linux-x86_64/wheel/./quantbt/benchmarks
+copying build/lib/quantbt/benchmarks/v1_1_measurement.py -> build/bdist.linux-x86_64/wheel/./quantbt/benchmarks
+copying build/lib/quantbt/benchmarks/run_phase16_performance_debt.py -> build/bdist.linux-x86_64/wheel/./quantbt/benchmarks
+copying build/lib/quantbt/benchmarks/run_pct_equity_nautilus_smoke.py -> build/bdist.linux-x86_64/wheel/./quantbt/benchmarks
+copying build/lib/quantbt/benchmarks/run_phase13_portfolio_report.py -> build/bdist.linux-x86_64/wheel/./quantbt/benchmarks
+copying build/lib/quantbt/benchmarks/run_phase15b_synthetic_depth.py -> build/bdist.linux-x86_64/wheel/./quantbt/benchmarks
+copying build/lib/quantbt/benchmarks/run_phase30e_reactive_runner.py -> build/bdist.linux-x86_64/wheel/./quantbt/benchmarks
+copying build/lib/quantbt/benchmarks/run_portfolio_real_parity.py -> build/bdist.linux-x86_64/wheel/./quantbt/benchmarks
+copying build/lib/quantbt/benchmarks/run_phase13_wfo_cache.py -> build/bdist.linux-x86_64/wheel/./quantbt/benchmarks
+copying build/lib/quantbt/benchmarks/run_phase34a_native_event_memory.py -> build/bdist.linux-x86_64/wheel/./quantbt/benchmarks
+copying build/lib/quantbt/benchmarks/run_options_engine.py -> build/bdist.linux-x86_64/wheel/./quantbt/benchmarks
+copying build/lib/quantbt/benchmarks/run_optimization_overhead.py -> build/bdist.linux-x86_64/wheel/./quantbt/benchmarks
+copying build/lib/quantbt/benchmarks/run_phase31_intrabar.py -> build/bdist.linux-x86_64/wheel/./quantbt/benchmarks
+copying build/lib/quantbt/benchmarks/run_arbitrage_phase_e.py -> build/bdist.linux-x86_64/wheel/./quantbt/benchmarks
+copying build/lib/quantbt/errors.py -> build/bdist.linux-x86_64/wheel/./quantbt
+copying build/lib/quantbt/wfo_execution.py -> build/bdist.linux-x86_64/wheel/./quantbt
+creating build/bdist.linux-x86_64/wheel/quantbt/optimization
+creating build/bdist.linux-x86_64/wheel/quantbt/optimization/continuation
+copying build/lib/quantbt/optimization/continuation/contract.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization/continuation
+copying build/lib/quantbt/optimization/continuation/storage.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization/continuation
+copying build/lib/quantbt/optimization/continuation/__init__.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization/continuation
+copying build/lib/quantbt/optimization/continuation/session.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization/continuation
+copying build/lib/quantbt/optimization/constraints.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization
+copying build/lib/quantbt/optimization/representatives.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization
+copying build/lib/quantbt/optimization/multiseed.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization
+copying build/lib/quantbt/optimization/conditional_sobol.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization
+copying build/lib/quantbt/optimization/candidate_selection.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization
+creating build/bdist.linux-x86_64/wheel/quantbt/optimization/evaluators
+copying build/lib/quantbt/optimization/evaluators/options.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization/evaluators
+copying build/lib/quantbt/optimization/evaluators/portfolio.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization/evaluators
+copying build/lib/quantbt/optimization/evaluators/native_event.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization/evaluators
+copying build/lib/quantbt/optimization/evaluators/grid_dca.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization/evaluators
+copying build/lib/quantbt/optimization/evaluators/arbitrage.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization/evaluators
+copying build/lib/quantbt/optimization/evaluators/generic.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization/evaluators
+copying build/lib/quantbt/optimization/evaluators/intrabar.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization/evaluators
+copying build/lib/quantbt/optimization/evaluators/__init__.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization/evaluators
+copying build/lib/quantbt/optimization/evaluators/signal.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization/evaluators
+copying build/lib/quantbt/optimization/parameter_space.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization
+copying build/lib/quantbt/optimization/objectives.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization
+copying build/lib/quantbt/optimization/optimizer.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization
+copying build/lib/quantbt/optimization/callbacks.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization
+copying build/lib/quantbt/optimization/__init__.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization
+copying build/lib/quantbt/optimization/sampler_space.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization
+copying build/lib/quantbt/optimization/config.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization
+copying build/lib/quantbt/optimization/result.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization
+copying build/lib/quantbt/optimization/bootstrap.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization
+copying build/lib/quantbt/optimization/wfo_study.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization
+copying build/lib/quantbt/optimization/evaluator.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization
+creating build/bdist.linux-x86_64/wheel/quantbt/optimization/meta_selection
+copying build/lib/quantbt/optimization/meta_selection/reactive_batch_witness.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization/meta_selection
+copying build/lib/quantbt/optimization/meta_selection/witness.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization/meta_selection
+copying build/lib/quantbt/optimization/meta_selection/prepared.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization/meta_selection
+copying build/lib/quantbt/optimization/meta_selection/reactive_transport.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization/meta_selection
+copying build/lib/quantbt/optimization/meta_selection/selection.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization/meta_selection
+copying build/lib/quantbt/optimization/meta_selection/records.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization/meta_selection
+copying build/lib/quantbt/optimization/meta_selection/common.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization/meta_selection
+copying build/lib/quantbt/optimization/meta_selection/capture.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization/meta_selection
+copying build/lib/quantbt/optimization/meta_selection/telemetry.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization/meta_selection
+copying build/lib/quantbt/optimization/meta_selection/numerics.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization/meta_selection
+copying build/lib/quantbt/optimization/meta_selection/__init__.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization/meta_selection
+copying build/lib/quantbt/optimization/meta_selection/nested.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization/meta_selection
+copying build/lib/quantbt/optimization/meta_selection/descriptors.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization/meta_selection
+copying build/lib/quantbt/optimization/meta_selection/persistence.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization/meta_selection
+copying build/lib/quantbt/optimization/meta_selection/model.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization/meta_selection
+copying build/lib/quantbt/optimization/meta_selection/artifacts.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization/meta_selection
+copying build/lib/quantbt/optimization/meta_selection/config.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization/meta_selection
+copying build/lib/quantbt/optimization/meta_selection/runtime.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization/meta_selection
+copying build/lib/quantbt/optimization/meta_selection/panel.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization/meta_selection
+copying build/lib/quantbt/optimization/meta_selection/observer.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization/meta_selection
+copying build/lib/quantbt/optimization/meta_selection/reactive.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization/meta_selection
+copying build/lib/quantbt/optimization/meta_selection/work_cache.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization/meta_selection
+copying build/lib/quantbt/optimization/meta_selection/handoff.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization/meta_selection
+creating build/bdist.linux-x86_64/wheel/quantbt/optimization/meta_selection/domains
+copying build/lib/quantbt/optimization/meta_selection/domains/portfolio.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization/meta_selection/domains
+copying build/lib/quantbt/optimization/meta_selection/domains/base.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization/meta_selection/domains
+copying build/lib/quantbt/optimization/meta_selection/domains/scalar_contract.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization/meta_selection/domains
+copying build/lib/quantbt/optimization/meta_selection/domains/package.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization/meta_selection/domains
+copying build/lib/quantbt/optimization/meta_selection/domains/__init__.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization/meta_selection/domains
+copying build/lib/quantbt/optimization/meta_selection/domains/portfolio_witness.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization/meta_selection/domains
+copying build/lib/quantbt/optimization/meta_selection/domains/portfolio_contract.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization/meta_selection/domains
+copying build/lib/quantbt/optimization/meta_selection/domains/contracts.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization/meta_selection/domains
+copying build/lib/quantbt/optimization/meta_selection/domains/scalar.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization/meta_selection/domains
+copying build/lib/quantbt/optimization/meta_selection/domains/reactive.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization/meta_selection/domains
+copying build/lib/quantbt/optimization/meta_selection/domains/registry.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization/meta_selection/domains
+copying build/lib/quantbt/optimization/meta_selection/domains/execution.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization/meta_selection/domains
+copying build/lib/quantbt/optimization/meta_selection/domains/package_contract.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization/meta_selection/domains
+copying build/lib/quantbt/optimization/meta_selection/history.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization/meta_selection
+copying build/lib/quantbt/optimization/meta_selection/reactive_execution.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization/meta_selection
+copying build/lib/quantbt/optimization/meta_selection/memo.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization/meta_selection
+copying build/lib/quantbt/optimization/space.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization
+copying build/lib/quantbt/optimization/samplers.py -> build/bdist.linux-x86_64/wheel/./quantbt/optimization
+creating build/bdist.linux-x86_64/wheel/quantbt/sizing
+copying build/lib/quantbt/sizing/modes.py -> build/bdist.linux-x86_64/wheel/./quantbt/sizing
+copying build/lib/quantbt/sizing/__init__.py -> build/bdist.linux-x86_64/wheel/./quantbt/sizing
+copying build/lib/quantbt/sizing/fast.py -> build/bdist.linux-x86_64/wheel/./quantbt/sizing
+creating build/bdist.linux-x86_64/wheel/quantbt/adapters
+copying build/lib/quantbt/adapters/__init__.py -> build/bdist.linux-x86_64/wheel/./quantbt/adapters
+creating build/bdist.linux-x86_64/wheel/quantbt/adapters/nautilus
+copying build/lib/quantbt/adapters/nautilus/_dependency.py -> build/bdist.linux-x86_64/wheel/./quantbt/adapters/nautilus
+copying build/lib/quantbt/adapters/nautilus/options.py -> build/bdist.linux-x86_64/wheel/./quantbt/adapters/nautilus
+copying build/lib/quantbt/adapters/nautilus/reports.py -> build/bdist.linux-x86_64/wheel/./quantbt/adapters/nautilus
+copying build/lib/quantbt/adapters/nautilus/instruments.py -> build/bdist.linux-x86_64/wheel/./quantbt/adapters/nautilus
+copying build/lib/quantbt/adapters/nautilus/__init__.py -> build/bdist.linux-x86_64/wheel/./quantbt/adapters/nautilus
+copying build/lib/quantbt/adapters/nautilus/backend.py -> build/bdist.linux-x86_64/wheel/./quantbt/adapters/nautilus
+running install_egg_info
+Copying src/quantbt_engine.egg-info to build/bdist.linux-x86_64/wheel/./quantbt_engine-1.1.2-py3.12.egg-info
+running install_scripts
+creating build/bdist.linux-x86_64/wheel/quantbt_engine-1.1.2.dist-info/WHEEL
+creating '/root/bobby/pool_alpha/quantbt/.maturin/met03/run-20261008T164803809338Z/dist/.tmp-pj7_yooi/quantbt_engine-1.1.2-py3-none-any.whl' and adding 'build/bdist.linux-x86_64/wheel' to it
+adding 'quantbt/__init__.py'
+adding 'quantbt/backtester.py'
+adding 'quantbt/endpoint.py'
+adding 'quantbt/engines.py'
+adding 'quantbt/errors.py'
+adding 'quantbt/portfolio.py'
+adding 'quantbt/py.typed'
+adding 'quantbt/walkforward.py'
+adding 'quantbt/wfo_execution.py'
+adding 'quantbt/adapters/__init__.py'
+adding 'quantbt/adapters/nautilus/__init__.py'
+adding 'quantbt/adapters/nautilus/_dependency.py'
+adding 'quantbt/adapters/nautilus/backend.py'
+adding 'quantbt/adapters/nautilus/instruments.py'
+adding 'quantbt/adapters/nautilus/options.py'
+adding 'quantbt/adapters/nautilus/reports.py'
+adding 'quantbt/api/__init__.py'
+adding 'quantbt/api/event_driven.py'
+adding 'quantbt/backends/__init__.py'
+adding 'quantbt/backends/_native_event_rust.py'
+adding 'quantbt/backends/native_event.py'
+adding 'quantbt/backends/native_intrabar_rust.py'
+adding 'quantbt/backends/native_metric_support.py'
+adding 'quantbt/backends/native_option.py'
+adding 'quantbt/backends/native_package_arbitrage.py'
+adding 'quantbt/backends/native_portfolio.py'
+adding 'quantbt/backends/native_portfolio_package.py'
+adding 'quantbt/backends/native_prepared_evaluation.py'
+adding 'quantbt/backends/native_strategy_ir.py'
+adding 'quantbt/backends/native_vectorized.py'
+adding 'quantbt/backends/native_wfo.py'
+adding 'quantbt/backends/native_wfo_public.py'
+adding 'quantbt/backends/native_wfo_support.py'
+adding 'quantbt/backends/native_wfo_target.py'
+adding 'quantbt/backends/reactive_wfo.py'
+adding 'quantbt/backends/reactive_wfo_batch.py'
+adding 'quantbt/backends/reactive_wfo_batch_selection.py'
+adding 'quantbt/backends/reactive_wfo_preparation.py'
+adding 'quantbt/backends/reactive_wfo_sampling.py'
+adding 'quantbt/backends/reactive_wfo_support.py'
+adding 'quantbt/backends/reactive_wfo_workers.py'
+adding 'quantbt/benchmarks/__init__.py'
+adding 'quantbt/benchmarks/compare_phase9_parity.py'
+adding 'quantbt/benchmarks/gamma_scalping_backtestsample.py'
+adding 'quantbt/benchmarks/profile_phase7.py'
+adding 'quantbt/benchmarks/run_arbitrage_phase_e.py'
+adding 'quantbt/benchmarks/run_optimization_overhead.py'
+adding 'quantbt/benchmarks/run_options_engine.py'
+adding 'quantbt/benchmarks/run_pct_equity_nautilus_smoke.py'
+adding 'quantbt/benchmarks/run_phase12_arbitrage_cert.py'
+adding 'quantbt/benchmarks/run_phase12_benchmark_nautilus_cert.py'
+adding 'quantbt/benchmarks/run_phase13_portfolio_report.py'
+adding 'quantbt/benchmarks/run_phase13_wfo_cache.py'
+adding 'quantbt/benchmarks/run_phase14_service_loop.py'
+adding 'quantbt/benchmarks/run_phase15a_nautilus_certification.py'
+adding 'quantbt/benchmarks/run_phase15b_synthetic_depth.py'
+adding 'quantbt/benchmarks/run_phase16_performance_debt.py'
+adding 'quantbt/benchmarks/run_phase30e_reactive_runner.py'
+adding 'quantbt/benchmarks/run_phase31_intrabar.py'
+adding 'quantbt/benchmarks/run_phase34a_native_event_memory.py'
+adding 'quantbt/benchmarks/run_phase34b_native_event_prepared_score.py'
+adding 'quantbt/benchmarks/run_phase34c_native_event_single_pass.py'
+adding 'quantbt/benchmarks/run_phase49b_wfo_performance.py'
+adding 'quantbt/benchmarks/run_phase7.py'
+adding 'quantbt/benchmarks/run_portfolio_real_parity.py'
+adding 'quantbt/benchmarks/v1_1_measurement.py'
+adding 'quantbt/core/__init__.py'
+adding 'quantbt/core/_trace_columns.py'
+adding 'quantbt/core/accounting_contracts.py'
+adding 'quantbt/core/arbitrage.py'
+adding 'quantbt/core/basket.py'
+adding 'quantbt/core/certification.py'
+adding 'quantbt/core/constraints.py'
+adding 'quantbt/core/delivery_lifecycle.py'
+adding 'quantbt/core/engine.py'
+adding 'quantbt/core/event.py'
+adding 'quantbt/core/event_contracts.py'
+adding 'quantbt/core/execution_contract.py'
+adding 'quantbt/core/execution_depth.py'
+adding 'quantbt/core/execution_trace.py'
+adding 'quantbt/core/fill_replay_v2.py'
+adding 'quantbt/core/generated_native_event_contracts.py'
+adding 'quantbt/core/generated_product_contracts.py'
+adding 'quantbt/core/instrument_contracts.py'
+adding 'quantbt/core/instrument_registry_v2.py'
+adding 'quantbt/core/intrabar_kernel.py'
+adding 'quantbt/core/intrabar_reference.py'
+adding 'quantbt/core/intrabar_session.py'
+adding 'quantbt/core/market_calendar_v2.py'
+adding 'quantbt/core/market_tape.py'
+adding 'quantbt/core/native_event_capabilities.py'
+adding 'quantbt/core/native_event_parity.py'
+adding 'quantbt/core/native_event_promotion.py'
+adding 'quantbt/core/native_result_v2.py'
+adding 'quantbt/core/order_compiler.py'
+adding 'quantbt/core/orders.py'
+adding 'quantbt/core/package_execution_contracts.py'
+adding 'quantbt/core/package_execution_v2.py'
+adding 'quantbt/core/performance_contracts.py'
+adding 'quantbt/core/portfolio.py'
+adding 'quantbt/core/portfolio_execution_contracts.py'
+adding 'quantbt/core/prepared_execution_v2.py'
+adding 'quantbt/core/preprocessor.py'
+adding 'quantbt/core/product_contracts.py'
+adding 'quantbt/core/reactive.py'
+adding 'quantbt/core/research_audit.py'
+adding 'quantbt/core/research_audit_artifact.py'
+adding 'quantbt/core/results.py'
+adding 'quantbt/core/runtime_governance.py'
+adding 'quantbt/core/schema.py'
+adding 'quantbt/core/scopes.py'
+adding 'quantbt/core/structured_orders.py'
+adding 'quantbt/core/target_intents.py'
+adding 'quantbt/core/types.py'
+adding 'quantbt/core/vectorized.py'
+adding 'quantbt/core/wfo_contracts.py'
+adding 'quantbt/core/wfo_evaluation.py'
+adding 'quantbt/core/wfo_preparation.py'
+adding 'quantbt/engine_spi/__init__.py'
+adding 'quantbt/engine_spi/errors.py'
+adding 'quantbt/engine_spi/native_event.py'
+adding 'quantbt/engine_spi/protocol.py'
+adding 'quantbt/engine_spi/registry.py'
+adding 'quantbt/metrics/__init__.py'
+adding 'quantbt/metrics/options_analytics.py'
+adding 'quantbt/metrics/performance.py'
+adding 'quantbt/metrics/report_contracts.py'
+adding 'quantbt/metrics/reporting/__init__.py'
+adding 'quantbt/metrics/reporting/account.py'
+adding 'quantbt/metrics/reporting/adapters.py'
+adding 'quantbt/metrics/reporting/cache.py'
+adding 'quantbt/metrics/reporting/drawdown.py'
+adding 'quantbt/metrics/reporting/execution.py'
+adding 'quantbt/metrics/reporting/inputs.py'
+adding 'quantbt/metrics/reporting/ledger.py'
+adding 'quantbt/metrics/reporting/ledger_inputs.py'
+adding 'quantbt/metrics/reporting/plot.py'
+adding 'quantbt/metrics/reporting/public.py'
+adding 'quantbt/metrics/reporting/request.py'
+adding 'quantbt/metrics/reporting/results.py'
+adding 'quantbt/metrics/reporting/snapshots.py'
+adding 'quantbt/optimization/__init__.py'
+adding 'quantbt/optimization/bootstrap.py'
+adding 'quantbt/optimization/callbacks.py'
+adding 'quantbt/optimization/candidate_selection.py'
+adding 'quantbt/optimization/conditional_sobol.py'
+adding 'quantbt/optimization/config.py'
+adding 'quantbt/optimization/constraints.py'
+adding 'quantbt/optimization/evaluator.py'
+adding 'quantbt/optimization/multiseed.py'
+adding 'quantbt/optimization/objectives.py'
+adding 'quantbt/optimization/optimizer.py'
+adding 'quantbt/optimization/parameter_space.py'
+adding 'quantbt/optimization/representatives.py'
+adding 'quantbt/optimization/result.py'
+adding 'quantbt/optimization/sampler_space.py'
+adding 'quantbt/optimization/samplers.py'
+adding 'quantbt/optimization/space.py'
+adding 'quantbt/optimization/wfo_study.py'
+adding 'quantbt/optimization/continuation/__init__.py'
+adding 'quantbt/optimization/continuation/contract.py'
+adding 'quantbt/optimization/continuation/session.py'
+adding 'quantbt/optimization/continuation/storage.py'
+adding 'quantbt/optimization/evaluators/__init__.py'
+adding 'quantbt/optimization/evaluators/arbitrage.py'
+adding 'quantbt/optimization/evaluators/generic.py'
+adding 'quantbt/optimization/evaluators/grid_dca.py'
+adding 'quantbt/optimization/evaluators/intrabar.py'
+adding 'quantbt/optimization/evaluators/native_event.py'
+adding 'quantbt/optimization/evaluators/options.py'
+adding 'quantbt/optimization/evaluators/portfolio.py'
+adding 'quantbt/optimization/evaluators/signal.py'
+adding 'quantbt/optimization/meta_selection/__init__.py'
+adding 'quantbt/optimization/meta_selection/artifacts.py'
+adding 'quantbt/optimization/meta_selection/capture.py'
+adding 'quantbt/optimization/meta_selection/common.py'
+adding 'quantbt/optimization/meta_selection/config.py'
+adding 'quantbt/optimization/meta_selection/descriptors.py'
+adding 'quantbt/optimization/meta_selection/handoff.py'
+adding 'quantbt/optimization/meta_selection/history.py'
+adding 'quantbt/optimization/meta_selection/memo.py'
+adding 'quantbt/optimization/meta_selection/model.py'
+adding 'quantbt/optimization/meta_selection/nested.py'
+adding 'quantbt/optimization/meta_selection/numerics.py'
+adding 'quantbt/optimization/meta_selection/observer.py'
+adding 'quantbt/optimization/meta_selection/panel.py'
+adding 'quantbt/optimization/meta_selection/persistence.py'
+adding 'quantbt/optimization/meta_selection/prepared.py'
+adding 'quantbt/optimization/meta_selection/reactive.py'
+adding 'quantbt/optimization/meta_selection/reactive_batch_witness.py'
+adding 'quantbt/optimization/meta_selection/reactive_execution.py'
+adding 'quantbt/optimization/meta_selection/reactive_transport.py'
+adding 'quantbt/optimization/meta_selection/records.py'
+adding 'quantbt/optimization/meta_selection/runtime.py'
+adding 'quantbt/optimization/meta_selection/selection.py'
+adding 'quantbt/optimization/meta_selection/telemetry.py'
+adding 'quantbt/optimization/meta_selection/witness.py'
+adding 'quantbt/optimization/meta_selection/work_cache.py'
+adding 'quantbt/optimization/meta_selection/domains/__init__.py'
+adding 'quantbt/optimization/meta_selection/domains/base.py'
+adding 'quantbt/optimization/meta_selection/domains/contracts.py'
+adding 'quantbt/optimization/meta_selection/domains/execution.py'
+adding 'quantbt/optimization/meta_selection/domains/package.py'
+adding 'quantbt/optimization/meta_selection/domains/package_contract.py'
+adding 'quantbt/optimization/meta_selection/domains/portfolio.py'
+adding 'quantbt/optimization/meta_selection/domains/portfolio_contract.py'
+adding 'quantbt/optimization/meta_selection/domains/portfolio_witness.py'
+adding 'quantbt/optimization/meta_selection/domains/reactive.py'
+adding 'quantbt/optimization/meta_selection/domains/registry.py'
+adding 'quantbt/optimization/meta_selection/domains/scalar.py'
+adding 'quantbt/optimization/meta_selection/domains/scalar_contract.py'
+adding 'quantbt/options/__init__.py'
+adding 'quantbt/options/authority.py'
+adding 'quantbt/options/cache.py'
+adding 'quantbt/options/capabilities.py'
+adding 'quantbt/options/conventions.py'
+adding 'quantbt/options/data.py'
+adding 'quantbt/options/execution.py'
+adding 'quantbt/options/fees.py'
+adding 'quantbt/options/greeks.py'
+adding 'quantbt/options/hedging.py'
+adding 'quantbt/options/iv.py'
+adding 'quantbt/options/ledger.py'
+adding 'quantbt/options/lifecycle.py'
+adding 'quantbt/options/margin.py'
+adding 'quantbt/options/packages.py'
+adding 'quantbt/options/pricing.py'
+adding 'quantbt/options/reporting.py'
+adding 'quantbt/options/schema.py'
+adding 'quantbt/options/selectors.py'
+adding 'quantbt/options/strategy.py'
+adding 'quantbt/options/surface.py'
+adding 'quantbt/options/tape.py'
+adding 'quantbt/options/templates/__init__.py'
+adding 'quantbt/options/templates/packages.py'
+adding 'quantbt/planning/__init__.py'
+adding 'quantbt/planning/capabilities.py'
+adding 'quantbt/planning/fingerprints.py'
+adding 'quantbt/planning/models.py'
+adding 'quantbt/planning/output.py'
+adding 'quantbt/planning/resolve.py'
+adding 'quantbt/preparation/__init__.py'
+adding 'quantbt/preparation/cache.py'
+adding 'quantbt/preparation/models.py'
+adding 'quantbt/preparation/native_event.py'
+adding 'quantbt/preparation/native_execution.py'
+adding 'quantbt/preparation/native_intrabar_requests.py'
+adding 'quantbt/preparation/native_package_requests.py'
+adding 'quantbt/preparation/native_target_requests.py'
+adding 'quantbt/reporting/__init__.py'
+adding 'quantbt/reporting/arbitrage_audit.py'
+adding 'quantbt/reporting/nautilus_bundle.py'
+adding 'quantbt/reporting/nautilus_certification.py'
+adding 'quantbt/reporting/nautilus_diagnostics.py'
+adding 'quantbt/reporting/parity.py'
+adding 'quantbt/reporting/portfolio_audit.py'
+adding 'quantbt/reporting/portfolio_nautilus.py'
+adding 'quantbt/results/__init__.py'
+adding 'quantbt/results/raw.py'
+adding 'quantbt/sizing/__init__.py'
+adding 'quantbt/sizing/fast.py'
+adding 'quantbt/sizing/modes.py'
+adding 'quantbt/strategies/__init__.py'
+adding 'quantbt/strategies/commands.py'
+adding 'quantbt/strategies/context.py'
+adding 'quantbt/strategies/driver.py'
+adding 'quantbt/strategies/native_ir.py'
+adding 'quantbt/strategies/reactive_protocols.py'
+adding 'quantbt/strategies/reactive_wfo.py'
+adding 'quantbt/strategies/requirements.py'
+adding 'quantbt/strategies/wfo_prepared.py'
+adding 'quantbt/verification/__init__.py'
+adding 'quantbt/verification/canonical_trace_v2.py'
+adding 'quantbt/viz/__init__.py'
+adding 'quantbt/viz/plots.py'
+adding 'quantbt/viz/themes.py'
+adding 'quantbt_engine-1.1.2.dist-info/licenses/LICENSE'
+adding 'quantbt_engine-1.1.2.dist-info/METADATA'
+adding 'quantbt_engine-1.1.2.dist-info/WHEEL'
+adding 'quantbt_engine-1.1.2.dist-info/top_level.txt'
+adding 'quantbt_engine-1.1.2.dist-info/RECORD'
+removing build/bdist.linux-x86_64/wheel
+running egg_info
+writing src/quantbt_engine.egg-info/PKG-INFO
+writing dependency_links to src/quantbt_engine.egg-info/dependency_links.txt
+writing requirements to src/quantbt_engine.egg-info/requires.txt
+writing top-level names to src/quantbt_engine.egg-info/top_level.txt
+reading manifest file 'src/quantbt_engine.egg-info/SOURCES.txt'
+reading manifest template 'MANIFEST.in'
+adding license file 'LICENSE'
+writing manifest file 'src/quantbt_engine.egg-info/SOURCES.txt'
+running sdist
+running egg_info
+writing src/quantbt_engine.egg-info/PKG-INFO
+writing dependency_links to src/quantbt_engine.egg-info/dependency_links.txt
+writing requirements to src/quantbt_engine.egg-info/requires.txt
+writing top-level names to src/quantbt_engine.egg-info/top_level.txt
+reading manifest file 'src/quantbt_engine.egg-info/SOURCES.txt'
+reading manifest template 'MANIFEST.in'
+adding license file 'LICENSE'
+writing manifest file 'src/quantbt_engine.egg-info/SOURCES.txt'
+running check
+creating quantbt_engine-1.1.2
+creating quantbt_engine-1.1.2/src/quantbt
+creating quantbt_engine-1.1.2/src/quantbt/adapters
+creating quantbt_engine-1.1.2/src/quantbt/adapters/nautilus
+creating quantbt_engine-1.1.2/src/quantbt/api
+creating quantbt_engine-1.1.2/src/quantbt/backends
+creating quantbt_engine-1.1.2/src/quantbt/benchmarks
+creating quantbt_engine-1.1.2/src/quantbt/core
+creating quantbt_engine-1.1.2/src/quantbt/engine_spi
+creating quantbt_engine-1.1.2/src/quantbt/metrics
+creating quantbt_engine-1.1.2/src/quantbt/metrics/reporting
+creating quantbt_engine-1.1.2/src/quantbt/optimization
+creating quantbt_engine-1.1.2/src/quantbt/optimization/continuation
+creating quantbt_engine-1.1.2/src/quantbt/optimization/evaluators
+creating quantbt_engine-1.1.2/src/quantbt/optimization/meta_selection
+creating quantbt_engine-1.1.2/src/quantbt/optimization/meta_selection/domains
+creating quantbt_engine-1.1.2/src/quantbt/options
+creating quantbt_engine-1.1.2/src/quantbt/options/templates
+creating quantbt_engine-1.1.2/src/quantbt/planning
+creating quantbt_engine-1.1.2/src/quantbt/preparation
+creating quantbt_engine-1.1.2/src/quantbt/reporting
+creating quantbt_engine-1.1.2/src/quantbt/results
+creating quantbt_engine-1.1.2/src/quantbt/sizing
+creating quantbt_engine-1.1.2/src/quantbt/strategies
+creating quantbt_engine-1.1.2/src/quantbt/verification
+creating quantbt_engine-1.1.2/src/quantbt/viz
+creating quantbt_engine-1.1.2/src/quantbt_engine.egg-info
+copying files to quantbt_engine-1.1.2...
+copying CHANGELOG.md -> quantbt_engine-1.1.2
+copying LICENSE -> quantbt_engine-1.1.2
+copying MANIFEST.in -> quantbt_engine-1.1.2
+copying README.md -> quantbt_engine-1.1.2
+copying pyproject.toml -> quantbt_engine-1.1.2
+copying src/quantbt/__init__.py -> quantbt_engine-1.1.2/src/quantbt
+copying src/quantbt/backtester.py -> quantbt_engine-1.1.2/src/quantbt
+copying src/quantbt/endpoint.py -> quantbt_engine-1.1.2/src/quantbt
+copying src/quantbt/engines.py -> quantbt_engine-1.1.2/src/quantbt
+copying src/quantbt/errors.py -> quantbt_engine-1.1.2/src/quantbt
+copying src/quantbt/portfolio.py -> quantbt_engine-1.1.2/src/quantbt
+copying src/quantbt/py.typed -> quantbt_engine-1.1.2/src/quantbt
+copying src/quantbt/walkforward.py -> quantbt_engine-1.1.2/src/quantbt
+copying src/quantbt/wfo_execution.py -> quantbt_engine-1.1.2/src/quantbt
+copying src/quantbt/adapters/__init__.py -> quantbt_engine-1.1.2/src/quantbt/adapters
+copying src/quantbt/adapters/nautilus/__init__.py -> quantbt_engine-1.1.2/src/quantbt/adapters/nautilus
+copying src/quantbt/adapters/nautilus/_dependency.py -> quantbt_engine-1.1.2/src/quantbt/adapters/nautilus
+copying src/quantbt/adapters/nautilus/backend.py -> quantbt_engine-1.1.2/src/quantbt/adapters/nautilus
+copying src/quantbt/adapters/nautilus/instruments.py -> quantbt_engine-1.1.2/src/quantbt/adapters/nautilus
+copying src/quantbt/adapters/nautilus/options.py -> quantbt_engine-1.1.2/src/quantbt/adapters/nautilus
+copying src/quantbt/adapters/nautilus/reports.py -> quantbt_engine-1.1.2/src/quantbt/adapters/nautilus
+copying src/quantbt/api/__init__.py -> quantbt_engine-1.1.2/src/quantbt/api
+copying src/quantbt/api/event_driven.py -> quantbt_engine-1.1.2/src/quantbt/api
+copying src/quantbt/backends/__init__.py -> quantbt_engine-1.1.2/src/quantbt/backends
+copying src/quantbt/backends/_native_event_rust.py -> quantbt_engine-1.1.2/src/quantbt/backends
+copying src/quantbt/backends/native_event.py -> quantbt_engine-1.1.2/src/quantbt/backends
+copying src/quantbt/backends/native_intrabar_rust.py -> quantbt_engine-1.1.2/src/quantbt/backends
+copying src/quantbt/backends/native_metric_support.py -> quantbt_engine-1.1.2/src/quantbt/backends
+copying src/quantbt/backends/native_option.py -> quantbt_engine-1.1.2/src/quantbt/backends
+copying src/quantbt/backends/native_package_arbitrage.py -> quantbt_engine-1.1.2/src/quantbt/backends
+copying src/quantbt/backends/native_portfolio.py -> quantbt_engine-1.1.2/src/quantbt/backends
+copying src/quantbt/backends/native_portfolio_package.py -> quantbt_engine-1.1.2/src/quantbt/backends
+copying src/quantbt/backends/native_prepared_evaluation.py -> quantbt_engine-1.1.2/src/quantbt/backends
+copying src/quantbt/backends/native_strategy_ir.py -> quantbt_engine-1.1.2/src/quantbt/backends
+copying src/quantbt/backends/native_vectorized.py -> quantbt_engine-1.1.2/src/quantbt/backends
+copying src/quantbt/backends/native_wfo.py -> quantbt_engine-1.1.2/src/quantbt/backends
+copying src/quantbt/backends/native_wfo_public.py -> quantbt_engine-1.1.2/src/quantbt/backends
+copying src/quantbt/backends/native_wfo_support.py -> quantbt_engine-1.1.2/src/quantbt/backends
+copying src/quantbt/backends/native_wfo_target.py -> quantbt_engine-1.1.2/src/quantbt/backends
+copying src/quantbt/backends/reactive_wfo.py -> quantbt_engine-1.1.2/src/quantbt/backends
+copying src/quantbt/backends/reactive_wfo_batch.py -> quantbt_engine-1.1.2/src/quantbt/backends
+copying src/quantbt/backends/reactive_wfo_batch_selection.py -> quantbt_engine-1.1.2/src/quantbt/backends
+copying src/quantbt/backends/reactive_wfo_preparation.py -> quantbt_engine-1.1.2/src/quantbt/backends
+copying src/quantbt/backends/reactive_wfo_sampling.py -> quantbt_engine-1.1.2/src/quantbt/backends
+copying src/quantbt/backends/reactive_wfo_support.py -> quantbt_engine-1.1.2/src/quantbt/backends
+copying src/quantbt/backends/reactive_wfo_workers.py -> quantbt_engine-1.1.2/src/quantbt/backends
+copying src/quantbt/benchmarks/__init__.py -> quantbt_engine-1.1.2/src/quantbt/benchmarks
+copying src/quantbt/benchmarks/compare_phase9_parity.py -> quantbt_engine-1.1.2/src/quantbt/benchmarks
+copying src/quantbt/benchmarks/gamma_scalping_backtestsample.py -> quantbt_engine-1.1.2/src/quantbt/benchmarks
+copying src/quantbt/benchmarks/profile_phase7.py -> quantbt_engine-1.1.2/src/quantbt/benchmarks
+copying src/quantbt/benchmarks/run_arbitrage_phase_e.py -> quantbt_engine-1.1.2/src/quantbt/benchmarks
+copying src/quantbt/benchmarks/run_optimization_overhead.py -> quantbt_engine-1.1.2/src/quantbt/benchmarks
+copying src/quantbt/benchmarks/run_options_engine.py -> quantbt_engine-1.1.2/src/quantbt/benchmarks
+copying src/quantbt/benchmarks/run_pct_equity_nautilus_smoke.py -> quantbt_engine-1.1.2/src/quantbt/benchmarks
+copying src/quantbt/benchmarks/run_phase12_arbitrage_cert.py -> quantbt_engine-1.1.2/src/quantbt/benchmarks
+copying src/quantbt/benchmarks/run_phase12_benchmark_nautilus_cert.py -> quantbt_engine-1.1.2/src/quantbt/benchmarks
+copying src/quantbt/benchmarks/run_phase13_portfolio_report.py -> quantbt_engine-1.1.2/src/quantbt/benchmarks
+copying src/quantbt/benchmarks/run_phase13_wfo_cache.py -> quantbt_engine-1.1.2/src/quantbt/benchmarks
+copying src/quantbt/benchmarks/run_phase14_service_loop.py -> quantbt_engine-1.1.2/src/quantbt/benchmarks
+copying src/quantbt/benchmarks/run_phase15a_nautilus_certification.py -> quantbt_engine-1.1.2/src/quantbt/benchmarks
+copying src/quantbt/benchmarks/run_phase15b_synthetic_depth.py -> quantbt_engine-1.1.2/src/quantbt/benchmarks
+copying src/quantbt/benchmarks/run_phase16_performance_debt.py -> quantbt_engine-1.1.2/src/quantbt/benchmarks
+copying src/quantbt/benchmarks/run_phase30e_reactive_runner.py -> quantbt_engine-1.1.2/src/quantbt/benchmarks
+copying src/quantbt/benchmarks/run_phase31_intrabar.py -> quantbt_engine-1.1.2/src/quantbt/benchmarks
+copying src/quantbt/benchmarks/run_phase34a_native_event_memory.py -> quantbt_engine-1.1.2/src/quantbt/benchmarks
+copying src/quantbt/benchmarks/run_phase34b_native_event_prepared_score.py -> quantbt_engine-1.1.2/src/quantbt/benchmarks
+copying src/quantbt/benchmarks/run_phase34c_native_event_single_pass.py -> quantbt_engine-1.1.2/src/quantbt/benchmarks
+copying src/quantbt/benchmarks/run_phase49b_wfo_performance.py -> quantbt_engine-1.1.2/src/quantbt/benchmarks
+copying src/quantbt/benchmarks/run_phase7.py -> quantbt_engine-1.1.2/src/quantbt/benchmarks
+copying src/quantbt/benchmarks/run_portfolio_real_parity.py -> quantbt_engine-1.1.2/src/quantbt/benchmarks
+copying src/quantbt/benchmarks/v1_1_measurement.py -> quantbt_engine-1.1.2/src/quantbt/benchmarks
+copying src/quantbt/core/__init__.py -> quantbt_engine-1.1.2/src/quantbt/core
+copying src/quantbt/core/_trace_columns.py -> quantbt_engine-1.1.2/src/quantbt/core
+copying src/quantbt/core/accounting_contracts.py -> quantbt_engine-1.1.2/src/quantbt/core
+copying src/quantbt/core/arbitrage.py -> quantbt_engine-1.1.2/src/quantbt/core
+copying src/quantbt/core/basket.py -> quantbt_engine-1.1.2/src/quantbt/core
+copying src/quantbt/core/certification.py -> quantbt_engine-1.1.2/src/quantbt/core
+copying src/quantbt/core/constraints.py -> quantbt_engine-1.1.2/src/quantbt/core
+copying src/quantbt/core/delivery_lifecycle.py -> quantbt_engine-1.1.2/src/quantbt/core
+copying src/quantbt/core/engine.py -> quantbt_engine-1.1.2/src/quantbt/core
+copying src/quantbt/core/event.py -> quantbt_engine-1.1.2/src/quantbt/core
+copying src/quantbt/core/event_contracts.py -> quantbt_engine-1.1.2/src/quantbt/core
+copying src/quantbt/core/execution_contract.py -> quantbt_engine-1.1.2/src/quantbt/core
+copying src/quantbt/core/execution_depth.py -> quantbt_engine-1.1.2/src/quantbt/core
+copying src/quantbt/core/execution_trace.py -> quantbt_engine-1.1.2/src/quantbt/core
+copying src/quantbt/core/fill_replay_v2.py -> quantbt_engine-1.1.2/src/quantbt/core
+copying src/quantbt/core/generated_native_event_contracts.py -> quantbt_engine-1.1.2/src/quantbt/core
+copying src/quantbt/core/generated_product_contracts.py -> quantbt_engine-1.1.2/src/quantbt/core
+copying src/quantbt/core/instrument_contracts.py -> quantbt_engine-1.1.2/src/quantbt/core
+copying src/quantbt/core/instrument_registry_v2.py -> quantbt_engine-1.1.2/src/quantbt/core
+copying src/quantbt/core/intrabar_kernel.py -> quantbt_engine-1.1.2/src/quantbt/core
+copying src/quantbt/core/intrabar_reference.py -> quantbt_engine-1.1.2/src/quantbt/core
+copying src/quantbt/core/intrabar_session.py -> quantbt_engine-1.1.2/src/quantbt/core
+copying src/quantbt/core/market_calendar_v2.py -> quantbt_engine-1.1.2/src/quantbt/core
+copying src/quantbt/core/market_tape.py -> quantbt_engine-1.1.2/src/quantbt/core
+copying src/quantbt/core/native_event_capabilities.py -> quantbt_engine-1.1.2/src/quantbt/core
+copying src/quantbt/core/native_event_parity.py -> quantbt_engine-1.1.2/src/quantbt/core
+copying src/quantbt/core/native_event_promotion.py -> quantbt_engine-1.1.2/src/quantbt/core
+copying src/quantbt/core/native_result_v2.py -> quantbt_engine-1.1.2/src/quantbt/core
+copying src/quantbt/core/order_compiler.py -> quantbt_engine-1.1.2/src/quantbt/core
+copying src/quantbt/core/orders.py -> quantbt_engine-1.1.2/src/quantbt/core
+copying src/quantbt/core/package_execution_contracts.py -> quantbt_engine-1.1.2/src/quantbt/core
+copying src/quantbt/core/package_execution_v2.py -> quantbt_engine-1.1.2/src/quantbt/core
+copying src/quantbt/core/performance_contracts.py -> quantbt_engine-1.1.2/src/quantbt/core
+copying src/quantbt/core/portfolio.py -> quantbt_engine-1.1.2/src/quantbt/core
+copying src/quantbt/core/portfolio_execution_contracts.py -> quantbt_engine-1.1.2/src/quantbt/core
+copying src/quantbt/core/prepared_execution_v2.py -> quantbt_engine-1.1.2/src/quantbt/core
+copying src/quantbt/core/preprocessor.py -> quantbt_engine-1.1.2/src/quantbt/core
+copying src/quantbt/core/product_contracts.py -> quantbt_engine-1.1.2/src/quantbt/core
+copying src/quantbt/core/reactive.py -> quantbt_engine-1.1.2/src/quantbt/core
+copying src/quantbt/core/research_audit.py -> quantbt_engine-1.1.2/src/quantbt/core
+copying src/quantbt/core/research_audit_artifact.py -> quantbt_engine-1.1.2/src/quantbt/core
+copying src/quantbt/core/results.py -> quantbt_engine-1.1.2/src/quantbt/core
+copying src/quantbt/core/runtime_governance.py -> quantbt_engine-1.1.2/src/quantbt/core
+copying src/quantbt/core/schema.py -> quantbt_engine-1.1.2/src/quantbt/core
+copying src/quantbt/core/scopes.py -> quantbt_engine-1.1.2/src/quantbt/core
+copying src/quantbt/core/structured_orders.py -> quantbt_engine-1.1.2/src/quantbt/core
+copying src/quantbt/core/target_intents.py -> quantbt_engine-1.1.2/src/quantbt/core
+copying src/quantbt/core/types.py -> quantbt_engine-1.1.2/src/quantbt/core
+copying src/quantbt/core/vectorized.py -> quantbt_engine-1.1.2/src/quantbt/core
+copying src/quantbt/core/wfo_contracts.py -> quantbt_engine-1.1.2/src/quantbt/core
+copying src/quantbt/core/wfo_evaluation.py -> quantbt_engine-1.1.2/src/quantbt/core
+copying src/quantbt/core/wfo_preparation.py -> quantbt_engine-1.1.2/src/quantbt/core
+copying src/quantbt/engine_spi/__init__.py -> quantbt_engine-1.1.2/src/quantbt/engine_spi
+copying src/quantbt/engine_spi/errors.py -> quantbt_engine-1.1.2/src/quantbt/engine_spi
+copying src/quantbt/engine_spi/native_event.py -> quantbt_engine-1.1.2/src/quantbt/engine_spi
+copying src/quantbt/engine_spi/protocol.py -> quantbt_engine-1.1.2/src/quantbt/engine_spi
+copying src/quantbt/engine_spi/registry.py -> quantbt_engine-1.1.2/src/quantbt/engine_spi
+copying src/quantbt/metrics/__init__.py -> quantbt_engine-1.1.2/src/quantbt/metrics
+copying src/quantbt/metrics/options_analytics.py -> quantbt_engine-1.1.2/src/quantbt/metrics
+copying src/quantbt/metrics/performance.py -> quantbt_engine-1.1.2/src/quantbt/metrics
+copying src/quantbt/metrics/report_contracts.py -> quantbt_engine-1.1.2/src/quantbt/metrics
+copying src/quantbt/metrics/reporting/__init__.py -> quantbt_engine-1.1.2/src/quantbt/metrics/reporting
+copying src/quantbt/metrics/reporting/account.py -> quantbt_engine-1.1.2/src/quantbt/metrics/reporting
+copying src/quantbt/metrics/reporting/adapters.py -> quantbt_engine-1.1.2/src/quantbt/metrics/reporting
+copying src/quantbt/metrics/reporting/cache.py -> quantbt_engine-1.1.2/src/quantbt/metrics/reporting
+copying src/quantbt/metrics/reporting/drawdown.py -> quantbt_engine-1.1.2/src/quantbt/metrics/reporting
+copying src/quantbt/metrics/reporting/execution.py -> quantbt_engine-1.1.2/src/quantbt/metrics/reporting
+copying src/quantbt/metrics/reporting/inputs.py -> quantbt_engine-1.1.2/src/quantbt/metrics/reporting
+copying src/quantbt/metrics/reporting/ledger.py -> quantbt_engine-1.1.2/src/quantbt/metrics/reporting
+copying src/quantbt/metrics/reporting/ledger_inputs.py -> quantbt_engine-1.1.2/src/quantbt/metrics/reporting
+copying src/quantbt/metrics/reporting/plot.py -> quantbt_engine-1.1.2/src/quantbt/metrics/reporting
+copying src/quantbt/metrics/reporting/public.py -> quantbt_engine-1.1.2/src/quantbt/metrics/reporting
+copying src/quantbt/metrics/reporting/request.py -> quantbt_engine-1.1.2/src/quantbt/metrics/reporting
+copying src/quantbt/metrics/reporting/results.py -> quantbt_engine-1.1.2/src/quantbt/metrics/reporting
+copying src/quantbt/metrics/reporting/snapshots.py -> quantbt_engine-1.1.2/src/quantbt/metrics/reporting
+copying src/quantbt/optimization/__init__.py -> quantbt_engine-1.1.2/src/quantbt/optimization
+copying src/quantbt/optimization/bootstrap.py -> quantbt_engine-1.1.2/src/quantbt/optimization
+copying src/quantbt/optimization/callbacks.py -> quantbt_engine-1.1.2/src/quantbt/optimization
+copying src/quantbt/optimization/candidate_selection.py -> quantbt_engine-1.1.2/src/quantbt/optimization
+copying src/quantbt/optimization/conditional_sobol.py -> quantbt_engine-1.1.2/src/quantbt/optimization
+copying src/quantbt/optimization/config.py -> quantbt_engine-1.1.2/src/quantbt/optimization
+copying src/quantbt/optimization/constraints.py -> quantbt_engine-1.1.2/src/quantbt/optimization
+copying src/quantbt/optimization/evaluator.py -> quantbt_engine-1.1.2/src/quantbt/optimization
+copying src/quantbt/optimization/multiseed.py -> quantbt_engine-1.1.2/src/quantbt/optimization
+copying src/quantbt/optimization/objectives.py -> quantbt_engine-1.1.2/src/quantbt/optimization
+copying src/quantbt/optimization/optimizer.py -> quantbt_engine-1.1.2/src/quantbt/optimization
+copying src/quantbt/optimization/parameter_space.py -> quantbt_engine-1.1.2/src/quantbt/optimization
+copying src/quantbt/optimization/representatives.py -> quantbt_engine-1.1.2/src/quantbt/optimization
+copying src/quantbt/optimization/result.py -> quantbt_engine-1.1.2/src/quantbt/optimization
+copying src/quantbt/optimization/sampler_space.py -> quantbt_engine-1.1.2/src/quantbt/optimization
+copying src/quantbt/optimization/samplers.py -> quantbt_engine-1.1.2/src/quantbt/optimization
+copying src/quantbt/optimization/space.py -> quantbt_engine-1.1.2/src/quantbt/optimization
+copying src/quantbt/optimization/wfo_study.py -> quantbt_engine-1.1.2/src/quantbt/optimization
+copying src/quantbt/optimization/continuation/__init__.py -> quantbt_engine-1.1.2/src/quantbt/optimization/continuation
+copying src/quantbt/optimization/continuation/contract.py -> quantbt_engine-1.1.2/src/quantbt/optimization/continuation
+copying src/quantbt/optimization/continuation/session.py -> quantbt_engine-1.1.2/src/quantbt/optimization/continuation
+copying src/quantbt/optimization/continuation/storage.py -> quantbt_engine-1.1.2/src/quantbt/optimization/continuation
+copying src/quantbt/optimization/evaluators/__init__.py -> quantbt_engine-1.1.2/src/quantbt/optimization/evaluators
+copying src/quantbt/optimization/evaluators/arbitrage.py -> quantbt_engine-1.1.2/src/quantbt/optimization/evaluators
+copying src/quantbt/optimization/evaluators/generic.py -> quantbt_engine-1.1.2/src/quantbt/optimization/evaluators
+copying src/quantbt/optimization/evaluators/grid_dca.py -> quantbt_engine-1.1.2/src/quantbt/optimization/evaluators
+copying src/quantbt/optimization/evaluators/intrabar.py -> quantbt_engine-1.1.2/src/quantbt/optimization/evaluators
+copying src/quantbt/optimization/evaluators/native_event.py -> quantbt_engine-1.1.2/src/quantbt/optimization/evaluators
+copying src/quantbt/optimization/evaluators/options.py -> quantbt_engine-1.1.2/src/quantbt/optimization/evaluators
+copying src/quantbt/optimization/evaluators/portfolio.py -> quantbt_engine-1.1.2/src/quantbt/optimization/evaluators
+copying src/quantbt/optimization/evaluators/signal.py -> quantbt_engine-1.1.2/src/quantbt/optimization/evaluators
+copying src/quantbt/optimization/meta_selection/__init__.py -> quantbt_engine-1.1.2/src/quantbt/optimization/meta_selection
+copying src/quantbt/optimization/meta_selection/artifacts.py -> quantbt_engine-1.1.2/src/quantbt/optimization/meta_selection
+copying src/quantbt/optimization/meta_selection/capture.py -> quantbt_engine-1.1.2/src/quantbt/optimization/meta_selection
+copying src/quantbt/optimization/meta_selection/common.py -> quantbt_engine-1.1.2/src/quantbt/optimization/meta_selection
+copying src/quantbt/optimization/meta_selection/config.py -> quantbt_engine-1.1.2/src/quantbt/optimization/meta_selection
+copying src/quantbt/optimization/meta_selection/descriptors.py -> quantbt_engine-1.1.2/src/quantbt/optimization/meta_selection
+copying src/quantbt/optimization/meta_selection/handoff.py -> quantbt_engine-1.1.2/src/quantbt/optimization/meta_selection
+copying src/quantbt/optimization/meta_selection/history.py -> quantbt_engine-1.1.2/src/quantbt/optimization/meta_selection
+copying src/quantbt/optimization/meta_selection/memo.py -> quantbt_engine-1.1.2/src/quantbt/optimization/meta_selection
+copying src/quantbt/optimization/meta_selection/model.py -> quantbt_engine-1.1.2/src/quantbt/optimization/meta_selection
+copying src/quantbt/optimization/meta_selection/nested.py -> quantbt_engine-1.1.2/src/quantbt/optimization/meta_selection
+copying src/quantbt/optimization/meta_selection/numerics.py -> quantbt_engine-1.1.2/src/quantbt/optimization/meta_selection
+copying src/quantbt/optimization/meta_selection/observer.py -> quantbt_engine-1.1.2/src/quantbt/optimization/meta_selection
+copying src/quantbt/optimization/meta_selection/panel.py -> quantbt_engine-1.1.2/src/quantbt/optimization/meta_selection
+copying src/quantbt/optimization/meta_selection/persistence.py -> quantbt_engine-1.1.2/src/quantbt/optimization/meta_selection
+copying src/quantbt/optimization/meta_selection/prepared.py -> quantbt_engine-1.1.2/src/quantbt/optimization/meta_selection
+copying src/quantbt/optimization/meta_selection/reactive.py -> quantbt_engine-1.1.2/src/quantbt/optimization/meta_selection
+copying src/quantbt/optimization/meta_selection/reactive_batch_witness.py -> quantbt_engine-1.1.2/src/quantbt/optimization/meta_selection
+copying src/quantbt/optimization/meta_selection/reactive_execution.py -> quantbt_engine-1.1.2/src/quantbt/optimization/meta_selection
+copying src/quantbt/optimization/meta_selection/reactive_transport.py -> quantbt_engine-1.1.2/src/quantbt/optimization/meta_selection
+copying src/quantbt/optimization/meta_selection/records.py -> quantbt_engine-1.1.2/src/quantbt/optimization/meta_selection
+copying src/quantbt/optimization/meta_selection/runtime.py -> quantbt_engine-1.1.2/src/quantbt/optimization/meta_selection
+copying src/quantbt/optimization/meta_selection/selection.py -> quantbt_engine-1.1.2/src/quantbt/optimization/meta_selection
+copying src/quantbt/optimization/meta_selection/telemetry.py -> quantbt_engine-1.1.2/src/quantbt/optimization/meta_selection
+copying src/quantbt/optimization/meta_selection/witness.py -> quantbt_engine-1.1.2/src/quantbt/optimization/meta_selection
+copying src/quantbt/optimization/meta_selection/work_cache.py -> quantbt_engine-1.1.2/src/quantbt/optimization/meta_selection
+copying src/quantbt/optimization/meta_selection/domains/__init__.py -> quantbt_engine-1.1.2/src/quantbt/optimization/meta_selection/domains
+copying src/quantbt/optimization/meta_selection/domains/base.py -> quantbt_engine-1.1.2/src/quantbt/optimization/meta_selection/domains
+copying src/quantbt/optimization/meta_selection/domains/contracts.py -> quantbt_engine-1.1.2/src/quantbt/optimization/meta_selection/domains
+copying src/quantbt/optimization/meta_selection/domains/execution.py -> quantbt_engine-1.1.2/src/quantbt/optimization/meta_selection/domains
+copying src/quantbt/optimization/meta_selection/domains/package.py -> quantbt_engine-1.1.2/src/quantbt/optimization/meta_selection/domains
+copying src/quantbt/optimization/meta_selection/domains/package_contract.py -> quantbt_engine-1.1.2/src/quantbt/optimization/meta_selection/domains
+copying src/quantbt/optimization/meta_selection/domains/portfolio.py -> quantbt_engine-1.1.2/src/quantbt/optimization/meta_selection/domains
+copying src/quantbt/optimization/meta_selection/domains/portfolio_contract.py -> quantbt_engine-1.1.2/src/quantbt/optimization/meta_selection/domains
+copying src/quantbt/optimization/meta_selection/domains/portfolio_witness.py -> quantbt_engine-1.1.2/src/quantbt/optimization/meta_selection/domains
+copying src/quantbt/optimization/meta_selection/domains/reactive.py -> quantbt_engine-1.1.2/src/quantbt/optimization/meta_selection/domains
+copying src/quantbt/optimization/meta_selection/domains/registry.py -> quantbt_engine-1.1.2/src/quantbt/optimization/meta_selection/domains
+copying src/quantbt/optimization/meta_selection/domains/scalar.py -> quantbt_engine-1.1.2/src/quantbt/optimization/meta_selection/domains
+copying src/quantbt/optimization/meta_selection/domains/scalar_contract.py -> quantbt_engine-1.1.2/src/quantbt/optimization/meta_selection/domains
+copying src/quantbt/options/__init__.py -> quantbt_engine-1.1.2/src/quantbt/options
+copying src/quantbt/options/authority.py -> quantbt_engine-1.1.2/src/quantbt/options
+copying src/quantbt/options/cache.py -> quantbt_engine-1.1.2/src/quantbt/options
+copying src/quantbt/options/capabilities.py -> quantbt_engine-1.1.2/src/quantbt/options
+copying src/quantbt/options/conventions.py -> quantbt_engine-1.1.2/src/quantbt/options
+copying src/quantbt/options/data.py -> quantbt_engine-1.1.2/src/quantbt/options
+copying src/quantbt/options/execution.py -> quantbt_engine-1.1.2/src/quantbt/options
+copying src/quantbt/options/fees.py -> quantbt_engine-1.1.2/src/quantbt/options
+copying src/quantbt/options/greeks.py -> quantbt_engine-1.1.2/src/quantbt/options
+copying src/quantbt/options/hedging.py -> quantbt_engine-1.1.2/src/quantbt/options
+copying src/quantbt/options/iv.py -> quantbt_engine-1.1.2/src/quantbt/options
+copying src/quantbt/options/ledger.py -> quantbt_engine-1.1.2/src/quantbt/options
+copying src/quantbt/options/lifecycle.py -> quantbt_engine-1.1.2/src/quantbt/options
+copying src/quantbt/options/margin.py -> quantbt_engine-1.1.2/src/quantbt/options
+copying src/quantbt/options/packages.py -> quantbt_engine-1.1.2/src/quantbt/options
+copying src/quantbt/options/pricing.py -> quantbt_engine-1.1.2/src/quantbt/options
+copying src/quantbt/options/reporting.py -> quantbt_engine-1.1.2/src/quantbt/options
+copying src/quantbt/options/schema.py -> quantbt_engine-1.1.2/src/quantbt/options
+copying src/quantbt/options/selectors.py -> quantbt_engine-1.1.2/src/quantbt/options
+copying src/quantbt/options/strategy.py -> quantbt_engine-1.1.2/src/quantbt/options
+copying src/quantbt/options/surface.py -> quantbt_engine-1.1.2/src/quantbt/options
+copying src/quantbt/options/tape.py -> quantbt_engine-1.1.2/src/quantbt/options
+copying src/quantbt/options/templates/__init__.py -> quantbt_engine-1.1.2/src/quantbt/options/templates
+copying src/quantbt/options/templates/packages.py -> quantbt_engine-1.1.2/src/quantbt/options/templates
+copying src/quantbt/planning/__init__.py -> quantbt_engine-1.1.2/src/quantbt/planning
+copying src/quantbt/planning/capabilities.py -> quantbt_engine-1.1.2/src/quantbt/planning
+copying src/quantbt/planning/fingerprints.py -> quantbt_engine-1.1.2/src/quantbt/planning
+copying src/quantbt/planning/models.py -> quantbt_engine-1.1.2/src/quantbt/planning
+copying src/quantbt/planning/output.py -> quantbt_engine-1.1.2/src/quantbt/planning
+copying src/quantbt/planning/resolve.py -> quantbt_engine-1.1.2/src/quantbt/planning
+copying src/quantbt/preparation/__init__.py -> quantbt_engine-1.1.2/src/quantbt/preparation
+copying src/quantbt/preparation/cache.py -> quantbt_engine-1.1.2/src/quantbt/preparation
+copying src/quantbt/preparation/models.py -> quantbt_engine-1.1.2/src/quantbt/preparation
+copying src/quantbt/preparation/native_event.py -> quantbt_engine-1.1.2/src/quantbt/preparation
+copying src/quantbt/preparation/native_execution.py -> quantbt_engine-1.1.2/src/quantbt/preparation
+copying src/quantbt/preparation/native_intrabar_requests.py -> quantbt_engine-1.1.2/src/quantbt/preparation
+copying src/quantbt/preparation/native_package_requests.py -> quantbt_engine-1.1.2/src/quantbt/preparation
+copying src/quantbt/preparation/native_target_requests.py -> quantbt_engine-1.1.2/src/quantbt/preparation
+copying src/quantbt/reporting/__init__.py -> quantbt_engine-1.1.2/src/quantbt/reporting
+copying src/quantbt/reporting/arbitrage_audit.py -> quantbt_engine-1.1.2/src/quantbt/reporting
+copying src/quantbt/reporting/nautilus_bundle.py -> quantbt_engine-1.1.2/src/quantbt/reporting
+copying src/quantbt/reporting/nautilus_certification.py -> quantbt_engine-1.1.2/src/quantbt/reporting
+copying src/quantbt/reporting/nautilus_diagnostics.py -> quantbt_engine-1.1.2/src/quantbt/reporting
+copying src/quantbt/reporting/parity.py -> quantbt_engine-1.1.2/src/quantbt/reporting
+copying src/quantbt/reporting/portfolio_audit.py -> quantbt_engine-1.1.2/src/quantbt/reporting
+copying src/quantbt/reporting/portfolio_nautilus.py -> quantbt_engine-1.1.2/src/quantbt/reporting
+copying src/quantbt/results/__init__.py -> quantbt_engine-1.1.2/src/quantbt/results
+copying src/quantbt/results/raw.py -> quantbt_engine-1.1.2/src/quantbt/results
+copying src/quantbt/sizing/__init__.py -> quantbt_engine-1.1.2/src/quantbt/sizing
+copying src/quantbt/sizing/fast.py -> quantbt_engine-1.1.2/src/quantbt/sizing
+copying src/quantbt/sizing/modes.py -> quantbt_engine-1.1.2/src/quantbt/sizing
+copying src/quantbt/strategies/__init__.py -> quantbt_engine-1.1.2/src/quantbt/strategies
+copying src/quantbt/strategies/commands.py -> quantbt_engine-1.1.2/src/quantbt/strategies
+copying src/quantbt/strategies/context.py -> quantbt_engine-1.1.2/src/quantbt/strategies
+copying src/quantbt/strategies/driver.py -> quantbt_engine-1.1.2/src/quantbt/strategies
+copying src/quantbt/strategies/native_ir.py -> quantbt_engine-1.1.2/src/quantbt/strategies
+copying src/quantbt/strategies/reactive_protocols.py -> quantbt_engine-1.1.2/src/quantbt/strategies
+copying src/quantbt/strategies/reactive_wfo.py -> quantbt_engine-1.1.2/src/quantbt/strategies
+copying src/quantbt/strategies/requirements.py -> quantbt_engine-1.1.2/src/quantbt/strategies
+copying src/quantbt/strategies/wfo_prepared.py -> quantbt_engine-1.1.2/src/quantbt/strategies
+copying src/quantbt/verification/__init__.py -> quantbt_engine-1.1.2/src/quantbt/verification
+copying src/quantbt/verification/canonical_trace_v2.py -> quantbt_engine-1.1.2/src/quantbt/verification
+copying src/quantbt/viz/__init__.py -> quantbt_engine-1.1.2/src/quantbt/viz
+copying src/quantbt/viz/plots.py -> quantbt_engine-1.1.2/src/quantbt/viz
+copying src/quantbt/viz/themes.py -> quantbt_engine-1.1.2/src/quantbt/viz
+copying src/quantbt_engine.egg-info/PKG-INFO -> quantbt_engine-1.1.2/src/quantbt_engine.egg-info
+copying src/quantbt_engine.egg-info/SOURCES.txt -> quantbt_engine-1.1.2/src/quantbt_engine.egg-info
+copying src/quantbt_engine.egg-info/dependency_links.txt -> quantbt_engine-1.1.2/src/quantbt_engine.egg-info
+copying src/quantbt_engine.egg-info/requires.txt -> quantbt_engine-1.1.2/src/quantbt_engine.egg-info
+copying src/quantbt_engine.egg-info/top_level.txt -> quantbt_engine-1.1.2/src/quantbt_engine.egg-info
+copying src/quantbt_engine.egg-info/SOURCES.txt -> quantbt_engine-1.1.2/src/quantbt_engine.egg-info
+Writing quantbt_engine-1.1.2/setup.cfg
+Creating tar archive
+removing 'quantbt_engine-1.1.2' (and everything under it)
+Successfully built quantbt_engine-1.1.2-py3-none-any.whl and quantbt_engine-1.1.2.tar.gz
+* Getting build dependencies for wheel...
+warning: no previously-included files matching '*.pem' found anywhere in distribution
+warning: no previously-included files matching '*.key' found anywhere in distribution
+warning: no previously-included files matching '.env' found anywhere in distribution
+warning: no previously-included files matching '.env.*' found anywhere in distribution
+warning: no previously-included files matching '.pypirc' found anywhere in distribution
+no previously-included directories found matching 'upgrade/private'
+no previously-included directories found matching 'upgrade/local'
+no previously-included directories found matching 'upgrade/drafts'
+no previously-included directories found matching 'benchmarks'
+no previously-included directories found matching 'artifacts'
+no previously-included directories found matching 'data/raw'
+no previously-included directories found matching 'data/private'
+no previously-included directories found matching 'data/local'
+* Building wheel...
+warning: no previously-included files matching '*.pem' found anywhere in distribution
+warning: no previously-included files matching '*.key' found anywhere in distribution
+warning: no previously-included files matching '.env' found anywhere in distribution
+warning: no previously-included files matching '.env.*' found anywhere in distribution
+warning: no previously-included files matching '.pypirc' found anywhere in distribution
+no previously-included directories found matching 'upgrade/private'
+no previously-included directories found matching 'upgrade/local'
+no previously-included directories found matching 'upgrade/drafts'
+no previously-included directories found matching 'benchmarks'
+no previously-included directories found matching 'artifacts'
+no previously-included directories found matching 'data/raw'
+no previously-included directories found matching 'data/private'
+no previously-included directories found matching 'data/local'
+warning: build_py: byte-compiling is disabled, skipping.
+
+warning: install_lib: byte-compiling is disabled, skipping.
+
+* Getting build dependencies for sdist...
+warning: no previously-included files matching '*.pem' found anywhere in distribution
+warning: no previously-included files matching '*.key' found anywhere in distribution
+warning: no previously-included files matching '.env' found anywhere in distribution
+warning: no previously-included files matching '.env.*' found anywhere in distribution
+warning: no previously-included files matching '.pypirc' found anywhere in distribution
+no previously-included directories found matching 'upgrade/private'
+no previously-included directories found matching 'upgrade/local'
+no previously-included directories found matching 'upgrade/drafts'
+no previously-included directories found matching 'benchmarks'
+no previously-included directories found matching 'artifacts'
+no previously-included directories found matching 'data/raw'
+no previously-included directories found matching 'data/private'
+no previously-included directories found matching 'data/local'
+* Building sdist...
+warning: no previously-included files matching '*.pem' found anywhere in distribution
+warning: no previously-included files matching '*.key' found anywhere in distribution
+warning: no previously-included files matching '.env' found anywhere in distribution
+warning: no previously-included files matching '.env.*' found anywhere in distribution
+warning: no previously-included files matching '.pypirc' found anywhere in distribution
+no previously-included directories found matching 'upgrade/private'
+no previously-included directories found matching 'upgrade/local'
+no previously-included directories found matching 'upgrade/drafts'
+no previously-included directories found matching 'benchmarks'
+no previously-included directories found matching 'artifacts'
+no previously-included directories found matching 'data/raw'
+no previously-included directories found matching 'data/private'
+no previously-included directories found matching 'data/local'

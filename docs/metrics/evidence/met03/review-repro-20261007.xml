@@ -1,0 +1,498 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="20" skipped="0" tests="25" time="2.789" timestamp="2026-10-07T20:31:52.945892+00:00" hostname="Bobby"><testcase classname="tests.metrics.test_review_edges" name="test_review_completed_index_resolution_is_nanoseconds[UTC-s]" time="0.003"><failure message="ValueError: nonempty aligned account path required">unit = 's', timezone = 'UTC'
+
+    @pytest.mark.parametrize("unit", ["s", "ms", "us", "ns"])
+    @pytest.mark.parametrize("timezone", ["UTC", "Asia/Ho_Chi_Minh", None])
+    def test_review_completed_index_resolution_is_nanoseconds(unit, timezone):
+        times = pd.date_range("2025-01-01", periods=3, freq="h", tz="UTC")
+        index = times.tz_convert(timezone) if timezone else times.tz_localize(None)
+        index = index.as_unit(unit)
+        result = SimpleNamespace(equity=pd.Series([99., 110., 105.], index=index))
+        contract = replace(policy([int(times[0].value), int(times[-1].value)]), sampling="observed_bar")
+        request = ReportingRequest(account=contract, result_identity="resolution",
+            partial_mask=(False,) * 3, return_witness="three recorded hourly bars",
+            naive_timezone="UTC" if timezone is None else None, retain_episodes=True)
+&gt;       observed = account_from_completed(result, contract, result_identity="resolution", naive_timezone=request.naive_timezone)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/metrics/test_review_edges.py:33: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/quantbt/metrics/reporting/adapters.py:41: in account_from_completed
+    observations = AccountObservations(times_ns=times.asi8[selected], equity=equity.to_numpy()[selected], coverage=coverage)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+&lt;string&gt;:7: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = &lt;[AttributeError("'AccountObservations' object has no attribute 'identity'") raised in repr()] AccountObservations object at 0x7fa7c4fdaf60&gt;
+
+    def __post_init__(self):
+        times = frozen_array(self.times_ns, np.int64, integer=True)
+        equity = frozen_array(self.equity, np.float64)
+        if not len(times) or len(times) != len(equity):
+&gt;           raise ValueError("nonempty aligned account path required")
+E           ValueError: nonempty aligned account path required
+
+src/quantbt/metrics/reporting/inputs.py:78: ValueError</failure></testcase><testcase classname="tests.metrics.test_review_edges" name="test_review_completed_index_resolution_is_nanoseconds[UTC-ms]" time="0.002"><failure message="ValueError: nonempty aligned account path required">unit = 'ms', timezone = 'UTC'
+
+    @pytest.mark.parametrize("unit", ["s", "ms", "us", "ns"])
+    @pytest.mark.parametrize("timezone", ["UTC", "Asia/Ho_Chi_Minh", None])
+    def test_review_completed_index_resolution_is_nanoseconds(unit, timezone):
+        times = pd.date_range("2025-01-01", periods=3, freq="h", tz="UTC")
+        index = times.tz_convert(timezone) if timezone else times.tz_localize(None)
+        index = index.as_unit(unit)
+        result = SimpleNamespace(equity=pd.Series([99., 110., 105.], index=index))
+        contract = replace(policy([int(times[0].value), int(times[-1].value)]), sampling="observed_bar")
+        request = ReportingRequest(account=contract, result_identity="resolution",
+            partial_mask=(False,) * 3, return_witness="three recorded hourly bars",
+            naive_timezone="UTC" if timezone is None else None, retain_episodes=True)
+&gt;       observed = account_from_completed(result, contract, result_identity="resolution", naive_timezone=request.naive_timezone)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/metrics/test_review_edges.py:33: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/quantbt/metrics/reporting/adapters.py:41: in account_from_completed
+    observations = AccountObservations(times_ns=times.asi8[selected], equity=equity.to_numpy()[selected], coverage=coverage)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+&lt;string&gt;:7: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = &lt;[AttributeError("'AccountObservations' object has no attribute 'identity'") raised in repr()] AccountObservations object at 0x7fa7c5002f90&gt;
+
+    def __post_init__(self):
+        times = frozen_array(self.times_ns, np.int64, integer=True)
+        equity = frozen_array(self.equity, np.float64)
+        if not len(times) or len(times) != len(equity):
+&gt;           raise ValueError("nonempty aligned account path required")
+E           ValueError: nonempty aligned account path required
+
+src/quantbt/metrics/reporting/inputs.py:78: ValueError</failure></testcase><testcase classname="tests.metrics.test_review_edges" name="test_review_completed_index_resolution_is_nanoseconds[UTC-us]" time="0.002"><failure message="ValueError: nonempty aligned account path required">unit = 'us', timezone = 'UTC'
+
+    @pytest.mark.parametrize("unit", ["s", "ms", "us", "ns"])
+    @pytest.mark.parametrize("timezone", ["UTC", "Asia/Ho_Chi_Minh", None])
+    def test_review_completed_index_resolution_is_nanoseconds(unit, timezone):
+        times = pd.date_range("2025-01-01", periods=3, freq="h", tz="UTC")
+        index = times.tz_convert(timezone) if timezone else times.tz_localize(None)
+        index = index.as_unit(unit)
+        result = SimpleNamespace(equity=pd.Series([99., 110., 105.], index=index))
+        contract = replace(policy([int(times[0].value), int(times[-1].value)]), sampling="observed_bar")
+        request = ReportingRequest(account=contract, result_identity="resolution",
+            partial_mask=(False,) * 3, return_witness="three recorded hourly bars",
+            naive_timezone="UTC" if timezone is None else None, retain_episodes=True)
+&gt;       observed = account_from_completed(result, contract, result_identity="resolution", naive_timezone=request.naive_timezone)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/metrics/test_review_edges.py:33: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/quantbt/metrics/reporting/adapters.py:41: in account_from_completed
+    observations = AccountObservations(times_ns=times.asi8[selected], equity=equity.to_numpy()[selected], coverage=coverage)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+&lt;string&gt;:7: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = &lt;[AttributeError("'AccountObservations' object has no attribute 'identity'") raised in repr()] AccountObservations object at 0x7fa7c5000c50&gt;
+
+    def __post_init__(self):
+        times = frozen_array(self.times_ns, np.int64, integer=True)
+        equity = frozen_array(self.equity, np.float64)
+        if not len(times) or len(times) != len(equity):
+&gt;           raise ValueError("nonempty aligned account path required")
+E           ValueError: nonempty aligned account path required
+
+src/quantbt/metrics/reporting/inputs.py:78: ValueError</failure></testcase><testcase classname="tests.metrics.test_review_edges" name="test_review_completed_index_resolution_is_nanoseconds[UTC-ns]" time="0.022" /><testcase classname="tests.metrics.test_review_edges" name="test_review_completed_index_resolution_is_nanoseconds[Asia/Ho_Chi_Minh-s]" time="0.060"><failure message="ValueError: nonempty aligned account path required">unit = 's', timezone = 'Asia/Ho_Chi_Minh'
+
+    @pytest.mark.parametrize("unit", ["s", "ms", "us", "ns"])
+    @pytest.mark.parametrize("timezone", ["UTC", "Asia/Ho_Chi_Minh", None])
+    def test_review_completed_index_resolution_is_nanoseconds(unit, timezone):
+        times = pd.date_range("2025-01-01", periods=3, freq="h", tz="UTC")
+        index = times.tz_convert(timezone) if timezone else times.tz_localize(None)
+        index = index.as_unit(unit)
+        result = SimpleNamespace(equity=pd.Series([99., 110., 105.], index=index))
+        contract = replace(policy([int(times[0].value), int(times[-1].value)]), sampling="observed_bar")
+        request = ReportingRequest(account=contract, result_identity="resolution",
+            partial_mask=(False,) * 3, return_witness="three recorded hourly bars",
+            naive_timezone="UTC" if timezone is None else None, retain_episodes=True)
+&gt;       observed = account_from_completed(result, contract, result_identity="resolution", naive_timezone=request.naive_timezone)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/metrics/test_review_edges.py:33: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/quantbt/metrics/reporting/adapters.py:41: in account_from_completed
+    observations = AccountObservations(times_ns=times.asi8[selected], equity=equity.to_numpy()[selected], coverage=coverage)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+&lt;string&gt;:7: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = &lt;[AttributeError("'AccountObservations' object has no attribute 'identity'") raised in repr()] AccountObservations object at 0x7fa7d2102e10&gt;
+
+    def __post_init__(self):
+        times = frozen_array(self.times_ns, np.int64, integer=True)
+        equity = frozen_array(self.equity, np.float64)
+        if not len(times) or len(times) != len(equity):
+&gt;           raise ValueError("nonempty aligned account path required")
+E           ValueError: nonempty aligned account path required
+
+src/quantbt/metrics/reporting/inputs.py:78: ValueError</failure></testcase><testcase classname="tests.metrics.test_review_edges" name="test_review_completed_index_resolution_is_nanoseconds[Asia/Ho_Chi_Minh-ms]" time="0.002"><failure message="ValueError: nonempty aligned account path required">unit = 'ms', timezone = 'Asia/Ho_Chi_Minh'
+
+    @pytest.mark.parametrize("unit", ["s", "ms", "us", "ns"])
+    @pytest.mark.parametrize("timezone", ["UTC", "Asia/Ho_Chi_Minh", None])
+    def test_review_completed_index_resolution_is_nanoseconds(unit, timezone):
+        times = pd.date_range("2025-01-01", periods=3, freq="h", tz="UTC")
+        index = times.tz_convert(timezone) if timezone else times.tz_localize(None)
+        index = index.as_unit(unit)
+        result = SimpleNamespace(equity=pd.Series([99., 110., 105.], index=index))
+        contract = replace(policy([int(times[0].value), int(times[-1].value)]), sampling="observed_bar")
+        request = ReportingRequest(account=contract, result_identity="resolution",
+            partial_mask=(False,) * 3, return_witness="three recorded hourly bars",
+            naive_timezone="UTC" if timezone is None else None, retain_episodes=True)
+&gt;       observed = account_from_completed(result, contract, result_identity="resolution", naive_timezone=request.naive_timezone)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/metrics/test_review_edges.py:33: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/quantbt/metrics/reporting/adapters.py:41: in account_from_completed
+    observations = AccountObservations(times_ns=times.asi8[selected], equity=equity.to_numpy()[selected], coverage=coverage)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+&lt;string&gt;:7: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = &lt;[AttributeError("'AccountObservations' object has no attribute 'identity'") raised in repr()] AccountObservations object at 0x7fa7c51a1100&gt;
+
+    def __post_init__(self):
+        times = frozen_array(self.times_ns, np.int64, integer=True)
+        equity = frozen_array(self.equity, np.float64)
+        if not len(times) or len(times) != len(equity):
+&gt;           raise ValueError("nonempty aligned account path required")
+E           ValueError: nonempty aligned account path required
+
+src/quantbt/metrics/reporting/inputs.py:78: ValueError</failure></testcase><testcase classname="tests.metrics.test_review_edges" name="test_review_completed_index_resolution_is_nanoseconds[Asia/Ho_Chi_Minh-us]" time="0.002"><failure message="ValueError: nonempty aligned account path required">unit = 'us', timezone = 'Asia/Ho_Chi_Minh'
+
+    @pytest.mark.parametrize("unit", ["s", "ms", "us", "ns"])
+    @pytest.mark.parametrize("timezone", ["UTC", "Asia/Ho_Chi_Minh", None])
+    def test_review_completed_index_resolution_is_nanoseconds(unit, timezone):
+        times = pd.date_range("2025-01-01", periods=3, freq="h", tz="UTC")
+        index = times.tz_convert(timezone) if timezone else times.tz_localize(None)
+        index = index.as_unit(unit)
+        result = SimpleNamespace(equity=pd.Series([99., 110., 105.], index=index))
+        contract = replace(policy([int(times[0].value), int(times[-1].value)]), sampling="observed_bar")
+        request = ReportingRequest(account=contract, result_identity="resolution",
+            partial_mask=(False,) * 3, return_witness="three recorded hourly bars",
+            naive_timezone="UTC" if timezone is None else None, retain_episodes=True)
+&gt;       observed = account_from_completed(result, contract, result_identity="resolution", naive_timezone=request.naive_timezone)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/metrics/test_review_edges.py:33: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/quantbt/metrics/reporting/adapters.py:41: in account_from_completed
+    observations = AccountObservations(times_ns=times.asi8[selected], equity=equity.to_numpy()[selected], coverage=coverage)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+&lt;string&gt;:7: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = &lt;[AttributeError("'AccountObservations' object has no attribute 'identity'") raised in repr()] AccountObservations object at 0x7fa7c50011f0&gt;
+
+    def __post_init__(self):
+        times = frozen_array(self.times_ns, np.int64, integer=True)
+        equity = frozen_array(self.equity, np.float64)
+        if not len(times) or len(times) != len(equity):
+&gt;           raise ValueError("nonempty aligned account path required")
+E           ValueError: nonempty aligned account path required
+
+src/quantbt/metrics/reporting/inputs.py:78: ValueError</failure></testcase><testcase classname="tests.metrics.test_review_edges" name="test_review_completed_index_resolution_is_nanoseconds[Asia/Ho_Chi_Minh-ns]" time="0.018" /><testcase classname="tests.metrics.test_review_edges" name="test_review_completed_index_resolution_is_nanoseconds[None-s]" time="0.002"><failure message="ValueError: nonempty aligned account path required">unit = 's', timezone = None
+
+    @pytest.mark.parametrize("unit", ["s", "ms", "us", "ns"])
+    @pytest.mark.parametrize("timezone", ["UTC", "Asia/Ho_Chi_Minh", None])
+    def test_review_completed_index_resolution_is_nanoseconds(unit, timezone):
+        times = pd.date_range("2025-01-01", periods=3, freq="h", tz="UTC")
+        index = times.tz_convert(timezone) if timezone else times.tz_localize(None)
+        index = index.as_unit(unit)
+        result = SimpleNamespace(equity=pd.Series([99., 110., 105.], index=index))
+        contract = replace(policy([int(times[0].value), int(times[-1].value)]), sampling="observed_bar")
+        request = ReportingRequest(account=contract, result_identity="resolution",
+            partial_mask=(False,) * 3, return_witness="three recorded hourly bars",
+            naive_timezone="UTC" if timezone is None else None, retain_episodes=True)
+&gt;       observed = account_from_completed(result, contract, result_identity="resolution", naive_timezone=request.naive_timezone)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/metrics/test_review_edges.py:33: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/quantbt/metrics/reporting/adapters.py:41: in account_from_completed
+    observations = AccountObservations(times_ns=times.asi8[selected], equity=equity.to_numpy()[selected], coverage=coverage)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+&lt;string&gt;:7: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = &lt;[AttributeError("'AccountObservations' object has no attribute 'identity'") raised in repr()] AccountObservations object at 0x7fa7c4eb46e0&gt;
+
+    def __post_init__(self):
+        times = frozen_array(self.times_ns, np.int64, integer=True)
+        equity = frozen_array(self.equity, np.float64)
+        if not len(times) or len(times) != len(equity):
+&gt;           raise ValueError("nonempty aligned account path required")
+E           ValueError: nonempty aligned account path required
+
+src/quantbt/metrics/reporting/inputs.py:78: ValueError</failure></testcase><testcase classname="tests.metrics.test_review_edges" name="test_review_completed_index_resolution_is_nanoseconds[None-ms]" time="0.002"><failure message="ValueError: nonempty aligned account path required">unit = 'ms', timezone = None
+
+    @pytest.mark.parametrize("unit", ["s", "ms", "us", "ns"])
+    @pytest.mark.parametrize("timezone", ["UTC", "Asia/Ho_Chi_Minh", None])
+    def test_review_completed_index_resolution_is_nanoseconds(unit, timezone):
+        times = pd.date_range("2025-01-01", periods=3, freq="h", tz="UTC")
+        index = times.tz_convert(timezone) if timezone else times.tz_localize(None)
+        index = index.as_unit(unit)
+        result = SimpleNamespace(equity=pd.Series([99., 110., 105.], index=index))
+        contract = replace(policy([int(times[0].value), int(times[-1].value)]), sampling="observed_bar")
+        request = ReportingRequest(account=contract, result_identity="resolution",
+            partial_mask=(False,) * 3, return_witness="three recorded hourly bars",
+            naive_timezone="UTC" if timezone is None else None, retain_episodes=True)
+&gt;       observed = account_from_completed(result, contract, result_identity="resolution", naive_timezone=request.naive_timezone)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/metrics/test_review_edges.py:33: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/quantbt/metrics/reporting/adapters.py:41: in account_from_completed
+    observations = AccountObservations(times_ns=times.asi8[selected], equity=equity.to_numpy()[selected], coverage=coverage)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+&lt;string&gt;:7: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = &lt;[AttributeError("'AccountObservations' object has no attribute 'identity'") raised in repr()] AccountObservations object at 0x7fa7c4eb44d0&gt;
+
+    def __post_init__(self):
+        times = frozen_array(self.times_ns, np.int64, integer=True)
+        equity = frozen_array(self.equity, np.float64)
+        if not len(times) or len(times) != len(equity):
+&gt;           raise ValueError("nonempty aligned account path required")
+E           ValueError: nonempty aligned account path required
+
+src/quantbt/metrics/reporting/inputs.py:78: ValueError</failure></testcase><testcase classname="tests.metrics.test_review_edges" name="test_review_completed_index_resolution_is_nanoseconds[None-us]" time="0.002"><failure message="ValueError: nonempty aligned account path required">unit = 'us', timezone = None
+
+    @pytest.mark.parametrize("unit", ["s", "ms", "us", "ns"])
+    @pytest.mark.parametrize("timezone", ["UTC", "Asia/Ho_Chi_Minh", None])
+    def test_review_completed_index_resolution_is_nanoseconds(unit, timezone):
+        times = pd.date_range("2025-01-01", periods=3, freq="h", tz="UTC")
+        index = times.tz_convert(timezone) if timezone else times.tz_localize(None)
+        index = index.as_unit(unit)
+        result = SimpleNamespace(equity=pd.Series([99., 110., 105.], index=index))
+        contract = replace(policy([int(times[0].value), int(times[-1].value)]), sampling="observed_bar")
+        request = ReportingRequest(account=contract, result_identity="resolution",
+            partial_mask=(False,) * 3, return_witness="three recorded hourly bars",
+            naive_timezone="UTC" if timezone is None else None, retain_episodes=True)
+&gt;       observed = account_from_completed(result, contract, result_identity="resolution", naive_timezone=request.naive_timezone)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/metrics/test_review_edges.py:33: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/quantbt/metrics/reporting/adapters.py:41: in account_from_completed
+    observations = AccountObservations(times_ns=times.asi8[selected], equity=equity.to_numpy()[selected], coverage=coverage)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+&lt;string&gt;:7: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = &lt;[AttributeError("'AccountObservations' object has no attribute 'identity'") raised in repr()] AccountObservations object at 0x7fa7c5000290&gt;
+
+    def __post_init__(self):
+        times = frozen_array(self.times_ns, np.int64, integer=True)
+        equity = frozen_array(self.equity, np.float64)
+        if not len(times) or len(times) != len(equity):
+&gt;           raise ValueError("nonempty aligned account path required")
+E           ValueError: nonempty aligned account path required
+
+src/quantbt/metrics/reporting/inputs.py:78: ValueError</failure></testcase><testcase classname="tests.metrics.test_review_edges" name="test_review_completed_index_resolution_is_nanoseconds[None-ns]" time="0.006" /><testcase classname="tests.metrics.test_review_edges" name="test_review_partially_closed_action_keeps_realized_closed_legs_and_shared_cost[python]" time="0.003"><failure message="assert -1.0 == 7&#10; +  where -1.0 = ReportingMetricV1(metric_id='reporting.closed_action.open_realized_net_pnl', contract_identity='89b78656a46a67b9337d71...ucer='recorded-ledger', profile='audit', ledger='complete', retained_rows=2, dropped_rows=0, reason=None), reason=None).value&#10; +    where ReportingMetricV1(metric_id='reporting.closed_action.open_realized_net_pnl', contract_identity='89b78656a46a67b9337d71...ucer='recorded-ledger', profile='audit', ledger='complete', retained_rows=2, dropped_rows=0, reason=None), reason=None) = metric('closed_action.open_realized_net_pnl')&#10; +      where metric = ReportingResult(contract_identity='89b78656a46a67b9337d711a89ba848aee46d18b9e572c981f9890b7812270ec', input_identity='...ation lifetime only; not scope account return&quot;, &quot;shared_net_adjustment&quot;: 0.0, &quot;symbol_closed_pnl&quot;: {}}', episodes=None).metric">backend = 'python'
+
+    @pytest.mark.parametrize("backend", ["python", "numba"])
+    def test_review_partially_closed_action_keeps_realized_closed_legs_and_shared_cost(backend):
+        rows = (
+            RecordedOutcome(trade_id="closed-long", symbol="ETH", side="long", currency="USDT",
+                action_id="basket", opened_at_ns=0, closed_at_ns=10, close_sequence=0,
+                net_pnl=10., open_unrealized_pnl=None),
+            RecordedOutcome(trade_id="open-short", symbol="BTC", side="short", currency="USDT",
+                action_id="basket", opened_at_ns=0, closed_at_ns=None, close_sequence=1,
+                net_pnl=-1., open_unrealized_pnl=3.),
+        )
+        obs = LedgerObservations(records=rows, coverage=ledger_coverage(2), matching="position_episode",
+            valuation_time_ns=30, rosters=(ActionRoster(action_id="basket", outcome_ids=("closed-long", "open-short"),
+                shared_net_adjustment=-2., allocation_witness="observed shared cost at valuation end"),))
+        action = reduce_ledger(obs, ledger_policy("closed_action"), backend=backend)
+        trade = reduce_ledger(obs, ledger_policy(), backend=backend)
+        assert action.metric("closed_action.closed_count").value == 0
+        assert action.metric("closed_action.open_at_observation_end_count").value == 1
+        # +10 realized by the closed leg, -1 realized on the open leg, -2 shared.
+&gt;       assert action.metric("closed_action.open_realized_net_pnl").value == 7
+E       assert -1.0 == 7
+E        +  where -1.0 = ReportingMetricV1(metric_id='reporting.closed_action.open_realized_net_pnl', contract_identity='89b78656a46a67b9337d71...ucer='recorded-ledger', profile='audit', ledger='complete', retained_rows=2, dropped_rows=0, reason=None), reason=None).value
+E        +    where ReportingMetricV1(metric_id='reporting.closed_action.open_realized_net_pnl', contract_identity='89b78656a46a67b9337d71...ucer='recorded-ledger', profile='audit', ledger='complete', retained_rows=2, dropped_rows=0, reason=None), reason=None) = metric('closed_action.open_realized_net_pnl')
+E        +      where metric = ReportingResult(contract_identity='89b78656a46a67b9337d711a89ba848aee46d18b9e572c981f9890b7812270ec', input_identity='...ation lifetime only; not scope account return", "shared_net_adjustment": 0.0, "symbol_closed_pnl": {}}', episodes=None).metric
+
+tests/metrics/test_review_edges.py:61: AssertionError</failure></testcase><testcase classname="tests.metrics.test_review_edges" name="test_review_partially_closed_action_keeps_realized_closed_legs_and_shared_cost[numba]" time="0.580"><failure message="assert -1.0 == 7&#10; +  where -1.0 = ReportingMetricV1(metric_id='reporting.closed_action.open_realized_net_pnl', contract_identity='89b78656a46a67b9337d71...ucer='recorded-ledger', profile='audit', ledger='complete', retained_rows=2, dropped_rows=0, reason=None), reason=None).value&#10; +    where ReportingMetricV1(metric_id='reporting.closed_action.open_realized_net_pnl', contract_identity='89b78656a46a67b9337d71...ucer='recorded-ledger', profile='audit', ledger='complete', retained_rows=2, dropped_rows=0, reason=None), reason=None) = metric('closed_action.open_realized_net_pnl')&#10; +      where metric = ReportingResult(contract_identity='89b78656a46a67b9337d711a89ba848aee46d18b9e572c981f9890b7812270ec', input_identity='...ation lifetime only; not scope account return&quot;, &quot;shared_net_adjustment&quot;: 0.0, &quot;symbol_closed_pnl&quot;: {}}', episodes=None).metric">backend = 'numba'
+
+    @pytest.mark.parametrize("backend", ["python", "numba"])
+    def test_review_partially_closed_action_keeps_realized_closed_legs_and_shared_cost(backend):
+        rows = (
+            RecordedOutcome(trade_id="closed-long", symbol="ETH", side="long", currency="USDT",
+                action_id="basket", opened_at_ns=0, closed_at_ns=10, close_sequence=0,
+                net_pnl=10., open_unrealized_pnl=None),
+            RecordedOutcome(trade_id="open-short", symbol="BTC", side="short", currency="USDT",
+                action_id="basket", opened_at_ns=0, closed_at_ns=None, close_sequence=1,
+                net_pnl=-1., open_unrealized_pnl=3.),
+        )
+        obs = LedgerObservations(records=rows, coverage=ledger_coverage(2), matching="position_episode",
+            valuation_time_ns=30, rosters=(ActionRoster(action_id="basket", outcome_ids=("closed-long", "open-short"),
+                shared_net_adjustment=-2., allocation_witness="observed shared cost at valuation end"),))
+        action = reduce_ledger(obs, ledger_policy("closed_action"), backend=backend)
+        trade = reduce_ledger(obs, ledger_policy(), backend=backend)
+        assert action.metric("closed_action.closed_count").value == 0
+        assert action.metric("closed_action.open_at_observation_end_count").value == 1
+        # +10 realized by the closed leg, -1 realized on the open leg, -2 shared.
+&gt;       assert action.metric("closed_action.open_realized_net_pnl").value == 7
+E       assert -1.0 == 7
+E        +  where -1.0 = ReportingMetricV1(metric_id='reporting.closed_action.open_realized_net_pnl', contract_identity='89b78656a46a67b9337d71...ucer='recorded-ledger', profile='audit', ledger='complete', retained_rows=2, dropped_rows=0, reason=None), reason=None).value
+E        +    where ReportingMetricV1(metric_id='reporting.closed_action.open_realized_net_pnl', contract_identity='89b78656a46a67b9337d71...ucer='recorded-ledger', profile='audit', ledger='complete', retained_rows=2, dropped_rows=0, reason=None), reason=None) = metric('closed_action.open_realized_net_pnl')
+E        +      where metric = ReportingResult(contract_identity='89b78656a46a67b9337d711a89ba848aee46d18b9e572c981f9890b7812270ec', input_identity='...ation lifetime only; not scope account return", "shared_net_adjustment": 0.0, "symbol_closed_pnl": {}}', episodes=None).metric
+
+tests/metrics/test_review_edges.py:61: AssertionError</failure></testcase><testcase classname="tests.metrics.test_review_edges" name="test_review_open_pnl_never_claims_zero_without_matched_valuation[closed_trade-None]" time="0.003"><failure message="AssertionError: assert 'valid' == 'unavailable'&#10;  &#10;  - unavailable&#10;  + valid">unit = 'closed_trade', valuation = None
+
+    @pytest.mark.parametrize("valuation", [None, 20, 40])
+    @pytest.mark.parametrize("unit", ["closed_trade", "closed_action"])
+    def test_review_open_pnl_never_claims_zero_without_matched_valuation(unit, valuation):
+        row = RecordedOutcome(trade_id="closed", action_id="action", symbol="BTC", side="long",
+            currency="USDT", closed_at_ns=10, close_sequence=0, net_pnl=4.)
+        obs = LedgerObservations(records=(row,), coverage=ledger_coverage(1), matching="position_episode",
+            valuation_time_ns=valuation, rosters=(ActionRoster(action_id="action", outcome_ids=("closed",),
+                shared_net_adjustment=0., allocation_witness="recorded"),))
+        report = reduce_ledger(obs, ledger_policy(unit))
+        assert report.metric(unit + ".net_pnl").value == 4
+        for suffix in ("open_realized_net_pnl", "open_unrealized_pnl", "open_at_observation_end_count"):
+&gt;           assert report.metric(unit + "." + suffix).status == "unavailable"
+E           AssertionError: assert 'valid' == 'unavailable'
+E             
+E             - unavailable
+E             + valid
+
+tests/metrics/test_review_edges.py:79: AssertionError</failure></testcase><testcase classname="tests.metrics.test_review_edges" name="test_review_open_pnl_never_claims_zero_without_matched_valuation[closed_trade-20]" time="0.002"><failure message="AssertionError: assert 'valid' == 'unavailable'&#10;  &#10;  - unavailable&#10;  + valid">unit = 'closed_trade', valuation = 20
+
+    @pytest.mark.parametrize("valuation", [None, 20, 40])
+    @pytest.mark.parametrize("unit", ["closed_trade", "closed_action"])
+    def test_review_open_pnl_never_claims_zero_without_matched_valuation(unit, valuation):
+        row = RecordedOutcome(trade_id="closed", action_id="action", symbol="BTC", side="long",
+            currency="USDT", closed_at_ns=10, close_sequence=0, net_pnl=4.)
+        obs = LedgerObservations(records=(row,), coverage=ledger_coverage(1), matching="position_episode",
+            valuation_time_ns=valuation, rosters=(ActionRoster(action_id="action", outcome_ids=("closed",),
+                shared_net_adjustment=0., allocation_witness="recorded"),))
+        report = reduce_ledger(obs, ledger_policy(unit))
+        assert report.metric(unit + ".net_pnl").value == 4
+        for suffix in ("open_realized_net_pnl", "open_unrealized_pnl", "open_at_observation_end_count"):
+&gt;           assert report.metric(unit + "." + suffix).status == "unavailable"
+E           AssertionError: assert 'valid' == 'unavailable'
+E             
+E             - unavailable
+E             + valid
+
+tests/metrics/test_review_edges.py:79: AssertionError</failure></testcase><testcase classname="tests.metrics.test_review_edges" name="test_review_open_pnl_never_claims_zero_without_matched_valuation[closed_trade-40]" time="0.002"><failure message="AssertionError: assert 'valid' == 'unavailable'&#10;  &#10;  - unavailable&#10;  + valid">unit = 'closed_trade', valuation = 40
+
+    @pytest.mark.parametrize("valuation", [None, 20, 40])
+    @pytest.mark.parametrize("unit", ["closed_trade", "closed_action"])
+    def test_review_open_pnl_never_claims_zero_without_matched_valuation(unit, valuation):
+        row = RecordedOutcome(trade_id="closed", action_id="action", symbol="BTC", side="long",
+            currency="USDT", closed_at_ns=10, close_sequence=0, net_pnl=4.)
+        obs = LedgerObservations(records=(row,), coverage=ledger_coverage(1), matching="position_episode",
+            valuation_time_ns=valuation, rosters=(ActionRoster(action_id="action", outcome_ids=("closed",),
+                shared_net_adjustment=0., allocation_witness="recorded"),))
+        report = reduce_ledger(obs, ledger_policy(unit))
+        assert report.metric(unit + ".net_pnl").value == 4
+        for suffix in ("open_realized_net_pnl", "open_unrealized_pnl", "open_at_observation_end_count"):
+&gt;           assert report.metric(unit + "." + suffix).status == "unavailable"
+E           AssertionError: assert 'valid' == 'unavailable'
+E             
+E             - unavailable
+E             + valid
+
+tests/metrics/test_review_edges.py:79: AssertionError</failure></testcase><testcase classname="tests.metrics.test_review_edges" name="test_review_open_pnl_never_claims_zero_without_matched_valuation[closed_action-None]" time="0.002"><failure message="AssertionError: assert 'valid' == 'unavailable'&#10;  &#10;  - unavailable&#10;  + valid">unit = 'closed_action', valuation = None
+
+    @pytest.mark.parametrize("valuation", [None, 20, 40])
+    @pytest.mark.parametrize("unit", ["closed_trade", "closed_action"])
+    def test_review_open_pnl_never_claims_zero_without_matched_valuation(unit, valuation):
+        row = RecordedOutcome(trade_id="closed", action_id="action", symbol="BTC", side="long",
+            currency="USDT", closed_at_ns=10, close_sequence=0, net_pnl=4.)
+        obs = LedgerObservations(records=(row,), coverage=ledger_coverage(1), matching="position_episode",
+            valuation_time_ns=valuation, rosters=(ActionRoster(action_id="action", outcome_ids=("closed",),
+                shared_net_adjustment=0., allocation_witness="recorded"),))
+        report = reduce_ledger(obs, ledger_policy(unit))
+        assert report.metric(unit + ".net_pnl").value == 4
+        for suffix in ("open_realized_net_pnl", "open_unrealized_pnl", "open_at_observation_end_count"):
+&gt;           assert report.metric(unit + "." + suffix).status == "unavailable"
+E           AssertionError: assert 'valid' == 'unavailable'
+E             
+E             - unavailable
+E             + valid
+
+tests/metrics/test_review_edges.py:79: AssertionError</failure></testcase><testcase classname="tests.metrics.test_review_edges" name="test_review_open_pnl_never_claims_zero_without_matched_valuation[closed_action-20]" time="0.002"><failure message="AssertionError: assert 'valid' == 'unavailable'&#10;  &#10;  - unavailable&#10;  + valid">unit = 'closed_action', valuation = 20
+
+    @pytest.mark.parametrize("valuation", [None, 20, 40])
+    @pytest.mark.parametrize("unit", ["closed_trade", "closed_action"])
+    def test_review_open_pnl_never_claims_zero_without_matched_valuation(unit, valuation):
+        row = RecordedOutcome(trade_id="closed", action_id="action", symbol="BTC", side="long",
+            currency="USDT", closed_at_ns=10, close_sequence=0, net_pnl=4.)
+        obs = LedgerObservations(records=(row,), coverage=ledger_coverage(1), matching="position_episode",
+            valuation_time_ns=valuation, rosters=(ActionRoster(action_id="action", outcome_ids=("closed",),
+                shared_net_adjustment=0., allocation_witness="recorded"),))
+        report = reduce_ledger(obs, ledger_policy(unit))
+        assert report.metric(unit + ".net_pnl").value == 4
+        for suffix in ("open_realized_net_pnl", "open_unrealized_pnl", "open_at_observation_end_count"):
+&gt;           assert report.metric(unit + "." + suffix).status == "unavailable"
+E           AssertionError: assert 'valid' == 'unavailable'
+E             
+E             - unavailable
+E             + valid
+
+tests/metrics/test_review_edges.py:79: AssertionError</failure></testcase><testcase classname="tests.metrics.test_review_edges" name="test_review_open_pnl_never_claims_zero_without_matched_valuation[closed_action-40]" time="0.002"><failure message="AssertionError: assert 'valid' == 'unavailable'&#10;  &#10;  - unavailable&#10;  + valid">unit = 'closed_action', valuation = 40
+
+    @pytest.mark.parametrize("valuation", [None, 20, 40])
+    @pytest.mark.parametrize("unit", ["closed_trade", "closed_action"])
+    def test_review_open_pnl_never_claims_zero_without_matched_valuation(unit, valuation):
+        row = RecordedOutcome(trade_id="closed", action_id="action", symbol="BTC", side="long",
+            currency="USDT", closed_at_ns=10, close_sequence=0, net_pnl=4.)
+        obs = LedgerObservations(records=(row,), coverage=ledger_coverage(1), matching="position_episode",
+            valuation_time_ns=valuation, rosters=(ActionRoster(action_id="action", outcome_ids=("closed",),
+                shared_net_adjustment=0., allocation_witness="recorded"),))
+        report = reduce_ledger(obs, ledger_policy(unit))
+        assert report.metric(unit + ".net_pnl").value == 4
+        for suffix in ("open_realized_net_pnl", "open_unrealized_pnl", "open_at_observation_end_count"):
+&gt;           assert report.metric(unit + "." + suffix).status == "unavailable"
+E           AssertionError: assert 'valid' == 'unavailable'
+E             
+E             - unavailable
+E             + valid
+
+tests/metrics/test_review_edges.py:79: AssertionError</failure></testcase><testcase classname="tests.metrics.test_review_edges" name="test_review_observed_empty_open_population_is_real_zero[closed_trade]" time="0.002" /><testcase classname="tests.metrics.test_review_edges" name="test_review_observed_empty_open_population_is_real_zero[closed_action]" time="0.001" /><testcase classname="tests.metrics.test_review_edges" name="test_review_nat_timestamp_is_not_a_valid_integer_clock[account]" time="0.001"><failure message="Failed: DID NOT RAISE ValueError">kind = 'account'
+
+    @pytest.mark.parametrize("kind", ["account", "returns"])
+    def test_review_nat_timestamp_is_not_a_valid_integer_clock(kind):
+        missing = np.iinfo(np.int64).min
+&gt;       with pytest.raises(ValueError, match="timestamp|NaT"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/metrics/test_review_edges.py:95: Failed</failure></testcase><testcase classname="tests.metrics.test_review_edges" name="test_review_nat_timestamp_is_not_a_valid_integer_clock[returns]" time="0.001"><failure message="Failed: DID NOT RAISE ValueError">kind = 'returns'
+
+    @pytest.mark.parametrize("kind", ["account", "returns"])
+    def test_review_nat_timestamp_is_not_a_valid_integer_clock(kind):
+        missing = np.iinfo(np.int64).min
+&gt;       with pytest.raises(ValueError, match="timestamp|NaT"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/metrics/test_review_edges.py:95: Failed</failure></testcase><testcase classname="tests.metrics.test_review_edges" name="test_review_fractional_mean_holding_bars_is_not_rounded_to_a_count" time="0.001"><failure message="AssertionError: assert '2' == '1.5 bars'&#10;  &#10;  - 1.5 bars&#10;  + 2">def test_review_fractional_mean_holding_bars_is_not_rounded_to_a_count():
+&gt;       assert format_metric_value(1.5, "bars", "USDT") == "1.5 bars"
+E       AssertionError: assert '2' == '1.5 bars'
+E         
+E         - 1.5 bars
+E         + 2
+
+tests/metrics/test_review_edges.py:104: AssertionError</failure></testcase></testsuite></testsuites>

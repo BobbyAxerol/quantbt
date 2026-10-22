@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="12" time="1.880" timestamp="2026-10-17T02:43:37.833726+00:00" hostname="Bobby"><testcase classname="tests.meta_selection.test_mlr04_measurement" name="test_raw_units_and_signed_decomposition" time="0.003" /><testcase classname="tests.meta_selection.test_mlr04_measurement" name="test_independent_check_rejects_forged_metrics[anchor_is]" time="0.002" /><testcase classname="tests.meta_selection.test_mlr04_measurement" name="test_independent_check_rejects_forged_metrics[selected_is]" time="0.002" /><testcase classname="tests.meta_selection.test_mlr04_measurement" name="test_independent_check_rejects_forged_metrics[anchor_forward]" time="0.002" /><testcase classname="tests.meta_selection.test_mlr04_measurement" name="test_independent_check_rejects_forged_metrics[selected_forward]" time="0.002" /><testcase classname="tests.meta_selection.test_mlr04_measurement" name="test_independent_check_rejects_forged_metrics[R]" time="0.002" /><testcase classname="tests.meta_selection.test_mlr04_measurement" name="test_independent_check_rejects_forged_metrics[Q]" time="0.002" /><testcase classname="tests.meta_selection.test_mlr04_measurement" name="test_independent_check_rejects_forged_metrics[IS_effect]" time="0.002" /><testcase classname="tests.meta_selection.test_mlr04_measurement" name="test_unknown_forward_is_not_zero_or_a_conveniently_known_winner" time="0.002"><failure message="quantbt.optimization.meta_selection.common.MetaRecordError: required panel dispositions must be complete and unique">def test_unknown_forward_is_not_zero_or_a_conveniently_known_winner():
+        row, revision = fixture()
+&gt;       revision = replace(revision, outcomes=tuple(o for o in revision.outcomes if o.evaluation_id!=row['winner']))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/meta_selection/test_mlr04_measurement.py:42: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/lib/python3.12/dataclasses.py:1588: in replace
+    return obj.__class__(**changes)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+&lt;string&gt;:11: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = SealedTaskRevision(task=MetaTask(family=CompatibilityFamily(strategy_id='hma-strategy-v1', parameter_schema_id='006426...0', tz='UTC'), parent_revision_id=None, correction_reason=None, publication_order=None, verification='original_result')
+
+    def __post_init__(self):
+        object.__setattr__(self, "outcomes", tuple(self.outcomes))
+        object.__setattr__(
+            self, "revision_available_at", utc(self.revision_available_at)
+        )
+        if self.panel.task_id != self.task.task_id:
+            raise MetaRecordError("panel belongs to a different task")
+        if (
+            self.panel.base_members[0] != self.task.anchor_candidate_evaluation_id
+            or self.task.anchor_candidate_evaluation_id
+            not in self.panel.required_members
+            or not set(self.panel.members).issubset(
+                c.evaluation_id for c in self.task.candidates
+            )
+        ):
+            raise MetaRecordError(
+                "panel must include explicit anchor and only sealed task evaluations"
+            )
+        if not (
+            self.task.decision_sealed_at
+            &lt;= self.panel.sealed_at
+            &lt;= self.task.first_forward_action_at
+        ):
+            raise MetaRecordError("panel was not frozen before economic action")
+        ids = [o.evaluation_id for o in self.outcomes]
+        if len(set(ids)) != len(ids) or set(ids) != set(self.panel.members):
+&gt;           raise MetaRecordError(
+                "required panel dispositions must be complete and unique"
+            )
+E           quantbt.optimization.meta_selection.common.MetaRecordError: required panel dispositions must be complete and unique
+
+src/quantbt/optimization/meta_selection/history.py:71: MetaRecordError</failure></testcase><testcase classname="tests.meta_selection.test_mlr04_controls" name="test_mutation_is_explicit_and_preserves_anchor_source_and_original" time="0.023" /><testcase classname="tests.meta_selection.test_mlr04_controls" name="test_exact_controls_reject_any_changed_fit_or_winner" time="0.060" /><testcase classname="tests.meta_selection.test_mlr04_controls" name="test_shadow_uses_same_proposal_but_applies_native_anchor_not_the_model_winner" time="0.039" /></testsuite></testsuites>

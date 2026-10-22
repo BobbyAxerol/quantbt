@@ -1,0 +1,7 @@
+Using Python 3.12.13 environment at: /tmp/quantbt-met03-8xenxfoo/source-env
+WARN `matplotlib==3.10.9` needs to be downloaded from a registry
+WARN matplotlib needs to be downloaded from a registry
+error: No solution found when resolving dependencies
+  cause: Because matplotlib==3.10.9 needs to be downloaded from a registry and you require matplotlib==3.10.9, we can conclude that your requirements are unsatisfiable.
+
+hint: Packages were unavailable because the network was disabled. When the network is disabled, registry packages may only be read from the cache.

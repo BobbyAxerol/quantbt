@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="2" skipped="0" tests="20" time="4.671" timestamp="2026-10-08T16:24:23.111041+00:00" hostname="Bobby"><testcase classname="tests.metrics.test_scalar_scan_parity" name="test_array_memoryview_scans_are_exact[0]" time="0.050" /><testcase classname="tests.metrics.test_scalar_scan_parity" name="test_array_memoryview_scans_are_exact[1]" time="0.020" /><testcase classname="tests.metrics.test_scalar_scan_parity" name="test_array_memoryview_scans_are_exact[2]" time="0.018" /><testcase classname="tests.metrics.test_scalar_scan_parity" name="test_array_memoryview_scans_are_exact[3]" time="0.019" /><testcase classname="tests.metrics.test_scalar_scan_parity" name="test_array_memoryview_scans_are_exact[4]" time="0.017" /><testcase classname="tests.metrics.test_scalar_scan_parity" name="test_array_memoryview_scans_are_exact[5]" time="0.020" /><testcase classname="tests.metrics.test_scalar_scan_parity" name="test_array_memoryview_scans_are_exact[6]" time="0.022" /><testcase classname="tests.metrics.test_scalar_scan_parity" name="test_array_memoryview_scans_are_exact[7]" time="0.019" /><testcase classname="tests.metrics.test_scalar_scan_parity" name="test_array_memoryview_scans_are_exact[8]" time="0.020" /><testcase classname="tests.metrics.test_scalar_scan_parity" name="test_array_memoryview_scans_are_exact[9]" time="0.020" /><testcase classname="tests.metrics.test_scalar_scan_parity" name="test_array_memoryview_scans_are_exact[10]" time="0.021" /><testcase classname="tests.metrics.test_scalar_scan_parity" name="test_array_memoryview_scans_are_exact[11]" time="0.023" /><testcase classname="tests.metrics.test_scalar_scan_parity" name="test_scalar_access_keeps_empty_bankrupt_and_extreme_return_policies[values0]" time="0.001" /><testcase classname="tests.metrics.test_scalar_scan_parity" name="test_scalar_access_keeps_empty_bankrupt_and_extreme_return_policies[values1]" time="0.001" /><testcase classname="tests.metrics.test_scalar_scan_parity" name="test_scalar_access_keeps_empty_bankrupt_and_extreme_return_policies[values2]" time="0.001" /><testcase classname="tests.metrics.test_scalar_scan_parity" name="test_scalar_access_keeps_empty_bankrupt_and_extreme_return_policies[values3]" time="0.001" /><testcase classname="tests.metrics.test_scalar_scan_parity" name="test_scalar_access_keeps_empty_bankrupt_and_extreme_return_policies[values4]" time="0.001" /><testcase classname="tests.metrics.test_scalar_scan_parity" name="test_scalar_access_keeps_empty_bankrupt_and_extreme_return_policies[values5]" time="0.001" /><testcase classname="tests.metrics.test_scalar_scan_parity" name="test_scalar_access_keeps_empty_bankrupt_and_extreme_return_policies[values6]" time="0.001"><failure message="OverflowError: (34, 'Numerical result out of range')">values = [1e+300, -1e+300, 0.0]
+
+    @pytest.mark.parametrize("values", [[], [0.], [0., 0., 0.], [-1., .1], [-1.5, .1],
+                                       [1e150, -1e150, 0.], [1e300, -1e300, 0.], [-1e308, .1]])
+    def test_scalar_access_keeps_empty_bankrupt_and_extreme_return_policies(values):
+        array = np.array(values, dtype=np.float64)
+        with np.errstate(over="ignore", invalid="ignore"):
+            original = _period_scan(array, 365., 1, 0., 0., 0., False)
+&gt;           optimized = _period_scan(memoryview(array), 365., 1, 0., 0., 0., False)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/metrics/test_scalar_scan_parity.py:34: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+values = &lt;memory at 0x7f222feb1300&gt;, annual = 365.0, ddof = 1, rf = 0.0
+mar = 0.0, omega = 0.0, conditional = False
+
+    def _period_scan(values, annual, ddof, rf, mar, omega, conditional):
+        n = len(values)
+        mean, m2, gain, loss, downside, og, ol, log_growth = 0., 0., 0., 0., 0., 0., 0., 0.
+        wins, losses, negatives = 0, 0, 0
+        geometric_valid = True
+        for i in range(n):
+            x = values[i]
+            delta = x - mean
+            mean += delta / (i + 1)
+            m2 += delta * (x - mean)
+            if x &gt; 0:
+                wins += 1
+                gain += x
+            if x &lt; 0:
+                losses += 1
+                loss -= x
+            if x &lt; mar:
+                negatives += 1
+&gt;               downside += (x - mar) ** 2
+                            ^^^^^^^^^^^^^^
+E               OverflowError: (34, 'Numerical result out of range')
+
+src/quantbt/metrics/reporting/account.py:35: OverflowError</failure></testcase><testcase classname="tests.metrics.test_scalar_scan_parity" name="test_scalar_access_keeps_empty_bankrupt_and_extreme_return_policies[values7]" time="0.001"><failure message="OverflowError: (34, 'Numerical result out of range')">values = [-1e+308, 0.1]
+
+    @pytest.mark.parametrize("values", [[], [0.], [0., 0., 0.], [-1., .1], [-1.5, .1],
+                                       [1e150, -1e150, 0.], [1e300, -1e300, 0.], [-1e308, .1]])
+    def test_scalar_access_keeps_empty_bankrupt_and_extreme_return_policies(values):
+        array = np.array(values, dtype=np.float64)
+        with np.errstate(over="ignore", invalid="ignore"):
+            original = _period_scan(array, 365., 1, 0., 0., 0., False)
+&gt;           optimized = _period_scan(memoryview(array), 365., 1, 0., 0., 0., False)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/metrics/test_scalar_scan_parity.py:34: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+values = &lt;memory at 0x7f222feb1240&gt;, annual = 365.0, ddof = 1, rf = 0.0
+mar = 0.0, omega = 0.0, conditional = False
+
+    def _period_scan(values, annual, ddof, rf, mar, omega, conditional):
+        n = len(values)
+        mean, m2, gain, loss, downside, og, ol, log_growth = 0., 0., 0., 0., 0., 0., 0., 0.
+        wins, losses, negatives = 0, 0, 0
+        geometric_valid = True
+        for i in range(n):
+            x = values[i]
+            delta = x - mean
+            mean += delta / (i + 1)
+            m2 += delta * (x - mean)
+            if x &gt; 0:
+                wins += 1
+                gain += x
+            if x &lt; 0:
+                losses += 1
+                loss -= x
+            if x &lt; mar:
+                negatives += 1
+&gt;               downside += (x - mar) ** 2
+                            ^^^^^^^^^^^^^^
+E               OverflowError: (34, 'Numerical result out of range')
+
+src/quantbt/metrics/reporting/account.py:35: OverflowError</failure></testcase></testsuite></testsuites>

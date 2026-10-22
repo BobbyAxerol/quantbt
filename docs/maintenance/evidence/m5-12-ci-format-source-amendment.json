@@ -1,0 +1,30 @@
+{
+  "schema": "quantbt.m5_12.ci_format_source.v1",
+  "approved_scope": "Exact rustfmt edits required by PR65 CI; no execution expression, literal, account rule, ABI, objective or estimator change",
+  "baseline_commit": "67f75bfbbf06932235e30d9d5ebebb0f7cb0aa0f",
+  "source_commit": "4e02a6077b974e15e9be0a4a4e94c05716193818",
+  "previous_amendment_sha256": "5af75e58db354688b5c9b939316cf01fb4d6856c6583180177919a85d1d8dcdc",
+  "source_only": true,
+  "rustfmt_only": true,
+  "fresh_native_artifacts_required": true,
+  "native_artifacts_qualified": false,
+  "publication": false,
+  "version_bump": false,
+  "historical_financial_invariance_claim_reissued": false,
+  "financial_numeric_source_unchanged": false,
+  "scopes": ["src", "rust", "pyproject.toml", "uv.lock", "contracts", "upgrade/QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md"],
+  "sources": {
+    "rust/crates/quantbt-engine/src/session.rs": {
+      "before_commit": "67f75bfbbf06932235e30d9d5ebebb0f7cb0aa0f",
+      "after_commit": "4e02a6077b974e15e9be0a4a4e94c05716193818",
+      "before_sha256": "0944e49957c9ede41a541cbafab4c325db82617f5655054c6e4fd814ccbf94a6",
+      "after_sha256": "247793a93171e7a1129d950b0cc7f77deafd0de71bb6ba10438624fa0f599ff0"
+    },
+    "rust/native_event/src/reactive_numeric.rs": {
+      "before_commit": "67f75bfbbf06932235e30d9d5ebebb0f7cb0aa0f",
+      "after_commit": "4e02a6077b974e15e9be0a4a4e94c05716193818",
+      "before_sha256": "878ccfd343e841fcb62695573d7a2ef4d47e5d639b538ca73c2a06bb3f50c620",
+      "after_sha256": "6bd4f51b9ee7dc64e249accd2b7532163b0bc35521ff343e05b4bdb572d30a5a"
+    }
+  }
+}
