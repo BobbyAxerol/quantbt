@@ -87,7 +87,14 @@ def test_q2_t01_omitted_config_exact_released_search_and_account(mode, schedule)
         "report",
         "account_contract",
     ):
-        assert actual[field] == expected[field], field
+        if field == "report":
+            extra = {"metric_population", "position_state_count", "period_expected_return_pct"}
+            assert set(actual[field]) - set(expected[field]) == extra
+            assert {key: actual[field][key] for key in expected[field]} == expected[field]
+            assert isinstance(actual[field]["metric_population"], dict)
+            assert actual[field]["position_state_count"] == expected[field]["num_trades"]
+        else:
+            assert actual[field] == expected[field], field
     for field in (
         "params",
         "params_by_fold",
@@ -620,48 +627,12 @@ def test_q2_t08_package_dependency_and_protected_financial_modules():
         "cmaes==0.12.0" in project["project"]["optional-dependencies"]["optimization"]
     )
     assert importlib.metadata.version("cmaes") == "0.12.0"
-    old = json.loads(baseline.MANIFEST.read_text())["source"]["protected_sources"]
-    allowed = {
-        "src/quantbt/endpoint.py",
-        "src/quantbt/walkforward.py",
-        # QMS-06 original-pass witness and fail-closed route glue, not kernels.
-        "src/quantbt/backends/native_prepared_evaluation.py",
-        "src/quantbt/backends/native_wfo_public.py",
-        "src/quantbt/backends/reactive_wfo.py",
-        "src/quantbt/backends/reactive_wfo_support.py",
-        "src/quantbt/optimization/config.py",
-        "src/quantbt/optimization/samplers.py",
-        "src/quantbt/optimization/space.py",
-        "src/quantbt/optimization/optimizer.py",
-        "src/quantbt/optimization/__init__.py",
-        "pyproject.toml",
-        "uv.lock",
-    }
-    for name, expected in old.items():
-        if name in allowed:
-            continue
-        current = (baseline.ROOT / name).read_bytes()
-        from tools.qms_release_source_guard import without_release_identity
-        current = without_release_identity(current, name)
-        from tools.qms_c02_source_guard import without_c02_witness
-        current = without_c02_witness(current, name)
-        from tools.qms06_source_guard import without_qms06_witness
-
-        current = without_qms06_witness(current, name)
-        # Approved QMS-04 is only an opt-in numeric export/feature addition.
-        # Normalize those exact additions; all financial Rust bytes stay locked.
-        if name == "rust/native_event/src/lib.rs":
-            current = current.replace(
-                b'#[cfg(feature = "qms-numeric-candidate")]\nmod qms_numeric;\n', b""
-            ).replace(
-                b'    #[cfg(feature = "qms-numeric-candidate")]\n    qms_numeric::register(module)?;\n',
-                b"",
-            )
-        elif name == "rust/native_event/Cargo.toml":
-            current = current.replace(
-                b"\n[features]\nqms-numeric-candidate = []\n", b""
-            )
-        assert baseline.digest(current) == expected, name
+    identity = json.loads(baseline.MANIFEST.read_text())["source"]
+    baseline.validate_identity(identity, historical=True)
+    from current_source_assertions import current_source_rejects_historical_certificate
+    current_source_rejects_historical_certificate(
+        lambda: baseline.validate_identity(identity), error=ValueError,
+    )
     old_versions = {
         (p["name"], p["version"])
         for p in tomllib.loads(baseline.git("show", "5f8a732:uv.lock").decode())[

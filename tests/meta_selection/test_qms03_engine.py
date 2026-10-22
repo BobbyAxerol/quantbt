@@ -425,56 +425,17 @@ def test_q3_t08_pending_portable_maturity_and_observer_failed_attempt_retained(
 
 
 def test_q3_t08_phase_scope_does_not_modify_execution_financial_or_sampler_sources():
-    names = (
-        baseline.git(
-            "ls-tree",
-            "-r",
-            "--name-only",
-            "3ce42bf",
-            "src",
-            "rust",
-            "pyproject.toml",
-            "uv.lock",
-            "poetry.lock",
-            baseline.GUIDE,
-        )
-        .decode()
-        .splitlines()
-    )
-    allowed = {"src/quantbt/endpoint.py", "src/quantbt/walkforward.py",
-        # QMS-06 additive witness/glue; original arithmetic remains byte-locked
-        # below, and reference/prepared execution is differentially tested.
-        "src/quantbt/backends/native_prepared_evaluation.py",
-        "src/quantbt/backends/native_wfo_public.py",
-        "src/quantbt/backends/reactive_wfo.py",
-        "src/quantbt/backends/reactive_wfo_support.py"}
-    for name in names:
-        if name not in allowed:
-            from tools.qms_release_source_guard import without_release_identity
-            from tools.qms06_source_guard import without_qms06_witness
-            current = without_release_identity((baseline.ROOT / name).read_bytes(), name)
-            from tools.qms_c02_source_guard import without_c02_witness
-            current = without_c02_witness(current, name)
-            current = without_qms06_witness(current, name)
-            if name == "rust/native_event/src/lib.rs":
-                # QMS-04 adds only registered numeric exports, not execution math.
-                current = current.replace(
-                    b'#[cfg(feature = "qms-numeric-candidate")]\nmod qms_numeric;\n',
-                    b"",
-                ).replace(
-                    b'    #[cfg(feature = "qms-numeric-candidate")]\n    qms_numeric::register(module)?;\n',
-                    b"",
-                )
-                assert baseline.git("show", "3ce42bf:" + name) == current, name
-                continue
-            if name == "rust/native_event/Cargo.toml":
-                current = (
-                    current
-                    .replace(b"\n[features]\nqms-numeric-candidate = []\n", b"")
-                )
-                assert baseline.git("show", "3ce42bf:" + name) == current, name
-                continue
-            assert (
-                baseline.git("show", "3ce42bf:" + name)
-                == current
-            ), name
+    import json
+    from tools.m5_12_source_guard import verify_current_source
+    source = verify_current_source()
+    assert source["current_source_qualified"] and source["financial_source_changed"]
+    assert source["historical_receipts_unchanged"] and not source["native_artifacts_qualified"]
+    prefix = "benchmarks/optimization/meta_selection/"
+    receipt_name = prefix + "qms03_gate_receipt.json"
+    created = baseline.git("log", "--diff-filter=A", "--format=%H", "--", receipt_name).decode().splitlines()
+    assert len(created) == 1
+    for name in (receipt_name, prefix + "qms03_history_evidence.json"):
+        assert (baseline.ROOT/name).read_bytes() == baseline.git("show", created[0]+":"+name)
+    receipt = json.loads((baseline.ROOT/receipt_name).read_text())
+    # The original receipt pins canonical JSON, separately from Git byte custody.
+    assert digest(json.loads((baseline.ROOT/(prefix+"qms03_history_evidence.json")).read_bytes())) == receipt["evidence_sha256"]

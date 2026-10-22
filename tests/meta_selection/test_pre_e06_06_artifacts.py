@@ -3,6 +3,7 @@
 from copy import deepcopy
 from hashlib import sha256
 import json
+import subprocess
 import tarfile
 from io import BytesIO
 import zipfile
@@ -93,11 +94,48 @@ def test_cleanup_rejects_symlink(tmp_path, monkeypatch):
 
 
 def test_predecessor_seals_and_owner_exception():
-    current = gate.prerequisites(historical=True)
-    assert current["runtime_sha256"] and current["source_guard"]["publication"] is False
-    assert current["historical"] is True
-    with pytest.raises(ValueError, match="drift|runtime/build change"):
-        gate.prerequisites()
+    prior_name, owner_name = (
+        path.relative_to(gate.ROOT).as_posix() for path in (gate.PRE05, gate.OWNER)
+    )
+    receipts = {}
+    for path in (gate.PRE05, gate.OWNER):
+        name = path.relative_to(gate.ROOT).as_posix()
+        original = subprocess.check_output(
+            ["git", "show", f"{gate.ENTRY}:{name}"], cwd=gate.ROOT
+        )
+        assert path.read_bytes() == original
+        receipts[name] = sha256(original).hexdigest()
+    prior = json.loads(gate.PRE05.read_bytes())
+    owner = json.loads(gate.OWNER.read_bytes())
+    assert prior["schema"] == "qms-pre-e06-05-local-v1"
+    assert prior["status"] == "PASS_LOCAL_PARITY_COST_DISPOSITION_OPEN"
+    assert prior["full_semantic_parity"] is True
+    assert prior["source_guard"]["publication"] is False
+    assert owner["schema"] == "qms-pre-e06-05-owner-cost-disposition-v1"
+    assert owner["status"] == "COMPLETE_LOCAL_OWNER_ACCEPTED_COST_EXCEPTION"
+    assert owner["original_budget_pct"] == {"p50": 3, "p95": 5}
+    assert owner["original_disabled_not_met"] == len(owner["accepted_exceptions"]) == 7
+    assert owner["correctness_rng_accounting_tolerances_waived"] is False
+    assert owner["inheritance_to_other_sources_or_workloads"] is False
+    assert owner["guide_sha256"] == prior["guide_sha256"]
+    assert owner["sealed_evidence_sha256"][prior_name] == receipts[prior_name]
+    gate.checked_hashes(owner["sealed_evidence_sha256"])
+    predecessor = json.loads((gate.ROOT / (
+        "benchmarks/optimization/meta_selection/qms_pre_e06_06_closure.json"
+    )).read_bytes())
+    assert predecessor["source"]["predecessor_sha256"] == receipts[prior_name]
+    assert predecessor["source"]["owner_sha256"] == receipts[owner_name]
+    assert predecessor["owner_cost_acceptance_sha256"] == receipts[owner_name]
+
+
+def test_old_pre06_builder_cannot_certify_current_source():
+    from tests.meta_selection.current_source_assertions import current_source_rejects_historical_certificate
+    from tools import qms_pre05_source_guard as legacyguard
+
+    current_source_rejects_historical_certificate(legacyguard.verify)
+    for historical in (False, True):
+        with pytest.raises(AssertionError):
+            gate.prerequisites(historical=historical)
 
 
 def test_native_reuse_requires_exact_hash(tmp_path):
