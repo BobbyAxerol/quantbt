@@ -315,6 +315,52 @@ def test_old_boot_is_dead_and_incorrect_namespace_is_unresolved():
         jobs.is_live(owner | dict(pid_namespace="different-namespace"))
 
 
+@pytest.mark.parametrize("operation", ["identity", "members", "signal", "watch", "stop"])
+def test_unreadable_host_namespace_fails_closed(tmp_path, monkeypatch, operation):
+    # Exercise production's PermissionError behavior even on a privileged host.
+    process = subprocess.Popen([sys.executable, "-B", "-c", "import time; time.sleep(60)"],
+                               start_new_session=True)
+    try:
+        owner = jobs.process_identity(process.pid)
+        journal = jobs.Journal(tmp_path / "journal")
+        journal.append("supervisor_start", owner=owner)
+        journal.append("start", owner=owner, attempt=str(tmp_path / "attempt"), cell_id="controlled")
+        before = jobs._manifest(tmp_path)
+        readlink = os.readlink
+        denied = []
+
+        def deny_host_namespace(path, *, dir_fd=None):
+            if Path(path) == Path("/proc/1/ns/pid"):
+                denied.append(str(path))
+                raise PermissionError(13, "Permission denied", str(path))
+            return readlink(path, dir_fd=dir_fd)
+
+        def unexpected_signal(*args, **kwargs):
+            pytest.fail("unresolved namespace must not authorize a signal")
+
+        with monkeypatch.context() as patch:
+            patch.setattr(os, "readlink", deny_host_namespace)
+            patch.setattr(os, "killpg", unexpected_signal)
+            patch.setattr(os, "kill", unexpected_signal)
+            actions = {
+                "identity": lambda: jobs.process_identity(1),
+                "members": lambda: jobs._members(owner),
+                "signal": lambda: jobs._signal_group(owner, signal.SIGTERM),
+                "watch": lambda: jobs.watch(tmp_path),
+                "stop": lambda: jobs.request_stop(tmp_path),
+            }
+            with pytest.raises(PermissionError, match="/proc/1/ns/pid"):
+                actions[operation]()
+        assert denied == ["/proc/1/ns/pid"]
+        assert process.poll() is None
+        assert jobs._manifest(tmp_path) == before
+        assert not (tmp_path / "completion.json").exists()
+        assert not (tmp_path / "cleanup.json").exists()
+    finally:
+        process.kill()
+        process.wait(timeout=5)
+
+
 @pytest.mark.parametrize("change", ["request", "artifact", "extra", "receipt"])
 def test_resume_rejects_request_or_manifest_collisions(fixture, change):
     spec = fixture["candidate"]()
