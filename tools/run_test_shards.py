@@ -25,6 +25,7 @@ GRID_EXTERNAL_TESTS = {
     "test_phase47c_grid_parity.py",
     "test_phase47d_grid_optimizer.py",
 }
+SINGLE_THREAD_PARENT_TESTS = {"meta_selection/test_pre04_public.py"}
 
 
 def _chunks(values: list[Path], size: int) -> Iterable[list[Path]]:
@@ -59,7 +60,20 @@ def _collect(profile: str) -> list[list[Path]]:
             grouped["options"].append(path)
         else:
             grouped["core"].append(path)
-    return [grouped[name] for name in ("core", "options", "native") if grouped[name]]
+    groups: list[list[Path]] = []
+    for name in ("core", "options", "native"):
+        current: list[Path] = []
+        for path in grouped[name]:
+            if path.relative_to(TEST_ROOT).as_posix() in SINGLE_THREAD_PARENT_TESTS:
+                if current:
+                    groups.append(current)
+                    current = []
+                groups.append([path])
+            else:
+                current.append(path)
+        if current:
+            groups.append(current)
+    return groups
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -83,7 +97,11 @@ def main(argv: list[str] | None = None) -> int:
             print(f"[{shard_number}] {' '.join(command)}", flush=True)
             if args.list:
                 continue
-            completed = subprocess.run(command, cwd=PROJECT_ROOT, env=env, check=False)
+            child_env = env
+            if any(path.relative_to(TEST_ROOT).as_posix() in SINGLE_THREAD_PARENT_TESTS for path in shard):
+                child_env = dict(env, OPENBLAS_NUM_THREADS="1", MKL_NUM_THREADS="1",
+                                 OMP_NUM_THREADS="1", NUMBA_NUM_THREADS="1")
+            completed = subprocess.run(command, cwd=PROJECT_ROOT, env=child_env, check=False)
             if completed.returncode:
                 if not args.keep_going:
                     return completed.returncode
