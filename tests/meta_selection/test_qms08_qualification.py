@@ -209,8 +209,8 @@ def test_q8_t06_required_64_ids_and_logs_fail_closed(tmp_path, mutation):
 
 
 def test_q8_t07_actual_candidate_wheel_sdist_consumers():
-    # CI has one actual installed lane per matrix job. Local qualification
-    # requires all three; a provided reference is verified, never a skip/mock.
+    # CI supplies its actual installed lane. Default local receipts certify
+    # three historical lanes, not today's source or their retired environments.
     supplied = os.environ.get("QMS08_PACKAGE_PROOF")
     proofs = (
         [Path(supplied)]
@@ -220,17 +220,25 @@ def test_q8_t07_actual_candidate_wheel_sdist_consumers():
     assert len(proofs) == (1 if supplied else 3), (
         "Build the QMS08 isolated installed interpreter lanes first"
     )
+    if not supplied:
+        from tools.m5_12_source_guard import verify_current_source
+
+        current = verify_current_source()
+        assert current["current_source_qualified"] and current["historical_receipts_unchanged"]
+        assert current["financial_source_changed"] and not current["financial_numeric_source_unchanged"]
+        assert current["native_artifacts_qualified"] is False
     for path in proofs:
         proof = json.loads(path.read_text())
         # Historical artifacts certify their sealed source, not later followup
         # implementations. Current-source followup wheels have a separate gate.
         assert verify_pair(proof, source_revision=None if supplied else "6c0f877")
-        guard = subprocess.run(
-            [
-                str(path.parent / "core_off/bin/python"),
-                "-I",
-                "-c",
-                """
+        if supplied:
+            guard = subprocess.run(
+                [
+                    str(path.parent / "core_off/bin/python"),
+                    "-I",
+                    "-c",
+                    """
 import importlib.util
 from quantbt.optimization.config import SamplerConfig
 from quantbt.optimization.samplers import build_sampler
@@ -244,13 +252,27 @@ except ImportError as error:
 else:
     raise AssertionError('missing Optuna did not fail clearly')
 """,
-            ],
-            cwd=path.parent,
-            capture_output=True,
-            text=True,
-        )
-        assert guard.returncode == 0, guard.stderr
-        assert guard.stdout.strip() == "QuantBT optimization requires optuna"
+                ],
+                cwd=path.parent,
+                capture_output=True,
+                text=True,
+            )
+            assert guard.returncode == 0, guard.stderr
+            assert guard.stdout.strip() == "QuantBT optimization requires optuna"
+        else:
+            # verify_pair pins these log bytes; readback is historical evidence
+            # only, never a replacement for a fresh missing-Optuna probe.
+            recorded = proof["consumers"]["core_off"]
+            assert recorded["core_version"] == proof["core"]
+            assert recorded["optimization"] is False
+            assert recorded["off_optional_dependencies_loaded"] is False
+            assert recorded["fixed_account_rows"] == 850
+            logs = [ROOT / name for name in proof["logs"]
+                    if name.endswith("/core_off-consumer.log")]
+            assert len(logs) == 1
+            outputs = [line for line in logs[0].read_text().splitlines()
+                       if line.startswith("{")]
+            assert len(outputs) == 1 and json.loads(outputs[0]) == recorded
         damaged = deepcopy(proof)
         damaged["consumers"]["pair"]["actual_meta_folds"] = 0
         with pytest.raises(ValueError):

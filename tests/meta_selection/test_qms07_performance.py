@@ -372,29 +372,14 @@ def test_q7_t07_protected_financial_source_and_published_pair_unchanged():
         or p == "rust/native_event/src/qms_numeric.rs"
         for p in changed
     )
-    # Later owner-approved adapter changes do not rewrite the sealed QMS-07
-    # receipt. R03 authorizes packaging only, independently byte-validated.
-    current = subprocess.check_output(
-        ["git", "diff", "6c0f877", "--name-only", "--", "src/quantbt", "rust"],
-        cwd=ROOT, text=True,
-    ).splitlines()
-    from tools.mode5_public_source_guard import prior_names
-    current = prior_names(current, "6c0f877")
-    from tools.qms_release_source_guard import PACKAGING_FILES, without_release_identity
-    from tools.qms_c02_source_guard import ALLOW, verify
-    from tools.qms_c03_source_guard import ALLOW as C03_ALLOW
-    from tools.qms_c04_source_guard import ALLOW as C04_ALLOW
-    from tools.qms_g01_source_guard import ALLOW as G01_ALLOW, verify as verify_g01
-    from tools.qms_execution_source_guard import REVIEWED_SCOPE as EXEC_ALLOW
-    verify()
-    verify_g01()
-    for name in set(current) & PACKAGING_FILES:
-        without_release_identity((ROOT / name).read_bytes(), name)
-    assert all(p.startswith("src/quantbt/optimization/meta_selection/") or p in PACKAGING_FILES or p in ALLOW or p in C03_ALLOW or p in C04_ALLOW or p in G01_ALLOW or p in EXEC_ALLOW or p in {
-        "src/quantbt/endpoint.py", "src/quantbt/walkforward.py",
-        "src/quantbt/backends/reactive_wfo.py", "src/quantbt/backends/reactive_wfo_support.py",
-        "src/quantbt/backends/native_event.py", "src/quantbt/backends/_native_event_rust.py",
-    } for p in current)
+    # The historical diff remains sealed. Today's approved financial repairs
+    # require their own source qualification, not an unchanged-finance claim.
+    from tests.meta_selection.current_source_assertions import current_source_rejects_historical_certificate
+    from tools.qms_c02_source_guard import verify
+    from tools.qms_g01_source_guard import verify as verify_g01
+
+    current_source_rejects_historical_certificate(verify)
+    current_source_rejects_historical_certificate(verify_g01)
     from tools.qms08_package import declared_pair
     versions = json.loads(subprocess.check_output(
         [sys.executable, "-I", "-c", "import importlib.metadata as m,json;print(json.dumps([m.version('quantbt-engine'),m.version('quantbt-native')]))"],

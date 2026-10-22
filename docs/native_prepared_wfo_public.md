@@ -74,6 +74,14 @@ Prepared pct requires native capability `PCT_EQUITY_ACCEPTED_QTY_ACTIVITY_V1`;
 an older binary is rejected explicitly. Pct metric/history/cache identities
 change with this corrected population; old history must not be relabeled.
 Sharpe, fills, equity and fees are not redefined by this compatibility repair.
+To replay the pct transition endpoint, pass the retained requested weights as
+`signal`; do not feed accepted contract quantities back as percentage weights:
+
+```python
+requested = result.metadata["legacy_requested_positions_report"].iloc[:, 0]
+replayed = pct_endpoint.backtest(data=market, signal=requested)
+```
+
 `"auto"` preserves
 the legacy route. Portfolio, basket, package/arbitrage, DCA/grid, generic order
 tapes, and reactive lifecycle strategies retain their dedicated certified

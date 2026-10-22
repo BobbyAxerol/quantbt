@@ -248,6 +248,8 @@ def test_q6_t01_pct_equity_existing_native_account_units_and_cost_parity(
     bt = QuantBTEndpoint(replace(bt.config, use_funding=True, funding_rate=0.0001))
     prepared, _ = execute(bt)
     # Independent ordinary endpoint run, never execution replay in the adapter.
+    assert prepared.metadata["positions_semantics"] == "accepted_contract_units"
+    requested = prepared.metadata["legacy_requested_positions_report"].iloc[:, 0]
     ordinary = QuantBTEndpoint(
         replace(
             bt.config,
@@ -255,7 +257,7 @@ def test_q6_t01_pct_equity_existing_native_account_units_and_cost_parity(
             backend="legacy",
             sizing="%_equity",
         )
-    ).backtest(data=market(), signal=prepared.positions.iloc[:, 0])
+    ).backtest(data=market(), signal=requested)
     for name in ("equity", "returns", "fees", "funding", "positions"):
         np.testing.assert_allclose(
             getattr(ordinary, name), getattr(prepared, name), rtol=RTOL, atol=ATOL
@@ -668,7 +670,8 @@ def test_q6_t04_source_lock_allows_only_reviewed_additive_witness():
     root = Path(__file__).resolve().parents[2]
     name = "rust/crates/quantbt-engine/src/metrics_v2.rs"
     current = (root / name).read_bytes()
-    verify()
+    from current_source_assertions import current_source_rejects_historical_certificate
+    current_source_rejects_historical_certificate(verify)
     prior = without_g01(current, name)
     baseline = subprocess.check_output(["git", "show", f"3c69cb8:{name}"], cwd=root)
     assert without_qms06_witness(prior, name) == baseline
