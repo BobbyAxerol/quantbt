@@ -300,6 +300,13 @@ def test_a5_validator_and_platform_wheel_matrix_are_checked_assets():
         assert f'"{version}"' in workflow
     assert "Install and negotiate from wheel outside the source tree" in workflow
 
+    import yaml
+    matrix = yaml.load(workflow, Loader=yaml.BaseLoader)["jobs"]["native-wheel"]["strategy"]["matrix"]
+    runners = {row["id"]: row["runner"] for row in matrix["platform"]}
+    assert runners["macos-x86_64"] == "macos-15-intel"
+    assert runners["macos-arm64"] == "macos-15"
+    assert len(matrix["platform"]) * len(matrix["python-version"]) == 15
+
 
 def test_event_facade_threads_runtime_budget_and_fails_before_execution():
     data = pd.DataFrame(

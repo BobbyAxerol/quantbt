@@ -1,0 +1,95 @@
+{
+  "account_reconciliation_paths": 5,
+  "benchmark": {
+    "bars": 2000,
+    "daily_and_attribution_seconds": {
+      "p50": 0.0007762539898976684,
+      "p95": 0.0015078761847689744
+    },
+    "execution_calls": 1,
+    "meaning": "cold-path reducer addition, not financial kernel speedup; same immutable buffers",
+    "raw_daily_seconds": {
+      "p50": 0.0005237689474597573,
+      "p95": 0.0009869632078334687
+    },
+    "repeats": 25
+  },
+  "ci_push_publication": false,
+  "cleanup": {
+    "final_free_bytes": 25290981376,
+    "reclaimed_observed_free_bytes": 11997184,
+    "removals": 2,
+    "retained_evidence_unchanged": true,
+    "scratch_absent": true
+  },
+  "complete_utc_days_per_path": 91,
+  "date": "2026-10-09",
+  "evidence_hashes": {
+    "cleanup_receipt.json": "f563e53a41f58ed2a0b591e336aae690eeab94991052a511162186af2bad7703",
+    "contracts-source-final.json": "9f9c1da087df906a182c58d8b91377938cf2d73f1467f22ed52eddcc2953d82b",
+    "contracts-source-final.xml": "e1cf4739853e38b8119e533cf27f8d6bd919c69fde5735d6c271c5ee4d7af11d",
+    "environment.json": "b93a1f2239bd72b7c93ebfee40fe63054860c82d3b525ae97a93b1359372b971",
+    "final-review-02/cleanup_receipt.json": "e9e857dee03e661ab0de2794dbe81b5f2c0ee0d38e03fa5da7113c6f6563303f",
+    "final-review-02/phase_source_snapshot.json": "abfdcfae16a2dae70eef170692be4fb3fb4d2f48b51437955638f49ba0e7ee00",
+    "final-review-02/report.json": "5fdbd04395f8293308f129cb0599985423988a046e05f41549c8a74494109f4b",
+    "final-review-02/report.md": "7e2882c1a1452682d8733113536f9dfc352c90a585332de5f87835b4f71b5e0f",
+    "final-review-02/technical_closure.json": "ee53f21f86ab6c9a44e2c948a3c654ca4a8958fa73310a6dc8af38140781d86c",
+    "regression-source-final.json": "6d3d410208a0409c6b9336b64cd1990d65cd37964dcb597b4751778eabdfb241",
+    "regression-source-final.xml": "055c1af389b99c27dd8446dd305c646939c81a821cb3ac7d30bcd8592d1146b6",
+    "review-source-final.json": "4cc443864d56b7c69dfc8e96030ede5012b254d257124a0f27c99aa4c2749a6e",
+    "review-source-final/benchmark.json": "12b442a88b5a1f40e2f263eeab6fac2c60b7ed91425033746db0babe2d5bcaae"
+  },
+  "evidence_limits": [
+    "M505-INPUT-01: original anchor terminal inclusivity/lifecycle witnesses remain UNVERIFIED",
+    "M505-INPUT-02: absent separate RSI cost/campaign streams and SC/RSI lookback fields remain unavailable",
+    "M505-INPUT-03: reviewed pilot paths are not full-development or unseen-forward confirmation"
+  ],
+  "financial_source_unchanged": true,
+  "guide_acceptance_ids": [
+    "M5T-041",
+    "M5T-042",
+    "M5T-043",
+    "M5T-044",
+    "M5T-045",
+    "M5T-046",
+    "M5T-047",
+    "M5T-048",
+    "M5T-049",
+    "M5T-050"
+  ],
+  "implementation_source_sha": "b5648eb44f5fc0b55d331891d1f8e94225ff92c1",
+  "next_phase": "M5-06 separate approval",
+  "optimizer_trials": 0,
+  "phase": "M5-05",
+  "phase_source_hashes": 10,
+  "prior_receipts_preserved": 79,
+  "private_alpha_simulations": 0,
+  "private_content_published": false,
+  "protected_hashes": 802,
+  "release_artifact_certified": false,
+  "retained_alpha_paths": 5,
+  "retained_bars_per_path": 2184,
+  "retained_review": {
+    "analysis_cache_hits": 5,
+    "cache_resident_bytes": 673166,
+    "feature_seconds": 0.02925334998872131,
+    "interpretation": "reviewed pilot cold-path reuse; not a simulation, WFO, economic or isolated RSS speedup claim",
+    "peak_process_rss_mib": 173.62109375,
+    "wall_seconds": 0.9271503989584744
+  },
+  "schema": "quantbt.mode5_upgrade.technical_seal.v1",
+  "scientific": "DESCRIPTIVE_ONLY",
+  "separate_ledger_reconciliation_paths": 4,
+  "source_unchanged": true,
+  "status": "COMPLETE_LOCAL_ENVIRONMENTS",
+  "technical": "TECHNICALLY_VALID",
+  "tests": {
+    "acceptance_ids": 10,
+    "failed": 0,
+    "new_passed": 45,
+    "optuna_experimental_warnings": 3,
+    "related_regression_passed": 1026,
+    "skipped": 0
+  },
+  "unresolved_implementation_debt": []
+}

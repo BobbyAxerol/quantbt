@@ -144,6 +144,8 @@ pub struct PortfolioTargetRequest<'a> {
     pub slippage_rates: &'a [f64],
     pub tradable: &'a [bool],
     pub stale: &'a [bool],
+    /// Minimum actual delta-order size at the close mark. Pure reductions and
+    /// closes are exempt; these are not minimum retained-position sizes.
     pub min_qty: &'a [f64],
     pub min_notional: &'a [f64],
     pub reserved_margin: f64,
@@ -175,6 +177,16 @@ impl PortfolioTargetExecution {
 
     #[must_use]
     pub fn invariant_passes(&self, tolerance: f64) -> bool {
+        // A carried IM deficit is allowed for affordable pure reductions, not
+        // for new exposure. Do not mislabel that accepted repair as invalid.
+        let reductions_only = self
+            .accepted_units
+            .iter()
+            .zip(&self.delta_qty)
+            .all(|(accepted, delta)| is_reduction(accepted - delta, *accepted));
+        let margin_valid = self.available_equity_after >= -tolerance
+            || (reductions_only
+                && self.available_equity_after + sum(&self.initial_margin) >= -tolerance);
         self.delta_qty
             .iter()
             .zip(self.accepted_units.iter().zip(self.requested_units.iter()))
@@ -186,7 +198,7 @@ impl PortfolioTargetExecution {
                 .all(|(notional, (fee, slippage))| {
                     notional.is_finite() && fee.is_finite() && slippage.is_finite()
                 })
-            && self.available_equity_after >= -tolerance
+            && margin_valid
     }
 }
 
@@ -298,9 +310,15 @@ pub fn execute_portfolio_target(
                 request.contract_sizes,
                 request.leverages,
             );
-            if !valid.iter().all(|value| *value)
-                || sum(&margin) + sum(&costs) + request.reserved_margin > request.equity + EPSILON
-            {
+            let reductions_only = request
+                .previous_units
+                .iter()
+                .zip(&candidate)
+                .all(|(previous, target)| is_reduction(*previous, *target));
+            let required = sum(&costs)
+                + request.reserved_margin
+                + if reductions_only { 0.0 } else { sum(&margin) };
+            if !valid.iter().all(|value| *value) || required > request.equity + EPSILON {
                 for index in 0..n {
                     if valid[index] {
                         reasons[index] = PortfolioTargetRejectReason::AtomicRollback;
@@ -311,9 +329,12 @@ pub fn execute_portfolio_target(
             }
         }
         PortfolioMarginAllocationPolicy::ProRataToAvailableMargin => {
-            accepted = reduction_baseline(request.previous_units, request.requested_units, &valid);
+            let (baseline, reduction_costs) =
+                reduction_baseline(&request, &valuation_prices, &valid, &mut reasons);
+            accepted = baseline;
             let remaining = (request.equity
                 - request.reserved_margin
+                - reduction_costs
                 - sum(&margin_vector(
                     &accepted,
                     &valuation_prices,
@@ -335,7 +356,7 @@ pub fn execute_portfolio_target(
             let total_required = required
                 .iter()
                 .enumerate()
-                .filter(|(index, _)| valid[*index])
+                .filter(|(index, _)| reasons[*index] == PortfolioTargetRejectReason::Accepted)
                 .map(|(_, value)| *value)
                 .sum::<f64>();
             let scale = if total_required > 0.0 {
@@ -344,10 +365,23 @@ pub fn execute_portfolio_target(
                 1.0
             };
             for index in 0..n {
-                if valid[index] {
-                    accepted[index] += increase[index] * scale;
-                    if scale < 1.0 && increase[index].abs() > EPSILON {
+                if reasons[index] == PortfolioTargetRejectReason::Accepted {
+                    let candidate = accepted[index] + increase[index] * scale;
+                    let reason = target_delta_validation_reason(
+                        request.previous_units[index],
+                        candidate,
+                        valuation_prices[index],
+                        request.contract_sizes[index],
+                        request.min_qty[index],
+                        request.min_notional[index],
+                    );
+                    if reason != PortfolioTargetRejectReason::Accepted {
+                        reasons[index] = reason;
+                    } else if scale < 1.0 && increase[index].abs() > EPSILON {
+                        accepted[index] = candidate;
                         reasons[index] = PortfolioTargetRejectReason::PostCostMargin;
+                    } else {
+                        accepted[index] = candidate;
                     }
                 }
             }
@@ -380,13 +414,19 @@ pub fn execute_portfolio_target(
                     request.fee_rates,
                     request.slippage_rates,
                 );
-                let required = sum(&margin_vector(
-                    &candidate,
-                    &valuation_prices,
-                    request.contract_sizes,
-                    request.leverages,
-                )) + sum(&costs)
-                    + request.reserved_margin;
+                let costs_required = sum(&costs) + request.reserved_margin;
+                let required = if is_reduction(accepted[index], candidate[index]) {
+                    // A pure reduction need not restore initial-margin
+                    // coverage. It must still be affordable after prior fills.
+                    costs_required
+                } else {
+                    sum(&margin_vector(
+                        &candidate,
+                        &valuation_prices,
+                        request.contract_sizes,
+                        request.leverages,
+                    )) + costs_required
+                };
                 if required <= request.equity + EPSILON {
                     accepted[index] = request.requested_units[index];
                 } else {
@@ -718,38 +758,85 @@ fn validation_reason(
         PortfolioTargetRejectReason::StalePrice
     } else if !target.is_finite() {
         PortfolioTargetRejectReason::InvalidTarget
-    } else if target != 0.0 && target.abs() + EPSILON < request.min_qty[index] {
+    } else {
+        target_delta_validation_reason(
+            request.previous_units[index],
+            target,
+            price,
+            request.contract_sizes[index],
+            request.min_qty[index],
+            request.min_notional[index],
+        )
+    }
+}
+
+/// Whether a target only closes or reduces the existing signed inventory.
+/// A reversal is not a pure reduction, even when its final magnitude is lower.
+#[must_use]
+pub fn is_reduction(previous: f64, target: f64) -> bool {
+    target == 0.0 || (previous.signum() == target.signum() && target.abs() <= previous.abs())
+}
+
+/// Validate the actual delta of an already resolved/quantized target. Call
+/// again after resizing or splitting a rebalance into separate orders. The
+/// notional filter uses the close mark and the declared contract multiplier.
+#[must_use]
+pub fn target_delta_validation_reason(
+    previous: f64,
+    target: f64,
+    price: f64,
+    contract_size: f64,
+    min_qty: f64,
+    min_notional: f64,
+) -> PortfolioTargetRejectReason {
+    let quantity = (target - previous).abs();
+    if quantity < EPSILON || is_reduction(previous, target) {
+        PortfolioTargetRejectReason::Accepted
+    } else if quantity + EPSILON < min_qty {
         PortfolioTargetRejectReason::MinQty
-    } else if target != 0.0
-        && target.abs() * price * request.contract_sizes[index] + EPSILON
-            < request.min_notional[index]
-    {
+    } else if quantity * price * contract_size + EPSILON < min_notional {
         PortfolioTargetRejectReason::MinNotional
     } else {
         PortfolioTargetRejectReason::Accepted
     }
 }
 
-fn is_reduction(previous: f64, target: f64) -> bool {
-    target == 0.0 || (previous.signum() == target.signum() && target.abs() <= previous.abs())
-}
-
-fn reduction_baseline(previous: &[f64], requested: &[f64], valid: &[bool]) -> Vec<f64> {
+fn reduction_baseline(
+    request: &PortfolioTargetRequest<'_>,
+    prices: &[f64],
+    valid: &[bool],
+    reasons: &mut [PortfolioTargetRejectReason],
+) -> (Vec<f64>, f64) {
+    let previous = request.previous_units;
+    let requested = request.requested_units;
     let mut accepted = previous.to_vec();
+    let mut costs = 0.0;
     for index in 0..previous.len() {
         if valid[index]
             && (is_reduction(previous[index], requested[index])
                 || (previous[index] != 0.0
                     && previous[index].signum() != requested[index].signum()))
         {
-            accepted[index] = if is_reduction(previous[index], requested[index]) {
+            let target = if is_reduction(previous[index], requested[index]) {
                 requested[index]
             } else {
                 0.0
             };
+            let cost = (target - previous[index]).abs()
+                * prices[index]
+                * request.contract_sizes[index]
+                * (request.fee_rates[index] + request.slippage_rates[index]);
+            // Admit reductions in the existing symbol order. Keep affordable
+            // earlier legs, and never fund a later leg from released IM alone.
+            if costs + cost + request.reserved_margin <= request.equity + EPSILON {
+                accepted[index] = target;
+                costs += cost;
+            } else {
+                reasons[index] = PortfolioTargetRejectReason::PostCostMargin;
+            }
         }
     }
-    accepted
+    (accepted, costs)
 }
 
 fn subtract(left: &[f64], right: &[f64]) -> Vec<f64> {
@@ -811,6 +898,349 @@ mod tests {
             reserved_margin: 0.0,
             policy,
         }
+    }
+
+    fn single_request(
+        previous: f64,
+        target: f64,
+        min_qty: f64,
+        min_notional: f64,
+        policy: PortfolioMarginAllocationPolicy,
+    ) -> PortfolioTargetRequest<'static> {
+        PortfolioTargetRequest {
+            previous_units: Box::leak(vec![previous].into_boxed_slice()),
+            requested_units: Box::leak(vec![target].into_boxed_slice()),
+            prices: &[100.0],
+            equity: 1_000.0,
+            contract_sizes: &[1.0],
+            leverages: &[1.0],
+            fee_rates: &[0.0],
+            slippage_rates: &[0.0],
+            tradable: &[true],
+            stale: &[false],
+            min_qty: Box::leak(vec![min_qty].into_boxed_slice()),
+            min_notional: Box::leak(vec![min_notional].into_boxed_slice()),
+            reserved_margin: 0.0,
+            policy,
+        }
+    }
+
+    #[test]
+    fn sequential_reduction_below_im_is_affordable_but_increases_remain_strict() {
+        for target in [-18.0, -20.0] {
+            let mut request = single_request(
+                -19.0,
+                target,
+                0.0,
+                0.0,
+                PortfolioMarginAllocationPolicy::SequentialLegacy,
+            );
+            request.prices = &[110.0];
+            request.equity = 1_809.24;
+            request.fee_rates = &[0.0004];
+            let result = execute_portfolio_target(request).unwrap();
+            if target == -18.0 {
+                assert_eq!(result.accepted_units, vec![-18.0]);
+                assert!((result.fees[0] - 0.044).abs() < EPSILON);
+                assert!((result.available_equity_after + 170.804).abs() < EPSILON);
+                assert!(result.invariant_passes(EPSILON));
+            } else {
+                assert_eq!(result.accepted_units, vec![-19.0]);
+                assert_eq!(
+                    result.rejection_reasons,
+                    vec![PortfolioTargetRejectReason::PostCostMargin]
+                );
+            }
+        }
+        let mut request = single_request(
+            -19.0,
+            -18.0,
+            0.0,
+            0.0,
+            PortfolioMarginAllocationPolicy::SequentialLegacy,
+        );
+        request.equity = 0.01;
+        request.fee_rates = &[0.0004];
+        let result = execute_portfolio_target(request).unwrap();
+        assert_eq!(result.accepted_units, vec![-19.0]);
+        assert_eq!(result.fees, vec![0.0]);
+        assert_eq!(
+            result.rejection_reasons,
+            vec![PortfolioTargetRejectReason::PostCostMargin]
+        );
+    }
+
+    #[test]
+    fn all_policies_accept_affordable_pure_reductions_below_im() {
+        for policy in [
+            PortfolioMarginAllocationPolicy::SequentialLegacy,
+            PortfolioMarginAllocationPolicy::ReduceFirstThenIncrease,
+            PortfolioMarginAllocationPolicy::ProRataToAvailableMargin,
+            PortfolioMarginAllocationPolicy::AllOrNoneTarget,
+        ] {
+            let mut request = single_request(-19.0, -18.0, 18.5, 1_850.0, policy);
+            request.prices = &[110.0];
+            request.equity = 1_809.24;
+            request.fee_rates = &[0.0004];
+            let result = execute_portfolio_target(request).unwrap();
+            assert_eq!(result.accepted_units, vec![-18.0], "{policy:?}");
+            assert_eq!(
+                result.rejection_reasons,
+                vec![PortfolioTargetRejectReason::Accepted]
+            );
+            assert!((result.fees[0] - 0.044).abs() < EPSILON);
+            assert!((result.available_equity_after + 170.804).abs() < EPSILON);
+            assert!(result.invariant_passes(EPSILON));
+        }
+    }
+
+    #[test]
+    fn all_policies_require_reduction_fees_and_slippage_to_fit_equity() {
+        for policy in [
+            PortfolioMarginAllocationPolicy::SequentialLegacy,
+            PortfolioMarginAllocationPolicy::ReduceFirstThenIncrease,
+            PortfolioMarginAllocationPolicy::ProRataToAvailableMargin,
+            PortfolioMarginAllocationPolicy::AllOrNoneTarget,
+        ] {
+            for equity in [39.0, 40.0] {
+                let mut request = single_request(-1.0, -0.5, 0.0, 0.0, policy);
+                request.prices = &[200.0];
+                request.equity = equity;
+                request.fee_rates = &[0.3];
+                request.slippage_rates = &[0.1];
+                let result = execute_portfolio_target(request).unwrap();
+                if equity == 40.0 {
+                    assert_eq!(result.accepted_units, vec![-0.5], "{policy:?}");
+                    assert_eq!(result.fees, vec![30.0]);
+                    assert_eq!(result.slippage, vec![10.0]);
+                    assert!(result.invariant_passes(EPSILON));
+                } else {
+                    assert_eq!(result.accepted_units, vec![-1.0], "{policy:?}");
+                    assert_eq!(result.fees, vec![0.0]);
+                    assert_eq!(result.slippage, vec![0.0]);
+                    assert_eq!(
+                        result.rejection_reasons,
+                        vec![
+                            if policy == PortfolioMarginAllocationPolicy::AllOrNoneTarget {
+                                PortfolioTargetRejectReason::AtomicRollback
+                            } else {
+                                PortfolioTargetRejectReason::PostCostMargin
+                            }
+                        ]
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn reduction_cost_budget_preserves_prior_admissions_unless_policy_is_atomic() {
+        for policy in [
+            PortfolioMarginAllocationPolicy::SequentialLegacy,
+            PortfolioMarginAllocationPolicy::ReduceFirstThenIncrease,
+            PortfolioMarginAllocationPolicy::ProRataToAvailableMargin,
+            PortfolioMarginAllocationPolicy::AllOrNoneTarget,
+        ] {
+            let mut request = request(policy);
+            request.previous_units = &[1.0, 1.0];
+            request.requested_units = &[0.5, 0.5];
+            request.prices = &[100.0, 100.0];
+            request.leverages = &[1.0, 1.0];
+            request.equity = 60.0;
+            request.reserved_margin = 10.0;
+            request.fee_rates = &[0.6, 0.6];
+            request.slippage_rates = &[0.1, 0.1];
+            let result = execute_portfolio_target(request).unwrap();
+            if policy == PortfolioMarginAllocationPolicy::AllOrNoneTarget {
+                assert_eq!(result.accepted_units, vec![1.0, 1.0]);
+                assert_eq!(result.fees, vec![0.0, 0.0]);
+                assert_eq!(
+                    result.rejection_reasons,
+                    vec![PortfolioTargetRejectReason::AtomicRollback; 2]
+                );
+            } else {
+                assert_eq!(result.accepted_units, vec![0.5, 1.0], "{policy:?}");
+                assert_eq!(result.fees, vec![30.0, 0.0]);
+                assert_eq!(result.slippage, vec![5.0, 0.0]);
+                assert_eq!(
+                    result.rejection_reasons,
+                    vec![
+                        PortfolioTargetRejectReason::Accepted,
+                        PortfolioTargetRejectReason::PostCostMargin,
+                    ]
+                );
+            }
+            assert!(result.invariant_passes(EPSILON));
+        }
+    }
+
+    #[test]
+    fn pro_rata_reserves_reduction_costs_before_scaling_increases() {
+        let mut request = request(PortfolioMarginAllocationPolicy::ProRataToAvailableMargin);
+        request.previous_units = &[1.0, 0.0];
+        request.requested_units = &[0.0, 2.0];
+        request.prices = &[100.0, 100.0];
+        request.leverages = &[1.0, 1.0];
+        request.equity = 220.0;
+        request.fee_rates = &[0.1, 0.1];
+        request.slippage_rates = &[0.1, 0.1];
+        let result = execute_portfolio_target(request).unwrap();
+        assert_eq!(result.accepted_units[0], 0.0);
+        assert!((result.accepted_units[1] - 5.0 / 3.0).abs() < EPSILON);
+        assert_eq!(result.fees[0], 10.0);
+        assert_eq!(result.slippage[0], 10.0);
+        assert!(result.available_equity_after.abs() < EPSILON);
+        assert!(result.invariant_passes(EPSILON));
+    }
+
+    #[test]
+    fn pro_rata_unaffordable_reversal_close_preserves_existing_position() {
+        let mut request = single_request(
+            1.0,
+            -0.5,
+            0.0,
+            0.0,
+            PortfolioMarginAllocationPolicy::ProRataToAvailableMargin,
+        );
+        request.equity = 40.0;
+        request.fee_rates = &[0.6];
+        let result = execute_portfolio_target(request).unwrap();
+        assert_eq!(result.accepted_units, vec![1.0]);
+        assert_eq!(result.fees, vec![0.0]);
+        assert_eq!(
+            result.rejection_reasons,
+            vec![PortfolioTargetRejectReason::PostCostMargin]
+        );
+    }
+
+    #[test]
+    fn planner_policies_validate_actual_increasing_delta_and_exempt_reductions() {
+        for policy in [
+            PortfolioMarginAllocationPolicy::SequentialLegacy,
+            PortfolioMarginAllocationPolicy::ReduceFirstThenIncrease,
+            PortfolioMarginAllocationPolicy::ProRataToAvailableMargin,
+            PortfolioMarginAllocationPolicy::AllOrNoneTarget,
+        ] {
+            for sign in [-1.0, 1.0] {
+                for (min_qty, min_notional, reason) in [
+                    (0.5, 0.0, PortfolioTargetRejectReason::MinQty),
+                    (0.0, 50.0, PortfolioTargetRejectReason::MinNotional),
+                ] {
+                    for next in [1.1, 0.1, 0.0, 1.5, -0.1] {
+                        let result = execute_portfolio_target(single_request(
+                            sign,
+                            sign * next,
+                            min_qty,
+                            min_notional,
+                            policy,
+                        ))
+                        .unwrap();
+                        let expected = sign * if next == 1.1 { 1.0 } else { next };
+                        assert!((result.accepted_units[0] - expected).abs() < EPSILON);
+                        assert_eq!(
+                            result.rejection_reasons[0],
+                            if next == 1.1 {
+                                reason
+                            } else {
+                                PortfolioTargetRejectReason::Accepted
+                            }
+                        );
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn pro_rata_resizing_rechecks_the_final_delta_minimums() {
+        for (min_qty, min_notional, reason) in [
+            (0.5, 0.0, PortfolioTargetRejectReason::MinQty),
+            (0.0, 50.0, PortfolioTargetRejectReason::MinNotional),
+        ] {
+            let mut request = single_request(
+                1.0,
+                2.0,
+                min_qty,
+                min_notional,
+                PortfolioMarginAllocationPolicy::ProRataToAvailableMargin,
+            );
+            request.equity = 130.0;
+            let result = execute_portfolio_target(request).unwrap();
+            assert_eq!(result.accepted_units, vec![1.0]);
+            assert_eq!(result.rejection_reasons, vec![reason]);
+        }
+    }
+
+    #[test]
+    fn market_target_helper_uses_the_same_delta_filters() {
+        for (min_qty, min_notional, reason) in [
+            (0.5, 0.0, PortfolioTargetRejectReason::MinQty),
+            (0.0, 50.0, PortfolioTargetRejectReason::MinNotional),
+        ] {
+            // Eighth-unit targets keep the engine's position += delta exact.
+            for target in [1.125, 0.125, 0.0, -0.125] {
+                let result = execute_portfolio_target_market_all_or_none(single_request(
+                    1.0,
+                    target,
+                    min_qty,
+                    min_notional,
+                    PortfolioMarginAllocationPolicy::AllOrNoneTarget,
+                ))
+                .unwrap();
+                assert_eq!(
+                    result.accepted_units,
+                    vec![if target == 1.125 { 1.0 } else { target }]
+                );
+                assert_eq!(
+                    result.rejection_reasons[0],
+                    if target == 1.125 {
+                        reason
+                    } else {
+                        PortfolioTargetRejectReason::Accepted
+                    }
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn minimum_notional_uses_delta_and_contract_multiplier() {
+        assert_eq!(
+            target_delta_validation_reason(1.0, 1.1, 100.0, 10.0, 0.0, 50.0),
+            PortfolioTargetRejectReason::Accepted,
+        );
+        assert_eq!(
+            target_delta_validation_reason(1.0, 1.01, 100.0, 10.0, 0.0, 50.0),
+            PortfolioTargetRejectReason::MinNotional,
+        );
+    }
+
+    #[test]
+    fn sequential_planner_keeps_symbol_order_and_does_not_fund_increases_from_im_deficit() {
+        let mut request = request(PortfolioMarginAllocationPolicy::SequentialLegacy);
+        request.previous_units = &[-19.0, 0.0];
+        request.requested_units = &[-18.0, 0.1];
+        request.prices = &[110.0, 100.0];
+        request.leverages = &[1.0, 1.0];
+        request.fee_rates = &[0.0004, 0.0004];
+        request.slippage_rates = &[0.0, 0.0];
+        request.equity = 1_809.24;
+        let result = execute_portfolio_target(request.clone()).unwrap();
+        assert_eq!(result.accepted_units, vec![-18.0, 0.0]);
+        assert_eq!(
+            result.rejection_reasons[1],
+            PortfolioTargetRejectReason::PostCostMargin
+        );
+        request.previous_units = &[0.0, 9.0];
+        request.requested_units = &[5.0, 0.0];
+        request.prices = &[100.0, 100.0];
+        request.fee_rates = &[0.0, 0.0];
+        request.equity = 1_000.0;
+        let sequential = execute_portfolio_target(request.clone()).unwrap();
+        assert_eq!(sequential.accepted_units, vec![0.0, 0.0]);
+        request.policy = PortfolioMarginAllocationPolicy::ReduceFirstThenIncrease;
+        let reduce_first = execute_portfolio_target(request).unwrap();
+        assert_eq!(reduce_first.accepted_units, vec![5.0, 0.0]);
     }
 
     #[test]

@@ -980,3 +980,54 @@ có exact post-study replay trong contract hiện tại nên `auto` tự tắt c
 vì giữ entry không thể hit. Metadata `wfo_evaluation_runtime` lưu identity,
 hit/miss/store, bypass adaptive và trạng thái release; xem
 [PERF-05 WFO evaluation reuse](performance/perf_05_wfo_evaluation_reuse.md).
+
+## 19. Feature-Branch Causal Meta-Selection
+
+PRE-E06-03 adds the approved [nested Mode 1 scalar cohort](meta_selection/NESTED_MODE1.md).
+Inner-validation decay remains the native selection objective; raw full outer-IS
+and true outer-forward observations form the separate unchanged meta target.
+All inner work remains inside outer IS; current outer-forward labels cannot
+enter selection. Other domain/method cells retain their existing guards.
+
+QMS-05 adds an optional final selector to Mode 4 `per_fold_causal`, not a new
+WFO mode. Native search stays current-IS-only; active final selection can use
+compatible past matured forward labels, never current outer OOS. Shadow retains
+native execution. Learned active same-anchor decisions still report adaptive
+historical-forward usage; cold/OOD fallback does not claim such usage.
+
+Signed relative-decay Ridge, origin balancing and predicted-Q guarding are
+specified in [the model contract](meta_selection/MODEL.md). The
+[public integration guide](meta_selection/INTEGRATION.md) defines supported
+routes, actual completion/publication clocks, defaults and result lineage.
+Final accounting still uses one stitched target account with boundary carry,
+not concatenated counterfactual reset equities. QMS-06 qualifies prepared scalar
+W0/W1/W2 without changing timing/selection mathematics, and exports a complete
+[portable handoff](meta_selection/HANDOFF.md). Published native 0.4.2 lacks the
+new witness; fallback and require failure remain explicit. Reactive/reset-flat
+W3 meta has a separate local sequential adapter with original native windows,
+same-pass objectives and reset-flat accounting; it never manufactures a stitched
+continuous account. C02/C03 additionally qualify the existing sequential meta
+lane over safe Linux fork/COW transport and cooperative deadlines; this is not
+public meta-batch, continuous-carry or shared multi-symbol activation. See the
+[W3 contract](meta_selection/INTEGRATION.md#w3-sequential-meta).
+This is not yet a published 1.1.1 feature.
+
+Final-source local wheel/sdist qualification is tracked by
+[PRE-E06-06](meta_selection/PRE_E06_06_REPORT.md). Its installed scope, source
+hashes and cleanup are separate from remote/public and economic acceptance.
+The [conditional sampler contract](meta_selection/CONDITIONAL_POLICIES.md)
+does not broaden the meta mode/domain matrix. Methods, accounts and default
+selection behavior remain unchanged by package qualification.
+
+## 20. Shared Research Reporting (Feature Branch)
+
+The optional [pre-search report](diagnostics/PRESEARCH_RESEARCHER_REPORT.md)
+describes permitted-prefix geometry, activity, fragility and sampler/selector
+evidence before researcher choice. It does not activate a recipe. Completed
+Mode 4 reports use [one shared reducer/API](diagnostics/FOLD_DECISION_REPORTS.md)
+for exact cohorts and signed R/Q/IS decomposition: decay reduction is not the
+same quantity as forward improvement, and own-metric masks may differ.
+Mode 5 keeps its fixed full-development dictionary and dependent attribution.
+The [coverage and handoff](diagnostics/REPORTING_COVERAGE_AND_HANDOFF.md)
+separates source-qualified readers from financial/runtime capabilities and
+future installed qualification. No model, objective or scientific gate changes.

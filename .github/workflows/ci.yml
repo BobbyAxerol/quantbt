@@ -58,19 +58,8 @@ jobs:
           .venv/bin/python tools/check_benchmark_governance.py
           .venv/bin/python tools/check_docs_links.py
 
-      - name: Test
-        run: .venv/bin/python tools/run_test_shards.py --profile ci-core
-
-      - name: Build package
-        run: |
-          rm -rf dist
-          uv build
-
-      - name: Verify source-to-wheel module parity
-        # This is a direct postcondition of the core build. Keep it before
-        # independent native-wheel and clean-install smoke steps so it always
-        # compares the exact source snapshot used by ``uv build``.
-        run: .venv/bin/python tools/verify_wheels.py --dist dist --skip-install
+      - name: Build isolated QMS test fixtures and installed candidate
+        uses: ./.github/actions/qms-fixtures
 
       - name: Build local native companion for dependency smoke
         uses: PyO3/maturin-action@v1
@@ -78,10 +67,31 @@ jobs:
           command: build
           args: >-
             --release
+            --locked
             --manifest-path rust/native_event/Cargo.toml
             --interpreter python${{ matrix.python-version }}
             --out native-smoke
           manylinux: "2014"
+
+      - name: Install and pin workflow-built native for core parity tests
+        run: |
+          uv pip install --python .venv/bin/python --reinstall --no-deps native-smoke/quantbt_native-*.whl
+          .venv/bin/python -m tools.ci_native_identity --wheel-dir native-smoke --github-env "$GITHUB_ENV" --output .maturin/ci-native-identity.json
+
+      - name: Test
+        # Only the isolated fake-worker custody suite needs access to PID 1's
+        # namespace. Keep its real guard; ordinary/financial tests stay non-root.
+        run: .venv/bin/python tools/run_test_shards.py --profile ci-core --keep-going --sudo-host-tests
+
+      - name: Build package
+        run: |
+          rm -rf dist
+          uv build
+
+      - name: Verify source-to-wheel module parity
+        # Check the exact core snapshot immediately after its build, before
+        # clean-install smoke. The native wheel is already pinned for tests.
+        run: .venv/bin/python tools/verify_wheels.py --dist dist --skip-install
 
       - name: Validate distribution metadata
         run: uv run twine check dist/*

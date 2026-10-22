@@ -19,9 +19,26 @@ PYTHONPATH=/root/bobby/pool_alpha python3 quantbt/examples/single_order_event.py
 | `pair_basket_event.py` | `BacktestEngineV2(backend="native_event", basket=...)` | Frozen hedge-ratio pair/basket package |
 | `arbitrage_basis.py` | `QuantBTEndpoint.arbitrage(...)` | Basis arbitrage spec and package execution |
 | `walk_forward_train_test.py` | `QuantBTEndpoint.train_test_split(...)` | Single holdout train/test using the walk-forward adapter |
+| `wfo_meta_selection.py` | existing `QuantBTEndpoint.walk_forward(...)` | Feature-branch Mode-4 causal off/shadow/active, typed history, original-result observer and audit lineage; synthetic smoke only |
+| `mode5_calibration_optin.py` | existing `QuantBTEndpoint.walk_forward(...)` | Optional feature-branch diagnostics-first Mode 5 wrapper; caller supplies sealed evidence/recipe and original adapter, no automatic research approval or OOS claim |
+| `mode5_diagnostic_handoff.py` | `quantbt.diagnostics.CalibrationWorksheet` / `Mode5RunPack` | Self-contained opt-in synthetic worksheet, private checked run pack, original continuous Mode 5 execution and five-view reconciliation; default dry-run, explicit `--run`, optional missing-archive control; not economic or package qualification |
+| `wfo_meta_portfolio.py` | existing portfolio WFO/shared account | E04 opt-in with ordered universe, original aggregate labels and exact position output; synthetic engineering evidence, not empirical promotion |
+| `wfo_meta_handoff.py` | existing meta result and pure selector | Full reviewed decision/model/snapshot export and restore; no broker, replay, activation or state reset |
+| `wfo_meta_contract.py` | existing WFO endpoint and strict history restore | Complete off, sampler-only, reviewed local-history and unsupported-method cases; synthetic software proof, no economic/live claim |
+| `wfo_reactive_samplers.py` | existing prepared W3 and R3B | Four shared recipes, original Rust account/reset policy and versioned batch proposals; see [scheduler contract](../docs/meta_selection/W3_SAMPLER_SCHEDULES.md) |
 | `optimization_workflow.py` | `OptunaOptimizer` + prepared/generic evaluators | Domain-agnostic optimization smoke template |
+| `shared_alpha_diagnostics.py` | `quantbt.diagnostics.AlphaDiagnostics` | Retained observation/schema analysis before any mode or meta choice; no optimizer or financial execution |
+| `shared_presearch_researcher.py` | Same additive diagnostics API | Typed attempt/account evidence, participation/attribution, recipe cards and private/public exports; synthetic, no strategy execution |
+| `shared_decision_reporting.py` | `quantbt.diagnostics.ResearchDecisionReport` | Fold masks, R/Q, decision trace and permitted exports from synthetic original records; no optimizer, account replay or model fit |
+| `completed_research_reporting.py` | `endpoint.research_report(...)` / `ResearchDecisionReport.from_result(...)` | Same cold reader on synthetic completed metadata; public output and explicit permissions, no engine or account |
+| `optimization_exact_continuation.py` | additive owned sampler session | Four-recipe safe JSON checkpoint and exact fresh-process continuation; toy objective, no automatic WFO resume |
 | `nautilus_validation.py` | `QuantBTEndpoint.nautilus_validation(...)` | Signal validation through NautilusTrader |
 | `nautilus_explicit_orders.py` | `BacktestEngineV2(backend="nautilus", orders=...)` | Explicit order replay and native-vs-Nautilus parity |
 | `phase6_public_api.py` | multiple | Compact API snippets for service authors |
 
 Nautilus examples require the optional `nautilus-trader` dependency.
+
+`python -m examples.wfo_meta_package --kind basis --mode shadow` exercises
+bounded original package-account meta (`basket` / `stat_pair` also supported).
+Read [the exact admission contract](../docs/meta_selection/DOMAIN_ADAPTER_CONTRACT.md#e05-package-amendment).
+The fixture is synthetic software evidence, not empirical promotion.

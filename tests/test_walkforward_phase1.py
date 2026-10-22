@@ -1427,7 +1427,20 @@ def test_walkforward_phase4_support_matrix_covers_current_routes():
         "basket",
         "arbitrage",
     } <= set(matrix["target_mode"])
-    assert set(matrix.columns) == {"target_mode", "expected_output", "final_engine", "status", "notes"}
+    legacy_columns = {"target_mode", "expected_output", "final_engine", "status", "notes"}
+    meta_columns = {
+        "meta_domain", "meta_input_kind", "meta_adapter_abi", "meta_software_status",
+        "meta_empirical_status", "meta_gate_phase", "meta_optimization_modes",
+        "meta_optimization_schedules", "meta_route_activated",
+    }
+    assert set(matrix.columns) == legacy_columns | meta_columns
+    pct = matrix.loc[matrix["target_mode"] == "pct_equity"].iloc[0]
+    assert pct["meta_route_activated"]
+    assert set(pct["meta_optimization_modes"]) == {"mode_4_is_only_robust", "mode_1_decay"}
+    assert pct["meta_optimization_schedules"] == ("per_fold_causal",)
+    pending = matrix.loc[~matrix["meta_route_activated"]]
+    assert pending["meta_optimization_modes"].map(lambda modes: modes == ()).all()
+    assert pending["meta_optimization_schedules"].map(lambda schedules: schedules == ()).all()
 
 
 def test_walkforward_phase4_benchmark_snapshot_is_finite_and_equivalent():

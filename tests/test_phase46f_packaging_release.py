@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import re
 import tomllib
 
 import pytest
@@ -32,9 +33,19 @@ def test_phase46f_core_metadata_and_release_notes_are_complete() -> None:
     }
     assert project["urls"]["Documentation"].endswith("/docs")
     assert project["urls"]["Changelog"].endswith("/CHANGELOG.md")
-    assert (PROJECT_ROOT / "CHANGELOG.md").read_text(encoding="utf-8").find(
-        f"[{project['version']}]"
-    ) >= 0
+    changelog = (PROJECT_ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
+    sections = dict(re.findall(r"^## \[([^\]]+)\](?: - \d{4}-\d{2}-\d{2})?\n(.*?)(?=^## \[|\Z)", changelog, re.M | re.S))
+    registry = json.loads((PROJECT_ROOT / "contracts/native_event_product_registry.json").read_text(encoding="utf-8"))
+    native_version = registry["versions"]["native_package"]["version"]
+    readme = (PROJECT_ROOT / project["readme"]).read_text(encoding="utf-8")
+    pair = readme.split("Release pair declared by this source revision:", 1)[1].split("Optional features:", 1)[0]
+    declared_versions = dict(re.findall(r"^\| `(quantbt-(?:engine|native))` \| `([^`]+)` \|", pair, re.M))
+    assert declared_versions == {"quantbt-engine": project["version"], "quantbt-native": native_version}
+    release_notes = sections[project["version"]]
+    assert f"### Core {project['version']} / Native {native_version}\n" in release_notes
+    assert "Local qualification alone is not evidence of publication." in pair
+    assert "## [1.1.1]" in changelog
+    assert "Historical1.1.2receipts retain their original scope" in release_notes
     assert metadata["project"]["optional-dependencies"]["native"] == []
 
 

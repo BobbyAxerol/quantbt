@@ -9,7 +9,6 @@ These tests lock metric and terminal-account parity against that public path.
 from __future__ import annotations
 
 import importlib.util
-import math
 
 import numpy as np
 import pandas as pd
@@ -149,17 +148,8 @@ def _scalar_and_audit(*, runtime: str, strategy_factory, frame: pd.DataFrame, gi
 
 
 def _assert_metrics_equal(scalar, audit) -> None:
-    report = audit.full_report()
-    for key, expected in report.items():
-        actual = scalar.metrics[key]
-        if isinstance(expected, (float, int, np.floating, np.integer)) and not isinstance(expected, bool):
-            if math.isinf(float(expected)):
-                assert math.isinf(float(actual))
-                assert (float(actual) > 0.0) == (float(expected) > 0.0)
-            else:
-                np.testing.assert_allclose(actual, expected, rtol=0.0, atol=1e-10)
-        else:
-            assert actual == expected
+    from tests.native_event.contract.scalar_report_assertions import assert_scalar_report_parity
+    assert_scalar_report_parity(scalar.metrics, audit, atol=1e-10)
     np.testing.assert_allclose(scalar.final_equity, audit.equity.iloc[-1], rtol=0.0, atol=1e-10)
     np.testing.assert_allclose(
         scalar.final_positions,

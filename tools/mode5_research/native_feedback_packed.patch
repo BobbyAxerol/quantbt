@@ -1,0 +1,640 @@
+diff --git a/rust/native_event/src/feedback_session.rs b/rust/native_event/src/feedback_session.rs
+index 959edf4..8e491bf 100644
+--- a/rust/native_event/src/feedback_session.rs
++++ b/rust/native_event/src/feedback_session.rs
+@@ -3,13 +3,62 @@
+ use numpy::{PyReadonlyArray1, PyReadonlyArray2, PyUntypedArrayMethods};
+ use pyo3::exceptions::{PyRuntimeError, PyValueError};
+ use pyo3::prelude::*;
+-use pyo3::types::PyType;
++use pyo3::types::{PyBytes, PyType};
+ use quantbt_engine::{
+     CODE_WIDTH, FullSession, FullStepResult, OUTPUT_EVENTS, OUTPUT_FILLS, StepBuffers, VALUE_WIDTH,
+ };
+ 
+ use crate::NativeExecutionTemplateCore;
+ 
++type PackedFeedback<'py> = (
++    Bound<'py, PyBytes>,
++    Bound<'py, PyBytes>,
++    Bound<'py, PyBytes>,
++    Bound<'py, PyBytes>,
++    Bound<'py, PyBytes>,
++);
++
++fn account_words<'a>(
++    result: &'a FullStepResult,
++    positions: &'a [f64],
++) -> impl Iterator<Item = [u8; 8]> + 'a {
++    std::iter::once(result.equity)
++        .chain(positions.iter().copied())
++        .chain([
++            result.fee,
++            result.funding,
++            result.turnover,
++            result.initial_margin,
++            result.maintenance_margin,
++        ])
++        .map(f64::to_ne_bytes)
++}
++
++fn integer_rows<const N: usize>(columns: [&[i64]; N]) -> impl Iterator<Item = [u8; 8]> {
++    (0..columns[0].len()).flat_map(move |row| columns.map(|column| column[row].to_ne_bytes()))
++}
++
++fn float_rows<const N: usize>(columns: [&[f64]; N]) -> impl Iterator<Item = [u8; 8]> {
++    (0..columns[0].len()).flat_map(move |row| columns.map(|column| column[row].to_ne_bytes()))
++}
++
++fn packed_words(
++    py: Python<'_>,
++    count: usize,
++    words: impl Iterator<Item = [u8; 8]>,
++) -> PyResult<Bound<'_, PyBytes>> {
++    let bytes = count
++        .checked_mul(8)
++        .filter(|size| *size <= isize::MAX as usize)
++        .ok_or_else(|| PyValueError::new_err("feedback packet exceeds Python bytes capacity"))?;
++    PyBytes::new_with(py, bytes, |output| {
++        for (destination, word) in output.chunks_exact_mut(8).zip(words) {
++            destination.copy_from_slice(&word);
++        }
++        Ok(())
++    })
++}
++
+ #[pyclass(frozen, get_all, skip_from_py_object)]
+ #[derive(Debug, PartialEq)]
+ pub(crate) struct FeedbackStepCore {
+@@ -98,11 +147,34 @@ impl NativeFeedbackSessionCore {
+         values: &[f64],
+         expiry: &[i64],
+     ) -> Result<FeedbackStepCore, String> {
++        let result = self.execute_step_result(codes, values, expiry)?;
++        Ok(FeedbackStepCore::from_buffers(
++            result,
++            self.session.as_ref().unwrap().positions.clone(),
++            &self.buffers,
++        ))
++    }
++
++    fn validate_command_lengths(
++        codes: &[i64],
++        values: &[f64],
++        expiry: &[i64],
++    ) -> Result<(), String> {
+         if expiry.len().checked_mul(CODE_WIDTH) != Some(codes.len())
+             || expiry.len().checked_mul(VALUE_WIDTH) != Some(values.len())
+         {
+             return Err("feedback command buffers do not match command count".to_owned());
+         }
++        Ok(())
++    }
++
++    fn execute_step_result(
++        &mut self,
++        codes: &[i64],
++        values: &[f64],
++        expiry: &[i64],
++    ) -> Result<FullStepResult, String> {
++        Self::validate_command_lengths(codes, values, expiry)?;
+         let session = self
+             .session
+             .as_mut()
+@@ -131,11 +203,7 @@ impl NativeFeedbackSessionCore {
+             &mut self.buffers,
+         );
+         match result {
+-            Ok(result) => Ok(FeedbackStepCore::from_buffers(
+-                result,
+-                session.positions.clone(),
+-                &self.buffers,
+-            )),
++            Ok(result) => Ok(result),
+             Err(error) => {
+                 session.retry_bar_transaction()?;
+                 self.buffers.clear();
+@@ -143,6 +211,92 @@ impl NativeFeedbackSessionCore {
+             }
+         }
+     }
++
++    fn advance_step_result(
++        &mut self,
++        bar: usize,
++        codes: &[i64],
++        values: &[f64],
++        expiry: &[i64],
++    ) -> Result<FullStepResult, String> {
++        Self::validate_command_lengths(codes, values, expiry)?;
++        let session = self
++            .session
++            .as_mut()
++            .ok_or_else(|| "feedback session is closed".to_owned())?;
++        // Reject stale/skipped/unstepped requests before discarding the old
++        // checkpoint. A same-bar retry must use step[_packed], not advance.
++        if bar >= session.n_bars() || bar != session.next_bar() {
++            return Err("feedback advance must target the next canonical bar".to_owned());
++        }
++        if let Some(previous) = session.active_bar_transaction() {
++            if previous.checked_add(1) != Some(bar) {
++                return Err("feedback advance cannot commit an unstepped bar".to_owned());
++            }
++            session.commit_bar_transaction()?;
++        }
++        session.begin_bar_transaction(bar)?;
++        self.buffers.clear();
++        self.execute_step_result(codes, values, expiry)
++    }
++
++    fn pack_step<'py>(
++        &self,
++        py: Python<'py>,
++        result: &FullStepResult,
++    ) -> PyResult<PackedFeedback<'py>> {
++        let positions = &self.session.as_ref().unwrap().positions;
++        let events = &self.buffers.events;
++        let fills = &self.buffers.fills;
++        let account = packed_words(py, positions.len() + 6, account_words(result, positions))?;
++        let event_integers = packed_words(
++            py,
++            events.kind.len() * 6,
++            integer_rows([
++                &events.kind,
++                &events.status,
++                &events.order_id,
++                &events.target_id,
++                &events.symbol,
++                &events.reject_code,
++            ]),
++        )?;
++        let fill_integers = packed_words(
++            py,
++            fills.order_id.len() * 6,
++            integer_rows([
++                &fills.order_id,
++                &fills.symbol,
++                &fills.side,
++                &fills.reason,
++                &fills.ambiguity,
++                &fills.order_type,
++            ]),
++        )?;
++        let fill_floats = packed_words(
++            py,
++            fills.order_id.len() * 3,
++            float_rows([&fills.qty, &fills.price, &fills.fee]),
++        )?;
++        let liquidation = packed_words(
++            py,
++            3,
++            [
++                i64::from(result.liquidated),
++                result.liquidation_bar,
++                result.liquidation_reason,
++            ]
++            .into_iter()
++            .map(i64::to_ne_bytes),
++        )?;
++        Ok((
++            account,
++            event_integers,
++            fill_integers,
++            fill_floats,
++            liquidation,
++        ))
++    }
+ }
+ 
+ #[pymethods]
+@@ -189,6 +343,67 @@ impl NativeFeedbackSessionCore {
+             .map_err(PyValueError::new_err)
+     }
+ 
++    /// Native-endian packet: account f64; events i64 rows of six; fills i64
++    /// rows of six; fills f64 rows of three; liquidation i64 triple.
++    fn step_packed<'py>(
++        &mut self,
++        py: Python<'py>,
++        codes: PyReadonlyArray2<'_, i64>,
++        values: PyReadonlyArray2<'_, f64>,
++        expiry: PyReadonlyArray1<'_, i64>,
++    ) -> PyResult<PackedFeedback<'py>> {
++        self.open_mut()?;
++        let code_shape = codes.shape();
++        let value_shape = values.shape();
++        if code_shape[1] != CODE_WIDTH
++            || value_shape[1] != VALUE_WIDTH
++            || value_shape[0] != code_shape[0]
++            || expiry.len() != code_shape[0]
++        {
++            return Err(PyValueError::new_err(
++                "feedback commands require codes (n, 16), values (n, 3), expiry (n,)",
++            ));
++        }
++        let result = self
++            .execute_step_result(codes.as_slice()?, values.as_slice()?, expiry.as_slice()?)
++            .map_err(PyValueError::new_err)?;
++        self.pack_step(py, &result)
++    }
++
++    /// Commit a previously stepped transaction, then begin and step `bar`.
++    /// The final bar remains tentative until explicit commit/abort/reset/close.
++    fn advance_packed<'py>(
++        &mut self,
++        py: Python<'py>,
++        bar: usize,
++        codes: PyReadonlyArray2<'_, i64>,
++        values: PyReadonlyArray2<'_, f64>,
++        expiry: PyReadonlyArray1<'_, i64>,
++    ) -> PyResult<PackedFeedback<'py>> {
++        self.open_mut()?;
++        let code_shape = codes.shape();
++        let value_shape = values.shape();
++        if code_shape[1] != CODE_WIDTH
++            || value_shape[1] != VALUE_WIDTH
++            || value_shape[0] != code_shape[0]
++            || expiry.len() != code_shape[0]
++        {
++            return Err(PyValueError::new_err(
++                "feedback commands require codes (n, 16), values (n, 3), expiry (n,)",
++            ));
++        }
++        // Require contiguous buffers before any native transaction mutation.
++        let result = self
++            .advance_step_result(
++                bar,
++                codes.as_slice()?,
++                values.as_slice()?,
++                expiry.as_slice()?,
++            )
++            .map_err(PyValueError::new_err)?;
++        self.pack_step(py, &result)
++    }
++
+     fn commit(&mut self) -> PyResult<()> {
+         self.open_mut()?
+             .commit_bar_transaction()
+@@ -224,3 +439,7 @@ impl NativeFeedbackSessionCore {
+             .ok_or_else(|| PyRuntimeError::new_err("feedback session is closed"))
+     }
+ }
++
++#[cfg(test)]
++#[path = "feedback_session_packed_tests.rs"]
++mod packed_tests;
+diff --git a/rust/native_event/src/feedback_session_packed_tests.rs b/rust/native_event/src/feedback_session_packed_tests.rs
+new file mode 100644
+index 0000000..d5ccc95
+--- /dev/null
++++ b/rust/native_event/src/feedback_session_packed_tests.rs
+@@ -0,0 +1,349 @@
++use super::*;
++use quantbt_domain::{ActivationPolicy, CommandAction, OrderType, Side, TimeInForce};
++use quantbt_engine::{EVENT_CANCEL, FullMarketData};
++use std::sync::Arc;
++
++const ACTION_PLACE: i64 = CommandAction::Place as i64;
++const ACTIVATION_ON_PARENT_FIRST_FILL: i64 = ActivationPolicy::OnParentFirstFill as i64;
++const ORDER_LIMIT: i64 = OrderType::Limit as i64;
++const ORDER_MARKET: i64 = OrderType::Market as i64;
++const ORDER_STOP_MARKET: i64 = OrderType::StopMarket as i64;
++const SIDE_BUY: i64 = Side::Buy as i64;
++const SIDE_SELL: i64 = Side::Sell as i64;
++const TIF_GTC: i64 = TimeInForce::Gtc as i64;
++
++type Command = ([i64; CODE_WIDTH], [f64; VALUE_WIDTH], i64);
++
++fn feedback_session(symbols: usize) -> NativeFeedbackSessionCore {
++    let market = FullMarketData::new(
++        vec![0, 1, 2, 3],
++        vec![100.0; 4 * symbols],
++        vec![110.0; 4 * symbols],
++        vec![90.0; 4 * symbols],
++        vec![100.0; 4 * symbols],
++        vec![1.0; 4 * symbols],
++        (0..4)
++            .flat_map(|bar| vec![if bar == 2 { 0.001 } else { 0.0 }; symbols])
++            .collect(),
++        vec![false, false, true, false],
++        symbols,
++    )
++    .unwrap();
++    let mut session = FullSession::new(
++        Arc::new(market),
++        vec![1.0; symbols],
++        vec![5.0; symbols],
++        vec![0.0002; symbols],
++        10_000.0,
++        0.005,
++        0.0,
++        true,
++    )
++    .unwrap();
++    session
++        .set_event_contract(
++            quantbt_engine::generated_contracts::CONTRACT_EVENT_LIFECYCLE_V3_NEXT_OPEN,
++        )
++        .unwrap();
++    NativeFeedbackSessionCore::wrap(session)
++}
++
++fn place(id: i64, symbol: i64, side: i64, kind: i64, values: [f64; VALUE_WIDTH]) -> Command {
++    let mut code = [0; CODE_WIDTH];
++    code[0] = ACTION_PLACE;
++    code[1] = symbol;
++    code[2] = side;
++    code[3] = kind;
++    code[4] = TIF_GTC;
++    code[6] = id;
++    code[7] = -1;
++    code[8] = -1;
++    code[9] = -1;
++    code[10] = -1;
++    (code, values, -1)
++}
++
++fn arrays(commands: &[Command]) -> (Vec<i64>, Vec<f64>, Vec<i64>) {
++    (
++        commands.iter().flat_map(|command| command.0).collect(),
++        commands.iter().flat_map(|command| command.1).collect(),
++        commands.iter().map(|command| command.2).collect(),
++    )
++}
++
++fn advanced(
++    feedback: &mut NativeFeedbackSessionCore,
++    bar: usize,
++    commands: &[Command],
++) -> FeedbackStepCore {
++    let (codes, values, expiry) = arrays(commands);
++    let result = feedback
++        .advance_step_result(bar, &codes, &values, &expiry)
++        .unwrap();
++    FeedbackStepCore::from_buffers(
++        result,
++        feedback.session.as_ref().unwrap().positions.clone(),
++        &feedback.buffers,
++    )
++}
++
++fn retry(feedback: &mut NativeFeedbackSessionCore, commands: &[Command]) -> FeedbackStepCore {
++    let (codes, values, expiry) = arrays(commands);
++    feedback.execute_step(&codes, &values, &expiry).unwrap()
++}
++
++fn original(
++    feedback: &mut NativeFeedbackSessionCore,
++    bar: usize,
++    commands: &[Command],
++) -> FeedbackStepCore {
++    feedback
++        .session
++        .as_mut()
++        .unwrap()
++        .begin_bar_transaction(bar)
++        .unwrap();
++    let result = retry(feedback, commands);
++    feedback
++        .session
++        .as_mut()
++        .unwrap()
++        .commit_bar_transaction()
++        .unwrap();
++    result
++}
++
++#[test]
++fn account_words_preserve_all_fields_and_native_float_bits() {
++    let result = FullStepResult {
++        equity: 123.0,
++        fee: 0.25,
++        funding: -0.5,
++        turnover: 200.0,
++        initial_margin: 40.0,
++        maintenance_margin: 1.0,
++        ..Default::default()
++    };
++    let positions = [2.0, -3.0, -0.0];
++    let actual = account_words(&result, &positions).collect::<Vec<_>>();
++    let expected = [123.0_f64, 2.0, -3.0, -0.0, 0.25, -0.5, 200.0, 40.0, 1.0]
++        .into_iter()
++        .map(f64::to_ne_bytes)
++        .collect::<Vec<_>>();
++    assert_eq!(actual, expected);
++}
++
++#[test]
++fn packed_rows_preserve_column_order_and_large_integer_ids() {
++    let large = (1_i64 << 53) + 1;
++    let columns = [
++        [1, 2],
++        [3, 4],
++        [large, large + 1],
++        [-1, large + 2],
++        [0, 1],
++        [10, 11],
++    ];
++    let actual = integer_rows(columns.each_ref().map(|column| column.as_slice()))
++        .map(i64::from_ne_bytes)
++        .collect::<Vec<_>>();
++    assert_eq!(
++        actual,
++        vec![1, 3, large, -1, 0, 10, 2, 4, large + 1, large + 2, 1, 11]
++    );
++    let floats = [[1.25, 2.5], [101.0, 99.0], [0.0002, -0.0]];
++    let actual = float_rows(floats.each_ref().map(|column| column.as_slice())).collect::<Vec<_>>();
++    assert_eq!(
++        actual,
++        [1.25_f64, 101.0, 0.0002, 2.5, 99.0, -0.0]
++            .into_iter()
++            .map(f64::to_ne_bytes)
++            .collect::<Vec<_>>()
++    );
++    assert_eq!(integer_rows([&[][..]; 6]).count(), 0);
++    assert_eq!(float_rows([&[][..]; 3]).count(), 0);
++}
++
++#[test]
++fn deferred_commit_matches_original_multisymbol_session_and_empty_p0() {
++    let mut actual = feedback_session(2);
++    let mut expected = feedback_session(2);
++    let large = (1_i64 << 53) + 1;
++    let ignored_p0 = place(99, 0, SIDE_BUY, ORDER_MARKET, [1.0, 0.0, 0.0]);
++    let entry = place(large, 0, SIDE_BUY, ORDER_MARKET, [2.0, 0.0, 0.0]);
++    let other = place(large + 1, 1, SIDE_SELL, ORDER_MARKET, [3.0, 0.0, 0.0]);
++    let pending = place(large + 2, 0, SIDE_BUY, ORDER_LIMIT, [1.0, 50.0, 0.0]);
++    let steps = [
++        vec![ignored_p0],
++        vec![entry, other, pending],
++        vec![],
++        vec![],
++    ];
++    for (bar, commands) in steps.iter().enumerate() {
++        let observed = advanced(&mut actual, bar, commands);
++        assert_eq!(observed, original(&mut expected, bar, commands));
++        assert_eq!(
++            actual.session.as_ref().unwrap().active_bar_transaction(),
++            Some(bar)
++        );
++        if bar == 0 {
++            assert!(observed.fill_order_id.is_empty());
++            assert!(observed.event_order_id.is_empty());
++            assert_eq!(observed.positions, vec![0.0, 0.0]);
++        }
++        if bar == 2 {
++            assert!(observed.funding != 0.0);
++        }
++    }
++    actual
++        .session
++        .as_mut()
++        .unwrap()
++        .commit_bar_transaction()
++        .unwrap();
++    assert_eq!(actual.session.as_ref().unwrap().next_bar(), 4);
++    assert_eq!(
++        actual.session.as_ref().unwrap().active_bar_transaction(),
++        None
++    );
++}
++
++#[test]
++fn malformed_and_wrong_order_advance_keep_pending_checkpoint_and_buffers() {
++    let mut feedback = feedback_session(1);
++    advanced(&mut feedback, 0, &[]);
++    let entry = place(1, 0, SIDE_BUY, ORDER_MARKET, [2.0, 0.0, 0.0]);
++    let tentative = advanced(&mut feedback, 1, &[entry]);
++    for bar in [0, 1, 3, 4, usize::MAX] {
++        assert!(feedback.advance_step_result(bar, &[], &[], &[]).is_err());
++        let session = feedback.session.as_ref().unwrap();
++        assert_eq!(session.active_bar_transaction(), Some(1));
++        assert_eq!(session.next_bar(), 2);
++        assert_eq!(session.positions, tentative.positions);
++        assert_eq!(feedback.buffers.fills.order_id, tentative.fill_order_id);
++    }
++    assert!(
++        feedback
++            .advance_step_result(2, &[0; CODE_WIDTH - 1], &[0.0; VALUE_WIDTH], &[0])
++            .is_err()
++    );
++    assert_eq!(
++        feedback.session.as_ref().unwrap().active_bar_transaction(),
++        Some(1)
++    );
++    assert_eq!(retry(&mut feedback, &[entry]), tentative);
++    assert_eq!(feedback.session.as_ref().unwrap().next_bar(), 2);
++    advanced(&mut feedback, 2, &[]);
++}
++
++#[test]
++fn unstepped_or_failed_bar_cannot_be_implicitly_committed() {
++    let mut feedback = feedback_session(1);
++    feedback
++        .session
++        .as_mut()
++        .unwrap()
++        .begin_bar_transaction(0)
++        .unwrap();
++    assert!(feedback.advance_step_result(0, &[], &[], &[]).is_err());
++    assert!(feedback.advance_step_result(1, &[], &[], &[]).is_err());
++    assert!(
++        feedback
++            .execute_step_result(&[0; CODE_WIDTH], &[], &[0])
++            .is_err()
++    );
++    assert_eq!(feedback.session.as_ref().unwrap().next_bar(), 0);
++    assert_eq!(
++        feedback.session.as_ref().unwrap().active_bar_transaction(),
++        Some(0)
++    );
++    retry(&mut feedback, &[]);
++    advanced(&mut feedback, 1, &[]);
++}
++
++#[test]
++fn same_bar_retry_restores_oco_fees_and_fill_order_before_advance() {
++    let mut actual = feedback_session(1);
++    let mut expected = feedback_session(1);
++    advanced(&mut actual, 0, &[]);
++    original(&mut expected, 0, &[]);
++    let entry = place(1, 0, SIDE_BUY, ORDER_MARKET, [2.0, 0.0, 0.0]);
++    let mut stop = place(2, 0, SIDE_SELL, ORDER_STOP_MARKET, [2.0, 0.0, 95.0]);
++    stop.0[5] = 1;
++    stop.0[8] = 1;
++    stop.0[10] = 7;
++    stop.0[11] = ACTIVATION_ON_PARENT_FIRST_FILL;
++    let mut target = place(3, 0, SIDE_SELL, ORDER_LIMIT, [2.0, 105.0, 0.0]);
++    target.0[5] = 1;
++    target.0[8] = 1;
++    target.0[10] = 7;
++    target.0[11] = ACTIVATION_ON_PARENT_FIRST_FILL;
++    let tentative = advanced(&mut actual, 1, &[entry]);
++    assert_eq!(tentative.positions, vec![2.0]);
++    let chosen = retry(&mut actual, &[entry, stop, target]);
++    assert_eq!(chosen, original(&mut expected, 1, &[entry, stop, target]));
++    assert_eq!(chosen.positions, vec![0.0]);
++    assert_eq!(chosen.fill_order_id, vec![1, 2]);
++    assert!(chosen.event_kind.contains(&EVENT_CANCEL));
++    assert_eq!(retry(&mut actual, &[entry, stop, target]), chosen);
++    assert_eq!(
++        advanced(&mut actual, 2, &[]),
++        original(&mut expected, 2, &[])
++    );
++}
++
++#[test]
++fn abort_reset_close_and_last_bar_flush_keep_original_semantics() {
++    let mut feedback = feedback_session(1);
++    advanced(&mut feedback, 0, &[]);
++    feedback.abort().unwrap();
++    assert_eq!(feedback.session.as_ref().unwrap().next_bar(), 0);
++    advanced(&mut feedback, 0, &[]);
++    let entry = place(1, 0, SIDE_BUY, ORDER_MARKET, [2.0, 0.0, 0.0]);
++    advanced(&mut feedback, 1, &[entry]);
++    feedback.reset().unwrap();
++    assert_eq!(feedback.session.as_ref().unwrap().next_bar(), 0);
++    assert_eq!(feedback.session.as_ref().unwrap().positions, vec![0.0]);
++    for bar in 0..4 {
++        advanced(&mut feedback, bar, &[]);
++    }
++    assert!(feedback.advance_step_result(4, &[], &[], &[]).is_err());
++    assert_eq!(
++        feedback.session.as_ref().unwrap().active_bar_transaction(),
++        Some(3)
++    );
++    feedback.commit().unwrap();
++    assert_eq!(
++        feedback.session.as_ref().unwrap().active_bar_transaction(),
++        None
++    );
++    feedback.close();
++    assert!(feedback.advance_step_result(0, &[], &[], &[]).is_err());
++    assert!(feedback.execute_step_result(&[], &[], &[]).is_err());
++}
++
++#[test]
++fn liquidation_survives_retry_and_remains_abortable() {
++    let mut actual = feedback_session(1);
++    let mut expected = feedback_session(1);
++    for feedback in [&mut actual, &mut expected] {
++        let session = feedback.session.as_mut().unwrap();
++        session.initial_capital = 100.0;
++        session.equity = 100.0;
++        session.leverages[0] = 100.0;
++        session.fee_rates[0] = 0.0;
++    }
++    advanced(&mut actual, 0, &[]);
++    original(&mut expected, 0, &[]);
++    let entry = place(1, 0, SIDE_BUY, ORDER_MARKET, [50.0, 0.0, 0.0]);
++    advanced(&mut actual, 1, &[entry]);
++    original(&mut expected, 1, &[entry]);
++    let liquidated = advanced(&mut actual, 2, &[]);
++    assert!(liquidated.liquidated);
++    assert_eq!(liquidated, original(&mut expected, 2, &[]));
++    assert_eq!(retry(&mut actual, &[]), liquidated);
++    actual.abort().unwrap();
++    assert!(!actual.session.as_ref().unwrap().liquidated);
++    assert_eq!(actual.session.as_ref().unwrap().positions, vec![50.0]);
++    assert_eq!(actual.session.as_ref().unwrap().next_bar(), 2);
++}

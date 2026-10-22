@@ -1,0 +1,12 @@
+measure account/2000/python
+measure account/100000/python
+measure account/1000000/python
+measure trades/32/python
+measure trades/2000/python
+measure actions/2000/python
+measure account/2000/numba
+measure account/100000/numba
+measure account/1000000/numba
+measure trades/32/numba
+measure trades/2000/numba
+measure actions/2000/numba

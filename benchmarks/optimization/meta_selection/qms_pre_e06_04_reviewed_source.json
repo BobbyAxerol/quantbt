@@ -1,0 +1,18 @@
+{
+  "baseline": "ba61e63",
+  "source_sha256": {
+    "src/quantbt/backends/reactive_wfo.py": "cd3a593c82a2b2e470ffa5356a88800f2ec0cba2156374b552fd16a6487ef8d0",
+    "src/quantbt/backends/reactive_wfo_sampling.py": "537f7341bbaa2fc075110b593521e0f47c4ace0a3b1e5abb1d2bc3e0aed986f0",
+    "src/quantbt/backends/reactive_wfo_support.py": "8f8791760cf45e30c3941b235a093d370fcac272133307cc9000ab6625759e1c",
+    "src/quantbt/endpoint.py": "bf8f857c5827f1aa9c14c8f76799041ac4dc28a7ea1c7647f6e84316d1f743b4",
+    "src/quantbt/optimization/conditional_sobol.py": "629f8f573435eabec3020ed51dd5a205b6b612cae36f7e29fce8dece56820bd2",
+    "src/quantbt/optimization/config.py": "ddd2f83d81be71596b27387a602f3e7e5f1e0df4f2437158c5ce8c8e3b75fb28",
+    "src/quantbt/optimization/continuation/contract.py": "083bab7fc78c1e1889977188ef9b6db079ff5761419226fd3a82115964c36019",
+    "src/quantbt/optimization/continuation/session.py": "043ad40c48e7ef76c392fd7240dae8f857f8f34e44f343dc09f990d4ac389065",
+    "src/quantbt/optimization/meta_selection/runtime.py": "93818ab6c70c13c329feacc0cbdd208af22526abed1c42e5c4da811864326d40",
+    "src/quantbt/optimization/representatives.py": "15379a42b0c4d1642823d07befa06ba75500127f81dfc471d5ec4ea5f3954a46",
+    "src/quantbt/optimization/samplers.py": "c024dc6b77715fb54a90b9256486545cd7b9bad36bf45fc4f1d205b284de6305",
+    "src/quantbt/optimization/wfo_study.py": "b458d58575a7ce2b652e89c067025eba5554b46d14ed05ee2057441c7b0fce75",
+    "src/quantbt/walkforward.py": "330213083542d1e7a035c6314868401624c61898c0ff4e97909b240c4ab79780"
+  }
+}

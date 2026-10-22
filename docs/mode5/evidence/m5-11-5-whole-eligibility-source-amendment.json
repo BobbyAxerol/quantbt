@@ -1,0 +1,23 @@
+{
+  "schema": "mode5.whole_eligibility.source_amendment.v1",
+  "entry": "1c569b6",
+  "scope": "Owner-approved opt-in whole-account quality/finite-Sharpe mandate, annual risk/support and negative annual ranking; existing continuous sampler, account and metric owners preserved",
+  "prior_amendment": {
+    "path": "docs/mode5/evidence/m5-11-5-decision-report-hardening-source-amendment.json",
+    "sha256": "01141998e05ae2c395417ede96b3d4b72ed1496925a2e99791635bea1315a00f"
+  },
+  "existing": {
+    "src/quantbt/mode5/continuous_binding.py": "d5b9facb0640aac8eb7bf82d16004c5a8c0415c847f597dc9ab4609df0232808",
+    "src/quantbt/mode5/continuous_runtime.py": "d652fd3d71bf84dff49317aa717de8119f87dfb0198cf3520912a03bed058a3c",
+    "src/quantbt/mode5/decision_report.py": "5c74de24d89993cdc1877c6b69845b5e0035baf8ddc22cdb91a02299bf22d9c8"
+  },
+  "new": {
+    "src/quantbt/mode5/continuous_eligibility.py": "ece1ebe2c304cbe16f8d7a1d02de6216da073c5c600ad3d4d1e22f4c175fa4e2"
+  },
+  "research_tools": {
+    "tools/mode5_research/raw_control.py": "59e47fb0f38f3696367d1688da0196e3aa64611dc919253f7a76e597b5ff9431"
+  },
+  "metric_estimator_changed": false,
+  "default_financial_or_selection_policy_changed": false,
+  "scientific_preference": "explicit named researcher revision; not independent OOS"
+}

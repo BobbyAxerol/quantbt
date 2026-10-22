@@ -66,6 +66,17 @@ class ReactivePreparedWfoRuntimeV1(ReactiveWfoBatchSelectionMixinV1):
         symbols: Sequence[str] | None = None,
         _use_prepared_wfo_preparation: bool | None = None,
     ) -> None:
+        if walkforward_config.meta_selection is not None:
+            from ..optimization.meta_selection.config import validate_meta_route
+
+            if not isinstance(walkforward_config, WalkForwardConfig):
+                raise ReactiveWalkForwardUnsupported("META_ROUTE_UNSUPPORTED: typed WalkForwardConfig required")
+            validate_meta_route(walkforward_config, route="reactive_reset")
+            requested = runtime_config or ReactiveWfoRuntimeConfigV1()
+            if requested.optimizer_schedule != "certified_sequential_v1":
+                raise ReactiveWalkForwardUnsupported(
+                    "META_ROUTE_UNSUPPORTED: original-result W3 meta requires certified_sequential_v1; "
+                    "public meta batch selection is not certified")
         if not isinstance(data, pd.DataFrame):
             raise ReactiveWalkForwardUnsupported("public reactive WFO currently requires one canonical OHLCV DataFrame")
         if str(endpoint.config.mode).lower().strip() != "native_event_strategy":
@@ -119,6 +130,8 @@ class ReactivePreparedWfoRuntimeV1(ReactiveWfoBatchSelectionMixinV1):
         self._scalar_sessions: ReactiveScalarSessionPoolV1 | None = None
         self._last_scalar_session_metadata: dict[str, object] = {}
         self._active_candidate_scheduler: object | None = None
+        self._meta_boundary = None
+        self._meta_runtime = None
         self._candidate_batch_metadata: dict[str, object] = {}
         self._use_prepared_wfo_preparation = (
             self.runtime_config.preparation_policy == "prepared"
@@ -163,6 +176,8 @@ class ReactivePreparedWfoRuntimeV1(ReactiveWfoBatchSelectionMixinV1):
             self._scalar_sessions.cancel_active()
         if self._active_candidate_scheduler is not None:
             self._active_candidate_scheduler.cancel_active()
+        if self._meta_boundary is not None:
+            self._meta_boundary.cancel_active()
 
     def close(self) -> None:
         if self._closed:
@@ -253,7 +268,10 @@ class ReactivePreparedWfoRuntimeV1(ReactiveWfoBatchSelectionMixinV1):
         for marker in markers:
             self._check_canceled()
             try:
-                if self.runtime_config.worker_mode == "process":
+                if self._meta_boundary is not None:
+                    row, _result, _signature = self._meta_boundary.execute(marker)
+                    rows.append(row)
+                elif self.runtime_config.worker_mode == "process":
                     worker = self._ensure_process_worker()
                     rows.append(worker.score(marker, canceled=lambda: self._cancel.canceled))
                 else:
@@ -314,6 +332,8 @@ class ReactivePreparedWfoRuntimeV1(ReactiveWfoBatchSelectionMixinV1):
                 parallelism_plan=self._parallelism_plan,
                 max_inflight_tasks=int(self.runtime_config.max_inflight_tasks),
                 max_wall_time_ms=self.runtime_config.runtime_budget.max_wall_time_ms,
+                metric_executor=(None if self._meta_boundary is None
+                                 else self._meta_boundary.executor()),
             )
         return self._process_worker
 
@@ -350,11 +370,35 @@ class ReactivePreparedWfoRuntimeV1(ReactiveWfoBatchSelectionMixinV1):
             self._scalar_sessions = None
 
     def backtest(
+        self, *, params=None, param_ranges=None, candidate_matrix=None, meta_history=None,
+    ) -> ReactiveWalkForwardResultV1:
+        """Run existing segmented accounts with optional causal meta selection."""
+        try:
+            return self._backtest(params=params, param_ranges=param_ranges,
+                                  candidate_matrix=candidate_matrix, meta_history=meta_history)
+        finally:
+            if self._meta_boundary is not None:
+                boundary, self._meta_boundary = self._meta_boundary, None
+                self._shutdown_process_worker()
+                self._shutdown_scalar_sessions()
+                if self._adapter is not None:
+                    self._adapter.close()
+                    self._adapter = None
+                self._wfo_preparation = None
+                try:
+                    boundary.close()
+                finally:
+                    if self._meta_runtime is not None:
+                        self._meta_runtime.close()
+                    self._meta_runtime = None
+
+    def _backtest(
         self,
         *,
         params: Optional[Mapping[str, Any]] = None,
         param_ranges: Optional[Mapping[str, Any]] = None,
         candidate_matrix: Optional[Sequence[Mapping[str, Any]]] = None,
+        meta_history=None,
     ) -> ReactiveWalkForwardResultV1:
         """Run selection and cold selected-fold OOS segments.
 
@@ -367,8 +411,24 @@ class ReactivePreparedWfoRuntimeV1(ReactiveWfoBatchSelectionMixinV1):
             raise RuntimeError("reactive WFO runtime is closed")
         self._check_canceled()
         engine = _ReactiveSelectionEngine(runtime=self, config=self.config)
+        self._meta_boundary = engine.scorer if (self.config.meta_selection is not None
+            or self.config.flat_selector == "feasible_support_projection_v1") else None
+        self._meta_runtime = None
+        if self.config.meta_selection is not None:
+            from ..optimization.meta_selection.reactive import ReactiveMetaRuntime
+
+            self._meta_runtime = ReactiveMetaRuntime(engine, meta_history, param_ranges)
+            engine._is_pool_observer = self._meta_runtime.capture
+        elif meta_history is not None:
+            raise ReactiveWalkForwardUnsupported("META_ROUTE_UNSUPPORTED: meta_history requires enabled meta")
         index = self._prepared_runner.idx
         folds = engine.build_folds(index)
+        from .reactive_wfo_sampling import prepare_sampler_studies
+
+        prepare_sampler_studies(self, engine, folds, params=params, param_ranges=param_ranges,
+                                candidate_matrix=candidate_matrix)
+        if self._meta_runtime is not None:
+            self._meta_runtime.validate_market(self.data, index, folds)
         if self._use_prepared_wfo_preparation:
             self._wfo_preparation = ReactiveWfoPreparationV1.prepare(
                 index=index,
@@ -480,6 +540,15 @@ class ReactivePreparedWfoRuntimeV1(ReactiveWfoBatchSelectionMixinV1):
                 },
             )
             retention_plan = ResearchRetentionPlanV1.from_config(self.config)
+            if getattr(engine, "_sampler_bridges", None) is not None:
+                reactive_result.metadata["sampler_studies"] = list(engine._sampler_studies)
+                reactive_result.metadata["sampler_scheduler"] = {
+                    "schema": "quantbt-reactive-sampler-scheduler-v1",
+                    "optimizer_schedule": self.runtime_config.optimizer_schedule,
+                    "sampling_contract": self._sampling_contract,
+                    "worker_mode": self.runtime_config.worker_mode,
+                    "strategy_identity": next(iter(engine._sampler_bridges.values())).strategy_identity,
+                }
             requested_scope = str(retention_plan.financial_scope)
             declared_scope = dict(self.config.metadata or {}).get("financial_retention_scope")
             if declared_scope is not None and str(declared_scope).lower().strip() != "segmented_reset_flat_execution":
@@ -537,6 +606,8 @@ class ReactivePreparedWfoRuntimeV1(ReactiveWfoBatchSelectionMixinV1):
                     "retention": retention_plan.metadata(),
                     "reason": "research_retention='none' and financial_retention='score'",
                 }
+            if self._meta_runtime is not None:
+                self._meta_runtime.finalize(reactive_result)
             return reactive_result
         finally:
             self._shutdown_process_worker()
@@ -572,6 +643,7 @@ class ReactivePreparedWfoRuntimeV1(ReactiveWfoBatchSelectionMixinV1):
                     reactive_result.metadata["research_audit_summary"] = research_audit.metadata()
 
     def runtime_metadata(self) -> dict[str, object]:
+        from ..optimization.meta_selection.telemetry import observed_threads
         worker_metadata = (
             dict(self._process_worker.metadata())
             if self._process_worker is not None
@@ -600,6 +672,11 @@ class ReactivePreparedWfoRuntimeV1(ReactiveWfoBatchSelectionMixinV1):
                 "numba_threads": int(self._parallelism_plan.numba_threads),
                 "constrained_by": tuple(self._parallelism_plan.constrained_by),
             },
+            "thread_telemetry": observed_threads(configured={
+                "blas_threads": self._parallelism_plan.blas_threads,
+                "openmp_threads": self._parallelism_plan.openmp_threads,
+                "numba_threads": self._parallelism_plan.numba_threads,
+            }),
             "worker": worker_metadata,
             "scalar_sessions": (
                 dict(self._scalar_sessions.metadata())
@@ -659,6 +736,8 @@ class ReactivePreparedWfoRuntimeV1(ReactiveWfoBatchSelectionMixinV1):
         inner_rows: list[dict[str, object]] = []
         for fold in folds:
             self._check_canceled()
+            if self._meta_runtime is not None:
+                self._meta_runtime.begin_fold(fold)
             fold_seed = _derive_fold_seed(int(self.config.random_seed), int(fold.fold_id))
             nested_mode1 = schedule == "per_fold_causal" and mode == "mode_1_decay"
             inner_folds = []
@@ -690,6 +769,8 @@ class ReactivePreparedWfoRuntimeV1(ReactiveWfoBatchSelectionMixinV1):
                 research_context=research_context,
             )
             # Outer OOS is always a cold realization with the already frozen
+            if self._meta_runtime is not None:
+                selected = self._meta_runtime.select(fold, selected)
             # candidate.  In per_fold_decay it reproduces the same declared
             # measure used for candidate selection; in causal schedules it is
             # observability only and never changes selected params.
@@ -716,11 +797,14 @@ class ReactivePreparedWfoRuntimeV1(ReactiveWfoBatchSelectionMixinV1):
                     "study_id": int(fold.fold_id),
                     "fold_seed": int(fold_seed),
                     "outer_oos_used_for_selection": schedule == "per_fold_decay",
+                    "causality_claim": "strict_fold_local_retraining" if schedule == "per_fold_causal" else "fold_local_decay_calibration",
                     "outer_oos_realized_after_selection": schedule != "per_fold_decay",
                     "reactive_wfo": True,
                 },
             )
             selected_records.append(selected)
+            if self._meta_runtime is not None:
+                self._meta_runtime.observe(self.data, fold)
             trial_records.extend(fold_trials)
             candidate_records.extend(fold_candidates)
             params_by_fold[int(fold.fold_id)] = dict(selected.params)

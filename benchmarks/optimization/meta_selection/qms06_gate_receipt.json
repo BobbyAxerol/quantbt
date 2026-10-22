@@ -1,0 +1,31 @@
+{
+  "G6-OWNER": "PENDING",
+  "W3-OPTIONAL-SCOPE-OWNER": "PENDING",
+  "advancement": "QMS-07/08, push/merge/publication require separate owner approval",
+  "empirical": "NOT_ASSESSED",
+  "entry_commit": "3c69cb8",
+  "evidence_sha256": "85690af94a16d0bf2d5ed528a2cd6f7b429f18bf1b8c71ac0440e72cdd758fdf",
+  "executed_test_groups": {
+    "Q6-T01": 8,
+    "Q6-T02": 14,
+    "Q6-T03": 2,
+    "Q6-T04": 6,
+    "Q6-T05": 2,
+    "Q6-T06": 10,
+    "Q6-T07": 2,
+    "Q6-T08": 2
+  },
+  "failures": 0,
+  "junit_sha256": "67d0d15595e62027a4e2707e53019d11808e44ab912e89c08501742e7f1a5cb5",
+  "performance": "MEASURED_COST_ONLY",
+  "schema": "qms06-gate-receipt-v1",
+  "skips": 0,
+  "technical": {
+    "G6-ADAPTER": "PASS",
+    "G6-CAPABILITY": "PASS",
+    "G6-HANDOFF": "PASS",
+    "G6-NO_SCOPE_CREEP": "PASS",
+    "G6-PREPARED_PARITY": "PASS"
+  },
+  "tests": 436
+}

@@ -1,0 +1,211 @@
+# M5-11.1 Native Runner Output Closure
+
+Status: **LOCAL OUTPUT/ACCOUNTING GATE PASS; RESEARCH IN PROGRESS**.
+Authority: [ordered goal closure](../../upgrade/implement.md#mode5-m5-11-goal-closure)
+and guide [cache identities](../../upgrade/QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#72-computationoutput-plan-và-cache)
+and [resource planning](../../upgrade/QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#73-resource-plan-và-tốc-độ-không-làm-hỏng-methodology).
+This is not a completed five-alpha panel, economic improvement, public artifact,
+remote qualification or release certificate.
+
+## Corrections
+
+- OCO cancellation identifies the canceled sibling; the winning fill remains
+  FILLED. A causal target reference is not an accepted cancel of the winner.
+- Audit exports authoritative final command-slot state from the existing Rust
+  owner. Active/waiting/retired slots, amended working values, remaining quantity
+  and trigger state have explicit availability. No account replay.
+- Cancellation diagnostics count actual canceled order-slot transitions.
+  Separate event and order counters retain their distinct units; the historical
+  scalar counter remains unchanged.
+- Fill liquidity preserves the frozen Python reporting convention: MARKET is
+  taker, other order types are maker, including STOP_MARKET. Native matched
+  order-type provenance is explicit. This is **not venue liquidity proof** and
+  does not change matching or fees.
+- Cold fill summaries sum retained quantities/fees and use quantity-weighted
+  prices. Multiple partial fills do not overwrite one another or imply that
+  an unfinished/canceled order became fully filled.
+- Native wire identity does not carry original compiler indices. The cold
+  identity join is labeled explicitly, not advertised as Rust-owned identity.
+
+## Matched Controls
+
+Final qualification replays three original sealed command tapes twice in Rust
+and once with the Python oracle, on each original 26,280-bar continuous
+development account. It does not repeat historical feedback convergence.
+
+| Control | Actual Fills | Live Terminal Orders | Canceled Order Slots |
+| --- | ---: | ---: | ---: |
+| HMA | 645 | 2 | 395 |
+| HASH | 758 | 3 | 579 |
+| VWAP original empty-book control | 0 | 0 | 0 |
+
+Raw equity, returns, positions, fees, funding, margin, turnover, fills and
+native event columns match the retained native controls. Full available
+terminal reports, cancellation paths and liquidity labels match the Python
+oracle at the frozen absolute tolerance of 1e-8 and zero relative tolerance.
+The next full feedback compilation yields the identical sealed command tape;
+market and original alpha/source identities remain unchanged.
+
+Final checks: **72 Rust scoped tests**, **39 Python output/clock tests**, and
+the separately qualified **34 custody tests**. These suites have different
+responsibilities and are not a count of financial research configurations.
+Final matched replay bills **9 actual account passes / 236,520 account-bars**.
+Including the earlier retained success and harness-schema failure, completed
+retained replay work is at least 21 passes / 551,880 bars. In-flight work is
+not invented. Original failure logs and source revisions remain retained.
+
+## Runtime And Custody
+
+Fixed-tape native calls took about 0.08-0.30 seconds; a single alpha
+recompilation took about 0.84-1.67 seconds. These are controls, **not full-panel
+candidate runtimes or a compiler speedup**. Full HMA/HASH execution still
+converges through hundreds/thousands of actual-fill-feedback account passes.
+No signal approximation, guessed fills or unsupported mid-compiler resume.
+
+The research supervisor verifies source/data/request/artifact pins, journals
+returned account work, limits shared independent workers, and records
+interrupt/fault custody. It never automatically retries on a stale heartbeat.
+Completed candidates can be reused; censored candidates need a fresh attempt.
+SIGKILL/power loss cannot promise a synchronous final receipt; retained journals
+and verified live process sessions govern explicit recovery.
+
+Exact local CPython 3.12 extension, source pins, old/new artifacts, logs and
+append-only receipts remain private and ignored. Existing alpha/data/parameter
+source and historical failed/PASS receipts were not edited. No CI/push/merge/
+tag/publication ran. Reviewed build/extraction/JIT scratch remains because
+upcoming registered jobs need it; no shared cache/evidence was deleted. Disk
+reserve exceeds 5 GiB. The next execution is only missing RSI/SC selector
+evidence, followed by remaining native panels and required diagnostics.
+
+## Retained HASH Index1 Adoption
+
+After the bounded RSI/SC compound closure, the second retained HASH control
+passed a fresh source-bound adoption check. It reused its completed commands;
+the historical 846 feedback passes were **not repeated or rebilled**. Two Rust
+runs plus one Python reference billed **3 passes / 78,840 account-bars**.
+Worker elapsed time was **34.42 seconds**, peak process-group RSS **608.02 MiB**;
+the whole supervision lane took 45.07 seconds including custody overhead.
+These are replay-control costs, not full-candidate or sampler benchmarks.
+
+The control has 1,138 fills, 421 cancellation events and 968 canceled order-slot
+transitions. Raw retained accounting and repeat Rust execution pass; available
+terminal/cancellation/liquidity fields match the Python oracle. Rust remains
+the authoritative terminal-state owner. `remaining_qty`, `qty_semantics`,
+`processed`, working-state availability and terminal/command coordinates have
+no corresponding Python terminal fields, so full cross-owner remaining-quantity
+parity is explicitly unavailable, not claimed. Existing focused native tests
+certify those native outputs separately. The next full build yields identical
+commands and the market witness remains unchanged.
+
+All owned children were reaped, cleanup verification has no errors, and all
+control outputs/failures/artifacts remain retained. This step changes no alpha,
+matching, fees, accounting, RNG or scientific policy. The fresh three-cell
+native tranche still requires exact runtime/wrapper custody review; this receipt
+does not complete HMA/HASH/VWAP's 128-configuration panels or release gates.
+
+## Controlled Tranche In Progress
+
+Fresh tranche03 is running original HMA1, HASH2 and VWAP1 requests with 2020
+preload and full continuous 2021-2023 accounts. The same three-slot store owns
+all workers; each has one numeric thread, a six-hour safety cap and no automatic
+retry. Stopped old attempts are preserved, not presented as resumed execution.
+Tranche01/02 preparations remain unlaunched historical custody records.
+
+Only explicitly declared third-party dependency pins use a single-worker
+stamp witness between full-hash entry/exit checks. All alpha, market, financial,
+native-artifact, request and other source checks remain original full hashes.
+The guard has 29 passing cold tests; wrapper integration has 9. Separate cold
+measurement is custody overhead, not a backtest speed benchmark or runtime
+equivalence claim against the old environment. Both guard and financial
+counters are retained separately, without mutating financial results.
+
+VWAP1 completed and qualified **3 passes / 78,840 bars** in a **93.89-second**
+worker. HMA/HASH remain in actual-fill feedback convergence. No elapsed-time
+forecast or live lower bound qualifies an incomplete configuration. A new
+capacity/runtime review must precede expansion beyond these first three cells;
+the 128-effective-configuration targets and further probe/dossier gates remain
+open. No search, forward, remote or release work is hidden in this tranche.
+
+## Adopted Monitor Qualification
+
+The interrupted original supervisor was absent on the host while HMA/HASH's
+exact original PID/start sessions remained live; VWAP was already checkpointed.
+A detached monitor adopted only observation and original budget enforcement,
+not accounting execution. Independent cold tests found two operational faults
+in that first monitor (retention-stop handling and repeated stop publication).
+Its source, failed 13-test receipt and journal remain retained unchanged.
+
+A fresh monitor revision passed **16 cold tests**, with 2,530 protected pins
+verified and only its exact inactive fixture scratch removed. The main host
+transition verified both monitor identities, stopped only the old monitor,
+verified its leave-workers-running acknowledgement, and checked that the new
+monitor was live. Financial worker signals, restarts and new account calls were
+all **zero**. Original worker/tranche epochs and six-hour caps were preserved.
+The new source SHA256 is
+`2f3614c86a4867064f870fac36f7d4dcb7cef352ecb496f6dfd7648d55d9a30e`.
+
+Because the workers are no longer children of the monitor, OS exit codes and
+reaping are unavailable; neither is fabricated. Closed financial output must
+pass independent request/count/owner/parity/dependency/source qualification
+before domain completion or checkpoint adoption. Live progress is a returned
+work lower bound, not a completed configuration or a convergence forecast.
+
+The prospective resource-only policy passed **31 cold tests** with 2,525
+protected pins verified. It leaves the active signed 4 GiB records untouched.
+Its source SHA256 is
+`8c1c41ec88521bbb405fd135158fd2b489775853819bc2a698d4f753115b1b69`.
+No 16 GiB policy was activated: actual first-three closed-output inventories,
+fresh capacity admission and future wrapper integration remain entry gates.
+These are custody tests, not additional alpha configurations, compiler speed
+benchmarks, a completed five-alpha dossier or a calibration/forward certificate.
+
+## Actual Closed-Output Integration
+
+The independent closed-output validator passed **32 cold fault/identity/count/
+availability fixtures**. Main then exercised it against the already-complete
+native03 VWAP output: a separate host process verified original session absence,
+closed manifest stability and namespace identity. Exact original request/counts,
+native and losslessly compressed Python-owner seals, available financial/oracle
+qualification, loaded source pins and both dependency completion reports pass.
+The separate qualification SHA256 is
+`5daa2f54b51fa6fb67db08fba3ec14440dafda5986a516ab4709f5c885589559`.
+
+This added **zero financial executions and zero checkpoint operations**. VWAP's
+original COMPLETE receipt/checkpoint remains unchanged and governs its original
+captured exit0/reaping; the independent non-child observer does not invent
+those process facts or recalculate numerical parity. Unavailable oracle fields
+stay explicit. Its cold cleanup/reserve passes with 592,066 retained bytes,
+zero scratch and zero deletion. HMA/HASH require their own closed-output proof
+after exact session absence; this VWAP integration does not qualify live or
+incomplete work or complete the remaining 128-point panels.
+
+## Recovery And Future Queue Integration
+
+The focused append-only checkpoint helper passes **34 cold tests**, with
+2,601 protected pins unchanged. Main exercised its actual host/checkpoint path
+against the already-complete VWAP cell: **SAFE_REUSE_ONLY**, with the original
+receipt/checkpoint hashes unchanged. New account calls, attempts, receipt writes
+and checkpoint writes are all **zero**. Result SHA256 is
+`5cae37b1ff5f9531f89536ef913dbb6c1caf73fbd9e3808619aa44c963a85a41`.
+Cleanup passes with 5,405 retained bytes, no scratch and no deletion.
+
+For an orphan with no existing receipt, completed domain output may be
+checkpointed only after independent closed-output qualification, exact request/
+manifest/count/source verification and fresh host session absence under its
+original cell lock. Unknown OS exit code, reaping and exact worker runtime stay
+unavailable; domain completion is not invented process success. Historical
+failed/interrupted receipts and partial publication faults are never overwritten.
+Helper source SHA256 is
+`92b13a2ed6db566223bc46a4d8eb8329db7ae7cf9e38807a14be8ae9df094ca8`.
+
+The reusable typed future queue passes **30 cold tests**, with 2,542 prior pins
+unchanged. Its source SHA256 is
+`51eeb9db863f3c34687fb69c203708eafd1b925ffb92efacdbb94e5a254c4d05`.
+It delegates the original financial driver, request producer, authorization and
+three shared worker slots; it does not clone an account engine. Prior failed
+fixture laps stay retained; only exact inactive successful fixture scratch is
+cleaned. This is mocked custody integration, **NOT_ACTIVATED**, with no actual
+future financial requests or launches. All first-three closed outputs, full
+cell inventories and fresh full-envelope resource admission remain mandatory.
+These receipts do not complete the 128-point panels, dossiers, sampler studies,
+formal calibration or forward economics.

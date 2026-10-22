@@ -1,0 +1,123 @@
+{
+  "schema": "m5-10-public-runtime-summary-v1",
+  "phase": "M5-10",
+  "date": "2026-10-10",
+  "status": "COMPLETE_LOCAL_PUBLIC_OPT_IN",
+  "technical_status": "TECHNICALLY_VALID",
+  "qualified_code_commit": "bf11409895a30d47f08b53bc3d0cf9e1f453c2ba",
+  "publication": false,
+  "deployment_authorized": false,
+  "independent_economics_claim": false,
+  "deferred_real_plans_unchanged": true,
+  "requirements": ["M5T-091", "M5T-092", "M5T-093", "M5T-094", "M5T-095", "M5T-096", "M5T-097", "M5T-098", "M5T-099", "M5T-100"],
+  "source": {
+    "distinct_cases": 1876,
+    "overlapping_panels": [
+      {"receipt": "regression-final-08.xml", "passed": 1608, "failed": 0, "skipped": 0},
+      {"receipt": "meta-regression-10.xml", "passed": 265, "failed": 0, "skipped": 0},
+      {"receipt": "mode5-final-14.xml", "passed": 485, "failed": 0, "skipped": 0}
+    ],
+    "protected_hashes": 2757,
+    "final_exact": true
+  },
+  "installed": {
+    "python": "3.12",
+    "core_version": "1.1.2",
+    "native_version": "0.4.3",
+    "native_platform": "cp312-manylinux_2_34_x86_64",
+    "canonical_python_modules": 308,
+    "source_exact": true,
+    "privacy_allowlist": true,
+    "dependency_resolution": "offline_controlled_dependencies_reused",
+    "checkout_import_fallback": false,
+    "source_guard_deselected_per_consumer": 1,
+    "consumers": [
+      {"receipt": "package-v2/wheel-r2-public.xml", "passed": 50, "failed": 0, "skipped": 0},
+      {"receipt": "package-v2/sdist-public.xml", "passed": 50, "failed": 0, "skipped": 0}
+    ],
+    "sha256": {
+      "core_wheel": "ad93ae316d54dd044b7197186b04a2ff4b33004f74319713996e3b4859bd0a4f",
+      "sdist": "d78cecb86c88cade03b8ec848451408bc5c81000f43b6724399ed15186788f9f",
+      "sdist_rebuilt_wheel": "fdd94826327678d0f1e9fefbfab8235ed5cf859e569140ca1b23b76c25799e72",
+      "native_wheel": "39723899c1bf6812bc2f3698f566ee922be2926204a34bb7e9d502ef852d3574"
+    },
+    "native_artifact_repair": {
+      "rust_source_changed": false,
+      "same_version_old_artifact_missing_capability": "metric_zero_base_policies",
+      "new_installed_capability_verified": true,
+      "failed_receipts_and_old_artifacts_retained": true
+    }
+  },
+  "actual_alpha_controls": {
+    "scope": "development_reviewed_fixed_coordinate_integration_only",
+    "scoring_bars_per_alpha": 2184,
+    "preload_days": 365,
+    "coordinates_per_alpha": 1,
+    "source_wheel_sdist_exact": true,
+    "maximum_accounting_difference": 0.0,
+    "aliases": [
+      {"id": "A-RSI", "execution": "legacy_pct_equity", "accepted_fills": null, "reason": "accepted_fill_ledger_unavailable"},
+      {"id": "A-SC", "execution": "python_feedback_callback", "accepted_fills": 18},
+      {"id": "A-HMA", "execution": "rust_feedback_command_tape", "accepted_fills": 229},
+      {"id": "A-HASH", "execution": "rust_command_tape", "accepted_fills": 118},
+      {"id": "A-VWAP", "execution": "rust_command_tape", "accepted_fills": 62}
+    ]
+  },
+  "benchmark": {
+    "scope": "same_method_synthetic_full_public_fixed_candidates",
+    "bars": 8760,
+    "unique_candidates": 16,
+    "repeats_per_case": 3,
+    "seed": 731,
+    "threads": 1,
+    "backend": "legacy_pct_equity_numba",
+    "matched_outputs": true,
+    "rss_definition": "independent_process_high_water_including_import_seal_warmup",
+    "cache_start": {
+      "receipt": "benchmark.json",
+      "financial_kernel_warm": true,
+      "reporting_kernel_warm": false,
+      "off_seconds": [5.413139957003295, 5.0166985569521785, 5.335502690053545],
+      "on_seconds": [5.166009181062691, 4.995516441995278, 4.970039509003982],
+      "off_rss_mib": [269.625, 268.390625, 268.26171875],
+      "on_rss_mib": [268.27734375, 267.4453125, 267.6640625]
+    },
+    "fully_warm": {
+      "receipt": "benchmark-fully-warm/benchmark.json",
+      "financial_kernel_warm": true,
+      "reporting_kernel_warm": true,
+      "off_seconds": [0.8847119399579242, 0.9838529349071905, 0.9109980390639976],
+      "on_seconds": [0.9039343280019239, 0.9070636540418491, 0.8713595500448719],
+      "off_rss_mib": [265.9921875, 266.546875, 266.6328125],
+      "on_rss_mib": [267.4609375, 266.03125, 265.77734375],
+      "median_time_reduction_percent": 0.7753815880143122,
+      "meaningful_speedup_claim": false,
+      "rss_reduction_claim": false
+    },
+    "billing": {
+      "query_attempts": 16,
+      "effective_candidates": 16,
+      "original_account_observations": 17,
+      "includes_selected_audit": true,
+      "final_account_execution_separate": true,
+      "heavy_trial_reports": 0,
+      "equity_daily_components_retained": true,
+      "native_scalar_score_eligible": false
+    }
+  },
+  "cleanup": {
+    "receipt": "cleanup_receipt.json",
+    "host_processes_reviewed": 162,
+    "active_scratch_references": 0,
+    "inspection_errors": 0,
+    "deleted": [".maturin/mode5-m510/attempt-01"],
+    "protected_verified": 2757,
+    "retained_verified": 491,
+    "sources_verified": 317,
+    "apparent_scratch_bytes": 367659286,
+    "retained_payload_bytes": 45239184,
+    "observed_free_change_bytes": 405250048,
+    "consumers_require_fresh_reinstall": true
+  },
+  "next": {"M5-11": "NOT_STARTED", "M5-12": "NOT_STARTED", "remote_and_public": "NOT_AUTHORIZED"}
+}

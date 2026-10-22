@@ -1,0 +1,12 @@
+{"kind": "account", "observations": 2000, "backend": "python", "p50_ms": 7.404382980894297, "p95_ms": 8.073621802031994, "parity": true}
+{"kind": "account", "observations": 2000, "backend": "numba", "p50_ms": 1.2701480300165713, "p95_ms": 1.7650482011958957, "parity": true}
+{"kind": "account", "observations": 100000, "backend": "python", "p50_ms": 326.7947009881027, "p95_ms": 415.13531262753526, "parity": true}
+{"kind": "account", "observations": 100000, "backend": "numba", "p50_ms": 4.214766027871519, "p95_ms": 6.075200031045824, "parity": true}
+{"kind": "account", "observations": 1000000, "backend": "python", "p50_ms": 3204.484893998597, "p95_ms": 3516.069659567438, "parity": true}
+{"kind": "account", "observations": 1000000, "backend": "numba", "p50_ms": 26.060035976115614, "p95_ms": 26.690134417731315, "parity": true}
+{"kind": "ledger", "observations": 32, "backend": "python", "p50_ms": 0.746777979657054, "p95_ms": 0.9297329932451248, "parity": true}
+{"kind": "ledger", "observations": 32, "backend": "numba", "p50_ms": 1.3282709987834096, "p95_ms": 1.5441674273461103, "parity": true}
+{"kind": "ledger", "observations": 2000, "backend": "python", "p50_ms": 8.308383985422552, "p95_ms": 8.85992458788678, "parity": true}
+{"kind": "ledger", "observations": 2000, "backend": "numba", "p50_ms": 7.8921610256657, "p95_ms": 9.99495901633054, "parity": true}
+{"kind": "action", "observations": 2000, "backend": "python", "p50_ms": 12.38359697163105, "p95_ms": 13.912610604893416, "parity": true}
+{"kind": "action", "observations": 2000, "backend": "numba", "p50_ms": 9.87290998455137, "p95_ms": 9.953050210606307, "parity": true}

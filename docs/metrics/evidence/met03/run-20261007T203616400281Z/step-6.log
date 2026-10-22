@@ -1,0 +1,44 @@
+Reporting V1 | USDT | full | observed_bar
+Clock: bar_close | annual periods: 8760
+
+Account Period
+  account.total_return                                      -0.074% [n=240]
+  account.final_equity                             19,985.1004 USDT [n=240]
+  account.elapsed_days                         9.95833 elapsed_days [n=240]
+  account.cagr_elapsed                                      -2.696% [n=240]
+  drawdown.max_depth                                         1.061% [n=240]
+  drawdown.mean_underwater_depth                             0.499% [n=185]
+  drawdown.mean_episode_depth                                0.386% [n=3]
+  drawdown.mean_recovered_duration_ns            10.000 h (0.417 d) [n=2]
+  drawdown.longest_recovered_duration_ns         18.000 h (0.750 d) [n=2]
+  drawdown.current_open_duration_ns             167.000 h (6.958 d) [n=1]
+  drawdown.ulcer_index                                       0.514% [n=240]
+  drawdown.longest_duration_ns                  167.000 h (6.958 d) [n=3]
+  drawdown.episode_count                                          3 [n=3]
+  drawdown.deepest_duration_ns                  167.000 h (6.958 d) [n=3]
+  drawdown.mean_all_episode_duration_ns          62.333 h (2.597 d) [n=3]
+  drawdown.last_observed_depth                               0.842% [n=1]
+  drawdown.recovered_episode_count                                2 [n=3]
+  period.count                                                  240 [n=240]
+  period.mean_arithmetic                                    -0.000% [n=240]
+  period.mean_geometric                                     -0.000% [n=240]
+  period.sharpe                                      -1.35136 ratio [n=240]
+  period.sortino                                     -1.88509 ratio [n=240]
+  period.omega                                       0.966948 ratio [n=240]
+  period.profit_factor                               0.966948 ratio [n=240]
+  period.avg_win                                             0.020% [n=106]
+  period.avg_loss                                           -0.020% [n=110]
+  period.win_rate                                           44.167% [n=240]
+  period.nonzero_win_rate                                   49.074% [n=216]
+  period.cagr_period_count                                  -2.684% [n=240]
+  account.calmar                                     -2.54201 ratio [n=240]
+
+Execution
+  N/A: recorded aggregate/path execution witness required; no inference from targets
+
+Closed Trade
+  N/A: recorded outcome ledger, completeness and matching/grouping contract required
+
+Closed Action
+  N/A: recorded outcome ledger, completeness and matching/grouping contract required
+Legacy keys unchanged: ['avg_dd_duration_days', 'avg_drawdown_pct', 'avg_loss_pct', 'avg_win_pct', 'cagr_pct', 'calmar', 'expectancy_pct', 'final_equity', 'initial_capital', 'liquidated', 'long_hitrate_pct', 'max_dd_duration_days', 'max_drawdown_pct', 'num_trades', 'omega', 'profit_factor', 'sharpe', 'short_hitrate_pct', 'sortino', 'total_return_pct']

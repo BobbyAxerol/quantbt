@@ -32,6 +32,7 @@ from .native_prepared_evaluation import (
     NativeEvaluationMetricContractV1,
     NativePreparedEvaluationRuntimeV1,
     NativePreparedWorkloadV1,
+    _PCT_EQUITY_ACTIVITY_V1,
 )
 from .native_vectorized import NativeVectorizedConfig
 
@@ -73,7 +74,7 @@ class NativePreparedPublicWfoScorerV1:
     exactly once after selection.
     """
 
-    def __init__(self, *, config, target_mode: str, wf_config) -> None:
+    def __init__(self, *, config, target_mode: str, wf_config, meta_metric_support=False) -> None:
         metadata = dict(getattr(wf_config, "metadata", {}) or {})
         policy = str(metadata.get("native_prepared_wfo", "off")).lower().strip()
         if policy not in _POLICIES:
@@ -85,6 +86,7 @@ class NativePreparedPublicWfoScorerV1:
         self.config = config
         self.target_mode = str(target_mode).lower().strip()
         self.wf_config = wf_config
+        self.meta_metric_support = bool(meta_metric_support)
         self.policy = policy
         self.workers = workers
         self._state: _PreparedPublicWfoState | None = None
@@ -114,6 +116,7 @@ class NativePreparedPublicWfoScorerV1:
             "fresh_account_policy": "fresh_account_per_evaluation",
             "final_account_policy": "endpoint_stitched_continuous_account",
             "execution_clock": _RUST_DIRECT_TIMING,
+            "zero_base_return_policy": "legacy_zero_base_v1",
             "required_computation_plan": None,
         }
 
@@ -140,10 +143,15 @@ class NativePreparedPublicWfoScorerV1:
             "fresh_account_per_evaluation": True,
             "deterministic_given_contract": True,
             "cross_run_reuse": False,
-            "engine_semantic_build": "native_prepared_public_wfo_v1",
+            "engine_semantic_build": (
+                "native_prepared_public_wfo_legacy_zero_base_pct_accepted_qty_v1"
+                if self.target_mode in {"pct_equity", "%_equity"}
+                else "native_prepared_public_wfo_legacy_zero_base_v1"
+            ),
             "numeric_contract": "native_prepared_scalar_columns_v1",
             "market_identity": str(state.template.market.signature),
             "template_identity": str(state.template.signature),
+            "metric_identity": state.metric_contract.fingerprint,
             "execution_clock": _RUST_DIRECT_TIMING,
             "retention": "completed_terminal_metric_mapping_only",
             "score_context_affects_terminal_metrics": False,
@@ -220,7 +228,7 @@ class NativePreparedPublicWfoScorerV1:
             return None
 
         started = perf_counter()
-        result = state.runtime.evaluate_score_columns(bindings)
+        result = state.runtime.evaluate_score_columns(bindings, metric_support=True) if self.meta_metric_support else state.runtime.evaluate_score_columns(bindings)
         elapsed = perf_counter() - started
         self._stats["native_batches"] = int(self._stats["native_batches"]) + 1
         self._stats["native_rows"] = int(self._stats["native_rows"]) + len(entries)
@@ -260,6 +268,32 @@ class NativePreparedPublicWfoScorerV1:
                     "profit_factor": float(result.profit_factor[row_index]),
                 }
             )
+        if self.meta_metric_support:
+            from ..optimization.meta_selection.common import wire
+            from ..optimization.meta_selection.observer import canonical_metric_contract, economics_identity, market_signature
+            from ..optimization.meta_selection.prepared import observe_prepared_score
+            from ..endpoint import _walkforward_scoring_config
+
+            score_config = _walkforward_scoring_config(self.config, self.target_mode)
+            contract = canonical_metric_contract(
+                trading_days=self.wf_config.scoring_trading_days,
+                accepted_contract_units=(self.target_mode in {"pct_equity", "%_equity"}),
+            )
+            economic_id = economics_identity(score_config, symbols=[state.symbol])
+            for scenario_id, task in enumerate(entries):
+                index = pd.DatetimeIndex(task["index"])
+                metrics[scenario_id]["meta_observation"] = wire(observe_prepared_score(
+                    result, by_scenario[scenario_id], index=index, contract=contract,
+                    economics_id=economic_id,
+                    input_signature=market_signature(task["data"], index, config=score_config),
+                    initial_capital=score_config.account.initial_capital,
+                    request_signature=bindings[scenario_id].request.signature,
+                ))
+            self._stats["metric_witness_abi"] = "same-pass-ddof1-daily-first-mark-v1"
+            self._stats["metric_witness_rows"] = int(self._stats.get("metric_witness_rows", 0)) + len(entries)
+            self._stats["metric_witness_output_bytes"] = int(self._stats.get("metric_witness_output_bytes", 0)) + sum(a.nbytes for a in result.metric_support.values())
+            self._stats["metric_witness_materialization_calls"] = int(self._stats.get("metric_witness_materialization_calls", 0)) + 1
+            self._stats["boundary_count_scope"] = "native_boundary_calls counts execute_score only; witness/output/diagnostics are separate materialization calls"
         self._stats["score_adapter"] = str(result.metadata["adapter"])
         self._stats["score_python_row_objects"] = int(result.metadata["python_row_objects"])
         return metrics
@@ -371,6 +405,25 @@ class NativePreparedPublicWfoScorerV1:
             funding_map[symbol].reindex(index).fillna(0.0).to_numpy(dtype=np.float64).reshape(-1, 1)
         )
         cache = NativeExecutionPreparationCache(CachePolicy())
+        native = cache._native()
+        target_core = getattr(native, "NativeTargetExecutionRequestCore", None)
+        policies = getattr(target_core, "metric_zero_base_policies", None)
+        if policies is None or "legacy_zero_base_v1" not in policies():
+            raise NativePreparedPublicWfoUnsupported(
+                "LEGACY_ZERO_BASE_METRIC_MISSING: prepared endpoint scoring requires the repaired native metric policy; auto uses the original endpoint, require needs the qualified native wheel"
+            )
+        if self.target_mode in {"pct_equity", "%_equity"} and getattr(
+            native, "PCT_EQUITY_ACCEPTED_QTY_ACTIVITY_V1", None
+        ) != _PCT_EQUITY_ACTIVITY_V1:
+            raise NativePreparedPublicWfoUnsupported(
+                "PCT_EQUITY_ACTIVITY_SUPPORT_MISSING: prepared pct scoring requires a native wheel with accepted quantity position-state activity"
+            )
+        if self.meta_metric_support:
+            from ..optimization.meta_selection.prepared import PREPARED_WITNESS_ABI
+            if getattr(native, "QMS_PREPARED_METRIC_SUPPORT_V1", None) != PREPARED_WITNESS_ABI:
+                raise NativePreparedPublicWfoUnsupported(
+                    "META_METRIC_SUPPORT_MISSING: native 0.4.2 has no authoritative prepared witness; auto uses original-result scorer, require needs a qualified versioned candidate"
+                )
         market = cache.prepare_market(
             timestamps_ns=np.ascontiguousarray(index.asi8, dtype=np.int64),
             opens=opens.reshape(-1, 1),
@@ -430,6 +483,7 @@ class NativePreparedPublicWfoScorerV1:
             metric_contract=NativeEvaluationMetricContractV1(
                 trading_days=int(self.wf_config.scoring_trading_days),
                 scope="fold",
+                zero_base_return_policy="legacy_zero_base_v1",
             ),
         )
 
@@ -446,6 +500,10 @@ class NativePreparedPublicWfoScorerV1:
             workload = NativePreparedWorkloadV1.PCT_EQUITY_TRANSITION
         for scenario_id, task in enumerate(tasks):
             index, start, end = self._task_index_and_window(state, task)
+            if self.meta_metric_support and len(index.normalize().unique()) < 3:
+                raise NativePreparedPublicWfoUnsupported(
+                    "META_METRIC_SUPPORT_MISSING: fewer than three UTC days; prepared daily reducer is not the reference bar-return fallback"
+                )
             output = task.get("output")
             if not isinstance(output, pd.Series):
                 raise NativePreparedPublicWfoUnsupported(
@@ -466,7 +524,10 @@ class NativePreparedPublicWfoScorerV1:
                 targets = np.ascontiguousarray(raw, dtype=np.float64)
                 equity_fraction = np.asarray([state.alloc], dtype=np.float64)
             else:
-                targets = self._target_units(raw, state.closes[start:end], index, state.alloc)
+                targets = self._target_units(
+                    raw, state.closes[start:end], index, state.alloc,
+                    contract_size=self._symbol_value(self.config.contract_size, state.symbol, 1.0),
+                )
             local_template = state.cache.window_template(state.template, start=start, end=end)
             request = state.cache.transient_direct_target_request(
                 local_template,
@@ -481,6 +542,7 @@ class NativePreparedPublicWfoScorerV1:
                 min_notional=state.min_notional,
                 equity_fraction=equity_fraction,
                 output_profile=0,
+                metric_zero_base_policy="legacy_zero_base_v1",
             )
             self._stats["transient_request_rows"] = int(self._stats["transient_request_rows"]) + 1
             self._stats["transient_request_bytes"] = int(self._stats["transient_request_bytes"]) + int(
@@ -538,6 +600,7 @@ class NativePreparedPublicWfoScorerV1:
         closes: np.ndarray,
         index: pd.DatetimeIndex,
         alloc: float,
+        contract_size: float = 1.0,
     ) -> np.ndarray:
         if self.target_mode in {"signal_notional", "single_signal"}:
             return scale_signal_notional_matrix(
@@ -545,6 +608,7 @@ class NativePreparedPublicWfoScorerV1:
                 closes=closes,
                 allocs=np.asarray([alloc], dtype=np.float64),
                 use_pyramiding=bool(self.config.use_pyramiding),
+                contract_sizes=np.asarray([contract_size], dtype=np.float64),
             )
         signal = pd.Series(raw[:, 0], index=index)
         close = pd.Series(closes[:, 0], index=index)
@@ -554,6 +618,7 @@ class NativePreparedPublicWfoScorerV1:
             close,
             alloc,
             bool(self.config.use_pyramiding),
+            contract_size=contract_size,
         )
         return np.ascontiguousarray(units.to_numpy(dtype=np.float64).reshape(-1, 1))
 

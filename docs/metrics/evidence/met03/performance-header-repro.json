@@ -1,0 +1,40 @@
+{
+  "status": "FAIL_REPRODUCED",
+  "cases": [
+    {
+      "mutation": "shape",
+      "before": [
+        [
+          3
+        ],
+        "float64"
+      ],
+      "after": [
+        [
+          3,
+          1
+        ],
+        "float64"
+      ],
+      "isolated": false
+    },
+    {
+      "mutation": "dtype",
+      "before": [
+        [
+          3
+        ],
+        "float64"
+      ],
+      "after": [
+        [
+          3
+        ],
+        "int64"
+      ],
+      "isolated": false
+    }
+  ],
+  "expected": "caller header mutation cannot alter immutable snapshot",
+  "publication": false
+}

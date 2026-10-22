@@ -1708,6 +1708,17 @@ impl Drop for NativeWfoRuntimeV2 {
     }
 }
 
+fn claim_injected_poison(counter: &AtomicU64) -> bool {
+    let mut current = counter.load(Ordering::Acquire);
+    while let Some(next) = current.checked_sub(1) {
+        match counter.compare_exchange_weak(current, next, Ordering::AcqRel, Ordering::Acquire) {
+            Ok(_) => return true,
+            Err(observed) => current = observed,
+        }
+    }
+    false
+}
+
 fn native_wfo_worker_loop(
     worker_id: usize,
     plan: Arc<NativeWfoPlanV2>,
@@ -1731,12 +1742,7 @@ fn native_wfo_worker_loop(
                     let Some(work) = job.next_work() else {
                         break;
                     };
-                    let row = if injected_poison
-                        .fetch_update(Ordering::AcqRel, Ordering::Acquire, |value| {
-                            value.checked_sub(1)
-                        })
-                        .is_ok()
-                    {
+                    let row = if claim_injected_poison(&injected_poison) {
                         runners = plan.make_worker_runners().unwrap_or_default();
                         let slot = job
                             .error_slot("injected native WFO worker poison recovered".to_owned());
@@ -2074,6 +2080,38 @@ mod tests {
     use quantbt_strategy_ir::{
         ProgramLimits, STRATEGY_IR_VERSION, StrategyKind, StrategyParameters,
     };
+
+    #[test]
+    fn injected_poison_claim_is_checked_and_never_wraps() {
+        for value in [0, 1, 2, u64::MAX] {
+            let counter = AtomicU64::new(value);
+            assert_eq!(claim_injected_poison(&counter), value > 0);
+            assert_eq!(counter.load(Ordering::Acquire), value.saturating_sub(1));
+        }
+    }
+
+    #[test]
+    fn injected_poison_claims_are_exact_across_workers() {
+        let counter = Arc::new(AtomicU64::new(1000));
+        let workers = (0..4)
+            .map(|_| {
+                let counter = Arc::clone(&counter);
+                std::thread::spawn(move || {
+                    let mut claims = 0;
+                    while claim_injected_poison(&counter) {
+                        claims += 1;
+                    }
+                    claims
+                })
+            })
+            .collect::<Vec<_>>();
+        assert_eq!(
+            workers.into_iter().map(|w| w.join().unwrap()).sum::<u64>(),
+            1000
+        );
+        assert_eq!(counter.load(Ordering::Acquire), 0);
+        assert!(!claim_injected_poison(&counter));
+    }
 
     fn template() -> BatchTemplate {
         let market = Arc::new(

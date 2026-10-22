@@ -178,6 +178,8 @@ def run_intrabar_kernel(
     `report_level="audit"` triggers the second pass and materializes sparse
     fills. `minimal` and `standard` keep fill accounting as counters/flags only.
     """
+    from .portfolio_validation import validate_gross_cross_account
+    validate_gross_cross_account(account, allow_margin_buffer=True)
     if tape.n_symbols != 1:
         raise NotImplementedError("intrabar fast kernel v1 supports exactly one symbol")
     if len(intent.entry_side) != tape.n_bars:
@@ -353,6 +355,8 @@ def run_intrabar_session_kernel(
     report_level: str = "standard",
 ) -> NativeIntrabarKernelResult:
     """Run the fast session-aware single-symbol intrabar kernel."""
+    from .portfolio_validation import validate_gross_cross_account
+    validate_gross_cross_account(account, allow_margin_buffer=True)
     if tape.n_symbols != 1:
         raise NotImplementedError("session intrabar fast kernel v1 supports exactly one symbol")
     if len(intent.entry_side) != tape.n_bars:

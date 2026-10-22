@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+from hashlib import sha256
 from pathlib import Path
 import posixpath
 import re
@@ -18,7 +19,7 @@ SUSPICIOUS_PATH = re.compile(
     re.IGNORECASE,
 )
 PRIVATE_ARCHIVE_PATH = re.compile(
-    r"(^|/)(upgrade/(private|local|drafts)|data/(raw|private|local)|"
+    r"(^|/)(upgrade/(private|local|drafts|alphas)|data/(raw|private|local)|"
     r"benchmarks/(local|tmp|profiles)|artifacts/(local|tmp)|\.git|\.venv|"
     r"__pycache__|\.pytest_cache)(/|$)",
     re.IGNORECASE,
@@ -59,9 +60,11 @@ def _path_findings(name: str) -> list[str]:
     return findings
 
 
-def _content_findings(path: Path, name: str, payload: bytes) -> list[str]:
+def _content_findings(path: Path, name: str, payload: bytes, private_payload_hashes=frozenset()) -> list[str]:
     if not payload:
         return []
+    if sha256(payload).hexdigest() in private_payload_hashes:
+        return [f"{path.name}: private research payload in {name}"]
     match = SECRET_CONTENT.search(payload.decode("utf-8", errors="ignore"))
     if match is None:
         return []
@@ -77,7 +80,7 @@ def _wheel_kind(path: Path) -> str | None:
     return None
 
 
-def inspect_artifact(path: Path) -> list[str]:
+def inspect_artifact(path: Path, *, private_payload_hashes=frozenset()) -> list[str]:
     """Return allowlist/secret findings for one core or native artifact."""
 
     findings: list[str] = []
@@ -106,7 +109,7 @@ def inspect_artifact(path: Path) -> list[str]:
                     findings.append(f"{path.name}: {label}: {name}")
                 item = archive.getinfo(name)
                 if not item.is_dir() and item.file_size <= 4 * 1024 * 1024:
-                    findings.extend(_content_findings(path, name, archive.read(name)))
+                    findings.extend(_content_findings(path, name, archive.read(name), private_payload_hashes))
     elif path.name.endswith(".tar.gz"):
         with tarfile.open(path) as archive:
             for member in archive.getmembers():
@@ -114,27 +117,38 @@ def inspect_artifact(path: Path) -> list[str]:
                 if member.isfile() and member.size <= 4 * 1024 * 1024:
                     extracted = archive.extractfile(member)
                     if extracted is not None:
-                        findings.extend(_content_findings(path, member.name, extracted.read()))
+                        findings.extend(_content_findings(path, member.name, extracted.read(), private_payload_hashes))
     else:
         findings.append(f"unsupported artifact type: {path}")
     return findings
 
 
-def inspect_dist(dist: Path) -> list[str]:
+def inspect_dist(dist: Path, *, private_payload_hashes=frozenset()) -> list[str]:
     artifacts = sorted((*dist.glob("*.whl"), *dist.glob("*.tar.gz")))
     if not artifacts:
         return [f"no wheel or sdist artifacts found in {dist}"]
     findings: list[str] = []
     for artifact in artifacts:
-        findings.extend(inspect_artifact(artifact))
+        findings.extend(inspect_artifact(artifact, private_payload_hashes=private_payload_hashes))
     return findings
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dist", type=Path, required=True)
+    parser.add_argument("--private-source-root", type=Path,
+                        help="Optional local-only exact-payload denylist; never emits private code")
     args = parser.parse_args(argv)
-    findings = inspect_dist(args.dist.resolve())
+    private_hashes = frozenset()
+    if args.private_source_root is not None:
+        root = args.private_source_root
+        if not root.is_dir() or root.is_symlink():
+            parser.error("private source root must be an existing regular directory")
+        sources = list(root.rglob("*.py"))
+        if not sources or any(path.is_symlink() for path in sources):
+            parser.error("private source inventory must contain regular Python files")
+        private_hashes = frozenset(sha256(path.read_bytes()).hexdigest() for path in sources)
+    findings = inspect_dist(args.dist.resolve(), private_payload_hashes=private_hashes)
     if findings:
         print("\n".join(findings), file=sys.stderr)
         return 1

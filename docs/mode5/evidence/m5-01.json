@@ -1,0 +1,31 @@
+{
+  "schema": "quantbt.mode5_baseline.public_seal.v1",
+  "phase": "M5-01",
+  "owner_phase_approval": "2026-10-09",
+  "branch": "feat/mode5-diagnostics-first",
+  "committed_tested_phase_source": "14dd9b825087352176e3120ce790e0edef63c275",
+  "attempt": "attempt-04",
+  "technical_checks": "TECHNICALLY_VALID_LOCAL",
+  "scientific_status": "DESCRIPTIVE_ONLY",
+  "whole_phase_exit": "INPUT_EXIT_PENDING",
+  "input_disposition": "OWNER_APPROVAL_PENDING_FOR_VERIFIED_EXTRACTED_MEMBERS_INSTEAD_OF_ORIGINAL_ZIPS",
+  "guide_sha256": "661a2a3d83eed2b2592bfb98e3b4f8e3aa34bcd9740ec6b50c812f73753b99fe",
+  "receipt_sha256": {
+    "report.json": "bec8d17cb8835b23503bf3ca9f2072fa7629aac45a567d40e1580cd1bafdf5ff",
+    "tests.xml": "3ab2a302fda1126d8785a769e7ecba00848b4f5816827c1d10c784b81365632c",
+    "baseline_manifest.json": "44b299c5a85300b8dcefbd09e498e52bbc959a399d95f76078eb1cb806604db5",
+    "evidence_errata.json": "23e27c81986af1aef34740c341a4f9e9d302e28e1acea303d6a1a77b4578831e",
+    "cleanup_receipt.json": "b7eb3fcb509ab07d2cdce7178a91944d33e9dabfd01a59704cc4c3de8504cdeb"
+  },
+  "tests": {"passed": 76, "failed": 0, "skipped": 0},
+  "acceptance_ids": ["M5T-001", "M5T-002", "M5T-003", "M5T-004", "M5T-005", "M5T-006", "M5T-007", "M5T-008", "M5T-009", "M5T-010"],
+  "protected_hashes_unchanged": 427,
+  "financial_sources_changed": false,
+  "alpha_originals_changed": false,
+  "private_alpha_code_or_params_in_this_seal": false,
+  "market_evaluations": 0,
+  "new_artifact_builds": 0,
+  "remote_or_public_qualification": "NOT_RUN_NOT_AUTHORIZED",
+  "next_phase_started": false,
+  "publish_or_live_authorized": false
+}

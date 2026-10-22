@@ -1,0 +1,35 @@
+"""Compatibility imports for the canonical pure archive contracts."""
+
+from quantbt.diagnostics.archive_contracts import (
+    KINDS,
+    PURPOSES,
+    REQUIRED_KINDS,
+    AccessPolicy,
+    AccessWitness,
+    AnalysisKey,
+    ArchiveEvidence,
+    ArchiveIdentity,
+    DependencyNode,
+    DerivedReadback,
+    Disposition,
+    ExecutionKey,
+    Fingerprint,
+    IntendedReuse,
+    Literal,
+    ReuseAssessment,
+    Status,
+    _graph,
+    _strings,
+    _text,
+    asdict,
+    assess_reuse,
+    candidate_alias_key,
+    dataclass,
+    digest,
+)
+
+__all__ = ["KINDS", "PURPOSES", "REQUIRED_KINDS", "AccessPolicy", "AccessWitness",
+    "AnalysisKey", "ArchiveEvidence", "ArchiveIdentity", "DependencyNode", "DerivedReadback",
+    "Disposition", "ExecutionKey", "Fingerprint", "IntendedReuse", "Literal", "ReuseAssessment",
+    "Status", "_graph", "_strings", "_text", "asdict", "assess_reuse", "candidate_alias_key",
+    "dataclass", "digest"]

@@ -18,10 +18,13 @@ import pandas as pd
 
 SeriesMap = Dict[str, pd.Series]
 FrameMap = Dict[str, pd.DataFrame]
+_MARKET_TAPE_VALIDATOR_VERSION = "market_tape_v2"
 
 
 @dataclass(frozen=True)
 class MarketValidationCertificate:
+    """V2 certifies UTC-ns clocks and finite OHLCV plus packed funding rates."""
+
     signature: str
     row_count: int
     symbol_count: int
@@ -34,7 +37,7 @@ class MarketValidationCertificate:
     unique_ok: bool
     alignment_ok: bool
     bar_timestamp_semantics: str = "close"
-    validator_version: str = "market_tape_v1"
+    validator_version: str = _MARKET_TAPE_VALIDATOR_VERSION
 
 
 @dataclass(frozen=True)
@@ -85,12 +88,16 @@ def prepare_market_tape(
 
     `validation_mode="strict"` rejects unsorted, duplicate, missing, NaN, and
     invalid OHLC data. It does not forward-fill or fallback high/low to close.
+    Clocks normalize to UTC nanoseconds; naive clocks require source_timezone.
+    Active funding must be finite, including aligned first-row values.
     """
     mode = str(validation_mode).lower().strip()
     if mode not in {"strict", "trusted_prepared", "debug"}:
         raise ValueError("validation_mode must be strict, trusted_prepared, or debug")
     timestamp_semantics = _normalize_bar_timestamp_semantics(bar_timestamp_semantics)
     if isinstance(data, PreparedMarketTape):
+        if data.validation_certificate.validator_version != _MARKET_TAPE_VALIDATOR_VERSION:
+            raise ValueError("obsolete prepared market tape certificate; reprepare from source data")
         if data.bar_timestamp_semantics != timestamp_semantics:
             raise ValueError(
                 "prepared market tape bar_timestamp_semantics does not match requested semantics"
@@ -153,7 +160,7 @@ def prepare_market_tape(
     if not ohlc_ok:
         raise ValueError("invalid OHLCV invariant")
 
-    timestamps_ns = idx.view("int64").astype(np.int64, copy=True)
+    timestamps_ns = idx.asi8.copy()
     funding_m, funding_mask = _prepare_funding_matrix(
         funding_rate=funding_rate,
         funding_event_timestamps=funding_event_timestamps,
@@ -164,6 +171,9 @@ def prepare_market_tape(
         missing_funding_policy=missing_funding_policy,
         source_timezone=source_timezone,
     )
+    finite_ok = finite_ok and bool(np.isfinite(funding_m).all())
+    if not finite_ok:
+        raise ValueError("funding rates must be finite; NaN or infinite values are not valid")
     signature = _signature(
         timestamps_ns,
         symbol_list,
@@ -174,7 +184,7 @@ def prepare_market_tape(
         volumes_m,
         funding_m,
         funding_mask.astype(np.float64),
-        metadata=f"bar_timestamp_semantics={timestamp_semantics}",
+        metadata=f"validator={_MARKET_TAPE_VALIDATOR_VERSION};bar_timestamp_semantics={timestamp_semantics}",
     )
     cert = MarketValidationCertificate(
         signature=signature,
@@ -240,11 +250,11 @@ def _frames_from_inputs(
         idx = _strict_index(datetime_index if datetime_index is not None else closes.index, name=symbol, source_timezone=source_timezone)
         frame = pd.DataFrame(
             {
-                "open": _series_for_symbol(opens, symbol, idx, required=True),
-                "high": _series_for_symbol(highs, symbol, idx, required=True),
-                "low": _series_for_symbol(lows, symbol, idx, required=True),
-                "close": _align_exact(closes, idx, "close"),
-                "volume": _series_for_symbol(volumes, symbol, idx, required=False),
+                "open": _series_for_symbol(opens, symbol, idx, required=True, source_timezone=source_timezone),
+                "high": _series_for_symbol(highs, symbol, idx, required=True, source_timezone=source_timezone),
+                "low": _series_for_symbol(lows, symbol, idx, required=True, source_timezone=source_timezone),
+                "close": _align_exact(closes, idx, "close", source_timezone=source_timezone),
+                "volume": _series_for_symbol(volumes, symbol, idx, required=False, source_timezone=source_timezone),
             },
             index=idx,
         )
@@ -256,11 +266,11 @@ def _frames_from_inputs(
     for symbol in symbol_list:
         frames[symbol] = pd.DataFrame(
             {
-                "open": _series_for_symbol(opens, symbol, idx, required=True),
-                "high": _series_for_symbol(highs, symbol, idx, required=True),
-                "low": _series_for_symbol(lows, symbol, idx, required=True),
-                "close": _align_exact(closes[symbol], idx, "close"),
-                "volume": _series_for_symbol(volumes, symbol, idx, required=False),
+                "open": _series_for_symbol(opens, symbol, idx, required=True, source_timezone=source_timezone),
+                "high": _series_for_symbol(highs, symbol, idx, required=True, source_timezone=source_timezone),
+                "low": _series_for_symbol(lows, symbol, idx, required=True, source_timezone=source_timezone),
+                "close": _align_exact(closes[symbol], idx, "close", source_timezone=source_timezone),
+                "volume": _series_for_symbol(volumes, symbol, idx, required=False, source_timezone=source_timezone),
             },
             index=idx,
         )
@@ -303,7 +313,7 @@ def _strict_index(value, *, name: str, source_timezone: Optional[str] = None) ->
         if source_timezone is None:
             raise ValueError(f"{name} index is timezone-naive; pass source_timezone for strict market tape")
         raw = raw.tz_localize(source_timezone)
-    idx = raw.tz_convert("UTC")
+    idx = raw.tz_convert("UTC").as_unit("ns")
     _validate_index(idx, name=name)
     return idx
 
@@ -311,7 +321,9 @@ def _strict_index(value, *, name: str, source_timezone: Optional[str] = None) ->
 def _validate_index(idx: pd.DatetimeIndex, *, name: str) -> None:
     if len(idx) == 0:
         raise ValueError(f"{name} index is empty")
-    values = idx.view("int64")
+    if idx.hasnans:
+        raise ValueError(f"{name} index contains NaT timestamps")
+    values = idx.asi8
     if not bool(np.all(values[1:] > values[:-1])):
         if bool(pd.Index(values).duplicated().any()):
             raise ValueError(f"{name} index contains duplicate timestamps")
@@ -328,7 +340,9 @@ def _validate_ohlcv_frame(frame: pd.DataFrame, symbol: str) -> None:
         raise ValueError(f"{symbol} market data is missing columns {missing}")
 
 
-def _series_for_symbol(data, symbol: str, idx: pd.DatetimeIndex, *, required: bool) -> pd.Series:
+def _series_for_symbol(
+    data, symbol: str, idx: pd.DatetimeIndex, *, required: bool, source_timezone: Optional[str] = None,
+) -> pd.Series:
     if data is None:
         if required:
             raise ValueError(f"{symbol} requires explicit open/high/low/close for strict market tape")
@@ -341,12 +355,14 @@ def _series_for_symbol(data, symbol: str, idx: pd.DatetimeIndex, *, required: bo
                 raise KeyError(f"{symbol!r} missing from strict market tape input")
             return pd.Series(0.0, index=idx, name="volume")
         series = data[symbol]
-    return _align_exact(series, idx, symbol)
+    return _align_exact(series, idx, symbol, source_timezone=source_timezone)
 
 
-def _align_exact(series: pd.Series, idx: pd.DatetimeIndex, name: str) -> pd.Series:
+def _align_exact(
+    series: pd.Series, idx: pd.DatetimeIndex, name: str, *, source_timezone: Optional[str] = None,
+) -> pd.Series:
     s = series.copy()
-    s.index = _strict_index(s.index, name=name)
+    s.index = _strict_index(s.index, name=name, source_timezone=source_timezone)
     if not s.index.equals(idx):
         raise ValueError(f"{name} series index is not exactly aligned")
     return pd.to_numeric(s, errors="raise").astype(float)
@@ -390,17 +406,23 @@ def _prepare_funding_matrix(
                 raise KeyError(f"funding_rate dict is missing symbol {symbol!r}")
             value = funding_rate[symbol]
             if isinstance(value, pd.Series):
-                funding[:, j] = _align_exact(value, idx, f"funding:{symbol}").to_numpy(dtype=np.float64)
+                funding[:, j] = _align_exact(
+                    value, idx, f"funding:{symbol}", source_timezone=source_timezone,
+                ).to_numpy(dtype=np.float64)
             else:
                 scalar = float(value)
+                if not np.isfinite(scalar):
+                    raise ValueError(f"funding rates for {symbol} must be finite")
                 if policy != "zero":
                     raise ValueError("strict funding requires event timestamps/rates or an aligned Series; scalar funding is not event-causal")
                 funding[:, j] = scalar
     elif isinstance(funding_rate, pd.Series):
-        series = _align_exact(funding_rate, idx, "funding")
+        series = _align_exact(funding_rate, idx, "funding", source_timezone=source_timezone)
         funding[:, :] = series.to_numpy(dtype=np.float64)[:, None]
     else:
         scalar = float(funding_rate)
+        if not np.isfinite(scalar):
+            raise ValueError("funding rates must be finite")
         if scalar != 0.0 or policy != "zero":
             raise ValueError("strict funding requires funding events or an aligned Series; use_funding=False or missing_funding_policy='zero' for no funding")
         funding[:, :] = 0.0
@@ -419,20 +441,24 @@ def _funding_from_events(
     event_idx = _strict_index(event_timestamps, name="funding_events", source_timezone=source_timezone)
     if len(event_idx) == 0:
         return np.zeros((len(idx), len(symbols)), dtype=np.float64), np.zeros(len(idx), dtype=np.bool_)
-    event_ns = event_idx.view("int64")
+    event_ns = event_idx.asi8
     if isinstance(event_rates, dict):
         rates_by_symbol = {}
         for symbol in symbols:
             if symbol not in event_rates:
                 raise KeyError(f"funding_event_rates dict is missing symbol {symbol!r}")
-            rates_by_symbol[symbol] = _event_rate_values(event_rates[symbol], event_idx, symbol)
+            rates_by_symbol[symbol] = _event_rate_values(
+                event_rates[symbol], event_idx, symbol, source_timezone=source_timezone,
+            )
     else:
-        values = _event_rate_values(event_rates, event_idx, "funding_events")
+        values = _event_rate_values(
+            event_rates, event_idx, "funding_events", source_timezone=source_timezone,
+        )
         rates_by_symbol = {symbol: values for symbol in symbols}
 
     funding = np.zeros((len(idx), len(symbols)), dtype=np.float64)
     mask = np.zeros(len(idx), dtype=np.bool_)
-    idx_ns = idx.view("int64")
+    idx_ns = idx.asi8
     for k, ts_ns in enumerate(event_ns):
         bar = int(np.searchsorted(idx_ns, ts_ns, side="left"))
         if bar >= len(idx_ns) or idx_ns[bar] != ts_ns:
@@ -447,18 +473,27 @@ def _funding_from_events(
     return funding, mask
 
 
-def _event_rate_values(value, event_idx: pd.DatetimeIndex, name: str) -> np.ndarray:
+def _event_rate_values(
+    value, event_idx: pd.DatetimeIndex, name: str, *, source_timezone: Optional[str] = None,
+) -> np.ndarray:
     if isinstance(value, pd.Series):
         series = value.copy()
-        series.index = _strict_index(series.index, name=f"funding_event_rates:{name}")
+        series.index = _strict_index(
+            series.index, name=f"funding_event_rates:{name}", source_timezone=source_timezone,
+        )
         if not series.index.equals(event_idx):
             raise ValueError(f"funding event rates for {name} must align exactly to funding_event_timestamps")
-        return pd.to_numeric(series, errors="raise").to_numpy(dtype=np.float64)
-    arr = np.asarray(value, dtype=np.float64)
+        arr = pd.to_numeric(series, errors="raise").to_numpy(dtype=np.float64)
+    else:
+        arr = np.asarray(value, dtype=np.float64)
     if arr.ndim == 0:
         raise ValueError("funding_event_rates scalar is not valid; pass one rate per funding event")
+    if arr.ndim != 1:
+        raise ValueError("funding_event_rates must be one-dimensional")
     if len(arr) != len(event_idx):
         raise ValueError("funding_event_rates length must match funding_event_timestamps")
+    if not bool(np.isfinite(arr).all()):
+        raise ValueError(f"funding event rates for {name} must be finite")
     return np.ascontiguousarray(arr, dtype=np.float64)
 
 

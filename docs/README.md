@@ -8,8 +8,9 @@ Use this page as the first stop when deciding which QuantBT document to read.
 |---|---|
 | Install | `pip install quantbt-engine` or `poetry add quantbt-engine` |
 | Import | `from quantbt import QuantBTEndpoint` |
-| Core release | `quantbt-engine==1.1.1` |
-| Native companion | `quantbt-native==0.4.2`, installed automatically on supported Linux x86_64 CPython 3.11-3.13 |
+| Prepared next pair | `quantbt-engine==1.2.0 / quantbt-native==0.4.3`; local artifact qualification is distinct from remote/public proof |
+| Documented predecessor | `quantbt-engine==1.1.1 / quantbt-native==0.4.2`; not a live index query |
+| Native companion install | Exact marked dependency on Linux x86_64 CPython 3.11-3.13; certified wheels require glibc, musl does not auto-fallback |
 | Native policy | Rust auto only for exact one-symbol Native Strategy IR `score` at >=2,000 bars; Python/Numba otherwise |
 
 The companion is an internal implementation package. Users do not import it
@@ -21,21 +22,37 @@ to verify the pair and [Endpoint contract](endpoint.md) to select a route.
 | Need | Read |
 |---|---|
 | Install the package and understand the core/native pair | [Native companion installation](native/install.md) |
+| Prepare final-source artifacts, migration, privacy and later CI/release | [1.2.0 qualification supplement](mode5/M5_12_RELEASE120_REPORT.md), historical [M5-12 checklist](mode5/M5_12_PREPARATION.md), [ACC-01 effective configuration](portfolio_review/ACC01_CONFIGURATION_AND_MIGRATION.md) |
 | Inspect the exact Rust-auto route, evidence, fallbacks, and rollback controls | [Public Rust Promotion](native/public_rust_promotion.md) |
 | Choose the right backend | [Backend selection](backend_selection.md) |
 | Call QuantBT from notebooks/services | [Endpoint contract](endpoint.md) |
+| Report account periods, executed trades/actions and observed drawdown episodes without changing WFO scores | [Reporting V1](metrics/PUBLIC_REPORTING.md), [metric dictionary](metrics/REPORTING_CONTRACT_V1.md), [1.2.0 cost and artifact qualification](mode5/M5_12_RELEASE120_REPORT.md), historical [copy/cost certification](metrics/MET03_COPY_COST_REPORT.md), [local certification](metrics/MET03_REPORT.md), [owner recheck](metrics/MET03_RECHECK_REPORT.md), [performance follow-up](metrics/MET03_PERFORMANCE_REPORT.md) |
 | Choose the correct execution timing contract | [Execution contracts](execution_contracts.md) |
 | Migrate SL/TP/trailing alphas to the fast intrabar route | [Fast intrabar](fast_intrabar.md) |
 | Run the explicit Rust bounded intrabar authority and inspect its trace contract | [Fast intrabar](fast_intrabar.md#explicit-rust-intrabar-authority) |
 | Audit alpha source files before certification | [Alpha certification](alpha_certification.md) |
 | Understand vectorized vs event-driven tradeoffs | [Vectorized vs event-driven](vectorized_vs_event_driven.md) |
 | Validate leverage, buying power, liquidation, funding | [Margin and leverage](margin_leverage.md) |
+| Review current-capability account/configuration/metrics corrections and intentional new errors | [ACC-01 report](portfolio_review/ACC01_REPORT.md), [effective-config and migration matrix](portfolio_review/ACC01_CONFIGURATION_AND_MIGRATION.md) (local source/native proof; not package publication) |
 | Understand market/limit/stop fill behavior | [Order fill policies](order_fill_policies.md) |
 | Build pair trades or baskets | [Pair and basket guide](pair_basket_guide.md) |
 | Understand Portfolio Engine V3 roadmap | [Portfolio Engine V3](portfolio_engine_v3.md) |
 | Use Nautilus as third-party execution validation, reports, and depth preflight | [Nautilus backend](nautilus_backend.md) |
 | Choose a strict causal WFO schedule and read its audit metadata | [Causal walk-forward guide](walkforward_causal.md) |
 | Understand WFO parameter selection methodology | [Walk-forward methodology](walkforward_methodology_vi.md) |
+| Analyze alpha geometry, coverage, activity and recipe options before any WFO mode or meta choice | [Shared alpha diagnostics](diagnostics/SHARED_ALPHA_DIAGNOSTICS.md), [researcher report contract](diagnostics/PRESEARCH_RESEARCHER_REPORT.md), [local source/readback qualification](diagnostics/M5_11_7_1_IMPLEMENTATION_REPORT.md), [synthetic example](../examples/shared_presearch_researcher.py) (feature branch) |
+| Read fold consistency, R/Q, model decisions and original continuous-account scope without rerunning WFO | [Decision-report API](diagnostics/FOLD_DECISION_REPORTS.md), [local qualification and costs](diagnostics/M5_11_7_2_IMPLEMENTATION_REPORT.md), [synthetic example](../examples/shared_decision_reporting.py) (feature branch) |
+| Access richer reports from completed endpoints/results and review exact mode/route/field boundaries | [Coverage and M5-12 handoff](diagnostics/REPORTING_COVERAGE_AND_HANDOFF.md), [source qualification and reporting cost](diagnostics/M5_11_7_3_IMPLEMENTATION_REPORT.md), [completed-result example](../examples/completed_research_reporting.py) (feature branch; not installed/release proof) |
+| Configure feature-branch WFO samplers without changing legacy behavior | [QMS sampler contracts](meta_selection/SAMPLERS.md) |
+| Opt into diagnostics-first full-development Mode 5 on the feature branch | [Public calibration contract](mode5/PUBLIC_CALIBRATION_V1.md), [source/installed qualification and timings](mode5/M5_10_PUBLIC_RUNTIME_REPORT.md) (not yet published; no independent OOS claim) |
+| Prepare optional sampler-compatible ranges with explicit declarations and overrides | [Sampler-space helper](meta_selection/SAMPLER_SPACE_HELPER.md), [public pct-equity example](../examples/wfo_sampler_space.py) |
+| Inspect internal causal history, descriptors, anchor labels and revision retention | [QMS-03 history foundation](meta_selection/HISTORY.md) and [phase evidence](meta_selection/QMS03_REPORT.md) |
+| Inspect internal origin-sum Ridge, predicted-Q guard, native blocks and complete model artifacts | [QMS-04 model methodology](meta_selection/MODEL.md) and [phase evidence](meta_selection/QMS04_REPORT.md) |
+| Inspect the frozen Ridge V1 comparator and general model/hyperparameter research | [Frozen baseline](meta_selection/RIDGE_V1_FROZEN_BASELINE.md), [ML-01 admission](meta_selection/M4_ML_01_ADMISSION_REPORT.md), [ML-02 comparison](meta_selection/M4_ML_02_CALIBRATION_REPORT.md), [ML-03 family screen](meta_selection/M4_ML_03_FAMILY_REPORT.md), [ML-04 decisions](meta_selection/M4_ML_04_DECISION_REPORT.md), [ML-05 final KEEP_V1 decision](meta_selection/M4_ML_05_FINAL_DECISION.md), [ML-06 decision value](meta_selection/M4_ML_06_DECISION_VALUE_REPORT.md), [interpretation and next actions](meta_selection/M4_ML_06_INTERPRETATION.md), [ML-07 forward target and joint sampler/selection](meta_selection/M4_ML_07_FORWARD_DECISION_REPORT.md), [research guide](../upgrade/QUANTBT_MODE4_META_LEARNER_RESEARCH_GUIDE_V1.md), [seven-phase plan](../upgrade/implement.md#m4-ml-research) |
+| Run feature-branch Mode-4 causal meta off/shadow/active with explicit history and honest final-policy claims | [QMS-05 public integration](meta_selection/INTEGRATION.md) and [certification](meta_selection/QMS05_REPORT.md) |
+| Qualify meta on prepared scalar W0/W1/W2 or consume a portable reviewed decision | [QMS-06 capability and report](meta_selection/QMS06_REPORT.md), [host handoff](meta_selection/HANDOFF.md) |
+| Inspect shared WFO/meta domain admission without activating new routes | [E02 typed adapter contract](meta_selection/DOMAIN_ADAPTER_CONTRACT.md), [local qualification](meta_selection/QMSE02_REPORT.md) |
+| Register a new domain's paired real-alpha decay study before outcomes | [Domain empirical registration](meta_selection/DOMAIN_EMPIRICAL_REGISTRATION.md) |
 | Tune params across signal, intrabar, portfolio, and generic endpoints | [Domain-agnostic optimization](optimization.md) |
 | Package, release, or install QuantBT in Pool Alpha | [Packaging and release](release_packaging.md) |
 | Publish the governed native/core pair or inspect a TestPyPI proof | [TestPyPI release checklist](testpypi_release_checklist.md) |

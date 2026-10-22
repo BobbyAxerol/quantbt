@@ -1,0 +1,22 @@
+{
+  "phase": "MET-03",
+  "status": "EXPLORATORY_FAILURES_RETAINED",
+  "runs": [
+    {
+      "tests_passed": 356,
+      "tests_failed": 3,
+      "seconds": 23.71,
+      "issues": ["Test assigned endpoint._result instead of existing endpoint.result", "Raw pickle equality included pandas index memoization, not changed financial values"],
+      "disposition": "Use correct existing result attribute and canonical financial-field/array/index digest; no tolerance relaxation"
+    },
+    {
+      "tests_passed": 20,
+      "tests_failed": 1,
+      "seconds": 15.63,
+      "issue": "Tooling native metadata 0.4.2 fails exact source core 1.1.2 pair gate for W3",
+      "disposition": "Fresh isolated native 0.4.3 consumer; no skipping W3, no rebuilding Rust or changing tooling environment"
+    }
+  ],
+  "logs_scope": "First run terminal summary only; second run retained JUnit is copied during cleanup. These are not source-bound PASS receipts.",
+  "publication": false
+}

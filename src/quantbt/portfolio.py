@@ -24,6 +24,7 @@ Modes
 
 from __future__ import annotations
 
+from dataclasses import replace
 from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
@@ -32,7 +33,12 @@ import pandas as pd
 from .core.preprocessor import (
     validate_datetime,
     make_funding_mask,
+    prepare_funding,
+    align_series,
+    build_market_arrays,
 )
+from .core.constraints import build_quantity_constraints, quantize_target_units_matrix
+from .core.schema import InstrumentSpec
 from .metrics.performance import full_report
 from .core.types import BacktestResult
 from .core.engine import _engine_portfolio
@@ -93,12 +99,21 @@ class MultiSymbolPortfolio:
         funding_rate:      Union[float, Dict[str, float]] = None,
         leverage:          Union[float, Dict[str, float]] = 1.0,
         maintenance_ratio: float = 0.005,
-        margin_buffer:     float = 0.01,
+        margin_buffer:     float = 0.0,
         use_binance_netting: bool = False,
         # highs / lows for intrabar liquidation (optional)
         highs: Optional[Dict[str, pd.Series]] = None,
         lows:  Optional[Dict[str, pd.Series]] = None,
         fee: Optional[float] = None,
+        slippage: float = 0.0,
+        use_pyramiding: bool = True,
+        instruments: Optional[Union[Dict[str, InstrumentSpec], List[InstrumentSpec]]] = None,
+        qty_step: Optional[Union[float, Dict[str, float]]] = None,
+        lot_size: Optional[Union[float, Dict[str, float]]] = None,
+        slot_size: Optional[Union[float, Dict[str, float]]] = None,
+        min_qty: Optional[Union[float, Dict[str, float]]] = None,
+        min_notional: Optional[Union[float, Dict[str, float]]] = None,
+        min_order_notional: float = 0.0,
     ):
         # ── config ────────────────────────────────────────────────────────
         atype = asset_type.lower()
@@ -120,6 +135,7 @@ class MultiSymbolPortfolio:
         self.mode             = mode.lower()
         self.hedge_type       = hedge_type.lower()
         self.use_binance_netting = use_binance_netting if atype == "crypto" else False
+        self.slippage = float(slippage)
 
         valid_modes = {"longshort", "market_neutral", "directional", "equal_weight"}
         if self.mode not in valid_modes:
@@ -143,37 +159,66 @@ class MultiSymbolPortfolio:
         self.alloc       = _per_sym(alloc_per_trade, 100_000.0)
         self.fund_rates  = _per_sym(funding_rate, 0.0001) if self.use_funding else {s: 0.0 for s in self.symbols}
 
-        if initial_capital <= 0.0:
-            raise ValueError("initial_capital must be > 0")
-        if any(v <= 0.0 for v in self.lev.values()):
-            raise ValueError("leverage must be > 0")
-        if any(v <= 0.0 for v in self.cs.values()):
-            raise ValueError("contract_size must be > 0")
-        if any(v < 0.0 for v in self.alloc.values()):
-            raise ValueError("alloc_per_trade must be >= 0")
-        if maintenance_ratio < 0.0:
-            raise ValueError("maintenance_ratio must be >= 0")
+        if not np.isfinite(initial_capital) or initial_capital <= 0.0:
+            raise ValueError("initial_capital must be finite and > 0")
+        if any(not np.isfinite(v) or v <= 0.0 for v in self.lev.values()):
+            raise ValueError("leverage must be finite and > 0")
+        if any(not np.isfinite(v) or v <= 0.0 for v in self.cs.values()):
+            raise ValueError("contract_size must be finite and > 0")
+        if any(not np.isfinite(v) or v < 0.0 for v in self.alloc.values()):
+            raise ValueError("alloc_per_trade must be finite and >= 0")
+        if not np.isfinite(maintenance_ratio) or maintenance_ratio < 0.0:
+            raise ValueError("maintenance_ratio must be finite and >= 0")
+        if not np.isfinite(self.fee_rate) or self.fee_rate < 0.0:
+            raise ValueError("fee_rate must be finite and >= 0")
+        if not np.isfinite(self.slippage) or not 0.0 <= self.slippage < 1.0:
+            raise ValueError("slippage must be finite and in [0, 1)")
+        if not np.isfinite(margin_buffer) or margin_buffer != 0.0:
+            raise ValueError("MultiSymbolPortfolio does not support nonzero margin_buffer")
+        if not np.isfinite(min_order_notional) or min_order_notional < 0.0:
+            raise ValueError("min_order_notional must be finite and >= 0")
+
+        self._quantity_constraints = build_quantity_constraints(
+            self.symbols,
+            instruments=instruments,
+            qty_step=qty_step,
+            lot_size=lot_size,
+            slot_size=slot_size,
+            min_qty=min_qty,
+            min_notional=min_notional,
+        )
+        self._quantity_constraints = replace(
+            self._quantity_constraints,
+            min_notional=np.maximum(self._quantity_constraints.min_notional, min_order_notional),
+        )
 
         # ── datetime index ────────────────────────────────────────────────
         self._idx = validate_datetime(datetime_index)
+        if not self.symbols or len(self._idx) == 0:
+            raise ValueError("portfolio requires at least one symbol and timestamp")
 
         # ── align data ────────────────────────────────────────────────────
-        def _align(d: Dict, fill=0.0):
-            out = {}
-            for s in self.symbols:
-                ser = d[s].copy()
-                if isinstance(ser.index, pd.DatetimeIndex):
-                    ser.index = ser.index.tz_localize("UTC") if ser.index.tz is None else ser.index.tz_convert("UTC")
-                ser = ser[~ser.index.duplicated(keep="first")]
-                out[s] = ser.reindex(self._idx, method="ffill").fillna(fill)
-            return out
+        self._pos = {
+            s: series.fillna(0.0)
+            for s, series in align_series(positions, self.symbols, self._idx, fill_val=0.0).items()
+        }
+        if any(not np.isfinite(series.to_numpy(dtype=float)).all() for series in self._pos.values()):
+            raise ValueError("positions must be finite")
+        raw_close = align_series(closes, self.symbols, self._idx)
+        raw_high = align_series(highs, self.symbols, self._idx, fallback=raw_close)
+        raw_low = align_series(lows, self.symbols, self._idx, fallback=raw_close)
+        market = build_market_arrays(
+            self.symbols, self._idx, raw_close, raw_high, raw_low,
+            {s: pd.Series(0.0, index=self._idx) for s in self.symbols},
+        )
+        self._close = {s: pd.Series(market.closes[:, j], index=self._idx) for j, s in enumerate(self.symbols)}
+        self._high = {s: pd.Series(market.highs[:, j], index=self._idx) for j, s in enumerate(self.symbols)}
+        self._low = {s: pd.Series(market.lows[:, j], index=self._idx) for j, s in enumerate(self.symbols)}
+        from .backends.native_portfolio import NativePortfolioBackend
 
-        self._pos    = _align(positions, 0.0)
-        self._close  = _align(closes, np.nan)
-
-        fallback = {s: self._close[s] for s in self.symbols}
-        self._high = _align(highs, np.nan) if highs else fallback
-        self._low  = _align(lows,  np.nan) if lows  else fallback
+        self._tradable = NativePortfolioBackend._tradable_matrix(
+            closes=closes, idx=self._idx, symbols=self.symbols, market=market,
+        )
 
         # ── scale positions → notional units ─────────────────────────────
         self._scaled: Dict[str, pd.Series] = {}
@@ -183,7 +228,8 @@ class MultiSymbolPortfolio:
                 signal=self._pos[s],
                 close=self._close[s],
                 alloc=self.alloc[s],
-                use_pyramiding=True,
+                use_pyramiding=use_pyramiding,
+                contract_size=self.cs[s],
             )
 
         # ── apply portfolio mode ──────────────────────────────────────────
@@ -264,6 +310,12 @@ class MultiSymbolPortfolio:
         cs_arr   = np.zeros(m, dtype=np.float64)
         lev_arr  = np.zeros(m, dtype=np.float64)
 
+        funding_input = {
+            s: pd.Series(rate, index=idx) if isinstance(rate, np.ndarray) else rate
+            for s, rate in self.fund_rates.items()
+        }
+        funding = prepare_funding(funding_input, self.symbols, idx)
+
         for j, s in enumerate(self.symbols):
             closes_m[:, j] = self._close[s].fillna(0.0).values
             highs_m[:, j]  = self._high[s].fillna(self._close[s]).values
@@ -272,25 +324,19 @@ class MultiSymbolPortfolio:
             cs_arr[j]      = float(self.cs[s])
             lev_arr[j]     = float(self.lev[s])
 
-            fr = self.fund_rates[s]
-            if isinstance(fr, pd.Series):
-                ser = fr.copy()
-                if isinstance(ser.index, pd.DatetimeIndex):
-                    ser.index = ser.index.tz_localize("UTC") if ser.index.tz is None else ser.index.tz_convert("UTC")
-                funding_m[:, j] = ser.reindex(idx, method="ffill").fillna(0.0).values
-            elif isinstance(fr, np.ndarray):
-                if len(fr) != n:
-                    raise ValueError(f"funding_rate array for {s} must have length {n}")
-                funding_m[:, j] = fr.astype(np.float64)
-            else:
-                funding_m[:, j] = float(fr)
+            funding_m[:, j] = funding[s].to_numpy(dtype=np.float64)
+
+        qc = self._quantity_constraints
+        target_m = quantize_target_units_matrix(target_m, closes_m, cs_arr, qc, check_minima=False)
+        attribution = np.zeros((n, m, 4), dtype=np.float64)
+        funding_paid = np.zeros(n, dtype=np.float64)
 
         (
             eq_arr,
             pos_arr,
             sym_arr,
             fee_arr,
-            _slippage_arr,
+            slippage_arr,
             turn_arr,
             liq_flag,
             liq_idx,
@@ -307,10 +353,15 @@ class MultiSymbolPortfolio:
             leverages      = lev_arr,
             maint_ratio    = self.maintenance_ratio,
             fee_rate       = self.fee_rate,
-            slippage_rate  = 0.0,
+            slippage_rate  = self.slippage,
             contract_sizes = cs_arr,
             use_funding    = bool(self.use_funding),
-            tradable       = np.ones((n, m), dtype=np.bool_),
+            tradable       = self._tradable,
+            qty_steps      = qc.qty_step,
+            min_qtys       = qc.min_qty,
+            min_notionals  = qc.min_notional,
+            funding_paid   = funding_paid,
+            attribution    = attribution,
         )
 
         # ── assemble result ───────────────────────────────────────────────
@@ -341,8 +392,7 @@ class MultiSymbolPortfolio:
         symbol_pnl_report = self._build_symbol_pnl_report(
             accepted_units=accepted_units_report,
             closes=close_report,
-            funding_rates=pd.DataFrame({s: funding_m[:, j] for j, s in enumerate(self.symbols)}, index=idx),
-            is_funding_bar=pd.Series(is_fund, index=idx),
+            attribution=attribution,
         )
         exposure_report = self._build_exposure_report(
             accepted_units=accepted_units_report,
@@ -371,8 +421,15 @@ class MultiSymbolPortfolio:
                 "asset_type":           self.asset_type,
                 "hedge_type":           self.hedge_type,
                 "engine":               "numba_portfolio",
-                "initial_buying_power": self.initial_capital * float(np.mean(list(self.lev.values()))),
-                "funding_rate_unit":    "per_event",
+                "initial_buying_power": (
+                    self.initial_capital * float(lev_arr[0]) if np.all(lev_arr == lev_arr[0]) else None
+                ),
+                "buying_power_by_symbol": {s: self.initial_capital * self.lev[s] for s in self.symbols},
+                "buying_power_semantics": "single_symbol_capacity_not_shared_budget",
+                "funding_rate_unit":    "per_event_or_carried_interval_sum",
+                "funding_calendar":     "utc_8h_events_close_proxy_interval_settlement_v2",
+                "account_contract":     "linear_gross_cross_netting_close_v2",
+                "liquidation_contract": "simultaneous_adverse_ohlc_zero_equity_legacy",
                 "target_units_report":  target_units_report,
                 "accepted_units_report": accepted_units_report,
                 "target_notional_report": target_units_report.mul(close_report, axis=0).mul(pd.Series(self.cs), axis=1),
@@ -386,6 +443,14 @@ class MultiSymbolPortfolio:
                 "fee_rate_oneway":      float(self.fee_rate),
                 "canonical_one_way_fee_rate": float(self.fee_rate),
                 "turnover_total":       float(np.sum(turn_arr)),
+                "slippage":             self.slippage,
+                "slippage_series":      pd.Series(slippage_arr, index=idx, name="slippage"),
+                "slippage_total":       float(np.sum(slippage_arr)),
+                "funding_cost_series":  pd.Series(funding_paid, index=idx, name="funding_cost"),
+                "funding_cost_total":   float(np.sum(funding_paid)),
+                "quantity_constraints": qc.as_dict(),
+                "positions_semantics":  "accepted_contract_units",
+                "hitrate_per_symbol_population": "carried_side_symbol_bars_net_pnl",
             },
         )
         return self._result
@@ -394,23 +459,21 @@ class MultiSymbolPortfolio:
         self,
         accepted_units: pd.DataFrame,
         closes: pd.DataFrame,
-        funding_rates: pd.DataFrame,
-        is_funding_bar: pd.Series,
+        attribution: np.ndarray,
     ) -> pd.DataFrame:
         frames = []
-        funding_mask = is_funding_bar.astype(bool) & bool(self.use_funding)
-        for s in self.symbols:
+        for j, s in enumerate(self.symbols):
             units = accepted_units[s].astype(float)
             close = closes[s].astype(float)
             prev_units = units.shift(1).fillna(0.0)
             prev_close = close.shift(1).fillna(close)
-            delta = units.diff().fillna(units)
             cs = float(self.cs[s])
             mark_pnl = prev_units * (close - prev_close) * cs
-            funding_cost = prev_units * close * cs * funding_rates[s].astype(float)
-            funding_cost = funding_cost.where(funding_mask, 0.0)
-            fee = delta.abs() * close * cs * float(self.fee_rate)
-            total_pnl = mark_pnl - funding_cost - fee
+            fee = pd.Series(attribution[:, j, 0], index=self._idx)
+            slippage = pd.Series(attribution[:, j, 1], index=self._idx)
+            funding_cost = pd.Series(attribution[:, j, 2], index=self._idx)
+            liquidation_adjustment = pd.Series(attribution[:, j, 3], index=self._idx)
+            total_pnl = self._pnl_per_sym[s].diff().fillna(0.0)
             frame = pd.DataFrame(
                 {
                     "timestamp": self._idx,
@@ -422,6 +485,10 @@ class MultiSymbolPortfolio:
                     "funding_pnl": (-funding_cost).to_numpy(dtype=float),
                     "fee": fee.to_numpy(dtype=float),
                     "fee_pnl": (-fee).to_numpy(dtype=float),
+                    "slippage": slippage.to_numpy(dtype=float),
+                    "slippage_pnl": (-slippage).to_numpy(dtype=float),
+                    "liquidation_adjustment": liquidation_adjustment.to_numpy(dtype=float),
+                    "liquidation_pnl": (-liquidation_adjustment).to_numpy(dtype=float),
                     "total_pnl": total_pnl.to_numpy(dtype=float),
                 }
             )
@@ -438,6 +505,10 @@ class MultiSymbolPortfolio:
                     "funding_pnl",
                     "fee",
                     "fee_pnl",
+                    "slippage",
+                    "slippage_pnl",
+                    "liquidation_adjustment",
+                    "liquidation_pnl",
                     "total_pnl",
                 ]
             )
@@ -468,13 +539,18 @@ class MultiSymbolPortfolio:
                 "maintenance_margin": maintenance_margin,
                 "equity": equity,
                 "available_equity_after_im": equity - initial_margin,
-                "buying_power": equity * float(np.mean(list(self.lev.values()))),
+                "buying_power": (
+                    equity * float(lev.iloc[0]) if (lev == lev.iloc[0]).all() else np.nan
+                ),
+                "available_margin": (equity - initial_margin).clip(lower=0.0),
             },
             index=self._idx,
         )
         out["gross_leverage"] = out["gross_notional"] / out["equity"].replace(0.0, np.nan)
         out["net_exposure_pct"] = out["net_notional"] / out["equity"].replace(0.0, np.nan)
-        return out.fillna(0.0)
+        out["gross_leverage"] = out["gross_leverage"].fillna(0.0)
+        out["net_exposure_pct"] = out["net_exposure_pct"].fillna(0.0)
+        return out
 
     def _build_rebalance_report(
         self,
@@ -574,18 +650,17 @@ class MultiSymbolPortfolio:
         )
 
     def hitrate_per_symbol(self) -> Dict[str, Tuple[float, float]]:
-        """Returns {sym: (long_hr_pct, short_hr_pct)} for every symbol."""
+        """Return long/short carried-bar net-PnL hit rates, not trade win rates."""
         out = {}
         r = self.result
         for s in self.symbols:
-            pos  = r.positions[f"Position_{s}"]
-            cl   = r.closes[f"Close_{s}"]
-            ret  = cl.pct_change().fillna(0)
+            pos  = r.positions[f"Position_{s}"].shift(1).fillna(0.0)
+            pnl  = self._pnl_per_sym[s].diff().fillna(0.0)
             long_mask  = pos > 0
             short_mask = pos < 0
-            lw = ((ret > 0) & long_mask).sum()
+            lw = ((pnl > 0) & long_mask).sum()
             lt = long_mask.sum()
-            sw = ((ret < 0) & short_mask).sum()
+            sw = ((pnl > 0) & short_mask).sum()
             st = short_mask.sum()
             out[s] = (
                 round(lw / lt * 100, 2) if lt > 0 else 0.0,

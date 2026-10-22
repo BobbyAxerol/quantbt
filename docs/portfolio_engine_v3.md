@@ -1,5 +1,18 @@
 # Portfolio Engine V3 Methodology
 
+## Account Correctness Repair (2026-10-21)
+
+The [account repair and migration report](portfolio_review/REPAIR_REPORT.md)
+supersedes historical claims below where they concern ignored account options,
+contract multipliers, funding gaps, delta-order minimums, accepted legacy units
+or liquidation attribution. Generic portfolio execution is gross-cross netting
+at close. Unsupported account/fill modes now fail explicitly. Quantity minima
+apply to actual increasing delta orders, with reduction/close exemptions.
+Default8h funding sums all events in a carried interval; coarse bars use the
+closing-price valuation proxy and do not reconstruct intrabar collateral paths.
+Trade/action metrics require their declared ledgers; default compatibility
+statistics are labelled with their actual populations.
+
 Portfolio Engine V3 is the roadmap for replacing the current compatibility
 portfolio path with a native, array-first, institutional-grade engine.
 
@@ -395,3 +408,14 @@ Optimization scope completed:
 Remaining optimization target: report construction is still a residual bucket
 for full stakeholder artifacts, so Cython/C++ is not justified before larger
 real service-loop profiling.
+
+## Causal WFO Meta Research
+
+E04 reuses this original shared account in Mode 4 / `per_fold_causal` portfolio
+WFO. There is no new portfolio endpoint or accounting engine. Financial arrays
+remain NumPy/Numba-owned; the existing meta fit/rank can resolve Rust separately.
+Read the [exact domain contract](meta_selection/DOMAIN_ADAPTER_CONTRACT.md#e04-portfolio-amendment),
+[runnable example](../examples/wfo_meta_portfolio.py) and
+[software/empirical qualification](meta_selection/QMSE04_REPORT.md).
+The opt-in preserves meta-off behavior; real portfolio-alpha decay improvement
+and owner promotion are not certified by synthetic software tests.

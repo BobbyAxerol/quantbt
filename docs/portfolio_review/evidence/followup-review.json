@@ -1,0 +1,316 @@
+{
+  "ci": false,
+  "cleanup": {
+    "available_bytes_after": 5674844160,
+    "available_bytes_before": 6124834816,
+    "available_change_is_reclamation_claim": false,
+    "deleted_bytes": 0,
+    "deleted_paths": [],
+    "note": "All five controlled processes and both read-only agents are terminal. No JIT/build/pytest scratch was created. Scripts, observations, original evidence and wheel are retained; no services/environments/caches were changed.",
+    "retained_bytes": 84564,
+    "scratch_created": false
+  },
+  "controls_executed": 32,
+  "date_utc": "2026-10-21",
+  "disposition": "OPEN_FINDINGS_NOT_A_RELEASE_CERTIFICATE",
+  "evidence": [
+    {
+      "bytes": 13011,
+      "path": "upgrade/private/portfolio_account_review_followup/attempt-01/main-controls.json",
+      "sha256": "2fc9abab64da9a090f25157e95db42607502b6739451c0619618229817fe4cce"
+    },
+    {
+      "bytes": 15692,
+      "path": "upgrade/private/portfolio_account_review_followup/attempt-01/event-controls.json",
+      "sha256": "adaf2d9349d2cfa43e252e0cb329d59cb171e231a1d44c8957396113f7dd3dbd"
+    },
+    {
+      "bytes": 18637,
+      "path": "upgrade/private/portfolio_account_review_followup/attempt-01/metrics-controls.json",
+      "sha256": "8f4fe94d56ef5d2b88f96eaae34040f34636d35b059b777cb6e99aae0bc6c5fb"
+    },
+    {
+      "bytes": 5688,
+      "path": "upgrade/private/portfolio_account_review_followup/attempt-01/options-baseline-control.json",
+      "sha256": "d211a677136e705b12d8002c0f28e71cc483b5c3ff6eb8a76ad8bd67fa0187ad"
+    },
+    {
+      "bytes": 5500,
+      "path": "upgrade/private/portfolio_account_review_followup/attempt-01/options-fee-control.json",
+      "sha256": "b127b94649b9e09fe20dbd8dc8c8697666de6ee003698dcf4ec005fa509e3040"
+    }
+  ],
+  "financial_workers": 1,
+  "findings_confirmed": 12,
+  "jit": false,
+  "merge": false,
+  "original_repair_receipt": {
+    "bytes": 12421,
+    "path": "docs/portfolio_review/evidence/repair-qualification.json",
+    "sha256": "de0cadc2df4c58340b4edcde3371de15b6fc8ad980c42efa772b8d323d9597aa"
+  },
+  "publication": false,
+  "push": false,
+  "qualification_limits": [
+    "No new Rust consumer proof; financial reproductions use Python execution with JIT disabled",
+    "No venue-exact modeling claim; no optimizer/strategy economics",
+    "No runtime repair was authorized or performed in this review"
+  ],
+  "registration": {
+    "bytes": 754,
+    "path": "upgrade/private/portfolio_account_review_followup/attempt-01/registration.json",
+    "sha256": "6adf5f065746d31cba7f0c86ae65a18d2fbd5c3b0be8e4d7d99dcb36970d37bd"
+  },
+  "release_identity_sha256": {
+    "pyproject.toml": "670eec373a68ed4eeb5f819b1faf45e496bfa5bbb80fd4b7d8e7cbb370b82865",
+    "rust/native_event/Cargo.toml": "9b51ebe5c2230347624ba4e6fe9d3112d6d4ff6f409a9673e382297dee795b14",
+    "uv.lock": "3700b0290452c797c72f39bb1ad4ef95b97bc781f5728eadd1551d451d7ceb9e"
+  },
+  "reproduction_scripts": [
+    {
+      "bytes": 3516,
+      "path": "upgrade/private/portfolio_account_review_followup/attempt-01/event_controls.py",
+      "sha256": "625163911034070e73578de5465b5f679b194c8be900282fe0ad3d3b4b6aca99"
+    },
+    {
+      "bytes": 6797,
+      "path": "upgrade/private/portfolio_account_review_followup/attempt-01/finish_review.py",
+      "sha256": "17a7557ec9043024564adc939c437f6ba6b25edb8a1bb9ae1220c4a4ea99996f"
+    },
+    {
+      "bytes": 7430,
+      "path": "upgrade/private/portfolio_account_review_followup/attempt-01/main_controls.py",
+      "sha256": "bc636c4c79f554b90cc914f2c9a8afd6e39268b8b6d5d503b63b8b9fc5eae5ca"
+    },
+    {
+      "bytes": 4354,
+      "path": "upgrade/private/portfolio_account_review_followup/attempt-01/metrics_controls.py",
+      "sha256": "e4db3ba07820f976366ca64da0662897025300a9cce18004b1c8a24815428c87"
+    },
+    {
+      "bytes": 1418,
+      "path": "upgrade/private/portfolio_account_review_followup/attempt-01/options_baseline_control.py",
+      "sha256": "98a212172dbc071b567a47cd9403c7305244e0547887cb0ec158e2b8eb826373"
+    },
+    {
+      "bytes": 1767,
+      "path": "upgrade/private/portfolio_account_review_followup/attempt-01/options_fee_control.py",
+      "sha256": "fce58446823927a8fecc24633c9bd503d9c6c2dd4680d676b55b211c4f04daf1"
+    }
+  ],
+  "retained_native_artifact": {
+    "bytes": 1221487,
+    "path": "upgrade/private/portfolio_account_repair/attempt-01/artifacts/quantbt_native-0.4.3-cp312-cp312-manylinux_2_34_x86_64.whl",
+    "sha256": "7a7ed7fc2fadcc905dc8859d19c15518aad9827e485923ff73f8544dda54b3d4"
+  },
+  "schema": "quantbt.account_metrics_followup_review.v1",
+  "source_after": {
+    "baseline_commit": "59275659778e1e3306b35a3c92c7623a7e17c0c3",
+    "current_source_qualified": true,
+    "financial_numeric_source_unchanged": false,
+    "financial_rust_unchanged": false,
+    "financial_source_changed": true,
+    "historical_guards_reexecuted": false,
+    "historical_receipts": {
+      "c02": {
+        "claim_scope": "historical_only",
+        "path": "benchmarks/optimization/meta_selection/qms_c02_transport.json",
+        "sha256": "e2b6a11e5b47602a8758895424d6ec8df13454cee12811818268b766765d250d",
+        "source": {
+          "additive_atomic_token_getter": true,
+          "allowed_changes": [
+            "rust/native_event/src/reactive_numeric.rs",
+            "src/quantbt/backends/_native_event_rust.py",
+            "src/quantbt/backends/native_event.py",
+            "src/quantbt/backends/reactive_wfo.py",
+            "src/quantbt/backends/reactive_wfo_batch.py",
+            "src/quantbt/backends/reactive_wfo_workers.py",
+            "src/quantbt/endpoint.py",
+            "src/quantbt/optimization/meta_selection/observer.py",
+            "src/quantbt/optimization/meta_selection/reactive.py",
+            "src/quantbt/optimization/meta_selection/reactive_batch_witness.py",
+            "src/quantbt/optimization/meta_selection/reactive_execution.py",
+            "src/quantbt/optimization/meta_selection/reactive_transport.py"
+          ],
+          "baseline": "0bb77b5",
+          "financial_rust_unchanged": true,
+          "guide_sha256": "adad24b16024ec5d9f3bdaf3a4098a8c60305c1fc181f1c30a0ff0f648a8170d",
+          "release_identity_unchanged": true,
+          "schema": "qms-c02-source-guard-v1"
+        }
+      },
+      "e04": {
+        "claim_scope": "historical_only",
+        "path": "benchmarks/optimization/meta_selection/qms_e04_software_closure.json",
+        "sha256": "92220636ad363547e52a57af95bcbbe52259fd1f11bccb98c29973e5c3ea387a",
+        "source": {
+          "baseline": "7b83ba4",
+          "financial_numeric_source_unchanged": true,
+          "publication": false,
+          "schema": "qms-e04-exact-source-v1",
+          "source_sha256": {
+            "src/quantbt/endpoint.py": "a9688c49416167955a01054f4f596c571b793d62c5b19fb34bd4d125e5d5de8c",
+            "src/quantbt/optimization/meta_selection/config.py": "7045e938ed951b233e3cb4fc7e3f374fb42c0fcc1f326921f78f13b151e5f4ec",
+            "src/quantbt/optimization/meta_selection/domains/portfolio.py": "d01b9525c9cedba7e05eca13ef2e2f221966fd853dc001761c46ac36f6915980",
+            "src/quantbt/optimization/meta_selection/domains/portfolio_contract.py": "a81f4805ec052fbf81f895971082c6fa3c56d52344b1f56d8d21fc93004b7a39",
+            "src/quantbt/optimization/meta_selection/domains/portfolio_witness.py": "637735a33edbdeea1e1a5288bec55f3375668c89124d1df5a79a25db0ac66748",
+            "src/quantbt/optimization/meta_selection/domains/registry.py": "d818c4d83143b6cf655d52be5e5c71cdaa349876e84a4bca18c0e458051d3199",
+            "src/quantbt/optimization/meta_selection/observer.py": "0476769a47d791f4badcae3180a506ce52148120b0165e8278476f03e2ccbabd",
+            "src/quantbt/optimization/meta_selection/runtime.py": "476fa8d40b6c20f733ee9234ef04548cf3c0279d338479f8843ac30446d50b96",
+            "src/quantbt/walkforward.py": "f39b48cea35de46aaaa1d4a3914ca52f694785f6397111ef62247a4fc735896f"
+          }
+        }
+      }
+    },
+    "historical_receipts_unchanged": true,
+    "native_artifacts_qualified": false,
+    "publication": false,
+    "qualification_sha256": "e3e557086c940971f8cd3573fcf812fce24fe862564367d417abac9887050e6c",
+    "qualified_source_count": 460,
+    "repair_amendment_sha256": "490806eab1e5118675dab4b5013df19ea0b3a3bde633632d9e0d3c4a99253edb",
+    "repair_changed_sources": [
+      "rust/crates/quantbt-execution/src/target.rs",
+      "rust/crates/quantbt-portfolio/src/lib.rs",
+      "src/quantbt/backends/native_event.py",
+      "src/quantbt/backends/native_intrabar_rust.py",
+      "src/quantbt/backends/native_portfolio.py",
+      "src/quantbt/backends/native_vectorized.py",
+      "src/quantbt/backends/native_wfo_public.py",
+      "src/quantbt/backtester.py",
+      "src/quantbt/core/constraints.py",
+      "src/quantbt/core/engine.py",
+      "src/quantbt/core/intrabar_kernel.py",
+      "src/quantbt/core/intrabar_reference.py",
+      "src/quantbt/core/portfolio_validation.py",
+      "src/quantbt/core/preprocessor.py",
+      "src/quantbt/core/schema.py",
+      "src/quantbt/core/vectorized.py",
+      "src/quantbt/endpoint.py",
+      "src/quantbt/engines.py",
+      "src/quantbt/metrics/performance.py",
+      "src/quantbt/metrics/reporting/ledger.py",
+      "src/quantbt/portfolio.py",
+      "src/quantbt/reporting/portfolio_audit.py",
+      "src/quantbt/sizing/fast.py",
+      "src/quantbt/sizing/modes.py"
+    ],
+    "schema": "quantbt.portfolio.current_source_qualification.v1",
+    "scopes": [
+      "src",
+      "rust",
+      "pyproject.toml",
+      "uv.lock",
+      "contracts",
+      "upgrade/QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md"
+    ],
+    "source_commit": "9c2bfd95c65f71618f52c736dfff341953066961"
+  },
+  "source_and_release_files_unmodified": true,
+  "source_before": {
+    "baseline_commit": "59275659778e1e3306b35a3c92c7623a7e17c0c3",
+    "current_source_qualified": true,
+    "financial_numeric_source_unchanged": false,
+    "financial_rust_unchanged": false,
+    "financial_source_changed": true,
+    "historical_guards_reexecuted": false,
+    "historical_receipts": {
+      "c02": {
+        "claim_scope": "historical_only",
+        "path": "benchmarks/optimization/meta_selection/qms_c02_transport.json",
+        "sha256": "e2b6a11e5b47602a8758895424d6ec8df13454cee12811818268b766765d250d",
+        "source": {
+          "additive_atomic_token_getter": true,
+          "allowed_changes": [
+            "rust/native_event/src/reactive_numeric.rs",
+            "src/quantbt/backends/_native_event_rust.py",
+            "src/quantbt/backends/native_event.py",
+            "src/quantbt/backends/reactive_wfo.py",
+            "src/quantbt/backends/reactive_wfo_batch.py",
+            "src/quantbt/backends/reactive_wfo_workers.py",
+            "src/quantbt/endpoint.py",
+            "src/quantbt/optimization/meta_selection/observer.py",
+            "src/quantbt/optimization/meta_selection/reactive.py",
+            "src/quantbt/optimization/meta_selection/reactive_batch_witness.py",
+            "src/quantbt/optimization/meta_selection/reactive_execution.py",
+            "src/quantbt/optimization/meta_selection/reactive_transport.py"
+          ],
+          "baseline": "0bb77b5",
+          "financial_rust_unchanged": true,
+          "guide_sha256": "adad24b16024ec5d9f3bdaf3a4098a8c60305c1fc181f1c30a0ff0f648a8170d",
+          "release_identity_unchanged": true,
+          "schema": "qms-c02-source-guard-v1"
+        }
+      },
+      "e04": {
+        "claim_scope": "historical_only",
+        "path": "benchmarks/optimization/meta_selection/qms_e04_software_closure.json",
+        "sha256": "92220636ad363547e52a57af95bcbbe52259fd1f11bccb98c29973e5c3ea387a",
+        "source": {
+          "baseline": "7b83ba4",
+          "financial_numeric_source_unchanged": true,
+          "publication": false,
+          "schema": "qms-e04-exact-source-v1",
+          "source_sha256": {
+            "src/quantbt/endpoint.py": "a9688c49416167955a01054f4f596c571b793d62c5b19fb34bd4d125e5d5de8c",
+            "src/quantbt/optimization/meta_selection/config.py": "7045e938ed951b233e3cb4fc7e3f374fb42c0fcc1f326921f78f13b151e5f4ec",
+            "src/quantbt/optimization/meta_selection/domains/portfolio.py": "d01b9525c9cedba7e05eca13ef2e2f221966fd853dc001761c46ac36f6915980",
+            "src/quantbt/optimization/meta_selection/domains/portfolio_contract.py": "a81f4805ec052fbf81f895971082c6fa3c56d52344b1f56d8d21fc93004b7a39",
+            "src/quantbt/optimization/meta_selection/domains/portfolio_witness.py": "637735a33edbdeea1e1a5288bec55f3375668c89124d1df5a79a25db0ac66748",
+            "src/quantbt/optimization/meta_selection/domains/registry.py": "d818c4d83143b6cf655d52be5e5c71cdaa349876e84a4bca18c0e458051d3199",
+            "src/quantbt/optimization/meta_selection/observer.py": "0476769a47d791f4badcae3180a506ce52148120b0165e8278476f03e2ccbabd",
+            "src/quantbt/optimization/meta_selection/runtime.py": "476fa8d40b6c20f733ee9234ef04548cf3c0279d338479f8843ac30446d50b96",
+            "src/quantbt/walkforward.py": "f39b48cea35de46aaaa1d4a3914ca52f694785f6397111ef62247a4fc735896f"
+          }
+        }
+      }
+    },
+    "historical_receipts_unchanged": true,
+    "native_artifacts_qualified": false,
+    "publication": false,
+    "qualification_sha256": "e3e557086c940971f8cd3573fcf812fce24fe862564367d417abac9887050e6c",
+    "qualified_source_count": 460,
+    "repair_amendment_sha256": "490806eab1e5118675dab4b5013df19ea0b3a3bde633632d9e0d3c4a99253edb",
+    "repair_changed_sources": [
+      "rust/crates/quantbt-execution/src/target.rs",
+      "rust/crates/quantbt-portfolio/src/lib.rs",
+      "src/quantbt/backends/native_event.py",
+      "src/quantbt/backends/native_intrabar_rust.py",
+      "src/quantbt/backends/native_portfolio.py",
+      "src/quantbt/backends/native_vectorized.py",
+      "src/quantbt/backends/native_wfo_public.py",
+      "src/quantbt/backtester.py",
+      "src/quantbt/core/constraints.py",
+      "src/quantbt/core/engine.py",
+      "src/quantbt/core/intrabar_kernel.py",
+      "src/quantbt/core/intrabar_reference.py",
+      "src/quantbt/core/portfolio_validation.py",
+      "src/quantbt/core/preprocessor.py",
+      "src/quantbt/core/schema.py",
+      "src/quantbt/core/vectorized.py",
+      "src/quantbt/endpoint.py",
+      "src/quantbt/engines.py",
+      "src/quantbt/metrics/performance.py",
+      "src/quantbt/metrics/reporting/ledger.py",
+      "src/quantbt/portfolio.py",
+      "src/quantbt/reporting/portfolio_audit.py",
+      "src/quantbt/sizing/fast.py",
+      "src/quantbt/sizing/modes.py"
+    ],
+    "schema": "quantbt.portfolio.current_source_qualification.v1",
+    "scopes": [
+      "src",
+      "rust",
+      "pyproject.toml",
+      "uv.lock",
+      "contracts",
+      "upgrade/QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md"
+    ],
+    "source_commit": "9c2bfd95c65f71618f52c736dfff341953066961"
+  },
+  "tag": false,
+  "version_bump": false,
+  "versions": {
+    "core": "1.1.2",
+    "native": "0.4.3"
+  }
+}

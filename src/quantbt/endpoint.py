@@ -351,6 +351,7 @@ class EndpointConfig:
     shadow_evidence_dir: Optional[str] = None
     strategy_class: object = None
     walkforward_config: Optional[WalkForwardConfig] = None
+    wfo_execution_config: Optional["EndpointConfig"] = None
     walkforward_target_mode: str = "signal_notional"
     metadata: Dict = field(default_factory=dict)
 
@@ -538,6 +539,8 @@ class PreparedNativeEventStrategyRunner:
         start_bar: int,
         end_bar: int,
         report_level: Optional[str] = None,
+        _metric_witness_trading_days: int | None = None,
+        _metric_witness_control=None,
     ) -> BacktestResultV2:
         """Run one fresh account on an absolute prepared-market window.
 
@@ -588,6 +591,8 @@ class PreparedNativeEventStrategyRunner:
             _start_bar=start,
             _end_bar=end,
             _allow_prepared_window=True,
+            _metric_witness_trading_days=_metric_witness_trading_days,
+            _metric_witness_control=_metric_witness_control,
         )
         result.metadata.setdefault("prepared_native_event_strategy", self.metadata)
         result.metadata["prepared_native_event_window"] = {
@@ -664,6 +669,7 @@ class PreparedNativeEventStrategyRunner:
         *,
         candidate_count: int,
         trading_days: int = 365,
+        _retain_metric_paths: bool = False,
     ):
         """Return the R3B scalar runner over this immutable prepared market.
 
@@ -712,6 +718,7 @@ class PreparedNativeEventStrategyRunner:
             clock=get_event_clock_contract(config.execution_contract),
             requirements=adapter.requirements,
             score_trading_days=int(trading_days),
+            retain_metric_paths=bool(_retain_metric_paths),
             _prepared_reactive_market_binding=self.reactive_market_binding,
         )
         return runner, adapter.requirements
@@ -1546,7 +1553,11 @@ class QuantBTEndpoint:
             raise ValueError("options endpoint currently supports backend='native_option' only")
         metadata = dict(kwargs.pop("metadata", {}))
         metadata.setdefault("mode_family", "options")
+        from .options.endpoint_validation import validate_option_endpoint, validate_option_config_overrides
+        if option_config is not None:
+            validate_option_config_overrides(kwargs)
         endpoint_config = _config_from_kwargs(mode="options", backend=backend, metadata=metadata, **kwargs)
+        validate_option_endpoint(endpoint_config)
         if option_config is None:
             option_config = NativeOptionConfig(
                 account=endpoint_config.account,
@@ -1945,6 +1956,7 @@ class QuantBTEndpoint:
         optuna_trials: int = 0,
         optuna_early_stopping: Optional[int] = None,
         random_seed: int = 42,
+        execution_endpoint: Optional["QuantBTEndpoint"] = None,
         **kwargs,
     ) -> "QuantBTEndpoint":
         """
@@ -1973,6 +1985,22 @@ class QuantBTEndpoint:
         `optimization_mode="none"` and pass `params=...` to `backtest()`.
         """
         optimization_config = dict(optimization_config or {})
+        from .wfo_execution import EXECUTION_ROUTES
+        execution_route = target_mode in EXECUTION_ROUTES
+        if execution_route:
+            if not isinstance(execution_endpoint, cls):
+                raise TypeError("execution WFO requires execution_endpoint=QuantBTEndpoint(...)")
+            if kwargs:
+                raise ValueError("put financial settings on execution_endpoint, not duplicate WFO kwargs")
+            if optimization_config.get("scoring_backend", "endpoint") != "endpoint":
+                raise NotImplementedError("execution WFO cannot use position/proxy scoring")
+            optimization_config.setdefault("scoring_backend", "endpoint")
+            optimization_config.setdefault("use_scalar_trial_scoring", False)
+            optimization_config.setdefault("intent_contract", dict(kind="desired_order",
+                observation_phase="bar_close", effective_phase="downstream_execution",
+                route_id="wfo-execution-window-v1", certified=True))
+        elif execution_endpoint is not None:
+            raise ValueError("execution_endpoint requires an explicit execution WFO target_mode")
         wf_config = kwargs.pop("walkforward_config", None)
         scoring_backend = str(
             optimization_config.get(
@@ -1981,6 +2009,11 @@ class QuantBTEndpoint:
             )
         ).lower().strip()
         wf_metadata = dict(optimization_config.get("metadata", {}) or {})
+        if "invalid_execution_intent_policy" in optimization_config:
+            policy = optimization_config["invalid_execution_intent_policy"]
+            if "invalid_execution_intent_policy" in wf_metadata and wf_metadata["invalid_execution_intent_policy"] != policy:
+                raise ValueError("conflicting invalid_execution_intent_policy")
+            wf_metadata["invalid_execution_intent_policy"] = policy
         wf_metadata.setdefault("use_prepared_scoring_cache", bool(optimization_config.get("use_prepared_scoring_cache", True)))
         wf_metadata.setdefault("use_prepared_wfo_context", bool(optimization_config.get("use_prepared_wfo_context", True)))
         wf_metadata.setdefault("use_scalar_trial_scoring", bool(optimization_config.get("use_scalar_trial_scoring", True)))
@@ -2077,6 +2110,17 @@ class QuantBTEndpoint:
                     "native_rows": 0,
                 },
             )
+        if wf_config is not None and "meta_selection" in optimization_config:
+            from .optimization.meta_selection.config import normalize_meta_config
+            normalized_meta = normalize_meta_config(optimization_config["meta_selection"])
+            if wf_config.meta_selection is not None and wf_config.meta_selection != normalized_meta:
+                raise ValueError("META_CONFIG_INVALID: conflicting walkforward_config/meta_selection policies")
+            wf_config = replace(wf_config, meta_selection=normalized_meta)
+        if wf_config is not None and "mode5_calibration" in optimization_config:
+            supplied = optimization_config["mode5_calibration"]
+            if wf_config.mode5_calibration is not None and wf_config.mode5_calibration != supplied:
+                raise ValueError("conflicting walkforward_config/mode5_calibration")
+            wf_config = replace(wf_config, mode5_calibration=supplied)
         if wf_config is None:
             from .walkforward import WalkForwardConfig
 
@@ -2089,6 +2133,12 @@ class QuantBTEndpoint:
                 optimization_mode=optimization_mode,
                 optimization_schedule=optimization_schedule,
                 fold_boundary_position_policy=fold_boundary_position_policy,
+                sampler_config=optimization_config.get("sampler_config"),
+                sampler_warm_start=tuple(optimization_config.get("sampler_warm_start", ())),
+                parameter_constraints=optimization_config.get("parameter_constraints"),
+                result_constraints=optimization_config.get("result_constraints"),
+                meta_selection=optimization_config.get("meta_selection"),
+                mode5_calibration=optimization_config.get("mode5_calibration"),
                 inner_split_frequency=optimization_config.get("inner_split_frequency"),
                 inner_window_mode=optimization_config.get("inner_window_mode"),
                 inner_train_window=optimization_config.get("inner_train_window"),
@@ -2172,9 +2222,14 @@ class QuantBTEndpoint:
                 metadata=wf_metadata,
             )
         default_sizing = "signal_notional" if target_mode in {"portfolio", "basket", "arbitrage"} else target_mode
+        if wf_config.meta_selection is not None:
+            from .optimization.meta_selection.config import validate_meta_route
+            validate_meta_route(wf_config)
         sizing = kwargs.pop("sizing", kwargs.pop("hedge_type", default_sizing))
         backend = kwargs.pop("backend", "auto")
-        return cls(
+        if wf_config.meta_selection is not None and target_mode == "single_signal" and sizing == "single_signal":
+            sizing = "signal_notional"
+        endpoint = cls(
             _config_from_kwargs(
                 mode="walk_forward",
                 backend=backend,
@@ -2185,6 +2240,22 @@ class QuantBTEndpoint:
                 **kwargs,
             )
         )
+        if execution_route:
+            endpoint.config = replace(execution_endpoint.config, mode="walk_forward",
+                strategy_class=strategy_class, walkforward_config=wf_config,
+                walkforward_target_mode=target_mode, wfo_execution_config=execution_endpoint.config)
+            from .wfo_execution import validate_execution_route
+            validate_execution_route(endpoint.config, wf_config)
+        if wf_config.meta_selection is not None:
+            if execution_route:
+                pass  # The typed financial route was validated above.
+            elif wf_config.target_mode == "portfolio":
+                from .optimization.meta_selection.domains.portfolio_contract import portfolio_execution_contract
+                portfolio_execution_contract(endpoint.config, wf_config)
+            else:
+                from .optimization.meta_selection.domains.scalar_contract import scalar_execution_contract
+                scalar_execution_contract(endpoint.config, wf_config)
+        return endpoint
 
     @classmethod
     def train_test_split(
@@ -2275,6 +2346,8 @@ class QuantBTEndpoint:
         prepared_market: Optional[PreparedMarketHandleV2] = None,
         prepared_instruments: Optional[InstrumentRegistryV2] = None,
         calendar_contract: str = "legacy_v1",
+        *,
+        meta_history=None,
     ):
         """
         Run the configured backtest and store the result.
@@ -2308,6 +2381,8 @@ class QuantBTEndpoint:
             Optional symbol override for this run.
         """
         mode = self.config.mode.lower().strip()
+        if meta_history is not None and mode != "walk_forward":
+            raise ValueError("META_ROUTE_UNSUPPORTED: meta_history is a walk_forward runtime handle")
         if mode == "options":
             return self._run_options(
                 chain=chain if chain is not None else data,
@@ -2335,6 +2410,7 @@ class QuantBTEndpoint:
                 symbols=symbols,
                 params=params,
                 param_ranges=param_ranges,
+                meta_history=meta_history,
             )
         if mode == "arbitrage":
             return self._run_arbitrage(
@@ -2461,7 +2537,7 @@ class QuantBTEndpoint:
             _print_order_logs(result, mode=order_log_mode, limit=order_log_limit)
         return result
 
-    def full_report(self, trading_days: int = 365, scope: str = "auto") -> Dict:
+    def full_report(self, trading_days: int = 365, scope: str = "auto", *, reporting=None) -> Dict:
         """
         Return the full QuantBT metrics dictionary for the latest result.
 
@@ -2480,25 +2556,36 @@ class QuantBTEndpoint:
         RuntimeError
             If no backtest has been run yet.
         """
+        if reporting is not None:
+            from .metrics.reporting.public import reporting_metadata
+            return reporting_metadata(self._require_result(), reporting, scope=scope)
         from .metrics import full_report as _full_report
 
         return _full_report(self._result_for_report_scope(scope), trading_days=trading_days)
 
-    def show_metrics(self, trading_days: int = 365, scope: str = "auto") -> Dict:
+    def show_metrics(self, trading_days: int = 365, scope: str = "auto", *, reporting=None) -> Dict:
         """
         Print key metrics and return the full metrics dictionary.
 
         This intentionally mirrors the convenience style of legacy
         `BacktestEngine.analyze()` without forcing a plot.
         """
+        if reporting is not None:
+            from .metrics.reporting.public import format_reporting_report
+            rpt = self.full_report(scope=scope, reporting=reporting)
+            print(format_reporting_report(rpt))
+            return rpt
         rpt = self.full_report(trading_days=trading_days, scope=scope)
         print(format_metrics_report(rpt))
         return rpt
 
-    def quick_plot(self, theme: str = "dark", figsize: tuple = (14, 6), scope: str = "auto"):
+    def quick_plot(self, theme: str = "dark", figsize: tuple = (14, 6), scope: str = "auto", *, reporting=None):
         """
         Plot cumulative return and drawdown for the latest result.
         """
+        if reporting is not None:
+            from .metrics.reporting.public import plot_completed_report
+            return plot_completed_report(self._require_result(), reporting, scope=scope, theme=theme, figsize=figsize)
         from .viz import quick_plot as _quick_plot
 
         return _quick_plot(self._require_result(), theme=theme, figsize=figsize, scope=scope)
@@ -2580,6 +2667,14 @@ class QuantBTEndpoint:
         walk_forward = self._require_result().metadata.get("walk_forward", {})
         return walk_forward.get("research_audit") if isinstance(walk_forward, Mapping) else None
 
+    def research_report(self, *, access, source_ref, **options):
+        """Read witnessed WFO decisions on the cold path; defaults stay unchanged."""
+        from .diagnostics import ResearchDecisionReport
+
+        return ResearchDecisionReport.from_result(
+            self._require_result(), access=access, source_ref=source_ref, **options
+        )
+
     def nautilus_pct_equity_diagnostic(
         self,
         *,
@@ -2636,6 +2731,8 @@ class QuantBTEndpoint:
         if instruments is None:
             raise ValueError("options endpoint requires instruments=OptionInstrumentRegistry/list/mapping")
         config = self.config.option_config
+        from .options.endpoint_validation import validate_option_endpoint
+        validate_option_endpoint(self.config)
         if config is None:
             config = NativeOptionConfig(
                 account=self.config.account,
@@ -3205,9 +3302,8 @@ class QuantBTEndpoint:
         This is deliberately narrow and explicit.  The historical endpoint
         still defaults to the Numba/legacy implementation; callers request
         this route with ``target_runtime='rust'``.  Rust owns the accepted
-        unit/account trace while the public compatibility result continues to
-        expose processed signal weights, as the legacy endpoint has always
-        done for report trade-count and hit-rate semantics.
+        unit/account trace. Public positions expose accepted contract units;
+        processed requested weights remain explicit compatibility metadata.
         """
 
         symbol_list = list(symbols)
@@ -3285,12 +3381,14 @@ class QuantBTEndpoint:
             equity_fraction=self.config.alloc_per_trade,
         )
         accepted_positions = result.positions.copy(deep=True)
-        result.positions = pd.DataFrame(
+        requested_positions = pd.DataFrame(
             {f"Position_{symbol}": raw_signal.to_numpy(dtype=np.float64)}, index=idx
         )
         result.metadata.update(
             {
                 "target_runtime": "rust_pct_equity_transition_v1",
+                "positions_semantics": "accepted_contract_units",
+                "legacy_requested_positions_report": requested_positions,
                 "canonical_one_way_fee_rate": float(self.config.v2_fee_rate),
                 "legacy_slippage_rate": float(self.config.slippage),
                 "canonical_slippage_rate": float(execution.slippage_rate),
@@ -3302,8 +3400,9 @@ class QuantBTEndpoint:
                     "sizing_policy": "live_equity_on_processed_signal_transition_only",
                     "drift_rebalance": False,
                     "rejection_retry_policy": "no_retry_until_processed_signal_changes",
-                    "public_position_surface": "processed_signal_weights",
-                    "accepted_position_surface": "metadata.accepted_positions",
+                    "public_position_surface": "accepted_contract_units",
+                    "requested_position_surface": "metadata.legacy_requested_positions_report",
+                    "accepted_position_surface": "metadata.pct_equity_transition.accepted_positions",
                     "legacy_symbol_surface": symbol,
                     "requested_symbol_ignored_for_legacy_compatibility": requested_symbol,
                     "accepted_positions": accepted_positions,
@@ -3323,11 +3422,22 @@ class QuantBTEndpoint:
         prepared_instruments: Optional[InstrumentRegistryV2] = None,
         calendar_contract: str = "legacy_v1",
     ):
-        if not orders and not order_commands:
+        if orders is None and order_commands is None:
             raise ValueError("orders endpoint requires orders=[OrderIntent(...)] or order_commands=[OrderCommand(...)]")
         if prepared_market is not None:
             prepared_market.require_open()
             idx = prepared_market.datetime_index
+            frame = data
+        elif isinstance(data, dict):
+            # Preserve each instrument's actual OHLCV; do not duplicate one
+            # DataFrame across delivery/perpetual legs.
+            symbol_list = list(symbols or self.config.symbols or data)
+            idx = _ensure_utc_index(datetime_index if datetime_index is not None else data[symbol_list[0]].index)
+            if set(data) != set(symbol_list) or any(
+                not isinstance(data[s], pd.DataFrame) or not data[s].index.equals(idx)
+                or not {"open", "high", "low", "close"}.issubset(data[s]) for s in symbol_list
+            ):
+                raise ValueError("orders require one exact OHLCV calendar and fixed instrument universe")
             frame = data
         else:
             frame, idx, _ = _normalize_single_data(
@@ -3700,6 +3810,7 @@ class QuantBTEndpoint:
         symbols,
         params,
         param_ranges,
+        meta_history=None,
     ):
         if self.config.strategy_class is None:
             raise ValueError("walk_forward endpoint requires strategy_class")
@@ -3707,6 +3818,18 @@ class QuantBTEndpoint:
 
         wf_config = self.config.walkforward_config or WalkForwardConfig(target_mode=self.config.walkforward_target_mode)
         target_mode = self.config.walkforward_target_mode.lower().strip()
+        meta_enabled = wf_config.meta_selection is not None
+        if meta_enabled:
+            from .optimization.meta_selection.config import MetaHistoryContext, validate_meta_route
+            validate_meta_route(wf_config)
+            if target_mode != wf_config.target_mode:
+                raise ValueError("META_ROUTE_UNSUPPORTED: endpoint and walkforward_config target_mode differ")
+            if not isinstance(meta_history, MetaHistoryContext):
+                raise ValueError("META_HISTORY_INCOMPATIBLE: backtest(meta_history=MetaHistoryContext(...)) required")
+            if params is not None or not param_ranges:
+                raise ValueError("META_METHODOLOGY_UNSUPPORTED: optimizing param_ranges required")
+            if target_mode in {"basket", "arbitrage"} and hedge_ratios is not None:
+                raise ValueError("META_ROUTE_UNSUPPORTED: external dynamic hedge ratios are not bound to IS/observer package scoring")
         native_proxy_scorer_required = (
             wf_config.scoring_backend == "proxy"
             and str(wf_config.proxy_validation_mode).lower().strip() != "off"
@@ -3722,6 +3845,7 @@ class QuantBTEndpoint:
                 market_highs=highs,
                 market_lows=lows,
                 market_datetime_index=datetime_index,
+                meta_metric_support=meta_enabled or wf_config.flat_selector == "feasible_support_projection_v1",
             )
             if wf_config.scoring_backend == "endpoint" or native_proxy_scorer_required
             else None
@@ -3732,15 +3856,31 @@ class QuantBTEndpoint:
             scorer=scorer if wf_config.scoring_backend == "endpoint" else None,
             native_scorer=scorer if native_proxy_scorer_required else None,
         )
-        wf_result = engine.run(
-            data=data if data is not None else closes,
-            params=params,
-            param_ranges=param_ranges,
-            datetime_index=datetime_index,
-        )
+        wf_run_kwargs = {"meta_history": meta_history} if meta_enabled else {}
+        try:
+            wf_result = engine.run(
+                data=data if data is not None else closes,
+                params=params,
+                param_ranges=param_ranges,
+                datetime_index=datetime_index,
+                **wf_run_kwargs,
+            )
+        except BaseException:
+            if wf_config.mode5_calibration is not None and hasattr(scorer, "release_prepared_state"):
+                scorer.release_prepared_state()
+            raise
         stitched = wf_result.oos_output
         if stitched is None:
             raise ValueError("walk-forward strategy produced no OOS output")
+        if wf_config.mode5_calibration is not None:
+            from .mode5.continuous_binding import ContinuousMode5Calibration
+            from .mode5.continuous_scope import ContinuousAccountScope
+            if isinstance(wf_config.mode5_calibration, ContinuousMode5Calibration):
+                scope = ContinuousAccountScope.from_contract(
+                    wf_config.mode5_calibration.continuous_contract, data.index)
+                scope.require_scored_index(stitched.index)
+                data = _slice_wf_data_to_index(data, scope.scored_index)
+                datetime_index = scope.scored_index
         account_policy = str(wf_result.metadata.get("fold_account_policy", "carry_position"))
         account_plan = dict(wf_result.metadata.get("account_execution_plan", {}) or {})
         if account_policy == "reset_flat":
@@ -3761,7 +3901,10 @@ class QuantBTEndpoint:
                 "fold target at one timestamp without an explicit order-tape adapter."
             )
 
-        if target_mode == "portfolio":
+        from .wfo_execution import EXECUTION_ROUTES, execute_window
+        if target_mode in EXECUTION_ROUTES:
+            result = execute_window(self.config.wfo_execution_config, data, stitched, symbols=symbols)
+        elif target_mode == "portfolio":
             if isinstance(stitched, pd.Series):
                 raise TypeError("portfolio walk_forward target_mode requires DataFrame or {symbol: Series} output")
             result = self._run_portfolio(
@@ -3950,6 +4093,16 @@ class QuantBTEndpoint:
                 result.metadata["walk_forward"].get("native_prepared_wfo"),
             )
         result.metadata["walk_forward_result"] = wf_result
+        if "invalid_execution_intent_policy" in wf_result.metadata:
+            result.metadata["walk_forward"]["invalid_execution_intent_policy"] = wf_result.metadata["invalid_execution_intent_policy"]
+        if "sampler_studies" in wf_result.metadata:
+            result.metadata["walk_forward"]["sampler_studies"] = wf_result.metadata["sampler_studies"]
+        if "mode5_diagnostics_first" in wf_result.metadata:
+            result.metadata["walk_forward"]["mode5_diagnostics_first"] = wf_result.metadata["mode5_diagnostics_first"]
+        if "meta_selection" in wf_result.metadata:
+            result.metadata["walk_forward"]["meta_selection"] = wf_result.metadata["meta_selection"]
+            for key in ("validation_claim", "chronological_validation_claim", "causality_claim"):
+                result.metadata["walk_forward"][key] = wf_result.metadata[key]
         self.engine = engine
         self.result = result
         return result
@@ -4035,6 +4188,11 @@ class QuantBTEndpoint:
         return result
 
     def _run_portfolio(self, data, positions, closes, highs, lows, datetime_index, symbols):
+        if (self.config.mode == "walk_forward" and self.config.walkforward_config.meta_selection is not None
+                and self.config.walkforward_target_mode == "portfolio"):
+            from .optimization.meta_selection.domains.portfolio_contract import validate_portfolio_payload
+            from .walkforward import _infer_datetime_index
+            validate_portfolio_payload(positions, _infer_datetime_index(positions, None), symbols or self.config.symbols or ())
         pos_map = _positions_to_map(positions)
         if not pos_map:
             raise ValueError("portfolio endpoint requires positions DataFrame or mapping")
@@ -4412,6 +4570,11 @@ def format_metrics_report(report: Dict) -> str:
     The returned string is intentionally plain monospaced text so notebooks,
     terminals, logs, and services all render the same high-signal report.
     """
+    populations = report.get("metric_population", {})
+
+    def label(key, fallback):
+        return populations.get(key, {}).get("label", fallback)
+
     lines = [
         ("Initial Capital", _fmt_money(report.get("initial_capital"), decimals=0)),
         ("Final Equity", _fmt_money(report.get("final_equity"), decimals=2)),
@@ -4423,14 +4586,17 @@ def format_metrics_report(report: Dict) -> str:
         ("Omega Ratio", _fmt_float(report.get("omega"), decimals=3)),
         ("Max Drawdown", _fmt_pct(report.get("max_drawdown_pct"), signed=False, decimals=2)),
         ("Avg Drawdown", _fmt_pct(report.get("avg_drawdown_pct"), signed=False, decimals=2)),
-        ("Max DD Duration", _fmt_days(report.get("max_dd_duration_days"))),
-        ("Profit Factor", _fmt_float(report.get("profit_factor"), decimals=3)),
-        ("Long Hit Rate", _fmt_pct(report.get("long_hitrate_pct"), signed=False, decimals=2)),
-        ("Short Hit Rate", _fmt_pct(report.get("short_hitrate_pct"), signed=False, decimals=2)),
-        ("Avg Win", _fmt_pct(report.get("avg_win_pct"), signed=True, decimals=3)),
-        ("Avg Loss", _fmt_pct(report.get("avg_loss_pct"), signed=True, decimals=3)),
-        ("Expectancy", _fmt_pct(report.get("expectancy_pct"), signed=True, decimals=3)),
-        ("Number of Trades", _fmt_int(report.get("num_trades"))),
+        (label("max_dd_duration_days", "Max DD Duration"),
+         _fmt_int(report.get("max_dd_duration_days")) if populations else _fmt_days(report.get("max_dd_duration_days"))),
+        (label("profit_factor", "Profit Factor"), _fmt_float(report.get("profit_factor"), decimals=3)),
+        (label("long_hitrate_pct", "Long Hit Rate"), _fmt_pct(report.get("long_hitrate_pct"), signed=False, decimals=2)),
+        (label("short_hitrate_pct", "Short Hit Rate"), _fmt_pct(report.get("short_hitrate_pct"), signed=False, decimals=2)),
+        (label("avg_win_pct", "Avg Win"), _fmt_pct(report.get("avg_win_pct"), signed=True, decimals=3)),
+        (label("avg_loss_pct", "Avg Loss"), _fmt_pct(report.get("avg_loss_pct"), signed=True, decimals=3)),
+        ((label("period_expected_return_pct", "Mean Period Return"),
+          _fmt_pct(report.get("period_expected_return_pct"), signed=True, decimals=3))
+         if populations else ("Expectancy", _fmt_pct(report.get("expectancy_pct"), signed=True, decimals=3))),
+        (label("num_trades", "Number of Trades"), _fmt_int(report.get("num_trades"))),
         ("Liquidated", f"{'Yes' if report.get('liquidated') else 'No':>14}"),
     ]
     col_width = max(len(key) for key, _ in lines)
@@ -4611,6 +4777,7 @@ def _make_walkforward_endpoint_scorer(
     market_highs=None,
     market_lows=None,
     market_datetime_index=None,
+    meta_metric_support=False,
 ):
     return _WalkForwardEndpointScorer(
         config=config,
@@ -4622,6 +4789,7 @@ def _make_walkforward_endpoint_scorer(
         market_highs=market_highs,
         market_lows=market_lows,
         market_datetime_index=market_datetime_index,
+        **({"meta_metric_support": True} if meta_metric_support else {}),
     )
 
 
@@ -4856,10 +5024,15 @@ class _WalkForwardEndpointScorer:
         market_highs=None,
         market_lows=None,
         market_datetime_index=None,
+        *,
+        meta_metric_support=False,
     ):
         self.config = config
         self.target_mode = str(target_mode).lower().strip()
         self.score_config = _walkforward_scoring_config(config, self.target_mode)
+        from .optimization.execution_trial_output import execution_trial_config
+        self._execution_trial_config = execution_trial_config(self.score_config,
+            route=self.target_mode, metadata={} if wf_config is None else wf_config.metadata)
         self.symbols = None if symbols is None and config.symbols is None else list(symbols or config.symbols or [])
         self.wf_config = wf_config
         self.market_data = market_data
@@ -4867,9 +5040,49 @@ class _WalkForwardEndpointScorer:
         self.market_highs = market_highs
         self.market_lows = market_lows
         self.market_datetime_index = market_datetime_index
+        self.meta_metric_support = bool(meta_metric_support)
+        self.mode5_metric_policy = None
+        if wf_config is not None and wf_config.mode5_calibration is not None:
+            from .mode5.continuous_binding import ContinuousMode5Calibration
+            from .mode5.continuous_runtime import ContinuousMode5MetricPolicy
+            from .mode5.evaluation import Mode5MetricPolicy
+            policy = (ContinuousMode5MetricPolicy
+                if isinstance(wf_config.mode5_calibration, ContinuousMode5Calibration)
+                else Mode5MetricPolicy)
+            self.mode5_metric_policy = policy(wf_config.mode5_calibration)
+        if config.wfo_execution_config is not None:
+            self.meta_account_authority = "existing_execution_endpoint_continuous_account"
+        self._meta_witness = None
+        if self.meta_metric_support and self.target_mode in {"basket", "arbitrage"}:
+            from .optimization.meta_selection.domains.package_contract import package_execution_contract, validate_package_market
+            from .walkforward import _infer_datetime_index
+            contract = package_execution_contract(config, wf_config, symbols=self.symbols)
+            if any(value is not None for value in (market_closes, market_highs, market_lows)):
+                raise ValueError("META_ROUTE_UNSUPPORTED: package meta requires one authoritative OHLC mapping")
+            validate_package_market(market_data, _infer_datetime_index(market_data, market_datetime_index), contract.universe)
+            self.score_config = replace(self.score_config, symbols=list(contract.universe))
+        if self.meta_metric_support and self.target_mode == "portfolio":
+            from .optimization.meta_selection.domains.portfolio_contract import portfolio_execution_contract, validate_portfolio_market
+            from .walkforward import _infer_datetime_index
+            contract = portfolio_execution_contract(config, wf_config, symbols=self.symbols, require_universe=True)
+            if any(value is not None for value in (market_closes, market_highs, market_lows)):
+                raise ValueError("META_ROUTE_UNSUPPORTED: portfolio meta requires one authoritative OHLC mapping")
+            validate_portfolio_market(market_data, _infer_datetime_index(market_data, market_datetime_index), contract.universe)
+            self.score_config = replace(self.score_config, symbols=list(contract.universe))
+        if self.meta_metric_support:
+            if wf_config is None:
+                raise NotImplementedError("META_METRIC_SUPPORT_MISSING: WFO metric contract required")
+            from .optimization.meta_selection.observer import ResultMetricAdapter, canonical_metric_contract, economics_identity
+            self._meta_adapter = ResultMetricAdapter(canonical_metric_contract(
+                trading_days=wf_config.scoring_trading_days,
+                accepted_contract_units=(self.target_mode in {"pct_equity", "%_equity"}),
+            ))
+            self._meta_economics_id = economics_identity(self.score_config, symbols=self.symbols)
         self.use_prepared_cache = bool((wf_config.metadata if wf_config is not None else {}).get("use_prepared_scoring_cache", True))
         self.use_scalar_trial_scoring = bool(
             (wf_config.metadata if wf_config is not None else {}).get("use_scalar_trial_scoring", True)
+            and not self.meta_metric_support
+            and self.mode5_metric_policy is None
         )
         self.prepared_scoring_report_level = str(
             (wf_config.metadata if wf_config is not None else {}).get("prepared_scoring_report_level", "minimal")
@@ -4890,6 +5103,7 @@ class _WalkForwardEndpointScorer:
                 config=config,
                 target_mode=self.target_mode,
                 wf_config=wf_config,
+                meta_metric_support=self.meta_metric_support,
             )
         self._stats = {
             "enabled": bool(self.use_prepared_cache),
@@ -4913,12 +5127,20 @@ class _WalkForwardEndpointScorer:
             "kernel_score_seconds": 0.0,
             "metric_report_seconds": 0.0,
         }
+        if self.meta_metric_support:
+            self._stats["meta_metric_evidence"] = {
+                "requested_scalar_trial_scoring": bool(wf_config.metadata.get("use_scalar_trial_scoring", True)),
+                "reference_fallback": "original_result_required_not_scalar_placeholder",
+                "prepared_witness": "qualified_same_pass_native_support_only",
+            }
 
     def bind_walkforward_context(self, context) -> None:
         """Bind one run-local prepared WFO snapshot to this scorer instance."""
         self.market_data = context.data
         self.market_datetime_index = context.datetime_index
         self._stats["walkforward_context_signature"] = context.signature
+        if self.meta_metric_support and self.wf_config.metadata.get("use_prepared_meta_witness", True):
+            self._meta_witness = context.metric_witness(self.score_config)
         if self._native_prepared_wfo is not None:
             self._native_prepared_wfo.bind_walkforward_context(context)
 
@@ -4931,10 +5153,17 @@ class _WalkForwardEndpointScorer:
         terminal metrics provided by the prepared Rust scorer below it.
         """
 
-        if self._native_prepared_wfo is None:
+        if self._native_prepared_wfo is None or self.mode5_metric_policy is not None:
             return None
         contract = self._native_prepared_wfo.wfo_execution_reuse_contract()
         return None if contract is None else dict(contract)
+
+    def deterministic_is_shard_reuse_contract(self):
+        """Opt-in purity declaration, never inferred from an opaque callback."""
+        metadata = {} if self.wf_config is None else self.wf_config.metadata
+        if metadata.get("deterministic_is_shard_reuse") != "no_rng_v1":
+            return None
+        return {"schema": "deterministic-is-shard-reuse-v1", "no_rng": True}
 
     def score_batch(self, tasks: Sequence[Dict[str, object]]) -> list[Dict[str, float]]:
         """Score one candidate's fold/shard batch without changing WFO selection.
@@ -4947,7 +5176,7 @@ class _WalkForwardEndpointScorer:
         entries = tuple(tasks)
         if not entries:
             return []
-        if self._native_prepared_wfo is not None:
+        if self._native_prepared_wfo is not None and self.mode5_metric_policy is None:
             metrics = self._native_prepared_wfo.score_batch(entries)
             if metrics is not None:
                 return metrics
@@ -4976,8 +5205,19 @@ class _WalkForwardEndpointScorer:
         trading_days: int,
         _quantbt_prepared_window=None,
     ) -> Dict[str, float]:
+        if self.meta_metric_support and self.target_mode in {"basket", "arbitrage"}:
+            from .optimization.meta_selection.domains.package_contract import validate_package_payload
+            validate_package_payload(output, index)
+        if self.meta_metric_support and self.target_mode == "portfolio":
+            from .optimization.meta_selection.domains.portfolio_contract import validate_portfolio_payload
+            validate_portfolio_payload(output, index, self.symbols)
+        if self.meta_metric_support and self.target_mode == "dca_ladder":
+            from .optimization.meta_selection.domains.scalar_contract import validate_scalar_payload
+            validate_scalar_payload(output, index, self.target_mode)
         try:
-            if self._can_score_single_vectorized_prepared(output):
+            if self.mode5_metric_policy is not None and context == "mode5.selected_audit":
+                result = self._score_fallback(data=data, output=output, index=index, report_level="audit")
+            elif self._can_score_single_vectorized_prepared(output):
                 result = self._score_single_vectorized_prepared(
                     output=output,
                     index=index,
@@ -4992,6 +5232,8 @@ class _WalkForwardEndpointScorer:
                 )
             else:
                 result = self._score_fallback(data=data, output=output, index=index)
+            if self.mode5_metric_policy is not None:
+                return self.mode5_metric_policy.score(result, index)
             report_started = perf_counter()
             report = result.full_report(trading_days=trading_days, scope="full")
             self._stats["metric_report_seconds"] += perf_counter() - report_started
@@ -5000,7 +5242,7 @@ class _WalkForwardEndpointScorer:
                 "walk-forward endpoint scoring failed during "
                 f"{context} for fold_id={fold.fold_id}; target_mode={self.target_mode!r}; params={params}"
             ) from exc
-        return {
+        metrics = {
             "sharpe": float(report.get("sharpe", 0.0)),
             "turnover": float(report.get("num_trades", 0.0)),
             "trade_count": float(report.get("num_trades", 0.0)),
@@ -5009,9 +5251,21 @@ class _WalkForwardEndpointScorer:
             "max_drawdown_pct": float(report.get("max_drawdown_pct", 0.0)),
             "profit_factor": float(report.get("profit_factor", 0.0)),
         }
+        if self.meta_metric_support:
+            from .optimization.meta_selection.common import wire
+            from .optimization.meta_selection.observer import market_signature
+            signature = (self._meta_witness.market_signature(data, index)
+                         if self._meta_witness is not None
+                         else market_signature(data, index, config=self.score_config))
+            metrics["meta_observation"] = wire(self._meta_adapter.observe(result, expected_index=index,
+                economics_id=self._meta_economics_id, input_signature=signature, report=report,
+                execution_config=self.score_config, prepared_witness=self._meta_witness))
+        return metrics
 
     def prepared_cache_metadata(self) -> Dict[str, object]:
         meta = dict(self._stats)
+        if self._meta_witness is not None:
+            meta["meta_witness"] = self._meta_witness.metadata
         meta["market_cache_entries"] = (
             len(self._portfolio_market_cache)
             + len(self._single_market_cache)
@@ -5020,6 +5274,8 @@ class _WalkForwardEndpointScorer:
         meta["prepared_full_market_entries"] = len(self._single_full_market_cache)
         meta["prepared_scoring_report_level"] = self.prepared_scoring_report_level
         meta["use_scalar_trial_scoring"] = self.use_scalar_trial_scoring
+        meta["execution_trial_output"] = ({} if self.wf_config is None
+            else self.wf_config.metadata).get("execution_trial_output", "endpoint")
         if self._native_prepared_wfo is not None:
             meta["native_prepared_wfo"] = self._native_prepared_wfo.metadata()
         meta["available"] = (
@@ -5032,6 +5288,7 @@ class _WalkForwardEndpointScorer:
         """Release run-local market snapshots after WFO metadata is captured."""
         if self._native_prepared_wfo is not None:
             self._native_prepared_wfo.close()
+        self._meta_witness = None
         self.market_data = None
         self.market_closes = None
         self.market_highs = None
@@ -5067,11 +5324,16 @@ class _WalkForwardEndpointScorer:
             and isinstance(output, (pd.DataFrame, dict))
         )
 
-    def _score_fallback(self, data, output, index):
+    def _score_fallback(self, data, output, index, report_level=None):
         self._stats["fallback_runs"] += 1
-        temp = QuantBTEndpoint(self.score_config)
+        score_config = (self._execution_trial_config if report_level is None
+            else replace(self.score_config, report_level=report_level))
+        temp = QuantBTEndpoint(score_config)
         sliced_data = _slice_wf_data_to_index(data, index)
         symbol_list = self._symbol_list(output)
+        from .wfo_execution import EXECUTION_ROUTES, execute_window
+        if self.target_mode in EXECUTION_ROUTES:
+            return execute_window(score_config, sliced_data, output.slice(index), symbols=symbol_list)
         if self.score_config.mode == "portfolio":
             return temp.backtest(data=sliced_data, positions=output, symbols=symbol_list)
         return temp.backtest(data=sliced_data, signal=output, symbols=symbol_list)
@@ -5394,6 +5656,11 @@ class _WalkForwardEndpointScorer:
 
 def _walkforward_scoring_config(config: EndpointConfig, target_mode: str) -> EndpointConfig:
     mode = str(target_mode).lower().strip()
+    from .wfo_execution import EXECUTION_ROUTES
+    if mode in EXECUTION_ROUTES:
+        if config.wfo_execution_config is None:
+            raise ValueError("execution WFO requires an explicit financial endpoint config")
+        return config.wfo_execution_config
     if mode in {"pct_equity", "%_equity"}:
         return replace(config, mode="pct_equity", backend="legacy", sizing="%_equity")
     if mode == "dca_ladder":
@@ -5404,6 +5671,8 @@ def _walkforward_scoring_config(config: EndpointConfig, target_mode: str) -> End
         return replace(config, mode="single_signal", backend=config.backend, sizing=mode)
     if mode == "portfolio":
         return replace(config, mode="portfolio", backend="native_portfolio")
+    if mode in {"basket", "arbitrage"}:
+        return replace(config, mode=mode)
     raise NotImplementedError(f"endpoint scoring is not implemented for walk-forward target_mode={target_mode!r}")
 
 
@@ -5873,6 +6142,7 @@ def _build_portfolio_orders_for_nautilus(
     hedge_type: str,
     use_pyramiding: bool,
     symbols,
+    contract_size=1.0,
 ) -> tuple[tuple[OrderIntent, ...], pd.DataFrame]:
     ht = str(hedge_type).lower().strip()
     if ht in {"%_equity", "pct_equity", "dca_ladder", "dca"}:
@@ -5894,6 +6164,7 @@ def _build_portfolio_orders_for_nautilus(
             close=close,
             alloc=alloc[symbol],
             use_pyramiding=use_pyramiding,
+            contract_size=(contract_size.get(symbol, 1.0) if isinstance(contract_size, dict) else contract_size),
         ).fillna(0.0)
         target_cols[symbol] = target
         prev = 0.0

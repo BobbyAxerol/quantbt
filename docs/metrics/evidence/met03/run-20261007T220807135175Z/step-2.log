@@ -1,0 +1,8 @@
+Using Python 3.12.13 environment at: /tmp/quantbt-met03-srglr5h_/build-env
+Resolved 5 packages in 4ms
+Installed 5 packages in 9ms
+ + build==1.6.1
+ + packaging==26.3
+ + pyproject-hooks==1.3.3
+ + setuptools==82.0.1
+ + wheel==0.46.3

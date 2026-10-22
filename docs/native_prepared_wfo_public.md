@@ -32,6 +32,22 @@ the request is outside the certified matrix. `"require"` fails before scoring;
 it never silently substitutes a target proxy, timing convention, or Numba
 route.
 
+## Current Liquidation Limitation
+
+The [E03 real-data assessment](meta_selection/QMSE03_REPORT.md#prepared-study-and-parity-blocker)
+finds a prepared metric compatibility defect: Rust skips return samples with
+zero previous equity, whereas the legacy endpoint retains zero returns. Account
+arrays can match while Sharpe/objectives, Optuna proposals and selected params
+diverge. Full prepared notional matches in the registered study; prepared unit
+does not. This is not rounding noise or permission to widen tolerance.
+
+Use `native_prepared_wfo="off"` for affected liquidation-capable contracts until
+the bounded repair is qualified. The current auto/require admission guards do
+**not** detect this new metric mismatch. The historical matrix below describes
+request eligibility; it does not certify every bankrupt-tail trajectory.
+Read [the scope/repair gate](../upgrade/implement.md#e03-g01); native source edits
+and fresh repaired artifacts require separate approval.
+
 ## Certified Matrix
 
 | Dimension | Public prepared-native scope |
@@ -48,9 +64,25 @@ route.
 Transition-sized `pct_equity` is a narrow explicit exception: it requires
 `target_runtime="rust"`, `native_prepared_wfo="require"`, one symbol, and an
 exact legacy/V2 fee/slippage configuration. Its Rust request owns transition
-sizing and accounting, while the public result still exposes processed signal
-weights and keeps accepted units under
-`metadata["pct_equity_transition"]["accepted_positions"]`. `"auto"` preserves
+sizing and accounting. Under the ACC-01/M5-12 contract, public `positions`
+contains accepted contract quantities, also retained under
+`metadata["pct_equity_transition"]["accepted_positions"]`; requested processed
+weights are separate in `metadata["legacy_requested_positions_report"]`.
+The historical `num_trades` activity population is the initial position-state
+count plus subsequent accepted quantity changes, not fills or closed trades.
+Prepared pct requires native capability `PCT_EQUITY_ACCEPTED_QTY_ACTIVITY_V1`;
+an older binary is rejected explicitly. Pct metric/history/cache identities
+change with this corrected population; old history must not be relabeled.
+Sharpe, fills, equity and fees are not redefined by this compatibility repair.
+To replay the pct transition endpoint, pass the retained requested weights as
+`signal`; do not feed accepted contract quantities back as percentage weights:
+
+```python
+requested = result.metadata["legacy_requested_positions_report"].iloc[:, 0]
+replayed = pct_endpoint.backtest(data=market, signal=requested)
+```
+
+`"auto"` preserves
 the legacy route. Portfolio, basket, package/arbitrage, DCA/grid, generic order
 tapes, and reactive lifecycle strategies retain their dedicated certified
 routes; they are not coerced into this scalar target scorer.
@@ -73,6 +105,16 @@ bt = QuantBTEndpoint.walk_forward(
 ```
 
 ## Mode And Schedule Semantics
+
+Feature-branch QMS-06 additionally qualifies Mode-4/per-fold-causal meta on
+W0/W1/W2 scalar targets using a same-pass raw-metric witness. This requires
+native capability absent from published 0.4.2; `auto` has an observable
+original-result fallback and `require` fails without it. The candidate proof
+does not change the released matrix. Meta numeric backend is independently
+resolved. See [meta prepared capability](meta_selection/INTEGRATION.md#prepared-capability-and-policy)
+and [portable handoff](meta_selection/HANDOFF.md). W3 remains separate: its
+local [sequential meta adapter](meta_selection/INTEGRATION.md#w3-sequential-meta)
+uses original native reset-flat windows, not this scalar prepared scorer.
 
 | Optimization mode | Public native-scoring behavior |
 |---|---|

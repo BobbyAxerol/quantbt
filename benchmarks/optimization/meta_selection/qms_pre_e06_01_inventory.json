@@ -1,0 +1,785 @@
+{
+  "discovery_and_dispatch": {
+    "execution_constant_targets": [
+      "delivery_arbitrage",
+      "event_driven",
+      "intrabar",
+      "order_commands"
+    ],
+    "pending_routes_not_activated": true,
+    "public_targets": [
+      "arbitrage",
+      "basket",
+      "dca_ladder",
+      "delivery_arbitrage",
+      "event_driven",
+      "intrabar",
+      "nautilus_validation",
+      "notional",
+      "order_commands",
+      "pct_equity",
+      "portfolio",
+      "signal_notional",
+      "unit"
+    ],
+    "schema": "qms-e02-public-route-inventory-v1",
+    "typed_dispatch_targets": [
+      "arbitrage",
+      "basket",
+      "pct_equity",
+      "portfolio"
+    ]
+  },
+  "documentation_sha256": {
+    "docs/meta_selection.md": "57dcd9bf1c68e18d09c5159f5ddf6676da505eb0e6c557929f70d9f63d12a6e7",
+    "docs/meta_selection/CURRENT_ROUTE_REVIEW.md": "e17a971ba60191e107fbb024dd384494feaac6ba754c15c35e2ee173ef03e821",
+    "docs/meta_selection/DOMAIN_ADAPTER_CONTRACT.md": "43807741f8898b876533c67ec6035479d60fa5be3a3650b04f9b6dcb4aea74a4",
+    "docs/meta_selection/GAP_CLOSURE_STATUS.md": "bb21474284aa1d82277b153f5069e5885141b3d31276d8e1e9b2858effa26cb6",
+    "docs/meta_selection/PRE_E06_BASELINE.md": "7819c508f3fea358a850ee0f7604c808457fa8da756571e908b4a97746c4ba4a",
+    "docs/meta_selection/QUALIFICATION.md": "6c6f99f856cff132986828d8b26e29febc985e9e6662a8e910b9f075cf3795a0",
+    "docs/meta_selection/RELEASE_HANDOFF.md": "30198b9a8d3014e7aec47de7ee431e420ae2d81cafd1b6d91f265f57e0aa2232",
+    "handoff/WFO_META_CURRENT.md": "2341c36c5eb14f17c07ba32cf7a2c88c0060966e9bf1c7d886e1bcd2f917e41f",
+    "upgrade/implement.md": "1128576428d2f6e6939e95a0e41a773e76cdf7593ee5cb95cb0a26875455c901"
+  },
+  "empirical_promotion": false,
+  "method_activation": "Mode 4/per_fold_causal only; C01/C05 approved implementation pending",
+  "metric_contract_365": {
+    "activity_definition_id": "2fe28a583ecf3648dd0f1eb868a8e0650a6831d523ff17bb8d327d98f82a556b",
+    "definition_id": "f564a703475bb48a3ec45f5166132c73739f4785b68fbea08dde079a5824d04b",
+    "metric_id": "98103da8fd33392d7185da4646816fd38ec0e84030e741ac90380015b8bbe65b",
+    "risk_free": 0.0,
+    "sample_policy": "quantbt_array_daily_preferred_bar_fallback_ddof1_v1",
+    "trading_days": 365
+  },
+  "phase": "PRE-E06-01",
+  "prepared_contract": "close_target_v2_same_close/legacy_zero_base_v1/original_same_pass",
+  "prepared_scalar_targets": [
+    "signal_notional",
+    "notional",
+    "unit",
+    "pct_equity"
+  ],
+  "protected": {
+    "entry_commit": "74879f1c5dd73a4406da2efd938df58896370efe",
+    "guide_sha256": "adad24b16024ec5d9f3bdaf3a4098a8c60305c1fc181f1c30a0ff0f648a8170d",
+    "retained_artifacts": 50,
+    "retained_sha256": "c9e55fb4741da55307b29f840080ed7728468c9a791881e442f69904e6f377f2",
+    "runtime_files": 317,
+    "runtime_sha256": "1844b257128ffbb7d0bc4469fb277adb9af1562ebbf5f28714a52ace4f671ab0",
+    "sealed_files": 67,
+    "sealed_sha256": "7e6fe9d65b4120af529ad2baa3965335cedcb3b2d1d95b6d7d4ca035b84ccd5d"
+  },
+  "purpose": "source_contract_inventory_not_financial_or_release_certification",
+  "release": false,
+  "routes": [
+    {
+      "adapter_owner": "src/quantbt/optimization/meta_selection/domains/scalar.py::ScalarDomainAdapter",
+      "coverage_review": "EXISTING_TEST_INVENTORY_NOT_REEXECUTED",
+      "diagnostic_account": "original_reset_flat",
+      "discovery": {
+        "expected_output": "pd.Series scalar signal",
+        "final_engine": "native_vectorized or native_event",
+        "meta_adapter_abi": "qms-domain-evaluation-v1",
+        "meta_domain": "scalar",
+        "meta_empirical_status": "EXISTING_BOUNDED_EVIDENCE",
+        "meta_gate_phase": "E03",
+        "meta_input_kind": "scalar_target",
+        "meta_optimization_modes": [
+          "mode_4_is_only_robust"
+        ],
+        "meta_optimization_schedules": [
+          "per_fold_causal"
+        ],
+        "meta_route_activated": true,
+        "meta_software_status": "QUALIFIED_EXISTING",
+        "notes": "Recommended default for single-symbol systematic alpha.",
+        "status": "supported",
+        "target_mode": "signal_notional"
+      },
+      "existing_test_owners": [
+        "tests/meta_selection/test_qms03_engine.py::test_q3_t02_original_engine_labels_reconcile_and_centroid_has_own_is",
+        "tests/meta_selection/test_e03_scalar.py::test_e03_t04_omitted_off_shadow_exact_search_rng_and_continuous_account"
+      ],
+      "final_account": "one_original_continuous_account",
+      "financial_backend_scope": "native_vectorized/native_event/legacy",
+      "meta": {
+        "meta_adapter_abi": "qms-domain-evaluation-v1",
+        "meta_domain": "scalar",
+        "meta_empirical_status": "EXISTING_BOUNDED_EVIDENCE",
+        "meta_gate_phase": "E03",
+        "meta_input_kind": "scalar_target",
+        "meta_optimization_modes": [
+          "mode_4_is_only_robust"
+        ],
+        "meta_optimization_schedules": [
+          "per_fold_causal"
+        ],
+        "meta_route_activated": true,
+        "meta_software_status": "QUALIFIED_EXISTING"
+      },
+      "next_required_gate": "PRE02-MATURED-signal_notional",
+      "route": "signal_notional"
+    },
+    {
+      "adapter_owner": "src/quantbt/optimization/meta_selection/domains/scalar.py::ScalarDomainAdapter",
+      "coverage_review": "EXISTING_TEST_INVENTORY_NOT_REEXECUTED",
+      "diagnostic_account": "original_reset_flat",
+      "discovery": {
+        "expected_output": "pd.Series scalar weight",
+        "final_engine": "legacy BacktestEngine",
+        "meta_adapter_abi": "qms-domain-evaluation-v1",
+        "meta_domain": "scalar",
+        "meta_empirical_status": "EXISTING_BOUNDED_EVIDENCE",
+        "meta_gate_phase": "E03",
+        "meta_input_kind": "scalar_target",
+        "meta_optimization_modes": [
+          "mode_4_is_only_robust"
+        ],
+        "meta_optimization_schedules": [
+          "per_fold_causal"
+        ],
+        "meta_route_activated": true,
+        "meta_software_status": "QUALIFIED_EXISTING",
+        "notes": "Legacy `%_equity` accounting route.",
+        "status": "supported",
+        "target_mode": "pct_equity"
+      },
+      "existing_test_owners": [
+        "tests/meta_selection/test_qms06_prepared.py::test_q6_t01_pct_equity_existing_native_account_units_and_cost_parity",
+        "tests/meta_selection/test_qms05_public.py::test_q5_t08_pct_equity_fees_funding_and_boundary_authority"
+      ],
+      "final_account": "one_original_continuous_account",
+      "financial_backend_scope": "legacy/Numba",
+      "meta": {
+        "meta_adapter_abi": "qms-domain-evaluation-v1",
+        "meta_domain": "scalar",
+        "meta_empirical_status": "EXISTING_BOUNDED_EVIDENCE",
+        "meta_gate_phase": "E03",
+        "meta_input_kind": "scalar_target",
+        "meta_optimization_modes": [
+          "mode_4_is_only_robust"
+        ],
+        "meta_optimization_schedules": [
+          "per_fold_causal"
+        ],
+        "meta_route_activated": true,
+        "meta_software_status": "QUALIFIED_EXISTING"
+      },
+      "next_required_gate": "PRE02-MATURED-pct_equity",
+      "route": "pct_equity"
+    },
+    {
+      "adapter_owner": "src/quantbt/optimization/meta_selection/domains/scalar.py::ScalarDomainAdapter",
+      "coverage_review": "EXISTING_TEST_INVENTORY_NOT_REEXECUTED",
+      "diagnostic_account": "original_reset_flat",
+      "discovery": {
+        "expected_output": "pd.Series scalar target",
+        "final_engine": "native_vectorized or native_event",
+        "meta_adapter_abi": "qms-domain-evaluation-v1",
+        "meta_domain": "scalar",
+        "meta_empirical_status": "OWNER_EMPIRICAL_REVIEW_PENDING",
+        "meta_gate_phase": "E03",
+        "meta_input_kind": "scalar_target",
+        "meta_optimization_modes": [
+          "mode_4_is_only_robust"
+        ],
+        "meta_optimization_schedules": [
+          "per_fold_causal"
+        ],
+        "meta_route_activated": true,
+        "meta_software_status": "SOFTWARE_VALIDATED_OPT_IN",
+        "notes": "Explicit notional sizing route.",
+        "status": "supported",
+        "target_mode": "notional"
+      },
+      "existing_test_owners": [
+        "tests/meta_selection/test_e03_scalar.py::test_e03_t02_independent_accepted_delta_pnl_fee_slippage_and_turnover",
+        "tests/meta_selection/test_e03_scalar.py::test_e03_t04_prepared_original_pool_selection_and_final_account_parity"
+      ],
+      "final_account": "one_original_continuous_account",
+      "financial_backend_scope": "native_vectorized/native_event/legacy",
+      "meta": {
+        "meta_adapter_abi": "qms-domain-evaluation-v1",
+        "meta_domain": "scalar",
+        "meta_empirical_status": "OWNER_EMPIRICAL_REVIEW_PENDING",
+        "meta_gate_phase": "E03",
+        "meta_input_kind": "scalar_target",
+        "meta_optimization_modes": [
+          "mode_4_is_only_robust"
+        ],
+        "meta_optimization_schedules": [
+          "per_fold_causal"
+        ],
+        "meta_route_activated": true,
+        "meta_software_status": "SOFTWARE_VALIDATED_OPT_IN"
+      },
+      "next_required_gate": "PRE02-MATURED-notional",
+      "route": "notional"
+    },
+    {
+      "adapter_owner": "src/quantbt/optimization/meta_selection/domains/scalar.py::ScalarDomainAdapter",
+      "coverage_review": "EXISTING_TEST_INVENTORY_NOT_REEXECUTED",
+      "diagnostic_account": "original_reset_flat",
+      "discovery": {
+        "expected_output": "pd.Series scalar target",
+        "final_engine": "native_vectorized or native_event",
+        "meta_adapter_abi": "qms-domain-evaluation-v1",
+        "meta_domain": "scalar",
+        "meta_empirical_status": "OWNER_EMPIRICAL_REVIEW_PENDING",
+        "meta_gate_phase": "E03",
+        "meta_input_kind": "scalar_target",
+        "meta_optimization_modes": [
+          "mode_4_is_only_robust"
+        ],
+        "meta_optimization_schedules": [
+          "per_fold_causal"
+        ],
+        "meta_route_activated": true,
+        "meta_software_status": "SOFTWARE_VALIDATED_OPT_IN",
+        "notes": "Explicit unit sizing route.",
+        "status": "supported",
+        "target_mode": "unit"
+      },
+      "existing_test_owners": [
+        "tests/meta_selection/test_g01_metric_compatibility.py::test_g01_liquidation_score_compact_audit_and_prepared_parity",
+        "tests/meta_selection/test_e03_scalar.py::test_e03_t04_prepared_original_pool_selection_and_final_account_parity"
+      ],
+      "final_account": "one_original_continuous_account",
+      "financial_backend_scope": "native_vectorized/native_event/legacy",
+      "meta": {
+        "meta_adapter_abi": "qms-domain-evaluation-v1",
+        "meta_domain": "scalar",
+        "meta_empirical_status": "OWNER_EMPIRICAL_REVIEW_PENDING",
+        "meta_gate_phase": "E03",
+        "meta_input_kind": "scalar_target",
+        "meta_optimization_modes": [
+          "mode_4_is_only_robust"
+        ],
+        "meta_optimization_schedules": [
+          "per_fold_causal"
+        ],
+        "meta_route_activated": true,
+        "meta_software_status": "SOFTWARE_VALIDATED_OPT_IN"
+      },
+      "next_required_gate": "PRE02-MATURED-unit",
+      "route": "unit"
+    },
+    {
+      "adapter_owner": "src/quantbt/optimization/meta_selection/domains/scalar.py::ScalarDomainAdapter",
+      "coverage_review": "EXISTING_TEST_INVENTORY_NOT_REEXECUTED",
+      "diagnostic_account": "original_reset_flat",
+      "discovery": {
+        "expected_output": "pd.Series structural ladder level",
+        "final_engine": "legacy BacktestEngine",
+        "meta_adapter_abi": "qms-domain-evaluation-v1",
+        "meta_domain": "scalar",
+        "meta_empirical_status": "OWNER_EMPIRICAL_REVIEW_PENDING",
+        "meta_gate_phase": "E03",
+        "meta_input_kind": "scalar_target",
+        "meta_optimization_modes": [
+          "mode_4_is_only_robust"
+        ],
+        "meta_optimization_schedules": [
+          "per_fold_causal"
+        ],
+        "meta_route_activated": true,
+        "meta_software_status": "SOFTWARE_VALIDATED_OPT_IN",
+        "notes": "Requires high/low data for intrabar ladder fills.",
+        "status": "supported",
+        "target_mode": "dca_ladder"
+      },
+      "existing_test_owners": [
+        "tests/meta_selection/test_e03_scalar.py::test_e03_t03_ladder_limits_manual_quantity_cost_and_same_close_exit",
+        "tests/meta_selection/test_e03_scalar.py::test_e03_t03_ladder_actual_high_low_required_not_close_proxy"
+      ],
+      "final_account": "one_original_continuous_account",
+      "financial_backend_scope": "legacy/Numba structural high-low",
+      "meta": {
+        "meta_adapter_abi": "qms-domain-evaluation-v1",
+        "meta_domain": "scalar",
+        "meta_empirical_status": "OWNER_EMPIRICAL_REVIEW_PENDING",
+        "meta_gate_phase": "E03",
+        "meta_input_kind": "scalar_target",
+        "meta_optimization_modes": [
+          "mode_4_is_only_robust"
+        ],
+        "meta_optimization_schedules": [
+          "per_fold_causal"
+        ],
+        "meta_route_activated": true,
+        "meta_software_status": "SOFTWARE_VALIDATED_OPT_IN"
+      },
+      "next_required_gate": "PRE02-MATURED-dca_ladder",
+      "route": "dca_ladder"
+    },
+    {
+      "adapter_owner": "src/quantbt/optimization/meta_selection/domains/portfolio.py::PortfolioDomainAdapter",
+      "coverage_review": "EXISTING_TEST_INVENTORY_NOT_REEXECUTED",
+      "diagnostic_account": "original_reset_flat",
+      "discovery": {
+        "expected_output": "pd.DataFrame or dict[str, pd.Series]",
+        "final_engine": "PortfolioBacktestEngine",
+        "meta_adapter_abi": "qms-domain-evaluation-v1",
+        "meta_domain": "portfolio",
+        "meta_empirical_status": "REAL_ALPHA_OWNER_REVIEW_PENDING",
+        "meta_gate_phase": "E04",
+        "meta_input_kind": "position_matrix",
+        "meta_optimization_modes": [
+          "mode_4_is_only_robust"
+        ],
+        "meta_optimization_schedules": [
+          "per_fold_causal"
+        ],
+        "meta_route_activated": true,
+        "meta_software_status": "SOFTWARE_VALIDATED_OPT_IN",
+        "notes": "Multi-symbol portfolio positions stitched across OOS folds.",
+        "status": "supported",
+        "target_mode": "portfolio"
+      },
+      "existing_test_owners": [
+        "tests/meta_selection/test_e04_portfolio.py::test_e04_t03_every_is_and_forward_observation_uses_original_aggregate_report",
+        "tests/meta_selection/test_e04_portfolio.py::test_e04_t04_final_account_is_original_stitched_position_run_not_fold_equity"
+      ],
+      "final_account": "one_original_continuous_account",
+      "financial_backend_scope": "native_portfolio NumPy/Numba",
+      "meta": {
+        "meta_adapter_abi": "qms-domain-evaluation-v1",
+        "meta_domain": "portfolio",
+        "meta_empirical_status": "REAL_ALPHA_OWNER_REVIEW_PENDING",
+        "meta_gate_phase": "E04",
+        "meta_input_kind": "position_matrix",
+        "meta_optimization_modes": [
+          "mode_4_is_only_robust"
+        ],
+        "meta_optimization_schedules": [
+          "per_fold_causal"
+        ],
+        "meta_route_activated": true,
+        "meta_software_status": "SOFTWARE_VALIDATED_OPT_IN"
+      },
+      "next_required_gate": "PRE02-MATURED-portfolio",
+      "route": "portfolio"
+    },
+    {
+      "adapter_owner": "src/quantbt/optimization/meta_selection/domains/package.py::PackageDomainAdapter",
+      "coverage_review": "EXISTING_TEST_INVENTORY_NOT_REEXECUTED",
+      "diagnostic_account": "original_reset_flat",
+      "discovery": {
+        "expected_output": "pd.Series scalar basket signal",
+        "final_engine": "native_event basket route",
+        "meta_adapter_abi": "qms-domain-evaluation-v1",
+        "meta_domain": "package",
+        "meta_empirical_status": "REAL_PACKAGE_ALPHA_OWNER_REVIEW_PENDING",
+        "meta_gate_phase": "E05",
+        "meta_input_kind": "package",
+        "meta_optimization_modes": [
+          "mode_4_is_only_robust"
+        ],
+        "meta_optimization_schedules": [
+          "per_fold_causal"
+        ],
+        "meta_route_activated": true,
+        "meta_software_status": "SOFTWARE_VALIDATED_OPT_IN",
+        "notes": "Requires BasketSpec on the endpoint.",
+        "status": "supported",
+        "target_mode": "basket"
+      },
+      "existing_test_owners": [
+        "tests/meta_selection/test_e05_package.py::test_e05_t03_labels_equal_original_aggregate_reports_and_leg_reconciliation",
+        "tests/meta_selection/test_e05_package.py::test_e05_t01_active_final_is_one_original_stitched_signal_account"
+      ],
+      "final_account": "one_original_continuous_account",
+      "financial_backend_scope": "native_event frozen best-effort",
+      "meta": {
+        "meta_adapter_abi": "qms-domain-evaluation-v1",
+        "meta_domain": "package",
+        "meta_empirical_status": "REAL_PACKAGE_ALPHA_OWNER_REVIEW_PENDING",
+        "meta_gate_phase": "E05",
+        "meta_input_kind": "package",
+        "meta_optimization_modes": [
+          "mode_4_is_only_robust"
+        ],
+        "meta_optimization_schedules": [
+          "per_fold_causal"
+        ],
+        "meta_route_activated": true,
+        "meta_software_status": "SOFTWARE_VALIDATED_OPT_IN"
+      },
+      "next_required_gate": "PRE02-MATURED-basket",
+      "route": "basket"
+    },
+    {
+      "adapter_owner": "src/quantbt/optimization/meta_selection/domains/package.py::PackageDomainAdapter",
+      "coverage_review": "EXISTING_TEST_INVENTORY_NOT_REEXECUTED",
+      "diagnostic_account": "original_reset_flat",
+      "discovery": {
+        "expected_output": "pd.Series scalar package signal",
+        "final_engine": "supported arbitrage package route",
+        "meta_adapter_abi": "qms-domain-evaluation-v1",
+        "meta_domain": "package",
+        "meta_empirical_status": "REAL_PACKAGE_ALPHA_OWNER_REVIEW_PENDING",
+        "meta_gate_phase": "E05",
+        "meta_input_kind": "package",
+        "meta_optimization_modes": [
+          "mode_4_is_only_robust"
+        ],
+        "meta_optimization_schedules": [
+          "per_fold_causal"
+        ],
+        "meta_route_activated": true,
+        "meta_software_status": "SOFTWARE_VALIDATED_OPT_IN",
+        "notes": "Current supported arbitrage specs only; future specialized engines reserved.",
+        "status": "partial",
+        "target_mode": "arbitrage"
+      },
+      "existing_test_owners": [
+        "tests/meta_selection/test_e05_package.py::test_e05_t03_labels_equal_original_aggregate_reports_and_leg_reconciliation",
+        "tests/meta_selection/test_e05_package.py::test_e05_t02_unqualified_contracts_fail_closed"
+      ],
+      "final_account": "one_original_continuous_account",
+      "financial_backend_scope": "native_event bounded linear non-expiring",
+      "meta": {
+        "meta_adapter_abi": "qms-domain-evaluation-v1",
+        "meta_domain": "package",
+        "meta_empirical_status": "REAL_PACKAGE_ALPHA_OWNER_REVIEW_PENDING",
+        "meta_gate_phase": "E05",
+        "meta_input_kind": "package",
+        "meta_optimization_modes": [
+          "mode_4_is_only_robust"
+        ],
+        "meta_optimization_schedules": [
+          "per_fold_causal"
+        ],
+        "meta_route_activated": true,
+        "meta_software_status": "SOFTWARE_VALIDATED_OPT_IN"
+      },
+      "next_required_gate": "PRE02-MATURED-arbitrage",
+      "route": "arbitrage"
+    },
+    {
+      "adapter_owner": "src/quantbt/optimization/meta_selection/domains/execution.py::ExecutionDomainAdapter",
+      "coverage_review": "EXISTING_TEST_INVENTORY_NOT_REEXECUTED",
+      "diagnostic_account": "original_reset_flat",
+      "discovery": {
+        "expected_output": "WfoExecutionWindow",
+        "final_engine": "explicit existing execution_endpoint",
+        "meta_adapter_abi": "qms-domain-evaluation-v1",
+        "meta_domain": "intrabar",
+        "meta_empirical_status": "SYNTHETIC_CONFORMANCE_ONLY",
+        "meta_gate_phase": "E06",
+        "meta_input_kind": "intrabar_intent",
+        "meta_optimization_modes": [
+          "mode_4_is_only_robust"
+        ],
+        "meta_optimization_schedules": [
+          "per_fold_causal"
+        ],
+        "meta_route_activated": true,
+        "meta_software_status": "SOFTWARE_VALIDATED_OPT_IN",
+        "notes": "Original reset diagnostics; continuous final account; synthetic qualification only.",
+        "status": "opt_in",
+        "target_mode": "intrabar"
+      },
+      "existing_test_owners": [
+        "tests/meta_selection/test_execution_window_public.py::test_original_is_and_forward_metrics_not_proxy",
+        "tests/meta_selection/test_execution_domain_accounting.py::test_carried_intrabar_trade_keeps_original_stop_across_new_fold"
+      ],
+      "final_account": "one_original_continuous_account",
+      "financial_backend_scope": "explicit original intrabar Numba/reference/Rust",
+      "meta": {
+        "meta_adapter_abi": "qms-domain-evaluation-v1",
+        "meta_domain": "intrabar",
+        "meta_empirical_status": "SYNTHETIC_CONFORMANCE_ONLY",
+        "meta_gate_phase": "E06",
+        "meta_input_kind": "intrabar_intent",
+        "meta_optimization_modes": [
+          "mode_4_is_only_robust"
+        ],
+        "meta_optimization_schedules": [
+          "per_fold_causal"
+        ],
+        "meta_route_activated": true,
+        "meta_software_status": "SOFTWARE_VALIDATED_OPT_IN"
+      },
+      "next_required_gate": "PRE02-MATURED-intrabar",
+      "route": "intrabar"
+    },
+    {
+      "adapter_owner": "src/quantbt/optimization/meta_selection/domains/execution.py::ExecutionDomainAdapter",
+      "coverage_review": "EXISTING_TEST_INVENTORY_NOT_REEXECUTED",
+      "diagnostic_account": "original_reset_flat",
+      "discovery": {
+        "expected_output": "WfoExecutionWindow",
+        "final_engine": "explicit existing execution_endpoint",
+        "meta_adapter_abi": "qms-domain-evaluation-v1",
+        "meta_domain": "callback",
+        "meta_empirical_status": "SYNTHETIC_CONFORMANCE_ONLY",
+        "meta_gate_phase": "E07",
+        "meta_input_kind": "reactive_window",
+        "meta_optimization_modes": [
+          "mode_4_is_only_robust"
+        ],
+        "meta_optimization_schedules": [
+          "per_fold_causal"
+        ],
+        "meta_route_activated": true,
+        "meta_software_status": "SOFTWARE_VALIDATED_OPT_IN",
+        "notes": "Original reset diagnostics; continuous final account; synthetic qualification only.",
+        "status": "opt_in",
+        "target_mode": "event_driven"
+      },
+      "existing_test_owners": [
+        "tests/meta_selection/test_execution_window_public.py::test_original_is_and_forward_metrics_not_proxy",
+        "tests/meta_selection/test_execution_window_public.py::test_active_final_rebuild_uses_actual_fold_intent_in_one_account"
+      ],
+      "final_account": "one_original_continuous_account",
+      "financial_backend_scope": "explicit native_event Python callback/Rust financial owner",
+      "meta": {
+        "meta_adapter_abi": "qms-domain-evaluation-v1",
+        "meta_domain": "callback",
+        "meta_empirical_status": "SYNTHETIC_CONFORMANCE_ONLY",
+        "meta_gate_phase": "E07",
+        "meta_input_kind": "reactive_window",
+        "meta_optimization_modes": [
+          "mode_4_is_only_robust"
+        ],
+        "meta_optimization_schedules": [
+          "per_fold_causal"
+        ],
+        "meta_route_activated": true,
+        "meta_software_status": "SOFTWARE_VALIDATED_OPT_IN"
+      },
+      "next_required_gate": "PRE02-MATURED-event_driven",
+      "route": "event_driven"
+    },
+    {
+      "adapter_owner": "src/quantbt/optimization/meta_selection/domains/reactive.py::ReactiveDomainAdapter",
+      "coverage_review": "EXISTING_TEST_INVENTORY_NOT_REEXECUTED",
+      "diagnostic_account": "original_reset_flat",
+      "discovery": null,
+      "existing_test_owners": [
+        "tests/meta_selection/test_local_reactive.py::test_w3_shadow_same_native_search_and_account_with_original_observations",
+        "tests/meta_selection/test_local_reactive.py::test_w3_supported_meta_actually_switches_the_applied_native_candidate"
+      ],
+      "final_account": "original_segmented_reset_flat",
+      "financial_backend_scope": "prepared native numeric W3; inprocess/safe Linux fork",
+      "meta": {
+        "meta_adapter_abi": "qms-domain-evaluation-v1",
+        "meta_domain": "reactive",
+        "meta_empirical_status": "ENGINEERING_ONLY_DOMAIN_ALPHA_PENDING",
+        "meta_gate_phase": "E07",
+        "meta_input_kind": "reactive_window",
+        "meta_optimization_modes": [
+          "mode_4_is_only_robust"
+        ],
+        "meta_optimization_schedules": [
+          "per_fold_causal"
+        ],
+        "meta_route_activated": true,
+        "meta_software_status": "QUALIFIED_EXISTING"
+      },
+      "next_required_gate": "PRE02-MATURED-reactive_reset",
+      "route": "reactive_reset"
+    },
+    {
+      "adapter_owner": "src/quantbt/optimization/meta_selection/domains/execution.py::ExecutionDomainAdapter",
+      "coverage_review": "EXISTING_TEST_INVENTORY_NOT_REEXECUTED",
+      "diagnostic_account": "original_reset_flat",
+      "discovery": {
+        "expected_output": "WfoExecutionWindow",
+        "final_engine": "explicit existing execution_endpoint",
+        "meta_adapter_abi": "qms-domain-evaluation-v1",
+        "meta_domain": "orders",
+        "meta_empirical_status": "SYNTHETIC_CONFORMANCE_ONLY",
+        "meta_gate_phase": "E07",
+        "meta_input_kind": "order_commands",
+        "meta_optimization_modes": [
+          "mode_4_is_only_robust"
+        ],
+        "meta_optimization_schedules": [
+          "per_fold_causal"
+        ],
+        "meta_route_activated": true,
+        "meta_software_status": "SOFTWARE_VALIDATED_OPT_IN",
+        "notes": "Original reset diagnostics; continuous final account; synthetic qualification only.",
+        "status": "opt_in",
+        "target_mode": "order_commands"
+      },
+      "existing_test_owners": [
+        "tests/meta_selection/test_execution_window_public.py::test_original_is_and_forward_metrics_not_proxy",
+        "tests/meta_selection/test_execution_domain_accounting.py::test_pending_command_crosses_fold_boundary_without_reset"
+      ],
+      "final_account": "one_original_continuous_account",
+      "financial_backend_scope": "explicit original orders Python/Rust",
+      "meta": {
+        "meta_adapter_abi": "qms-domain-evaluation-v1",
+        "meta_domain": "orders",
+        "meta_empirical_status": "SYNTHETIC_CONFORMANCE_ONLY",
+        "meta_gate_phase": "E07",
+        "meta_input_kind": "order_commands",
+        "meta_optimization_modes": [
+          "mode_4_is_only_robust"
+        ],
+        "meta_optimization_schedules": [
+          "per_fold_causal"
+        ],
+        "meta_route_activated": true,
+        "meta_software_status": "SOFTWARE_VALIDATED_OPT_IN"
+      },
+      "next_required_gate": "PRE02-MATURED-order_commands",
+      "route": "order_commands"
+    },
+    {
+      "adapter_owner": "src/quantbt/optimization/meta_selection/domains/execution.py::ExecutionDomainAdapter",
+      "coverage_review": "EXISTING_TEST_INVENTORY_NOT_REEXECUTED",
+      "diagnostic_account": "original_reset_flat",
+      "discovery": {
+        "expected_output": "WfoExecutionWindow",
+        "final_engine": "explicit existing execution_endpoint",
+        "meta_adapter_abi": "qms-domain-evaluation-v1",
+        "meta_domain": "delivery",
+        "meta_empirical_status": "SYNTHETIC_CONFORMANCE_ONLY",
+        "meta_gate_phase": "E05_DELIVERY",
+        "meta_input_kind": "order_commands",
+        "meta_optimization_modes": [
+          "mode_4_is_only_robust"
+        ],
+        "meta_optimization_schedules": [
+          "per_fold_causal"
+        ],
+        "meta_route_activated": true,
+        "meta_software_status": "SOFTWARE_VALIDATED_OPT_IN",
+        "notes": "Original reset diagnostics; continuous final account; synthetic qualification only.",
+        "status": "opt_in",
+        "target_mode": "delivery_arbitrage"
+      },
+      "existing_test_owners": [
+        "tests/meta_selection/test_execution_domain_accounting.py::test_quarterly_roll_flatten_prices_and_each_one_way_fee",
+        "tests/meta_selection/test_execution_domain_accounting.py::test_quarterly_insufficient_close_capacity_cannot_get_a_pass_receipt"
+      ],
+      "final_account": "one_original_continuous_account",
+      "financial_backend_scope": "explicit original orders Python/Rust pre-expiry flatten",
+      "meta": {
+        "meta_adapter_abi": "qms-domain-evaluation-v1",
+        "meta_domain": "delivery",
+        "meta_empirical_status": "SYNTHETIC_CONFORMANCE_ONLY",
+        "meta_gate_phase": "E05_DELIVERY",
+        "meta_input_kind": "order_commands",
+        "meta_optimization_modes": [
+          "mode_4_is_only_robust"
+        ],
+        "meta_optimization_schedules": [
+          "per_fold_causal"
+        ],
+        "meta_route_activated": true,
+        "meta_software_status": "SOFTWARE_VALIDATED_OPT_IN"
+      },
+      "next_required_gate": "PRE02-MATURED-delivery_arbitrage",
+      "route": "delivery_arbitrage"
+    },
+    {
+      "adapter_owner": null,
+      "coverage_review": "EXISTING_TEST_INVENTORY_NOT_REEXECUTED",
+      "diagnostic_account": null,
+      "discovery": null,
+      "existing_test_owners": [
+        "tests/meta_selection/test_e02_inventory.py::test_e02_t05_actual_dispatch_and_discovery_have_registered_or_pending_adapters",
+        "tests/meta_selection/test_e02_inventory.py::test_e02_t05_future_dispatch_omitted_from_matrix_cannot_escape_conformance"
+      ],
+      "final_account": null,
+      "financial_backend_scope": null,
+      "meta": {
+        "meta_adapter_abi": "qms-domain-evaluation-v1",
+        "meta_domain": "options",
+        "meta_empirical_status": "NOT_ASSESSED_FOR_EXTENSION",
+        "meta_gate_phase": "FUTURE",
+        "meta_input_kind": "package",
+        "meta_optimization_modes": [],
+        "meta_optimization_schedules": [],
+        "meta_route_activated": false,
+        "meta_software_status": "FUTURE_ROUTE_ADMISSION"
+      },
+      "next_required_gate": "FUTURE_ROUTE_ADMISSION",
+      "route": "options"
+    },
+    {
+      "adapter_owner": null,
+      "coverage_review": "EXISTING_TEST_INVENTORY_NOT_REEXECUTED",
+      "diagnostic_account": null,
+      "discovery": {
+        "expected_output": "pd.Series scalar signal",
+        "final_engine": "Nautilus adapter",
+        "meta_adapter_abi": "qms-domain-evaluation-v1",
+        "meta_domain": "nautilus",
+        "meta_empirical_status": "NOT_ASSESSED_FOR_EXTENSION",
+        "meta_gate_phase": "FUTURE",
+        "meta_input_kind": "scalar_target",
+        "meta_optimization_modes": [],
+        "meta_optimization_schedules": [],
+        "meta_route_activated": false,
+        "meta_software_status": "FUTURE_ROUTE_ADMISSION",
+        "notes": "Reserved for future WFO parity validation, not routed by walk-forward today.",
+        "status": "reserved",
+        "target_mode": "nautilus_validation"
+      },
+      "existing_test_owners": [
+        "tests/meta_selection/test_e02_inventory.py::test_e02_t05_actual_dispatch_and_discovery_have_registered_or_pending_adapters",
+        "tests/meta_selection/test_e02_inventory.py::test_e02_t05_future_dispatch_omitted_from_matrix_cannot_escape_conformance"
+      ],
+      "final_account": null,
+      "financial_backend_scope": null,
+      "meta": {
+        "meta_adapter_abi": "qms-domain-evaluation-v1",
+        "meta_domain": "nautilus",
+        "meta_empirical_status": "NOT_ASSESSED_FOR_EXTENSION",
+        "meta_gate_phase": "FUTURE",
+        "meta_input_kind": "scalar_target",
+        "meta_optimization_modes": [],
+        "meta_optimization_schedules": [],
+        "meta_route_activated": false,
+        "meta_software_status": "FUTURE_ROUTE_ADMISSION"
+      },
+      "next_required_gate": "FUTURE_ROUTE_ADMISSION",
+      "route": "nautilus_validation"
+    }
+  ],
+  "schema": "quantbt-pre-e06-01-inventory-v1",
+  "source_and_test_sha256": {
+    "examples/wfo_meta_execution.py": "f247024c878c52cae16fee4685e41c417598a39a2cf942e9c113cd3d38568a6b",
+    "examples/wfo_meta_package.py": "484208ef1999267179745e5c46bead3e522a7c9aef49acc2693e6c33de925a28",
+    "examples/wfo_meta_portfolio.py": "84380639cb8fdd2290c5e2d7e9d77258c20e1ed9328d43de272b1eab1707216c",
+    "examples/wfo_meta_scalar.py": "e6e3807cad21ef0b71c22f653fcce613085f14e8c3b137ea0e71358a807756fc",
+    "src/quantbt/backends/native_wfo_public.py": "45f590fdd5004761a83a2f87080a1b374233164636e8c477d30087c575f2a0da",
+    "src/quantbt/core/delivery_lifecycle.py": "d312627bb67bfe346fd806e5301292e6f7d47d42e6c6772a8459e916df064017",
+    "src/quantbt/endpoint.py": "47e91585a8cd2d11a56d3351d27c475ca2aaffdbfc7866efe1c20de2457ed878",
+    "src/quantbt/metrics/performance.py": "152015d96b01021584422839b5f3fe70760efb9ec826dd3aebded557f2487095",
+    "src/quantbt/optimization/meta_selection/config.py": "58b7a04bdbd24a9ea15fcedd82ef628a8e5faa8b16501d21911de173b06f1264",
+    "src/quantbt/optimization/meta_selection/domains/execution.py": "bac75f0e5a05052557f87039561dd1052062d84c76c1d4866bfd507eab21eec9",
+    "src/quantbt/optimization/meta_selection/domains/package.py": "571845727b9066db756c3432c4ba1470d22dd83959256a419ee8ae673aee202a",
+    "src/quantbt/optimization/meta_selection/domains/package_contract.py": "94dd06890d18661ab7bf4e0d5619560ecdc39b09ab9221ffff03c6f46974d688",
+    "src/quantbt/optimization/meta_selection/domains/portfolio.py": "a9d75f29d220f570f4c824976805be4ec157b31f6197fc0d33fe73deac32c495",
+    "src/quantbt/optimization/meta_selection/domains/portfolio_contract.py": "a81f4805ec052fbf81f895971082c6fa3c56d52344b1f56d8d21fc93004b7a39",
+    "src/quantbt/optimization/meta_selection/domains/reactive.py": "7ecfb406b14a41079528bc46630f5d0fec194b3e02aced3017cd77174dea66b8",
+    "src/quantbt/optimization/meta_selection/domains/registry.py": "eee3507560a0013624218ad6726cc895e5b9b1e545946b0c0d24743f6b975f45",
+    "src/quantbt/optimization/meta_selection/domains/scalar.py": "489692d5f732e11489338365562176b969096c084af773175cdee549a5082026",
+    "src/quantbt/optimization/meta_selection/domains/scalar_contract.py": "984e0342dbe536954db12bcc3192a2f719c2e07c462a32432b519447b02ba547",
+    "src/quantbt/optimization/meta_selection/observer.py": "f99bacf83fd70e4e4b09e1ae1bd98fbdcb32d64ff23c67f72286b0bfa2887d87",
+    "src/quantbt/optimization/meta_selection/prepared.py": "a64aa15946e0f1c0823e2a34cb2ca3e9acbd8b0ce09d677ea6e362d9fc882e2e",
+    "src/quantbt/optimization/meta_selection/reactive.py": "f88ec8b20f4f894093eced576610f8a194ead797e3b3b827408d14668ad528e7",
+    "src/quantbt/optimization/meta_selection/reactive_transport.py": "d5771e46c5e20883d6a5bae1194adf17743b93576136ce352e370340e572104a",
+    "src/quantbt/optimization/meta_selection/records.py": "4ea85cb7aafe1691982f9515a7509327e21afa0938222a6210a878f9e5402e31",
+    "src/quantbt/walkforward.py": "5ca65d7d4956a2b63c1fd94edb8231baa3723e222d5a609e71233baac693bf6a",
+    "src/quantbt/wfo_execution.py": "200b5867cc8b0a1bb525aba0c6397a594a2ff4996f3ce382fe55b0ee28331331",
+    "tests/meta_selection/test_e02_inventory.py": "8a4beba44ae1856c97b6d14a7f1cac5ef51f1036e5926ba066506dba4c422877",
+    "tests/meta_selection/test_e03_scalar.py": "b2ea6aac3cbe13a231b111669e20c2ff05f538476433c2df2b1a71c4f0627b51",
+    "tests/meta_selection/test_e04_portfolio.py": "3c9f9f09addbb8613085bca2288e5b269477257ea0660b903b92331d19e1a8f2",
+    "tests/meta_selection/test_e05_package.py": "f7aafc4cf8c845d2702b419d70de017a54503bb75039b9b18111c869c60f5958",
+    "tests/meta_selection/test_execution_domain_accounting.py": "158696a78d36064674087f2b0d8d5259a1008dcb872ff593bd6c7cd02f097f6b",
+    "tests/meta_selection/test_execution_window_public.py": "0d8571dad974a6afb27e0cf0ca7c3c0e7a95dcad0679a095caef7945b21551d9",
+    "tests/meta_selection/test_g01_metric_compatibility.py": "c5d09a3b46e8876e7ec28fac99e740ab977ba46106bb57a140d36544224aa8ba",
+    "tests/meta_selection/test_local_reactive.py": "91b3e506b87b57408c26125de2cf428182a67206895b54fb2e5cbee26d24a8bc",
+    "tests/meta_selection/test_qms03_engine.py": "d265434abdba61059cf7ff42f97b72f7e50382e03f50b9e9166f5cbab24864ec",
+    "tests/meta_selection/test_qms05_public.py": "235602a9f4cdf43d5e302f629e9891d230407791c2a65e79b04fe8e450e9c078",
+    "tests/meta_selection/test_qms06_prepared.py": "73a9761278a16bfdb9ab473e6ed87e60f92cb099d94640c7ec50ef46934de05a"
+  }
+}

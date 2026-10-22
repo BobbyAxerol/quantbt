@@ -1,0 +1,220 @@
+{
+  "actual_archive_inspection_pending": true,
+  "all_financial_sources_unchanged_since_preparation": true,
+  "architecture": "FAIL_RETAINED_M5_12_ENTRY_ACTION",
+  "builds": 0,
+  "checks": [
+    {
+      "command": [
+        "/root/bobby/pool_alpha/quantbt/.venv/bin/python",
+        "-B",
+        "tools/check_endpoint_compatibility.py",
+        "--baseline",
+        "v1.1.1",
+        "--baseline",
+        "8f7df9d"
+      ],
+      "log": "upgrade/private/m5_12_preparation/attempt-01/terminal-api.log",
+      "name": "api",
+      "returncode": 0,
+      "sha256": "88877eb58ccfd6cd1f27037cc6c05b1bd2974411564abd9af99dcba8f2821b34"
+    },
+    {
+      "command": [
+        "/root/bobby/pool_alpha/quantbt/.venv/bin/python",
+        "-B",
+        "tools/generate_public_api_inventory.py",
+        "--check"
+      ],
+      "log": "upgrade/private/m5_12_preparation/attempt-01/terminal-generate_public_api_inventory.py.log",
+      "name": "generate_public_api_inventory.py",
+      "returncode": 0,
+      "sha256": "2324246c6cc998a0061ff0983d47dda881849f022cad1fd847fda780345e3c2c"
+    },
+    {
+      "command": [
+        "/root/bobby/pool_alpha/quantbt/.venv/bin/python",
+        "-B",
+        "tools/generate_product_contracts.py",
+        "--check"
+      ],
+      "log": "upgrade/private/m5_12_preparation/attempt-01/terminal-generate_product_contracts.py.log",
+      "name": "generate_product_contracts.py",
+      "returncode": 0,
+      "sha256": "ea0a2af6b879b1d1bf049c9e54c526efae6f910def72c1bf181324a1a498af1a"
+    },
+    {
+      "command": [
+        "/root/bobby/pool_alpha/quantbt/.venv/bin/python",
+        "-B",
+        "tools/generate_native_event_contracts.py",
+        "--check"
+      ],
+      "log": "upgrade/private/m5_12_preparation/attempt-01/terminal-generate_native_event_contracts.py.log",
+      "name": "generate_native_event_contracts.py",
+      "returncode": 0,
+      "sha256": "19581d3600fefc9401aeb5a332371339e574c5b7e56d5952a9e9579fb765778f"
+    },
+    {
+      "command": [
+        "/root/bobby/pool_alpha/quantbt/.venv/bin/python",
+        "-B",
+        "tools/check_canonical_source_layout.py",
+        "--check"
+      ],
+      "log": "upgrade/private/m5_12_preparation/attempt-01/terminal-check_canonical_source_layout.py.log",
+      "name": "check_canonical_source_layout.py",
+      "returncode": 0,
+      "sha256": "d9675f24c5acface2b947c98853b2947675fa4b4c61b13e63a5990f968ede95c"
+    },
+    {
+      "command": [
+        "/root/bobby/pool_alpha/quantbt/.venv/bin/python",
+        "-B",
+        "tools/certify_phase78_public_promotion.py",
+        "--check"
+      ],
+      "log": "upgrade/private/m5_12_preparation/attempt-01/terminal-certify_phase78_public_promotion.py.log",
+      "name": "certify_phase78_public_promotion.py",
+      "returncode": 0,
+      "sha256": "1f772b957404d4cc6dc73faf1d2ea6125100dbe69590ef274ea9e62624e2d892"
+    },
+    {
+      "command": [
+        "/root/bobby/pool_alpha/quantbt/.venv/bin/python",
+        "-B",
+        "tools/check_release_version.py"
+      ],
+      "log": "upgrade/private/m5_12_preparation/attempt-01/terminal-version.log",
+      "name": "version",
+      "returncode": 0,
+      "sha256": "c20613c465a0e157e504833c30753edf5002c484c80e833f6f458abecd3e6b8c"
+    },
+    {
+      "command": [
+        "/root/bobby/pool_alpha/quantbt/.venv/bin/python",
+        "-B",
+        "tools/check_module_architecture.py"
+      ],
+      "log": "upgrade/private/m5_12_preparation/attempt-01/terminal-architecture.log",
+      "name": "architecture",
+      "returncode": 1,
+      "sha256": "6d801ac7048e2dfbb063e1651f3c4922fa3f03491df873483b241959bcee582e"
+    },
+    {
+      "command": [
+        "/root/bobby/pool_alpha/quantbt/.venv/bin/python",
+        "-B",
+        "tools/check_benchmark_governance.py"
+      ],
+      "log": "upgrade/private/m5_12_preparation/attempt-01/terminal-benchmarks.log",
+      "name": "benchmarks",
+      "returncode": 0,
+      "sha256": "d95cde642ae11ceaa412885bc47ad2c105b3b25c05646082fe8434ed3d844b41"
+    },
+    {
+      "command": [
+        "/root/bobby/pool_alpha/quantbt/.venv/bin/python",
+        "-B",
+        "tools/check_docs_links.py",
+        "--check-anchors",
+        "--file",
+        "CHANGELOG.md",
+        "--file",
+        "README.md",
+        "--file",
+        "docs/README.md",
+        "--file",
+        "docs/architecture/public_api_inventory.md",
+        "--file",
+        "docs/diagnostics/REPORTING_COVERAGE_AND_HANDOFF.md",
+        "--file",
+        "docs/maintenance/M5_12_PREPARATION.md",
+        "--file",
+        "docs/meta_selection/RELEASE_HANDOFF.md",
+        "--file",
+        "docs/migration/native_release_handoff.md",
+        "--file",
+        "docs/mode5/M5_12_PREPARATION.md",
+        "--file",
+        "docs/native/install.md",
+        "--file",
+        "docs/release_packaging.md",
+        "--file",
+        "docs/testpypi_release_checklist.md",
+        "--file",
+        "handoff/WFO_META_CURRENT.md",
+        "--file",
+        "upgrade/implement.md"
+      ],
+      "log": "upgrade/private/m5_12_preparation/attempt-01/terminal-anchors.log",
+      "name": "anchors",
+      "returncode": 0,
+      "sha256": "ca65673fe8e5ae9128f3a0a12340394b038214ee063c2dd91edfa61638439868"
+    },
+    {
+      "command": [
+        "/root/bobby/pool_alpha/quantbt/.venv/bin/python",
+        "-B",
+        "tools/check_docs_links.py"
+      ],
+      "log": "upgrade/private/m5_12_preparation/attempt-01/terminal-links.log",
+      "name": "links",
+      "returncode": 0,
+      "sha256": "ca65673fe8e5ae9128f3a0a12340394b038214ee063c2dd91edfa61638439868"
+    },
+    {
+      "command": [
+        "/root/bobby/pool_alpha/quantbt/.venv/bin/python",
+        "-B",
+        "tools/scan_public_secrets.py",
+        "--root",
+        "."
+      ],
+      "log": "upgrade/private/m5_12_preparation/attempt-01/terminal-secrets.log",
+      "name": "secrets",
+      "returncode": 0,
+      "sha256": "2b0eeb14fe85f4d0dd0af704818c04a479a7005c468af406d0a568fdf522d1f6"
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "log": "upgrade/private/m5_12_preparation/attempt-01/terminal-whitespace.log",
+      "name": "whitespace",
+      "returncode": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "ci_ready": false,
+  "cleanup_receipt": {
+    "path": "docs/maintenance/evidence/m5-12-preparation.json",
+    "sha256": "84281785f569e25e010fd6aa5f9cbbf522bba2c2b31b2801e0dc09e38a4d3a1c"
+  },
+  "current_remote_qualified": false,
+  "final_artifacts_qualified": false,
+  "financial_runs": 0,
+  "generated_metadata_and_api_valid": true,
+  "installs": 0,
+  "original_owner_work_preserved": true,
+  "private_sources_ignored_untracked": true,
+  "protected_prior_hashes_verified": true,
+  "public_pair_qualified": false,
+  "remote_actions": 0,
+  "runtime_commit": "70fe9f7c9b14469e6ea935e75f180f26ca1c175e",
+  "schema": "quantbt.m5-12.terminal_preparation.v1",
+  "source_metadata_amendments": [
+    {
+      "after_sha256": "dc348140142390a81f078d4dcf9562ad032d4a60f99e106e7d63b041f15c439f",
+      "before_sha256": "522e7ff87b95e5dba73369f4a0b7395e094d271443c72a31e05be3377a709103",
+      "financial_source_changed": false,
+      "path": "contracts/generated_public_api_inventory.json"
+    }
+  ],
+  "static_exact_private_copies_in_package_source": 0,
+  "static_test_pass_count": 198,
+  "status": "PREPARATION_COMPLETE_WITH_RECORDED_CI_BLOCKERS",
+  "workflow_files_unchanged": true
+}

@@ -4,6 +4,80 @@ All notable changes to `quantbt-engine` are documented here.
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-10-23
+
+### Core 1.2.0 / Native 0.4.3
+
+- Retargeted the unreleased core candidate from1.1.2to1.2.0 to reflect the
+  diagnostics, Mode4/Mode5, sampler/meta, reporting and account upgrade below.
+  Historical1.1.2receipts retain their original scope; they are not renamed
+  release evidence. Native version remains0.4.3; generated product metadata
+  follows the new pair, requiring fresh matching native artifacts.
+- Reduced full Reporting V1 Python scalar-dispatch and metadata overhead;
+  closed-ledger reason counting uses one pass instead of one scan per reason.
+  Exact before/after output, snapshot/identity and undefined-policy parity are
+  tested. Reporting formulas, financial kernels and WFO selection are unchanged;
+  timing gains are workload-specific and do not imply a universal speedup.
+
+- Added opt-in `reporting=ReportingRequest(...)` on completed endpoint/result
+  reports and quick plots. Account-period, execution, closed-trade/action and
+  drawdown episode output has explicit baseline, frequency, currency, coverage
+  and unavailable policies. This opt-in does not alter execution or WFO/meta
+  objectives; separate account repairs below intentionally correct financial
+  edge cases. Read [Reporting V1](docs/metrics/PUBLIC_REPORTING.md).
+- Reduced optional reporting copies and duplicate hashing using immutable
+  bytes-owned snapshots, a prepared boolean mask and one report/plot snapshot.
+  Cache hits still rehash mutable completed input; formulas, exact identities,
+  requested episode detail, legacy reports and financial/WFO metrics are unchanged.
+- Fixed immutable reporting snapshot reconstruction after copy/deepcopy and
+  pickle, including nested execution paths and drawdown episodes. Constructors
+  revalidate storage and recompute hashes; changed observations cannot reuse a
+  saved identity. Python reporting scans use zero-copy native scalar access
+  with preserved numerical overflow policies and exact differential coverage.
+
+- Added opt-in Mode 4 / per-fold causal meta selection and a shared sampler
+  bridge for legacy TPE, grouped multivariate TPE, CMA-ES and fixed-space Sobol.
+- Qualified causal history, ridge artifacts, reference/prepared selection
+  parity, exact reusable calendar/market witnesses, observed thread telemetry
+  and bounded sequential W3 meta on the original native accounting pass.
+- Enabled the already-qualified QMS native exports in default Cargo builds;
+  Linux core dependency is exactly `quantbt-native==0.4.3`. The ABI remains
+  versioned; later ACC-01 changes affect both Python and Rust financial source
+  and require fresh compatible artifacts. Meta remains disabled unless requested.
+- Earlier QMS wheel/sdist, installed-W3 and six-row Ubuntu receipts retain
+  their historical source scope. They do not certify the later Mode 5,
+  reporting and account repairs. Final M5-12 artifacts, remote qualification
+  and public consumers remain separate gates.
+- Added diagnostics-first opt-in Mode 5 calibration with versioned objectives,
+  selectors, diagnostic evidence/rights, frozen plans, explanation and winner
+  qualification. Shared diagnostics/reporting include Mode 4 fold consistency,
+  R/Q, decision coverage and explicit cross-mode researcher handoff. No automatic
+  sampler/selector router or universal economic improvement is claimed.
+- Extended the stable endpoint API additively: optional `execution_endpoint`
+  on `walk_forward`, keyword-only `meta_history` on `backtest`, optional
+  `reporting` on completed reports/plots, and `research_report(...)`.
+- Corrected current-capability account/configuration behavior: financial clocks,
+  funding interval coverage, contract multipliers, risk-reducing admission,
+  constraints, invalid inputs, actual attribution and reporting horizon/time
+  handling. Unsupported non-default options fail explicitly; gross-cross/netting
+  is not hedge inventory or isolated liquidation. See
+  [ACC-01 migration](docs/portfolio_review/ACC01_CONFIGURATION_AND_MIGRATION.md).
+- Refreshed the generated root API inventory to 527 exports (11 additions to
+  the stale generated list, no removals), with an exact metadata-only amendment
+  that preserves the separate financial source qualification and historical receipts.
+- Extracted cold option validation and portfolio report helpers, preserving
+  endpoint/private aliases, moved function bodies and retained engine code.
+  Exact source qualification is separate from historical financial-invariance
+  receipts and still does not certify installed artifacts.
+- Added maintained installed-consumer/CI wiring for the Mode 5,
+  winner/donor, reporting and account changes. Execution on final wheel/sdist
+  artifacts and remote/public qualification remain separate gates.
+- Aligned tag/release regression with the qualified CI native-wheel identity
+  pin and isolated host-PID tests. Release publication is native-first and
+  requires its own artifact and public-consumer gates; this changelog is not
+  a publication receipt or a new scientific acceptance claim. See the
+  [release checklist](docs/testpypi_release_checklist.md).
+
 ## [1.1.1]
 
 ### Changed

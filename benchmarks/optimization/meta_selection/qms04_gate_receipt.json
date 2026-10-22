@@ -1,0 +1,30 @@
+{
+  "G4-OWNER": "PENDING",
+  "advancement": "QMS-05 requires separate owner approval",
+  "empirical": "NOT_ASSESSED",
+  "entry_commit": "ac3bd15",
+  "evidence_sha256": "18212ca2f37f0252d6587714356ecd0d1f65bbfab1e32e3bdd1ea989c6a91e00",
+  "executed_test_groups": {
+    "Q4-T01": 5,
+    "Q4-T02": 2,
+    "Q4-T03": 3,
+    "Q4-T04": 6,
+    "Q4-T05": 3,
+    "Q4-T06": 11,
+    "Q4-T07": 2,
+    "Q4-T08": 9
+  },
+  "failures": 0,
+  "junit_sha256": "bfbaf6248695595b55a364ab7c0c18cde7f3b14b00f10dee75650548228752c6",
+  "performance": "MEASURED_BLOCKS_NO_PUBLIC_PROMOTION",
+  "schema": "qms04-gate-receipt-v1",
+  "skips": 0,
+  "technical": {
+    "G4-MATH": "PASS",
+    "G4-POLICY": "PASS",
+    "G4-RESOURCE": "PASS",
+    "G4-SERIALIZATION": "PASS",
+    "G4-SUPPORT": "PASS"
+  },
+  "tests": 352
+}

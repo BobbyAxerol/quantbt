@@ -636,6 +636,13 @@ một phần IS score để lấy stability.
 
 ## 14. Mode 5: `mode_5_full_robust`
 
+This section describes the preserved legacy path. The opt-in M5-10
+diagnostics-first path is documented separately in
+[Public Diagnostics-First Mode 5](../docs/mode5/PUBLIC_CALIBRATION_V1.md): sealed
+recipes, explicit measurement units, sampler lineage and original-account
+selected audit. Neither route makes calibration performance independent OOS
+proof or automatic deployment permission.
+
 Mode 5 là full-sample robust calibration, không phải WFO validation. QuantBT tạo
 một fold duy nhất:
 
@@ -786,3 +793,143 @@ per-fold schedule, W1/W2 phải declare
 `causal_cache_contract="causal_parameter_independent_v1"`, nên không biến cache
 của alpha thành một claim anti-leakage tự động. Xem
 [Public prepared-native WFO scoring](../docs/native_prepared_wfo_public.md).
+
+## 17. QMS-05: Causal Meta-Selection (Feature Branch)
+
+Optional meta-selection is implemented for Mode 4 `per_fold_causal` on the
+scalar original-result route. It is not a sixth WFO mode or a new account.
+Native search/plateau selection still uses only the current IS. Final active
+selection additionally fits compatible **past matured forward** outcomes;
+the current outer OOS is unavailable until after decision seal.
+
+For historical origin k and its explicit native anchor a, raw Sharpe gives
+
+\[
+Y_{k\theta}=(I_{k\theta}-O_{k\theta})-(I_{ka}-O_{ka}).
+\]
+
+Origin-sum Ridge predicts signed relative decay from a shared, frozen descriptor
+contrast. Each origin's non-anchor labels total one unit of fit weight. Current
+inference uses only current IS descriptors, with
+
+\[
+\widehat Q_{t\theta}=I_{t\theta}-I_{ta}-\widehat Y_{t\theta},
+\qquad
+\theta_t^*=\operatorname*{arg\,min}_{\theta:\widehat Q_{t\theta}\ge-0.10}
+\widehat Y_{t\theta}.
+\]
+
+This is not an absolute-decay objective or a statistical noninferiority test.
+Default regularizer is 10 and minimum valid support is twelve matured origins.
+Cold/OOD fallback retains native, without inventing a learned decision.
+Shadow proposes but executes native; active actually uses selected fold params.
+Even a learned active choice of the anchor is past-forward-adaptive and is not
+labeled stock IS-only. Observer publication can affect only later eligible
+snapshots, never retroactively change earlier fold decisions.
+
+OOS targets remain stitched into one existing continuous account; reset-flat
+counterfactual scores are not stitched equities. Read
+[full mathematics/artifacts](../docs/meta_selection/MODEL.md) and
+[config, clocks, scopes and public metadata](../docs/meta_selection/INTEGRATION.md).
+This feature-branch addition is not yet in published core 1.1.1.
+
+For current local scope, use the [route review](../docs/meta_selection/CURRENT_ROUTE_REVIEW.md),
+not this historical QMS-05 paragraph alone. Later approved adapters include
+original shared portfolio/package accounts and typed intrabar/callback/command/
+pre-expiry-delivery windows. Nested scalar Mode 1 has its own
+[inner-validation contract](../docs/meta_selection/NESTED_MODE1.md), without
+replacing the formulas above. Final-source installed qualification is tracked
+in [PRE-E06-06](../docs/meta_selection/PRE_E06_06_REPORT.md); this does not certify
+economic improvement or activate unsupported methodology/domain combinations.
+
+QMS-06 preserves this mathematics through existing prepared scalar W0/W1/W2
+routes using original native sample/variance/first-mark evidence, not a replay
+or placeholder-volatility inference. Same-close timing, fresh diagnostic accounts
+and final boundary carry stay unchanged. [Capability and parity](../docs/meta_selection/QMS06_REPORT.md)
+are distinct from public-wheel/owner acceptance. [Portable handoff](../docs/meta_selection/HANDOFF.md)
+retains full model/schema/history/clocks; it does not authorize live deployment.
+
+### QMS-08: Outcome And Acceptance Interpretation
+
+For an independently valid native/meta forward pair, report signed decay:
+
+\[
+R_k = D_{n,k} - D_{m,k}
+    = (I_{n,k} - I_{m,k}) + Q_k,
+\qquad Q_k = O_{m,k} - O_{n,k}.
+\]
+
+Positive \(R_k\) from lower IS alone does not demonstrate improved forward
+retention. Preserve zero Sharpe only when sample variance makes it a valid
+metric; no-trade, zero-variance, censored and failed windows remain typed and
+retain their calendar. Mean paired-valid fold decay is a different estimand
+from continuous-account Sharpe. Do not compress dates, treat overlapping folds
+as independent observations, or fabricate confidence intervals from a different
+daily-return estimand.
+
+Software qualification and signed-decay arithmetic tests are not an empirical
+study. Real-market acceptance needs registered data/economics/samplers and
+>=128 attempted trials per cutoff, >=12 matured origins and >=12 paired-valid
+locked evaluation folds, with separate development when choosing recipes.
+No such study is claimed by the QMS-08 synthetic/installed-consumer fixtures.
+Read [usage and clocks](../docs/meta_selection/USAGE.md) and
+[qualification/registration](../docs/meta_selection/QUALIFICATION.md).
+
+### Execution Route Amendment
+
+The local [execution-route extension](../docs/meta_selection/EXECUTION_WFO.md)
+uses the same Mode 4 causal selection and original raw IS/forward observations
+for intrabar intents, callback factories, command tapes and bounded pre-expiry
+delivery/roll. Diagnostics reset flat; the final account executes stitched
+payloads continuously, not concatenated fold equities. Meta Rust numerics do
+not convert arbitrary Python callbacks into Rust-owned strategy code. Synthetic
+route tests do not certify economic improvement or exchange cash settlement.
+
+### QMS-C04: Exact Owned Search Continuation
+
+The opt-in [owned journal session](../docs/meta_selection/EXACT_CONTINUATION.md)
+preserves the same IS study's ordered proposals, pruning, constraints and
+objective observations. Restore reconstructs the pinned sampler state through
+public API events and verifies exact candidate/state witnesses without rerunning
+financial execution. Seed reset or database trial reload alone is not exact.
+
+Market/calendar/economics/objective/schedule and meta snapshot/basis/task identity
+must match the caller's original reviewed run manifest and cutoff. Old objectives
+are not imported into a new IS window, and labels that mature after the locked
+snapshot cannot join it during restore. Changing those identities starts a new
+study; authorized params-only warm starts must be rescored there.
+
+This utility does not change WFO methodology, causal permissions or stitching,
+activate extra meta modes, serialize account/strategy/model state, or add a public
+endpoint resume flag. It has a completed-trial barrier and version-pinned codecs;
+its software exactness is not evidence of better OOS decay.
+
+### QMS-E03: Sizing-Specific Meta Observations
+
+The [scalar amendment](../docs/meta_selection/DOMAIN_ADAPTER_CONTRACT.md#e03-scalar-amendment)
+extends software opt-ins to notional/unit and structural ladder, plus original
+signal-to-rebalance event execution. It changes neither Mode 4's data-access
+policy nor Ridge labels. Each target/backend has its original reset diagnostic
+account and compatible family; different sizing/timing is not shared history.
+One final original account executes stitched targets, not concatenated fold
+equities. The [E03 report](../docs/meta_selection/QMSE03_REPORT.md) separates
+software validity, signed decay $R$, forward $Q$, uncertainty and owner promotion.
+Simulation evidence for a ladder is not proof for a private real DCA alpha.
+The original E03 study has no registered economic gate PASS, despite positive
+mean decay reduction. Its historical prepared-unit post-liquidation metric
+parity failure concerned zero-base daily sample inclusion and downstream
+search, not just equity. The narrow compatibility defect was subsequently
+closed under [E03-G01](../docs/meta_selection/QMSE03_G01_CLOSURE.md); original
+failed evidence and economic outcomes remain unchanged. The repair does not
+authorize changes to Ridge labels, censoring or the scientific estimator.
+
+## Shared Cold Research Reports
+
+The additive [pre-search](../docs/diagnostics/PRESEARCH_RESEARCHER_REPORT.md)
+and [completed decision](../docs/diagnostics/FOLD_DECISION_REPORTS.md) contracts
+retain original numeric owners, permissions and masks. The endpoint/result
+`research_report(...)` accessor reads retained evidence only. Mode 4 R/Q/IS,
+same-anchor/fallback cohorts and final continuous accounts stay distinct;
+prepared W3 stays reset-flat and Mode 5 stays full-development, not independent
+OOS. Missing probe/campaign/return evidence is not inferred from Sharpe/equity.
+See [source coverage and M5-12 handoff](../docs/diagnostics/REPORTING_COVERAGE_AND_HANDOFF.md).

@@ -1,0 +1,1407 @@
+{
+  "after_source": "70fe9f7c9b14469e6ea935e75f180f26ca1c175e",
+  "artifacts": {
+    "after": {
+      "consumer": "process-local extraction, not clean-install package qualification",
+      "extension": "upgrade/private/acc01/attempt-01/scratch/native/_quantbt_native/_quantbt_native.cpython-312-x86_64-linux-gnu.so",
+      "extension_sha256": "52e1c92ac98faff5da1728f46b1d8d8c74fb7513f0285c89c13d0e4380474461",
+      "primary_environment_unmodified": true,
+      "wheel": "upgrade/private/acc01/attempt-01/artifacts/quantbt_native-0.4.3-cp312-cp312-manylinux_2_34_x86_64.whl",
+      "wheel_sha256": "d41555ce914b4d46e611913bd4b9a1a5daeae7acb25b69532260a24dd8f5805f"
+    },
+    "before": {
+      "extension": "upgrade/private/acc01/attempt-01/scratch/native-before/_quantbt_native/_quantbt_native.cpython-312-x86_64-linux-gnu.so",
+      "extension_sha256": "9b7812525b008ec361919c3dd53ac0972b0b2f7830c8d95c090be6d318b688af",
+      "wheel": "upgrade/private/portfolio_account_repair/attempt-01/artifacts/quantbt_native-0.4.3-cp312-cp312-manylinux_2_34_x86_64.whl",
+      "wheel_sha256": "7a7ed7fc2fadcc905dc8859d19c15518aad9827e485923ff73f8544dda54b3d4"
+    }
+  },
+  "before_source": "8f7df9dc2ba6656529b7cbae3db9893451d89cc8",
+  "boundaries": {
+    "after": {
+      "cells": [
+        {
+          "cell": "public_target_2000_with_legacy_report",
+          "fresh_first_warmup_seconds": 0.5164151568897069,
+          "max_seconds": 0.016137785045430064,
+          "median_seconds": 0.01202644594013691,
+          "min_seconds": 0.011453500017523766,
+          "result": {
+            "fees": 7.960260480744221,
+            "final_equity": 19992.41128912961,
+            "total_return_pct": -0.0379435543519503
+          },
+          "seconds": [
+            0.01202644594013691,
+            0.011833790922537446,
+            0.011453500017523766,
+            0.011689927894622087,
+            0.016137785045430064,
+            0.013085659826174378,
+            0.013928367989137769
+          ],
+          "warmed_rss_bytes": [
+            230993920,
+            230993920,
+            230993920,
+            230993920,
+            230993920,
+            230993920,
+            230993920,
+            230993920
+          ]
+        },
+        {
+          "cell": "prepared_rust_target_2000_profile_0_with_cold_dict",
+          "fresh_first_warmup_seconds": 0.0006419438868761063,
+          "max_seconds": 0.0008675567805767059,
+          "median_seconds": 0.0005788770504295826,
+          "min_seconds": 0.0004053991287946701,
+          "result": {
+            "attribution_values": 0,
+            "fees": 7.96026048074422,
+            "final_equity": 19992.41128912961,
+            "output_bytes": 8
+          },
+          "seconds": [
+            0.0004053991287946701,
+            0.0005718129687011242,
+            0.0005788770504295826,
+            0.0008675567805767059,
+            0.0005568191409111023,
+            0.0006481599994003773,
+            0.0008366219699382782
+          ],
+          "warmed_rss_bytes": [
+            232976384,
+            232976384,
+            232976384,
+            232976384,
+            232976384,
+            232976384,
+            232976384,
+            232976384
+          ]
+        },
+        {
+          "cell": "prepared_rust_target_2000_profile_1_with_cold_dict",
+          "fresh_first_warmup_seconds": 0.0008534691296517849,
+          "max_seconds": 0.0006701431702822447,
+          "median_seconds": 0.0006506298668682575,
+          "min_seconds": 0.00048041902482509613,
+          "result": {
+            "attribution_values": 0,
+            "fees": 7.96026048074422,
+            "final_equity": 19992.41128912961,
+            "output_bytes": 144008
+          },
+          "seconds": [
+            0.00048041902482509613,
+            0.0006325459107756615,
+            0.000625937944278121,
+            0.0006506298668682575,
+            0.0006572969723492861,
+            0.0006701431702822447,
+            0.0006544739007949829
+          ],
+          "warmed_rss_bytes": [
+            232976384,
+            232976384,
+            232976384,
+            232976384,
+            232976384,
+            232976384,
+            232976384,
+            232976384
+          ]
+        },
+        {
+          "cell": "prepared_rust_target_2000_profile_2_with_cold_dict",
+          "fresh_first_warmup_seconds": 0.0008587560150772333,
+          "max_seconds": 0.0007409218233078718,
+          "median_seconds": 0.0007051120046526194,
+          "min_seconds": 0.0005004669073969126,
+          "result": {
+            "attribution_values": 8000,
+            "fees": 7.96026048074422,
+            "final_equity": 19992.41128912961,
+            "output_bytes": 225608
+          },
+          "seconds": [
+            0.0005004669073969126,
+            0.0007051120046526194,
+            0.000719006871804595,
+            0.0006712439935654402,
+            0.0007409218233078718,
+            0.0006846061442047358,
+            0.0007242329884320498
+          ],
+          "warmed_rss_bytes": [
+            232976384,
+            232976384,
+            232976384,
+            232976384,
+            232976384,
+            232976384,
+            232976384,
+            232976384
+          ]
+        },
+        {
+          "cell": "option_short_wallet_execution_and_reporting",
+          "fresh_first_warmup_seconds": 0.05227700318209827,
+          "max_seconds": 0.048072726000100374,
+          "median_seconds": 0.04209445393644273,
+          "min_seconds": 0.04036935302428901,
+          "result": {
+            "equity_rows": 2,
+            "fee_series_total": 0.0,
+            "fill_count": 1,
+            "final_equity": 19950.0
+          },
+          "seconds": [
+            0.04528586706146598,
+            0.048072726000100374,
+            0.04209445393644273,
+            0.040422363905236125,
+            0.04686830495484173,
+            0.04036935302428901,
+            0.04065567092038691
+          ],
+          "warmed_rss_bytes": [
+            234094592,
+            234094592,
+            234094592,
+            234094592,
+            234094592,
+            234094592,
+            234094592,
+            234094592
+          ]
+        }
+      ],
+      "financial_controls_per_cell": 9,
+      "optimizer_runs": 0,
+      "peak_rss_kib": 228608,
+      "primary_environment_replaced": false,
+      "repeats": 7,
+      "source": "src",
+      "warmups": 2
+    },
+    "before": {
+      "cells": [
+        {
+          "cell": "public_target_2000_with_legacy_report",
+          "fresh_first_warmup_seconds": 2.9906473411247134,
+          "max_seconds": 0.014501487836241722,
+          "median_seconds": 0.012049851007759571,
+          "min_seconds": 0.011244677007198334,
+          "result": {
+            "fees": 7.960260480744221,
+            "final_equity": 19992.41128912961,
+            "total_return_pct": -0.0379435543519503
+          },
+          "seconds": [
+            0.011244677007198334,
+            0.012128822039812803,
+            0.011751321842893958,
+            0.012049851007759571,
+            0.01285098702646792,
+            0.014501487836241722,
+            0.011594870127737522
+          ],
+          "warmed_rss_bytes": [
+            261459968,
+            261459968,
+            261459968,
+            261459968,
+            261459968,
+            261459968,
+            261459968,
+            261459968
+          ]
+        },
+        {
+          "cell": "prepared_rust_target_2000_profile_0_with_cold_dict",
+          "fresh_first_warmup_seconds": 0.0006404570303857327,
+          "max_seconds": 0.0006363589782267809,
+          "median_seconds": 0.00057180505245924,
+          "min_seconds": 0.00046022795140743256,
+          "result": {
+            "attribution_values": 0,
+            "fees": 7.96026048074422,
+            "final_equity": 19992.41128912961,
+            "output_bytes": 8
+          },
+          "seconds": [
+            0.00046022795140743256,
+            0.0005554079543799162,
+            0.0006363589782267809,
+            0.0005745661910623312,
+            0.0005467890296131372,
+            0.0005978469271212816,
+            0.00057180505245924
+          ],
+          "warmed_rss_bytes": [
+            261779456,
+            261779456,
+            261779456,
+            261779456,
+            261779456,
+            261779456,
+            261779456,
+            261779456
+          ]
+        },
+        {
+          "cell": "prepared_rust_target_2000_profile_1_with_cold_dict",
+          "fresh_first_warmup_seconds": 0.0008399339858442545,
+          "max_seconds": 0.0006520699243992567,
+          "median_seconds": 0.0006341729313135147,
+          "min_seconds": 0.0004367569927126169,
+          "result": {
+            "attribution_values": 0,
+            "fees": 7.96026048074422,
+            "final_equity": 19992.41128912961,
+            "output_bytes": 144008
+          },
+          "seconds": [
+            0.0004367569927126169,
+            0.0006509891245514154,
+            0.0006249330472201109,
+            0.0006252860184758902,
+            0.0006518659647554159,
+            0.0006341729313135147,
+            0.0006520699243992567
+          ],
+          "warmed_rss_bytes": [
+            261779456,
+            261779456,
+            261779456,
+            261779456,
+            261779456,
+            261779456,
+            261779456,
+            261779456
+          ]
+        },
+        {
+          "cell": "prepared_rust_target_2000_profile_2_with_cold_dict",
+          "fresh_first_warmup_seconds": 0.0009011682122945786,
+          "max_seconds": 0.0008193340618163347,
+          "median_seconds": 0.0007655930239707232,
+          "min_seconds": 0.0005252799019217491,
+          "result": {
+            "attribution_values": 0,
+            "fees": 7.96026048074422,
+            "final_equity": 19992.41128912961,
+            "output_bytes": 161608
+          },
+          "seconds": [
+            0.0005252799019217491,
+            0.0007940859068185091,
+            0.0008193340618163347,
+            0.0007655930239707232,
+            0.0007794378325343132,
+            0.0007032421417534351,
+            0.0007578569930046797
+          ],
+          "warmed_rss_bytes": [
+            261779456,
+            261779456,
+            261779456,
+            261779456,
+            261779456,
+            261779456,
+            261779456,
+            261779456
+          ]
+        },
+        {
+          "cell": "option_short_wallet_execution_and_reporting",
+          "fresh_first_warmup_seconds": 0.039760810090228915,
+          "max_seconds": 0.039018230978399515,
+          "median_seconds": 0.037561595905572176,
+          "min_seconds": 0.03605948481708765,
+          "result": {
+            "equity_rows": 3,
+            "fee_series_total": 0.0,
+            "fill_count": 1,
+            "final_equity": 19950.0
+          },
+          "seconds": [
+            0.037561595905572176,
+            0.03605948481708765,
+            0.03867438598535955,
+            0.03633199306204915,
+            0.036828548880293965,
+            0.03841730603016913,
+            0.039018230978399515
+          ],
+          "warmed_rss_bytes": [
+            264069120,
+            264069120,
+            264069120,
+            264069120,
+            264069120,
+            264069120,
+            264069120,
+            264069120
+          ]
+        }
+      ],
+      "financial_controls_per_cell": 9,
+      "optimizer_runs": 0,
+      "peak_rss_kib": 257880,
+      "primary_environment_replaced": false,
+      "repeats": 7,
+      "source": "upgrade/private/acc01/attempt-01/scratch/baseline/src",
+      "warmups": 2
+    }
+  },
+  "investigation_summary": [
+    {
+      "cell": "option_short_wallet_execution_and_reporting",
+      "financial_totals_identical": true,
+      "median_seconds": {
+        "after": 0.04033073107711971,
+        "before": 0.037779459496960044
+      },
+      "observed_range_seconds": {
+        "after": [
+          0.03856312111020088,
+          0.05255507491528988
+        ],
+        "before": [
+          0.03594664903357625,
+          0.052305629942566156
+        ]
+      },
+      "ratio_after_before": 1.0675306532737705
+    },
+    {
+      "cell": "rust_basis_2000_with_leg_report",
+      "financial_totals_identical": true,
+      "median_seconds": {
+        "after": 0.26113893499132246,
+        "before": 0.36226346355397254
+      },
+      "observed_range_seconds": {
+        "after": [
+          0.23417421919293702,
+          0.3323800549842417
+        ],
+        "before": [
+          0.3380087160039693,
+          0.4479850619100034
+        ]
+      },
+      "ratio_after_before": 0.720853636271868
+    }
+  ],
+  "no_universal_speed_or_memory_claim": true,
+  "option_package_investigation": {
+    "after-a": {
+      "cells": [
+        {
+          "cell": "option_short_wallet_execution_and_reporting",
+          "fees": 0.0,
+          "final_equity": 19950.0,
+          "funding": 0.0,
+          "leg_rows": 0,
+          "median_seconds": 0.04032064904458821,
+          "option_validation_calls": [
+            {
+              "calls": 1,
+              "cumulative_seconds": 5.6030000000000004e-05,
+              "function": "clone",
+              "own_seconds": 1.3506e-05
+            },
+            {
+              "calls": 58,
+              "cumulative_seconds": 0.000250364,
+              "function": "conversion_rate",
+              "own_seconds": 0.000160853
+            },
+            {
+              "calls": 17,
+              "cumulative_seconds": 6.6739e-05,
+              "function": "currency_amounts",
+              "own_seconds": 4.3871e-05
+            },
+            {
+              "calls": 280,
+              "cumulative_seconds": 0.000252833,
+              "function": "finite_number",
+              "own_seconds": 0.00019794000000000002
+            }
+          ],
+          "profile_cumulative": "         68070 function calls (66807 primitive calls) in 0.084 seconds\n\n   Ordered by: cumulative time\n   List reduced from 1013 to 30 due to restriction <30>\n\n   ncalls  tottime  percall  cumtime  percall filename:lineno(function)\n        1    0.000    0.000    0.085    0.085 /root/bobby/pool_alpha/quantbt/upgrade/private/acc01/attempt-01/option_package_probe.py:32(option)\n        1    0.000    0.000    0.084    0.084 /root/bobby/pool_alpha/quantbt/src/quantbt/backends/native_option.py:166(run)\n        1    0.000    0.000    0.035    0.035 /root/bobby/pool_alpha/quantbt/src/quantbt/options/tape.py:118(prepare_option_tape)\n        1    0.000    0.000    0.029    0.029 /root/bobby/pool_alpha/quantbt/src/quantbt/options/data.py:67(validate_option_chain_frame)\n        1    0.000    0.000    0.023    0.023 /root/bobby/pool_alpha/quantbt/src/quantbt/options/reporting.py:46(build_option_result)\n       19    0.000    0.000    0.020    0.001 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/frame.py:698(__init__)\n       52    0.000    0.000    0.013    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/frame.py:4282(__setitem__)\n       52    0.000    0.000    0.013    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/frame.py:4525(_set_item)\n        1    0.000    0.000    0.012    0.012 /root/bobby/pool_alpha/quantbt/src/quantbt/backends/native_option.py:835(_admit_option_package)\n       19    0.000    0.000    0.011    0.001 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/internals/construction.py:96(arrays_to_mgr)\n        1    0.000    0.000    0.011    0.011 /root/bobby/pool_alpha/quantbt/src/quantbt/options/data.py:153(_coerce_float)\n       52    0.000    0.000    0.010    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/frame.py:4492(_set_item_mgr)\n        1    0.000    0.000    0.010    0.010 /root/bobby/pool_alpha/quantbt/src/quantbt/backends/native_option.py:970(_annotate_option_package_result)\n      295    0.003    0.000    0.008    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/construction.py:517(sanitize_array)\n        2    0.000    0.000    0.008    0.004 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/frame.py:1568(itertuples)\n    71/68    0.001    0.000    0.007    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/series.py:392(__init__)\n        5    0.000    0.000    0.007    0.001 /root/bobby/pool_alpha/quantbt/src/quantbt/backends/native_option.py:758(_margin_at_snapshot)\n14360/14305    0.004    0.000    0.007    0.000 {built-in method builtins.isinstance}\n       57    0.000    0.000    0.007    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/indexing.py:1177(__getitem__)\n        5    0.000    0.000    0.007    0.001 /root/bobby/pool_alpha/quantbt/src/quantbt/options/margin.py:107(calculate_option_margin)\n        6    0.000    0.000    0.006    0.001 {method 'extend' of 'list' objects}\n       53    0.000    0.000    0.006    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/frame.py:1639(<genexpr>)\n        1    0.000    0.000    0.006    0.006 /root/bobby/pool_alpha/quantbt/src/quantbt/options/execution.py:131(execute_option_package)\n      144    0.000    0.000    0.006    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/frame.py:3994(_ixs)\n        1    0.000    0.000    0.006    0.006 /root/bobby/pool_alpha/quantbt/src/quantbt/options/execution.py:161(_execute_atomic_all_or_none)\n       30    0.000    0.000    0.006    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/generic.py:6485(astype)\n        1    0.000    0.000    0.006    0.006 /root/bobby/pool_alpha/quantbt/src/quantbt/options/execution.py:449(_final_result)\n       19    0.000    0.000    0.006    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/internals/managers.py:2140(create_block_manager_from_column_arrays)\n        4    0.000    0.000    0.006    0.001 /root/bobby/pool_alpha/quantbt/src/quantbt/backends/native_option.py:794(_record_margin_state)\n       51    0.000    0.000    0.005    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/indexing.py:1690(_getitem_tuple)\n\n\n",
+          "seconds": [
+            0.04294805810786784,
+            0.047147477976977825,
+            0.03998359013348818,
+            0.039507945999503136,
+            0.04034081310965121,
+            0.03856312111020088,
+            0.04032064904458821
+          ]
+        },
+        {
+          "cell": "rust_basis_2000_with_leg_report",
+          "fees": 80.399917505878,
+          "final_equity": 19929.599075464394,
+          "funding": -10.000019016513964,
+          "leg_rows": 4000,
+          "median_seconds": 0.262621687958017,
+          "option_validation_calls": [],
+          "profile_cumulative": "         1037045 function calls (1036264 primitive calls) in 0.678 seconds\n\n   Ordered by: cumulative time\n   List reduced from 1129 to 30 due to restriction <30>\n\n   ncalls  tottime  percall  cumtime  percall filename:lineno(function)\n        1    0.000    0.000    0.680    0.680 /root/bobby/pool_alpha/quantbt/upgrade/private/acc01/attempt-01/option_package_probe.py:51(basis)\n        1    0.001    0.001    0.679    0.679 /root/bobby/pool_alpha/quantbt/src/quantbt/backends/native_vectorized.py:1075(run_basis_arbitrage)\n    14450    0.042    0.000    0.517    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/indexing.py:1177(__getitem__)\n        1    0.020    0.020    0.374    0.374 /root/bobby/pool_alpha/quantbt/src/quantbt/backends/native_vectorized.py:1351(_apply_atomic_package_margin_policy)\n    10446    0.031    0.000    0.310    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/indexing.py:1398(_getitem_axis)\n        1    0.014    0.014    0.242    0.242 /root/bobby/pool_alpha/quantbt/src/quantbt/core/arbitrage.py:510(build_arbitrage_order_plan)\n    10446    0.006    0.000    0.189    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/indexing.py:1380(_get_label)\n    10447    0.038    0.000    0.183    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/generic.py:4181(xs)\n    14446    0.040    0.000    0.167    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/indexes/datetimes.py:582(get_loc)\n224681/224576    0.050    0.000    0.080    0.000 {built-in method builtins.isinstance}\n     4000    0.010    0.000    0.070    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/frame.py:4202(_get_value)\n    10493    0.008    0.000    0.051    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/common.py:97(is_bool_indexer)\n    14446    0.008    0.000    0.051    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/indexes/datetimes.py:571(_disallow_mismatched_indexing)\n    14491    0.020    0.000    0.044    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/indexing.py:2801(check_dict_or_set_indexers)\n    14446    0.016    0.000    0.043    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/arrays/datetimes.py:771(_assert_tzawareness_compat)\n     2050    0.003    0.000    0.030    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/indexes/base.py:5385(__getitem__)\n93353/93328    0.025    0.000    0.030    0.000 {built-in method builtins.getattr}\n    14466    0.027    0.000    0.030    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/indexes/base.py:3784(get_loc)\n    32350    0.013    0.000    0.029    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/dtypes/generic.py:42(_instancecheck)\n        1    0.000    0.000    0.029    0.029 /root/bobby/pool_alpha/quantbt/src/quantbt/backends/native_vectorized.py:404(run_target_units)\n     4000    0.018    0.000    0.029    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/indexing.py:1252(_is_scalar_access)\n    31394    0.021    0.000    0.026    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/generic.py:589(_get_axis)\n     2022    0.004    0.000    0.026    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/arrays/datetimelike.py:390(__getitem__)\n    14453    0.010    0.000    0.025    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/dtypes/missing.py:728(is_valid_na_for_dtype)\n    16509    0.009    0.000    0.022    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/arrays/datetimes.py:578(tz)\n    10446    0.009    0.000    0.022    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/indexing.py:1227(_validate_key)\n     2022    0.003    0.000    0.021    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/arrays/_mixins.py:278(__getitem__)\n     2001    0.009    0.000    0.018    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/arrays/datetimes.py:547(_box_func)\n        1    0.000    0.000    0.017    0.017 /root/bobby/pool_alpha/quantbt/src/quantbt/backends/native_vectorized.py:1659(_package_pnl_report)\n       14    0.000    0.000    0.016    0.001 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/frame.py:698(__init__)\n\n\n",
+          "seconds": [
+            0.262621687958017,
+            0.26357263908721507,
+            0.24055962194688618,
+            0.2637492560315877,
+            0.24209311604499817,
+            0.2539776428602636,
+            0.2674609718378633
+          ]
+        }
+      ],
+      "extra_profiled_calls": 1,
+      "optimizer_runs": 0,
+      "peak_rss_kib": 183684,
+      "repeats": 7,
+      "source": "src",
+      "warmups": 2
+    },
+    "after-b": {
+      "cells": [
+        {
+          "cell": "option_short_wallet_execution_and_reporting",
+          "fees": 0.0,
+          "final_equity": 19950.0,
+          "funding": 0.0,
+          "leg_rows": 0,
+          "median_seconds": 0.040497845970094204,
+          "option_validation_calls": [
+            {
+              "calls": 1,
+              "cumulative_seconds": 4.5811000000000006e-05,
+              "function": "clone",
+              "own_seconds": 1.6097000000000002e-05
+            },
+            {
+              "calls": 17,
+              "cumulative_seconds": 5.8288e-05,
+              "function": "currency_amounts",
+              "own_seconds": 3.9313e-05
+            },
+            {
+              "calls": 280,
+              "cumulative_seconds": 0.00022578000000000002,
+              "function": "finite_number",
+              "own_seconds": 0.00017273400000000002
+            },
+            {
+              "calls": 58,
+              "cumulative_seconds": 0.00021513800000000003,
+              "function": "conversion_rate",
+              "own_seconds": 0.00013934
+            }
+          ],
+          "profile_cumulative": "         68070 function calls (66807 primitive calls) in 0.083 seconds\n\n   Ordered by: cumulative time\n   List reduced from 1013 to 30 due to restriction <30>\n\n   ncalls  tottime  percall  cumtime  percall filename:lineno(function)\n        1    0.000    0.000    0.084    0.084 /root/bobby/pool_alpha/quantbt/upgrade/private/acc01/attempt-01/option_package_probe.py:32(option)\n        1    0.000    0.000    0.083    0.083 /root/bobby/pool_alpha/quantbt/src/quantbt/backends/native_option.py:166(run)\n        1    0.000    0.000    0.035    0.035 /root/bobby/pool_alpha/quantbt/src/quantbt/options/tape.py:118(prepare_option_tape)\n        1    0.000    0.000    0.029    0.029 /root/bobby/pool_alpha/quantbt/src/quantbt/options/data.py:67(validate_option_chain_frame)\n        1    0.000    0.000    0.024    0.024 /root/bobby/pool_alpha/quantbt/src/quantbt/options/reporting.py:46(build_option_result)\n       19    0.000    0.000    0.020    0.001 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/frame.py:698(__init__)\n       52    0.000    0.000    0.013    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/frame.py:4282(__setitem__)\n       52    0.000    0.000    0.013    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/frame.py:4525(_set_item)\n        1    0.000    0.000    0.012    0.012 /root/bobby/pool_alpha/quantbt/src/quantbt/backends/native_option.py:835(_admit_option_package)\n        1    0.000    0.000    0.011    0.011 /root/bobby/pool_alpha/quantbt/src/quantbt/options/data.py:153(_coerce_float)\n       19    0.000    0.000    0.011    0.001 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/internals/construction.py:96(arrays_to_mgr)\n       52    0.000    0.000    0.010    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/frame.py:4492(_set_item_mgr)\n        1    0.000    0.000    0.009    0.009 /root/bobby/pool_alpha/quantbt/src/quantbt/backends/native_option.py:970(_annotate_option_package_result)\n      295    0.002    0.000    0.008    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/construction.py:517(sanitize_array)\n        2    0.000    0.000    0.008    0.004 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/frame.py:1568(itertuples)\n    71/68    0.001    0.000    0.007    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/series.py:392(__init__)\n14360/14305    0.004    0.000    0.007    0.000 {built-in method builtins.isinstance}\n        5    0.000    0.000    0.007    0.001 /root/bobby/pool_alpha/quantbt/src/quantbt/backends/native_option.py:758(_margin_at_snapshot)\n       57    0.000    0.000    0.007    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/indexing.py:1177(__getitem__)\n        5    0.000    0.000    0.007    0.001 /root/bobby/pool_alpha/quantbt/src/quantbt/options/margin.py:107(calculate_option_margin)\n       30    0.000    0.000    0.006    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/generic.py:6485(astype)\n        6    0.000    0.000    0.006    0.001 {method 'extend' of 'list' objects}\n       53    0.000    0.000    0.006    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/frame.py:1639(<genexpr>)\n      144    0.001    0.000    0.006    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/frame.py:3994(_ixs)\n       19    0.000    0.000    0.006    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/internals/managers.py:2140(create_block_manager_from_column_arrays)\n        4    0.000    0.000    0.006    0.001 /root/bobby/pool_alpha/quantbt/src/quantbt/backends/native_option.py:794(_record_margin_state)\n       15    0.000    0.000    0.005    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/internals/construction.py:506(nested_data_to_arrays)\n       51    0.000    0.000    0.005    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/indexing.py:1690(_getitem_tuple)\n       17    0.000    0.000    0.005    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/internals/managers.py:1366(insert)\n       46    0.001    0.000    0.005    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/internals/managers.py:317(apply)\n\n\n",
+          "seconds": [
+            0.039636181900277734,
+            0.040497845970094204,
+            0.03862542402930558,
+            0.05255507491528988,
+            0.04400540702044964,
+            0.03857583808712661,
+            0.040922628017142415
+          ]
+        },
+        {
+          "cell": "rust_basis_2000_with_leg_report",
+          "fees": 80.399917505878,
+          "final_equity": 19929.599075464394,
+          "funding": -10.000019016513964,
+          "leg_rows": 4000,
+          "median_seconds": 0.26029987004585564,
+          "option_validation_calls": [],
+          "profile_cumulative": "         1037045 function calls (1036264 primitive calls) in 0.716 seconds\n\n   Ordered by: cumulative time\n   List reduced from 1129 to 30 due to restriction <30>\n\n   ncalls  tottime  percall  cumtime  percall filename:lineno(function)\n        1    0.000    0.000    0.718    0.718 /root/bobby/pool_alpha/quantbt/upgrade/private/acc01/attempt-01/option_package_probe.py:51(basis)\n        1    0.001    0.001    0.717    0.717 /root/bobby/pool_alpha/quantbt/src/quantbt/backends/native_vectorized.py:1075(run_basis_arbitrage)\n    14450    0.044    0.000    0.553    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/indexing.py:1177(__getitem__)\n        1    0.019    0.019    0.366    0.366 /root/bobby/pool_alpha/quantbt/src/quantbt/backends/native_vectorized.py:1351(_apply_atomic_package_margin_policy)\n    10446    0.036    0.000    0.347    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/indexing.py:1398(_getitem_axis)\n        1    0.016    0.016    0.289    0.289 /root/bobby/pool_alpha/quantbt/src/quantbt/core/arbitrage.py:510(build_arbitrage_order_plan)\n    10446    0.007    0.000    0.211    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/indexing.py:1380(_get_label)\n    10447    0.042    0.000    0.205    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/generic.py:4181(xs)\n    14446    0.043    0.000    0.180    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/indexes/datetimes.py:582(get_loc)\n224681/224576    0.055    0.000    0.088    0.000 {built-in method builtins.isinstance}\n     4000    0.009    0.000    0.068    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/frame.py:4202(_get_value)\n    10493    0.009    0.000    0.056    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/common.py:97(is_bool_indexer)\n    14446    0.008    0.000    0.054    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/indexes/datetimes.py:571(_disallow_mismatched_indexing)\n    14446    0.017    0.000    0.046    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/arrays/datetimes.py:771(_assert_tzawareness_compat)\n    14491    0.018    0.000    0.043    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/indexing.py:2801(check_dict_or_set_indexers)\n    32350    0.015    0.000    0.032    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/dtypes/generic.py:42(_instancecheck)\n    14466    0.029    0.000    0.032    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/indexes/base.py:3784(get_loc)\n93353/93328    0.026    0.000    0.032    0.000 {built-in method builtins.getattr}\n    31394    0.025    0.000    0.030    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/generic.py:589(_get_axis)\n     2050    0.003    0.000    0.030    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/indexes/base.py:5385(__getitem__)\n        1    0.000    0.000    0.029    0.029 /root/bobby/pool_alpha/quantbt/src/quantbt/backends/native_vectorized.py:404(run_target_units)\n     4000    0.017    0.000    0.028    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/indexing.py:1252(_is_scalar_access)\n    14453    0.011    0.000    0.027    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/dtypes/missing.py:728(is_valid_na_for_dtype)\n     2022    0.004    0.000    0.026    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/arrays/datetimelike.py:390(__getitem__)\n    10446    0.011    0.000    0.025    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/indexing.py:1227(_validate_key)\n    16509    0.010    0.000    0.023    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/arrays/datetimes.py:578(tz)\n     2022    0.003    0.000    0.021    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/arrays/_mixins.py:278(__getitem__)\n     2001    0.009    0.000    0.018    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/arrays/datetimes.py:547(_box_func)\n14491/14489    0.007    0.000    0.017    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/dtypes/missing.py:101(isna)\n    32350    0.012    0.000    0.017    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/dtypes/generic.py:37(_check)\n\n\n",
+          "seconds": [
+            0.24421151098795235,
+            0.24467083299532533,
+            0.3323800549842417,
+            0.26029987004585564,
+            0.23417421919293702,
+            0.26626380183734,
+            0.2619779999367893
+          ]
+        }
+      ],
+      "extra_profiled_calls": 1,
+      "optimizer_runs": 0,
+      "peak_rss_kib": 183048,
+      "repeats": 7,
+      "source": "src",
+      "warmups": 2
+    },
+    "before-a": {
+      "cells": [
+        {
+          "cell": "option_short_wallet_execution_and_reporting",
+          "fees": 0.0,
+          "final_equity": 19950.0,
+          "funding": 0.0,
+          "leg_rows": 0,
+          "median_seconds": 0.037207228830084205,
+          "option_validation_calls": [
+            {
+              "calls": 1,
+              "cumulative_seconds": 1.3029e-05,
+              "function": "clone",
+              "own_seconds": 1.1934000000000001e-05
+            }
+          ],
+          "profile_cumulative": "         61586 function calls (60394 primitive calls) in 0.083 seconds\n\n   Ordered by: cumulative time\n   List reduced from 1008 to 30 due to restriction <30>\n\n   ncalls  tottime  percall  cumtime  percall filename:lineno(function)\n        1    0.000    0.000    0.083    0.083 /root/bobby/pool_alpha/quantbt/upgrade/private/acc01/attempt-01/option_package_probe.py:32(option)\n        1    0.000    0.000    0.083    0.083 /root/bobby/pool_alpha/quantbt/upgrade/private/acc01/attempt-01/scratch/baseline/src/quantbt/backends/native_option.py:156(run)\n        1    0.000    0.000    0.038    0.038 /root/bobby/pool_alpha/quantbt/upgrade/private/acc01/attempt-01/scratch/baseline/src/quantbt/options/tape.py:118(prepare_option_tape)\n        1    0.000    0.000    0.031    0.031 /root/bobby/pool_alpha/quantbt/upgrade/private/acc01/attempt-01/scratch/baseline/src/quantbt/options/data.py:67(validate_option_chain_frame)\n        1    0.000    0.000    0.021    0.021 /root/bobby/pool_alpha/quantbt/upgrade/private/acc01/attempt-01/scratch/baseline/src/quantbt/options/reporting.py:45(build_option_result)\n       19    0.000    0.000    0.019    0.001 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/frame.py:698(__init__)\n       52    0.000    0.000    0.015    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/frame.py:4282(__setitem__)\n       52    0.000    0.000    0.014    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/frame.py:4525(_set_item)\n        1    0.000    0.000    0.012    0.012 /root/bobby/pool_alpha/quantbt/upgrade/private/acc01/attempt-01/scratch/baseline/src/quantbt/backends/native_option.py:787(_admit_option_package)\n        1    0.000    0.000    0.012    0.012 /root/bobby/pool_alpha/quantbt/upgrade/private/acc01/attempt-01/scratch/baseline/src/quantbt/options/data.py:153(_coerce_float)\n       52    0.000    0.000    0.012    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/frame.py:4492(_set_item_mgr)\n        1    0.000    0.000    0.010    0.010 /root/bobby/pool_alpha/quantbt/upgrade/private/acc01/attempt-01/scratch/baseline/src/quantbt/backends/native_option.py:922(_annotate_option_package_result)\n       19    0.000    0.000    0.010    0.001 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/internals/construction.py:96(arrays_to_mgr)\n    71/68    0.001    0.000    0.008    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/series.py:392(__init__)\n      284    0.002    0.000    0.008    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/construction.py:517(sanitize_array)\n       30    0.000    0.000    0.007    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/generic.py:6485(astype)\n13475/13420    0.004    0.000    0.007    0.000 {built-in method builtins.isinstance}\n        5    0.000    0.000    0.006    0.001 /root/bobby/pool_alpha/quantbt/upgrade/private/acc01/attempt-01/scratch/baseline/src/quantbt/backends/native_option.py:710(_margin_at_snapshot)\n      115    0.000    0.000    0.006    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/frame.py:3994(_ixs)\n        5    0.000    0.000    0.006    0.001 /root/bobby/pool_alpha/quantbt/upgrade/private/acc01/attempt-01/scratch/baseline/src/quantbt/options/margin.py:88(calculate_option_margin)\n        1    0.000    0.000    0.006    0.006 /root/bobby/pool_alpha/quantbt/upgrade/private/acc01/attempt-01/scratch/baseline/src/quantbt/options/tape.py:210(_validate_registry_static_fields)\n       17    0.000    0.000    0.006    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/internals/managers.py:1366(insert)\n       19    0.000    0.000    0.005    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/internals/managers.py:2140(create_block_manager_from_column_arrays)\n        1    0.000    0.000    0.005    0.005 /root/bobby/pool_alpha/quantbt/upgrade/private/acc01/attempt-01/scratch/baseline/src/quantbt/options/execution.py:130(execute_option_package)\n        1    0.000    0.000    0.005    0.005 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/frame.py:1568(itertuples)\n        1    0.000    0.000    0.005    0.005 /root/bobby/pool_alpha/quantbt/upgrade/private/acc01/attempt-01/scratch/baseline/src/quantbt/options/execution.py:156(_execute_atomic_all_or_none)\n        1    0.000    0.000    0.005    0.005 /root/bobby/pool_alpha/quantbt/upgrade/private/acc01/attempt-01/scratch/baseline/src/quantbt/options/execution.py:423(_final_result)\n      116    0.000    0.000    0.005    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/frame.py:4637(_get_item_cache)\n       45    0.000    0.000    0.005    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/internals/managers.py:317(apply)\n       35    0.000    0.000    0.005    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/frame.py:4481(_iset_item_mgr)\n\n\n",
+          "seconds": [
+            0.03624908206984401,
+            0.03594664903357625,
+            0.039469818118959665,
+            0.03817345295101404,
+            0.03627085406333208,
+            0.037207228830084205,
+            0.037385466042906046
+          ]
+        },
+        {
+          "cell": "rust_basis_2000_with_leg_report",
+          "fees": 80.399917505878,
+          "final_equity": 19929.599075464394,
+          "funding": -10.000019016513964,
+          "leg_rows": 4000,
+          "median_seconds": 0.37227296200580895,
+          "option_validation_calls": [],
+          "profile_cumulative": "         1860456 function calls (1843252 primitive calls) in 1.170 seconds\n\n   Ordered by: cumulative time\n   List reduced from 1056 to 30 due to restriction <30>\n\n   ncalls  tottime  percall  cumtime  percall filename:lineno(function)\n        1    0.000    0.000    1.172    1.172 /root/bobby/pool_alpha/quantbt/upgrade/private/acc01/attempt-01/option_package_probe.py:51(basis)\n        1    0.002    0.002    1.171    1.171 /root/bobby/pool_alpha/quantbt/upgrade/private/acc01/attempt-01/scratch/baseline/src/quantbt/backends/native_vectorized.py:1054(run_basis_arbitrage)\n    30944    0.077    0.000    0.871    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/indexing.py:1177(__getitem__)\n        1    0.038    0.038    0.424    0.424 /root/bobby/pool_alpha/quantbt/upgrade/private/acc01/attempt-01/scratch/baseline/src/quantbt/backends/native_vectorized.py:1620(_leg_pnl_report)\n        1    0.020    0.020    0.377    0.377 /root/bobby/pool_alpha/quantbt/upgrade/private/acc01/attempt-01/scratch/baseline/src/quantbt/backends/native_vectorized.py:1327(_apply_atomic_package_margin_policy)\n    10446    0.037    0.000    0.368    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/indexing.py:1398(_getitem_axis)\n        1    0.018    0.018    0.312    0.312 /root/bobby/pool_alpha/quantbt/upgrade/private/acc01/attempt-01/scratch/baseline/src/quantbt/core/arbitrage.py:510(build_arbitrage_order_plan)\n    10446    0.007    0.000    0.223    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/indexing.py:1380(_get_label)\n    16498    0.047    0.000    0.218    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/indexing.py:1720(_getitem_axis)\n    10446    0.045    0.000    0.216    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/generic.py:4181(xs)\n412521/412424    0.107    0.000    0.197    0.000 {built-in method builtins.isinstance}\n    14446    0.045    0.000    0.188    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/indexes/datetimes.py:582(get_loc)\n    26987    0.021    0.000    0.132    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/common.py:97(is_bool_indexer)\n    98209    0.040    0.000    0.089    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/dtypes/generic.py:42(_instancecheck)\n    38977    0.039    0.000    0.078    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/indexing.py:2801(check_dict_or_set_indexers)\n     8018    0.026    0.000    0.073    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/frame.py:4073(__getitem__)\n     4000    0.010    0.000    0.070    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/frame.py:4202(_get_value)\n    14446    0.008    0.000    0.056    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/indexes/datetimes.py:571(_disallow_mismatched_indexing)\n    98209    0.034    0.000    0.049    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/dtypes/generic.py:37(_check)\n    14446    0.017    0.000    0.047    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/arrays/datetimes.py:771(_assert_tzawareness_compat)\n    47882    0.037    0.000    0.046    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/generic.py:589(_get_axis)\n    16496    0.013    0.000    0.044    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/indexing.py:1668(_validate_integer)\n159134/159108    0.037    0.000    0.043    0.000 {built-in method builtins.getattr}\n    14465    0.031    0.000    0.033    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/indexes/base.py:3784(get_loc)\n     2048    0.003    0.000    0.031    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/indexes/base.py:5385(__getitem__)\n     4000    0.018    0.000    0.031    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/indexing.py:1252(_is_scalar_access)\n        1    0.000    0.000    0.030    0.030 /root/bobby/pool_alpha/quantbt/upgrade/private/acc01/attempt-01/scratch/baseline/src/quantbt/backends/native_vectorized.py:398(run_target_units)\n       13    0.000    0.000    0.028    0.002 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/frame.py:698(__init__)\n    14452    0.012    0.000    0.028    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/dtypes/missing.py:728(is_valid_na_for_dtype)\n    31025    0.015    0.000    0.026    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/series.py:834(_values)\n\n\n",
+          "seconds": [
+            0.3625412560068071,
+            0.37665314693003893,
+            0.3409248190000653,
+            0.37227296200580895,
+            0.361985671101138,
+            0.38421212299726903,
+            0.39659690391272306
+          ]
+        }
+      ],
+      "extra_profiled_calls": 1,
+      "optimizer_runs": 0,
+      "peak_rss_kib": 185568,
+      "repeats": 7,
+      "source": "upgrade/private/acc01/attempt-01/scratch/baseline/src",
+      "warmups": 2
+    },
+    "before-b": {
+      "cells": [
+        {
+          "cell": "option_short_wallet_execution_and_reporting",
+          "fees": 0.0,
+          "final_equity": 19950.0,
+          "funding": 0.0,
+          "leg_rows": 0,
+          "median_seconds": 0.03850624291226268,
+          "option_validation_calls": [
+            {
+              "calls": 1,
+              "cumulative_seconds": 2.0601e-05,
+              "function": "clone",
+              "own_seconds": 1.9479e-05
+            }
+          ],
+          "profile_cumulative": "         61583 function calls (60391 primitive calls) in 0.088 seconds\n\n   Ordered by: cumulative time\n   List reduced from 1008 to 30 due to restriction <30>\n\n   ncalls  tottime  percall  cumtime  percall filename:lineno(function)\n        1    0.000    0.000    0.088    0.088 /root/bobby/pool_alpha/quantbt/upgrade/private/acc01/attempt-01/option_package_probe.py:32(option)\n        1    0.000    0.000    0.088    0.088 /root/bobby/pool_alpha/quantbt/upgrade/private/acc01/attempt-01/scratch/baseline/src/quantbt/backends/native_option.py:156(run)\n        1    0.000    0.000    0.038    0.038 /root/bobby/pool_alpha/quantbt/upgrade/private/acc01/attempt-01/scratch/baseline/src/quantbt/options/tape.py:118(prepare_option_tape)\n        1    0.000    0.000    0.032    0.032 /root/bobby/pool_alpha/quantbt/upgrade/private/acc01/attempt-01/scratch/baseline/src/quantbt/options/data.py:67(validate_option_chain_frame)\n        1    0.000    0.000    0.026    0.026 /root/bobby/pool_alpha/quantbt/upgrade/private/acc01/attempt-01/scratch/baseline/src/quantbt/options/reporting.py:45(build_option_result)\n       19    0.000    0.000    0.022    0.001 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/frame.py:698(__init__)\n       52    0.000    0.000    0.014    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/frame.py:4282(__setitem__)\n       52    0.000    0.000    0.014    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/frame.py:4525(_set_item)\n        1    0.000    0.000    0.012    0.012 /root/bobby/pool_alpha/quantbt/upgrade/private/acc01/attempt-01/scratch/baseline/src/quantbt/backends/native_option.py:787(_admit_option_package)\n        1    0.000    0.000    0.011    0.011 /root/bobby/pool_alpha/quantbt/upgrade/private/acc01/attempt-01/scratch/baseline/src/quantbt/options/data.py:153(_coerce_float)\n       52    0.000    0.000    0.011    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/frame.py:4492(_set_item_mgr)\n       19    0.000    0.000    0.011    0.001 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/internals/construction.py:96(arrays_to_mgr)\n        1    0.000    0.000    0.010    0.010 /root/bobby/pool_alpha/quantbt/upgrade/private/acc01/attempt-01/scratch/baseline/src/quantbt/backends/native_option.py:922(_annotate_option_package_result)\n      284    0.002    0.000    0.008    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/construction.py:517(sanitize_array)\n    71/68    0.001    0.000    0.008    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/series.py:392(__init__)\n       30    0.000    0.000    0.007    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/generic.py:6485(astype)\n13475/13420    0.004    0.000    0.007    0.000 {built-in method builtins.isinstance}\n        5    0.000    0.000    0.006    0.001 /root/bobby/pool_alpha/quantbt/upgrade/private/acc01/attempt-01/scratch/baseline/src/quantbt/backends/native_option.py:710(_margin_at_snapshot)\n       15    0.000    0.000    0.006    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/internals/construction.py:506(nested_data_to_arrays)\n        5    0.000    0.000    0.006    0.001 /root/bobby/pool_alpha/quantbt/upgrade/private/acc01/attempt-01/scratch/baseline/src/quantbt/options/margin.py:88(calculate_option_margin)\n       15    0.000    0.000    0.006    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/internals/construction.py:793(to_arrays)\n      115    0.000    0.000    0.006    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/frame.py:3994(_ixs)\n       19    0.000    0.000    0.006    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/internals/managers.py:2140(create_block_manager_from_column_arrays)\n       17    0.000    0.000    0.005    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/internals/managers.py:1366(insert)\n       45    0.000    0.000    0.005    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/internals/managers.py:317(apply)\n        1    0.000    0.000    0.005    0.005 /root/bobby/pool_alpha/quantbt/upgrade/private/acc01/attempt-01/scratch/baseline/src/quantbt/options/data.py:159(_normalize_strings)\n        4    0.000    0.000    0.005    0.001 /root/bobby/pool_alpha/quantbt/upgrade/private/acc01/attempt-01/scratch/baseline/src/quantbt/backends/native_option.py:746(_record_margin_state)\n      116    0.000    0.000    0.005    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/frame.py:4637(_get_item_cache)\n        1    0.000    0.000    0.005    0.005 /root/bobby/pool_alpha/quantbt/upgrade/private/acc01/attempt-01/scratch/baseline/src/quantbt/options/execution.py:130(execute_option_package)\n        1    0.000    0.000    0.005    0.005 /root/bobby/pool_alpha/quantbt/upgrade/private/acc01/attempt-01/scratch/baseline/src/quantbt/options/execution.py:156(_execute_atomic_all_or_none)\n\n\n",
+          "seconds": [
+            0.052305629942566156,
+            0.051373174181208014,
+            0.03850624291226268,
+            0.03850200213491917,
+            0.037288337014615536,
+            0.0372462070081383,
+            0.041712336940690875
+          ]
+        },
+        {
+          "cell": "rust_basis_2000_with_leg_report",
+          "fees": 80.399917505878,
+          "final_equity": 19929.599075464394,
+          "funding": -10.000019016513964,
+          "leg_rows": 4000,
+          "median_seconds": 0.3594058151356876,
+          "option_validation_calls": [],
+          "profile_cumulative": "         1860456 function calls (1843252 primitive calls) in 1.123 seconds\n\n   Ordered by: cumulative time\n   List reduced from 1056 to 30 due to restriction <30>\n\n   ncalls  tottime  percall  cumtime  percall filename:lineno(function)\n        1    0.000    0.000    1.125    1.125 /root/bobby/pool_alpha/quantbt/upgrade/private/acc01/attempt-01/option_package_probe.py:51(basis)\n        1    0.002    0.002    1.124    1.124 /root/bobby/pool_alpha/quantbt/upgrade/private/acc01/attempt-01/scratch/baseline/src/quantbt/backends/native_vectorized.py:1054(run_basis_arbitrage)\n    30944    0.076    0.000    0.833    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/indexing.py:1177(__getitem__)\n        1    0.037    0.037    0.415    0.415 /root/bobby/pool_alpha/quantbt/upgrade/private/acc01/attempt-01/scratch/baseline/src/quantbt/backends/native_vectorized.py:1620(_leg_pnl_report)\n        1    0.019    0.019    0.370    0.370 /root/bobby/pool_alpha/quantbt/upgrade/private/acc01/attempt-01/scratch/baseline/src/quantbt/backends/native_vectorized.py:1327(_apply_atomic_package_margin_policy)\n    10446    0.035    0.000    0.345    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/indexing.py:1398(_getitem_axis)\n        1    0.016    0.016    0.283    0.283 /root/bobby/pool_alpha/quantbt/upgrade/private/acc01/attempt-01/scratch/baseline/src/quantbt/core/arbitrage.py:510(build_arbitrage_order_plan)\n    16498    0.045    0.000    0.212    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/indexing.py:1720(_getitem_axis)\n    10446    0.007    0.000    0.211    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/indexing.py:1380(_get_label)\n    10446    0.043    0.000    0.205    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/generic.py:4181(xs)\n412521/412424    0.100    0.000    0.187    0.000 {built-in method builtins.isinstance}\n    14446    0.043    0.000    0.180    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/indexes/datetimes.py:582(get_loc)\n    26987    0.019    0.000    0.126    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/common.py:97(is_bool_indexer)\n    98209    0.038    0.000    0.087    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/dtypes/generic.py:42(_instancecheck)\n    38977    0.037    0.000    0.075    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/indexing.py:2801(check_dict_or_set_indexers)\n     8018    0.025    0.000    0.072    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/frame.py:4073(__getitem__)\n     4000    0.010    0.000    0.070    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/frame.py:4202(_get_value)\n    14446    0.008    0.000    0.055    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/indexes/datetimes.py:571(_disallow_mismatched_indexing)\n    98209    0.033    0.000    0.048    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/dtypes/generic.py:37(_check)\n    14446    0.017    0.000    0.047    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/arrays/datetimes.py:771(_assert_tzawareness_compat)\n    16496    0.013    0.000    0.044    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/indexing.py:1668(_validate_integer)\n    47882    0.035    0.000    0.044    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/generic.py:589(_get_axis)\n159134/159108    0.036    0.000    0.042    0.000 {built-in method builtins.getattr}\n    14465    0.028    0.000    0.031    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/indexes/base.py:3784(get_loc)\n     2048    0.003    0.000    0.030    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/indexes/base.py:5385(__getitem__)\n     4000    0.017    0.000    0.028    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/indexing.py:1252(_is_scalar_access)\n        1    0.000    0.000    0.028    0.028 /root/bobby/pool_alpha/quantbt/upgrade/private/acc01/attempt-01/scratch/baseline/src/quantbt/backends/native_vectorized.py:398(run_target_units)\n    14452    0.011    0.000    0.026    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/dtypes/missing.py:728(is_valid_na_for_dtype)\n       13    0.000    0.000    0.026    0.002 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/frame.py:698(__init__)\n     2017    0.004    0.000    0.026    0.000 /root/bobby/pool_alpha/quantbt/.venv/lib/python3.12/site-packages/pandas/core/arrays/datetimelike.py:390(__getitem__)\n\n\n",
+          "seconds": [
+            0.37184088095091283,
+            0.35691319685429335,
+            0.3382939179427922,
+            0.3380087160039693,
+            0.3594058151356876,
+            0.35977839422412217,
+            0.4479850619100034
+          ]
+        }
+      ],
+      "extra_profiled_calls": 1,
+      "optimizer_runs": 0,
+      "peak_rss_kib": 184924,
+      "repeats": 7,
+      "source": "upgrade/private/acc01/attempt-01/scratch/baseline/src",
+      "warmups": 2
+    }
+  },
+  "paired_reporting": {
+    "account_samples_recovered_from": "upgrade/private/acc01/attempt-01/paired-benchmark-first.log",
+    "alternating_order": true,
+    "baseline": "8f7df9d",
+    "cells": [
+      {
+        "cell": "account/2000/python/reduce",
+        "first_warmup_seconds": {
+          "after": 0.0028852021787315607,
+          "before": 0.003563161939382553
+        },
+        "median_seconds": {
+          "after": 0.0027626408264040947,
+          "before": 0.0027572058606892824
+        },
+        "ratio_after_before": 1.0019711860446479,
+        "samples_seconds": {
+          "after": [
+            0.002753972075879574,
+            0.0026471822056919336,
+            0.0029212250374257565,
+            0.0027152709662914276,
+            0.0027626408264040947,
+            0.002901740139350295,
+            0.004708804888650775
+          ],
+          "before": [
+            0.0027942010201513767,
+            0.0027572058606892824,
+            0.002605216111987829,
+            0.0029111059848219156,
+            0.0023222591262310743,
+            0.0028057959862053394,
+            0.0026221699081361294
+          ]
+        }
+      },
+      {
+        "cell": "account/2000/python/cache_hit",
+        "first_warmup_seconds": {
+          "after": 0.00458326586522162,
+          "before": 0.0040575971361249685
+        },
+        "median_seconds": {
+          "after": 6.415811367332935e-05,
+          "before": 4.898407496511936e-05
+        },
+        "ratio_after_before": 1.309774936426076,
+        "samples_seconds": {
+          "after": [
+            6.415811367332935e-05,
+            0.00012499489821493626,
+            9.609386324882507e-05,
+            9.668106213212013e-05,
+            5.576992407441139e-05,
+            5.1958952099084854e-05,
+            5.294079892337322e-05
+          ],
+          "before": [
+            5.969102494418621e-05,
+            0.00011290190741419792,
+            0.00010741502046585083,
+            4.898407496511936e-05,
+            4.518195055425167e-05,
+            4.3173087760806084e-05,
+            4.2329076677560806e-05
+          ]
+        }
+      },
+      {
+        "cell": "account/2000/python/cache_miss",
+        "first_warmup_seconds": {
+          "after": 0.003117568092420697,
+          "before": 0.0030949909705668688
+        },
+        "median_seconds": {
+          "after": 0.0032950050663203,
+          "before": 0.0032269959338009357
+        },
+        "ratio_after_before": 1.0210750598744198,
+        "samples_seconds": {
+          "after": [
+            0.004220759961754084,
+            0.003878082847222686,
+            0.0031297369860112667,
+            0.0032950050663203,
+            0.003184919012710452,
+            0.002800388028845191,
+            0.003410572186112404
+          ],
+          "before": [
+            0.003289944026619196,
+            0.003381251823157072,
+            0.00302947498857975,
+            0.0030952889937907457,
+            0.00317809684202075,
+            0.003590147942304611,
+            0.0032269959338009357
+          ]
+        }
+      },
+      {
+        "cell": "account/2000/numba/reduce",
+        "first_warmup_seconds": {
+          "after": 0.8696878110058606,
+          "before": 4.387105053057894
+        },
+        "median_seconds": {
+          "after": 0.0005857741925865412,
+          "before": 0.000715198926627636
+        },
+        "ratio_after_before": 0.8190367333863757,
+        "samples_seconds": {
+          "after": [
+            0.0005857741925865412,
+            0.0005379440262913704,
+            0.0006893100216984749,
+            0.0005777070764452219,
+            0.0005796418990939856,
+            0.0009502731263637543,
+            0.0006187991239130497
+          ],
+          "before": [
+            0.0006081799510866404,
+            0.0007814178243279457,
+            0.000715198926627636,
+            0.0005852240137755871,
+            0.0007442028727382421,
+            0.000890152994543314,
+            0.0005257742013782263
+          ]
+        }
+      },
+      {
+        "cell": "account/2000/numba/cache_hit",
+        "first_warmup_seconds": {
+          "after": 0.0010480680502951145,
+          "before": 0.001255521085113287
+        },
+        "median_seconds": {
+          "after": 5.407608114182949e-05,
+          "before": 4.482199437916279e-05
+        },
+        "ratio_after_before": 1.206463074453662,
+        "samples_seconds": {
+          "after": [
+            6.148987449705601e-05,
+            5.583581514656544e-05,
+            5.411216989159584e-05,
+            5.3168972954154015e-05,
+            5.407608114182949e-05,
+            5.184393376111984e-05,
+            5.23559283465147e-05
+          ],
+          "before": [
+            5.718902684748173e-05,
+            4.5097898691892624e-05,
+            4.482199437916279e-05,
+            5.889800377190113e-05,
+            4.285713657736778e-05,
+            4.237191751599312e-05,
+            4.185107536613941e-05
+          ]
+        }
+      },
+      {
+        "cell": "account/2000/numba/cache_miss",
+        "first_warmup_seconds": {
+          "after": 0.0010206419974565506,
+          "before": 0.0009399368427693844
+        },
+        "median_seconds": {
+          "after": 0.001047010999172926,
+          "before": 0.0009953179396688938
+        },
+        "ratio_after_before": 1.0519362280571658,
+        "samples_seconds": {
+          "after": [
+            0.0010796049609780312,
+            0.001047010999172926,
+            0.0008780849166214466,
+            0.0013685759622603655,
+            0.0009239001665264368,
+            0.00117284688167274,
+            0.0009912298992276192
+          ],
+          "before": [
+            0.0009534880518913269,
+            0.0009765431750565767,
+            0.0008522190619260073,
+            0.0009953179396688938,
+            0.0011816078331321478,
+            0.0012106699869036674,
+            0.0013463380746543407
+          ]
+        }
+      },
+      {
+        "cell": "account/100000/python/reduce",
+        "first_warmup_seconds": {
+          "after": 0.10753382183611393,
+          "before": 0.08982405718415976
+        },
+        "median_seconds": {
+          "after": 0.09493764908984303,
+          "before": 0.0900410171598196
+        },
+        "ratio_after_before": 1.0543822369457698,
+        "samples_seconds": {
+          "after": [
+            0.10299862502142787,
+            0.09097641916014254,
+            0.08994703995995224,
+            0.10622890084050596,
+            0.09493764908984303,
+            0.08844936499372125,
+            0.10019619506783783
+          ],
+          "before": [
+            0.10790962190367281,
+            0.08934446703642607,
+            0.08952405489981174,
+            0.0900410171598196,
+            0.09270233591087162,
+            0.11180760408751667,
+            0.08618503506295383
+          ]
+        }
+      },
+      {
+        "cell": "account/100000/python/cache_hit",
+        "first_warmup_seconds": {
+          "after": 0.08812808198854327,
+          "before": 0.10482973488979042
+        },
+        "median_seconds": {
+          "after": 5.3344061598181725e-05,
+          "before": 4.292605444788933e-05
+        },
+        "ratio_after_before": 1.2426965926472342,
+        "samples_seconds": {
+          "after": [
+            6.0955993831157684e-05,
+            5.567306652665138e-05,
+            5.3344061598181725e-05,
+            5.2382005378603935e-05,
+            5.164393223822117e-05,
+            5.118502303957939e-05,
+            6.168615072965622e-05
+          ],
+          "before": [
+            6.0586025938391685e-05,
+            4.400801844894886e-05,
+            4.4058775529265404e-05,
+            4.292605444788933e-05,
+            4.2430125176906586e-05,
+            4.1983090341091156e-05,
+            4.130695015192032e-05
+          ]
+        }
+      },
+      {
+        "cell": "account/100000/python/cache_miss",
+        "first_warmup_seconds": {
+          "after": 0.11111437110230327,
+          "before": 0.1072622889187187
+        },
+        "median_seconds": {
+          "after": 0.10770577704533935,
+          "before": 0.10507341497577727
+        },
+        "ratio_after_before": 1.0250525984157737,
+        "samples_seconds": {
+          "after": [
+            0.10284480499103665,
+            0.10585076990537345,
+            0.10516346897929907,
+            0.10770577704533935,
+            0.11525085498578846,
+            0.11435977299697697,
+            0.10799300507642329
+          ],
+          "before": [
+            0.10441209399141371,
+            0.10765113215893507,
+            0.09045298700220883,
+            0.1110380559694022,
+            0.10507341497577727,
+            0.11724901921115816,
+            0.10171763505786657
+          ]
+        }
+      },
+      {
+        "cell": "account/100000/numba/reduce",
+        "first_warmup_seconds": {
+          "after": 0.0015168171375989914,
+          "before": 0.0017671049572527409
+        },
+        "median_seconds": {
+          "after": 0.0014146720059216022,
+          "before": 0.0014669010415673256
+        },
+        "ratio_after_before": 0.9643949835975857,
+        "samples_seconds": {
+          "after": [
+            0.0016444120556116104,
+            0.0013802868779748678,
+            0.0014144070446491241,
+            0.0015529461670666933,
+            0.002371181035414338,
+            0.0014146720059216022,
+            0.0014052228070795536
+          ],
+          "before": [
+            0.0014669010415673256,
+            0.0017197600100189447,
+            0.0013327091000974178,
+            0.0017937531229108572,
+            0.0015620631165802479,
+            0.001371472841128707,
+            0.0012999919708818197
+          ]
+        }
+      },
+      {
+        "cell": "account/100000/numba/cache_hit",
+        "first_warmup_seconds": {
+          "after": 0.0018140438478440046,
+          "before": 0.0017756270244717598
+        },
+        "median_seconds": {
+          "after": 5.174917168915272e-05,
+          "before": 4.282500594854355e-05
+        },
+        "ratio_after_before": 1.2083867951199356,
+        "samples_seconds": {
+          "after": [
+            6.072595715522766e-05,
+            5.635409615933895e-05,
+            5.3755007684230804e-05,
+            5.174917168915272e-05,
+            5.159410648047924e-05,
+            5.033612251281738e-05,
+            5.042320117354393e-05
+          ],
+          "before": [
+            5.4962001740932465e-05,
+            4.41849697381258e-05,
+            5.564210005104542e-05,
+            4.282500594854355e-05,
+            4.156399518251419e-05,
+            4.223198629915714e-05,
+            4.176795482635498e-05
+          ]
+        }
+      },
+      {
+        "cell": "account/100000/numba/cache_miss",
+        "first_warmup_seconds": {
+          "after": 0.0021652658469974995,
+          "before": 0.0020850489381700754
+        },
+        "median_seconds": {
+          "after": 0.0018186247907578945,
+          "before": 0.0017091489862650633
+        },
+        "ratio_after_before": 1.0640528153909299,
+        "samples_seconds": {
+          "after": [
+            0.0020677309948951006,
+            0.0018347268924117088,
+            0.0018186247907578945,
+            0.0017558149993419647,
+            0.0017940520774573088,
+            0.0019794690888375044,
+            0.0017544850707054138
+          ],
+          "before": [
+            0.0017091489862650633,
+            0.0016778470017015934,
+            0.0017188279889523983,
+            0.001712301978841424,
+            0.0016911649145185947,
+            0.001878481125459075,
+            0.0016685731243342161
+          ]
+        }
+      },
+      {
+        "cell": "account/1000000/python/reduce",
+        "first_warmup_seconds": {
+          "after": 0.9146947420667857,
+          "before": 0.9617349309846759
+        },
+        "median_seconds": {
+          "after": 0.9694173410534859,
+          "before": 0.9564640920143574
+        },
+        "ratio_after_before": 1.0135428492792116,
+        "samples_seconds": {
+          "after": [
+            0.9181006541475654,
+            0.9528524319175631,
+            1.006231253966689,
+            0.9694173410534859,
+            0.9511871179565787,
+            1.0400984389707446,
+            0.9986931330058724
+          ],
+          "before": [
+            0.9364241410512477,
+            0.9666568760294467,
+            0.9298096869606525,
+            0.9657660590019077,
+            0.9951198170892894,
+            0.9531251508742571,
+            0.9564640920143574
+          ]
+        }
+      },
+      {
+        "cell": "account/1000000/python/cache_hit",
+        "first_warmup_seconds": {
+          "after": 0.8978330418467522,
+          "before": 1.023435171926394
+        },
+        "median_seconds": {
+          "after": 6.284494884312153e-05,
+          "before": 5.578296259045601e-05
+        },
+        "ratio_after_before": 1.1265975474359937,
+        "samples_seconds": {
+          "after": [
+            6.284494884312153e-05,
+            5.779508501291275e-05,
+            5.3105177357792854e-05,
+            5.1729148253798485e-05,
+            9.509013034403324e-05,
+            0.00010140193626284599,
+            0.00011994503438472748
+          ],
+          "before": [
+            6.301584653556347e-05,
+            5.578296259045601e-05,
+            4.385202191770077e-05,
+            4.257890395820141e-05,
+            4.2489031329751015e-05,
+            0.00011368980631232262,
+            9.763101115822792e-05
+          ]
+        }
+      },
+      {
+        "cell": "account/1000000/python/cache_miss",
+        "first_warmup_seconds": {
+          "after": 0.9413355528376997,
+          "before": 0.8869829881004989
+        },
+        "median_seconds": {
+          "after": 0.9399850289337337,
+          "before": 0.9599618799984455
+        },
+        "ratio_after_before": 0.9791899538086406,
+        "samples_seconds": {
+          "after": [
+            0.9963890709914267,
+            1.0407986131031066,
+            0.9512124769389629,
+            0.9366726328153163,
+            0.9228807280305773,
+            0.9212560269515961,
+            0.9399850289337337
+          ],
+          "before": [
+            1.0977935420814902,
+            0.9252990770619363,
+            0.8632074820343405,
+            0.95036859693937,
+            0.9599618799984455,
+            0.9872236980590969,
+            1.0570528709795326
+          ]
+        }
+      },
+      {
+        "cell": "account/1000000/numba/reduce",
+        "first_warmup_seconds": {
+          "after": 0.008231620071455836,
+          "before": 0.008590691955760121
+        },
+        "median_seconds": {
+          "after": 0.008305301191285253,
+          "before": 0.00804310804232955
+        },
+        "ratio_after_before": 1.0325984865024593,
+        "samples_seconds": {
+          "after": [
+            0.008051020093262196,
+            0.008292783983051777,
+            0.012113423086702824,
+            0.008546879980713129,
+            0.007987520890310407,
+            0.008305301191285253,
+            0.008421073900535703
+          ],
+          "before": [
+            0.008004420902580023,
+            0.007882932899519801,
+            0.007993648061528802,
+            0.00829711789265275,
+            0.00813314295373857,
+            0.008077188162133098,
+            0.00804310804232955
+          ]
+        }
+      },
+      {
+        "cell": "account/1000000/numba/cache_hit",
+        "first_warmup_seconds": {
+          "after": 0.008884708164259791,
+          "before": 0.008490239968523383
+        },
+        "median_seconds": {
+          "after": 5.351891741156578e-05,
+          "before": 4.3245963752269745e-05
+        },
+        "ratio_after_before": 1.23754710886185,
+        "samples_seconds": {
+          "after": [
+            6.401096470654011e-05,
+            5.698204040527344e-05,
+            5.351891741156578e-05,
+            6.406102329492569e-05,
+            5.3099822252988815e-05,
+            5.089794285595417e-05,
+            5.126511678099632e-05
+          ],
+          "before": [
+            6.391806527972221e-05,
+            4.570907913148403e-05,
+            4.3245963752269745e-05,
+            4.663318395614624e-05,
+            4.225783050060272e-05,
+            4.24941536039114e-05,
+            4.1794031858444214e-05
+          ]
+        }
+      },
+      {
+        "cell": "account/1000000/numba/cache_miss",
+        "first_warmup_seconds": {
+          "after": 0.00872346106916666,
+          "before": 0.009061503922566772
+        },
+        "median_seconds": {
+          "after": 0.008680309168994427,
+          "before": 0.00874137389473617
+        },
+        "ratio_after_before": 0.9930142874018333,
+        "samples_seconds": {
+          "after": [
+            0.009233140852302313,
+            0.008608856936916709,
+            0.00978296808898449,
+            0.008679908001795411,
+            0.008507349994033575,
+            0.009078324073925614,
+            0.008680309168994427
+          ],
+          "before": [
+            0.008949176175519824,
+            0.00874137389473617,
+            0.008630692958831787,
+            0.00832967204041779,
+            0.008971703937277198,
+            0.010114473989233375,
+            0.008663062937557697
+          ]
+        }
+      },
+      {
+        "cell": "ledger/100/python",
+        "first_warmup_seconds": {
+          "after": 0.0010278660338371992,
+          "before": 0.007782762171700597
+        },
+        "median_seconds": {
+          "after": 0.0009579511824995279,
+          "before": 0.0008850907906889915
+        },
+        "ratio_after_before": 1.0823196812993827,
+        "samples_seconds": {
+          "after": [
+            0.0009579511824995279,
+            0.0012200349010527134,
+            0.0009282950777560472,
+            0.0010917650070041418,
+            0.000924526946619153,
+            0.0009053719695657492,
+            0.0010103709064424038
+          ],
+          "before": [
+            0.0008408790454268456,
+            0.001340548973530531,
+            0.0008850907906889915,
+            0.0008514020591974258,
+            0.0009283130057156086,
+            0.001022813841700554,
+            0.0008598000276833773
+          ]
+        }
+      },
+      {
+        "cell": "ledger/100/numba",
+        "first_warmup_seconds": {
+          "after": 0.14500718982890248,
+          "before": 0.820974208181724
+        },
+        "median_seconds": {
+          "after": 0.0009499250445514917,
+          "before": 0.0009047870989888906
+        },
+        "ratio_after_before": 1.0498879190618913,
+        "samples_seconds": {
+          "after": [
+            0.0009060679003596306,
+            0.0010075420141220093,
+            0.0008829301223158836,
+            0.0009499250445514917,
+            0.0009539690800011158,
+            0.0009011179208755493,
+            0.0010326451156288385
+          ],
+          "before": [
+            0.0009047870989888906,
+            0.0009178151376545429,
+            0.0007923920638859272,
+            0.0009695549961179495,
+            0.0008372350130230188,
+            0.0008363928645849228,
+            0.001036148052662611
+          ]
+        }
+      },
+      {
+        "cell": "ledger/2000/python",
+        "first_warmup_seconds": {
+          "after": 0.006108507048338652,
+          "before": 0.006514861946925521
+        },
+        "median_seconds": {
+          "after": 0.005721895955502987,
+          "before": 0.00534929009154439
+        },
+        "ratio_after_before": 1.0696551986491767,
+        "samples_seconds": {
+          "after": [
+            0.00597122497856617,
+            0.070766172837466,
+            0.005848254077136517,
+            0.005721895955502987,
+            0.0054059738758951426,
+            0.0054566271137446165,
+            0.005479070823639631
+          ],
+          "before": [
+            0.005931128980591893,
+            0.006079807179048657,
+            0.005295133916661143,
+            0.005837979028001428,
+            0.0051438400987535715,
+            0.00534929009154439,
+            0.005343578057363629
+          ]
+        }
+      },
+      {
+        "cell": "ledger/2000/numba",
+        "first_warmup_seconds": {
+          "after": 0.0055254518520087,
+          "before": 0.005367390112951398
+        },
+        "median_seconds": {
+          "after": 0.005017783027142286,
+          "before": 0.005065800854936242
+        },
+        "ratio_after_before": 0.9905211773678063,
+        "samples_seconds": {
+          "after": [
+            0.005416704807430506,
+            0.004919156897813082,
+            0.005160452099516988,
+            0.004954276839271188,
+            0.005017783027142286,
+            0.004895881982520223,
+            0.005423336056992412
+          ],
+          "before": [
+            0.0054963938891887665,
+            0.004990297136828303,
+            0.005065800854936242,
+            0.005098467925563455,
+            0.004801940871402621,
+            0.004929214017465711,
+            0.005168304080143571
+          ]
+        }
+      }
+    ],
+    "current": "0969ffe",
+    "financial_runs": 0,
+    "optimizer_runs": 0,
+    "peak_rss_kib": 204728,
+    "repeats": 7,
+    "schema": "acc01.paired_benchmark.v1",
+    "warmups": 2
+  },
+  "protocol": {
+    "bounded_financial_benchmark_calls": 170,
+    "concurrent_active_financial_workers": 1,
+    "investigation_order": [
+      "before-a",
+      "after-a",
+      "after-b",
+      "before-b"
+    ],
+    "numeric_threads": 1,
+    "repeats": 7,
+    "research_optimizers": 0,
+    "warmups": 2
+  },
+  "raw_receipts": {
+    "upgrade/private/acc01/attempt-01/boundary-after-samples.json": "d0da2de17a42c12e38d4709261399249d278810849a1c1546a66bf9957deb264",
+    "upgrade/private/acc01/attempt-01/boundary-before-samples.json": "10c0272ccd5f4e782d6839a011ad6736e2cb8c7f3051fd03093166d7d1bead4d",
+    "upgrade/private/acc01/attempt-01/option-package-after-a-samples.json": "fd603eaa6d461dc26313e28a448d121e5b2e8af90e178e5de678df42be32b1b0",
+    "upgrade/private/acc01/attempt-01/option-package-after-b-samples.json": "c6280b4cfde5d0647187e6c8c826c45ea351b9b3bcc005f8e9960ba8b30f43f8",
+    "upgrade/private/acc01/attempt-01/option-package-before-a-samples.json": "30c9a4ffde45f8767f6634c1cd874e6f4df34a2ac16bad57e4ecdc701e3bd088",
+    "upgrade/private/acc01/attempt-01/option-package-before-b-samples.json": "f5f16808afb73eb22b8894cee2a464c5b6ad5458503a7b41f2d1e844d593cba0"
+  },
+  "reporting_source_unchanged_since": "0969ffe",
+  "required_investigations_completed": [
+    "100k Python/Numba reporting",
+    "short option boundary"
+  ],
+  "schema": "quantbt.acc01.performance.v1"
+}

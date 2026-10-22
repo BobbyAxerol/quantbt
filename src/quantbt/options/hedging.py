@@ -18,6 +18,7 @@ import pandas as pd
 from .greeks import OptionGreeks
 from .ledger import OptionLedger
 from .schema import OptionInstrumentSpec
+from .validation import finite_number
 
 
 class OptionHedgePolicyType(str, Enum):
@@ -43,6 +44,11 @@ class OptionHedgeConfig:
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "policy", _coerce_policy(self.policy))
+        finite_number(self.target_delta, "target_delta")
+        for name in ("threshold", "enter_band", "exit_band", "rebalance_interval_ns", "realized_vol_multiplier", "min_band"):
+            finite_number(getattr(self, name), name, minimum=0.0)
+        finite_number(self.realized_vol_window, "realized_vol_window", positive=True)
+        finite_number(self.hedge_contract_multiplier, "hedge_contract_multiplier", positive=True)
         if self.threshold < 0.0 or self.enter_band < 0.0 or self.exit_band < 0.0:
             raise ValueError("threshold and bands must be >= 0")
         if self.exit_band > self.enter_band:
@@ -107,6 +113,8 @@ def hedge_decision(
     currently_active: bool = False,
 ) -> HedgeDecision:
     """Decide whether to rebalance the hedge after Greek recomputation."""
+    finite_number(net_option_delta, "net_option_delta")
+    finite_number(current_hedge_qty, "current_hedge_qty")
     target_qty = (float(config.target_delta) - float(net_option_delta)) / float(config.hedge_contract_multiplier)
     trade_qty = target_qty - float(current_hedge_qty)
     band = _active_band(config, underlying_prices)
@@ -162,6 +170,9 @@ def run_delta_hedge_path(
         raise ValueError("timestamps, prices and deltas must be non-empty and equal length")
     if bool((prices <= 0.0).any()) or bool((~np.isfinite(prices)).any()):
         raise ValueError("underlying prices must be finite and > 0")
+    if not np.isfinite(deltas).all():
+        raise ValueError("net option deltas must be finite")
+    finite_number(initial_hedge_qty, "initial_hedge_qty")
     hedge_qty = float(initial_hedge_qty)
     hedge_pnl = 0.0
     last_rebalance_ts: Optional[int] = None

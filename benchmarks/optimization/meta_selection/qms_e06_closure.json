@@ -1,0 +1,64 @@
+{
+  "artifacts": {
+    "sdist": {
+      "bytes": 926465,
+      "modules": 260,
+      "sha256": "a23a0eaf71b839e3f7322d38f67c8dc055cbb76b5e713b17d90934c51a2ffe03"
+    },
+    "wheel": {
+      "bytes": 1042914,
+      "modules": 260,
+      "sha256": "b82a7ac0eaeab33bd0ae2d4d16e229d7bff15a9f5ecfe75dab34d4a2d6e09a2d"
+    }
+  },
+  "cleanup_sha256": "f55ab3008c8ffa73476ff4f99ba5a063201636370c665068311310ef4d11945b",
+  "distinct_source_pass": 124,
+  "economic": "REAL_MARKET_NOT_ASSESSED_NOT_PROMOTED",
+  "evidence": {
+    "sdist": {
+      "cells": 6,
+      "mature_tests": 16,
+      "sha256": "3c681475061e52558cc7d35595010d8fa2e2f6d55987693783356d4feedd9a00"
+    },
+    "source": {
+      "cells": 18,
+      "sha256": "3da0283072a039e5be5a075698c822484e2a67f7a825cf73c26d4b1aeaab8806"
+    },
+    "wheel": {
+      "cells": 6,
+      "mature_tests": 16,
+      "sha256": "fa3d41521c65ae8ffa1ca238d5e1c265b570f910e453d0d819abf132be153df4"
+    }
+  },
+  "financial_benchmark_sha256": "279333a8051e8a6e9ef07681c9a558cb4a1f1f36f3b85e3e39cf974443d7a592",
+  "freed_bytes": 1190313984,
+  "guide_sha256": "adad24b16024ec5d9f3bdaf3a4098a8c60305c1fc181f1c30a0ff0f648a8170d",
+  "installed_rerun_pass": 32,
+  "installed_reruns_not_new_distinct_tests": true,
+  "meta_default_changed": false,
+  "native_sha256": "f5fe1ec4d9268752733ba2c7023cc0e2548215986a8cd73fb6fafb285422a3b6",
+  "next_phase_started": false,
+  "phase": "QMS-E06",
+  "privacy": {
+    "files": 7,
+    "private_alpha_access": false,
+    "publication": false
+  },
+  "protected_files": 93,
+  "publication": false,
+  "remote": "DEFERRED_E08_OWNER_APPROVAL",
+  "runtime_changed": false,
+  "runtime_entry": "c0dfcc5fc0e9830630c0c81a4cec847581b4eebf",
+  "runtime_files": 322,
+  "runtime_inventory_sha256": "b5d70fcdb1bbdda34fa8f3e0666bbc2cf0ea93a61c134ab8fef981ebc23c20af",
+  "schema": "qms-e06-local-closure-v1",
+  "status": "COMPLETE_LOCAL_SOFTWARE_QUALIFIED_OPT_IN",
+  "unexpected_skip": 0,
+  "verification_source_sha256": {
+    "tests/meta_selection/test_e06_closure.py": "6c00d3bc3bebdeff2beeadb7b54ad10c2fb13eca47573c5993411dc55e5f760d",
+    "tests/meta_selection/test_e06_intrabar_fold_contract.py": "27cae7bc22f3da58b9a038a18f6bbc224841dbb75ca2858e8b5659ced76b18e3",
+    "tests/meta_selection/test_e06_intrabar_meta.py": "68e00420851785a069713fee38813633a9da88f5fa62f7d3f3a9e57bf95ec52e",
+    "tools/qms_e06_closure.py": "37bfce1858d1660e0537d276744a90f29f8adc2cc94a7c18f3cbf529e68b58b7",
+    "tools/qms_e06_qualification.py": "adcc5c5921a54bbb23b0cce460de8089db52377816c5a0fb6fe7b6db937acdc2"
+  }
+}

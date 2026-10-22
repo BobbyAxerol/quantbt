@@ -1,0 +1,14 @@
+{
+  "schema": "mode5.decision_report.hardening_source_amendment.v1",
+  "entry": "f867d32754f65b73d24e29d553bc58a87c4c4a9c",
+  "scope": "Cold report validation only: typed gate flags, exact bounded replay observations and scalar financial identities; engines, RNG, selectors, reducers and preferences unchanged",
+  "prior_amendment": {
+    "path": "docs/mode5/evidence/m5-11-5-decision-report-source-amendment.json",
+    "sha256": "6261b9c59a3e1cfd0737a7367c6e8126bfb8649492a2323f49297a92cb59ba20"
+  },
+  "existing": {
+    "src/quantbt/mode5/decision_report.py": "fee4258a4e129483d1eca01c8c3fdf740a13bd42773e52ecb95332d9e449e7c4"
+  },
+  "scientific_thresholds_changed": false,
+  "public_defaults_changed": false
+}

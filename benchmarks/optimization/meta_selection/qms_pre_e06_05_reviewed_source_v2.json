@@ -1,0 +1,6 @@
+{
+  "baseline": "d0cd95a",
+  "source_sha256": {
+    "src/quantbt/optimization/meta_selection/common.py": "ff2fa5e96c4aa72f0962a24eff398505375439c4058cd1195e9e549276a7fd51"
+  }
+}

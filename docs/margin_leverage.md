@@ -1,6 +1,18 @@
 # Margin And Leverage
 
-QuantBT follows Binance-style futures accounting for notional buying power.
+The [portfolio account repair](portfolio_review/REPAIR_REPORT.md) documents
+capability validation and corrected sizing/funding/admission/attribution.
+Generic portfolio is a linear gross-cross netting simulator; account enums
+do not enable isolated wallets or simultaneous same-symbol hedge inventories.
+Those unsupported settings raise. A solvent pure reduction can release risk
+while equity is below IM; increases still need margin after costs.
+With heterogeneous leverage there is no allocation-independent scalar notional
+buying power: use per-symbol IM and available margin. The constant maintenance
+ratio and adverse-OHLC/zero-equity liquidation are explicit approximations.
+
+For homogeneous-leverage linear futures, QuantBT reports the following
+simplified notional capacity. This is not a venue-specific available-order
+budget, nor an implementation of exchange margin tiers or collateral modes.
 
 ```python
 buying_power = current_equity * leverage

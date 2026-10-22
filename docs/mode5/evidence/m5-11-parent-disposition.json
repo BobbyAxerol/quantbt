@@ -1,0 +1,47 @@
+{
+  "schema": "quantbt.mode5.owner_research_disposition.v1",
+  "recorded_date_utc": "2026-10-21",
+  "phase": "M5-11",
+  "authority": "EXPLICIT_OWNER_APPROVAL_IN_CONVERSATION",
+  "owner_message_vi": "Duy\u1ec7t nh\u00e9: anh duy\u1ec7t disposition t\u1ed5ng parent M5-11",
+  "disposition": "ACCEPT_COMPLETED_REGISTERED_SCOPES_WITH_LIMITATIONS",
+  "phase_status": "COMPLETE_OWNER_ACCEPTED_RESEARCH_SCOPE",
+  "scope_ledger": "docs/mode5/M5_11_RESEARCH_COVERAGE_DISPOSITION.md",
+  "integration_exit_report": "docs/diagnostics/M5_11_14_IMPLEMENTATION_REPORT.md",
+  "integration_exit_commit": "0bd53c0",
+  "accepted_scope": [
+    "Completed registered original and additional-alpha diagnostics, formal calibration and actual-winner checks",
+    "Bounded forward, economic and Mode4/ML decision research with source-specific units, masks and data-role limitations",
+    "Shared reporting and individually approved cross-mode dispositions",
+    "M5-11.14 local executable handoff and retained-source reconciliation"
+  ],
+  "preserved_limitations": [
+    "No eligible HMA formal cohort in the tested panel and mandate",
+    "Finite probes do not certify unmet basin radii; broader sensitivity, stress and generalization remain scoped",
+    "Adverse, inconclusive, flat and undefined findings remain unchanged",
+    "KEEP_BASELINE and approved-deferred whole-procedure work remain unchanged; omitted experiments are NOT_EVALUATED, not PASS",
+    "Current run-pack execution remains annual-continuous; nonempty market attrs require an explicit manifest extension"
+  ],
+  "scientific_claims_extended": false,
+  "methodology_or_defaults_changed": false,
+  "historical_receipts_rewritten": false,
+  "new_work": {
+    "optimizer_proposals": 0,
+    "financial_invocations": 0,
+    "model_fits": 0,
+    "new_regression_runs": 0,
+    "builds_or_installs": 0
+  },
+  "next_phase": {
+    "phase": "M5-12",
+    "status": "APPROVED_CONDITIONAL_NOT_STARTED",
+    "parent_acceptance_satisfied": true,
+    "separate_launch_approval_required": true,
+    "resource_admission_required": true
+  },
+  "ci_or_remote_started": false,
+  "push_merge_tag_or_publish_authorized": false,
+  "deployment_authorized": false,
+  "verification_scope": "Documentation/authority reconciliation only; retain prior test and economic receipts without rerunning or reclassifying them",
+  "cleanup": "No build/test environment or disposable scratch created; no deletion or reclaimed bytes claimed"
+}

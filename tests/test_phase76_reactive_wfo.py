@@ -912,7 +912,7 @@ def test_phase76_process_worker_certifies_in_clean_single_thread_subprocess():
             "MKL_NUM_THREADS": "1",
             "NUMEXPR_NUM_THREADS": "1",
             "NUMBA_NUM_THREADS": "1",
-            "PYTHONPATH": str(Path.cwd() / "src"),
+            "PYTHONPATH": os.pathsep.join(filter(None, (str(Path.cwd() / "src"), os.environ.get("PYTHONPATH")))),
         }
     )
     completed = subprocess.run(

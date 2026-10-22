@@ -360,6 +360,8 @@ def prepare_rust_intrabar_request(
     cannot honestly provide dense ``BacktestResultV2`` paths from it.
     """
 
+    from ..core.portfolio_validation import validate_gross_cross_account
+    validate_gross_cross_account(account, allow_margin_buffer=True)
     if tape.n_symbols != 1:
         raise NotImplementedError("Rust intrabar authority is certified for one symbol only")
     if len(intent.entry_side) != tape.n_bars:
@@ -490,7 +492,6 @@ def run_rust_intrabar_kernel(
         )
     payload = dict(prepared_request.request.core.execute())
 
-    n = tape.n_bars
     _bar_timestamp_semantics, same_bar_policy, _take_profit_gap_policy = _contract_codes(contract, tape)
     sizing = sizing_mode.value if hasattr(sizing_mode, "value") else str(sizing_mode)
 

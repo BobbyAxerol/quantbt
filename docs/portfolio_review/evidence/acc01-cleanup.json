@@ -1,0 +1,279 @@
+{
+  "active_scratch_references": [],
+  "all_introduced_exec_sessions_reaped_by_controller": true,
+  "artifacts_and_historical_evidence_retained": true,
+  "available_after": 5631303680,
+  "available_before": 5599481856,
+  "available_inodes_after": 5508208,
+  "available_inodes_before": 5506877,
+  "broad_cache_or_target_cleanup": false,
+  "inaccessible_proc_entries": 0,
+  "inventory": {
+    "allocated_unique_bytes": 29962240,
+    "apparent_unique_bytes": 27604496,
+    "distinct_inodes": 882,
+    "regular_files": 882
+  },
+  "no_publication": true,
+  "observed_available_delta": 31821824,
+  "primary_environment_replaced": false,
+  "primary_native_extension": ".venv/lib/python3.12/site-packages/_quantbt_native/_quantbt_native.cpython-312-x86_64-linux-gnu.so",
+  "proc_visibility_scope": "current sandbox PID namespace only; owned sessions separately reaped by controller",
+  "qualified_source_files": 464,
+  "removed_path": "upgrade/private/acc01/attempt-01/scratch",
+  "rerun_requires": "restore exact native extraction and baseline git-source/JIT/test scratch from retained inputs",
+  "retained_checked_files": 106,
+  "retained_hashes": {
+    ".venv/lib/python3.12/site-packages/_quantbt_native/_quantbt_native.cpython-312-x86_64-linux-gnu.so": "0aa2c376f106606baa9009853de883cb67927dd24263318c0b72953226adadec",
+    "upgrade/MODE5_INVARIANT_AND_ALPHA_PROFILING_SPEC_V1.md": "1800fd3f9929526e84605fb2e114ab179e002dbb8b9213cf9953b2f36d926dc3",
+    "upgrade/private/acc01/attempt-01/artifacts/quantbt_native-0.4.3-cp312-cp312-manylinux_2_34_x86_64.whl": "d41555ce914b4d46e611913bd4b9a1a5daeae7acb25b69532260a24dd8f5805f",
+    "upgrade/private/acc01/attempt-01/baseline-native-artifact.json": "bc33bc1d387a8380260febea01b8555af79408e70587e500721f19f85f4e6964",
+    "upgrade/private/acc01/attempt-01/benchmark-after.json": "c2035e43d90214afc7c8b4ea1a9642e75501e9b06b0c8c299432156b64db7d81",
+    "upgrade/private/acc01/attempt-01/benchmark-before.json": "9698c0c023c728f2ae7a295ef81e5af37643f74dc76c87a1f51be39bab1aa52b",
+    "upgrade/private/acc01/attempt-01/benchmark.py": "972114db061c6abbb4305c297ac08567107b0b16a8d17701366a4baa1f52eacc",
+    "upgrade/private/acc01/attempt-01/boundary-after-samples.json": "d0da2de17a42c12e38d4709261399249d278810849a1c1546a66bf9957deb264",
+    "upgrade/private/acc01/attempt-01/boundary-after.json": "cef5d72a5f3d11e8b280afdb5b431a070051a3a3367f5381ad218cacec985c8d",
+    "upgrade/private/acc01/attempt-01/boundary-after.log": "228543d5a80e432e28c090e0e4a1781f889a423c30a6fed66f3f9971eba42ead",
+    "upgrade/private/acc01/attempt-01/boundary-before-samples.json": "10c0272ccd5f4e782d6839a011ad6736e2cb8c7f3051fd03093166d7d1bead4d",
+    "upgrade/private/acc01/attempt-01/boundary-before.json": "a9e92785d9e09db6de9898e3fde6758f1574f5e88c7f717b4b787b91c610708d",
+    "upgrade/private/acc01/attempt-01/boundary-before.log": "02ab13ba15a62514d7cd475e3cf1a88f418c0fc5766f5e816a06ce3ace7ff450",
+    "upgrade/private/acc01/attempt-01/boundary_benchmark.py": "3c859ea67617652ca44ab9bea49e9f22a0d5cc19e7fa95e4a653d2d1086bc50d",
+    "upgrade/private/acc01/attempt-01/cleanup.py": "c269e2332b3ed29853d86a6a7f5a4977bb6661043971e89cea0ffb5af3450ecb",
+    "upgrade/private/acc01/attempt-01/endpoint-admission-first.json": "cc4156c499ac2fa1a9cccacf54605873b089e8454a637e53d31feb9556531526",
+    "upgrade/private/acc01/attempt-01/endpoint-admission-first.log": "1084d8f465fb8279afab8b7011fd6ec7055bf8d0c9e4a0832afeb94739422c4a",
+    "upgrade/private/acc01/attempt-01/endpoint-admission-first.xml": "c4d6f89b8444161043cc5b5da6d2812e908f1eb9a47dc8124677c6dfef01120d",
+    "upgrade/private/acc01/attempt-01/endpoint-admission-second.json": "fa54bedc4615a2b2691a9d0058be3875cd539b86bf60db46ae18f54c48b6af5e",
+    "upgrade/private/acc01/attempt-01/endpoint-admission-second.log": "5da52d335a86e2b5db36519d828ad56bc7acdd73d4c88467fbc7a0593d54b415",
+    "upgrade/private/acc01/attempt-01/endpoint-admission-second.xml": "66ff5549c88120ca02ca3805df5273bd88f8a068bbe3ce595834775e9bc3a36e",
+    "upgrade/private/acc01/attempt-01/endpoint-admission-third.json": "784178efbfd86f73d57b565200aaa60238d1f4aaf56c8d2e540b2d720bedd892",
+    "upgrade/private/acc01/attempt-01/endpoint-admission-third.log": "6fbb42b701766de99d47754c7d868c017fc2e9e75a98df6eaa5b66ceb1a15e04",
+    "upgrade/private/acc01/attempt-01/endpoint-admission-third.xml": "120b0c042e1fcf8e58f79b56956259b0c81b20fb78660c7f4ea1e0fed3d7b2f2",
+    "upgrade/private/acc01/attempt-01/export_initial_performance.py": "88265c42a944c14b6a14b3c468173e544c237487cc6dcb8c58c1c76d9d49e0cb",
+    "upgrade/private/acc01/attempt-01/export_performance.py": "acb4b3017c625f6aedcb4fe10dee8faff42059c96d6b98c321d81545354ba3d9",
+    "upgrade/private/acc01/attempt-01/extract_baseline_native.py": "ba781f857e75fb45e4b63cd8a6f63f6f5bc07d67459081ebf343f74d2be9f8fb",
+    "upgrade/private/acc01/attempt-01/extract_native.py": "a40b8695b18b98efe8ad29bde50ab9ec31cd7f74220d89998ee8629fda1b5b2c",
+    "upgrade/private/acc01/attempt-01/final-checks.json": "fce578540848ad508c92b32d32c3d6e109be5967bebe2e8de686837a89bb7add",
+    "upgrade/private/acc01/attempt-01/final-current-history.json": "90fc58c53f5a87a389065d5a9b1185e711a99450c33975eeba7c7e570c64001d",
+    "upgrade/private/acc01/attempt-01/final-current-history.log": "b4cdf616fccacc9a106be575b47718f999fa2b29c464ae5abf66b203084c5b27",
+    "upgrade/private/acc01/attempt-01/final-current-history.xml": "de21d75ebf8d122d8aba31fd3edec7ca4650836e22a8c711a02998c99d963d1d",
+    "upgrade/private/acc01/attempt-01/final-source-options.json": "80e241d6268635818ed4a9e2fc3c20620e5cb2a4e08fbcd96a21c6335e44c074",
+    "upgrade/private/acc01/attempt-01/final-source-options.log": "2c7307d2de5cb5a2483b22dc77072109e671a56be9388cc307caa5f8af46fcee",
+    "upgrade/private/acc01/attempt-01/final-source-options.xml": "df22f5d864b60a7db6e13b7a057cb70a22da0ab88075b4acb55168ad244e9775",
+    "upgrade/private/acc01/attempt-01/final-v3-clock.json": "b84753146dddd42e78e10795494e3625763ff9632d3aa65b775589284fb34e5b",
+    "upgrade/private/acc01/attempt-01/final-v3-clock.log": "70ee2be7f96f47b8b22b9ac2072236fbbcda0b30f45e0ddc7603c17ee3da63fc",
+    "upgrade/private/acc01/attempt-01/final-v3-clock.xml": "894ac97b1e1525b0fff524c0ef55fd6364d873724dfeac8ee03591d9372ac0b3",
+    "upgrade/private/acc01/attempt-01/final_checks.py": "ac3e2c015ad3fa7aafc3e8b25ca107be53b66d470af9949397013e21b6f2b3a9",
+    "upgrade/private/acc01/attempt-01/first.xml": "8e3633ec950605a27332979ef600cf71acbee137744392d58ce0992773cdbff7",
+    "upgrade/private/acc01/attempt-01/focused-jit-native.json": "b2990387e3e2ce58ad515fefa67b42f8e5494051e30d7356f6709233f249a455",
+    "upgrade/private/acc01/attempt-01/focused-jit-native.log": "c11163f117266649319bf45dae96d6ed1adc79b87326c321df0907c13fc97429",
+    "upgrade/private/acc01/attempt-01/focused-jit-native.xml": "a6506ace151074e212994d86c09a9e9bddcb845561f151935a6c3c0186845cfb",
+    "upgrade/private/acc01/attempt-01/focused-python-native.json": "26d03610f2a52764cef608e4e154f7d79be6ec71c5be1beb06c99183151cabb3",
+    "upgrade/private/acc01/attempt-01/focused-python-native.log": "0e61ed1ffe5a39b19c3ca8a5a495620ebae4ee5e9b31d31bf090576ff3e8a99d",
+    "upgrade/private/acc01/attempt-01/focused-python-native.xml": "1a795de34ad45899280b140242a94a9cb021890ed04888c111dc0db5239742c6",
+    "upgrade/private/acc01/attempt-01/metrics-source-regression.json": "9664e6ede507b308dc4341081084243065916ae28bbb0200adb2954e1ab95053",
+    "upgrade/private/acc01/attempt-01/metrics-source-regression.log": "b5397de50a1c2eb99bd2e53110422e6dba2e853a5359f0398c80c2bf0ff452f6",
+    "upgrade/private/acc01/attempt-01/metrics-source-regression.xml": "28dbf5fa7c788e3154a2443cb1c4d049b66390224564b8cee1c024012c5c6fd9",
+    "upgrade/private/acc01/attempt-01/native-admission.json": "82d04cc9db654012e34deef8313f5ee541f26278be6a5f591630551a7485a74e",
+    "upgrade/private/acc01/attempt-01/native-artifact.json": "118fc315ef93a8df4745298ead3dd494c882aee81e155994e7fe1bce35ed0be5",
+    "upgrade/private/acc01/attempt-01/native-build-first.json": "d313c30b5dbe6dc40aeb2c39ce9fb1d614cd35a6be4f79b7858b89fb9a3caec2",
+    "upgrade/private/acc01/attempt-01/native-build-first.log": "a7908bf2581f49f05e5f4d749fd33cf8f9a67697c4dd6c6be38939c54aab3378",
+    "upgrade/private/acc01/attempt-01/native_admission.py": "d9db57dfac3dfade5ff379c6aab51414753f98c0d6bccab9475d8db8df110f32",
+    "upgrade/private/acc01/attempt-01/option-event-tail.json": "1cda331427ac4199f64149e7c1e01bbfd79d8750ec8cc0baf1a1e76d96772a1c",
+    "upgrade/private/acc01/attempt-01/option-event-tail.log": "9a1659a1e1a36c8e21d4f333994de88288254d30e1d12c996a026c83c915720a",
+    "upgrade/private/acc01/attempt-01/option-event-tail.xml": "e12c1f82beeff42c114c72bdaa7dbfc020b1ef31a5cf2aa36d07e644b66ffce1",
+    "upgrade/private/acc01/attempt-01/option-package-after-a-samples.json": "fd603eaa6d461dc26313e28a448d121e5b2e8af90e178e5de678df42be32b1b0",
+    "upgrade/private/acc01/attempt-01/option-package-after-a.json": "21c8a381af719574e2a6e08d830231d622253ee72b5f3aba86e1b2e7c0265736",
+    "upgrade/private/acc01/attempt-01/option-package-after-a.log": "7ce81035a403bffd0ea76e06d442bb0ba386a566a01b4a089ab66c85f16851e5",
+    "upgrade/private/acc01/attempt-01/option-package-after-b-samples.json": "c6280b4cfde5d0647187e6c8c826c45ea351b9b3bcc005f8e9960ba8b30f43f8",
+    "upgrade/private/acc01/attempt-01/option-package-after-b.json": "56e3ca14bb270119743eeb41ac904947e55644fba621f7967368b98ddf975209",
+    "upgrade/private/acc01/attempt-01/option-package-after-b.log": "092d4024d0d0319ec8e37fed50c527aa84b2430659ef385f4f2c3c6162686b8b",
+    "upgrade/private/acc01/attempt-01/option-package-before-a-samples.json": "30c9a4ffde45f8767f6634c1cd874e6f4df34a2ac16bad57e4ecdc701e3bd088",
+    "upgrade/private/acc01/attempt-01/option-package-before-a.json": "b3e245a678ecc01289018caab418ed3235ef3b622409533b849c66d044c336f6",
+    "upgrade/private/acc01/attempt-01/option-package-before-a.log": "9b2158480d6bc3abe0ba08406d918fe17f1a81ebd22ba1a3faf62b3fd6ad243a",
+    "upgrade/private/acc01/attempt-01/option-package-before-b-samples.json": "f5f16808afb73eb22b8894cee2a464c5b6ad5458503a7b41f2d1e844d593cba0",
+    "upgrade/private/acc01/attempt-01/option-package-before-b.json": "506105c58c1a3367877b25c372bb19b5fc49ccc65d9fb005f943cff1e682732b",
+    "upgrade/private/acc01/attempt-01/option-package-before-b.log": "f2cc484ea2ee10c411064e576a72e2fddec9b10e3b02d64c80f54fdd91b5f236",
+    "upgrade/private/acc01/attempt-01/option_package_probe.py": "fc2863e0dbc81effc250ca17faacc7b080f8f61a5d29340ed0ab0b616a34f5a3",
+    "upgrade/private/acc01/attempt-01/options-metrics-first.xml": "80db1589ceb6ff858a06bcf8e00dd9a9662d186e894b27b3f7a46a420a3fe8a0",
+    "upgrade/private/acc01/attempt-01/options-metrics-second.json": "2edae17b46c995c2c1b5922fb43d73bef14a35e258b34b6aef5d1a6dc9c6b2e6",
+    "upgrade/private/acc01/attempt-01/options-metrics-second.log": "eaa80300901dba6bff5502fb3bd31b018415e965b3dd69d89b276ee4485bf59c",
+    "upgrade/private/acc01/attempt-01/options-metrics-second.xml": "44ab0a5ee90b54fe972f6eac3bf4f89c0d3082d31ac4ae0572b603e3160604f8",
+    "upgrade/private/acc01/attempt-01/options-metrics-third.json": "c99480816531403cac4c9c5b7a5136e7441cfee6201cb191aaf799628990ba74",
+    "upgrade/private/acc01/attempt-01/options-metrics-third.log": "718e932e21a41b49ddc515f07fdb8b6f2f8a78d17d85a37354b3bc8fa81fc864",
+    "upgrade/private/acc01/attempt-01/options-metrics-third.xml": "04ff7750289cbf43b03ac5ba73b4398c459563f5cde94bb7bd12ec8da1eeddd1",
+    "upgrade/private/acc01/attempt-01/paired-benchmark-first.json": "5dbbc1421dffbe50a59bd98137dd06d461077c26c428325ed34018fe0a2f83a5",
+    "upgrade/private/acc01/attempt-01/paired-benchmark-first.log": "bb0c24e0f5ce17fa55b31c74fc10f721dfeff05abd22570a5b7fca067129c235",
+    "upgrade/private/acc01/attempt-01/paired-benchmark-recovery.json": "24d257a715c1b76a69d9287668e736eda2b046adcc23a63f626162be97558832",
+    "upgrade/private/acc01/attempt-01/paired-benchmark-recovery.log": "eb37677a15f1172f77d7afa9eece7817106f3ed626033c38251e7f055577c4fa",
+    "upgrade/private/acc01/attempt-01/paired-benchmark.json": "4dc67c0a87421cedc77dae42a874e502f55010adf85f196ecd64d45351467ffb",
+    "upgrade/private/acc01/attempt-01/paired_benchmark.py": "91b5badadd471e35f8be4a18a5d1d2b0f1033b595138cc852405fef4850b8cf0",
+    "upgrade/private/acc01/attempt-01/prepare_final_amendment.py": "69d73a03bdcda23a986a776c34ed48023480a6785b337943b8756362c29122d3",
+    "upgrade/private/acc01/attempt-01/prepare_source_amendment.py": "8f14f42cf367edc6a94b92015191e7438830e7baa3ef2845695d06e418f5aba1",
+    "upgrade/private/acc01/attempt-01/register.py": "1e4f872f2bebbcd9134418634394744bf76c271e107ab2fa2557bcc96d8af73c",
+    "upgrade/private/acc01/attempt-01/registration.json": "dd501805890ed251488779c650ef6d3fb8f044558bbb7281296c7c620db84994",
+    "upgrade/private/acc01/attempt-01/reporting-benchmark-after.json": "d754ddd28f5c217f927c01759852d7923eac933e7c1acdff1ed2ef559f2cc98f",
+    "upgrade/private/acc01/attempt-01/reporting-benchmark-after.log": "63355bec70d95f4dd81c2e0954617630aace0f3d980ae882219e2e86447ba04d",
+    "upgrade/private/acc01/attempt-01/route-regression-first.json": "0c1d26b6d39a6000f59bfa2b8ad426a205c219f73c6e99e13d92b310e23938da",
+    "upgrade/private/acc01/attempt-01/route-regression-first.log": "81753b2566f615717c0e677a3fa5c3ee67c1ed6dc0dc5e458aa684a3aed69952",
+    "upgrade/private/acc01/attempt-01/route-regression-first.xml": "a887ed220d9fdb8c1540b311bf8e1778d3c510b61d4414f5b61b1b9ba6643752",
+    "upgrade/private/acc01/attempt-01/run.py": "6bfed2555e3831efbea130c3fa14b62205f24c96261da53bf0fa131871a78955",
+    "upgrade/private/acc01/attempt-01/rust-unit-first.json": "15a2408e2020abe9f42237de16dc4f35bc31541e43210892dec7daca0ca65b9c",
+    "upgrade/private/acc01/attempt-01/rust-unit-first.log": "a8e9e458b19ecbd9a6cd366aeea4cbda0fe1c7efa163310f7567c22eda00b7c5",
+    "upgrade/private/acc01/attempt-01/rust-unit-second.json": "f7753fcf83bc59b86f6694d1cd65dd3a1b9c828abf4376ec03f25d91c6690c2b",
+    "upgrade/private/acc01/attempt-01/rust-unit-second.log": "ab88035276921cfcb008bba1451f4b7f269d45fa7b1a6076a96eb88cb7bf18b1",
+    "upgrade/private/acc01/attempt-01/second.xml": "86fd99a6e807ad4e75933a6756e7d65cda3a42af9f2916436f32340e360fa6f0",
+    "upgrade/private/acc01/attempt-01/shared-wfo-event-final.json": "bbe6178d59d7a32dc133668c078df4318e43ff174a9af6c154fc33c75e0b9eae",
+    "upgrade/private/acc01/attempt-01/shared-wfo-event-final.log": "2c2687b59e80f561fa90ca6fb4f5fe4d974f0325166b9a67b505bb06ff6f2aef",
+    "upgrade/private/acc01/attempt-01/shared-wfo-event-final.xml": "84ad3c8b193a04366f3cc3dcfd0a5a29b16bf436db70c31ab75aac5eb1b2bd47",
+    "upgrade/private/acc01/attempt-01/source-amendment-final.json": "f2cd015689742cde151f32cf6678ece4fb7f86c1947f918bc5c63c9048b18713",
+    "upgrade/private/acc01/attempt-01/source-amendment-final.log": "e0203894f619fd542ded3cb1c9c77384b6b87fa245d06cd9377e6b7688b57eb2",
+    "upgrade/private/acc01/attempt-01/source-amendment-final.xml": "fd570b8a0d07b87b4596db7b4c2ba9b96bc0712eadd2ba2fd673b3ff6f96b3d9",
+    "upgrade/private/acc01/attempt-01/third.xml": "8e9fbdd82e55d5e5321b05d014197690394dc6c297b6ed6d051df2b3b9b4a7bf",
+    "upgrade/private/portfolio_account_repair/attempt-01/artifacts/quantbt_native-0.4.3-cp312-cp312-manylinux_2_34_x86_64.whl": "7a7ed7fc2fadcc905dc8859d19c15518aad9827e485923ff73f8544dda54b3d4"
+  },
+  "schema": "quantbt.acc01.cleanup.v1",
+  "services_stopped": false,
+  "source_commit": "70fe9f7c9b14469e6ea935e75f180f26ca1c175e",
+  "status": "PASS_EXACT_OWNED_SCRATCH_ONLY",
+  "terminal_worker_receipts": [
+    {
+      "receipt": "boundary-after.json",
+      "returncode": 0,
+      "seconds": 6.382809116970748
+    },
+    {
+      "receipt": "boundary-before.json",
+      "returncode": 0,
+      "seconds": 9.480122459121048
+    },
+    {
+      "receipt": "endpoint-admission-first.json",
+      "returncode": 2,
+      "seconds": 3.1553054789546877
+    },
+    {
+      "receipt": "endpoint-admission-second.json",
+      "returncode": 2,
+      "seconds": 3.029661481967196
+    },
+    {
+      "receipt": "endpoint-admission-third.json",
+      "returncode": 0,
+      "seconds": 8.268728088121861
+    },
+    {
+      "receipt": "final-current-history.json",
+      "returncode": 0,
+      "seconds": 98.59660569904372
+    },
+    {
+      "receipt": "final-source-options.json",
+      "returncode": 0,
+      "seconds": 34.13078153412789
+    },
+    {
+      "receipt": "final-v3-clock.json",
+      "returncode": 0,
+      "seconds": 96.76791212405078
+    },
+    {
+      "receipt": "focused-jit-native.json",
+      "returncode": 0,
+      "seconds": 54.569874570006505
+    },
+    {
+      "receipt": "focused-python-native.json",
+      "returncode": 1,
+      "seconds": 12.244044895051047
+    },
+    {
+      "receipt": "metrics-source-regression.json",
+      "returncode": 1,
+      "seconds": 171.44727056496777
+    },
+    {
+      "receipt": "native-build-first.json",
+      "returncode": 0,
+      "seconds": 68.05245326412842
+    },
+    {
+      "receipt": "option-event-tail.json",
+      "returncode": 0,
+      "seconds": 5.44698934792541
+    },
+    {
+      "receipt": "option-package-after-a.json",
+      "returncode": 0,
+      "seconds": 6.1679476669523865
+    },
+    {
+      "receipt": "option-package-after-b.json",
+      "returncode": 0,
+      "seconds": 6.368741145124659
+    },
+    {
+      "receipt": "option-package-before-a.json",
+      "returncode": 0,
+      "seconds": 8.198618556838483
+    },
+    {
+      "receipt": "option-package-before-b.json",
+      "returncode": 0,
+      "seconds": 8.26502270787023
+    },
+    {
+      "receipt": "options-metrics-second.json",
+      "returncode": 1,
+      "seconds": 8.847915675956756
+    },
+    {
+      "receipt": "options-metrics-third.json",
+      "returncode": 1,
+      "seconds": 8.789675461128354
+    },
+    {
+      "receipt": "paired-benchmark-first.json",
+      "returncode": 1,
+      "seconds": 47.42759822006337
+    },
+    {
+      "receipt": "paired-benchmark-recovery.json",
+      "returncode": 0,
+      "seconds": 2.1509300670586526
+    },
+    {
+      "receipt": "reporting-benchmark-after.json",
+      "returncode": 0,
+      "seconds": 17.14378860616125
+    },
+    {
+      "receipt": "route-regression-first.json",
+      "returncode": 0,
+      "seconds": 40.271305572008714
+    },
+    {
+      "receipt": "rust-unit-first.json",
+      "returncode": 101,
+      "seconds": 23.952389132929966
+    },
+    {
+      "receipt": "rust-unit-second.json",
+      "returncode": 0,
+      "seconds": 23.72900683991611
+    },
+    {
+      "receipt": "shared-wfo-event-final.json",
+      "returncode": 1,
+      "seconds": 363.3717226779554
+    },
+    {
+      "receipt": "source-amendment-final.json",
+      "returncode": 0,
+      "seconds": 8.637328224023804
+    }
+  ],
+  "visible_proc_pids": [
+    1,
+    2
+  ]
+}

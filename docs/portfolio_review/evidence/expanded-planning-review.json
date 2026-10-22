@@ -1,0 +1,157 @@
+{
+  "additional_controls": 22,
+  "build": false,
+  "ci": false,
+  "cleanup": {
+    "available_bytes_after": 5660614656,
+    "available_bytes_before": 5672235008,
+    "available_inodes_after": 5508544,
+    "deleted_paths": [],
+    "free_delta_is_reclamation_claim": false,
+    "retained_bytes": 57482,
+    "scratch_created": false,
+    "workers": "All three synthetic control processes and both read-only agents completed; no service/cache/environment changes"
+  },
+  "counts_are_not_distinct_regression_passes": true,
+  "current_source_qualified": true,
+  "date": "2026-10-22",
+  "disposition": "PLANNING_ONLY_ALL_FINDINGS_OPEN",
+  "evidence": [
+    {
+      "bytes": 7403,
+      "path": "upgrade/private/account_metrics_plan_review/attempt-01/expanded_controls.json",
+      "sha256": "5cc33f62481a94113ca96329988764adf7088e31df5f9efe90347afb8f26a90e"
+    },
+    {
+      "bytes": 4634,
+      "path": "upgrade/private/account_metrics_plan_review/attempt-01/expanded_controls.py",
+      "sha256": "7010235adece63503b834f5f06e40d4f6777d51bc754e0b554aa61ef5f0e0d9a"
+    },
+    {
+      "bytes": 5439,
+      "path": "upgrade/private/account_metrics_plan_review/attempt-01/finish_review.py",
+      "sha256": "51212b5979042a2f07f720eef72161915cdd1867c9b81afead33d4ed9bf2d7c6"
+    },
+    {
+      "bytes": 4443,
+      "path": "upgrade/private/account_metrics_plan_review/attempt-01/option_boundary_controls.json",
+      "sha256": "5f9bc4f5cf02e54b0a1e3ad6a9d2bc7399ea35af1a8c20c221bcad93b0b33935"
+    },
+    {
+      "bytes": 3457,
+      "path": "upgrade/private/account_metrics_plan_review/attempt-01/option_boundary_controls.py",
+      "sha256": "d9ddeb7fb0d891fb18db69ace725c238206fe299f766c6c48f38f421e54f369b"
+    },
+    {
+      "bytes": 851,
+      "path": "upgrade/private/account_metrics_plan_review/attempt-01/registration.json",
+      "sha256": "5b5be2157661f2392e33dd672640d2bc57be42ba0054122288b045e866e6e892"
+    },
+    {
+      "bytes": 26466,
+      "path": "upgrade/private/account_metrics_plan_review/attempt-01/route_metric_controls.json",
+      "sha256": "c45b224ddf7740f01df25fe386d6cc80fa1d56255e0a3a991a5ec3de11807234"
+    },
+    {
+      "bytes": 4789,
+      "path": "upgrade/private/account_metrics_plan_review/attempt-01/route_metric_controls.py",
+      "sha256": "1511a750fb5c7d293cc12cbda7b41de313d26b2c99d6bf7d4dd1be121e37c9e6"
+    }
+  ],
+  "finding_ids": [
+    "F01",
+    "F02",
+    "F03",
+    "F04",
+    "F05",
+    "F06",
+    "F07",
+    "F08",
+    "F09",
+    "F10",
+    "F11",
+    "F12",
+    "F13",
+    "F14",
+    "F15",
+    "F16",
+    "F17",
+    "F18"
+  ],
+  "jit": false,
+  "native_tested": false,
+  "new_findings": 6,
+  "numeric_summary": {
+    "backdated_fill_seconds": 1800.0,
+    "bankruptcy_period_request_error": "period return after nonpositive equity is undefined",
+    "expiry_long_itm": {
+      "cash": {
+        "BTC": 1.18
+      },
+      "expected_realized": 0.17999999999999994,
+      "fees": {},
+      "position_realized": 0.2,
+      "positions": 0.0,
+      "realized": {
+        "BTC": 0.2
+      },
+      "settlement_cashflow": 0.2
+    },
+    "expiry_long_otm": {
+      "cash": {
+        "BTC": 0.98
+      },
+      "expected_realized": -0.020000000000000018,
+      "fees": {},
+      "position_realized": 0.0,
+      "positions": 0.0,
+      "realized": {
+        "BTC": 0.0
+      },
+      "settlement_cashflow": 0.0
+    },
+    "expiry_short_itm": {
+      "cash": {
+        "BTC": 0.8200000000000001
+      },
+      "expected_realized": -0.17999999999999994,
+      "fees": {},
+      "position_realized": -0.2,
+      "positions": 0.0,
+      "realized": {
+        "BTC": -0.2
+      },
+      "settlement_cashflow": -0.2
+    },
+    "intrabar_duration_seconds": {
+      "ns": 7200.0,
+      "us": 7.2
+    },
+    "valid_intrabar_funding_equity": [
+      1000.0,
+      999.0,
+      999.0
+    ]
+  },
+  "optimizer": false,
+  "previous_controls": 32,
+  "previous_findings": 12,
+  "prior_protected_pins_verified": 14,
+  "push": false,
+  "rejected_hypotheses": [
+    "Missing held option quote explicitly fails",
+    "Negative per-run event fee explicitly fails"
+  ],
+  "release": false,
+  "release_identity_sha256": {
+    "pyproject.toml": "670eec373a68ed4eeb5f819b1faf45e496bfa5bbb80fd4b7d8e7cbb370b82865",
+    "rust/native_event/Cargo.toml": "9b51ebe5c2230347624ba4e6fe9d3112d6d4ff6f409a9673e382297dee795b14",
+    "uv.lock": "3700b0290452c797c72f39bb1ad4ef95b97bc781f5728eadd1551d451d7ceb9e"
+  },
+  "review_head": "bd8df9519ca242e916943304cf0cabbc293d8edf",
+  "schema": "quantbt.account_metrics_expanded_planning_review.v1",
+  "source_commit": "9c2bfd95c65f71618f52c736dfff341953066961",
+  "source_runtime_edited": false,
+  "timezone": "Asia/Saigon",
+  "version_bump": false
+}

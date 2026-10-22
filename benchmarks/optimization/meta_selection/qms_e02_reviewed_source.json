@@ -1,0 +1,18 @@
+{
+  "baseline": "82c1421",
+  "no_method_activation": true,
+  "schema": "qms-e02-reviewed-source-v1",
+  "source_sha256": {
+    "src/quantbt/backends/reactive_wfo.py": "6bdf21b10158c2d7828b10f7f89f502c042f70f89d7ff3ec6dde56be9072cefd",
+    "src/quantbt/optimization/meta_selection/domains/__init__.py": "61d6df0a6d7f3676dc703b7292101fc9b15159faabbb8bd6d7ec4fee7c0a7101",
+    "src/quantbt/optimization/meta_selection/domains/base.py": "3db81673b766fed3054503d30531dd397160f3ad807874d764bedcb85dd4c507",
+    "src/quantbt/optimization/meta_selection/domains/contracts.py": "d7ea7bb5aba360307491d23d4f3c1634a1e72d66881a3b7fd129b0e95b799234",
+    "src/quantbt/optimization/meta_selection/domains/reactive.py": "8a7e65475094650d6da17ce73acfd5f0ad0693fb4702d9af40d9c2fc4fd1ce6b",
+    "src/quantbt/optimization/meta_selection/domains/registry.py": "664f3541c853bb731a62c0e4928458c018589b9f3b2d6e416164988ca48820af",
+    "src/quantbt/optimization/meta_selection/domains/scalar.py": "56f0bcaaadacaaec033bed707b1919efcfb5de43c8078e756e3498b1ab7cb3a8",
+    "src/quantbt/optimization/meta_selection/observer.py": "de3165a5d53cb1fceb522ea3a977a3532e31da3b868da890b620e0c8e5aacc64",
+    "src/quantbt/optimization/meta_selection/reactive.py": "f88ec8b20f4f894093eced576610f8a194ead797e3b3b827408d14668ad528e7",
+    "src/quantbt/optimization/meta_selection/runtime.py": "53890968492635206cf890db60b60957b38d08a33eb8fd3065eff78ac852afaf",
+    "src/quantbt/walkforward.py": "d45201f5a994da2bbfe758d99e0b37de4fc924c46a4200969731b9501cafabe8"
+  }
+}

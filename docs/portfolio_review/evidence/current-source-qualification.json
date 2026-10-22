@@ -1,0 +1,31 @@
+{
+  "schema": "quantbt.portfolio.current_source_qualification.v1",
+  "scope": "Exact owner-accepted pre-repair source at 5927565 plus the owner-approved portfolio financial repairs; source qualification only, not historical financial-source invariance or a runtime receipt",
+  "baseline_commit": "59275659778e1e3306b35a3c92c7623a7e17c0c3",
+  "source_commit": "9c2bfd95c65f71618f52c736dfff341953066961",
+  "limitations": [
+    "Old source guards and their unchanged-source claims are historical-only, not current financial-source certification.",
+    "Sealed package/report tools remain frozen with their original native-not-rebuilt assumptions; this qualifier does not assert their old package chain passes on current source.",
+    "Published and installed 0.4.2 pairs are not mutated or requalified here. Native artifacts and package/report consumers require separate M5-12 requalification."
+  ],
+  "scopes": [
+    "src",
+    "rust",
+    "pyproject.toml",
+    "uv.lock",
+    "contracts",
+    "upgrade/QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md"
+  ],
+  "historical_receipts": {
+    "e04": {
+      "path": "benchmarks/optimization/meta_selection/qms_e04_software_closure.json",
+      "sha256": "92220636ad363547e52a57af95bcbbe52259fd1f11bccb98c29973e5c3ea387a",
+      "source_key": "source"
+    },
+    "c02": {
+      "path": "benchmarks/optimization/meta_selection/qms_c02_transport.json",
+      "sha256": "e2b6a11e5b47602a8758895424d6ec8df13454cee12811818268b766765d250d",
+      "source_key": "source_guard"
+    }
+  }
+}

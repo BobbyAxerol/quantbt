@@ -39,12 +39,30 @@ def _bars(rows: int = 540) -> pd.DataFrame:
 def _assert_report_equal(left: dict, right: dict) -> None:
     assert left.keys() == right.keys()
     for key in left:
-        if isinstance(left[key], bool):
+        if key == "metric_population":
+            assert isinstance(left[key], dict) and isinstance(right[key], dict)
+            assert left[key] == right[key]
+        elif isinstance(left[key], bool):
             assert left[key] is right[key]
         elif math.isinf(float(left[key])) or math.isinf(float(right[key])):
             assert float(left[key]) == float(right[key])
         else:
             np.testing.assert_allclose(float(left[key]), float(right[key]), rtol=0.0, atol=1e-12)
+
+
+@pytest.mark.parametrize("defect", ["numeric", "population", "missing"])
+def test_report_comparison_keeps_exact_numeric_and_population_controls(defect):
+    left = dict(sharpe=1., metric_population=dict(sharpe=dict(sample_count=180, population="daily")))
+    right = dict(sharpe=1., metric_population=dict(sharpe=dict(sample_count=180, population="daily")))
+    _assert_report_equal(left, right)
+    if defect == "numeric":
+        right["sharpe"] = 1.01
+    elif defect == "population":
+        right["metric_population"]["sharpe"]["sample_count"] = 179
+    else:
+        right.pop("metric_population")
+    with pytest.raises(AssertionError):
+        _assert_report_equal(left, right)
 
 
 def test_native_vectorized_scalar_score_is_exact_public_report_without_pandas_paths():

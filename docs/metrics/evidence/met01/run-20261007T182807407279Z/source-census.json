@@ -1,0 +1,305 @@
+{
+  "rust/crates/quantbt-batch/src/lib.rs": [
+    "sharpe",
+    "sortino",
+    "turnover"
+  ],
+  "rust/crates/quantbt-batch/src/target_wfo.rs": [
+    "sharpe",
+    "sortino",
+    "turnover"
+  ],
+  "rust/crates/quantbt-engine/src/execution_model.rs": [
+    "turnover"
+  ],
+  "rust/crates/quantbt-engine/src/legacy/types.rs": [
+    "turnover"
+  ],
+  "rust/crates/quantbt-engine/src/lib.rs": [
+    "MetricContractV2"
+  ],
+  "rust/crates/quantbt-engine/src/metrics_v2.rs": [
+    "MetricContractV2",
+    "drawdown",
+    "profit_factor",
+    "sharpe",
+    "sortino",
+    "turnover"
+  ],
+  "rust/crates/quantbt-engine/src/output/sinks.rs": [
+    "turnover"
+  ],
+  "rust/crates/quantbt-engine/src/output/static_tape.rs": [
+    "MetricContractV2",
+    "turnover"
+  ],
+  "rust/crates/quantbt-engine/src/session.rs": [
+    "MetricContractV2",
+    "turnover"
+  ],
+  "rust/crates/quantbt-execution/src/intrabar.rs": [
+    "MetricContractV2",
+    "turnover"
+  ],
+  "rust/crates/quantbt-execution/src/lib.rs": [
+    "MetricContractV2",
+    "profit_factor",
+    "sharpe",
+    "sortino",
+    "turnover"
+  ],
+  "rust/crates/quantbt-execution/src/target.rs": [
+    "MetricContractV2",
+    "num_trades",
+    "turnover"
+  ],
+  "rust/native_event/src/lib.rs": [
+    "MetricContractV2",
+    "profit_factor",
+    "sharpe",
+    "sortino",
+    "turnover"
+  ],
+  "rust/native_event/src/prepared_evaluation.rs": [
+    "MetricContractV2",
+    "profit_factor",
+    "sharpe",
+    "sortino",
+    "turnover"
+  ],
+  "rust/native_event/src/reactive_numeric.rs": [
+    "num_trades",
+    "profit_factor",
+    "sharpe",
+    "sortino",
+    "turnover"
+  ],
+  "rust/native_event/src/reactive_score.rs": [
+    "drawdown",
+    "num_trades",
+    "profit_factor",
+    "sharpe",
+    "sortino",
+    "trade_count"
+  ],
+  "src/quantbt/__init__.py": [
+    "full_report",
+    "profit_factor",
+    "sharpe",
+    "sortino"
+  ],
+  "src/quantbt/backends/_native_event_rust.py": [
+    "turnover"
+  ],
+  "src/quantbt/backends/native_event.py": [
+    "compute_performance_metrics",
+    "drawdown",
+    "num_trades",
+    "profit_factor",
+    "sharpe",
+    "sortino",
+    "trade_count",
+    "turnover"
+  ],
+  "src/quantbt/backends/native_portfolio.py": [
+    "compute_performance_metrics",
+    "turnover"
+  ],
+  "src/quantbt/backends/native_prepared_evaluation.py": [
+    "MetricContractV2",
+    "profit_factor",
+    "sharpe",
+    "sortino",
+    "turnover"
+  ],
+  "src/quantbt/backends/native_strategy_ir.py": [
+    "turnover"
+  ],
+  "src/quantbt/backends/native_vectorized.py": [
+    "compute_performance_metrics",
+    "turnover"
+  ],
+  "src/quantbt/backends/native_wfo.py": [
+    "turnover"
+  ],
+  "src/quantbt/backends/native_wfo_public.py": [
+    "profit_factor",
+    "sharpe",
+    "trade_count",
+    "turnover"
+  ],
+  "src/quantbt/backends/native_wfo_support.py": [
+    "turnover"
+  ],
+  "src/quantbt/backends/reactive_wfo_batch.py": [
+    "profit_factor",
+    "sharpe",
+    "trade_count",
+    "turnover"
+  ],
+  "src/quantbt/backends/reactive_wfo_support.py": [
+    "full_report",
+    "num_trades",
+    "profit_factor",
+    "sharpe",
+    "trade_count",
+    "turnover"
+  ],
+  "src/quantbt/backends/reactive_wfo_workers.py": [
+    "num_trades",
+    "profit_factor",
+    "sharpe",
+    "trade_count",
+    "turnover"
+  ],
+  "src/quantbt/backtester.py": [
+    "drawdown",
+    "full_report",
+    "num_trades",
+    "profit_factor",
+    "sharpe",
+    "sortino"
+  ],
+  "src/quantbt/benchmarks/profile_phase7.py": [
+    "turnover"
+  ],
+  "src/quantbt/benchmarks/run_pct_equity_nautilus_smoke.py": [
+    "full_report",
+    "num_trades"
+  ],
+  "src/quantbt/benchmarks/run_phase14_service_loop.py": [
+    "full_report"
+  ],
+  "src/quantbt/benchmarks/run_phase34b_native_event_prepared_score.py": [
+    "full_report",
+    "num_trades",
+    "profit_factor",
+    "sharpe"
+  ],
+  "src/quantbt/benchmarks/run_portfolio_real_parity.py": [
+    "turnover"
+  ],
+  "src/quantbt/core/engine.py": [
+    "turnover"
+  ],
+  "src/quantbt/core/native_event_parity.py": [
+    "turnover"
+  ],
+  "src/quantbt/core/native_result_v2.py": [
+    "turnover"
+  ],
+  "src/quantbt/core/performance_contracts.py": [
+    "MetricContractV2",
+    "trade_count"
+  ],
+  "src/quantbt/core/results.py": [
+    "compute_performance_metrics",
+    "drawdown",
+    "full_report"
+  ],
+  "src/quantbt/core/types.py": [
+    "drawdown",
+    "full_report"
+  ],
+  "src/quantbt/core/wfo_evaluation.py": [
+    "sharpe",
+    "trade_count",
+    "turnover"
+  ],
+  "src/quantbt/endpoint.py": [
+    "drawdown",
+    "full_report",
+    "num_trades",
+    "profit_factor",
+    "sharpe",
+    "sortino",
+    "trade_count",
+    "turnover"
+  ],
+  "src/quantbt/engine_spi/native_event.py": [
+    "turnover"
+  ],
+  "src/quantbt/metrics/__init__.py": [
+    "expectancy",
+    "full_report",
+    "profit_factor",
+    "sharpe",
+    "sortino"
+  ],
+  "src/quantbt/metrics/performance.py": [
+    "compute_performance_metrics",
+    "drawdown",
+    "expectancy",
+    "full_report",
+    "num_trades",
+    "profit_factor",
+    "sharpe",
+    "sortino"
+  ],
+  "src/quantbt/optimization/candidate_selection.py": [
+    "num_trades",
+    "trade_count"
+  ],
+  "src/quantbt/optimization/meta_selection/nested.py": [
+    "sharpe",
+    "trade_count"
+  ],
+  "src/quantbt/optimization/meta_selection/observer.py": [
+    "compute_performance_metrics",
+    "full_report",
+    "num_trades",
+    "sharpe"
+  ],
+  "src/quantbt/optimization/meta_selection/prepared.py": [
+    "sharpe"
+  ],
+  "src/quantbt/optimization/meta_selection/reactive_transport.py": [
+    "profit_factor",
+    "sharpe",
+    "trade_count",
+    "turnover"
+  ],
+  "src/quantbt/optimization/meta_selection/records.py": [
+    "turnover"
+  ],
+  "src/quantbt/optimization/objectives.py": [
+    "drawdown",
+    "full_report",
+    "num_trades",
+    "profit_factor",
+    "sharpe",
+    "trade_count",
+    "turnover"
+  ],
+  "src/quantbt/portfolio.py": [
+    "full_report",
+    "num_trades",
+    "profit_factor",
+    "sharpe",
+    "sortino",
+    "turnover"
+  ],
+  "src/quantbt/reporting/nautilus_bundle.py": [
+    "drawdown"
+  ],
+  "src/quantbt/results/raw.py": [
+    "turnover"
+  ],
+  "src/quantbt/sizing/modes.py": [
+    "turnover"
+  ],
+  "src/quantbt/viz/plots.py": [
+    "drawdown",
+    "full_report",
+    "sharpe",
+    "sortino"
+  ],
+  "src/quantbt/viz/themes.py": [
+    "drawdown"
+  ],
+  "src/quantbt/walkforward.py": [
+    "sharpe",
+    "trade_count",
+    "turnover"
+  ]
+}

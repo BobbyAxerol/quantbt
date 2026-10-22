@@ -4,6 +4,7 @@ import pandas as pd
 import pytest
 
 from quantbt import (
+    AccountConfig,
     ExerciseStyle,
     NativeOptionConfig,
     OptionInstrumentRegistry,
@@ -79,7 +80,8 @@ def test_nautilus_option_linear_round_trip_validation(linear_option_chain_regist
         chain=chain,
         instruments=registry,
         packages=packages,
-        native_config=NativeOptionConfig(initial_balances={"USD": 20_000.0}, reporting_currency="USD"),
+        native_config=NativeOptionConfig(account=AccountConfig(initial_capital=20_000.0),
+            initial_balances={"USD": 20_000.0}, reporting_currency="USD"),
     )
     if validation.skipped:
         pytest.skip(validation.status)
@@ -119,7 +121,8 @@ def test_nautilus_option_two_leg_spread_and_settlement(linear_option_chain_regis
         chain=chain,
         instruments=registry,
         packages=[package],
-        native_config=NativeOptionConfig(initial_balances={"USD": 20_000.0}, reporting_currency="USD"),
+        native_config=NativeOptionConfig(account=AccountConfig(initial_capital=20_000.0),
+            initial_balances={"USD": 20_000.0}, reporting_currency="USD"),
         settlement_events=[
             {
                 "symbol": "BTC-C100.TEST",
@@ -145,7 +148,8 @@ def test_nautilus_option_underlying_delta_hedge_is_labelled_future_work(linear_o
         chain=chain,
         instruments=registry,
         packages=[package],
-        native_config=NativeOptionConfig(initial_balances={"USD": 20_000.0}, reporting_currency="USD"),
+        native_config=NativeOptionConfig(account=AccountConfig(initial_capital=20_000.0),
+            initial_balances={"USD": 20_000.0}, reporting_currency="USD"),
     )
     if validation.skipped:
         pytest.skip(validation.status)

@@ -1,0 +1,73 @@
+{
+  "acc01_amendment_sha256": "95af947a570cc5c10bc6655c922b7dd8497f02e6da422aa3479af0163a94e0f1",
+  "acc01_source_commit": "70fe9f7c9b14469e6ea935e75f180f26ca1c175e",
+  "baseline_commit": "7cdaadbc573435186ea7901162b9499973ec82b5",
+  "extraction_ast": {
+    "src/quantbt/backends/native_option.py": {
+      "function_ast_sha256": {
+        "_normalize_registry": "7fe4c61670ddded36d18e34714e42efd9c1767003ce7e5c6793de668851cd0d0",
+        "_validate_generic_option_configuration": "b3e9d45781fcaad6a9c016dc60df03e8657f23693f95cbd2acf0b531d00081b7",
+        "_validate_option_requests": "6499e7a9919e06237d0005f8ad2d255a075bfde94af8b484b8c11ce3c843619f",
+        "_validate_tape_coverage": "cff937a24c263bcebd06f0ac21e398f54ce783091d60baba47d1ca1f60f40b52"
+      },
+      "helper": "src/quantbt/backends/option_validation.py",
+      "retained_engine_code_unchanged": true,
+      "retained_module_ast_sha256": "ca08b7ba482f209a66899ba97034c2a3d9b2392be3f30d42f51c05a69ad47557"
+    },
+    "src/quantbt/backends/native_portfolio.py": {
+      "function_ast_sha256": {
+        "_build_exposure_report": "4fae616081bbea571eb8d92e25a5aca08f8eb6761ecc985e69b17982c4e34b7f",
+        "_build_rebalance_report": "2f698fc2fdf26fd433829400b0d10771b7e44ddc1ad305e7aea352476d03101b",
+        "_build_reconciliation_report": "7ddfb3a4d0c939ab7cff9e4a17db7c52a1ef194230575155df42038cd4694450",
+        "_build_symbol_pnl_report": "ccdf6f85a53bff6fef6a93be82d192cfb89a93fc691d3e891fa7456f169335b8"
+      },
+      "helper": "src/quantbt/backends/portfolio_reports.py",
+      "retained_engine_code_unchanged": true,
+      "retained_module_ast_sha256": "3c15ae496667edffafc6fe8b6eb76a7a2c59b029354c57ef63db44347a994cb5"
+    }
+  },
+  "financial_rust_changed": false,
+  "financial_semantics_unchanged_by_extraction": true,
+  "historical_financial_invariance_claim_reissued": false,
+  "historical_receipts_unchanged": true,
+  "native_artifacts_qualified": false,
+  "publication": false,
+  "schema": "quantbt.pre_m512.source_extraction.v1",
+  "scopes": [
+    "src",
+    "rust",
+    "pyproject.toml",
+    "uv.lock",
+    "contracts",
+    "upgrade/QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md"
+  ],
+  "source_commit": "77af917f4184e4061a908c68557420223434e2db",
+  "source_only": true,
+  "sources": {
+    "src/quantbt/backends/native_option.py": {
+      "after_commit": "77af917f4184e4061a908c68557420223434e2db",
+      "after_sha256": "3af3bc8b02601755eea10b39375e77ce86f27f16512cae65aa8576b0003ef406",
+      "before_commit": "7cdaadbc573435186ea7901162b9499973ec82b5",
+      "before_sha256": "f081248f7d1fdeb99e134b37aa7f8c949c5c96ef261a6b3ac2100548eb0203ff"
+    },
+    "src/quantbt/backends/native_portfolio.py": {
+      "after_commit": "77af917f4184e4061a908c68557420223434e2db",
+      "after_sha256": "faad4a7aca2590b1719ec59e09c10874afc6add90056f8c8b61f341c98c11c0d",
+      "before_commit": "7cdaadbc573435186ea7901162b9499973ec82b5",
+      "before_sha256": "38d52eb87474f82fea742cdc640617763409ce47515d723cefba7f69dc02353a"
+    },
+    "src/quantbt/backends/option_validation.py": {
+      "after_commit": "77af917f4184e4061a908c68557420223434e2db",
+      "after_sha256": "01d16668aa04f245853eeb317f7da14ad67a2b68dcf5c7c2fec47d779684e68e",
+      "before_commit": "7cdaadbc573435186ea7901162b9499973ec82b5",
+      "before_sha256": null
+    },
+    "src/quantbt/backends/portfolio_reports.py": {
+      "after_commit": "77af917f4184e4061a908c68557420223434e2db",
+      "after_sha256": "df7ef7c31d818129d7c560caabdb14455c107ab8ca52f8ea04ca9be626e65940",
+      "before_commit": "7cdaadbc573435186ea7901162b9499973ec82b5",
+      "before_sha256": null
+    }
+  },
+  "version_bump": false
+}

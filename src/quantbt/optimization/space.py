@@ -29,6 +29,9 @@ def suggest_parameter(trial, name: str, spec: Any) -> Any:
     constants.
     """
 
+    if isinstance(spec, Mapping):
+        from .parameter_space import _parse
+        return _parse(name, spec).suggest(trial)
     if _is_bool_choice(spec):
         return trial.suggest_categorical(name, [True, False])
     if isinstance(spec, tuple) and len(spec) in (2, 3) and all(_is_number(value) for value in spec):
@@ -59,6 +62,9 @@ def suggest_params(trial, param_ranges: Mapping[str, Any], fixed_params: Optiona
     """
 
     fixed = dict(fixed_params or {})
+    if any(isinstance(spec, Mapping) for spec in param_ranges.values()):
+        from .parameter_space import NormalizedSearchSpace
+        return NormalizedSearchSpace(param_ranges, fixed).suggest(trial)
     params: dict[str, Any] = {}
     for name, spec in dict(param_ranges or {}).items():
         if name in fixed:
@@ -79,6 +85,14 @@ def stable_params_key(params: Mapping[str, Any]) -> str:
 def search_space_info(param_ranges: Mapping[str, Any], fixed_params: Optional[Mapping[str, Any]] = None) -> SearchSpaceInfo:
     """Inspect a QuantBT search space for sampler compatibility."""
 
+    if any(isinstance(spec, Mapping) for spec in param_ranges.values()):
+        from .parameter_space import NormalizedSearchSpace
+        specs = NormalizedSearchSpace(param_ranges, fixed_params).specs
+        variable = [spec for spec in specs if spec.variable]
+        return SearchSpaceInfo(any(spec.choices for spec in variable),
+            any(spec.kind == "float" for spec in variable),
+            any(spec.kind == "float" and spec.step is None for spec in variable),
+            tuple(spec.name for spec in variable), None)
     fixed = set(dict(fixed_params or {}))
     has_categorical = False
     has_continuous = False
@@ -141,6 +155,8 @@ def build_grid_search_space(
 
 
 def _grid_values(name: str, spec: Any, *, allow_dynamic: bool) -> Optional[list[Any]]:
+    if isinstance(spec, Mapping):
+        raise ValueError("grid sampler does not support structured/conditional ranges")
     if _is_bool_choice(spec):
         return [True, False]
     if isinstance(spec, tuple) and len(spec) in (2, 3) and all(_is_number(value) for value in spec):

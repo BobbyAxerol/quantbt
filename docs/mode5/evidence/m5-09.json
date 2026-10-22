@@ -1,0 +1,56 @@
+{
+  "alpha_count": 5,
+  "automatic_routing_qualified": false,
+  "benchmark": {
+    "median_seconds": {
+      "cold": 2.4154156090226024,
+      "shared": 2.2359688370488584
+    },
+    "peak_process_rss_mib": 182.3515625,
+    "scope": "five matched metadata dossiers only; not WFO/kernel throughput"
+  },
+  "build_ci_push_or_publish_authorized": false,
+  "cleanup": {
+    "observed_free_change_bytes": 7647232,
+    "protected_hashes_verified": 3467,
+    "retained_payload_bytes": 9524816,
+    "retained_receipts_verified": 77,
+    "scratch_bytes": 4910350
+  },
+  "economic_confirmation": false,
+  "failed_tests": 0,
+  "focused_governance_tests": 52,
+  "guide_id": "QUANTBT-MODE5-UPGRADE-V1",
+  "installed_artifact_certificate": false,
+  "matrix_count": 30,
+  "matrix_records": {
+    "candidate_environment": 451,
+    "center_neighbor_environment": 929,
+    "environment_environment": 50,
+    "execution_stress": 28,
+    "parameter_representation": 84,
+    "recipe_split_seed": 117
+  },
+  "maximum_retained_accounting_diff": 0,
+  "new_financial_executions": 0,
+  "new_sampler_trials": 0,
+  "next_phase_authorized": false,
+  "phase": "M5-09",
+  "plan_counts": {
+    "DEFER_CALIBRATION": 5
+  },
+  "private_code_exported": false,
+  "private_report_sha256": "da23505b0d0085ec98184d3f7ee27eef1562cba56adf0bad36c6c3a66600c079",
+  "protected_hashes_verified": 3449,
+  "public_endpoint_or_accounting_change": false,
+  "reconciled_formula_decisions": 40,
+  "reconciled_historical_requests": 53,
+  "reconciled_sampler_trials": 64,
+  "reconciled_short_cells": 193,
+  "related_tests_passed": 1230,
+  "schema": "quantbt.mode5_phase_public_summary.v1",
+  "scientific_status": "DESCRIPTIVE_ONLY",
+  "sealed_search_budget": 0,
+  "skipped_tests": 0,
+  "status": "COMPLETE_LOCAL_DOSSIER_GOVERNANCE"
+}

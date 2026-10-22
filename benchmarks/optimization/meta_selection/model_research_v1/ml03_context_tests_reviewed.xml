@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="3" skipped="0" tests="13" time="3.958" timestamp="2026-10-17T02:03:43.795241+00:00" hostname="Bobby"><testcase classname="tests.meta_selection.test_mlr03_learners" name="test_history_basis_and_bayesian_mean_match_independent_augmented_oracle" time="0.073" /><testcase classname="tests.meta_selection.test_mlr03_learners" name="test_full_pool_head_and_portable_roundtrip[B1]" time="0.065" /><testcase classname="tests.meta_selection.test_mlr03_learners" name="test_full_pool_head_and_portable_roundtrip[H135]" time="1.424"><failure message="quantbt.optimization.meta_selection.common.MetaRecordError: MLR_FAMILY_CONTEXT_NORMALIZATION_INVALID">code = 'H135'
+
+    @pytest.mark.parametrize("code",["B1","H135","H200"])
+    def test_full_pool_head_and_portable_roundtrip(code):
+        data, engine, artifact = setup(code=code)
+        decision = artifact.decision
+        assert decision.status == "META_MODEL_PROPOSAL"
+        anchor = next(p for p in decision.predictions if p["evaluation_id"] == decision.anchor_evaluation_id)
+        assert (anchor["yhat"],anchor["qhat"],anchor["distance"]) == (0.,0.,0.)
+        selected = [p for p in decision.predictions if p["yhat"] is not None]
+        wi, ti, safe = select_indices([p["yhat"] for p in selected],[p["qhat"] for p in selected],
+            [p["distance"] for p in selected],[(p["candidate_id"],p["evaluation_id"]) for p in selected],
+            epsilon=.1,tie_tolerance=decision.guard["tie_tolerance"])
+        assert selected[wi]["evaluation_id"] == decision.proposed_evaluation_id
+        assert set(decision.tie_set) == {selected[i]["evaluation_id"] for i in ti}
+        text = dumps_family_artifact(artifact)
+&gt;       other = loads_family_artifact(text,expected_artifact_id=artifact.artifact_id,task=data[3],schema=data[0])
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/meta_selection/test_mlr03_learners.py:56: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/meta_model_research/learners.py:336: in loads_family_artifact
+    return _loads_family_artifact(text,expected_artifact_id=expected_artifact_id,task=task,schema=schema)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/meta_model_research/learners.py:301: in _loads_family_artifact
+    fitted = FamilyFit(spec=spec,model=model,**context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+&lt;string&gt;:14: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = FamilyFit(spec=FamilySpec(code='H135'), family_id='4368f6a8950a46a9777b5fd761ba448f07fcb8efb2963d687ee5633ae6f0507a', ...mae': 5.352471730057928e-06, 'served_y_mse': 6.63159134173066e-11, 'status': 'FIT'}, version='m4-ml-family-context-v1')
+
+    def __post_init__(self):
+        if (self.version != VERSION or type(self.K) is not int or self.K &lt; 0
+                or not isinstance(self.spec, FamilySpec) or (self.model is None) != (self.K &lt; 12)):
+            raise MetaRecordError("MLR_FAMILY_CONTEXT_INVALID")
+        for identity in (self.family_id,self.schema_id,self.snapshot_id):
+            token(identity)
+        for name in ("information_as_of", "fit_completed_at"):
+            object.__setattr__(self, name, utc(getattr(self, name)))
+        if self.fit_completed_at &lt; self.information_as_of:
+            raise MetaRecordError("MLR_FAMILY_CONTEXT_CLOCK_INVALID")
+        if self.model is not None:
+            if (not isinstance(self.model,NumericModel) or self.model.spec != self.spec
+                    or self.scaler["schema_id"] != self.schema_id):
+                raise MetaRecordError("MLR_FAMILY_CONTEXT_RECIPE_INVALID")
+            if self.scaler["training_snapshot_id"] != self.snapshot_id:
+                raise MetaRecordError("MLR_FAMILY_CONTEXT_SCALER_INVALID")
+            scaler = OriginBalancedStandardizer(**dict(self.scaler))
+            if self.model.dimension != len(scaler.feature_names):
+                raise MetaRecordError("MLR_FAMILY_CONTEXT_DIMENSION_INVALID")
+            meta = self.model.metadata
+            if (not np.isclose(meta["weight_sum"],self.K,rtol=1e-12,atol=1e-12)
+                    or self.training.get("K") != self.K
+                    or self.training.get("N") != meta["n_rows"]
+                    or self.training.get("d") != self.model.dimension
+                    or self.training.get("status") != "FIT"
+                    or self.training.get("backend") != meta
+                    or not np.isclose(self.training.get("served_y_mse"),meta["train_served_mse"],
+                                      rtol=1e-9,atol=1e-10)):
+&gt;               raise MetaRecordError("MLR_FAMILY_CONTEXT_NORMALIZATION_INVALID")
+E               quantbt.optimization.meta_selection.common.MetaRecordError: MLR_FAMILY_CONTEXT_NORMALIZATION_INVALID
+
+tools/meta_model_research/learners.py:119: MetaRecordError</failure></testcase><testcase classname="tests.meta_selection.test_mlr03_learners" name="test_full_pool_head_and_portable_roundtrip[H200]" time="0.071"><failure message="quantbt.optimization.meta_selection.common.MetaRecordError: MLR_FAMILY_CONTEXT_NORMALIZATION_INVALID">code = 'H200'
+
+    @pytest.mark.parametrize("code",["B1","H135","H200"])
+    def test_full_pool_head_and_portable_roundtrip(code):
+        data, engine, artifact = setup(code=code)
+        decision = artifact.decision
+        assert decision.status == "META_MODEL_PROPOSAL"
+        anchor = next(p for p in decision.predictions if p["evaluation_id"] == decision.anchor_evaluation_id)
+        assert (anchor["yhat"],anchor["qhat"],anchor["distance"]) == (0.,0.,0.)
+        selected = [p for p in decision.predictions if p["yhat"] is not None]
+        wi, ti, safe = select_indices([p["yhat"] for p in selected],[p["qhat"] for p in selected],
+            [p["distance"] for p in selected],[(p["candidate_id"],p["evaluation_id"]) for p in selected],
+            epsilon=.1,tie_tolerance=decision.guard["tie_tolerance"])
+        assert selected[wi]["evaluation_id"] == decision.proposed_evaluation_id
+        assert set(decision.tie_set) == {selected[i]["evaluation_id"] for i in ti}
+        text = dumps_family_artifact(artifact)
+&gt;       other = loads_family_artifact(text,expected_artifact_id=artifact.artifact_id,task=data[3],schema=data[0])
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/meta_selection/test_mlr03_learners.py:56: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/meta_model_research/learners.py:336: in loads_family_artifact
+    return _loads_family_artifact(text,expected_artifact_id=expected_artifact_id,task=task,schema=schema)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/meta_model_research/learners.py:301: in _loads_family_artifact
+    fitted = FamilyFit(spec=spec,model=model,**context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+&lt;string&gt;:14: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = FamilyFit(spec=FamilySpec(code='H200'), family_id='4368f6a8950a46a9777b5fd761ba448f07fcb8efb2963d687ee5633ae6f0507a', ...e': 8.474220764542739e-05, 'served_y_mse': 1.0225269963265027e-08, 'status': 'FIT'}, version='m4-ml-family-context-v1')
+
+    def __post_init__(self):
+        if (self.version != VERSION or type(self.K) is not int or self.K &lt; 0
+                or not isinstance(self.spec, FamilySpec) or (self.model is None) != (self.K &lt; 12)):
+            raise MetaRecordError("MLR_FAMILY_CONTEXT_INVALID")
+        for identity in (self.family_id,self.schema_id,self.snapshot_id):
+            token(identity)
+        for name in ("information_as_of", "fit_completed_at"):
+            object.__setattr__(self, name, utc(getattr(self, name)))
+        if self.fit_completed_at &lt; self.information_as_of:
+            raise MetaRecordError("MLR_FAMILY_CONTEXT_CLOCK_INVALID")
+        if self.model is not None:
+            if (not isinstance(self.model,NumericModel) or self.model.spec != self.spec
+                    or self.scaler["schema_id"] != self.schema_id):
+                raise MetaRecordError("MLR_FAMILY_CONTEXT_RECIPE_INVALID")
+            if self.scaler["training_snapshot_id"] != self.snapshot_id:
+                raise MetaRecordError("MLR_FAMILY_CONTEXT_SCALER_INVALID")
+            scaler = OriginBalancedStandardizer(**dict(self.scaler))
+            if self.model.dimension != len(scaler.feature_names):
+                raise MetaRecordError("MLR_FAMILY_CONTEXT_DIMENSION_INVALID")
+            meta = self.model.metadata
+            if (not np.isclose(meta["weight_sum"],self.K,rtol=1e-12,atol=1e-12)
+                    or self.training.get("K") != self.K
+                    or self.training.get("N") != meta["n_rows"]
+                    or self.training.get("d") != self.model.dimension
+                    or self.training.get("status") != "FIT"
+                    or self.training.get("backend") != meta
+                    or not np.isclose(self.training.get("served_y_mse"),meta["train_served_mse"],
+                                      rtol=1e-9,atol=1e-10)):
+&gt;               raise MetaRecordError("MLR_FAMILY_CONTEXT_NORMALIZATION_INVALID")
+E               quantbt.optimization.meta_selection.common.MetaRecordError: MLR_FAMILY_CONTEXT_NORMALIZATION_INVALID
+
+tools/meta_model_research/learners.py:119: MetaRecordError</failure></testcase><testcase classname="tests.meta_selection.test_mlr03_learners" name="test_support_budget_clock_and_unknown_artifact_fail_closed" time="0.086" /><testcase classname="tests.meta_selection.test_mlr03_learners" name="test_own_past_correction_changes_context_but_reordering_does_not" time="0.071" /><testcase classname="tests.meta_selection.test_mlr03_learners" name="test_context_origin_count_cannot_disagree_with_fitted_normalization" time="0.159" /><testcase classname="tests.meta_selection.test_mlr03_learners" name="test_native_basis_prediction_restore_and_real_fit_bill" time="0.047"><failure message="quantbt.optimization.meta_selection.common.MetaRecordError: MLR_FAMILY_CONTEXT_NORMALIZATION_INVALID">def test_native_basis_prediction_restore_and_real_fit_bill():
+        if __import__("importlib.util").util.find_spec("_quantbt_native") is None:
+            pytest.skip("source native qualification needs the retained QMS numeric extension")
+        data,engine,artifact = setup(runtime=NumericRuntime(native_policy="require"),max_fits=4)
+        assert artifact.fit.model.metadata["fit_count"] == 2
+        assert engine.regression_fit_charge == 4  # two runtime qualification solves + two fit/parity solves.
+        text = dumps_family_artifact(artifact)
+&gt;       other = loads_family_artifact(text,expected_artifact_id=artifact.artifact_id,task=data[3],schema=data[0])
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/meta_selection/test_mlr03_learners.py:119: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tools/meta_model_research/learners.py:336: in loads_family_artifact
+    return _loads_family_artifact(text,expected_artifact_id=expected_artifact_id,task=task,schema=schema)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/meta_model_research/learners.py:301: in _loads_family_artifact
+    fitted = FamilyFit(spec=spec,model=model,**context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+&lt;string&gt;:14: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = FamilyFit(spec=FamilySpec(code='B1'), family_id='4368f6a8950a46a9777b5fd761ba448f07fcb8efb2963d687ee5633ae6f0507a', sc..._y_mae': 0.20625330669195518, 'served_y_mse': 0.08712799371018198, 'status': 'FIT'}, version='m4-ml-family-context-v1')
+
+    def __post_init__(self):
+        if (self.version != VERSION or type(self.K) is not int or self.K &lt; 0
+                or not isinstance(self.spec, FamilySpec) or (self.model is None) != (self.K &lt; 12)):
+            raise MetaRecordError("MLR_FAMILY_CONTEXT_INVALID")
+        for identity in (self.family_id,self.schema_id,self.snapshot_id):
+            token(identity)
+        for name in ("information_as_of", "fit_completed_at"):
+            object.__setattr__(self, name, utc(getattr(self, name)))
+        if self.fit_completed_at &lt; self.information_as_of:
+            raise MetaRecordError("MLR_FAMILY_CONTEXT_CLOCK_INVALID")
+        if self.model is not None:
+            if (not isinstance(self.model,NumericModel) or self.model.spec != self.spec
+                    or self.scaler["schema_id"] != self.schema_id):
+                raise MetaRecordError("MLR_FAMILY_CONTEXT_RECIPE_INVALID")
+            if self.scaler["training_snapshot_id"] != self.snapshot_id:
+                raise MetaRecordError("MLR_FAMILY_CONTEXT_SCALER_INVALID")
+            scaler = OriginBalancedStandardizer(**dict(self.scaler))
+            if self.model.dimension != len(scaler.feature_names):
+                raise MetaRecordError("MLR_FAMILY_CONTEXT_DIMENSION_INVALID")
+            meta = self.model.metadata
+            if (not np.isclose(meta["weight_sum"],self.K,rtol=1e-12,atol=1e-12)
+                    or self.training.get("K") != self.K
+                    or self.training.get("N") != meta["n_rows"]
+                    or self.training.get("d") != self.model.dimension
+                    or self.training.get("status") != "FIT"
+                    or self.training.get("backend") != meta
+                    or not np.isclose(self.training.get("served_y_mse"),meta["train_served_mse"],
+                                      rtol=1e-9,atol=1e-10)):
+&gt;               raise MetaRecordError("MLR_FAMILY_CONTEXT_NORMALIZATION_INVALID")
+E               quantbt.optimization.meta_selection.common.MetaRecordError: MLR_FAMILY_CONTEXT_NORMALIZATION_INVALID
+
+tools/meta_model_research/learners.py:119: MetaRecordError</failure></testcase><testcase classname="tests.meta_selection.test_mlr03_family_protocol" name="test_common_roster_ignores_heldout_and_future_and_keeps_complete_blocks" time="0.010" /><testcase classname="tests.meta_selection.test_mlr03_family_protocol" name="test_update_requires_new_mature_support_and_not_current_forward" time="0.005" /><testcase classname="tests.meta_selection.test_mlr03_family_protocol" name="test_keep_simpler_recipe_and_actual_changed_allowed_past_control" time="0.008" /><testcase classname="tests.meta_selection.test_mlr03_family_protocol" name="test_partial_block_cannot_reverse_the_matched_nomination" time="0.003" /><testcase classname="tests.meta_selection.test_mlr03_family_protocol" name="test_out_of_roster_new_origins_cannot_unlock_periodic_update" time="0.001" /></testsuite></testsuites>

@@ -345,6 +345,7 @@ def test_typed_outputs_are_profiled_soa_and_match_the_legacy_cold_adapter():
         "fill_order_id",
         "fill_symbol",
         "fill_side",
+        "fill_order_type",
         "fill_qty",
         "fill_price",
         "fill_fee",
@@ -414,7 +415,22 @@ def test_typed_outputs_are_profiled_soa_and_match_the_legacy_cold_adapter():
     for key in shared_score_keys:
         assert getattr(audit, key) == audit_legacy[key]
         assert audit_dict[key] == audit_legacy[key]
-    assert audit.output_bytes == sum(
+    from quantbt.backends.native_audit_projection import (
+        TERMINAL_INT_COLUMNS, TERMINAL_BOOL_COLUMNS, TERMINAL_FLOAT_COLUMNS,
+    )
+    terminal = audit.terminal_state_v1
+    assert terminal.version == 1 and terminal.schema == "terminal-command-slots-v1"
+    terminal_keys = tuple("command_canceled_order_count" if key == "canceled_order_count" else key
+                          for key in (*TERMINAL_INT_COLUMNS, *TERMINAL_BOOL_COLUMNS, *TERMINAL_FLOAT_COLUMNS))
+    terminal_keys += ("canceled_orders_by_bar",)
+    assert {key for key in dir(terminal) if isinstance(getattr(terminal, key), np.ndarray)} == set(terminal_keys)
+    for key in terminal_keys:
+        value = getattr(terminal, key)
+        assert value.flags.c_contiguous
+        np.testing.assert_array_equal(value, audit_legacy["terminal_state_v1"][key])
+    terminal_bytes = sum(getattr(terminal, key).nbytes for key in terminal_keys)
+    assert terminal_bytes > 0
+    assert audit.output_bytes == terminal_bytes + sum(
         getattr(audit, key).nbytes
         for key in ("final_positions", *path_keys, *detail_keys)
     )

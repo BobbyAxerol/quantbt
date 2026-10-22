@@ -7,12 +7,17 @@ generated registry remains the executable source of truth.
 
 ## What Is Released
 
-`quantbt-engine` is a complete Python package. It installs and runs every
-public endpoint without native code on unsupported platforms. The governed
-public pair is `quantbt-engine==1.1.1` and `quantbt-native==0.4.2`: supported
+`quantbt-engine` owns the public Python API. Eligible portable routes can run
+without native code; explicit Rust/native-required contracts cannot. The governed
+prepared pair is `quantbt-engine==1.2.0` and `quantbt-native==0.4.3`: supported
 Linux x86_64 / glibc / CPython 3.11-3.13 consumers receive the exact pre-built
 companion through the core's direct platform dependency. No consumer compiles
 Rust during installation.
+
+This pair is preparation-only, not a public-index claim. The published
+predecessor and historical receipts remain `1.1.1 / 0.4.2`. Follow the
+[QMS handoff](../meta_selection/RELEASE_HANDOFF.md) for current qualification,
+default compiled capability and owner-controlled publication.
 
 The public consumer contract is intentionally ordinary:
 
@@ -20,8 +25,18 @@ The public consumer contract is intentionally ordinary:
 poetry add quantbt-engine
 ```
 
-On the supported matrix this resolves the exact companion; elsewhere it keeps
-the same Python endpoint surface without attempting a source build.
+On the supported glibc matrix this resolves the exact companion. The dependency
+marker cannot distinguish glibc from musl: Alpine/musl can fail wheel resolution
+rather than automatically use a core-only install. Marker-excluded platforms
+can use portable routes only where the other core dependencies support them.
+Read the [installation limits](../native/install.md).
+
+The [1.2.0 supplement](../mode5/M5_12_RELEASE120_REPORT.md) records exact local
+artifact/consumer qualification. The earlier
+[preparation checklist](../mode5/M5_12_PREPARATION.md) retains its historical
+1.1.2 scope. New-source remote/manylinux and public-index proof remain separate;
+unchanged ABI/signatures do not certify an older native wheel. Generated native
+product metadata was rebuilt for 1.2.0 while retaining native version 0.4.3.
 
 `src/quantbt/` is the sole package and wheel source. NEXT-03 retired the former
 root-level mirror (`endpoint.py`, `backends/`, `core/`, and related entries)

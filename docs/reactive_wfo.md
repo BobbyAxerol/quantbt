@@ -1,5 +1,39 @@
 # Reactive Walk-Forward (W3)
 
+Feature-branch QMS local follow-up supports optional meta selection for
+Mode 4/per_fold_causal sequential inprocess or safe Linux fork/COW process W3.
+It reuses original native result
+buffers and streaming objectives in one pass, then the shared causal history
+and selector. See [the exact invocation and restrictions](meta_selection/INTEGRATION.md#w3-sequential-meta).
+Reset-flat segments remain reset-flat; this does not authorize live deployment
+or imply that published native 0.4.2 includes QMS numeric/prepared features.
+The [C02 transport/account contract](meta_selection/W3_TRANSPORT_AND_ACCOUNT_CONTRACTS.md)
+qualifies native cooperative deadlines and a private R3B witness primitive;
+public meta batch, continuous carry and multi-symbol remain unsupported.
+The locally qualified [C03 sampler/scheduler matrix](meta_selection/W3_SAMPLER_SCHEDULES.md)
+adds the four shared recipes to W3 and versioned opt-in R3B; it does not expand
+meta methodology, change accounts or authorize publication.
+
+[QMS-E07](meta_selection/QMSE07_REPORT.md) adds mature numeric fill-feedback-grid
+qualification independently from generic event callbacks and explicit command
+tapes. A complete public synthetic example needs no private alpha or downloader:
+
+```bash
+python -m examples.wfo_meta_reactive_grid --mode shadow --worker inprocess
+python -m examples.wfo_meta_reactive_grid --mode active --worker process
+```
+
+For optional meta, inspect `result.metadata["meta_selection"]`: records, full
+candidate tasks, models, snapshots and immutable current-run `observed_revisions`
+contain actual selected params, original raw IS/forward observations, labels and
+availability clocks. See the
+[measurement recipe](meta_selection/EXECUTION_WFO.md#inspect-the-actual-meta-run).
+These observations are published after selection, not inputs to retune that
+same fold. Meta off adds no sidecar. `fold_results` remain separate reset-flat
+accounts; generic callback/command continuous carry is not inherited by W3.
+This is local opt-in software qualification, not a public/default promotion
+or a claim that meta necessarily reduces decay on every alpha.
+
 `QuantBTEndpoint.prepare_reactive_walk_forward(...)` is QuantBT's explicit walk-forward route for stateful event-driven strategies. It does not turn a strategy into a `pos_weight` series. Rust owns the prepared market clock, orders, fills, fees, funding, margin, liquidation, and scalar account score; Python owns only the declared strategy decision boundary.
 
 Use ordinary `QuantBTEndpoint.walk_forward(...)` when a strategy can honestly return a causal target or signal series. Use W3 when strategy state, open orders, fills, sparse wakes, or block invalidation affect later commands.
@@ -141,7 +175,15 @@ result = runtime.backtest(
 )
 ```
 
-With `candidate_matrix`, metadata declares `sampling_contract="fixed_candidate_matrix_r3b_v1"`; with `param_ranges`, it declares `adaptive_optuna_batch_r3b_v1`. Candidate-local native command or wake-plan errors become pruned candidate records and cannot affect the selector. A malformed shared Python batch callback fails the batch closed.
+With `candidate_matrix`, metadata declares `sampling_contract="fixed_candidate_matrix_r3b_v1"`;
+sampler/warm-start/constraint options there are rejected, not silently ignored.
+With legacy ranges and omitted sampler policy, adaptive metadata stays
+`adaptive_optuna_batch_r3b_v1`. Explicit sampler policy or mapped schema uses
+`shared_sampler_batch_r3b_v2` and the shared four-recipe bridge. V2 asks and
+suggests the complete batch before scoring/telling in trial order; it remains
+global/inprocess only and is not sequential-equivalent. Candidate-local native
+command/wake-plan failures become pruned records; malformed shared Python
+callbacks fail the batch closed. See [ordering and telemetry](meta_selection/W3_SAMPLER_SCHEDULES.md).
 
 `reference_best_objective` and `max_quality_regret` are paired evidence gates for throughput experiments, not auto-promotion controls.
 

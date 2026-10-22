@@ -1,5 +1,14 @@
 # Fast Intrabar Bracket And Fill Replay
 
+Optional meta-enabled WFO uses the existing financial endpoint through
+`QuantBTEndpoint.walk_forward(execution_endpoint=financial, target_mode="intrabar", ...)`.
+The [stable typed call and fold-account contract](meta_selection/EXECUTION_WFO.md)
+and [E06 qualification](meta_selection/QMSE06_REPORT.md) cover bounded intent/
+session, Mode 4/per_fold_causal, original raw measurements and exact accounting.
+Core/native 1.1.2/0.4.3 are locally prepared, not published by that certificate.
+Meta stays opt-in; this does not alter standalone execution or certify a
+strategy's market edge.
+
 Phase 31 adds a strict single-symbol intrabar route for alphas that previously
 mixed signal generation and exit-price simulation in notebook code.
 
@@ -97,6 +106,42 @@ After sizing, the same shared quantity constraints used by the event and
 portfolio backends are applied: `qty_step`/`lot_size`/`slot_size`, `min_qty`,
 and `min_notional`. If `tick_size` is provided, entry, stop, take-profit, and
 trailing prices are quantized conservatively to the exchange tick.
+
+### Fixed-Notional Units And Zero-Fill Diagnostics
+
+`entry_size` is a **multiplier**, not currency, in `fixed_notional` mode:
+
+```text
+notional = alloc_per_trade * abs(entry_size)
+quantity = notional / (actual_entry_fill_price * contract_size)
+```
+
+For a $2,000 order, set `alloc_per_trade=2000` on the endpoint and
+`entry_size=1` on each entry intent. Alternatively use `alloc_per_trade=1`
+and a currency-valued `entry_size=2000`; do not mix the two conventions.
+The legacy allocation default is $100,000: `entry_size=2000` without an
+explicit allocation requests $200,000,000, not $2,000. Margin rejection then
+correctly produces no fills. Sizing semantics remain identical in the Python
+oracle, Numba, Rust and prepared runners.
+
+Stamp intent on the **signal close bar**; the engine executes it at the next
+open. Do not shift it again. Explicit event command tapes instead contain the
+effective execution timestamp. Optional arrays such as `stop_value` must cover
+the full tape: use `np.full(len(side), 0.013)`, not a bare scalar.
+
+Inspect `result.metadata["fill_count"]`, `rejected_count`, `sizing` and the
+audit `fills_report`. Legacy `num_trades` counts position transitions including
+the initial position row; a flat single-symbol run can report 1. It is not an
+executed fill or completed-trade counter. This compatibility metric is not
+redefined by the diagnostic. A stop/TP can flatten a position while the alpha's
+side remains unchanged; a transition-only adapter will not re-enter until the
+next side transition. That is the adapter's declared behavior, not a lost fill.
+
+Run the public BTC/ETH/SOL-like 92-day reproduction without private alpha code:
+
+```bash
+python -m examples.intrabar_bracket_diagnostic --days 92
+```
 
 ## Execution Semantics
 

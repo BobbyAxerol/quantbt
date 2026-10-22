@@ -17,6 +17,7 @@ from ..core.schema import OrderSide
 from .hedging import OptionHedgeConfig
 from .packages import OptionPackageIntent, OptionPackageLeg
 from .schema import OptionInstrumentRegistry
+from .validation import finite_number
 
 
 @dataclass(frozen=True)
@@ -51,6 +52,12 @@ class GammaScalpingConfig:
         if side not in {"long", "short"}:
             raise ValueError("GammaScalpingConfig.side must be long or short")
         object.__setattr__(self, "side", side)
+        finite_number(self.quantity, "GammaScalpingConfig.quantity", positive=True)
+        finite_number(self.max_dte_days, "max_dte_days", positive=True)
+        for name in ("min_dte_days", "roll_dte_days", "min_bid_size", "min_ask_size", "min_volume", "min_open_interest"):
+            finite_number(getattr(self, name), name, minimum=0.0)
+        if self.max_spread_bps is not None:
+            finite_number(self.max_spread_bps, "max_spread_bps", minimum=0.0)
         if self.quantity <= 0.0:
             raise ValueError("GammaScalpingConfig.quantity must be > 0")
         if self.min_dte_days < 0.0 or self.max_dte_days <= 0.0:

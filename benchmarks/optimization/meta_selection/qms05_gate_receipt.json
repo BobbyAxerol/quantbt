@@ -1,0 +1,30 @@
+{
+  "G5-OWNER": "PENDING",
+  "advancement": "QMS-06 and push/merge/release require separate owner approval",
+  "empirical": "NOT_ASSESSED",
+  "entry_commit": "0be25c7",
+  "evidence_sha256": "8760da8b11b85b74fbe1cc21b17f15d3632255d4292a91c35c5811b8207abb49",
+  "executed_test_groups": {
+    "Q5-T01": 1,
+    "Q5-T02": 4,
+    "Q5-T03": 1,
+    "Q5-T04": 1,
+    "Q5-T05": 20,
+    "Q5-T06": 5,
+    "Q5-T07": 2,
+    "Q5-T08": 6
+  },
+  "failures": 0,
+  "junit_sha256": "7aba0a3f5505f77f4851d5b0e2e3f7fb6c2f1a62d7871594dbf3b0d50b3c28f8",
+  "performance": "MEASURED_COST_ONLY",
+  "schema": "qms05-gate-receipt-v1",
+  "skips": 0,
+  "technical": {
+    "G5-ACTUAL_SELECTION": "PASS",
+    "G5-ENDPOINT": "PASS",
+    "G5-LEGACY": "PASS",
+    "G5-MODE4_CAUSAL": "PASS",
+    "G5-OBSERVATION": "PASS"
+  },
+  "tests": 392
+}

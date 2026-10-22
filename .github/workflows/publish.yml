@@ -50,8 +50,28 @@ jobs:
         if: matrix.python-version == '3.12'
         run: uv run python tools/check_release_version.py
 
+      - name: Build isolated QMS regression fixtures
+        uses: ./.github/actions/qms-fixtures
+
+      - name: Build local native companion for release regression
+        uses: PyO3/maturin-action@v1
+        with:
+          command: build
+          args: >-
+            --release
+            --locked
+            --manifest-path rust/native_event/Cargo.toml
+            --interpreter python${{ matrix.python-version }}
+            --out native-smoke
+          manylinux: "2014"
+
+      - name: Install and pin workflow-built native for release regression
+        run: |
+          uv pip install --python .venv/bin/python --reinstall --no-deps native-smoke/quantbt_native-*.whl
+          .venv/bin/python -m tools.ci_native_identity --wheel-dir native-smoke --github-env "$GITHUB_ENV" --output .maturin/publish-native-identity.json
+
       - name: Test
-        run: .venv/bin/python tools/run_test_shards.py --profile ci-core
+        run: .venv/bin/python tools/run_test_shards.py --profile ci-core --keep-going --sudo-host-tests
 
       - name: P3 source, registry, and public API gates
         if: matrix.python-version == '3.12'

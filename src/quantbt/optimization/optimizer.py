@@ -52,13 +52,14 @@ class OptunaOptimizer:
         self._seen_params = set()
         constraints_callback = (
             constraints_from_trial
-            if self.sampler_config.name in {"tpe", "nsgaii"} and self.sampler_config.constraint_mode == "sampler"
+            if self.sampler_config.name in {"tpe", "tpe_legacy", "tpe_multivariate_group", "nsgaii"} and self.sampler_config.constraint_mode == "sampler"
             else None
         )
         sampler = build_sampler(
             self.sampler_config,
             seed=self.config.seed,
-            search_space=param_ranges,
+            search_space={name: ({"kind": "fixed", "value": fixed_params[name]} if name in (fixed_params or {}) else spec)
+                          for name, spec in param_ranges.items()},
             objective_count=objective_count,
             constraints_func=constraints_callback,
         )
@@ -194,7 +195,7 @@ class OptunaOptimizer:
             raise
         if not isinstance(objective, ObjectiveResult):
             raise TypeError("TrialEvaluator.evaluate must return ObjectiveResult")
-        if objective.constraints and self.sampler_config.name not in {"tpe", "nsgaii"} and self.sampler_config.constraint_mode != "post_filter":
+        if objective.constraints and self.sampler_config.name not in {"tpe", "tpe_legacy", "tpe_multivariate_group", "nsgaii"} and self.sampler_config.constraint_mode != "post_filter":
             raise ValueError(
                 f"sampler {self.sampler_config.name!r} does not support formal constraints; "
                 "set SamplerConfig(..., constraint_mode='post_filter') to filter candidates after optimization"
@@ -284,6 +285,11 @@ def _trial_params_for_enqueue(params: Mapping[str, Any], param_ranges: Mapping[s
     queued: dict[str, Any] = {}
     missing: list[str] = []
     fixed = set(dict(fixed_params or {}))
+    if any(isinstance(spec, Mapping) for spec in param_ranges.values()):
+        from .parameter_space import NormalizedSearchSpace
+        space = NormalizedSearchSpace(param_ranges, fixed_params)
+        effective = space.effective(params)
+        return {k: v for k, v in effective.items() if not space.by_name[k].fixed}
     for name, spec in dict(param_ranges or {}).items():
         if name in fixed or not _is_suggested_spec(spec):
             continue
@@ -450,7 +456,12 @@ def _param_kind_counts(param_ranges: Mapping[str, Any], fixed_params: Optional[M
         if name in fixed:
             counts["fixed"] += 1
             continue
-        if isinstance(spec, range) or isinstance(spec, list):
+        if isinstance(spec, Mapping):
+            from .parameter_space import _parse
+            parsed = _parse(name, spec)
+            counts["constant" if parsed.fixed else "int" if parsed.kind == "integer" else
+                   "categorical" if parsed.choices else "float"] += 1
+        elif isinstance(spec, range) or isinstance(spec, list):
             counts["categorical"] += 1
         elif isinstance(spec, tuple) and len(spec) in (2, 3):
             numeric = all(isinstance(value, (int, float)) and not isinstance(value, bool) for value in spec)

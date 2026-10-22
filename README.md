@@ -12,8 +12,8 @@ walk-forward validation.
 
 The public API stays Pythonic. NumPy and Numba power portable research paths,
 while a governed Rust/PyO3 companion accelerates certified event workloads.
-Every backend returns the same result surface for metrics, plots, reports, and
-audit metadata.
+Completed research/audit runs use the shared result/report surface. Explicit
+score/compact profiles retain only their documented outputs, not full audit data.
 
 ```python
 from quantbt import QuantBTEndpoint
@@ -32,15 +32,33 @@ The distribution name is **`quantbt-engine`**; the import name is
 
 On Linux x86_64 with glibc and CPython 3.11-3.13, installation also resolves
 the exact pre-built **`quantbt-native`** companion. Users do not need Cargo,
-Rust, Maturin, a second import, or a different endpoint. Unsupported platforms
-retain the complete Python/Numba API.
+Rust, Maturin, a second import, or a different endpoint. Portable Python/Numba
+routes remain available where their dependencies are supported; explicit Rust
+contracts still require a matching native wheel. Alpine/musl is not covered:
+the dependency marker cannot distinguish musl from glibc, so installation may
+fail there rather than automatically fall back.
 
-Release pair:
+Release pair declared by this source revision:
 
 | Distribution | Version | Purpose |
 |---|---:|---|
-| `quantbt-engine` | `1.1.1` | Public API, Python/Numba engines, reports, compatibility oracle |
-| `quantbt-native` | `0.4.2` | Internal PyO3 extension for certified Rust workloads |
+| `quantbt-engine` | `1.2.0` | Public API, Python/Numba engines, reports, compatibility oracle |
+| `quantbt-native` | `0.4.3` | Internal PyO3 extension, including default QMS numerics and prepared witnesses |
+
+The previous release pair was `1.1.1 / 0.4.2`. QMS is opt-in: enabling its
+compiled capability does not enable meta selection or change an existing
+endpoint/account policy. See the
+[QMS release handoff](docs/meta_selection/RELEASE_HANDOFF.md) for exact artifact,
+installed-W3 and public-consumer gates and the owner-controlled release order.
+The [M5-12 preparation checklist](docs/mode5/M5_12_PREPARATION.md) preserves
+the earlier `1.1.2` candidate qualification under its original scope. Current
+source/artifact qualification, platform certification and public-index proof
+are separate from historical receipts. The [release capability map](#prepared-release-capabilities)
+below describes this source revision. For a checkout or candidate artifact,
+verify the installed versions rather than assuming it is already on PyPI.
+The [release checklist](docs/testpypi_release_checklist.md) requires the native
+companion to be public before core publication, then a public consumer proof.
+Local qualification alone is not evidence of publication.
 
 Optional features:
 
@@ -60,11 +78,67 @@ print("core:", version("quantbt-engine"))
 try:
     print("native:", version("quantbt-native"))
 except PackageNotFoundError:
-    print("native: unavailable; Python/Numba fallback is active")
+    print("native: unavailable; use a supported portable route or install the exact companion")
 ```
 
 Read the [native installation matrix](docs/native/install.md) for supported
 platforms, backend controls, and troubleshooting.
+
+## Optional Reporting V1
+
+Completed endpoint/result `full_report()`, `show_metrics()` and `quick_plot()`
+accept `reporting=ReportingRequest(...)` for explicit account-period, execution,
+closed-trade/action and drawdown-episode reporting. This reporting opt-in does
+not change execution or the WFO/meta objective. Separate account correctness
+fixes in this release can change results; see the migration notice below.
+The four populations stay separate: `account_period`, `execution`,
+`closed_trade` and `closed_action`. Returns/drawdowns are numeric fractions
+(percentages are display-only); PnL/costs retain their currency, durations their
+declared units, and each metric its sample count, coverage and validity.
+Declare the baseline, clock, sampling and annual periods explicitly.
+Missing outcome attribution is metric-specific N/A with a reason, not a guessed
+trade count or zero. Undefined bankruptcy-period ratios and invalid overflow
+remain null with status; no-loss ratios are not JSON Infinity. Legacy scientific
+metrics and `tearsheet()` keep their separate contracts. Read the
+[reporting guide](docs/metrics/PUBLIC_REPORTING.md),
+[metric definitions and units](docs/metrics/REPORTING_CONTRACT_V1.md) and runnable
+[synthetic example](examples/reporting_metrics_v1.py).
+
+Measured local CPython 3.12 reporting cost, one thread, one warmup/five samples:
+the opt-in workload includes immutable snapshot/hash, reduction, episode detail
+and grouped dictionary adaptation; it does not time strategy/execution.
+
+| Account observations | Python full report p50 / p95 | Explicit Numba p50 / p95 | Numba observations/s | Worker peak RSS Python / Numba |
+|---:|---:|---:|---:|---:|
+| 2,000 | 6.435 / 6.828 ms | 1.728 / 1.826 ms | 1.16M | 202.11 / 300.85 MiB |
+| 100,000 | 206.818 / 225.768 ms | 21.284 / 22.589 ms | 4.70M | 168.77 / 266.43 MiB |
+| 1,000,000 | 2.111 / 2.165 s | 183.730 / 186.878 ms | 5.44M | 286.52 / 373.12 MiB |
+
+These are **new report definitions and requested extra work**, not comparable
+to the shorter legacy scientific metric set as a speedup. Text formatting was
+0.05-0.10 ms in the original qualification. Public requests prepare the immutable
+mask once; request preparation, snapshot/hash and serialization are measured
+separately, not advertised as free.
+First-call Numba account compilation/reduction took 5.30-5.80 s and is not in
+the warm table. Python remains the reporting default; small ledgers may be
+faster without compilation. Peak RSS includes the import/JIT floor, and the
+2k row also draws the optional plot, so rows are not memory-scaling forecasts.
+Public cache hits still rehash mutable input and adapt output. Full matched
+legacy/new timings, coverage, caveats and local artifact receipts are in the
+[copy/cost qualification](docs/metrics/MET03_COPY_COST_REPORT.md), with
+historical evidence in the [performance follow-up](docs/metrics/MET03_PERFORMANCE_REPORT.md)
+and [MET-03 report](docs/metrics/MET03_REPORT.md). No universal
+1-10 ms promise or Rust Reporting V1 reducer is claimed.
+
+Alternating same-process comparisons, two warmups/30 samples, exact full-output
+hashes: against immediate parent `dc12427`, Python 2k account reporting is
+**8.270 -> 6.335 ms**, 1M is **3.165 -> 2.081 s**, and 2k closed trades are
+**15.491 -> 11.592 ms**. Against historical `24ad469`, Numba 1M is
+**319.356 -> 164.557 ms**. This paired cold-adapter/reducer comparison is
+separate from the full public/fresh-worker table above. Numba p95 and small
+cells are not uniformly better; all measurements remain visible. Copy/deepcopy
+and trusted pickle round trips retain validated readonly snapshots and rederive
+identities; cache correctness does not depend on trusting serialized hashes.
 
 ## Quick Start
 
@@ -124,6 +198,114 @@ implementation language.
 The full parameter, data, result, and support contracts are in the
 [endpoint guide](docs/endpoint.md). For a decision tree, read
 [backend selection](docs/backend_selection.md).
+
+<a id="prepared-release-capabilities"></a>
+
+## Release Capabilities
+
+For the **1.2.0 / 0.4.3** pair, choose each research extension
+explicitly. Installing compiled capabilities does not enable meta, choose a
+sampler/selector, route a strategy or promote a default. Software support,
+registered economic findings and final installed/release certification are
+separate claims.
+
+| Research need | Capability and reading path |
+|---|---|
+| Choose search independently of meta | [Four shared sampler recipes](docs/meta_selection/SAMPLERS.md), [optional numeric-space helper](docs/meta_selection/SAMPLER_SPACE_HELPER.md), [synthetic example](examples/wfo_sampler_space.py) |
+| Learn from permitted historical tasks | [Meta off/shadow/active](docs/meta_selection/USAGE.md), [route bounds](docs/meta_selection/CURRENT_ROUTE_REVIEW.md), [nested scalar Mode 1](docs/meta_selection/NESTED_MODE1.md) |
+| Inspect evidence before/after search | [Shared alpha diagnostics](docs/diagnostics/SHARED_ALPHA_DIAGNOSTICS.md), [pre-search researcher view](docs/diagnostics/PRESEARCH_RESEARCHER_REPORT.md), [Mode 4 fold/decision reports](docs/diagnostics/FOLD_DECISION_REPORTS.md) |
+| Calibrate one fixed parameter dict | [Diagnostics-first Mode 5](docs/mode5/PUBLIC_CALIBRATION_V1.md), [sealed executable handoff](docs/diagnostics/MODE5_EXECUTABLE_HANDOFF.md), [decision components](docs/mode5/DECISION_QUALIFICATION_V1.md) |
+| Qualify a winner or explicitly reuse coordinates | [Winner, regime, activity, probe/stress and donor contracts](docs/diagnostics/MODE5_WINNER_QUALIFICATION.md), [synthetic cross-mode example](examples/mode5_cross_mode_qualification.py) |
+| Report completed results with explicit units/coverage | [Reporting V1](#optional-reporting-v1), [public usage](docs/metrics/PUBLIC_REPORTING.md) |
+| Understand corrected account behavior | [ACC-01 supported/inactive/rejected configuration matrix](docs/portfolio_review/ACC01_CONFIGURATION_AND_MIGRATION.md), [current-capability qualification](docs/portfolio_review/ACC01_REPORT.md) |
+
+### Independent Samplers And Causal Meta
+
+`optimization_config["sampler_config"]` selects `tpe_legacy`,
+`tpe_multivariate_group`, `cmaes` or `sobol` without enabling meta. Omission
+preserves historical sampler defaults. Optional `prepare_sampler_space`
+assesses declared schema compatibility, not profitability: numeric lists stay
+categorical by default. Declared regular integer grids can preserve support;
+float choices need schema overrides. Conversion can change proposal geometry.
+Mixed CMA and conditional Sobol require their
+[explicit policies](docs/meta_selection/CONDITIONAL_POLICIES.md); neither the
+helper nor diagnostics chooses a recipe from OOS outcomes.
+
+| Meta mode/schedule | Admitted software scope | Important boundary |
+|---|---|---|
+| Mode 4 / `per_fold_causal` | Five scalar targets; bounded portfolio, basket/arbitrage, intrabar, callback/command and pre-expiry delivery adapters | Original route-specific account, timing and scoring contracts still apply |
+| Nested Mode 1 / `per_fold_causal` | `signal_notional`, `notional`, `unit`, `pct_equity`, signed structural `dca_ladder` | Genuine inner validation within outer IS; not portfolio/package/execution/W3 meta |
+| Prepared W3, Mode 4 causal | Separate sequential, one-symbol reactive adapter | Reset-flat segments, not carry-account, shared multi-symbol or public meta batching |
+
+Shadow records proposals but executes the native winner; active may apply the
+learned choice or documented fallback. Current IS and a frozen snapshot of
+permitted matured history may inform selection; the current outer OOS never
+enters its fit/rank. Other mode/route
+combinations, including options/Nautilus meta, are not admitted merely because
+their standalone endpoint or result helper exists. Numeric meta acceleration
+and financial execution remain independent; Python callbacks are not Rust-owned.
+
+### Compatibility And Account Corrections
+
+Endpoint factory names remain stable. Relative to `v1.1.1`, optional
+`execution_endpoint`, `meta_history` and `reporting` inputs and the
+`research_report(...)` method extend WFO and result analysis. The later ACC-01
+repairs do not change endpoint method signatures, but intentionally correct
+funding, sizing, order admission, attribution and reporting edge cases.
+Unsupported non-default account/execution settings now fail explicitly instead
+of appearing to work. These correctness repairs are not optional research
+policies; omitting meta/diagnostics does not restore old financial defects.
+
+| Current account family | Supported authority | Boundary |
+|---|---|---|
+| Linear event | Named event clocks, supported order constraints/risk reductions, costs and funding | Generic accounts are gross-cross/netting, not isolated collateral or simultaneous long/short inventory |
+| Linear vectorized / portfolio | CLOSE targets, quantity constraints, costs/funding and executed-buffer attribution | Other generic fill clocks/partial-fill policies and isolated/hedging accounts are explicitly rejected |
+| Options | Capital-matched opening wallet, reporting currency/explicit constant FX, option execution/margin and authoritative applied fees | Generic compatibility defaults can be inactive; changed generic controls fail rather than replacing option authorities; margin approximations are not venue-exact |
+
+Clocks, funding intervals/events, fee denomination/timing and configuration
+precedence retain their individual contracts, not one interchangeable model.
+Read the full [supported / inactive-default / rejected matrix](docs/portfolio_review/ACC01_CONFIGURATION_AND_MIGRATION.md),
+[account qualification](docs/portfolio_review/ACC01_REPORT.md) and
+[API compatibility audit](docs/mode5/M5_12_PREPARATION.md#endpoint-compatibility).
+Historical accounting results and benchmarks remain historical, not current
+artifact certification.
+
+### Diagnostics And Opt-In Calibration
+
+Shared [alpha diagnostics](docs/diagnostics/SHARED_ALPHA_DIAGNOSTICS.md) expose
+coverage, parameter geometry/branches, activity and source-backed sensitivity,
+local/regime/factor evidence with explicit missing support. They can precede
+any WFO-mode choice and require neither meta nor a new financial engine.
+Mode 4 [fold/meta reports](docs/diagnostics/REPORTING_COVERAGE_AND_HANDOFF.md)
+separate R/Q/IS, matched cohorts and native/proposed/actually applied decisions;
+they read original observations without rerunning accounts or fitting a model.
+
+Diagnostics-first [Mode 5 calibration](docs/mode5/PUBLIC_CALIBRATION_V1.md)
+freezes the objective, coefficients/reference, quality/support gates and
+selector before search, then selects **one static parameter dict**. Explicit
+selectors are `full_dro_cvar`, `full_sam_basin` and
+`full_pareto_chebyshev`; SAM needs registered local probes, Pareto frozen
+preferences. Utility, raw Sharpe and PSR are distinct, not interchangeable
+objectives. `NO_SELECTION` retains exclusions rather than inventing a winner.
+Reset-environment and continuous-account providers retain different contracts;
+annual/regime views of one continuous account are dependent descriptions,
+not independently optimized dicts or independent OOS. Annual positivity is not
+silently substituted for the registered objective.
+
+Continuous-account [winner qualification](docs/diagnostics/MODE5_WINNER_QUALIFICATION.md)
+joins the exact selected dict/formula/components to whole/annual/regime risk,
+activity/costs, runner-up/baseline trade-offs and exact-winner probe/stress
+support. State labels and evidence need their own source/rights witnesses;
+the reader does not fit regimes, run missing stress or infer fills/campaigns
+from position changes. Missing evidence stays unavailable, not PASS or zero.
+
+Cross-mode assistance is an explicit researcher choice: reviewed donor
+coordinates consume the destination budget and are rescored under its current
+contract, without importing old scores, model state or account paths.
+Full-development evidence cannot be backdated into a Mode 4 prefix. There is
+no automatic router, adaptive-selector promotion or universal economic claim;
+observed improvements, trade-offs and inconclusive findings keep their
+registered alpha/window/objective/comparison scope.
 
 ## Event-Driven Facade
 
@@ -444,17 +626,18 @@ compatibility callback fell from **5.477 s** (**18,259 bars/s**) to **2.430 s**
 (**41,145 bars/s**): median paired ratio **0.4473** and CI95
 `[0.4411, 0.4622]`. Both retain the public full-audit result and exact
 accounting/trace parity; isolated peak RSS stays effectively flat around
-**305 MiB**. These are current source-tree B1-to-B2 measurements, not a
+**305 MiB**. These are historical NEXT-01 source-tree B1-to-B2 measurements, not a
 published-release comparison, a generic WFO claim, or a Rust decision-callback
 claim. Read the [NEXT-01 evidence](docs/performance/next01_reactive_public_runtime.md).
 
-Phase 77.3 records current-candidate reactive closure separately from the
+Phase 77.3 records historical candidate reactive closure separately from the
 released table above. On its matched 10,000-bar prepared scalar fixture, R1,
 R2, and R3 score-only runs measured `20.077 ms`, `13.588 ms`, and `20.949 ms`
 (`498.1k`, `736.0k`, and `477.3k bars/s`). Its 2,000-bar W3 fixture with eight
 candidates measured `196.556 ms` sequential and `226.748 ms` for the distinct
 R3B schedule (`110.5k` and `105.4k` candidate-fold visits/s). These are
-development evidence on the current source tree, not a `v1.1.0` release claim,
+development evidence on its recorded source (`db39959`), not current ACC-01
+qualification or a `v1.1.0` release claim,
 not a comparison between different sampling schedules, and not a promise for
 arbitrary Python callback compute. The artifact also proves active Rust
 deadline/cancellation behavior and cross-route parity controls:
@@ -472,10 +655,11 @@ fold tables, selected parameters, segment equity, fees, funding, positions and
 strategy fingerprints match the compatibility path. See the
 [PERF-09 evidence](docs/performance/perf_09_reactive_boundary.md).
 
-The local Linux CPython candidate-pair gate also passed source-hash parity,
+The historical local Linux CPython candidate-pair gate passed source-hash parity,
 isolated core/native install, direct native-target smoke, and source-tree import
-blocking. Published-wheel platform certification remains a separate Phase 78
-release responsibility.
+blocking on its recorded bytes. Current final-source artifact certification is
+M5-12 work, followed by separately approved remote/public gates. Neither those
+historical timings nor the old candidate-pair PASS qualify current ACC-01 artifacts.
 
 The direct target rows are intentionally split. The narrow typed Rust score
 is slower than the frozen Numba pure kernel on this fixture, while the explicit
@@ -602,6 +786,16 @@ Start with the [documentation map](docs/README.md).
 | Margin, buying power, and liquidation | [Margin and leverage](docs/margin_leverage.md) |
 | Causal WFO schedules and claims | [Causal walk-forward](docs/walkforward_causal.md) |
 | WFO methodology | [Walk-forward methodology](methodology/walk_forward.md) |
+| Causal meta off/shadow/active, admitted routes and nested scalar Mode 1 | [QMS public integration](docs/meta_selection/INTEGRATION.md), [route matrix](docs/meta_selection/CURRENT_ROUTE_REVIEW.md), [nested Mode 1](docs/meta_selection/NESTED_MODE1.md) |
+| Prepared meta parity and portable decision/model handoff | [QMS-06 capability/report](docs/meta_selection/QMS06_REPORT.md), [host consumer](docs/meta_selection/HANDOFF.md) (historical qualification scope retained) |
+| QMS usage, sampler/meta policy, history and migration | [QMS user guide](docs/meta_selection/USAGE.md), [qualification](docs/meta_selection/QUALIFICATION.md), [complete cases](examples/wfo_meta_contract.py) |
+| Exact owned sampler checkpoints, with no automatic WFO resume | [Continuation contract](docs/meta_selection/EXACT_CONTINUATION.md), [four-recipe example](examples/optimization_exact_continuation.py), [local report](docs/meta_selection/QMSC04_REPORT.md) |
+| Optional sampler-space assessment and caller overrides, independent of meta | [Sampler-space helper](docs/meta_selection/SAMPLER_SPACE_HELPER.md), [pct-equity example](examples/wfo_sampler_space.py) |
+| Diagnostics-first Mode 5 with sealed recipes, shared samplers and original selected-account audit | [Opt-in calibration](docs/mode5/PUBLIC_CALIBRATION_V1.md), [local qualification and matched timings](docs/mode5/M5_10_PUBLIC_RUNTIME_REPORT.md), [optional example](examples/mode5_calibration_optin.py) (not independent OOS) |
+| Shared alpha diagnostics and cold Mode 4/5 decision reports | [Pre-search contract](docs/diagnostics/PRESEARCH_RESEARCHER_REPORT.md), [endpoint/result API](docs/diagnostics/FOLD_DECISION_REPORTS.md), [coverage and handoff](docs/diagnostics/REPORTING_COVERAGE_AND_HANDOFF.md) (explicit permissions; no automatic recipe choice or financial replay) |
+| Mode 5 exact-winner qualification and explicit cross-mode donors | [Winner/account/state/probe/stress report and coordinate-only handoff](docs/diagnostics/MODE5_WINNER_QUALIFICATION.md), [public synthetic example](examples/mode5_cross_mode_qualification.py) (researcher opt-in; unchanged defaults; not a universal superiority claim) |
+| Scalar sizing meta, actual ETH R/Q and repaired liquidation metric compatibility | [E03 assessment](docs/meta_selection/QMSE03_REPORT.md), [G01 repair](docs/meta_selection/QMSE03_G01_CLOSURE.md), [scalar example](examples/wfo_meta_scalar.py) (no economic promotion) |
+| Intrabar fixed-notional sizing, signal timing and zero-fill diagnostic | [Sizing contract](docs/fast_intrabar.md#fixed-notional-units-and-zero-fill-diagnostics), [public BTC/ETH/SOL-like reproduction](examples/intrabar_bracket_diagnostic.py) |
 | Public scalar WFO prepared-native scorer, W0/W1/W2, and fallback matrix | [Public prepared-native WFO scoring](docs/native_prepared_wfo_public.md) |
 | Fresh cache-cold ordinary/reactive WFO performance, parity, and supported-mode boundaries | [NEXT-02 WFO closure](docs/performance/next02_fresh_wfo_reactive_wfo.md) |
 | Exact run-local WFO candidate-analysis reuse and rollback | [PERF-05 WFO evaluation reuse](docs/performance/perf_05_wfo_evaluation_reuse.md) |
@@ -613,6 +807,8 @@ Start with the [documentation map](docs/README.md).
 | Platform wheel matrix and route-level A5 status | [Native productization and A5](docs/native_productization_a5.md) |
 | Direct Rust target timing and target kinds | [Direct Target Execution Clock](docs/contracts/v1_1_target_execution_clock.md) |
 | Portfolio modes and migration | [Portfolio Engine V3](docs/portfolio_engine_v3.md) |
+| Current ACC-01 account/configuration support, intentional errors and migration | [Effective configuration matrix](docs/portfolio_review/ACC01_CONFIGURATION_AND_MIGRATION.md), [local qualification](docs/portfolio_review/ACC01_REPORT.md) |
+| Completed-result metric populations, units, N/A and drawdown episodes | [Reporting V1 usage](docs/metrics/PUBLIC_REPORTING.md), [metric contract](docs/metrics/REPORTING_CONTRACT_V1.md) |
 | Pair and basket packages | [Pair and basket guide](docs/pair_basket_guide.md) |
 | Nautilus validation and bundles | [Nautilus backend](docs/nautilus_backend.md) |
 | Reproduce benchmark evidence | [Benchmarking governance](docs/performance/benchmarking.md) |

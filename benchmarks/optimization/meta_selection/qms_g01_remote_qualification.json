@@ -1,0 +1,220 @@
+{
+  "schema": "qms-g01-remote-qualification-v1",
+  "evidence_source": "Public GitHub Actions API: exact completed jobs/steps and uploaded artifact metadata; proof payloads were not independently downloaded",
+  "source_sha": "6901a66b29c4039b2522a1a6367431fcfe7016ad",
+  "branch": "feat/meta-selection-samplers",
+  "core": "1.1.2",
+  "native": "0.4.3",
+  "run": {
+    "id": 37447291412,
+    "run_attempt": 1,
+    "html_url": "https://github.com/BobbyAxerol/quantbt/actions/runs/37447291412",
+    "event": "push",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-10-06T10:04:13Z",
+    "updated_at": "2026-10-06T10:16:46Z"
+  },
+  "required_steps": [
+    "Validate release identities and fail-closed proof gates",
+    "Validate typed domain admission and actual public dispatch",
+    "Build and prove exact release artifacts with default QMS (no publishing)",
+    "Validate bounded package meta admission and original accounts",
+    "Validate liquidation compatibility and replay fail-closed gates",
+    "Prove installed W3 on this exact interpreter (no source imports)",
+    "Prove eight installed scalar cells on this exact interpreter",
+    "Prove installed shared-account portfolio on this exact interpreter",
+    "Prove installed bounded packages on this exact interpreter",
+    "Prove repaired liquidation metrics from installed wheel and sdist",
+    "Retain installed consumer and build receipts"
+  ],
+  "jobs": [
+    {
+      "id": 112215087043,
+      "name": "ubuntu-22.04 / CPython 3.11",
+      "html_url": "https://github.com/BobbyAxerol/quantbt/actions/runs/37447291412/job/112215087043",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-06T10:04:16Z",
+      "completed_at": "2026-10-06T10:15:03Z",
+      "required_step_results": {
+        "Validate release identities and fail-closed proof gates": "success",
+        "Validate typed domain admission and actual public dispatch": "success",
+        "Build and prove exact release artifacts with default QMS (no publishing)": "success",
+        "Validate bounded package meta admission and original accounts": "success",
+        "Validate liquidation compatibility and replay fail-closed gates": "success",
+        "Prove installed W3 on this exact interpreter (no source imports)": "success",
+        "Prove eight installed scalar cells on this exact interpreter": "success",
+        "Prove installed shared-account portfolio on this exact interpreter": "success",
+        "Prove installed bounded packages on this exact interpreter": "success",
+        "Prove repaired liquidation metrics from installed wheel and sdist": "success",
+        "Retain installed consumer and build receipts": "success"
+      }
+    },
+    {
+      "id": 112215087351,
+      "name": "ubuntu-22.04 / CPython 3.12",
+      "html_url": "https://github.com/BobbyAxerol/quantbt/actions/runs/37447291412/job/112215087351",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-06T10:04:15Z",
+      "completed_at": "2026-10-06T10:16:46Z",
+      "required_step_results": {
+        "Validate release identities and fail-closed proof gates": "success",
+        "Validate typed domain admission and actual public dispatch": "success",
+        "Build and prove exact release artifacts with default QMS (no publishing)": "success",
+        "Validate bounded package meta admission and original accounts": "success",
+        "Validate liquidation compatibility and replay fail-closed gates": "success",
+        "Prove installed W3 on this exact interpreter (no source imports)": "success",
+        "Prove eight installed scalar cells on this exact interpreter": "success",
+        "Prove installed shared-account portfolio on this exact interpreter": "success",
+        "Prove installed bounded packages on this exact interpreter": "success",
+        "Prove repaired liquidation metrics from installed wheel and sdist": "success",
+        "Retain installed consumer and build receipts": "success"
+      }
+    },
+    {
+      "id": 112215087503,
+      "name": "ubuntu-22.04 / CPython 3.13",
+      "html_url": "https://github.com/BobbyAxerol/quantbt/actions/runs/37447291412/job/112215087503",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-06T10:04:15Z",
+      "completed_at": "2026-10-06T10:11:03Z",
+      "required_step_results": {
+        "Validate release identities and fail-closed proof gates": "success",
+        "Validate typed domain admission and actual public dispatch": "success",
+        "Build and prove exact release artifacts with default QMS (no publishing)": "success",
+        "Validate bounded package meta admission and original accounts": "success",
+        "Validate liquidation compatibility and replay fail-closed gates": "success",
+        "Prove installed W3 on this exact interpreter (no source imports)": "success",
+        "Prove eight installed scalar cells on this exact interpreter": "success",
+        "Prove installed shared-account portfolio on this exact interpreter": "success",
+        "Prove installed bounded packages on this exact interpreter": "success",
+        "Prove repaired liquidation metrics from installed wheel and sdist": "success",
+        "Retain installed consumer and build receipts": "success"
+      }
+    },
+    {
+      "id": 112215087525,
+      "name": "ubuntu-24.04 / CPython 3.11",
+      "html_url": "https://github.com/BobbyAxerol/quantbt/actions/runs/37447291412/job/112215087525",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-06T10:04:16Z",
+      "completed_at": "2026-10-06T10:15:05Z",
+      "required_step_results": {
+        "Validate release identities and fail-closed proof gates": "success",
+        "Validate typed domain admission and actual public dispatch": "success",
+        "Build and prove exact release artifacts with default QMS (no publishing)": "success",
+        "Validate bounded package meta admission and original accounts": "success",
+        "Validate liquidation compatibility and replay fail-closed gates": "success",
+        "Prove installed W3 on this exact interpreter (no source imports)": "success",
+        "Prove eight installed scalar cells on this exact interpreter": "success",
+        "Prove installed shared-account portfolio on this exact interpreter": "success",
+        "Prove installed bounded packages on this exact interpreter": "success",
+        "Prove repaired liquidation metrics from installed wheel and sdist": "success",
+        "Retain installed consumer and build receipts": "success"
+      }
+    },
+    {
+      "id": 112215087395,
+      "name": "ubuntu-24.04 / CPython 3.12",
+      "html_url": "https://github.com/BobbyAxerol/quantbt/actions/runs/37447291412/job/112215087395",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-06T10:04:15Z",
+      "completed_at": "2026-10-06T10:15:30Z",
+      "required_step_results": {
+        "Validate release identities and fail-closed proof gates": "success",
+        "Validate typed domain admission and actual public dispatch": "success",
+        "Build and prove exact release artifacts with default QMS (no publishing)": "success",
+        "Validate bounded package meta admission and original accounts": "success",
+        "Validate liquidation compatibility and replay fail-closed gates": "success",
+        "Prove installed W3 on this exact interpreter (no source imports)": "success",
+        "Prove eight installed scalar cells on this exact interpreter": "success",
+        "Prove installed shared-account portfolio on this exact interpreter": "success",
+        "Prove installed bounded packages on this exact interpreter": "success",
+        "Prove repaired liquidation metrics from installed wheel and sdist": "success",
+        "Retain installed consumer and build receipts": "success"
+      }
+    },
+    {
+      "id": 112215087328,
+      "name": "ubuntu-24.04 / CPython 3.13",
+      "html_url": "https://github.com/BobbyAxerol/quantbt/actions/runs/37447291412/job/112215087328",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-06T10:04:15Z",
+      "completed_at": "2026-10-06T10:13:32Z",
+      "required_step_results": {
+        "Validate release identities and fail-closed proof gates": "success",
+        "Validate typed domain admission and actual public dispatch": "success",
+        "Build and prove exact release artifacts with default QMS (no publishing)": "success",
+        "Validate bounded package meta admission and original accounts": "success",
+        "Validate liquidation compatibility and replay fail-closed gates": "success",
+        "Prove installed W3 on this exact interpreter (no source imports)": "success",
+        "Prove eight installed scalar cells on this exact interpreter": "success",
+        "Prove installed shared-account portfolio on this exact interpreter": "success",
+        "Prove installed bounded packages on this exact interpreter": "success",
+        "Prove repaired liquidation metrics from installed wheel and sdist": "success",
+        "Retain installed consumer and build receipts": "success"
+      }
+    }
+  ],
+  "artifacts": [
+    {
+      "id": 11404557120,
+      "name": "qms-candidate-ubuntu-22.04-cp3.11",
+      "digest": "sha256:32cd4e6856ef0173d38ba617d4f6c323e32a4cf453f843c2ef9fb7b4796cd7ce",
+      "size_in_bytes": 73098,
+      "expired": false,
+      "expires_at": "2026-10-13T10:15:00Z"
+    },
+    {
+      "id": 11404243732,
+      "name": "qms-candidate-ubuntu-22.04-cp3.12",
+      "digest": "sha256:53f5e9b059656287be33b49a4b119f4a25b82b4f37e50c6e5dc8b37dae3d7ebc",
+      "size_in_bytes": 73172,
+      "expired": false,
+      "expires_at": "2026-10-13T10:16:42Z"
+    },
+    {
+      "id": 11404566308,
+      "name": "qms-candidate-ubuntu-22.04-cp3.13",
+      "digest": "sha256:9357f1e6724e7c9494d7e5e6762f446626af0f3ef0534fb573dc6c3d38580d89",
+      "size_in_bytes": 73147,
+      "expired": false,
+      "expires_at": "2026-10-13T10:11:00Z"
+    },
+    {
+      "id": 11403349214,
+      "name": "qms-candidate-ubuntu-24.04-cp3.11",
+      "digest": "sha256:9afef4cf22bb68bf2eb41424adcd84aa84fc993d823bfea1d564c98928548080",
+      "size_in_bytes": 72854,
+      "expired": false,
+      "expires_at": "2026-10-13T10:15:02Z"
+    },
+    {
+      "id": 11403543926,
+      "name": "qms-candidate-ubuntu-24.04-cp3.12",
+      "digest": "sha256:1a9fe949a5ec786e074a15636f53bbab634f6967b16e3a08c7b8048d402930a7",
+      "size_in_bytes": 72902,
+      "expired": false,
+      "expires_at": "2026-10-13T10:15:27Z"
+    },
+    {
+      "id": 11404427641,
+      "name": "qms-candidate-ubuntu-24.04-cp3.13",
+      "digest": "sha256:0fb9bfa4f752016f53c502c481da7ac25399067270239b098f67d35082dc4cd0",
+      "size_in_bytes": 72853,
+      "expired": false,
+      "expires_at": "2026-10-13T10:13:29Z"
+    }
+  ],
+  "matrix_gate": "PASS",
+  "artifact_payloads_independently_downloaded": false,
+  "manylinux2014_publication_certified": false,
+  "empirical_promotion": false,
+  "publication": false
+}

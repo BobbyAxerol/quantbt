@@ -139,6 +139,12 @@ class ReactiveWfoBatchSelectionMixinV1:
         validate_param_ranges(dict(param_ranges), context="reactive WFO throughput batch")
         if int(self.config.optuna_trials) <= 0:
             raise ValueError("adaptive throughput_batch_v1 requires walkforward_config.optuna_trials > 0")
+        bridge = (getattr(engine, "_sampler_bridges", None) or {}).get(0)
+        if bridge is not None:
+            from .reactive_wfo_sampling import select_shared_sampler_batches
+
+            return select_shared_sampler_batches(self, engine=engine, folds=folds,
+                                                  param_ranges=dict(param_ranges), bridge=bridge)
         try:
             import optuna
         except ImportError as exc:  # pragma: no cover - package dependency guard
@@ -417,7 +423,9 @@ class ReactiveWfoBatchSelectionMixinV1:
     ) -> tuple[WalkForwardTrialRecord, list[WalkForwardTrialRecord], list[WalkForwardTrialRecord]]:
         """Reuse selectors after native IS rows, then score only eligible OOS rows."""
 
-        is_candidates = _select_is_candidate_records(records, dict(param_ranges), self.config)
+        selectable = ([r for r in records if r.selection_metadata.get("feasible", True)]
+                      if sampling_contract == "shared_sampler_batch_r3b_v2" else records)
+        is_candidates = _select_is_candidate_records(selectable, dict(param_ranges), self.config)
         if mode == "mode_5_full_robust":
             selected = _with_selection_metadata(
                 is_candidates[0],

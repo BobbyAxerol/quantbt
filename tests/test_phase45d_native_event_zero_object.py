@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import math
-
 import numpy as np
 import pandas as pd
 
@@ -9,6 +7,7 @@ from quantbt import NativeCommandBatch, OrderCommand, OrderSide, OrderType, Quan
 from quantbt.backends.native_event import NativeEventScoreRequirements
 from quantbt.optimization.evaluators.native_event import PreparedNativeEventStrategyEvaluator
 from quantbt.optimization.result import ObjectiveResult
+from tests.native_event.contract.scalar_report_assertions import assert_scalar_report_parity
 
 
 def _bars(n: int = 72) -> pd.DataFrame:
@@ -111,21 +110,11 @@ def test_scalar_score_matches_public_audit_metrics_without_accounting_paths():
         score_requirements=NativeEventScoreRequirements.scalar_score_contract(),
     )
     audit = prepared.run(EnterExitStrategy(), report_level="audit")
-    report = audit.full_report()
-
     assert scalar.metadata["score_scalar"] is True
     assert scalar.metadata["score_pandas_materialized"] is False
     assert all(value is False for value in scalar.metadata["score_retained_paths"].values())
     assert not hasattr(scalar, "accounting")
-    for key, expected in report.items():
-        actual = scalar.metrics[key]
-        if isinstance(expected, (float, int)) and not isinstance(expected, bool):
-            if math.isinf(float(expected)):
-                assert math.isinf(float(actual)) and (float(expected) > 0) == (float(actual) > 0)
-            else:
-                np.testing.assert_allclose(actual, expected, rtol=0.0, atol=1e-12)
-        else:
-            assert actual == expected
+    assert_scalar_report_parity(scalar.metrics, audit, atol=1e-12)
     assert scalar.final_equity == audit.equity.iloc[-1]
     assert endpoint.result is audit
 

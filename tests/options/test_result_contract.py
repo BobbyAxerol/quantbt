@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import pandas as pd
+import pytest
 
 from quantbt import (
     AccountConfig,
@@ -48,8 +49,11 @@ def test_native_option_result_contract_reports(option_phase3_chain, option_phase
     assert isinstance(result, OptionBacktestResult)
     assert isinstance(result, BacktestResultV2)
     assert result.equity.index.is_monotonic_increasing
-    assert result.equity.iloc[0] == 20_000.0
-    assert result.equity.iloc[-1] != result.equity.iloc[0]
+    # One post-event mark per physical instant; opening capital stays explicit.
+    assert result.equity.iloc[0] == pytest.approx(19_949.79)
+    assert result.equity.index[0].value == int(option_phase3_chain.timestamp_ns.min())
+    assert result.initial_capital == 20_000.0
+    assert result.returns.iloc[0] == pytest.approx(19_949.79 / 20_000.0 - 1.)
     assert len(result.fills) == 1
     assert result.fills_report.loc[0, "symbol"] == "BTC-01FEB26-100000-C.DERIBIT"
     assert result.packages_report.loc[0, "status"] == "filled"

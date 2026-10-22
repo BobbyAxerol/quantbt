@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="1" failures="0" skipped="0" tests="7" time="1.570" timestamp="2026-10-17T00:47:52.478827+00:00" hostname="Bobby"><testcase classname="tests.meta_selection.test_mlr01_admission" name="test_frozen_baseline_source_and_settings" time="0.006" /><testcase classname="tests.meta_selection.test_mlr01_admission" name="test_source_negative_copy" time="0.001"><error message="failed on setup with &quot;FileNotFoundError: [Errno 2] No such file or directory: '/root/bobby/pool_alpha/quantbt/upgrade/private/meta_model_research_v1/ml01/attempt-01/test-scratch'&quot;">self = PosixPath('/root/bobby/pool_alpha/quantbt/upgrade/private/meta_model_research_v1/ml01/attempt-01/test-scratch')
+mode = 448, parents = False, exist_ok = False
+
+    def mkdir(self, mode=0o777, parents=False, exist_ok=False):
+        """
+        Create a new directory at this given path.
+        """
+        try:
+&gt;           os.mkdir(self, mode)
+E           FileNotFoundError: [Errno 2] No such file or directory: '/root/bobby/pool_alpha/quantbt/upgrade/private/meta_model_research_v1/ml01/attempt-01/test-scratch'
+
+/usr/lib/python3.12/pathlib.py:1311: FileNotFoundError</error></testcase><testcase classname="tests.meta_selection.test_mlr01_admission" name="test_group_and_role_partition" time="0.001" /><testcase classname="tests.meta_selection.test_mlr01_admission" name="test_actual_availability_and_heldout_exclusion" time="0.010" /><testcase classname="tests.meta_selection.test_mlr01_admission" name="test_support_and_complete_blocks_cannot_be_faked_by_rows" time="0.032" /><testcase classname="tests.meta_selection.test_mlr01_admission" name="test_macro_group_not_candidate_row_weights" time="0.001" /><testcase classname="tests.meta_selection.test_mlr01_admission" name="test_recipe_identity_restore_and_budget" time="0.001" /></testsuite></testsuites>

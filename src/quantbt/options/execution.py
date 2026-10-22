@@ -17,6 +17,7 @@ from ..core.orders import Fill, OrderIntent
 from ..core.schema import LiquiditySide, OrderSide, OrderType, TimeInForce
 from .packages import OptionPackageExecutionPolicy, OptionPackageIntent, compile_option_package_orders
 from .tape import PreparedOptionTape
+from .validation import finite_number
 
 
 class OptionLimitFidelity(str, Enum):
@@ -45,10 +46,10 @@ class OptionExecutionConfig:
     def __post_init__(self) -> None:
         object.__setattr__(self, "limit_fidelity", _coerce_enum(OptionLimitFidelity, self.limit_fidelity, "limit_fidelity"))
         object.__setattr__(self, "depth_fidelity", _coerce_enum(OptionDepthFidelity, self.depth_fidelity, "depth_fidelity"))
-        if self.fee_rate < 0.0:
-            raise ValueError("fee_rate must be >= 0")
-        if self.max_quote_age_ns is not None and self.max_quote_age_ns < 0:
-            raise ValueError("max_quote_age_ns must be >= 0")
+        finite_number(self.initial_cash, "initial_cash")
+        finite_number(self.fee_rate, "fee_rate", minimum=0.0)
+        if self.max_quote_age_ns is not None:
+            finite_number(self.max_quote_age_ns, "max_quote_age_ns", minimum=0.0)
 
 
 @dataclass(frozen=True)
@@ -137,8 +138,12 @@ def execute_option_package(
 ) -> OptionPackageExecutionResult:
     """Execute one option package against the latest observable tape snapshot."""
     cfg = config or OptionExecutionConfig()
+    for symbol, qty in (positions or {}).items():
+        finite_number(qty, f"positions[{symbol}]")
     state = _ExecutionState(cash=float(cfg.initial_cash), positions=dict(positions or {}))
     orders = tuple(compiled_orders) if compiled_orders is not None else compile_option_package_orders(package)
+    if any(int(order.timestamp) != int(package.timestamp_ns) for order in orders):
+        raise ValueError("compiled option orders must retain the package decision timestamp")
     policy = package.execution_policy
     if policy is OptionPackageExecutionPolicy.ATOMIC_ALL_OR_NONE:
         return _execute_atomic_all_or_none(package, orders, tape, cfg, state)
@@ -313,6 +318,9 @@ def _evaluate_order(
     state: _ExecutionState,
     package_id: str,
 ) -> _OrderEvaluation:
+    finite_number(order.qty, "order.qty", positive=True)
+    if order.price is not None:
+        finite_number(order.price, "order.price", positive=True)
     snapshot_index = tape.snapshot_index_at_or_before(int(order.timestamp), max_quote_age_ns=cfg.max_quote_age_ns)
     rows = tape.snapshot_slice(snapshot_index)
     row_index = _find_row_index(tape, rows, order.symbol)
@@ -341,11 +349,18 @@ def _evaluate_order(
     else:
         status = "filled"
         reason = ""
-    fee = fill_qty * fill_price * cfg.fee_rate
-    cash_delta = fill_qty * fill_price - fee if order.side is OrderSide.SELL else -(fill_qty * fill_price + fee)
+    finite_number(fill_qty, "fill.qty", positive=True)
+    finite_number(fill_price, "fill.price", positive=True)
+    instrument = tape.registry.by_symbol[order.symbol]
+    premium = finite_number(fill_qty * fill_price * instrument.multiplier, "fill premium", minimum=0.0)
+    fee = finite_number(premium * cfg.fee_rate, "fill.fee", minimum=0.0)
+    cash_delta = finite_number(
+        premium - fee if order.side is OrderSide.SELL else -(premium + fee),
+        "fill.cash_delta",
+    )
     position_delta = order.side.sign * fill_qty
     fill = Fill(
-        timestamp=tape.timestamp_ns[snapshot_index],
+        timestamp=int(order.timestamp),
         symbol=order.symbol,
         side=order.side,
         qty=fill_qty,
@@ -353,7 +368,16 @@ def _evaluate_order(
         fee=fee,
         liquidity=liquidity,
         order_id=order.order_id,
-        metadata={**order.metadata, "option_row_index": int(row_index), "package_id": package_id},
+        metadata={
+            **order.metadata,
+            "option_row_index": int(row_index),
+            "package_id": package_id,
+            "quote_timestamp_ns": int(tape.timestamp_ns[snapshot_index]),
+            "decision_timestamp_ns": int(order.timestamp),
+            "effective_timestamp_ns": int(order.timestamp),
+            "contract_multiplier": float(instrument.multiplier),
+            "fee_currency": instrument.premium_currency,
+        },
     )
     row = _row_from_order(package_id, order, tape, row_index, cfg, fill_qty, fill_price, status, reason, liquidity, fee=fee, cash_delta=cash_delta)
     return _OrderEvaluation(fill, row, cash_delta, position_delta)
@@ -386,7 +410,7 @@ def _fill_price(
 
 
 def _available_qty(order: OrderIntent, tape: PreparedOptionTape, row_index: int) -> float:
-    return float(tape.ask_size[row_index] if order.side is OrderSide.BUY else tape.bid_size[row_index])
+    return finite_number(tape.ask_size[row_index] if order.side is OrderSide.BUY else tape.bid_size[row_index], "top of book size", minimum=0.0)
 
 
 def _find_row_index(tape: PreparedOptionTape, rows: slice, symbol: str) -> Optional[int]:
@@ -399,8 +423,10 @@ def _find_row_index(tape: PreparedOptionTape, rows: slice, symbol: str) -> Optio
 def _apply_evaluation(state: _ExecutionState, evaluation: _OrderEvaluation) -> None:
     if evaluation.fill is None:
         return
-    state.cash += float(evaluation.cash_delta)
-    state.positions[evaluation.fill.symbol] = state.positions.get(evaluation.fill.symbol, 0.0) + evaluation.position_delta
+    cash = finite_number(state.cash + evaluation.cash_delta, "execution.cash")
+    qty = finite_number(state.positions.get(evaluation.fill.symbol, 0.0) + evaluation.position_delta, "execution.position")
+    state.cash = cash
+    state.positions[evaluation.fill.symbol] = qty
 
 
 def _package_cash_guard(

@@ -49,7 +49,7 @@ dca_take_profit_pct TP from weighted average entry; 0 disables internal TP
 
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -61,6 +61,7 @@ from .core.preprocessor import (
     align_series,
     prepare_funding,
     build_arrays,
+    build_market_arrays,
 )
 from .core.constraints import build_quantity_constraints, quantize_target_units_matrix
 from .core.schema import InstrumentSpec
@@ -117,7 +118,7 @@ class BacktestEngine:
         # kept for backward compat, not used internally
         run_portfolio:      bool  = True,
         use_binance_netting: bool = True,
-        margin_buffer:      float = 0.01,
+        margin_buffer:      float = 0.0,
     ):
         # ── store config ──────────────────────────────────────────────────
         self.fee_oneway        = fee / 2.0          # one-way
@@ -138,12 +139,18 @@ class BacktestEngine:
             raise ValueError("dca_max_safety_orders must be >= 0")
         if self._is_dca_ladder and (High is None or Low is None):
             raise ValueError("hedge_type='dca_ladder' requires High and Low for limit-fill detection")
-        if self.initial_capital <= 0.0:
-            raise ValueError("initial_capital must be > 0")
-        if self.leverage <= 0.0:
-            raise ValueError("leverage must be > 0")
-        if self.maintenance_ratio < 0.0:
-            raise ValueError("maintenance_ratio must be >= 0")
+        if not np.isfinite(self.initial_capital) or self.initial_capital <= 0.0:
+            raise ValueError("initial_capital must be finite and > 0")
+        if not np.isfinite(self.leverage) or self.leverage <= 0.0:
+            raise ValueError("leverage must be finite and > 0")
+        if not np.isfinite(self.maintenance_ratio) or self.maintenance_ratio < 0.0:
+            raise ValueError("maintenance_ratio must be finite and >= 0")
+        if not np.isfinite(margin_buffer) or margin_buffer != 0.0:
+            raise ValueError("BacktestEngine does not support nonzero margin_buffer")
+        if not np.isfinite(self.fee_oneway) or self.fee_oneway < 0.0:
+            raise ValueError("fee must be finite and >= 0")
+        if not np.isfinite(self.slippage) or not 0.0 <= self.slippage < 1.0:
+            raise ValueError("slippage must be finite and in [0, 1)")
 
         # ── datetime index ────────────────────────────────────────────────
         self._idx = validate_datetime(Datetime)
@@ -158,6 +165,8 @@ class BacktestEngine:
 
         self.n_syms = len(self.symbols)
         self.n_bars = len(self._idx)
+        if self.n_syms == 0 or self.n_bars == 0:
+            raise ValueError("backtest requires at least one symbol and timestamp")
 
         # ── align price / signal data ──────────────────────────────────────
         self._closes   = align_series(Close,    self.symbols, self._idx)
@@ -173,8 +182,8 @@ class BacktestEngine:
         else:
             self._contract_sizes = np.full(self.n_syms, float(contract_size), dtype=np.float64)
 
-        if np.any(self._contract_sizes <= 0.0):
-            raise ValueError("contract_size must be > 0")
+        if np.any(~np.isfinite(self._contract_sizes)) or np.any(self._contract_sizes <= 0.0):
+            raise ValueError("contract_size must be finite and > 0")
 
         self._quantity_constraints = build_quantity_constraints(
             self.symbols,
@@ -189,6 +198,18 @@ class BacktestEngine:
         # ── funding rates ─────────────────────────────────────────────────
         fr_input = funding_rate if use_funding_rate else 0.0
         self._funding = prepare_funding(fr_input, self.symbols, self._idx)
+        market = build_market_arrays(
+            self.symbols, self._idx, self._closes, self._highs, self._lows, self._funding,
+        )
+        self._closes = {s: pd.Series(market.closes[:, j], index=self._idx) for j, s in enumerate(self.symbols)}
+        self._highs = {s: pd.Series(market.highs[:, j], index=self._idx) for j, s in enumerate(self.symbols)}
+        self._lows = {s: pd.Series(market.lows[:, j], index=self._idx) for j, s in enumerate(self.symbols)}
+        from .backends.native_portfolio import NativePortfolioBackend
+
+        self._tradable = NativePortfolioBackend._tradable_matrix(
+            closes=Close if isinstance(Close, dict) else {self.symbols[0]: Close},
+            idx=self._idx, symbols=self.symbols, market=market,
+        )
 
         # ── alloc dict ────────────────────────────────────────────────────
         if isinstance(alloc_per_trade, dict):
@@ -196,8 +217,8 @@ class BacktestEngine:
         else:
             self._alloc = {s: float(alloc_per_trade) for s in self.symbols}
 
-        if any(v < 0.0 for v in self._alloc.values()):
-            raise ValueError("alloc_per_trade must be >= 0")
+        if any(not np.isfinite(v) or v < 0.0 for v in self._alloc.values()):
+            raise ValueError("alloc_per_trade must be finite and >= 0")
 
         def _per_symbol_array(value, default_map):
             out = []
@@ -231,7 +252,7 @@ class BacktestEngine:
 
         # ── scale signals → target units ──────────────────────────────────
         self._target_units: Dict[str, pd.Series] = {}
-        for sym in self.symbols:
+        for j, sym in enumerate(self.symbols):
             if self._is_dca_ladder:
                 self._target_units[sym] = self._positions[sym].fillna(0.0)
             else:
@@ -241,6 +262,7 @@ class BacktestEngine:
                     close          = self._closes[sym],
                     alloc          = self._alloc[sym],
                     use_pyramiding = self.use_pyramiding,
+                    contract_size  = self._contract_sizes[j],
                 )
 
         # run on construction so result is immediately available
@@ -266,6 +288,7 @@ class BacktestEngine:
 
         cs = self._contract_sizes
         qc = self._quantity_constraints
+        pos_arr = np.zeros((self.n_bars, self.n_syms), dtype=np.float64)
 
         if self._is_dca_ladder:
             equity_arr, pos_arr, level_arr, liq_flag, liq_idx = _engine_dca_ladder(
@@ -322,10 +345,12 @@ class BacktestEngine:
                 qty_steps      = qc.qty_step,
                 min_qtys       = qc.min_qty,
                 min_notionals  = qc.min_notional,
+                accepted_positions = pos_arr,
+                tradable       = self._tradable,
             )
-            result_positions = signals
+            result_positions = pos_arr
         else:
-            signals = quantize_target_units_matrix(signals, closes, cs, qc)
+            signals = quantize_target_units_matrix(signals, closes, cs, qc, check_minima=False)
             equity_arr, liq_flag, liq_idx = _engine_units(
                 n_bars         = self.n_bars,
                 n_syms         = self.n_syms,
@@ -341,8 +366,13 @@ class BacktestEngine:
                 fee_rate       = self.fee_oneway,
                 contract_sizes = cs,
                 slippage       = self.slippage,
+                qty_steps      = qc.qty_step,
+                min_qtys       = qc.min_qty,
+                min_notionals  = qc.min_notional,
+                accepted_positions = pos_arr,
+                tradable       = self._tradable,
             )
-            result_positions = signals
+            result_positions = pos_arr
 
         equity  = pd.Series(equity_arr, index=self._idx, name="equity")
         returns = equity.pct_change().fillna(0)
@@ -374,6 +404,14 @@ class BacktestEngine:
                 "slippage":          self.slippage,
                 "maintenance_ratio": self.maintenance_ratio,
                 "quantity_constraints": self._quantity_constraints.as_dict(),
+                "positions_semantics": "accepted_contract_units",
+                "funding_calendar": "utc_8h_events_close_proxy_interval_settlement_v2",
+                "account_contract": "linear_gross_cross_netting_close_v2",
+                "liquidation_contract": "simultaneous_adverse_ohlc_zero_equity_legacy",
+                "legacy_requested_positions_report": pd.DataFrame(
+                    {f"Position_{s}": signals[:, i] for i, s in enumerate(self.symbols)},
+                    index=self._idx,
+                ),
                 "dca_actual_level": (
                     pd.DataFrame(
                         {f"Level_{s}": level_arr[:, i] for i, s in enumerate(self.symbols)},

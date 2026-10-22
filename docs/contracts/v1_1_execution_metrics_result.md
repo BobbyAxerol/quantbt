@@ -73,6 +73,14 @@ a bounded local LRU cache. The adapter never reruns or replays execution.
 
 ## Certification
 
+Reporting V1 is a separate **opt-in post-simulation** contract. It does not
+overwrite native V2 metrics, fingerprints or online optimizer scores. Its
+Python/Numba reducers consume completed observations with explicit baseline,
+clock and population coverage; no Reporting V1 Rust reducer is claimed. Score
+paths/ledgers omitted by retention produce unavailable results, never replay.
+See [public reporting](../metrics/PUBLIC_REPORTING.md) and the
+[reporting contract](../metrics/REPORTING_CONTRACT_V1.md).
+
 Run the focused contract suite after changing this layer:
 
 ```bash

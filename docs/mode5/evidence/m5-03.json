@@ -1,0 +1,295 @@
+{
+  "branch": "feat/mode5-diagnostics-first",
+  "calibration": {
+    "AR1": {
+      "coverage": 0.9140625,
+      "status": "PASS",
+      "variance_ratio": 0.7503465595331534
+    },
+    "IID": {
+      "coverage": 0.9609375,
+      "status": "PASS",
+      "variance_ratio": 0.9829855728458634
+    }
+  },
+  "cleanup": {
+    "apparent_scratch_bytes": 4134535,
+    "builds": 0,
+    "environments_deleted": 0,
+    "free_after": 25329324032,
+    "free_before": 25323479040,
+    "immediate_free_change_bytes": 5844992,
+    "installs": 0,
+    "protected_hashes": 765,
+    "retained_hashes": 52,
+    "retained_payload_bytes": 1498352,
+    "scratch_exists": false,
+    "source_and_receipts_unchanged": true,
+    "status": "PASS"
+  },
+  "failed_receipt_hashes": [
+    {
+      "name": "startup-01.json",
+      "sha256": "f67e3dfb6d4486cb0697a9ac24f3dd1da0f3fdb65f42318f23797ba2529c5d6a"
+    },
+    {
+      "name": "contracts-01.json",
+      "sha256": "a555075d186a35e7b6f78a85dd712b278403a7d40ebd27a2a9a8e633104ad1c0"
+    },
+    {
+      "name": "contracts-02.json",
+      "sha256": "f9eb3ff7d451dbe1234d4380ad1ee78db40f19b6dace3ff5f6710a9a2f3ba686"
+    },
+    {
+      "name": "reanalysis-01.json",
+      "sha256": "9310fff2a868e89161a078635121b3a1779a7fb808ce6835fde750e9458d95f3"
+    },
+    {
+      "name": "regression-01.json",
+      "sha256": "c50d0c7fa7915c7857e310aebeabb08c3e8751aa0647dd66c879a4cf6af19b6c"
+    },
+    {
+      "name": "regression-02.json",
+      "sha256": "9b2f8dc708e3d0259731463977df14704af47cb99ea161376d8338ec580745f5"
+    }
+  ],
+  "guide_sha256": "661a2a3d83eed2b2592bfb98e3b4f8e3aa34bcd9740ec6b50c812f73753b99fe",
+  "local_receipt_hashes": [
+    {
+      "name": "registration.json",
+      "sha256": "a9b3c46d25a753ffd6087906a0d80673ae9620f0d1babeb9cc7fcb1f4439d52f"
+    },
+    {
+      "name": "protected_before.json",
+      "sha256": "72b8a4ff21733727647ad1c0a96bf0ae7f7b7537b51a914a955f0d6819ab1f40"
+    },
+    {
+      "name": "contracts-05.json",
+      "sha256": "37d8a39101b4552d1b849a2defb28e2fc3291cb95a36584802484746776b8612"
+    },
+    {
+      "name": "guide-01.json",
+      "sha256": "917494419acbf0e3e27ee12c05287cb0307f0cb9b7305cc3672231b192a86c07"
+    },
+    {
+      "name": "calibration-01.json",
+      "sha256": "ccd5711ca0cb5516cc90f6d97d64b61a7d9bce842c2b775513bfb7113143705a"
+    },
+    {
+      "name": "hac_calibration.json",
+      "sha256": "6aebb042a04574488fb3f0d4bbba37d30878a13737b584e29da2403d7c0833fa"
+    },
+    {
+      "name": "reanalysis-02.json",
+      "sha256": "177401d84498ece32ea98d18ab54b8869fa981434409c75de62e828f22249d9c"
+    },
+    {
+      "name": "metric_reconciliation.json",
+      "sha256": "6f1824ee46533ec54995193a1d30af6f391caa414e974d5238bdaf5cb6bd4973"
+    },
+    {
+      "name": "moment_support_report.json",
+      "sha256": "889f85ca82d4d9cd2528eaab66aa15bde73ea7779b055ed1dcdc95f535366db7"
+    },
+    {
+      "name": "benchmark_registration.json",
+      "sha256": "d6012b7e55118e4d4b64a0c6b92714728d1528f72fc9f2c46745740fc4bfcff3"
+    },
+    {
+      "name": "benchmark.json",
+      "sha256": "c5fda90ad460c3f51fb7b069c75ebda49789fb9be3d71a41510a263a1bee6268"
+    },
+    {
+      "name": "regression-03.json",
+      "sha256": "00151a8ff899685fd12836cc7f10c86ba345809e13f689118db9831858341af7"
+    },
+    {
+      "name": "regression-03.xml",
+      "sha256": "2b170ba15bb150c99c7871a04defa8c4f6ba4a144f6808264808003972ff8289"
+    },
+    {
+      "name": "regression-03-environment.json",
+      "sha256": "e60a2642a5c57e1a0fd2557a4076eeceef0721912006ded7e8b630f6dce14972"
+    },
+    {
+      "name": "report.json",
+      "sha256": "039006d05b919149aa01b341b6f193abd5bef59a610f64f460d03d7432790b25"
+    },
+    {
+      "name": "report.md",
+      "sha256": "f5c8fcf668589f747c8914de3e869aa782ead9fa449148837bd49a52ed68f8a0"
+    },
+    {
+      "name": "cleanup_receipt.json",
+      "sha256": "4e539cb00573c06b17057662a02afe90168ad8e940a3f3d755d5416aeaf9210a"
+    },
+    {
+      "name": "cleanup_summary.json",
+      "sha256": "04130462c74dabec8f2b8ca381ffba8eded2081ab4fcba0bd7f7a628c00b5906"
+    },
+    {
+      "name": "technical_closure.json",
+      "sha256": "6c43f49c30b5190c583687d3e4312b0cbd65cb32f2ac5dacf071a78b5d519a21"
+    }
+  ],
+  "next_phase_authorized": false,
+  "owner_phase_approval": "2026-10-09",
+  "owner_review": "PENDING",
+  "performance_scope": "MATCHED_NEW_PRIMITIVE_AND_CACHED_REANALYSIS_NOT_WFO_SPEEDUP",
+  "phase": "M5-03",
+  "policies": {
+    "dependence": {
+      "bandwidth": 5,
+      "confidence": 0.95,
+      "kernel": "bartlett",
+      "minimum_samples": 32,
+      "small_sample": "none",
+      "version": "sharpe_evidence_hac_v1"
+    },
+    "registry": {
+      "annual_periods": 365.0,
+      "moment_estimator": "central_population_v1",
+      "risk_free_per_period": 0.0,
+      "variance_ddof": 1,
+      "version": "mode5.statistics.v1"
+    },
+    "uncertainty": {
+      "block_length": 7,
+      "chunk_size": 16,
+      "confidence": 0.95,
+      "draws": 256,
+      "seed": 731,
+      "version": "circular_block_moment_intervals_v1"
+    }
+  },
+  "primitive_commit": "95d40815ba567a7c554917486179d103bcc82a83",
+  "protected_snapshot_digest": "b37fd076c1911861078b0e79c4a5337b3f413b6136d5fb1163481a4f5c5f1e6e",
+  "protected_sources_unchanged": true,
+  "public_artifact_certified": false,
+  "public_privacy": "synthetic identities/technical counts only; no private parameters, fills or economic panels",
+  "publish_push_release_authorized": false,
+  "qualified_code": [
+    {
+      "path": "tools/mode5_statistics/__init__.py",
+      "sha256": "b74d96c26b926e3dfc427b9d60d52888ee40d17bc48444775d308c4a8522dd16"
+    },
+    {
+      "path": "tools/mode5_statistics/analysis.py",
+      "sha256": "8419347445ce3cd6a78cc31cb02e7390b348694912e16af47dcf321b0f9f5eae"
+    },
+    {
+      "path": "tools/mode5_statistics/contracts.py",
+      "sha256": "d1afd92a24c6c17b2c28ceb79f0bddb47e70788a88ff9a2550ba7297bb339c49"
+    },
+    {
+      "path": "tools/mode5_statistics/dependence.py",
+      "sha256": "bf51d3aa97316264eef35d7177b95735dbc42a0c2a9545bbccc02fa0e64bfac6"
+    },
+    {
+      "path": "tools/mode5_statistics/moments.py",
+      "sha256": "fb9b9a36391e551f2afe596ddd606643bf75dc1c4023d421109e83bb5a09fbba"
+    },
+    {
+      "path": "tools/mode5_statistics/tails.py",
+      "sha256": "93216ca7daff438c00cfe49456cb1219aeccbb4c0a6a535e135f59b3aaa5ca47"
+    },
+    {
+      "path": "tools/mode5_statistics/uncertainty.py",
+      "sha256": "a64e964c6be1ffca367cdb7cd090b956180dd6feadb50c02ef0d8d63ab46e454"
+    },
+    {
+      "path": "tests/mode5/statistics_oracle.py",
+      "sha256": "72c267957b7cac81a1ace2c909236120fd4720e32483e0838d7e4fc17d7fd93a"
+    },
+    {
+      "path": "tests/mode5/test_statistics_dependence.py",
+      "sha256": "4774479ed22e6fd1bf4ce466fd49df7cfd8722600c3a6d67c5bb90ed238b6ad9"
+    },
+    {
+      "path": "tests/mode5/test_statistics_math.py",
+      "sha256": "285bb3275c4de4b3ab5bdc0dd3565a28c8118c66fdb79078c863bcc2f6d0ca02"
+    },
+    {
+      "path": "tests/mode5/test_statistics_streams.py",
+      "sha256": "666340833fd203fd4701e2795c7b4b6c2035990778045197eb680ca1c79a330a"
+    }
+  ],
+  "reanalysis": {
+    "data_role": "EXPLORATORY_REVIEWED_2024",
+    "market_alpha_simulations": 0,
+    "observations_each": 91,
+    "optimizer_trials": 0,
+    "qualified_account_paths": 5,
+    "recorded_campaign_ledgers": 4,
+    "sampling": "observed_daily_utc",
+    "scientific_legacy_fields": "UNCHANGED",
+    "summary_only_new_statistics": "REPLAY_REQUIRED",
+    "unsupported_legacy_campaign_costs": "UNAVAILABLE"
+  },
+  "registration_id": "b5912472e273f48a7c57e7893e7af678b69269d7c6fc35aee60f4bd536aab77b",
+  "requirements": [
+    {
+      "id": "M5T-021",
+      "status": "IMPLEMENTED_VERIFIED"
+    },
+    {
+      "id": "M5T-022",
+      "status": "IMPLEMENTED_VERIFIED"
+    },
+    {
+      "id": "M5T-023",
+      "status": "IMPLEMENTED_VERIFIED"
+    },
+    {
+      "id": "M5T-024",
+      "status": "IMPLEMENTED_VERIFIED"
+    },
+    {
+      "id": "M5T-025",
+      "status": "IMPLEMENTED_VERIFIED"
+    },
+    {
+      "id": "M5T-026",
+      "status": "IMPLEMENTED_VERIFIED"
+    },
+    {
+      "id": "M5T-027",
+      "status": "IMPLEMENTED_VERIFIED"
+    },
+    {
+      "id": "M5T-028",
+      "status": "IMPLEMENTED_VERIFIED"
+    },
+    {
+      "id": "M5T-029",
+      "status": "IMPLEMENTED_VERIFIED"
+    },
+    {
+      "id": "M5T-030",
+      "status": "IMPLEMENTED_VERIFIED"
+    }
+  ],
+  "retained_payload_bytes_before_public_seal": 1511183,
+  "schema": "quantbt.mode5_statistics.public_seal.v1",
+  "scientific_status": "DESCRIPTIVE_ONLY",
+  "source_baseline_sha": "5337454513625782b938ceeeb6a61697184f84ef",
+  "technical_debt_in_scope": [],
+  "technical_status": "TECHNICALLY_VALID",
+  "tests": {
+    "failed": 0,
+    "guide_assertions": 25,
+    "hac_null_replicates": 256,
+    "new_statistics_passed": 52,
+    "skipped": 0,
+    "source_passed": 883
+  },
+  "whole_phase_exit": "COMPLETE_LOCAL_STATISTICS",
+  "work_packages": {
+    "M503.01": "IMPLEMENTED_VERIFIED",
+    "M503.02": "IMPLEMENTED_VERIFIED",
+    "M503.03": "IMPLEMENTED_VERIFIED",
+    "M503.04": "IMPLEMENTED_VERIFIED",
+    "M503.05": "IMPLEMENTED_VERIFIED",
+    "M503.06": "IMPLEMENTED_VERIFIED"
+  }
+}

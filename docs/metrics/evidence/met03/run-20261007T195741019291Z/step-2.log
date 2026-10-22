@@ -1,0 +1,42 @@
+Using Python 3.12.13 environment at: /tmp/quantbt-met03-g5qhe7kh/source-env
+WARN Retry attempt #0. Sleeping 1.12228553s before the next attempt
+WARN Retry attempt #0. Sleeping 1.396204496s before the next attempt
+WARN Retry attempt #0. Sleeping 1.753178502s before the next attempt
+WARN Retry attempt #0. Sleeping 1.979439605s before the next attempt
+WARN Retry attempt #0. Sleeping 1.930650611s before the next attempt
+WARN Retry attempt #0. Sleeping 1.316493658s before the next attempt
+WARN Retry attempt #0. Sleeping 1.347618575s before the next attempt
+WARN Retry attempt #0. Sleeping 1.510576291s before the next attempt
+WARN Retry attempt #0. Sleeping 1.534690653s before the next attempt
+WARN Retry attempt #0. Sleeping 1.288399055s before the next attempt
+WARN Retry attempt #0. Sleeping 1.82311748s before the next attempt
+WARN Retry attempt #0. Sleeping 1.343346504s before the next attempt
+WARN Retry attempt #0. Sleeping 1.636090897s before the next attempt
+WARN Retry attempt #1. Sleeping 3.20871511s before the next attempt
+WARN Retry attempt #1. Sleeping 2.979849072s before the next attempt
+WARN Retry attempt #1. Sleeping 2.092824032s before the next attempt
+WARN Retry attempt #1. Sleeping 1.858786622s before the next attempt
+WARN Retry attempt #1. Sleeping 1.639126423s before the next attempt
+WARN Retry attempt #1. Sleeping 1.046287523s before the next attempt
+WARN Retry attempt #1. Sleeping 2.046873318s before the next attempt
+WARN Retry attempt #1. Sleeping 1.631869641s before the next attempt
+WARN Retry attempt #1. Sleeping 2.399064442s before the next attempt
+WARN Retry attempt #1. Sleeping 3.721157268s before the next attempt
+WARN Retry attempt #1. Sleeping 3.171314308s before the next attempt
+WARN Retry attempt #1. Sleeping 3.600115486s before the next attempt
+WARN Retry attempt #1. Sleeping 2.517358417s before the next attempt
+WARN Retry attempt #2. Sleeping 5.767663078s before the next attempt
+WARN Retry attempt #2. Sleeping 4.466694895s before the next attempt
+WARN Retry attempt #2. Sleeping 1.319490762s before the next attempt
+WARN Retry attempt #2. Sleeping 6.882358614s before the next attempt
+WARN Retry attempt #2. Sleeping 1.853501563s before the next attempt
+WARN Retry attempt #2. Sleeping 6.742133072s before the next attempt
+WARN Retry attempt #2. Sleeping 7.700257011s before the next attempt
+WARN Retry attempt #2. Sleeping 6.755459045s before the next attempt
+WARN Retry attempt #2. Sleeping 4.356956699s before the next attempt
+error: Request failed after 3 retries in 4.5s
+  cause: Failed to fetch: https://pypi.org/simple/pytest/
+  cause: error sending request for url (https://pypi.org/simple/pytest/)
+  cause: client error (Connect)
+  cause: dns error
+  cause: failed to lookup address information: Temporary failure in name resolution

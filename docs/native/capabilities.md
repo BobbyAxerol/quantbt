@@ -29,6 +29,21 @@ owning only the certified accounting work beneath it. That boundary is recorded
 in result metadata and preserves the fallback contract rather than hiding a
 cross-language transition.
 
+## QMS Candidate Boundary
+
+QMS numeric transforms/Gram-solve/ranking and original-pass prepared metric
+witnesses are private opt-in candidate capabilities. Published native `0.4.2`
+does not export them: meta auto records reference/original-result fallback and
+require fails. QMS-08 builds an isolated exact private pair with both existing
+candidate feature flags; it does not edit published descriptors or promote
+financial routes. See [QMS qualification](../meta_selection/QUALIFICATION.md)
+and [independent policy matrix](../meta_selection/USAGE.md#independent-runtime-policies).
+The later owner-approved **prepared, unpublished 1.1.2/0.4.3 pair** includes
+these QMS exports under normal Cargo defaults. C03 locally qualifies four
+shared Optuna recipes on W3 and explicit R3B without another native rebuild or
+financial promotion; see [sampler/scheduler capabilities](../meta_selection/W3_SAMPLER_SCHEDULES.md).
+Current-source remote and public-index qualification remain separate gates.
+
 ## Reading maturity
 
 - **Certified**: covered by the declared contract and its current conformance

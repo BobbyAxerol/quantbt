@@ -91,8 +91,8 @@ def _assert_pct_equity_public_parity(reference: Any, native: Any) -> None:
 def _run_pct_equity_pair(row, data, *, trials: int, repeats: int) -> dict[str, Any]:
     """Mirror the locked Phase 77.1 pairing protocol with the legacy schema."""
 
-    reference_warm, _ = baseline._run_endpoint(row, data, native_policy="off", trials=trials, profile=True)
-    native_warm, _ = baseline._run_endpoint(row, data, native_policy="require", trials=trials, profile=True)
+    reference_warm, reference_initial = baseline._run_endpoint(row, data, native_policy="off", trials=trials, profile=True)
+    native_warm, native_initial = baseline._run_endpoint(row, data, native_policy="require", trials=trials, profile=True)
     _assert_pct_equity_public_parity(reference_warm, native_warm)
     prepared_warm = baseline._resolved_native_metadata(native_warm)
     if prepared_warm.get("resolved_policy") != "native_prepared":
@@ -141,6 +141,9 @@ def _run_pct_equity_pair(row, data, *, trials: int, repeats: int) -> dict[str, A
     native["paired_speedup_vs_reference"] = float(median(reference_times) / median(native_times))
     return {
         "status": "measured_pair_parity_passed",
+        "initial_pair_seconds": {"reference": float(reference_initial), "native": float(native_initial)},
+        "initial_pair_scope": "first in-process endpoint runs after imports; not cold OS/cache measurements",
+        "initial_native_prepared_wfo": prepared_warm,
         "reference": reference,
         "native": native,
         "native_prepared_wfo": baseline._resolved_native_metadata(native_result),
@@ -201,7 +204,7 @@ def run(*, profile: str = "smoke") -> dict[str, Any]:
             "compatibility_requirements": {
                 "fee": "legacy fee / 2 must equal explicit canonical fee_rate when both are supplied",
                 "slippage": "legacy slippage must equal ExecutionConfig.slippage_bps when both are supplied",
-                "position_surface": "public positions remain processed weights; accepted units are metadata.pct_equity_transition.accepted_positions",
+                "position_surface": "ACC-01/M5-12: public positions are accepted contract units; processed weights are metadata.legacy_requested_positions_report",
                 "auto_policy": "auto preserves the legacy scorer; require plus target_runtime='rust' is explicit opt-in",
             },
             "measurement_identity": baseline.capture_measurement_identity(
@@ -231,6 +234,9 @@ def _markdown(payload: Mapping[str, Any]) -> str:
     pair = payload["paired_result"]
     native = pair["native"]
     reference = pair["reference"]
+    single = int(payload["profile"]["repeats"]) == 1
+    center_label = "Single Observation" if single else "Median"
+    tail_label = "Tail Estimate" if single else "P95"
     speedup = float(native["timing_seconds"]["median"]) and (
         float(reference["timing_seconds"]["median"]) / float(native["timing_seconds"]["median"])
     )
@@ -254,29 +260,30 @@ def _markdown(payload: Mapping[str, Any]) -> str:
             "",
             "## Result",
             "",
-            "| Lane | Median | P95 | Native score rows |",
+            f"| Lane | {center_label} | {tail_label} | Native score rows |",
             "|---|---:|---:|---:|",
             (
-                "| legacy reference | {:.6f} s | {:.6f} s | {} |".format(
+                "| legacy reference | {:.6f} s | {} | {} |".format(
                     float(reference["timing_seconds"]["median"]),
-                    float(reference["timing_seconds"]["p95"]),
+                    "UNAVAILABLE (n=1)" if single else f"{float(reference['timing_seconds']['p95']):.6f} s",
                     reference["native_score_rows"],
                 )
             ),
             (
-                "| explicit Rust transition | {:.6f} s | {:.6f} s | {} |".format(
+                "| explicit Rust transition | {:.6f} s | {} | {} |".format(
                     float(native["timing_seconds"]["median"]),
-                    float(native["timing_seconds"]["p95"]),
+                    "UNAVAILABLE (n=1)" if single else f"{float(native['timing_seconds']['p95']):.6f} s",
                     native["native_score_rows"],
                 )
             ),
-            f"- Paired speedup: `{speedup:.3f}x` (same named workload only).",
+            (f"- One observed time ratio: `{speedup:.3f}x`; no p50/p95 inference or general speedup claim."
+             if single else f"- Paired speedup: `{speedup:.3f}x` (same named workload only)."),
             "",
             "## Contract",
             "",
-            "- Rust preserves first-bar snapshot, transition-only resize, no drift rebalance, funding on carried units, rejection-without-retry, and raw public signal positions.",
+            "- Rust preserves first-bar snapshot, transition-only resize, no drift rebalance, funding on carried units, and rejection-without-retry; public positions are accepted contract units.",
             "- A conflicting legacy/V2 fee or slippage declaration fails closed rather than producing a falsely comparable run.",
-            "- Full parity includes selection, stitched output, equity, returns, raw positions, and public metrics before samples are recorded.",
+            "- Full parity includes selection, stitched output, equity, returns, accepted positions, and public metrics before samples are recorded.",
             "",
         ]
     )

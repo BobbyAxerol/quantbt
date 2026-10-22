@@ -8,6 +8,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from support.historical_assets import GitSnapshot
+
 from quantbt.core.performance_contracts import (
     EXCLUSIVE_WORK_STAGES_V1,
     ExclusiveWorkProfilerV1,
@@ -21,6 +23,29 @@ from quantbt.walkforward import WalkForwardConfig, WalkForwardEngine
 ROOT = Path(__file__).resolve().parents[1]
 TRACEABILITY_TOOL = ROOT / "tools" / "generate_perf01_traceability.py"
 OBSERVER_BENCHMARK = ROOT / "benchmarks" / "native_event" / "benchmark_perf01_observer.py"
+# Last committed content-addressed PERF-01 map, before later source changes.
+TRACEABILITY_SNAPSHOT = "1085ff8d8916ee530a52fe317d566bc05bea5d10"
+
+
+@pytest.fixture(scope="module")
+def historical_traceability(tmp_path_factory):
+    snapshot = GitSnapshot(TRACEABILITY_SNAPSHOT)
+    manifest = "benchmarks/native_event/traceability/perf_01_traceability_v1.json"
+    doc = "docs/performance/perf_01_traceability.md"
+    snapshot.assert_retained(manifest)
+    snapshot.assert_retained(doc)
+    payload = snapshot.read_json(manifest)
+    records = [value for value in payload["baseline_source"].values() if isinstance(value, dict)]
+    paths = {manifest, doc, "tools/generate_perf01_traceability.py", "tools/measurement_contract.py"}
+    for route in payload["route_matrix"]:
+        records.extend(route["source_records"])
+        paths.update(route["oracle_tests"])
+    for record in records:
+        snapshot.assert_record(record)
+        paths.add(record["path"])
+    destination = tmp_path_factory.mktemp("perf01-snapshot")
+    snapshot.materialize(destination, paths)
+    return snapshot.load_module(destination, "tools/generate_perf01_traceability.py")
 
 
 def _bars(rows: int = 540) -> pd.DataFrame:
@@ -233,6 +258,30 @@ def test_traceability_generator_has_complete_static_map_and_separate_runtime_ide
         ]
     ) == 0
     assert tool.main(["--manifest", str(manifest_path), "--doc", str(doc_path), "--check"]) == 0
+
+    # Current generation is checked in scratch, never against frozen evidence.
+    assert json.loads(manifest_path.read_text(encoding="utf-8")) == manifest
+    assert doc_path.read_text(encoding="utf-8") == tool.render_markdown(manifest) + "\n"
+    identity = json.loads(identity_path.read_text(encoding="utf-8"))
+    assert identity["source_identity"]["canonical_source_sha256"] == runtime_identity["source_identity"]["canonical_source_sha256"]
+
+
+def test_traceability_frozen_map_matches_its_exact_git_snapshot(historical_traceability):
+    tool = historical_traceability
+    assert tool.validate_manifest(tool.build_manifest()) == []
+    assert tool.main(["--check"]) == 0
+
+
+def test_traceability_check_rejects_changed_source_anchors(historical_traceability):
+    tool = historical_traceability
+    source = tool.ENDPOINT_PATH
+    original = source.read_bytes()
+    try:
+        source.write_bytes(original + b"\n")
+        with pytest.raises(SystemExit, match="traceability artifacts are stale"):
+            tool.main(["--check"])
+    finally:
+        source.write_bytes(original)
     assert tool.main(["--check"]) == 0
 
 

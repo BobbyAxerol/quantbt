@@ -45,6 +45,7 @@ from ..core.product_contracts import (
 from ..errors import CommandValidationError, EngineErrorContext, NativeProtocolError
 from ..preparation.cache import ResetScope
 from ..strategies.commands import CommandBatchView
+from .native_audit_projection import command_terminal_report, legacy_liquidity, terminal_columns, terminal_fill_summary
 
 
 RUST_NATIVE_API_VERSION = "0.4"
@@ -409,6 +410,8 @@ class RustFullAuditResult:
     external_id_values: Mapping[int, str] = field(default_factory=dict)
     command_report: Optional[pd.DataFrame] = None
     command_metadata: Mapping[str, Mapping[str, object]] = field(default_factory=dict)
+    terminal_state: Optional[Mapping[str, object]] = None
+    fill_order_type: Optional[np.ndarray] = None
 
     @property
     def final_equity(self) -> float:
@@ -557,6 +560,9 @@ class RustFullAuditResult:
         )
         return cls(
             **arrays,
+            terminal_state=terminal_columns(_payload_value(payload, "terminal_state_v1"), n_bars=n_bars),
+            fill_order_type=(None if _payload_value(payload, "fill_order_type") is None else
+                np.asarray(_payload_value(payload, "fill_order_type"), dtype=np.int64)),
             total_fee=float(_payload_value(payload, "total_fee")),
             total_turnover=float(_payload_value(payload, "total_turnover")),
             total_funding=float(_payload_value(payload, "total_funding")),
@@ -626,6 +632,19 @@ class RustFullAuditResult:
         fill_meta = [
             self.command_metadata.get(order_id(code) or "", {}) for code in self.fill_order_id
         ]
+        liquidity, liquidity_sources = legacy_liquidity(
+            self.fill_order_type, [order_id(code) for code in self.fill_order_id], self.command_report,
+        )
+        terminal_report = (
+            command_terminal_report(self.command_report, self.terminal_state, order_id=order_id)
+            if include_audit_reports and self.terminal_state is not None and self.command_report is not None
+            else None
+        )
+        if terminal_report is not None and not terminal_report.empty:
+            terminal_report = terminal_fill_summary(
+                terminal_report, order_ids=[order_id(code) for code in self.fill_order_id],
+                quantities=self.fill_qty, prices=self.fill_price, fees=self.fill_fee,
+            )
         if include_audit_reports:
             fills_report = pd.DataFrame({
                 "bar": self.fill_bar,
@@ -638,6 +657,8 @@ class RustFullAuditResult:
                 "fee": self.fill_fee,
                 "fill_reason_code": self.fill_reason,
                 "fill_ambiguity_code": self.fill_ambiguity,
+                "liquidity": [label.value for label in liquidity],
+                "liquidity_provenance": liquidity_sources,
                 "tag": [meta.get("tag") for meta in fill_meta],
                 "campaign_id": [meta.get("campaign_id") for meta in fill_meta],
                 "cycle_id": [meta.get("cycle_id") for meta in fill_meta],
@@ -658,11 +679,13 @@ class RustFullAuditResult:
                     timestamp=timestamp_for_bar(int(bar)), symbol=symbols[int(symbol)],
                     side=OrderSide.BUY if int(side) > 0 else OrderSide.SELL,
                     qty=float(qty), price=float(price), fee=float(fee), order_id=order_id(order_code),
-                    metadata={"backend": "rust_full_contract", "bar": int(bar)},
+                    liquidity=label,
+                    metadata={"backend": "rust_full_contract", "bar": int(bar),
+                              "liquidity_provenance": source, "liquidity_contract": "legacy_order_type_label_v1"},
                 )
-                for bar, order_code, symbol, side, qty, price, fee in zip(
+                for bar, order_code, symbol, side, qty, price, fee, label, source in zip(
                     self.fill_bar, self.fill_order_id, self.fill_symbol, self.fill_side,
-                    self.fill_qty, self.fill_price, self.fill_fee,
+                    self.fill_qty, self.fill_price, self.fill_fee, liquidity, liquidity_sources,
                 )
             )
         else:
@@ -675,10 +698,10 @@ class RustFullAuditResult:
                 np.asarray(self.event_bar[self.event_kind == 7], dtype=np.int64) - offset,
                 minlength=len(idx),
             ),
-            "canceled_orders": np.bincount(
+            "canceled_orders": (self.terminal_state["canceled_orders_by_bar"] if self.terminal_state is not None else np.bincount(
                 np.asarray(self.event_bar[self.event_kind == 1], dtype=np.int64) - offset,
                 minlength=len(idx),
-            ),
+            )),
         }, index=idx)
         result_metadata = {
             "backend": "native_event",
@@ -689,15 +712,28 @@ class RustFullAuditResult:
             "fills_report": fills_report,
             "order_report": order_report,
             "command_report": (
-                self.command_report.copy(deep=False)
+                terminal_report if terminal_report is not None else self.command_report.copy(deep=False)
                 if self.command_report is not None
                 else pd.DataFrame()
             ),
+            "active_orders": (terminal_report.loc[terminal_report.active | terminal_report.waiting_parent].copy()
+                if terminal_report is not None and not terminal_report.empty else pd.DataFrame()),
+            "native_terminal_state_v1": {
+                "available": terminal_report is not None,
+                "authority": "rust" if terminal_report is not None else None,
+                "reason": None if terminal_report is not None else "workload/artifact lacks static terminal-slot output",
+                "replayed": False,
+            },
+            "cancellation_diagnostic_unit": "canceled_order_slot_transition" if self.terminal_state is not None else "legacy_cancel_event_rows",
+            "liquidity_contract": "legacy_order_type_label_v1",
             "id_values": self.id_values,
             "liquidation_reason": int(self.liquidation_reason),
             "lifecycle_counters": {
                 "fill_count": int(self.fill_count), "event_count": int(self.event_count),
                 "rejected_count": int(self.rejected_count), "canceled_count": int(self.canceled_count),
+                **({"canceled_order_count": int(np.sum(self.terminal_state["canceled_orders_by_bar"])),
+                    "canceled_event_count": int(self.terminal_state["canceled_event_count"])}
+                   if self.terminal_state is not None else {}),
             },
             "event_ledger": {
                 "bar": self.event_bar,
@@ -3099,6 +3135,7 @@ class RustReactiveNumericCoRuntime:
         runtime: str = "numeric_every_bar_v1",
         scalar_score: bool = False,
         score_trading_days: int = 365,
+        retain_score_metrics: bool = False,
     ) -> None:
         self._module = _require_r1_extension()
         status = probe_native_event_rust_extension(module=self._module)
@@ -3183,7 +3220,7 @@ class RustReactiveNumericCoRuntime:
             retain_command_rows=not self.scalar_score,
             retain_callback_trace=not self.scalar_score,
             retain_terminal_active_orders=not self.scalar_score,
-            scalar_metrics=self.scalar_score,
+            scalar_metrics=self.scalar_score or bool(retain_score_metrics),
             score_trading_days=int(self.score_trading_days),
             score_bar_annualization=float(score_bar_annualization),
         )
@@ -4014,6 +4051,7 @@ class RustReactiveCandidateBatchCoRuntime:
         command_initial_capacity: int = 8,
         command_hard_limit: int = 65_536,
         scalar_score: bool = False,
+        retain_metric_paths: bool = False,
         score_trading_days: int = 365,
     ) -> None:
         candidate_count = int(candidate_count)
@@ -4049,6 +4087,7 @@ class RustReactiveCandidateBatchCoRuntime:
         self.retain_fills = bool(retain_fills)
         self.retain_events = bool(retain_events)
         self.scalar_score = bool(scalar_score)
+        self.retain_metric_paths = bool(retain_metric_paths)
         self.score_trading_days = int(score_trading_days)
         if self.scalar_score and self.score_trading_days <= 0:
             raise NativeEventRustBackendError("reactive candidate scalar score requires trading_days > 0")
@@ -4089,7 +4128,7 @@ class RustReactiveCandidateBatchCoRuntime:
             self.retain_events,
             int(command_initial_capacity),
             int(command_hard_limit),
-            retain_account_paths=not self.scalar_score,
+            retain_account_paths=not self.scalar_score or self.retain_metric_paths,
             retain_command_rows=not self.scalar_score,
             retain_callback_trace=not self.scalar_score,
             retain_terminal_active_orders=not self.scalar_score,
@@ -4103,6 +4142,14 @@ class RustReactiveCandidateBatchCoRuntime:
             ),
         )
         self._core.set_event_contract(self.event_contract.contract_code)
+        self._cancellation_tokens = (
+            tuple(self._core.cancellation_tokens())
+            if hasattr(self._core, "cancellation_tokens") else ()
+        )
+        if self.retain_metric_paths and not self._cancellation_tokens:
+            raise NativeEventRustBackendError(
+                "C02 batch witness requires independent cancellation tokens; install the matching native wheel"
+            )
 
     @property
     def prepared_market_core(self):
@@ -4111,6 +4158,10 @@ class RustReactiveCandidateBatchCoRuntime:
     def request_cancel(self) -> None:
         """Stop an active shared candidate batch at a native bar boundary."""
 
+        if self._cancellation_tokens:
+            for token in self._cancellation_tokens:
+                token.cancel()
+            return
         if not hasattr(self._core, "request_cancel"):
             raise NativeEventRustBackendError(
                 "installed _quantbt_native wheel lacks reactive candidate-batch cancellation"
@@ -4118,6 +4169,10 @@ class RustReactiveCandidateBatchCoRuntime:
         self._core.request_cancel()
 
     def clear_cancellation(self) -> None:
+        if self._cancellation_tokens:
+            for token in self._cancellation_tokens:
+                token.clear()
+            return
         if hasattr(self._core, "clear_cancellation"):
             self._core.clear_cancellation()
 
@@ -4170,8 +4225,7 @@ class RustReactiveCandidateBatchCoRuntime:
             self._assert_scalar_payload(payload)
         return payload
 
-    @staticmethod
-    def _assert_scalar_payload(payload: Mapping[str, object]) -> None:
+    def _assert_scalar_payload(self, payload: Mapping[str, object]) -> None:
         for candidate_payload in payload.get("candidate_outputs", ()):
             if not bool(candidate_payload.get("score_metrics_present", False)):
                 raise NativeEventRustBackendError(
@@ -4180,14 +4234,19 @@ class RustReactiveCandidateBatchCoRuntime:
             if any(
                 np.asarray(candidate_payload[name]).size
                 for name in (
-                    "equity", "positions", "fees", "turnover", "funding",
-                    "initial_margin", "maintenance_margin", "command_bar",
-                    "callback_bar", "terminal_active_order_id",
+                    "command_bar", "callback_bar", "terminal_active_order_id",
                 )
             ):
                 raise NativeEventRustBackendError(
                     "native reactive candidate scalar run retained a path or audit tape unexpectedly"
                 )
+            if not self.retain_metric_paths and any(
+                np.asarray(candidate_payload[name]).size for name in (
+                    "equity", "positions", "fees", "turnover", "funding",
+                    "initial_margin", "maintenance_margin",
+                )
+            ):
+                raise NativeEventRustBackendError("native scalar batch unexpectedly retained account paths")
 
     @property
     def last_callback_name(self) -> str:

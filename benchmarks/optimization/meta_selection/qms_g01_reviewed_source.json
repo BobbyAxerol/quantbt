@@ -1,0 +1,13 @@
+{
+  "baseline": "51894c2",
+  "source_sha256": {
+    "rust/crates/quantbt-engine/src/lib.rs": "3a8ca296a037733e601de10e90fde4a509b661c76b4e9ce102b5f1abfadefdfb",
+    "rust/crates/quantbt-engine/src/metrics_v2.rs": "8a4e937e7c2571e8e7009c14a30792b922e010011ab378da91255c901391309e",
+    "rust/crates/quantbt-execution/src/target.rs": "9d3e820a3c55c6796d6da6ca38960196080fc3d9952565fe02e20279c9a89596",
+    "rust/native_event/src/lib.rs": "d8717455c27da8ee5edc2045ad9f42b24d5577b8588bc781451d1b81a395b326",
+    "src/quantbt/backends/native_prepared_evaluation.py": "a4ea2c8f7e7bdc7699e5e90b40d53edebd4ff19537d5e9c0649edeec4ce5ecc0",
+    "src/quantbt/backends/native_wfo_public.py": "45f590fdd5004761a83a2f87080a1b374233164636e8c477d30087c575f2a0da",
+    "src/quantbt/preparation/native_execution.py": "0c1dd1d87d2602c64ad651ef9da72acb320267f161156a683fcdccb9fc34ddbc",
+    "src/quantbt/preparation/native_target_requests.py": "8dc36d5554de1f2907c57b72d29250f166305171005d7a2720c5b0f11ac66ee6"
+  }
+}
