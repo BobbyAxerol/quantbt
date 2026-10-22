@@ -13,6 +13,7 @@ from typing import Dict, Optional, Sequence, Tuple, Union
 
 from ..core.orders import OrderIntent
 from ..core.schema import OrderSide, OrderType, TimeInForce
+from .validation import finite_number
 
 
 class OptionPackageExecutionPolicy(str, Enum):
@@ -48,8 +49,9 @@ class OptionPackageLeg:
         object.__setattr__(self, "tif", _coerce_enum(TimeInForce, self.tif, "tif"))
         if not self.instrument_id:
             raise ValueError("instrument_id is required")
-        if self.ratio <= 0.0:
-            raise ValueError("ratio must be > 0; side owns direction")
+        finite_number(self.ratio, "ratio", positive=True)
+        if self.limit_price is not None:
+            finite_number(self.limit_price, "limit_price", positive=True)
         if self.order_type not in (OrderType.MARKET, OrderType.LIMIT):
             raise ValueError("Phase 4 option package legs support market and limit orders only")
         if self.order_type in (OrderType.LIMIT, OrderType.STOP_LIMIT):
@@ -85,12 +87,10 @@ class OptionPackageIntent:
             raise ValueError("package_id is required")
         if len(self.legs) == 0:
             raise ValueError("OptionPackageIntent requires at least one leg")
-        if self.quantity <= 0.0:
-            raise ValueError("quantity must be > 0")
-        if self.max_debit is not None and self.max_debit < 0.0:
-            raise ValueError("max_debit must be >= 0")
-        if self.min_credit is not None and self.min_credit < 0.0:
-            raise ValueError("min_credit must be >= 0")
+        finite_number(self.quantity, "quantity", positive=True)
+        for name in ("max_debit", "min_credit"):
+            if getattr(self, name) is not None:
+                finite_number(getattr(self, name), name, minimum=0.0)
 
 
 def compile_option_package_orders(package: OptionPackageIntent) -> Tuple[OrderIntent, ...]:

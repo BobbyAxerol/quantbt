@@ -15,6 +15,7 @@ from ..core.schema import LiquiditySide, OrderSide
 from .fees import OptionFeeResult
 from .ledger import OptionLedger
 from .schema import OptionInstrumentSpec
+from .validation import conversion_rate as _conversion_rate, finite_number
 
 
 class OptionMarginModel(str, Enum):
@@ -50,14 +51,13 @@ class OptionMarginConfig:
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "model", _coerce_model(self.model))
-        if self.maintenance_ratio < 0.0:
-            raise ValueError("maintenance_ratio must be >= 0")
-        if self.long_option_margin_rate < 0.0 or self.short_option_margin_rate < 0.0:
-            raise ValueError("margin rates must be >= 0")
-        if self.liquidation_fee_rate < 0.0:
-            raise ValueError("liquidation_fee_rate must be >= 0")
+        for name in ("maintenance_ratio", "long_option_margin_rate", "short_option_margin_rate", "liquidation_fee_rate"):
+            finite_number(getattr(self, name), name, minimum=0.0)
         if not self.scenario_shocks:
             raise ValueError("scenario_shocks cannot be empty")
+        object.__setattr__(self, "scenario_shocks", tuple(
+            finite_number(shock, "scenario_shocks") for shock in self.scenario_shocks
+        ))
 
 
 @dataclass(frozen=True)
@@ -69,6 +69,25 @@ class OptionMarginRequirement:
     reporting_currency: str
     detail_report: pd.DataFrame
     metadata: Dict = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "model", _coerce_model(self.model))
+        validate_margin_requirement(self, self.reporting_currency)
+
+
+def validate_margin_requirement(requirement: OptionMarginRequirement, reporting_currency: str) -> None:
+    if not isinstance(requirement, OptionMarginRequirement):
+        raise ValueError("external margin validator must return OptionMarginRequirement")
+    finite_number(requirement.initial_margin, "initial_margin", minimum=0.0)
+    finite_number(requirement.maintenance_margin, "maintenance_margin", minimum=0.0)
+    if not str(requirement.reporting_currency).strip() or str(requirement.reporting_currency).upper() != str(reporting_currency).upper():
+        raise ValueError("margin requirement reporting_currency must match the account")
+    if not isinstance(requirement.venue_exact, bool):
+        raise ValueError("margin requirement venue_exact must be bool")
+    for name in ("requirement", "initial_margin", "maintenance_margin"):
+        if name in requirement.detail_report:
+            for value in requirement.detail_report[name]:
+                finite_number(value, f"margin detail {name}", minimum=0.0)
 
 
 @dataclass(frozen=True)
@@ -101,7 +120,11 @@ def calculate_option_margin(
     if cfg.model is OptionMarginModel.EXTERNAL_VALIDATOR:
         if external_validator is None:
             raise ValueError("external_validator is required for external margin model")
-        return external_validator.calculate_margin(ledger, instruments, marks, underlying_prices, reporting_currency, rates)
+        # A validator sees a preview, never authority over the live account.
+        result = external_validator.calculate_margin(ledger.clone(), instruments, marks, underlying_prices, reporting_currency, rates)
+        validate_margin_requirement(result, reporting_currency)
+        ledger.margin_locked[str(reporting_currency).upper()] = float(result.initial_margin)
+        return result
     rows = []
     total_initial = 0.0
     for symbol, position in ledger.positions.items():
@@ -112,7 +135,7 @@ def calculate_option_margin(
             raise ValueError(f"missing instrument for {symbol}")
         mark = _positive_map_value(marks, symbol, "mark")
         conversion = _conversion_rate(instrument.premium_currency, rates, reporting_currency)
-        qty = float(position.qty)
+        qty = finite_number(position.qty, f"position qty for {symbol}")
         abs_qty = abs(qty)
         long_value = max(qty, 0.0) * mark * instrument.multiplier * conversion
         short_abs_value = max(-qty, 0.0) * mark * instrument.multiplier * conversion
@@ -132,7 +155,8 @@ def calculate_option_margin(
             reason = "scenario_pm_approx"
         else:
             raise ValueError(f"unsupported margin model: {cfg.model}")
-        total_initial += requirement
+        finite_number(requirement, f"margin requirement for {symbol}", minimum=0.0)
+        total_initial = finite_number(total_initial + requirement, "initial_margin", minimum=0.0)
         rows.append(
             {
                 "symbol": symbol,
@@ -145,7 +169,7 @@ def calculate_option_margin(
                 "venue_exact": False,
             }
         )
-    maintenance = total_initial * cfg.maintenance_ratio
+    maintenance = finite_number(total_initial * cfg.maintenance_ratio, "maintenance_margin", minimum=0.0)
     ledger.margin_locked[str(reporting_currency).upper()] = float(total_initial)
     return OptionMarginRequirement(
         initial_margin=float(total_initial),
@@ -170,8 +194,11 @@ def liquidate_option_positions(
     timestamp_ns: int,
     fee_rate: float = 0.0,
     fee_resolver: Optional[Callable[[Fill, OptionInstrumentSpec], Optional[OptionFeeResult]]] = None,
+    quote_timestamp_ns: Optional[int] = None,
 ) -> OptionLiquidationAudit:
     """Liquidate all option positions with adverse bid/ask prices if breached."""
+    validate_margin_requirement(margin_requirement, reporting_currency)
+    finite_number(fee_rate, "liquidation fee_rate", minimum=0.0)
     equity_before = ledger.equity(
         conversion_rates=conversion_rates,
         marks=_marks_from_bbo(bid_prices, ask_prices),
@@ -192,6 +219,7 @@ def liquidate_option_positions(
             metadata={"venue_exact": margin_requirement.venue_exact},
         )
     rows = []
+    preview = ledger.clone()
     fills_with_fees = []
     for symbol, position in list(ledger.positions.items()):
         if position.is_flat:
@@ -215,7 +243,13 @@ def liquidate_option_positions(
             price=price,
             fee=fee,
             liquidity=LiquiditySide.TAKER,
-            metadata={"liquidation": True, "adverse_bid_ask": True},
+            metadata={
+                "liquidation": True,
+                "adverse_bid_ask": True,
+                "quote_timestamp_ns": int(timestamp_ns if quote_timestamp_ns is None else quote_timestamp_ns),
+                "decision_timestamp_ns": int(timestamp_ns),
+                "effective_timestamp_ns": int(timestamp_ns),
+            },
         )
         fee_result = fee_resolver(fill, instrument) if fee_resolver is not None else None
         applied_fee = float(fee_result.fee if fee_result is not None else fee)
@@ -230,7 +264,7 @@ def liquidate_option_positions(
                 "contract_multiplier": float(instrument.multiplier),
             },
         )
-        ledger.apply_fill(applied_fill, instrument, fee=fee_result, timestamp_ns=timestamp_ns)
+        preview.apply_fill(applied_fill, instrument, fee=fee_result, timestamp_ns=timestamp_ns)
         fills_with_fees.append((applied_fill, fee_result))
         rows.append(
             {
@@ -244,12 +278,17 @@ def liquidate_option_positions(
                 "adverse_bid_ask": True,
             }
         )
-    equity_after = ledger.equity(
+    equity_after = preview.equity(
         conversion_rates=conversion_rates,
         marks=_marks_from_bbo(bid_prices, ask_prices),
         instruments=instruments,
         reporting_currency=reporting_currency,
     )
+    ledger.cash = preview.cash
+    ledger.positions = preview.positions
+    ledger.fees = preview.fees
+    ledger.realized_pnl = preview.realized_pnl
+    ledger.events = preview.events
     return OptionLiquidationAudit(
         breached=True,
         breach_reason="maintenance_margin_breach",
@@ -303,23 +342,7 @@ def _marks_from_bbo(bid_prices: Dict[str, float], ask_prices: Dict[str, float]) 
 def _positive_map_value(values: Dict[str, float], key: str, label: str) -> float:
     if key not in values:
         raise ValueError(f"missing {label} for {key}")
-    value = float(values[key])
-    if value <= 0.0:
-        raise ValueError(f"{label} for {key} must be > 0")
-    return value
-
-
-def _conversion_rate(currency: str, conversion_rates: Dict[str, float], reporting_currency: str) -> float:
-    ccy = str(currency).upper()
-    report = str(reporting_currency).upper()
-    if ccy == report:
-        return 1.0
-    if ccy not in conversion_rates:
-        raise ValueError(f"missing conversion rate for {ccy}->{report}")
-    rate = float(conversion_rates[ccy])
-    if rate <= 0.0:
-        raise ValueError(f"conversion rate for {ccy}->{report} must be > 0")
-    return rate
+    return finite_number(values[key], f"{label} for {key}", positive=True)
 
 
 def _coerce_model(value) -> OptionMarginModel:

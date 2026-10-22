@@ -15,7 +15,7 @@ from .capabilities import OptionCapabilityError
 from .fees import OptionFeeResult, OptionFeeSchedule, calculate_option_fee
 from .ledger import OptionLedger
 from .lifecycle import settle_option_expiry
-from .margin import OptionLiquidationAudit, OptionMarginRequirement, liquidate_option_positions
+from .margin import OptionLiquidationAudit, OptionMarginRequirement, liquidate_option_positions, validate_margin_requirement
 from .reporting import snapshot_marks, snapshot_underlyings
 from .schema import OptionInstrumentSpec
 from .tape import PreparedOptionTape
@@ -34,7 +34,7 @@ def maintenance_liquidation_if_needed(
     event_timestamp_ns: Optional[int] = None,
 ) -> Optional[OptionLiquidationAudit]:
     """Apply maintenance liquidation from observable BBO when required."""
-
+    validate_margin_requirement(margin, reporting_currency)
     if not any(not position.is_flat for position in ledger.positions.values()):
         return None
     marks = snapshot_marks(tape, snapshot_idx)
@@ -92,6 +92,7 @@ def maintenance_liquidation_if_needed(
         ),
         fee_rate=float(config.margin.liquidation_fee_rate),
         fee_resolver=fee_resolver,
+        quote_timestamp_ns=int(tape.timestamp_ns[snapshot_idx]),
     )
 
 
@@ -153,7 +154,7 @@ def apply_legacy_last_tape_settlements(
         settlement_price = float(
             underlyings.get(instrument.underlying_id, marks.get(symbol, 0.0))
         )
-        if settlement_price <= 0.0:
+        if not np.isfinite(settlement_price) or settlement_price <= 0.0:
             raise OptionCapabilityError(
                 "OPTION_LEGACY_SETTLEMENT_PRICE_MISSING",
                 f"last tape snapshot has no valid settlement fallback price for {symbol!r}",

@@ -13,6 +13,7 @@ from typing import Union
 from ..core.orders import Fill
 from ..core.schema import LiquiditySide
 from .schema import OptionInstrumentSpec, PremiumConvention
+from .validation import finite_number
 
 
 @dataclass(frozen=True)
@@ -23,6 +24,13 @@ class OptionFeeResult:
     cap: float
     capped: bool
     schedule_id: str
+
+    def __post_init__(self) -> None:
+        for name in ("fee", "raw_fee", "cap"):
+            finite_number(getattr(self, name), name, minimum=0.0)
+        if not str(self.currency).strip():
+            raise ValueError("fee currency is required")
+        object.__setattr__(self, "currency", str(self.currency).strip().upper())
 
 
 @dataclass(frozen=True)
@@ -37,17 +45,13 @@ class OptionFeeSchedule:
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "premium_convention", _coerce_premium(self.premium_convention))
-        object.__setattr__(self, "fee_currency", str(self.fee_currency).upper())
+        object.__setattr__(self, "fee_currency", str(self.fee_currency).strip().upper())
         if not self.schedule_id:
             raise ValueError("schedule_id is required")
         if not self.fee_currency:
             raise ValueError("fee_currency is required")
-        if self.maker_rate < 0.0 or self.taker_rate < 0.0:
-            raise ValueError("maker_rate and taker_rate must be >= 0")
-        if self.cap_premium_fraction < 0.0:
-            raise ValueError("cap_premium_fraction must be >= 0")
-        if self.per_contract_fee < 0.0:
-            raise ValueError("per_contract_fee must be >= 0")
+        for name in ("maker_rate", "taker_rate", "cap_premium_fraction", "per_contract_fee"):
+            finite_number(getattr(self, name), name, minimum=0.0)
 
     def rate_for(self, liquidity: LiquiditySide) -> float:
         return self.maker_rate if liquidity is LiquiditySide.MAKER else self.taker_rate
@@ -102,8 +106,10 @@ def calculate_option_fee(
         raise ValueError("fee schedule premium convention does not match instrument")
     if schedule.fee_currency != instrument.premium_currency:
         raise ValueError("fee schedule currency must match option premium currency in Phase 5")
-    if reference_price <= 0.0:
-        raise ValueError("reference_price must be > 0")
+    finite_number(reference_price, "reference_price", positive=True)
+    finite_number(fill.qty, "fill.qty", positive=True)
+    finite_number(fill.price, "fill.price", positive=True)
+    finite_number(instrument.multiplier, "multiplier", positive=True)
     premium_notional = float(fill.qty) * float(fill.price) * float(instrument.multiplier)
     cap = premium_notional * float(schedule.cap_premium_fraction)
     if instrument.premium_convention is PremiumConvention.INVERSE_BASE:

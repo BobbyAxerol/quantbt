@@ -4,6 +4,7 @@ import pandas as pd
 import pytest
 
 from quantbt import (
+    AccountConfig,
     NativeOptionBackend,
     NativeOptionConfig,
     OptionPackageIntent,
@@ -22,6 +23,7 @@ def test_phase10_prepared_cache_replay_matches_uncached(option_phase3_chain, opt
         legs=(OptionPackageLeg("BTC-01FEB26-100000-C.DERIBIT", OrderSide.BUY, 1.0),),
     )
     cfg = NativeOptionConfig(
+        account=AccountConfig(initial_capital=20_000.0),
         initial_balances={"USD": 20_000.0},
         conversion_rates={"BTC": 100_000.0},
         reporting_currency="USD",

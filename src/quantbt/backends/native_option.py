@@ -8,7 +8,8 @@ venue-specific gaps stay explicit in reports and metadata.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field, replace
+from dataclasses import dataclass, field, fields, replace
+from math import isclose
 from typing import Dict, Mapping, Optional, Sequence
 
 import numpy as np
@@ -52,6 +53,7 @@ from ..options.reporting import (
 )
 from ..options.schema import OptionInstrumentRegistry, OptionInstrumentSpec
 from ..options.tape import PreparedOptionTape, prepare_option_tape
+from ..options.validation import conversion_rate as _conversion_rate_to_reporting, currency_amounts, finite_number
 
 
 @dataclass(frozen=True)
@@ -79,9 +81,18 @@ class NativeOptionConfig:
     metadata: Dict = field(default_factory=dict)
 
     def __post_init__(self) -> None:
-        object.__setattr__(self, "reporting_currency", str(self.reporting_currency).upper())
-        if self.account.initial_capital <= 0.0:
-            raise ValueError("account.initial_capital must be > 0")
+        object.__setattr__(self, "reporting_currency", str(self.reporting_currency).strip().upper())
+        if not self.reporting_currency:
+            raise ValueError("reporting_currency is required")
+        _validate_generic_option_configuration(self.account, self.execution)
+        finite_number(self.account.initial_capital, "account.initial_capital", positive=True)
+        finite_number(self.account.margin_buffer, "account.margin_buffer", minimum=0.0)
+        if self.initial_balances is not None:
+            object.__setattr__(self, "initial_balances", currency_amounts(self.initial_balances, "initial_balances"))
+        object.__setattr__(self, "conversion_rates", currency_amounts(self.conversion_rates, "conversion_rates", positive=True))
+        for name in ("max_spread_bps", "max_source_latency_ns"):
+            if getattr(self, name) is not None:
+                finite_number(getattr(self, name), name, minimum=0.0)
         policy = self.settlement_policy
         if policy is None:
             policy = (
@@ -122,8 +133,7 @@ class OptionSettlementEvent:
             raise ValueError("settlement event symbol is required")
         if int(self.timestamp_ns) <= 0:
             raise ValueError("settlement event timestamp_ns must be > 0")
-        if float(self.settlement_price) <= 0.0:
-            raise ValueError("settlement event settlement_price must be > 0")
+        finite_number(self.settlement_price, "settlement event settlement_price", positive=True)
         object.__setattr__(self, "timestamp_ns", int(self.timestamp_ns))
         object.__setattr__(self, "settlement_price", float(self.settlement_price))
         object.__setattr__(self, "source", str(self.source).strip())
@@ -168,6 +178,7 @@ class NativeOptionBackend:
         conversion_rates: Optional[Dict[str, float]] = None,
         reporting_currency: Optional[str] = None,
     ) -> OptionBacktestResult:
+        _validate_generic_option_configuration(self.config.account, self.config.execution)
         registry = _normalize_registry(instruments)
         instrument_map = registry.by_symbol
         capability_assessments = validate_option_capabilities(
@@ -198,12 +209,30 @@ class NativeOptionBackend:
             )
         tape.validate_compatible(registry_signature=registry.signature)
         _validate_tape_coverage(packages_sorted, tape)
-        rates = {**self.config.conversion_rates, **(conversion_rates or {})}
-        report_ccy = str(reporting_currency or self.config.reporting_currency).upper()
+        rates = currency_amounts({**self.config.conversion_rates, **(conversion_rates or {})}, "conversion_rates", positive=True)
+        report_ccy = str(self.config.reporting_currency if reporting_currency is None else reporting_currency).strip().upper()
+        if not report_ccy:
+            raise ValueError("reporting_currency is required")
         if report_ccy not in rates:
             rates[report_ccy] = 1.0
 
         ledger = OptionLedger.from_cash(self.config.initial_balances or {report_ccy: self.config.account.initial_capital})
+        opening_equity = ledger.equity(conversion_rates=rates, reporting_currency=report_ccy)
+        # Report-currency comparison: relative 1e-10, absolute 1e-8 units.
+        if not isclose(opening_equity, self.config.account.initial_capital, rel_tol=1e-10, abs_tol=1e-8):
+            raise ValueError(
+                f"initial_balances reporting value {opening_equity} {report_ccy} must match "
+                f"account.initial_capital {self.config.account.initial_capital} "
+                "(rel_tol=1e-10, abs_tol=1e-8)"
+            )
+        used_symbols = {leg.instrument_id for package in packages_sorted for leg in package.legs}
+        used_symbols.update(event.symbol for event in settlement_events_normalized)
+        for symbol in used_symbols:
+            instrument = instrument_map[symbol]
+            for currency in (instrument.premium_currency, instrument.quote_currency, instrument.settlement_currency):
+                _conversion_rate_to_reporting(currency, rates, report_ccy)
+        if self.config.fee_schedule is not None:
+            _conversion_rate_to_reporting(self.config.fee_schedule.fee_currency, rates, report_ccy)
         order_reports = []
         package_reports = []
         applied_fills = []
@@ -224,7 +253,10 @@ class NativeOptionBackend:
             | set(settlements_by_timestamp)
         )
         quote_config = replace(self.config.option_execution, enforce_package_cash_guard=False)
-        snapshots.append(_snapshot_state(tape, 0, ledger, instrument_map, rates, report_ccy, "initial"))
+        snapshots.append(_snapshot_state(
+            tape, 0, ledger, instrument_map, rates, report_ccy, "initial",
+            timestamp_override_ns=int(tape.timestamp_ns[0]),
+        ))
 
         for timestamp_ns in timeline:
             snapshot_idx = _snapshot_index_at_or_before(tape, timestamp_ns)
@@ -483,6 +515,18 @@ class NativeOptionBackend:
             metadata={
                 "backend": "native_option",
                 "engine": "native_option",
+                "opening_equity": opening_equity,
+                "opening_wallet_policy": "omitted_or_empty_use_capital_in_reporting_currency",
+                "opening_balance_tolerance": {"relative": 1e-10, "absolute": 1e-8},
+                "effective_generic_config": {
+                    "supported_account_fields": ["initial_capital", "margin_buffer"],
+                    "inactive_default_account_fields": ["base_currency", "leverage", "maintenance_ratio", "margin_mode", "oms_mode"],
+                    "inactive_default_execution_fields": [item.name for item in fields(ExecutionConfig) if item.name != "metadata"],
+                    "nondefault_inactive_policy": "explicitly_rejected",
+                    "execution_authority": "option_execution",
+                    "margin_authority": "option_margin",
+                    "reporting_currency_authority": "reporting_currency",
+                },
                 "phase": "phase70_options_p0_containment",
                 "package_count": len(packages_sorted),
                 "fill_count": len(applied_fills),
@@ -524,6 +568,23 @@ class NativeOptionBackend:
                 report_ccy=report_ccy,
             )
         return result
+
+
+def _validate_generic_option_configuration(account: AccountConfig, execution: ExecutionConfig) -> None:
+    account_defaults = AccountConfig(initial_capital=account.initial_capital)
+    for name in ("base_currency", "leverage", "maintenance_ratio", "margin_mode", "oms_mode"):
+        if getattr(account, name) != getattr(account_defaults, name):
+            raise OptionCapabilityError(
+                "OPTION_GENERIC_ACCOUNT_CONFIG_UNSUPPORTED",
+                f"account.{name} is inactive for options; only its compatibility default is supported",
+            )
+    execution_defaults = ExecutionConfig()
+    for item in fields(ExecutionConfig):
+        if item.name != "metadata" and getattr(execution, item.name) != getattr(execution_defaults, item.name):
+            raise OptionCapabilityError(
+                "OPTION_GENERIC_EXECUTION_CONFIG_UNSUPPORTED",
+                f"execution.{item.name} is inactive for options; configure option_execution instead",
+            )
 
 
 def _normalize_registry(
@@ -691,20 +752,7 @@ def _cash_delta_in_reporting(
     for currency in currencies:
         amount = float(after.get(currency, 0.0)) - float(before.get(currency, 0.0))
         delta += amount * _conversion_rate_to_reporting(currency, conversion_rates, reporting_currency)
-    return float(delta)
-
-
-def _conversion_rate_to_reporting(currency: str, conversion_rates: Mapping[str, float], reporting_currency: str) -> float:
-    ccy = str(currency).upper()
-    report = str(reporting_currency).upper()
-    if ccy == report:
-        return 1.0
-    if ccy not in conversion_rates:
-        raise ValueError(f"missing conversion rate for {ccy}->{report}")
-    rate = float(conversion_rates[ccy])
-    if rate <= 0.0:
-        raise ValueError(f"conversion rate for {ccy}->{report} must be > 0")
-    return rate
+    return finite_number(delta, "cash delta in reporting currency")
 
 
 def _margin_at_snapshot(
