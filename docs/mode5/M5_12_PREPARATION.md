@@ -1,15 +1,34 @@
 # M5-12 Package Preparation
 
-Date: 2026-10-22 UTC. This includes the owner-approved technical preflight, not
-the M5-12 execution receipt or publication authorization. Candidate pair:
+Date: 2026-10-22 UTC. This retains the technical preflight and links the
+owner-approved local qualification results; it is not a blanket M5-12 PASS receipt
+or publication authorization. Candidate pair:
 **quantbt-engine 1.1.2 / quantbt-native 0.4.3**, unchanged by this preparation.
 No live PyPI index query is represented here.
 
-The [unified phase](../../upgrade/implement.md#mode5-m5-12) remains
-APPROVED_CONDITIONAL / NOT_STARTED. Parent research acceptance and ACC-01 local
-closure satisfy their own entry dependencies; separate launch/resource
-admission is still required. Do not push, dispatch CI, merge, tag or upload
+The [unified phase](../../upgrade/implement.md#mode5-m5-12) is now
+**TECHNICALLY_VALID** within the registered local scope: local final-artifact
+gates are recorded and the owner accepts all four reconciled operational
+exceptions, preserving failed receipts and waiving no technical gate.
+Parent research acceptance and ACC-01 local closure retain their own scope.
+The [current summary](M5_12_LOCAL_QUALIFICATION_SUMMARY.md),
+[canonical report](M5_12_REPORT_R3.md) and [cleanup](../maintenance/M5_12_CLEANUP.md)
+record actual wheel and sdist consumers. Do not push, dispatch CI, merge, tag or upload
 from this checklist without the corresponding approval.
+
+Current qualified runtime source is `bf3f919`. The earlier `b4c4f93`
+[accepted-position/activity repair](M5_12_PCT_ACTIVITY_REPAIR.md) records a fresh
+native build and **61 focused source/native tests PASS**. It corrects pct public
+positions/activity and versions the affected compatibility identities without
+changing the statistical metric formulas. An older same-version native wheel
+cannot satisfy the new pct capability by version alone. Final wheel/sdist
+consumers, regression reconciliation and integrated handoff are recorded under the
+[existing phase plan](../../upgrade/implement.md#mode5-m5-12).
+The alias followup `45fd6ec` and
+[continuous snapshot repair](M5_12_SNAPSHOT_REPAIR.md) are separately sealed
+Python amendments. V5 successes predate the latter; final local qualification
+uses V6 core artifacts and their own passing installed consumers, not relabeled
+historical receipts. Local CPython 3.12 proof does not certify the remote matrix.
 
 ## Endpoint Compatibility
 
@@ -55,12 +74,14 @@ receipts, normalize arbitrary drift or qualify a native artifact.
 
 The later approved cold extraction is committed as `77af917`: options validation
 and portfolio reporting move to focused helper modules while all retained engine
-AST, moved function bodies and endpoint signatures remain unchanged. Current
-source qualification covers 466 files through
+AST, moved function bodies and endpoint signatures remain unchanged. That
+extraction's source qualification covered 466 files through
 `.venv/bin/python -m tools.m5_12_source_guard --check` from the repo root and a
 [separate immutable amendment](../maintenance/evidence/pre-m512-source-amendment.json).
 This describes equivalence to the repaired ACC-01 source, not unchanged finance
-relative to old QMS. Native source/ABI is not changed by this extraction.
+relative to old QMS. Native source/ABI was not changed by that extraction;
+the later approved pct repair has its own source/native evidence and does not
+inherit the extraction's artifact or invariance claims.
 
 ## Researcher Reading Path
 
@@ -110,7 +131,10 @@ renamed copies. Use the [artifact checker](../../tools/check_release_artifacts.p
 on actual final archives, never copy research directories into package staging.
 Only synthetic strategies belong in public runnable examples.
 
-## Qualification Work Remaining
+## Qualification Work And Boundaries
+
+The table defines required scope, not unexecuted work. Current execution and
+reuse dispositions are in the summary and canonical report linked above.
 
 | Work Package | Required Execution At M5-12 | Boundary |
 |---|---|---|
@@ -130,12 +154,13 @@ import-boundary rules are unchanged; the architecture command now passes.
 
 - Candidate workflow filters now include the current feature branch, canonical
   source, shared diagnostics/reporting, Mode 5 examples, ACC and verifier changes.
-  No push or workflow execution occurs in this preflight.
+  No push or workflow execution is authorized by the current local qualification.
 - A maintained [installed consumer roster](M5_12_CONSUMER_MATRIX.md) supplements
   existing W3/scalar/portfolio/package/intrabar/event proofs with Mode 5,
   winner/donor, reporting and ACC controls. Source unit/mutation verification
   of the wiring is not installed PASS; the actual final-source artifact runs
-  remain M5-12 work. CI must execute them, not just collect/parse their metadata.
+  are now recorded for wheel and sdist. CI must later execute them, not just collect/parse
+  their metadata; local results do not certify the six remote rows.
 - `qms08_package --release-pair` is an available artifact builder, not by itself
   a complete M5-12 verifier. Its older private-pair/native-reuse recipes and
   source reconciliations retain historical meaning. Qualify the final staging,
@@ -144,7 +169,8 @@ import-boundary rules are unchanged; the architecture command now passes.
   Preparation reconciles the approved diagnostics root exports by exact
   commit/hash and passes mutation negatives. The broader historical
   `qms08_gate.validate` still forbids changed financial source from its old
-  entry; it remains a historical gate. The new installed preflight calls the
+  entry; it remains a historical gate, not the ordinary `verify_pair` entry
+  called by candidate package consumers. The new installed preflight calls the
   exact current-source guard before and after execution instead of treating
   that old financial-invariance check as current certification.
 - Remote scope remains Ubuntu 22.04/24.04 x CPython 3.11/3.12/3.13, with the
@@ -170,13 +196,22 @@ focused static checks are preparation, not M512.01..06 PASS. No environment
 replacement, native rebuild, package install, financial run or remote action
 is implied by the original audit. Later technical preflight has its own
 resource/cleanup [receipt](../maintenance/PRE_M512_TECHNICAL_PREFLIGHT.md);
-it is not a full M5-12 launch or artifact certificate.
+it is not a full M5-12 launch or artifact certificate. Local qualification was
+approved later; its current status and the focused pct repair evidence are
+recorded above, without rewriting those earlier receipts.
 
 For local serial qualification, run `tools/m5_12_resources.py --check` again at
 admission. The registered incremental budget is 896 MiB **plus** the 5 GiB disk
 reserve and separate RAM guard. It permits one installed consumer environment
-at a time and conditional exact retained-native reuse, not a fresh native build,
-parallel environments or the legacy four-retained-consumer builder. Actual
-native artifact eligibility must still pass independently. If a native rebuild,
-larger fixture or different retention schedule is needed, stop for a new forecast;
-this budget is not permission to substitute an unverified wheel.
+at a time and conditional exact retained-native reuse. Its original no-native-
+build restriction was superseded only by the owner-approved narrow pct rebuild;
+the older wheel cannot substitute for that repaired native artifact. This does
+not approve arbitrary rebuilds, parallel environments or the legacy four-retained-
+consumer schedule. The repair report records the observed build growth and
+reserve, not a measured peak. Recheck resource admission and exact artifact
+eligibility before any new consumer execution; larger fixtures or different
+retention schedules still require a new forecast. The registered consumers are
+now terminal and retired after hash/process review. Their retained receipts
+describe actual past executions; reruns require fresh exact-artifact installation.
+The initial fixture forecast and two cleanup-control exceptions remain visible
+in the cleanup report, not retroactively passing resource receipts.

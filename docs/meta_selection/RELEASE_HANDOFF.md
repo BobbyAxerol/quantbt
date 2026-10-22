@@ -3,10 +3,12 @@
 ## Authorization And Scope
 
 Owner-approved candidate pair: `quantbt-engine==1.1.2 / quantbt-native==0.4.3`.
-Current authorization is **local technical/docs/package-hygiene preflight only**;
-M5-12 execution/builds are not launched by this audit; focused static preparation
-checks have their own [receipt](../mode5/M5_12_PREPARATION.md). No branch push,
-workflow dispatch, merge, tag or upload is authorized now. Preparation and
+Current authorization includes **owner-approved local M5-12 qualification**
+and the narrow accepted-position/activity repair with a fresh native build,
+plus the approved continuous snapshot copy/pickle repair.
+The earlier preparation checks retain their own
+[receipt](../mode5/M5_12_PREPARATION.md). No branch push,
+workflow dispatch, merge, tag or upload is authorized now. Local qualification and
 historical feature-branch qualification are not current remote approval.
 Meta selection and cross-mode assistance remain opt-in and researcher-chosen.
 No automatic mode/recipe/donor router or default promotion is authorized.
@@ -19,26 +21,56 @@ the candidate release pair or imply public availability.
 
 ## Current Readiness
 
-**2026-10-22: M5-12 is APPROVED_CONDITIONAL / NOT_STARTED; package gates are
-NOT_RUN, not PASS.** The [parent research scope](../mode5/M5_11_RESEARCH_COVERAGE_DISPOSITION.md)
+**2026-10-22 UTC: M5-12 is TECHNICALLY_VALID within registered local scope.
+Exact V6 wheel/sdist consumers pass; the owner accepts the reconciled operational
+exceptions, retaining failed receipts and waiving no technical gate.**
+Read the [current local summary](../mode5/M5_12_LOCAL_QUALIFICATION_SUMMARY.md),
+[canonical report](../mode5/M5_12_REPORT_R3.md),
+[source/artifact handoff](../mode5/evidence/mode5_upgrade_handoff-r3.json) and
+[cleanup](../maintenance/M5_12_CLEANUP.md). Local technical records are not
+remote qualification, final owner acceptance or publication permission.
+The [parent research scope](../mode5/M5_11_RESEARCH_COVERAGE_DISPOSITION.md)
 was owner-accepted on 2026-10-21 UTC; M5-11.14/15 and ACC-01 have local closures.
-Separate M5-12 launch approval and resource admission remain pending. Read the
-[current phase](../../upgrade/implement.md#mode5-m5-12) and the
+Read the [current phase](../../upgrade/implement.md#mode5-m5-12) and the
 [operator boundary](#non-publishing-qualification) before any qualification run.
 The [preparation checklist](../mode5/M5_12_PREPARATION.md) retains the original
 architecture failure and its approved resolution: cold validation/reporting
 helpers bring options/portfolio below the unchanged 1,000-line review trigger,
-with no new registry exception. Current exact source `77af917` is qualified
-separately from ACC-01 through the
+with no new registry exception. The earlier extraction source `77af917` was
+qualified separately from ACC-01 through the
 [extraction amendment](../maintenance/evidence/pre-m512-source-amendment.json).
 Moved functions and retained engine AST are unchanged; actual account/report
 controls compare against the repaired preflight-entry implementation.
 
+Current qualified runtime source is `bf3f919`. The earlier `b4c4f93`
+[accepted-position/activity repair](../mode5/M5_12_PCT_ACTIVITY_REPAIR.md)
+records a fresh native build and **61 focused source/native tests PASS**.
+Prepared pct activity now requires the accepted-quantity capability and distinct
+cache/history semantics; an older same-version native wheel is not sufficient.
+The alias followup `45fd6ec` and
+[snapshot constructor repair](../mode5/M5_12_SNAPSHOT_REPAIR.md) are separate,
+exact Python-only amendments. The snapshot repair passes138focused runtime
+cases and335guard/tooling cases. V6 core artifacts now have their own passing
+wheel/sdist installed proofs with unchanged exact native provenance: per kind,
+44feature,149intrabar/event and19pct/alias test cases; eight integrated families;
+five private fixed-mechanics controls; four representative regenerated reports.
+These are distinct units, not a combined market sample or a full platform proof.
+The frozen43source shards retain8,468testcase entries and43skips; all94initial
+failure/error entries have exact later passing results or explicit renamed
+historical-test dispositions. Initial failures are not rewritten as PASS.
+Final receipts and aggregate disposition belong to the
+[M5-12 phase](../../upgrade/implement.md#mode5-m5-12).
+
 Consumer/branch wiring now has a maintained
 [Mode 5/reporting/ACC roster](../mode5/M5_12_CONSUMER_MATRIX.md). Wiring tests
 are not final installed-artifact or six-row platform proof. A separate local
-896-MiB incremental resource plan plus 5-GiB reserve covers only a serial,
-one-consumer/no-native-build schedule; run the resource guard again before use.
+896-MiB incremental resource plan plus 5-GiB reserve originally covered only a
+serial, one-consumer/no-native-build schedule. That no-build restriction has
+been superseded only for the owner-approved narrow pct native rebuild, not for
+arbitrary builds or parallel environments. Recheck resources before any new
+consumer execution; do not treat the old forecast as a build-peak measurement.
+Registered consumer environments are terminal and retired; exact artifacts and
+receipts remain. The cleanup report explicitly retains failed operational gates.
 The [technical preflight receipt](../maintenance/PRE_M512_TECHNICAL_PREFLIGHT.md)
 records 731 distinct passing focused test IDs, exact cleanup and retained
 failures. This closes the four preflight items, not M512.01..06.
@@ -48,10 +80,11 @@ corrects financial Python/Rust behavior. Public endpoint signatures remain
 stable relative to pre-ACC-01 `8f7df9d`, but errors, metadata, clocks,
 fees/funding and attribution semantics have changed; this is not financial
 byte-invariance or an unchanged-native
-claim. Its local CPython 3.12 exact-binding proof is not final core wheel/sdist
-clean-install qualification. All earlier QMS/MET/source/installed/remote
+claim. Its earlier local CPython 3.12 exact-binding proof was not final core
+wheel/sdist qualification; V6 above supplies separate current-source consumers.
+All earlier QMS/MET/source/installed/remote
 receipts below are historical, bound to their recorded bytes, and do not
-certify current source. Exact final-source local artifacts/consumers, later
+certify current source. Local final-artifact records are now available; later
 separately approved CI/manylinux and public-index proofs remain required.
 
 ## Historical QMS Qualification
@@ -140,8 +173,9 @@ additive endpoint/result readers, permissions, privacy and matched cold-render
 costs. There are no new financial research/optimizer/model-fit runs or default
 changes. Existing economic findings retain their actual evidence and scope.
 This later source is **not** certified by the historical artifacts below.
-M5-12 remains unstarted pending reviewed entry; its exact new source/member/
-installed-consumer receipts must precede separately approved CI/publication.
+At that reporting seal, M5-12 had not started. It is now in local qualification;
+its exact new source/member/installed-consumer receipts must precede separately
+approved CI/publication.
 
 **Historical MET-03 reporting closure (2026-10-08):** the
 [copy/cost report](../metrics/MET03_COPY_COST_REPORT.md),
@@ -221,7 +255,8 @@ native rebuild or public artifact is certified by this source-only experiment.
 
 At that research handoff M5-11.7 and M5-12 awaited separate owner approval.
 M5-11.7 subsequently completed its reporting scope, and the parent research
-scope now has the explicit acceptance recorded above. M5-12 remains unstarted.
+scope now has the explicit acceptance recorded above. M5-12 subsequently received
+local qualification approval and is in progress as recorded above.
 Research completion is not a final-source installed-wheel, manylinux, remote
 matrix or public-index certificate; current release gates remain pending.
 No workflow, push, merge, tag, new artifact build or publication was initiated
@@ -241,12 +276,12 @@ this does not replace any final-source artifact/remote/public gate.
 
 ## Non-Publishing Qualification
 
-**Current operator path: preparation only, not a launch instruction.** Review
+**Current operator path: approved local qualification, not publication.** Review
 the current M5-12 phase, accepted research dispositions and ACC-01 migration
-contract, then obtain separate launch/resource admission before building or
-running consumers. Freeze the exact final core/native source and package
-inventory, including M5-11.14/15 and ACC-01; retain new isolated installed
-consumer, privacy, regression, cost and cleanup receipts. Later CI/manylinux
+contract, including the narrow pct repair `b4c4f93`; maintain the approved resource
+guards before each remaining action. Freeze the exact final core/native source
+and package inventory, including M5-11.14/15, ACC-01 and the pct repair; retain
+new isolated installed consumer, privacy, regression, cost and cleanup receipts. Later CI/manylinux
 and public-index gates still need their own approval and final-byte proofs.
 
 **Tooling boundary:** `tools.qms08_package --release-pair` selects canonical package
@@ -259,13 +294,17 @@ The broader
 [`qms08_gate.validate`](../../tools/qms08_gate.py) retains an unchanged-source
 guard against `559b4d1`. That historical verifier is not appropriate for
 certifying the final repaired payload, not grounds to revert ACC-01 or relax validation.
+The candidate workflow's ordinary package consumers call `qms08_gate.verify_pair`,
+not that historical `validate` entry. Current exact-source amendments and fresh
+artifact identities must include the approved pct repair before those proofs
+can certify the new payload. This is a static wiring observation, not CI PASS.
 The builder's four QMS lanes and the separate W3/execution consumer registries
 alone are not full M5-12 coverage. The new `m5_12_installed_preflight` binds
 current source, exact artifacts, staged public fixtures and actual installed
 module/native origins. Its maintained roster must actually execute on final
 artifacts before it is qualification. Current source/metadata guards and
 consumer wiring do not themselves establish installed proof.
-No such package gate was run or marked PASS in this audit.
+Local final-artifact consumers are in progress, not marked PASS by this update.
 
 ### Historical QMS Commands
 
@@ -324,13 +363,14 @@ bytes must qualify the explicit legacy zero-base policy, complete source/loaded
 native hashes and current installed/remote proofs. The original assessment and
 negative economics remain sealed; local correctness is not publication approval.
 
-The historical `.github/workflows/qms-candidate.yml` is configured for
+At the historical QMS handoff, `.github/workflows/qms-candidate.yml` was configured for
 W3/scalar/portfolio/package, repaired liquidation and specialized E06/E07/E08
 execution wheel/sdist proofs
 for Ubuntu 22.04/24.04
-x CPython 3.11/3.12/3.13. Its push trigger names `feat/meta-selection-samplers`,
-not the current `feat/mode5-diagnostics-first` branch; trigger and final-source
-consumer coverage need review before separately authorized CI. Permissions
+x CPython 3.11/3.12/3.13. Its then-current push trigger named
+`feat/meta-selection-samplers`. Current wiring includes
+`feat/mode5-diagnostics-first` and the maintained M5-12 consumer roster;
+final-source execution still requires separately authorized CI. Permissions
 are contents-read only. The execution proof covers mature intrabar
 intent/session (Numba/Rust),
 generic v2/v3 callbacks (Python/Rust), command tapes and reset-flat numeric W3.

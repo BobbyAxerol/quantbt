@@ -2,6 +2,28 @@
 
 ## Current Mode 5 Diagnostics-First Upgrade - Full-Development Decision Support
 
+**Current local package qualification (2026-10-22, UTC):** owner-approved
+[M5-12](#mode5-m5-12) is TECHNICALLY_VALID within registered local scope.
+The owner accepts all four reconciled operational exceptions, keeping original
+failed receipts and waiving no correctness/artifact/privacy gate. Final owner
+handoff review and remote/public qualification remain separate, not blanket PASS.
+Runtime`bf3f919` and exact v6 core wheel/sdist use the freshly certified
+native0.4.3 build. Both actual wheel and sdist consumers pass, per kind:
+44feature cases,149intrabar/event cases,19pct/alias cases,8integrated families,
+five external-alpha fixed-mechanics controls and four-view fresh-process
+reproduction. These are distinct evidence units, not independent sample N.
+The frozen43source shards retain8,468testcase entries:94initial failure/error
+entries have92exact later passing matches and2explicit historical-test rename
+dispositions;43registered skips remain skips. Original failures are preserved.
+Terminal cleanup recovers619,225,088bytes and verifies5,596protected pins.
+The [current summary](../docs/mode5/M5_12_LOCAL_QUALIFICATION_SUMMARY.md),
+[canonical report](../docs/mode5/M5_12_REPORT_R3.md),
+[handoff](../docs/mode5/evidence/mode5_upgrade_handoff-r3.json) and
+[cleanup exceptions](../docs/maintenance/M5_12_CLEANUP.md) bind scope and limits.
+Earlier preparation/research statements below retain their
+historical scope. No push, CI, merge, tag, publication or new private-alpha
+optimizer is authorized by this local execution.
+
 **Current account/metrics closure (2026-10-22, Asia/Saigon):**
 [ACC-01](#account-metrics-acc-01) is COMPLETE_LOCAL_CURRENT_CAPABILITY_CLOSURE.
 Owner approval2026-10-22(Asia/Saigon) launches the single corrective phase before M5-12,
@@ -30,8 +52,9 @@ Support is opt-in through the existing endpoints; researcher choice remains
 authoritative. Neither a measured local gain nor technical qualification changes
 defaults without separate owner approval. Parent research acceptance below is
 preserved. See the [local closeout](../docs/diagnostics/M5_11_15_IMPLEMENTATION_REPORT.md#local-closeout).
-M5-12 remains NOT_STARTED until its separate owner launch/resource admission;
-release and remote/public approval remain later.
+At that supplement's closeout M5-12 was NOT_STARTED; its later separately
+approved execution is tracked above. Release and remote/public approval remain
+separate.
 
 **Owner parent disposition (2026-10-21, UTC):** the owner explicitly approves
 the overall disposition of [parent M5-11](#mode5-m5-11). Current status is
@@ -43,8 +66,8 @@ acceptance adds no scientific superiority, independent OOS or deployment claim.
 See the [current scope decision](../docs/mode5/M5_11_RESEARCH_COVERAGE_DISPOSITION.md#owner-decision-before-m5-12)
 and [append-only approval record](../docs/mode5/evidence/m5-11-parent-disposition.json).
 This explicit decision supersedes earlier pending-parent labels below, without
-rewriting their historical receipts. M5-12 remains APPROVED_CONDITIONAL /
-NOT_STARTED, awaiting its separate launch decision and resource admission.
+rewriting their historical receipts. At parent acceptance M5-12 remained
+APPROVED_CONDITIONAL / NOT_STARTED; its separate launch is tracked above.
 No new tests/finance, build/install, CI, push/merge/tag or release is authorized
 or launched by this research-scope acceptance.
 
@@ -28075,7 +28098,7 @@ Every phase below inherits this mandatory resource registration/cleanup exit.
 | [M5-11.13](#mode5-m5-11-13) | Whole-procedure chronology, economics and final research disposition | Reviewed 11.10..12; owner-approved KEEP_BASELINE/no-new-finance branch | XMR-031..040 | COMPLETE_LOCAL_APPROVED_NO_NEW_FINANCE_SCOPE;031..036DEFERRED_APPROVED,037..040verified cold only; parent/package not accepted |
 | [M5-11.14](#mode5-m5-11-14) | Shared diagnostics to researcher choice, executable Mode 5 run pack and post-run reconciliation | Owner-approved local integration; retained evidence and bounded synthetic proof; no automatic hybrid adoption | M5H-001..016 | COMPLETE_LOCAL_REGISTERED_INTEGRATION_SCOPE;574distinct source tests;14synthetic proposals/23financial invocations including failed work; parent/package acceptance separate |
 | [M5-11.15](#mode5-m5-11-15) | Unified winner evidence/explanations and explicit archive donor execution | Owner-approved opt-in product supplement; preserve accepted parent scope and defaults | WQ-001..014 | COMPLETE_LOCAL_REGISTERED_SUPPORT_SCOPE; 716distinct PASS, actual donor proof36/66 work, no release |
-| [M5-12](#mode5-m5-12) | Local qualification/docs/handoff | M5-01..11 plus 11.4..11.15 reviewed dispositions and explicit parent acceptance | M5T-111..120 | APPROVED_CONDITIONAL / NOT_STARTED; 11.14/11.15 and parent acceptance complete; separate launch approval/resource admission pending |
+| [M5-12](#mode5-m5-12) | Local qualification/docs/handoff | M5-01..11 plus 11.4..11.15 reviewed dispositions and explicit parent acceptance | M5T-111..120 | TECHNICALLY_VALID_LOCAL_SCOPE; exact local wheel/sdist gates recorded; operational exceptions accepted without technical waiver; final owner review/CI/release separate |
 
 Respect the guide dependency graph. M5-05 and independent M5-06 preparation
 may overlap only by explicit owner approval after M5-04; M5-06 exit still needs
@@ -39613,10 +39636,23 @@ M5-12 remains separate and NOT_STARTED.
 <a id="mode5-m5-12"></a>
 ### Phase M5-12 - Local Package Qualification, Regression, Docs And Handoff
 
-**Status:** APPROVED_CONDITIONAL / NOT_STARTED; owner local implementation
+**Status:** TECHNICALLY_VALID_LOCAL_SCOPE; owner launch approval 2026-10-22 UTC.
+Exact V6 wheel/sdist local gates and terminal cleanup are recorded. Explicit
+owner disposition accepts all four reconciled operational exceptions, preserving
+failed receipts and waiving no technical gate. Final handoff review remains;
+original failed resource/custody gates are not relabeled. Read the
+[current summary](../docs/mode5/M5_12_LOCAL_QUALIFICATION_SUMMARY.md),
+[canonical JSON](../docs/mode5/evidence/m5-12-r3.json),
+[reproduced report](../docs/mode5/M5_12_REPORT_R3.md) and
+[cleanup](../docs/maintenance/M5_12_CLEANUP.md). Earlier execution checkpoints
+below retain their historical scope, not current pending consumer status.
+Current scope is local M512.01..06 only, without push/CI/merge/tag/publication.
+The registered serial budget is 896 MiB plus 5 GiB disk reserve; exact retained
+ACC native reuse requires full current Rust/source/capability/hash agreement.
+Earlier NOT_STARTED preparation notes below are historical. Owner local implementation
 approval2026-10-12(Asia/Saigon) is retained. Explicit parent research-scope
-acceptance on 2026-10-21 UTC is now recorded; the current message does not
-launch M5-12. Its separate launch decision and resource admission remain pending.
+acceptance on 2026-10-21 UTC is recorded; owner launch approval on 2026-10-22 UTC
+now starts local qualification under the registered serial resource budget.
 Entry dependencies include ML-09.C
 and M5-11.7.1..3reviewed dispositions under the2026-10-18ACTroadmap, plus the
 earlier M5-11.6/11.6.1research dispositions and the newly approved
@@ -39632,9 +39668,10 @@ locally closed; package qualification must use its final repaired source/native
 pair rather than reusing historical artifact certification.
 The original portfolio repair is preserved as an earlier bounded certificate,
 not proof that the later eighteen findings are repaired.
-Package gates remain NOT_RUN; parent acceptance is not installed-artifact
-qualification or permission to launch release workflows.
-**Preparation update (2026-10-22 UTC):** owner requested docs/API/privacy review
+At entry package gates were NOT_RUN; the current execution update below records
+actual progress. Parent acceptance is not installed-artifact qualification or
+permission to launch release workflows.
+**Historical preparation update (2026-10-22 UTC):** owner requested docs/API/privacy review
 before M5-12, not launch of its builds/consumers or remote gates. The
 [preparation checklist](../docs/mode5/M5_12_PREPARATION.md) maps all six work
 packages, current versus historical source/artifact proof, endpoint compatibility,
@@ -39682,6 +39719,86 @@ Final resource readback fits the unchanged serial budget; rerun admission before
 launch. M5-12 itself remains NOT_STARTED; no remote/release action occurred.
 M5-11.4/11.5 retain their separately approved local closure. This planning
 request does not launch M5-12 or any CI, release or publication.
+**Execution update (2026-10-22 UTC):** local M512.01..06 is owner-approved and
+registered in the private `m5-12/attempt-01` lane. Initial artifact attempts
+v1..3 built core archives offline and reused the exact ACC native wheel after
+full Rust/lock/config, artifact and extension-hash checks. These attempts are
+historical after the narrow parity amendment below. The first check caught two omitted
+public benchmark resources; explicit MANIFEST inclusion closes the packaging
+gap without financial-code changes. Wheel consumer attempt2 passes44actual
+cases,12proposals and retained winner/donor reconciliation. Attempt1's
+optimizer-telemetry double count and earlier build failure remain retained.
+Current regression, sdist consumer, reproduction, final handoff and cleanup
+remain in progress; no package/phase blanket PASS or remote/release is claimed.
+**Owner-approved parity amendment (2026-10-22 UTC):** regression reproduced
+prepared `pct_equity` returning requested weights while ACC-01 returns accepted
+contract quantities. Its native activity counter also used signal transitions
+instead of the accepted-position population. Repair only these output/count
+semantics and their history/cache/capability identities; preserve financial
+fills, equity, fees, sampler and Ridge. Reject stale binaries/history rather
+than relabel them. Preserve failed receipts; certify a fresh local native wheel
+and exact core artifacts after focused oracle/parity tests and source review.
+Before rebuilding, retire the terminal v3 consumer and reviewed inactive old
+Rust dependency caches, retaining binaries/artifacts/logs. Reuse the current
+release target, offline dependencies and one build job. Keep a serial peak
+incremental forecast of896MiB plus5GiB free reserve; native-only build sublane
+is capped at192MiB incremental and measured separately. No remote or publish
+authority is granted by this amendment.
+The correction is committed as `b4c4f93`:61focused native/provenance cases,
+203current-source/hygiene cases and7previously failing mature parity cases PASS.
+The current v4 exact core wheel/sdist and freshly built native pair supersede
+v3 for final certification. V4 wheel feature consumer44/44 and installed
+intrabar/event65+84 PASS with zero skips. Integrated consumers, final-source
+regression, sdist qualification, reproduction and closeout remain in progress.
+**Current alias followup:** `45fd6ec` makes existing `%_equity` and`pct_equity`
+spellings share accepted-quantity activity identity. Three focused alias cases
+PASS; Rust sources are unchanged from the approved fresh build. V5 replaces v4
+core artifacts without recompiling native. Its wheel gates above are complete;
+the19-case installed pct proof is also wired for each artifact kind in candidate
+CI, but no workflow has been dispatched. Retired historical consumers are
+verified from their retained exact artifacts/logs, not treated as live current
+installations. Current optional-dependency failure proof will use the actual
+serial consumers without Optuna, not a simulated import block or another env.
+**Owner-approved snapshot amendment (2026-10-22 UTC):** final regression shard23
+records733PASS/10FAIL: freshly constructed continuous stream/evaluation/retention
+objects inherit mandatory copy/pickle validation but omit constructor sealing.
+Add exactly the missing seal call after validation/freezing in all three classes;
+preserve array values, shape (including two-column margin), dtype and immutable
+storage, accounting, objective and Rust sources. Add direct/nested header-mutation
+and copy/pickle controls. No lazy seal or silently accepted mutated snapshot.
+Preserve failed receipts; seal an exact Python source amendment and rebuild core
+wheel/sdist only after serial cleanup/resource admission. The already rebuilt
+native may be reused only with exact whole-Rust/lock/config/extension provenance.
+Prior v5 installed results remain historical for their exact source. Final local
+qualification requires the corrected core artifacts, not a renamed v5 receipt.
+No optimizer/economic study, remote workflow or publication is authorized.
+**Final local execution checkpoint (2026-10-22 UTC):** source`bf3f919` adds
+the three missing snapshot constructor seals;138focused runtime cases and
+335guard/tooling cases PASS. V6 core wheel/sdist each complete the44feature,
+149intrabar/event,19pct/alias rosters with zero skips, eight integrated families,
+five external private fixed-mechanics controls and four representative
+fresh-process reports. Actual missing-Optuna controls pass for both kinds.
+Private mechanics explicitly use Python; no new native-strategy or economic
+claim is inferred. Both consumer environments are retired after host/hash
+review, with artifacts/staging/logs intact. Any rerun requires fresh installation.
+The43frozen source shards and scoped recoveries reconcile94original failure/
+error entries:92exact later passing IDs plus two explicitly renamed historical
+source-guard tests. Preserve all original8,468testcase entries and43skips;
+JUnit header subtests do not add independent tests or statistical support.
+Architecture/API/native-contract/source/artifact-privacy/static gates PASS.
+The all120-ID inventory maps evidence/dispositions, not120unconditional PASS.
+The canonical JSON/Markdown and final handoff distinguish twelve historical
+phase seals, approved research limits, current artifact proof and remote/public
+NOT_RUN. The final cost smoke uses actual installed financial owners and one
+warmed matched observation; it is not a p50/p95 or universal-speedup benchmark.
+Earlier V5 cost bootstrap is checkout-source timing, not installed timing.
+Resource readback and immutable retention reveal the operational exceptions
+in the cleanup report: disk reserve/fixture forecast, overlapping harness edit,
+early PID-view assurance and a102.48MiB retained payload versus96MiB target.
+No financial/artifact/privacy gate is waived. The owner explicitly accepts these
+four reconciled exceptions. Revision3 records that decision without rewriting
+earlier partial reports or rerunning finance. Final handoff review and any later
+remote six-row/manylinux/publication authority remain separate.
 **Goal:** deliver a reproducible privacy-safe local package and honest capability/
    scientific handoff covering the whole approved program before release approval.
 **Entry:** M5-01..11 including M5-11.4..11.15, M5-11.6.1 and ML-09.C reviewed
@@ -39736,7 +39853,7 @@ request does not launch M5-12 or any CI, release or publication.
    Final five-alpha qualification cannot be certified from synthetic-only
    helpers or 25 guide math assertions. Economic claims obey duration/OOS gates.
 **Deliverables:** local exact artifacts and consumers, final source/test/claim
-manifests, mode5_upgrade_handoff.json, updated docs/examples/migration/benchmarks,
+manifests, mode5_upgrade_handoff-r3.json, updated docs/examples/migration/benchmarks,
 all reports, privacy and cleanup receipts, owner capability/release checklist.
 **Exit Gate:** every claimed product meets guide 7.9/8.2 gates and mapped tests,
    artifact/source/privacy/reproduction/regression gates pass, all blocking
@@ -39753,6 +39870,11 @@ all reports, privacy and cleanup receipts, owner capability/release checklist.
    retain private evidence/oracles and old reproducible source/artifacts.
 
 ### Mode 5 Planning Verification And Next Approval
+
+**Historical planning receipt:** the following NOT_RUN/NOT_STARTED statements
+describe the original planning-only checkpoint, not current execution. The
+live phase map and M5-12 checkpoint above take precedence; sealed evidence is
+not rewritten.
 
 Only planning/link/privacy-ignore work is authorized in this change. All M5
 work packages, M5T-001..120 runtime/market/artifact gates and EH-01..12 economic

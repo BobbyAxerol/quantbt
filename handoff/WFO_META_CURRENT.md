@@ -1,23 +1,45 @@
 # WFO Meta Current Handoff
 
-## Current Package Preparation
+## Current Local Package Qualification
 
 2026-10-22 UTC: the current branch is `feat/mode5-diagnostics-first`; prepared
 pair remains core 1.1.2 / native 0.4.3. Parent M5-11 research scope was accepted;
-M5-11.14/15 and ACC-01 are locally closed. M5-12 remains
-APPROVED_CONDITIONAL / NOT_STARTED, with final package gates NOT_RUN.
+M5-11.14/15 and ACC-01 are locally closed. M5-12 is now
+**TECHNICALLY_VALID** within registered local scope. Exact V6 wheel/sdist
+installed-consumer gates pass; operational exceptions have explicit owner
+acceptance without technical waiver. Final handoff review remains separate.
+See the [current summary](../docs/mode5/M5_12_LOCAL_QUALIFICATION_SUMMARY.md),
+[canonical report](../docs/mode5/M5_12_REPORT_R3.md),
+[final handoff](../docs/mode5/evidence/mode5_upgrade_handoff-r3.json) and
+[cleanup](../docs/maintenance/M5_12_CLEANUP.md).
 Read the [preparation checklist](../docs/mode5/M5_12_PREPARATION.md),
 [current release handoff](../docs/meta_selection/RELEASE_HANDOFF.md) and
 [ACC-01 migration](../docs/portfolio_review/ACC01_CONFIGURATION_AND_MIGRATION.md).
 Focused static docs/API/privacy checks are not full qualification, CI or
 publication approval. No new financial study or optimizer is launched here.
 
-The later approved technical preflight extracts cold option validation and
+Current qualified runtime source is `bf3f919`. The earlier `b4c4f93`
+[accepted-position/activity repair](../docs/mode5/M5_12_PCT_ACTIVITY_REPAIR.md)
+records the approved fresh native build and **61 focused source/native tests
+PASS**. Pct positions/activity use accepted contract quantities and distinct
+compatibility identities; an old same-version native wheel is not sufficient.
+The earlier no-native-build policy is superseded only for this narrow rebuild,
+not arbitrary builds or concurrent environments. Follow the
+[M5-12 phase plan](../upgrade/implement.md#mode5-m5-12) for the remaining local
+artifact consumers and final disposition. No push, CI/workflow, merge, tag or
+publication is authorized.
+The alias followup `45fd6ec` and
+[continuous snapshot repair](../docs/mode5/M5_12_SNAPSHOT_REPAIR.md) are separate
+Python-only amendments. V6 core wheel/sdist have qualified with the exact retained
+native build; the older V5 receipts remain source-bound history.
+
+The earlier approved technical preflight extracted cold option validation and
 portfolio reports (`77af917`), keeping the repaired account semantics and stable
-API. Current source guard admits only its exact reviewed bytes; original
-financial-change history is retained. The maintained Mode 5/reporting/ACC
-installed roster and updated workflow filters still need actual final-artifact
-execution in M5-12; no workflow is dispatched by this preparation.
+API. Each source guard admits only its exact reviewed bytes; that extraction's
+receipt remains separate from the later pct repair. Original financial-change
+history is retained. The maintained Mode 5/reporting/ACC
+installed roster and updated workflow filters cover the recorded local final-artifact
+qualification; no workflow is dispatched by this docs update.
 The [technical closure receipt](../docs/maintenance/PRE_M512_TECHNICAL_PREFLIGHT.md)
 records the passing source tests and current serial resource admission.
 
@@ -26,7 +48,9 @@ stable endpoint signatures against pre-ACC `8f7df9d` do not imply unchanged
 economics or compatible artifacts. Earlier receipts/claims below remain
 historical. The root API inventory is refreshed separately, with no financial
 runtime modification. Exact source/pair/artifacts and installed consumers must
-be qualified before separately approved remote/public gates.
+be qualified for the later pct repair as well; V6 records that qualification before
+separately approved remote/public gates. Earlier source counts and receipts do
+not certify changed bytes.
 
 Ridge V1 remains the baseline; ML research did not activate a new default
 learner. Diagnostics/cross-mode donors remain explicit researcher choices,

@@ -15,16 +15,21 @@ scope acceptance; final-source package/CI/publication still require new gates.
 
 ## Current Readiness
 
-**2026-10-22: M5-12 remains APPROVED_CONDITIONAL / NOT_STARTED; package gates
-are NOT_RUN, not PASS.** The [parent scope ledger](../mode5/M5_11_RESEARCH_COVERAGE_DISPOSITION.md)
-records owner acceptance on 2026-10-21 UTC, not launch authority. The
-[current phase](../../upgrade/implement.md#mode5-m5-12) still requires a separate
-launch decision and resource admission, exact final-source local wheel/sdist
-and native-pair qualification, isolated installed consumers and retained
-privacy/regression/cost/cleanup receipts. CI/manylinux and public-index proofs
+**2026-10-22 UTC: M5-12 is TECHNICALLY_VALID within registered local scope.
+Exact V6 wheel/sdist consumers pass; operational exceptions have explicit owner
+acceptance without technical waiver. Final owner handoff review remains.**
+The [current summary](../mode5/M5_12_LOCAL_QUALIFICATION_SUMMARY.md),
+[canonical report](../mode5/M5_12_REPORT_R3.md) and
+[cleanup](../maintenance/M5_12_CLEANUP.md) record the current scope, without
+relabelling historical reporting receipts or inferring release permission.
+The [parent scope ledger](../mode5/M5_11_RESEARCH_COVERAGE_DISPOSITION.md)
+retains its 2026-10-21 UTC research acceptance separately. The
+[current phase](../../upgrade/implement.md#mode5-m5-12) records local
+exact-source wheel/sdist and native-pair qualification, isolated installed
+consumers and retained privacy/regression/cost/cleanup receipts. CI/manylinux and public-index proofs
 remain later, separately approved gates.
 
-The approved pre-M5-12 technical extraction now qualifies source `77af917`
+The approved pre-M5-12 technical extraction qualified source `77af917`
 through a separate exact-byte amendment: option validation and portfolio reports
 move to focused helpers, retaining original engine AST, formulas and endpoint
 signatures. The [consumer roster](../mode5/M5_12_CONSUMER_MATRIX.md) and current
@@ -32,6 +37,22 @@ source guard are wired but do not change these historical reporting receipts
 or claim a new installed/platform PASS.
 See the [technical preflight receipt](../maintenance/PRE_M512_TECHNICAL_PREFLIGHT.md)
 for the actual source tests, resource/cleanup scope and remaining artifact gates.
+
+The later narrow repair source is `b4c4f93`; its
+[accepted-position/activity report](../mode5/M5_12_PCT_ACTIVITY_REPAIR.md)
+records a fresh native build and **61 focused source/native tests PASS**.
+Pct activity uses initial symbol states plus accepted quantity changes, not
+requested-signal transitions or fills. Old same-version native binaries and old
+pct history/cache identities do not qualify the repaired contract. The earlier
+no-native-build policy is superseded only for this approved narrow rebuild.
+Final artifact consumers have completed; their aggregate disposition follows
+the [phase plan](../../upgrade/implement.md#mode5-m5-12), not these historical
+reporting counts.
+Current runtime source is `bf3f919`, after the exact `45fd6ec` alias followup
+and [continuous snapshot constructor repair](../mode5/M5_12_SNAPSHOT_REPAIR.md).
+These Python-only amendments preserve original observations and Rust sources.
+V6 wheel and sdist consumers separately qualify copy/pickle on actual retained
+calibration accounts; V5 results do not certify that repaired artifact.
 
 Final [ACC-01 runtime `70fe9f7`](../portfolio_review/ACC01_REPORT.md) corrects
 financial Python/Rust behavior. Public endpoint signatures remain stable
@@ -49,8 +70,8 @@ Relative to `v1.1.1`, the API also adds `research_report`, optional
 These additive API differences are distinct from ACC-01's behavioral repairs;
 static signature/inventory checks do not qualify installed artifacts.
 
-The local CPython 3.12 native exact-binding proof does not certify primary
-installed native0.4.2, a final core wheel/sdist clean install or another platform.
+The current local CPython 3.12 V6 wheel/sdist consumers qualify their exact
+candidate pair, not primary installed native0.4.2 or another platform.
 All earlier QMS/MET, reporting, research, source/installed and remote receipts
 retain their recorded bytes and scope; none certify later changed source.
 Cold historical readbacks do not rerun or back-repair economic evidence.
@@ -65,7 +86,7 @@ rejections of Mode 5, meta selection or cross-mode research.
 
 These are reporting/ownership boundaries, not a newly executed final-source
 route matrix. "Original" means the retained run and its source-bound witnesses;
-new execution uses the ACC-01 contract. A report never rewrites old accounts to
+new execution uses ACC-01 and the applicable later pct repair. A report never rewrites old accounts to
 make them agree with repaired financial semantics.
 
 | Surface | Public Entry | Required Evidence / Scope |
@@ -159,24 +180,24 @@ qualification. No old accounting or scientific finding is overwritten.
 The reporting subphases completed their source-qualified scopes; original
 positive/negative/insufficient economic findings remain preserved, not
 revalidated under ACC-01. M5-11.14/15 source integration and ACC-01 local closure
-must all be included in the final payload. M5-12 remains unstarted pending
-separate launch approval and resource admission; this docs-only audit does not
-launch it or establish full package-gate PASS.
+must all be included in the final payload, together with the narrow pct repair.
+M5-12 local qualification is now owner-approved and in progress; this docs-only
+update records that authorization but does not establish full package-gate PASS.
 
 The [release handoff tooling boundary](../meta_selection/RELEASE_HANDOFF.md#non-publishing-qualification)
 is a prerequisite to choosing commands: `tools.qms08_package --release-pair`
-and the legacy QMS W3/execution tools are historical compatibility tooling,
-not ready-to-run final M5-12 qualification. Their legacy source guards are
-stale for the final repaired payload and their fixed consumer sets do not
-establish full Mode 5/reporting/ACC-01 coverage. Qualify exact-current-source
-guards, member manifests, native binding and consumer wiring first; do not
+and the QMS W3/execution consumers provide bounded artifact/compatibility
+checks, not complete M5-12 qualification on their own. Ordinary package consumers
+call `qms08_gate.verify_pair`; the historical unchanged-finance rejection belongs
+to its separate `validate` entry, not that workflow path. Exact-current-source
+amendments, member manifests and fresh native binding must include `b4c4f93`; do not
 bypass guards, revert repairs or relabel old PASS receipts. Generated-inventory
 and scoped-guard refreshes are preparation, not full package or installed proof.
 
-1. After separate launch/resource admission and tooling qualification, freeze
+1. Under the approved local launch and maintained resource admission, freeze
    final tracked source and candidate core/native pair under the approved
    versioning policy. Include ACC-01 runtime `70fe9f7` and all later accepted
-   source; existing historical artifacts certify earlier bytes only.
+   source, including `b4c4f93`; existing historical artifacts certify earlier bytes only.
 2. Build exact wheel/sdist, verify all package members against that source,
    private alpha/evidence exclusion and exact repaired native compatibility.
 3. Run isolated installed consumers for existing and new public paths/examples;

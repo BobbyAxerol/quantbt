@@ -16,6 +16,15 @@ with [reporting rules](../../upgrade/QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_
 and [migration mapping](../../upgrade/QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#appendix-e).
 Their guide hash remains pinned; no historical receipt is edited.
 
+The main runner has since supplied the [canonical current report](M5_12_REPORT_R3.md),
+[120-row reconciliation](evidence/m5-12-traceability-r3.json) and
+[final handoff](evidence/mode5_upgrade_handoff-r3.json). Their current status is
+TECHNICALLY_VALID within local scope after explicit operational disposition;
+final owner handoff review remains separate, and
+the [summary](M5_12_LOCAL_QUALIFICATION_SUMMARY.md) explains the actual local
+wheel/sdist results and explicit limits. The sidecar's no-certificate fields
+and historical assertions below retain their original meaning.
+
 ## Reusable Reader
 
 [The tool](../../tools/m5_12_traceability.py) emits a JSON inventory containing
@@ -97,7 +106,7 @@ are historical summaries, not retroactively rewritten canonical D.2 reports.
 | M5-09 | [Governance](M5_09_DOSSIER_REPORT.md) | `m5-09.json` | Dossier/plan/override governance; no universal automatic recipe router |
 | M5-10 | [Public runtime](M5_10_PUBLIC_RUNTIME_REPORT.md) | `m5-10.json` | Actual historical public runtime and installed pair; not current ACC-repaired artifacts |
 | M5-11 | [Original economics](M5_11_ECONOMIC_REPORT.md) and [accepted scope ledger](M5_11_RESEARCH_COVERAGE_DISPOSITION.md) | `m5-11.json` plus `m5-11-parent-disposition.json` | Original finite pilot and later registered research are distinct; parent accepted with retained limitations |
-| M5-12 | Main runner's new local qualification Markdown | Main runner's new canonical D.2 JSON | Must be supplied from exact current source/artifacts; this sidecar does not fill its execution fields |
+| M5-12 | [Current local report](M5_12_REPORT_R3.md) | [Canonical D.2 JSON](evidence/m5-12-r3.json) | Exact local wheel/sdist records supplied separately; this sidecar does not certify them or replace pending owner review |
 
 The [accepted parent disposition](evidence/m5-11-parent-disposition.json) is
 `ACCEPT_COMPLETED_REGISTERED_SCOPES_WITH_LIMITATIONS`, not a waiver of final

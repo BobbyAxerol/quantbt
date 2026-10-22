@@ -1,7 +1,12 @@
 # M5-12 Installed Consumer Wiring
 
-Status: implemented wiring, NOT_RUN. No artifact/platform/economic qualification
-or M5-12 launch is asserted. No default, workflow, build or publication is activated.
+Status: wheel and sdist local consumer executions are complete and passing.
+The [current summary](M5_12_LOCAL_QUALIFICATION_SUMMARY.md) and
+[canonical report](M5_12_REPORT_R3.md) retain exact hashes and separate evidence
+units. Phase status is TECHNICALLY_VALID within local scope after explicit owner
+acceptance of the reconciled operational exceptions; final review remains.
+Current local receipts, historical wiring and later remote qualification remain
+separate. No default, workflow dispatch or publication is activated.
 
 After separate admission, `tools.m5_12_installed_preflight --lane <cp-lane>`
 consumes the existing `qms08_package --release-pair` proof and its `pair` and
@@ -13,9 +18,12 @@ plus its matching directory. A single-kind receipt explicitly lists its kind,
 `proof_scope=single_artifact_consumer` and `complete_pair=false`; it cannot
 certify the pair. Callers may retire only reviewed terminal environments between
 separately admitted installs; this tool neither installs nor removes them.
-Local M5-12 may instead supply `quantbt.m5_12.local_artifacts.v1`, verified by
-the current source guard, exact packaging inputs and unchanged-Rust ACC native
-artifact provenance. This is not an old QMS installed certificate. A failed
+Current local M5-12 supplies `quantbt.m5_12.local_artifacts.v2`, verified by
+the current source guard, exact packaging inputs and the approved fresh native
+build receipt. The Python-only alias followup reuses that exact native build
+after whole-Rust source/lock/config checks, not merely a version match.
+The initial v1 ACC-reuse proof is historical after the parity repair.
+This is not an old QMS installed certificate. A failed
 consumer remains retained; `--attempt N` writes a fresh nonce and separate
 append-only attempt without changing the 12-proposal cap.
 
@@ -71,3 +79,52 @@ Fresh nonces bind child receipts to this invocation. Existing output or failed
 scratch is rejected, never reused as PASS. Temporary harness/JIT/pytest scratch
 is recorded for caller-reviewed cleanup; logs and artifact receipts are retained.
 The Ubuntu 22.04/24.04 x CPython 3.11/3.12/3.13 matrix remains separately gated.
+
+## Separate Pct And Alias Proof
+
+`tools.m5_12_pct_installed --lane <cp-lane> --kind pair|sdist` executes19
+additional cases from the current pct-equity and alias modules. It does not
+change the44-case roster or its12-proposal budget. Pct controls cover accepted
+quantities, rejected entry, ignored first bar, liquidation, score-only activity,
+public WFO parity and the two supported spellings' activity-contract identity.
+These cases contain their own bounded synthetic WFO calls, billed separately.
+
+The tool accepts only the ordinary exact release-pair proof or current v2 local
+provenance. It requires the accepted-quantity native capability, hashes all
+loaded package/resources and the exact extension, requires19passed/zero skips,
+and seals each artifact kind separately. An old same-version binary is not
+accepted. Candidate CI is wired for both kinds; wiring is not a workflow run.
+
+The full local matrix also includes the separate149-case intrabar/event proof,
+eight integrated sampler/continuation/domain families, five external private
+alpha mechanics controls and fresh-process report reconstruction. These are
+different evidence units; do not add them into an economic sample count or
+infer current certification from an older receipt.
+
+The same bounded calibration case also checks copy/deepcopy/pickle4/pickle5
+on actual baseline/challenger continuous account retention and direct two-column
+margin snapshots. It preserves the44-case/12-proposal cap: no additional search
+or financial execution. Missing or incomplete roundtrip telemetry is rejected.
+The [snapshot repair](M5_12_SNAPSHOT_REPAIR.md) requires corrected V6 core
+artifacts; the exact unchanged fresh native build is checked independently.
+
+## Recorded V6 Local Results
+
+| Evidence Unit | Wheel Consumer | Sdist Consumer |
+| --- | ---: | ---: |
+| Feature test cases | 44 passed, zero skips | 44 passed, zero skips |
+| Intrabar/event test cases | 149 passed, zero skips | 149 passed, zero skips |
+| Pct/alias test cases | 19 passed, zero skips | 19 passed, zero skips |
+| Integrated consumer families | 8 complete | 8 complete |
+| External private fixed-mechanics controls | 5 complete | 5 complete |
+| Fresh-process representative report views | 4 reproduced | 4 reproduced |
+
+Both actual absent-Optuna controls pass: fixed-account execution works without
+the optional optimizer; requesting optimization raises the expected explicit
+ImportError. These are real serial installations outside checkout using V6
+core artifacts and the exact approved native extension, not source-path tests.
+Each single-kind receipt still says complete_pair=false; the final handoff
+reconciles both kinds rather than rewriting those receipts. Private controls
+explicitly request Python and are not evidence of native strategy execution.
+The four reproduced views do not mean twelve historical reports were rebuilt.
+Both consumer environments are now retired; artifacts, logs and receipts remain.
