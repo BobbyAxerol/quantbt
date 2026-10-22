@@ -7,6 +7,13 @@ failed runs. It is not a financial, empirical, remote or release certificate.
 The [unified plan](../upgrade/implement.md#mandatory-buildtest-cleanup-gate) and
 [workspace rules](../AGENTS.md#build-and-test-cleanup) govern this procedure.
 
+Latest current-capability corrective cleanup:
+[ACC-01](maintenance/ACC01_CLEANUP.md) removes only the registered inactive
+scratch, verifies106retained files and464current source files, and observes
+30.35MiB free-space recovery. All failed/passing evidence, exact wheels,
+historical receipts, primary environment and shared caches remain. This is
+not package or public-release qualification.
+
 Latest shared executable-handoff cleanup:
 [M5-11.14](maintenance/M5_11_14_CLEANUP.md) removes the exact inactive registered
 fixture/JIT scratch root, preserves110protected files and all failed/passing

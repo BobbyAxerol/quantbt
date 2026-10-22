@@ -119,6 +119,31 @@ See [legacy inventory](INVENTORY.md) for every existing key.
 
 ## Retention And Migration
 
+### ACC-01 Addendum
+
+The [ACC-01 migration guide](../portfolio_review/ACC01_CONFIGURATION_AND_MIGRATION.md#reporting-and-snapshot-migration)
+links the source controls for bankruptcy, immutable headers and overflow.
+For `[100, 0, 0]`, an explicit period request preserves total return -1,
+drawdown 1 and final equity 0; returns requiring a nonpositive prior-equity
+denominator are `undefined` with null values and a reason. Counts/provenance
+remain, and independently witnessed ledger/execution groups survive. Missing
+witnesses remain `unavailable`. Low-level return derivation still raises typed
+`UndefinedPeriodReturn`; malformed scope, clock and identity errors still fail.
+
+Snapshots validate ndarray dtype/shape/strides/storage headers before reduction
+and cache access; changed headers raise rather than returning a stale identity.
+Construct a new snapshot to change observations. Warm typed cache hits check
+headers without rescanning content; public mutable-result snapshot/hash costs
+remain as described below. Copy/pickle reconstruction revalidates identities.
+
+Finite ledger inputs whose aggregates overflow produce metric-level `invalid`
+values and JSON nulls with `numeric_issues` provenance. Unaffected population
+counts, costs and representable statistics remain; an overflowed denominator
+does not manufacture a zero ratio. These are completed-result reporting fixes,
+not external accounting or full-package qualification.
+
+### Existing Retention Contract
+
 Python is the reporting reducer default. `backend="numba"` is explicit and has
 first-call compilation/import RSS costs; it is not automatically faster for small
 ledgers. Rust native metric V2 is preserved, not claimed as a Reporting V1 reducer.

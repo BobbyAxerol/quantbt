@@ -60,6 +60,17 @@ not a substitute for final-source integrated remote/public release gates.
 
 ## Reporting Local Closure
 
+**ACC-01 current-capability repair (2026-10-22):** the
+[account/configuration/metrics report](../portfolio_review/ACC01_REPORT.md) and
+[effective-config migration matrix](../portfolio_review/ACC01_CONFIGURATION_AND_MIGRATION.md)
+describe runtime `70fe9f7`, with a
+[new exact-source amendment](../portfolio_review/evidence/acc01-final-source-amendment.json).
+Earlier financial-invariance, economic and installed-artifact receipts remain
+historical. A new local CPython3.12 native binding covers the changed Rust
+attribution output; it does not certify the primary installed native0.4.2,
+core wheel/sdist clean installation or another platform. M5-12 must qualify
+the exact final repaired source/artifact pair; no publication is authorized here.
+
 **Mode 5 product supplement:** the opt-in
 [winner qualification and explicit archive donor contract](../diagnostics/MODE5_WINNER_QUALIFICATION.md)
 extends current source beyond historical receipts below. Final M5-12 packaging

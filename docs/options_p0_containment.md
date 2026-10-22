@@ -122,6 +122,26 @@ It must not be used as exchange settlement evidence.
 
 ## Endpoint Configuration
 
+See the [ACC-01 configuration matrix and migration guide](portfolio_review/ACC01_CONFIGURATION_AND_MIGRATION.md)
+for the exact generic-field rejection/default table and source test references.
+Only generic account capital and `margin_buffer` affect the option account;
+use `reporting_currency`, `option_execution` and `option_margin` for domain
+behavior. Unsupported non-default generic account/execution fields raise
+`OPTION_GENERIC_ACCOUNT_CONFIG_UNSUPPORTED` or
+`OPTION_GENERIC_EXECUTION_CONFIG_UNSUPPORTED`. Unsupported endpoint-only
+multiplier/quantity/funding/clock controls raise
+`OPTION_GENERIC_ENDPOINT_CONFIG_UNSUPPORTED`; conflicting financial overrides
+alongside a complete `option_config` raise `OPTION_CONFIG_OVERRIDE_CONFLICT`.
+
+Opening wallet value must match declared capital in reporting currency with
+relative tolerance `1e-10` and absolute tolerance `1e-8`. Omitted/empty balances
+use capital in reporting currency. Applied fees retain their original currency
+and conversion witness; common fees use reporting currency at effective fill
+time, not quote time. Expiry realized PnL retires remaining entry basis, while
+payoff cashflow and fees stay separate; mixed currencies remain separate ledger
+components. Fee equality in `accounting_reconciliation` is explicitly not full
+account reconciliation. None of these repairs adds a new execution/risk model.
+
 ```python
 endpoint = QuantBTEndpoint.options(
     initial_capital=100_000,

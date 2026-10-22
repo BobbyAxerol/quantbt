@@ -1,11 +1,14 @@
 # ACC-01 Detailed Repair And Verification Guide
 
-Date: 2026-10-22, Asia/Saigon. Status: **PROPOSED / AWAITING OWNER APPROVAL**.
+Date: 2026-10-22, Asia/Saigon. Status: **COMPLETE_LOCAL_CURRENT_CAPABILITY_CLOSURE**.
 This is the detailed guide for the single
 [ACC-01 phase](../../upgrade/implement.md#account-metrics-acc-01), not additional
-phases or authorization to change runtime. It covers the
+phases. The owner approved this implementation in chat. It covers the
 [first follow-up](../PORTFOLIO_ACCOUNT_FOLLOWUP_2026-10-21.md) and
-[expanded review](EXPANDED_REVIEW_2026-10-22.md): F01-F18, all currently OPEN.
+[expanded review](EXPANDED_REVIEW_2026-10-22.md): F01-F18. The
+[implementation report](ACC01_REPORT.md) records repairs, final-source tests,
+measured overhead and terminal cleanup. Original planning requirements below
+remain the approved contract; they are not new pending launch requests.
 Original [repair](REPAIR_REPORT.md) and review receipts remain historical.
 
 ## Goal And Boundaries

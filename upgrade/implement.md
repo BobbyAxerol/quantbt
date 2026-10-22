@@ -2,9 +2,9 @@
 
 ## Current Mode 5 Diagnostics-First Upgrade - Full-Development Decision Support
 
-**Current account/metrics closure proposal (2026-10-22, Asia/Saigon):**
-[ACC-01](#account-metrics-acc-01) is PLANNED_AWAITING_OWNER_APPROVAL /
-IMPLEMENTATION_NOT_STARTED. It is one bounded corrective phase before M5-12,
+**Current account/metrics closure (2026-10-22, Asia/Saigon):**
+[ACC-01](#account-metrics-acc-01) is COMPLETE_LOCAL_CURRENT_CAPABILITY_CLOSURE.
+Owner approval2026-10-22(Asia/Saigon) launches the single corrective phase before M5-12,
 covering twelve follow-up findings plus six newly reproduced groups. The
 [expanded review](../docs/portfolio_review/EXPANDED_REVIEW_2026-10-22.md) records
 22 additional tiny synthetic controls, including two rejected hypotheses;
@@ -12,9 +12,14 @@ these are not passing repair tests. The
 [detailed implementation/test guide](../docs/portfolio_review/CURRENT_CAPABILITY_REPAIR_GUIDE.md)
 defines current-capability scope, F01-F18, W00-W08, T01-T18 and final gates.
 The original repair receipt and accepted parent research scope remain intact.
-Only review, evidence and planning were performed: production/runtime, version,
-native artifacts, CI and release are unchanged. ACC-01 needs owner execution
-approval; M5-12 additionally requires this repair's closure and its own launch.
+All eighteen findings and two sibling admission gaps are repaired at runtime
+source `70fe9f7`;2,609distinct latest Python cases and26Rust unit cases PASS,
+with six optional Nautilus skips. The
+[closure report](../docs/portfolio_review/ACC01_REPORT.md),
+[performance disclosure](../docs/portfolio_review/ACC01_PERFORMANCE.md) and
+[terminal cleanup](../docs/maintenance/ACC01_CLEANUP.md) retain source/artifact
+boundaries and failed evidence. Version, CI and release remain separate;
+M5-12 requires its own launch and exact-package qualification.
 
 **Current product supplement (2026-10-21, UTC):** the owner-approved
 [M5-11.15](#mode5-m5-11-15) is COMPLETE_LOCAL_REGISTERED_SUPPORT_SCOPE:
@@ -37049,7 +37054,7 @@ bounded subphases, not another open-ended research program.
 | 6 | [M5-11.10..11.13](#mode45-cross-mode-roadmap) | Cross-mode static robustness and prefix-safe assistance | Individually completed registered scopes; 11.13 retains baseline with approved no-new-finance disposition, not hybrid promotion |
 | 7 | [M5-11.14](#mode5-m5-11-14) | Shared diagnostics, researcher worksheet, executable Mode 5 handoff and post-run reconciliation | COMPLETE_LOCAL_REGISTERED_INTEGRATION_SCOPE; owner execution approved; source-only qualification and cleanup complete |
 | 8 | Parent M5-11 disposition | Accept completed scopes and explicit research limits before packaging | COMPLETE_OWNER_ACCEPTED_RESEARCH_SCOPE; explicit owner acceptance on 2026-10-21 UTC, not automatic from test PASS |
-| 9 | [ACC-01](#account-metrics-acc-01) | Current-capability account/config/metrics corrective closure | PLANNED_AWAITING_OWNER_APPROVAL; one phase for F01-F18, no runtime implementation yet |
+| 9 | [ACC-01](#account-metrics-acc-01) | Current-capability account/config/metrics corrective closure | COMPLETE_LOCAL_CURRENT_CAPABILITY_CLOSURE; F01-F18 plus sibling admission, source70fe9f7, local exact native proof; package/release separate |
 | 10 | [M5-12](#mode5-m5-12) | Exact local package/installed qualification | Existing conditional approval; accepted parent, completed support supplements, ACC-01 closure and separate launch review required |
 | Later | Remote / release | Final-source CI, owner release scope, publication/public proof | Separate owner approval; no workflow/push/tag/upload now |
 
@@ -39418,12 +39423,18 @@ for this source.
 <a id="account-metrics-acc-01"></a>
 ### Phase ACC-01 - Current-Capability Account, Configuration And Metrics Closure
 
-**Status:** PLANNED_AWAITING_OWNER_APPROVAL / IMPLEMENTATION_NOT_STARTED.
-Owner request2026-10-22(Asia/Saigon) authorizes broader read-only attempts and
-one detailed corrective phase for review. It does not authorize runtime repair,
-new account models, a version bump, CI or release. W00-W08 below are internal
+**Status:** COMPLETE_LOCAL_CURRENT_CAPABILITY_CLOSURE.
+Owner approval2026-10-22(Asia/Saigon) authorizes implementing this bounded
+corrective phase. The preceding planning/reproduction receipts remain historical.
+New account models, a version bump, CI or release are outside this approval. W00-W08 are internal
 work packages of this single phase, not additional phases needing individual
-launches. Current phase-specific implementation/test gates remain NOT_RUN.
+launches. W00registration records source `8f7df9d`, protected hashes, matched
+reporting baseline and resource/cleanup caps. W00-W08 are complete within this
+bounded contract; final runtime source is `70fe9f7`. See the
+[closure report](../docs/portfolio_review/ACC01_REPORT.md),
+[configuration matrix](../docs/portfolio_review/ACC01_CONFIGURATION_AND_MIGRATION.md)
+and [cleanup](../docs/maintenance/ACC01_CLEANUP.md). Source-only qualification
+and local CPython3.12 native execution are not whole-package/public certification.
 
 **Goal:** close all eighteen reproduced current-capability findings, making
 effective configuration, accepted financial execution, event time/currency,
@@ -39462,7 +39473,11 @@ sampler, Ridge, selector, scientific gate or private alpha changes. No optimizer
 or long economic rerun; corrected defective accounting must be disclosed, not
 forced to preserve its previous wrong score. No new backend promotion.
 
-**Findings / Required Repair Map:** all rows OPEN pending implementation.
+**Findings / Required Repair Map:** F01-F18 CLOSED within current capability.
+The [closure table](../docs/portfolio_review/ACC01_REPORT.md#finding-closure-map)
+maps each finding to independent controls. Final sibling checks also close
+inactive event execution flags and generic option endpoint controls; no new
+financial model was introduced.
 The guide contains exact source owners, arithmetic and expanded test variants.
 
 | ID / severity | Confirmed observation | Repair/test obligation |
@@ -39572,7 +39587,7 @@ No push/merge/tag/version/CI/PyPI action without a later explicit approval.
 retain controls and receipts; do not re-enable invalid configurations silently.
 M5-12 will separately qualify the exact accepted core/native package pair.
 
-**Planning Verification (2026-10-22, Asia/Saigon):** one ACC-01 heading before
+**Historical Planning Verification (2026-10-22, Asia/Saigon):** one ACC-01 heading before
 M5-12; fourteen required phase fields, eighteen mapped findings/tests and nine
 internal work packages verified. Plan/guide/review local links and anchors PASS;
 `git diff --check` PASS. The 22 additional synthetic controls establish six new
@@ -39580,6 +39595,20 @@ findings and reject two suspected issues; they do not constitute repair PASS.
 Protected prior receipts/artifact and production/release sources are unchanged.
 No scratch was created, no service/cache/environment was removed, and the
 owner's unrelated plan hunk/spec remain intact. Implementation awaits approval.
+
+**Local Exit (2026-10-22, Asia/Saigon):**2,609distinct latest Python results PASS;
+26Rust execution unit results PASS; six Nautilus optional integrations skipped,
+not counted as PASS. Exact current qualification covers464source files with
+34reviewed source amendments; historical receipts remain immutable. Fresh
+native wheel/binding hashes and supported-route proof are recorded in the
+[report](../docs/portfolio_review/ACC01_REPORT.md). Source guard negatives,
+configuration, accounting/time/currency, reporting/cache/overflow and mature
+WFO/future-mutation controls pass. Matched measurements retain adverse samples
+and investigate triggered overhead; no universal speed claim. Cleanup removes
+only882owned scratch files, verifies106retained hashes and observes30.35MiB
+available-space improvement. Owner work, versions, environments, old/new wheels
+and failed/scientific evidence remain. No push/CI/merge/tag/publication occurred.
+M5-12 remains separate and NOT_STARTED.
 
 <a id="mode5-m5-12"></a>
 ### Phase M5-12 - Local Package Qualification, Regression, Docs And Handoff
@@ -39598,8 +39627,9 @@ which is locally complete and included in the separately accepted parent scope.
 The later owner-approved [M5-11.15 support supplement](#mode5-m5-11-15) is also
 locally complete and must be included in exact final-source package/consumer
 qualification; its source receipt is not an installed-artifact certificate.
-The newly planned [ACC-01 corrective phase](#account-metrics-acc-01) must also
-close before package qualification; its execution still awaits owner approval.
+The owner-approved [ACC-01 corrective phase](#account-metrics-acc-01) is now
+locally closed; package qualification must use its final repaired source/native
+pair rather than reusing historical artifact certification.
 The original portfolio repair is preserved as an earlier bounded certificate,
 not proof that the later eighteen findings are repaired.
 Package gates remain NOT_RUN; parent acceptance is not installed-artifact

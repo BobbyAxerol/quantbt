@@ -483,7 +483,11 @@ not broad optimizer sweeps.
 
 ## Shared Configuration
 
-All factories accept the common account and execution fields below.
+Factories expose common account and execution fields, but their effective
+support is domain-specific. See the
+[ACC-01 configuration matrix and migration guide](portfolio_review/ACC01_CONFIGURATION_AND_MIGRATION.md)
+for applied settings, inactive defaults, explicit errors and the final sibling
+admission controls. Options use their own wallet, execution and margin authorities.
 
 ```python
 bt = QuantBTEndpoint.signal_notional(
@@ -508,7 +512,9 @@ bt = QuantBTEndpoint.signal_notional(
 Important conventions:
 
 - `initial_capital` is account equity / initial margin;
-- buying power is `initial_capital * leverage`;
+- buying power is `initial_capital * leverage` for common leverage only;
+  heterogeneous leverage has no allocation-independent scalar capacity
+  (`initial_buying_power=None`); use per-symbol leverage and actual margin;
 - `alloc_per_trade` is not multiplied by leverage by the endpoint;
 - legacy `fee` is round-trip and is converted to canonical one-way fee at the
   compatibility boundary;
@@ -4166,6 +4172,15 @@ Useful config:
   during a hedged run, QuantBT computes the path from executed option positions
   and observable chain Greeks.
 
+ACC-01 requires the converted opening wallet to match `initial_capital`
+(`rel_tol=1e-10`, `abs_tol=1e-8` in reporting currency); `{}` follows the omitted
+wallet default. Non-default generic account/execution settings that options do
+not implement now raise `OptionCapabilityError`. Use option-specific controls.
+Applied common fees are in reporting currency at effective execution time, with
+original denomination and quote time retained separately. See the
+[option migration details](portfolio_review/ACC01_CONFIGURATION_AND_MIGRATION.md#option-wallet-and-financial-admission)
+for config precedence, currency/basis examples and the limits of reconciliation.
+
 Prepared cache pattern:
 
 ```python
@@ -4231,8 +4246,9 @@ selected = result.metadata["selected_contracts"]
 
 For delta-hedged runs, `result.equity` is the combined option-plus-hedge
 equity curve. The option-only curve remains available as `result.option_equity`.
-QuantBT adds a pre-trade row at `first_timestamp - 1ns` so metrics begin from
-the declared initial capital before the first option fill.
+The account path retains effective event snapshots, without a synthetic
+`first_timestamp - 1ns` row. First-event returns include initial fill costs
+relative to declared capital; hedge adaptation preserves the option ledger path.
 
 Returned result:
 

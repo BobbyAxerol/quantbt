@@ -31,6 +31,7 @@ to verify the pair and [Endpoint contract](endpoint.md) to select a route.
 | Audit alpha source files before certification | [Alpha certification](alpha_certification.md) |
 | Understand vectorized vs event-driven tradeoffs | [Vectorized vs event-driven](vectorized_vs_event_driven.md) |
 | Validate leverage, buying power, liquidation, funding | [Margin and leverage](margin_leverage.md) |
+| Review current-capability account/configuration/metrics corrections and intentional new errors | [ACC-01 report](portfolio_review/ACC01_REPORT.md), [effective-config and migration matrix](portfolio_review/ACC01_CONFIGURATION_AND_MIGRATION.md) (local source/native proof; not package publication) |
 | Understand market/limit/stop fill behavior | [Order fill policies](order_fill_policies.md) |
 | Build pair trades or baskets | [Pair and basket guide](pair_basket_guide.md) |
 | Understand Portfolio Engine V3 roadmap | [Portfolio Engine V3](portfolio_engine_v3.md) |
