@@ -2971,9 +2971,8 @@ impl FullSession {
             let required = fee + (new_initial - old_initial).max(0.0);
             // A pure reduce-only fill releases collateral. Its fee must be
             // affordable from fill-price equity, not pre-close free margin.
-            let pure_reduction = order.reduce_only()
-                && current * delta < 0.0
-                && delta.abs() <= current.abs();
+            let pure_reduction =
+                order.reduce_only() && current * delta < 0.0 && delta.abs() <= current.abs();
             let margin_allowed = if pure_reduction {
                 fee <= self.equity + delta * (close - exec_price) * cs
             } else {
@@ -3971,14 +3970,31 @@ mod tests {
         ] {
             let prices = vec![100.0, 100.0, 110.0, 110.0];
             let market = FullMarketData::new(
-                vec![0, 1, 2, 3], prices.clone(), prices.clone(), prices.clone(),
-                prices, vec![10_000.0; 4], vec![0.0; 4], vec![false; 4], 1,
-            ).unwrap();
+                vec![0, 1, 2, 3],
+                prices.clone(),
+                prices.clone(),
+                prices.clone(),
+                prices,
+                vec![10_000.0; 4],
+                vec![0.0; 4],
+                vec![false; 4],
+                1,
+            )
+            .unwrap();
             let mut engine = FullSession::new(
-                Arc::new(market), vec![1.0], vec![1.0], vec![0.0004],
-                20_000.0, 0.005, 0.0, false,
-            ).unwrap();
-            engine.set_event_contract(CONTRACT_EVENT_LIFECYCLE_V3_NEXT_OPEN).unwrap();
+                Arc::new(market),
+                vec![1.0],
+                vec![1.0],
+                vec![0.0004],
+                20_000.0,
+                0.005,
+                0.0,
+                false,
+            )
+            .unwrap();
+            engine
+                .set_event_contract(CONTRACT_EVENT_LIFECYCLE_V3_NEXT_OPEN)
+                .unwrap();
             engine.step(0, &[], &[], &[], 0).unwrap();
             let (entry, mut entry_values) = place_market(1, SIDE_SELL);
             entry_values[0] = 190.0;
@@ -3989,7 +4005,11 @@ mod tests {
             engine.step(2, &exit, &exit_values, &[-1], 1).unwrap();
             assert!(!engine.liquidated);
             assert_eq!(engine.positions[0], expected_position);
-            let fee = if reduce_only { quantity.min(190.0) * 110.0 * 0.0004 } else { 0.0 };
+            let fee = if reduce_only {
+                quantity.min(190.0) * 110.0 * 0.0004
+            } else {
+                0.0
+            };
             assert!((engine.equity - (18_092.4 - fee)).abs() < 1e-9);
         }
     }

@@ -5071,7 +5071,10 @@ impl ReactiveCandidateBatchRunnerCore {
 
     /// Cooperative cancellation is shared only as a stop request. Candidate
     /// accounts remain isolated and no partial candidate score is emitted.
-    fn cancellation_tokens(&self, py: Python<'_>) -> PyResult<Vec<Py<ReactiveCancellationTokenCore>>> {
+    fn cancellation_tokens(
+        &self,
+        py: Python<'_>,
+    ) -> PyResult<Vec<Py<ReactiveCancellationTokenCore>>> {
         self.candidates
             .iter()
             .map(|candidate| candidate.core.cancellation_token(py))
