@@ -25,8 +25,16 @@ def test_c02_t08_guard_rejects_scope_expansion(name):
 
 
 def test_c02_t08_rust_getter_is_additive_only():
-    original = subprocess.check_output(["git", "show", f"{ENTRY}:rust/native_event/src/reactive_numeric.rs"], cwd=ROOT)
-    source = (ROOT / "rust/native_event/src/reactive_numeric.rs").read_bytes()
+    from tools.m5_12_ci_format_amendment import without_ci_format
+    from tools import portfolio_repair_source_guard as guard
+
+    name = "rust/native_event/src/reactive_numeric.rs"
+    original = subprocess.check_output(["git", "show", f"{ENTRY}:{name}"], cwd=ROOT)
+    current = (ROOT / name).read_bytes()
+    source = without_ci_format(current, name, guard)
+    assert source != current
+    with pytest.raises(AssertionError, match="unapproved"):
+        validate_rust_control(current, original)
     validate_rust_control(source, original)
     for invalid in (source + b"\n// other change\n", source.replace(TOKEN_GETTER, b""),
                     source.replace(b".map(|candidate| candidate.core.cancellation_token(py))",
