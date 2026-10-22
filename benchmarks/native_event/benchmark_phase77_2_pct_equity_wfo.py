@@ -234,6 +234,9 @@ def _markdown(payload: Mapping[str, Any]) -> str:
     pair = payload["paired_result"]
     native = pair["native"]
     reference = pair["reference"]
+    single = int(payload["profile"]["repeats"]) == 1
+    center_label = "Single Observation" if single else "Median"
+    tail_label = "Tail Estimate" if single else "P95"
     speedup = float(native["timing_seconds"]["median"]) and (
         float(reference["timing_seconds"]["median"]) / float(native["timing_seconds"]["median"])
     )
@@ -257,23 +260,24 @@ def _markdown(payload: Mapping[str, Any]) -> str:
             "",
             "## Result",
             "",
-            "| Lane | Median | P95 | Native score rows |",
+            f"| Lane | {center_label} | {tail_label} | Native score rows |",
             "|---|---:|---:|---:|",
             (
-                "| legacy reference | {:.6f} s | {:.6f} s | {} |".format(
+                "| legacy reference | {:.6f} s | {} | {} |".format(
                     float(reference["timing_seconds"]["median"]),
-                    float(reference["timing_seconds"]["p95"]),
+                    "UNAVAILABLE (n=1)" if single else f"{float(reference['timing_seconds']['p95']):.6f} s",
                     reference["native_score_rows"],
                 )
             ),
             (
-                "| explicit Rust transition | {:.6f} s | {:.6f} s | {} |".format(
+                "| explicit Rust transition | {:.6f} s | {} | {} |".format(
                     float(native["timing_seconds"]["median"]),
-                    float(native["timing_seconds"]["p95"]),
+                    "UNAVAILABLE (n=1)" if single else f"{float(native['timing_seconds']['p95']):.6f} s",
                     native["native_score_rows"],
                 )
             ),
-            f"- Paired speedup: `{speedup:.3f}x` (same named workload only).",
+            (f"- One observed time ratio: `{speedup:.3f}x`; no p50/p95 inference or general speedup claim."
+             if single else f"- Paired speedup: `{speedup:.3f}x` (same named workload only)."),
             "",
             "## Contract",
             "",
