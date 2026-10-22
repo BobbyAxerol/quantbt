@@ -35,8 +35,9 @@ def _period_scan(values, annual, ddof, rf, mar, omega, conditional):
             negatives += 1
             # Preserve NumPy scalar overflow/rounding for the zero-copy Python view.
             downside += (np.float64(x) - mar) ** 2
-        og += max(x - omega, 0.)
-        ol += max(omega - x, 0.)
+        omega_gain, omega_loss = x - omega, omega - x
+        og += omega_gain if omega_gain >= 0. else 0.
+        ol += omega_loss if omega_loss >= 0. else 0.
         if x <= -1:
             geometric_valid = False
         else:

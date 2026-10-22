@@ -66,9 +66,11 @@ def _scan(times, equity, baseline, start, tolerance, detail):
     deepest_depth = -1.
     for i in range(n):
         timestamp, mark = times[i], equity[i]
-        peak = max(peak, mark)
+        if mark > peak:
+            peak = mark
         depth = 1. - mark / peak
-        max_depth = max(max_depth, depth)
+        if depth > max_depth:
+            max_depth = depth
         sum_squared += depth * depth
         if depth > 0.:
             sum_positive += depth

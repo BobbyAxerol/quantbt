@@ -8,6 +8,14 @@ import json
 import math
 
 
+_SCALAR_METADATA_TYPES = frozenset((str, int, float, bool, type(None)))
+
+
+def _scalar_metadata(value):
+    metadata = {descriptor.name: getattr(value, descriptor.name) for descriptor in fields(value)}
+    return metadata if all(type(item) in _SCALAR_METADATA_TYPES for item in metadata.values()) else None
+
+
 def _choice(name, value, choices):
     if value not in choices:
         raise ValueError(f"{name} must be one of {sorted(choices)}")
@@ -118,7 +126,8 @@ class ReportingContractV1:
             raise ValueError("action statistics require authoritative grouping")
 
     def to_metadata(self):
-        return asdict(self)
+        metadata = _scalar_metadata(self)
+        return metadata if metadata is not None else asdict(self)
 
     @classmethod
     def from_metadata(cls, metadata):
@@ -185,7 +194,13 @@ class ReportingMetricV1:
             raise ValueError("non-finite/unavailable metrics use null plus an explicit reason")
 
     def to_metadata(self):
-        return asdict(self)
+        coverage = _scalar_metadata(self.coverage)
+        metadata = {descriptor.name: getattr(self, descriptor.name) for descriptor in fields(self)}
+        if coverage is None or any(type(item) not in _SCALAR_METADATA_TYPES
+                                   for name, item in metadata.items() if name != "coverage"):
+            return asdict(self)
+        metadata["coverage"] = coverage
+        return metadata
 
     @classmethod
     def from_metadata(cls, metadata):

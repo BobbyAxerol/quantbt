@@ -1,5 +1,6 @@
 """Net closed-population statistics from authoritative recorded outcomes only."""
 
+from collections import Counter
 from functools import lru_cache
 
 import numpy as np
@@ -248,6 +249,7 @@ def reduce_ledger(observations, contract, *, backend="python", retain_population
             symbol_pnl[row.symbol] = symbol_pnl.get(row.symbol, 0.) + recorded_net(row, contract.slippage_basis)
         if retain_population:
             metadata["closed_population_ids"] = [[row.trade_id for row in item[3]] for item in population]
+        reason_counts = Counter(row.close_reason for row in selected_rows if row.close_reason is not None)
         with np.errstate(over="ignore", invalid="ignore"):
             population_net_sum = float(values.sum())
         metadata.update(population_detail_retained=retain_population,
@@ -256,7 +258,6 @@ def reduce_ledger(observations, contract, *, backend="python", retain_population
                         symbol_closed_pnl=symbol_pnl, shared_net_adjustment=adjustments,
                         leg_net_sum=sum(symbol_pnl.values()), population_net_sum=population_net_sum,
                         reconciliation_basis="selected closed-population lifetime only; not scope account return",
-                        population_reason_counts={reason: sum(row.close_reason == reason for row in selected_rows)
-                                                  for reason in sorted({row.close_reason for row in selected_rows if row.close_reason is not None})})
+                        population_reason_counts={reason: reason_counts[reason] for reason in sorted(reason_counts)})
     return ReportingResult(contract_identity=builder.contract_identity, input_identity=observations.identity,
                            metrics=tuple(builder.metrics), provenance_json=serialize_provenance(metadata))
