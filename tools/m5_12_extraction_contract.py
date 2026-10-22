@@ -24,7 +24,32 @@ RULES = {
 
 
 def shape(node):
-    return ast.dump(node, include_attributes=False)
+    """Preserve the sealed Python 3.12 AST format on every supported interpreter."""
+    def encode(value):
+        if isinstance(value, ast.AST):
+            fields = list(value._fields)
+            # 3.11 lacks this field; 3.13's ast.dump omits empty lists.
+            if isinstance(value, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)) and "type_params" not in fields:
+                fields.append("type_params")
+            parts = []
+            for name in fields:
+                if name == "type_params" and name not in value._fields:
+                    item = getattr(value, name, [])
+                else:
+                    if not hasattr(value, name):
+                        continue
+                    item = getattr(value, name)
+                if item is None and getattr(type(value), name, ...) is None:
+                    continue
+                parts.append(name + "=" + encode(item))
+            return type(value).__name__ + "(" + ", ".join(parts) + ")"
+        if isinstance(value, list):
+            return "[" + ", ".join(encode(item) for item in value) + "]"
+        return repr(value)
+
+    if not isinstance(node, ast.AST):
+        raise TypeError("expected AST")
+    return encode(node)
 
 
 def verify_extraction(before, after, helpers):

@@ -2,6 +2,9 @@
 
 from copy import deepcopy
 import inspect
+from pathlib import Path
+import sys
+from types import SimpleNamespace
 
 import pytest
 
@@ -34,9 +37,28 @@ def test_e04_t06_installed_proof_rejects_false_or_incomplete_evidence(field):
 
 
 def test_e04_t06_proof_runs_isolated_installed_interpreters_not_source_exports():
-    from tools.qms_e04_consumer import consume
+    from tools.qms_e04_consumer import _installed_pair, consume
     from tools.qms_e04_installed import qualify
-    assert '"site-packages"' in inspect.getsource(consume)
+    assert "_installed_pair(quantbt, native," in inspect.getsource(consume)
+    assert '"site-packages"' in inspect.getsource(_installed_pair)
     source = inspect.getsource(qualify)
     assert '"-I"' in source and 'environment.pop("PYTHONPATH"' in source
     assert 'verify_pair(proof)' in source
+
+
+def test_e04_t06_consumer_checks_pair_before_opening_example(monkeypatch):
+    from tools import qms_e04_consumer as consumer
+
+    quantbt, native = SimpleNamespace(), SimpleNamespace()
+    monkeypatch.setitem(sys.modules, "quantbt", quantbt)
+    monkeypatch.setitem(sys.modules, "_quantbt_native", native)
+    calls = []
+
+    def reject(actual_core, actual_native, **versions):
+        calls.append((actual_core, actual_native, versions))
+        raise ValueError("unqualified installed pair")
+
+    monkeypatch.setattr(consumer, "_installed_pair", reject)
+    with pytest.raises(ValueError, match="unqualified installed pair"):
+        consumer.consume(Path("missing-must-not-be-opened.py"), core_version="1.2.0", native_version="0.4.3")
+    assert calls == [(quantbt, native, dict(core_version="1.2.0", native_version="0.4.3"))]
