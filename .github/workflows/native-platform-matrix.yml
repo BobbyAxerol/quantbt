@@ -29,10 +29,10 @@ jobs:
             runner: ubuntu-24.04-arm
             manylinux: "2014"
           - id: macos-x86_64
-            runner: macos-13
+            runner: macos-15-intel
             manylinux: "off"
           - id: macos-arm64
-            runner: macos-14
+            runner: macos-15
             manylinux: "off"
           - id: windows-x86_64
             runner: windows-latest
