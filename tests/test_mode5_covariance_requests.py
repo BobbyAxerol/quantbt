@@ -1,18 +1,18 @@
-"""Synthetic cold geometry contracts; no account execution or financial imports."""
+"""Public synthetic geometry and isolated cold-loader boundary contracts."""
 
 from copy import deepcopy
-from dataclasses import asdict
-import importlib
-import sys
+from hashlib import sha256
+import subprocess
 import unittest
 from unittest.mock import patch
 
 from tools.mode5_research import covariance_requests as v
+from tests.mode5_cold_boundary import assert_cold_boundary
 
 
-owner = v.numeric_owner()
+from quantbt.diagnostics.geometry import neighborhoods as owner
 from quantbt.mode5.geometry.schema import EffectiveGeometry
-from tools.mode5_geometry.design import design_identity
+from quantbt.diagnostics.geometry.design import design_identity
 
 
 def geometry():
@@ -52,19 +52,34 @@ def sealed_floor(g):
 
 class OriginalOwnerTests(unittest.TestCase):
     def test_original_files_and_algorithm_owner(self):
-        self.assertEqual(owner.active_neighbors.__module__, "tools.mode5_geometry.neighborhoods")
+        from tools.mode5_geometry import neighborhoods as compatibility
+
+        self.assertIs(compatibility.active_neighbors, owner.active_neighbors)
+        self.assertEqual(owner.active_neighbors.__module__, "quantbt.diagnostics.geometry.neighborhoods")
+        # Frozen research hashes describe their original commits, not later shims.
         for path, sha in v.ORIGINAL_SOFTWARE.items():
+            commit = "c36aad35502ea4a1abb3fcaf903d5c69ad386914" if path.startswith("src/") else "3370baf7b9f74441e8523f742b9c81489f5a5adf^"
+            original = subprocess.check_output(["git", "show", f"{commit}:{path}"], cwd=v.ROOT)
+            self.assertEqual(sha256(original).hexdigest(), sha)
+        current = {
+            "src/quantbt/mode5/geometry/schema.py": "0888f105144a73f598b0be4aae7a2c0cf47e9a285bab48df8ee2c7178fd3a907",
+            "src/quantbt/diagnostics/geometry/design.py": "46e690ee46c5472faa5b3b5e94bf74e5031c2d5333acd365c1d42129a551932a",
+            "src/quantbt/diagnostics/geometry/neighborhoods.py": v.ORIGINAL_SOFTWARE["tools/mode5_geometry/neighborhoods.py"],
+        }
+        for path, sha in current.items():
             self.assertEqual(v.custody.pin(v.ROOT / path)["sha256"], sha)
 
     def test_exact_geometry_metadata_round_trip(self):
         g = geometry()
-        hydrated = v.load_geometry(g.metadata(), g.identity)
+        with patch.object(v, "numeric_owner", return_value=owner) as load:
+            hydrated = v.load_geometry(g.metadata(), g.identity)
+        load.assert_called_once_with()
         self.assertEqual(hydrated.identity, g.identity)
         self.assertEqual(hydrated.resolve(point(g).params), point(g))
 
     def test_changed_geometry_identity_rejects(self):
         g = geometry()
-        with self.assertRaises(ValueError):
+        with patch.object(v, "numeric_owner", return_value=owner), self.assertRaises(ValueError):
             v.load_geometry(g.metadata(), "unsealed")
 
     def test_no_cloud_is_explicit(self):
@@ -220,10 +235,8 @@ class UnionCustodyTests(unittest.TestCase):
         self.assertTrue(any(r.duplicate_of == -1 for r in collisions))
 
     def test_no_financial_runtime_imports(self):
-        self.assertFalse(any(v.forbidden(n) for n in sys.modules))
-        for name in ("quantbt.core", "quantbt.endpoint", "quantbt.backtester", "quantbt.backends", "_quantbt_native"):
-            with self.subTest(name=name), self.assertRaises(ImportError):
-                importlib.import_module(name)
+        assert_cold_boundary(v.__name__, "tools.mode5_geometry.neighborhoods",
+            ("quantbt.core", "quantbt.endpoint", "quantbt.backtester", "quantbt.backends", "_quantbt_native"))
 
     def test_no_replacement_rng_or_algorithm(self):
         g = geometry()

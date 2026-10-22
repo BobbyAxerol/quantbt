@@ -1,20 +1,19 @@
-"""Cold unittest contract tests; synthetic marks, never financial execution."""
+"""Public annual-view oracles and isolated cold-loader boundary contracts."""
 
 from copy import deepcopy
 from dataclasses import replace
-import importlib
 import json
 import os
 from pathlib import Path
-import sys
+from tempfile import TemporaryDirectory
 import unittest
 from unittest.mock import patch
-from uuid import uuid4
 
 from tools.mode5_research import probe_views as v
+from tools.mode5_research import panels as p
+from tests.mode5_cold_boundary import assert_cold_boundary
 
 
-p = v.numeric_owner()
 import numpy as np
 
 
@@ -59,6 +58,12 @@ def synthetic(kind="mixed", suffix=None):
 
 def metadata(rows, role="selection_probe"):
     return [v.row_metadata(r) | dict(role=role) for r in rows]
+
+
+def annual_aggregate(*args, **kwargs):
+    # The cold import boundary has its own subprocess test; use real public math.
+    with patch.object(v, "numeric_owner", return_value=p):
+        return v.annual_aggregate(*args, **kwargs)
 
 
 class AnnualProducerTests(unittest.TestCase):
@@ -132,7 +137,7 @@ class AnnualProducerTests(unittest.TestCase):
 
     def test_negative_utility_is_not_replaced_by_sentinel(self):
         _, rows = synthetic("negative")
-        aggregate = v.annual_aggregate(metadata(rows[1:]), v.COMMON, role="selection_probe")
+        aggregate = annual_aggregate(metadata(rows[1:]), v.COMMON, role="selection_probe")
         self.assertLess(aggregate["score"], 0.)
         self.assertFalse(aggregate["eligible"])
         self.assertEqual(aggregate["status"], "COMPLETE")
@@ -142,7 +147,7 @@ class AnnualProducerTests(unittest.TestCase):
         third = rows[3]
         self.assertIsNone(third.metric("economic_utility").value)
         self.assertIsNotNone(third.metric("economic_utility").reason)
-        aggregate = v.annual_aggregate(metadata(rows[1:]), v.COMMON, role="selection_probe")
+        aggregate = annual_aggregate(metadata(rows[1:]), v.COMMON, role="selection_probe")
         self.assertIsNone(aggregate["score"])
         self.assertEqual(aggregate["status"], "UNDEFINED_INPUT_RETAINED")
 
@@ -160,15 +165,15 @@ class CommonAuthorizationTests(unittest.TestCase):
         cls.rows = metadata(rows[1:])
 
     def test_same_center_neighbor_authorization(self):
-        neighbor = v.annual_aggregate(self.rows, v.COMMON, role="selection_probe")
-        center = v.annual_aggregate([{k: val for k, val in r.items() if k != "role"} for r in self.rows], v.COMMON, role="center")
+        neighbor = annual_aggregate(self.rows, v.COMMON, role="selection_probe")
+        center = annual_aggregate([{k: val for k, val in r.items() if k != "role"} for r in self.rows], v.COMMON, role="center")
         self.assertEqual(center["score"], neighbor["score"])
         self.assertEqual(center["aggregate_identity"], neighbor["aggregate_identity"])
         self.assertAlmostEqual(neighbor["score"], min(neighbor["values"])+.25*sum(neighbor["values"])/3)
         self.assertFalse(neighbor["local_selection_authorized"])
 
     def test_not_pooled_utility_or_environment_mean(self):
-        aggregate = v.annual_aggregate(self.rows, v.COMMON, role="selection_probe")
+        aggregate = annual_aggregate(self.rows, v.COMMON, role="selection_probe")
         self.assertNotAlmostEqual(aggregate["score"], sum(aggregate["values"])/3)
         self.assertNotAlmostEqual(aggregate["score"], synthetic()[1][0].metric("economic_utility").value)
 
@@ -179,43 +184,43 @@ class CommonAuthorizationTests(unittest.TestCase):
             annual_periods=252., account_reset=True, utility=dict(v.UTILITY, dd_weight=2.))
         for name, value in changes.items():
             with self.subTest(name=name), self.assertRaises(ValueError):
-                v.annual_aggregate(self.rows, deepcopy(v.COMMON) | {name: value}, role="selection_probe")
+                annual_aggregate(self.rows, deepcopy(v.COMMON) | {name: value}, role="selection_probe")
 
     def test_validation_cannot_be_selection_input(self):
         rows = [r | dict(role="local_validation") for r in self.rows]
-        aggregate = v.annual_aggregate(rows, v.COMMON, role="local_validation")
+        aggregate = annual_aggregate(rows, v.COMMON, role="local_validation")
         self.assertFalse(aggregate["selection_input_authorized"])
         with self.assertRaises(ValueError):
-            v.annual_aggregate(rows, v.COMMON, role="selection_probe")
+            annual_aggregate(rows, v.COMMON, role="selection_probe")
 
     def test_missing_or_reordered_year_rejects(self):
         for rows in (self.rows[:2], list(reversed(self.rows)), self.rows+[self.rows[0]]):
             with self.assertRaises(ValueError):
-                v.annual_aggregate(rows, v.COMMON, role="selection_probe")
+                annual_aggregate(rows, v.COMMON, role="selection_probe")
 
     def test_mixed_accounts_and_candidate_ids_reject(self):
         for field in ("candidate_id", "execution_id"):
             rows = deepcopy(self.rows)
             rows[1]["provenance"][field] = "other"
             with self.assertRaises(ValueError):
-                v.annual_aggregate(rows, v.COMMON, role="selection_probe")
+                annual_aggregate(rows, v.COMMON, role="selection_probe")
 
     def test_wrong_metric_unit_rejects(self):
         rows = deepcopy(self.rows)
         next(m for m in rows[0]["metrics"] if m["metric_id"].endswith("economic_utility"))["unit"] = "ratio"
         with self.assertRaises(ValueError):
-            v.annual_aggregate(rows, v.COMMON, role="selection_probe")
+            annual_aggregate(rows, v.COMMON, role="selection_probe")
 
     def test_expected_candidate_and_execution_bindings(self):
         for arg in (dict(expected_candidate="other"), dict(expected_execution="other")):
             with self.assertRaises(ValueError):
-                v.annual_aggregate(self.rows, v.COMMON, role="selection_probe", **arg)
+                annual_aggregate(self.rows, v.COMMON, role="selection_probe", **arg)
 
     def test_invalid_numeric_needs_null_reason(self):
         rows = deepcopy(self.rows)
         next(m for m in rows[0]["metrics"] if m["metric_id"].endswith("economic_utility"))["value"] = float("nan")
         with self.assertRaises(ValueError):
-            v.annual_aggregate(rows, v.COMMON, role="selection_probe")
+            annual_aggregate(rows, v.COMMON, role="selection_probe")
 
     def test_annual_local_policy_explicitly_missing(self):
         self.assertEqual(len(v.MISSING_LOCAL), 2)
@@ -224,20 +229,18 @@ class CommonAuthorizationTests(unittest.TestCase):
 
 class CustodyAndRequestTests(unittest.TestCase):
     def test_financial_modules_not_imported(self):
-        self.assertFalse(any(v.forbidden(name) for name in sys.modules))
-        for name in ("quantbt.core", "quantbt.endpoint", "quantbt.backtester", "_quantbt_native", "quantbt.optimization"):
-            with self.subTest(name=name), self.assertRaises(ImportError):
-                importlib.import_module(name)
+        assert_cold_boundary(v.__name__, "tools.mode5_research.panels",
+            ("quantbt.core", "quantbt.endpoint", "quantbt.backtester", "_quantbt_native", "quantbt.optimization"))
 
     def test_sealed_bytes_and_exclusive_append(self):
-        root = Path(os.environ.get("PROBE_VIEW_FIXTURE_ROOT", str(v.ROOT / "upgrade/private/mode5_upgrade_v1/m5-11-1/attempt-01/goal-step1/annual-view01/cold-fixtures-manual")))
-        path = root / (str(uuid4()) + ".json")
-        pin = v.custody.write_new(path, dict(synthetic=True))
-        self.assertEqual(v.sealed_json(pin), dict(synthetic=True))
-        with self.assertRaises(FileExistsError):
-            v.custody.write_new(path, dict(replaced=True))
-        with self.assertRaises(ValueError):
-            v.sealed_bytes(pin | dict(sha256="0"*64))
+        with TemporaryDirectory(prefix="probe-views-", dir=os.environ.get("PROBE_VIEW_FIXTURE_ROOT")) as root:
+            path = Path(root) / "synthetic.json"
+            pin = v.custody.write_new(path, dict(synthetic=True))
+            self.assertEqual(v.sealed_json(pin), dict(synthetic=True))
+            with self.assertRaises(FileExistsError):
+                v.custody.write_new(path, dict(replaced=True))
+            with self.assertRaises(ValueError):
+                v.sealed_bytes(pin | dict(sha256="0"*64))
 
     def test_exact_request_roster_source_and_role(self):
         execution = dict(index=0, center=0, role="selection_probe", candidate_id="c", request=dict(role="selection_probe"))

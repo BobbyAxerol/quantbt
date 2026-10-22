@@ -142,7 +142,13 @@ def test_pre01_t04_source_symbols_links_and_current_state_are_consistent(invento
     plan = (audit.ROOT / "upgrade/implement.md").read_text()
     current = plan.split("Previous performance and package closure:", 1)[0]
     assert "E06-E08 remain **PLANNED_NOT_AUTHORIZED_FOR_EXECUTION**" not in current
-    assert "Current local package qualification" in current
+    qualification = current.split("**Current account/metrics closure", 1)[0]
+    assert "TECHNICALLY_VALID_LOCAL_SCOPE" in qualification
+    assert "core1.2.0/native0.4.3" in qualification
+    assert "../docs/mode5/M5_12_RELEASE120_REPORT.md" in qualification
+    assert "Previous 1.1.2 local package qualification" in qualification
+    assert "../docs/mode5/M5_12_REPORT_R3.md" in qualification
+    assert "No push, remote workflow, merge, tag or publication is authorized." in qualification
     phase = plan.split("### Phase M5-12 -", 1)[1].split("### Mode 5 Planning Verification", 1)[0]
     assert "**Status:**" in phase and "local" in phase.lower()
     assert "No automatic version bump or native/public package promotion" in phase

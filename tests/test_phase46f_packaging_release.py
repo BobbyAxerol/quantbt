@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import re
 import tomllib
 
 import pytest
@@ -32,9 +33,23 @@ def test_phase46f_core_metadata_and_release_notes_are_complete() -> None:
     }
     assert project["urls"]["Documentation"].endswith("/docs")
     assert project["urls"]["Changelog"].endswith("/CHANGELOG.md")
-    assert (PROJECT_ROOT / "CHANGELOG.md").read_text(encoding="utf-8").find(
-        f"[{project['version']}]"
-    ) >= 0
+    changelog = (PROJECT_ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
+    sections = dict(re.findall(r"^## \[([^\]]+)\]\n(.*?)(?=^## \[|\Z)", changelog, re.M | re.S))
+    registry = json.loads((PROJECT_ROOT / "contracts/native_event_product_registry.json").read_text(encoding="utf-8"))
+    native_version = registry["versions"]["native_package"]["version"]
+    readme = (PROJECT_ROOT / project["readme"]).read_text(encoding="utf-8")
+    pair = readme.split("Prepared next release pair (not yet published):", 1)[1].split("Optional features:", 1)[0]
+    prepared_versions = dict(re.findall(r"^\| `(quantbt-(?:engine|native))` \| `([^`]+)` \|", pair, re.M))
+    if prepared_versions["quantbt-engine"] == project["version"]:
+        assert project["version"] not in sections
+        prepared = sections["Unreleased"]
+        assert f"### Prepared {project['version']} / Native {native_version}\n" in prepared
+        assert prepared_versions["quantbt-native"] == native_version
+        assert "Local qualification does not authorize publication." in pair
+    else:
+        assert sections[project["version"]].strip()
+    assert "## [1.1.1]" in changelog
+    assert "Historical1.1.2receipts retain their original scope" in sections["Unreleased"]
     assert metadata["project"]["optional-dependencies"]["native"] == []
 
 
