@@ -15,6 +15,7 @@ prune upgrade/private
 prune upgrade/local
 prune upgrade/drafts
 prune upgrade/alphas
+exclude upgrade/MODE5_INVARIANT_AND_ALPHA_PROFILING_SPEC_V1.md
 prune benchmarks
 prune artifacts
 prune data/raw

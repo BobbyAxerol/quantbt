@@ -14,6 +14,9 @@ QUALIFICATION_SHA256 = "e3e557086c940971f8cd3573fcf812fce24fe862564367d417abac98
 
 
 def without_portfolio_repair(source, name, *, expected_baseline=None):
+    from tools.public_inventory_source_amendment import without_inventory_refresh
+    import sys
+    source = without_inventory_refresh(source, name, sys.modules[__name__])
     raw = MANIFEST.read_bytes()
     assert sha256(raw).hexdigest() == MANIFEST_SHA256, "portfolio repair manifest digest"
     manifest = json.loads(raw)
@@ -136,6 +139,8 @@ def verify_current_source():
     from tools.account_metrics_source_guard import verify_amendment, MANIFEST_SHA256 as acc01_digest
     import sys
     amendment, current, acc01_changed = verify_amendment(sys.modules[__name__], qualification, after)
+    from tools.public_inventory_source_amendment import current_inventory_amendment
+    current, metadata_amendments = current_inventory_amendment(current, ROOT)
     _assert_current_sources(current, scopes)
     all_changed = sorted(name for name in before.keys() | current.keys() if before.get(name) != current.get(name))
     return dict(
@@ -145,6 +150,7 @@ def verify_current_source():
         scopes=scopes, current_source_qualified=True, qualified_source_count=len(current),
         acc01_amendment_sha256=acc01_digest, acc01_changed_sources=acc01_changed,
         previous_source_commit=qualification["source_commit"],
+        source_metadata_amendments=metadata_amendments,
         financial_source_changed=True, financial_numeric_source_unchanged=False,
         financial_rust_unchanged=not any(name.startswith("rust/") for name in all_changed),
         repair_changed_sources=all_changed, historical_receipts=_historical_receipts(qualification),

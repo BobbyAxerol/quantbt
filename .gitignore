@@ -99,6 +99,9 @@ upgrade/drafts/
 # Owner-supplied research strategies remain local; never stage or publish.
 /upgrade/alphas/
 
+# Superseded owner research draft: preserve locally, never stage or publish.
+/upgrade/MODE5_INVARIANT_AND_ALPHA_PROFILING_SPEC_V1.md
+
 # Local research sandbox is intentionally outside the public package.
 .local_arbitrage_sandboxes/
 
