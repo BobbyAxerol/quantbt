@@ -17,6 +17,7 @@ class ContinuousAccountRetention(SnapshotValue):
                 or not isinstance(r[1], ContinuousAccountEvaluation) for r in self.entries)
                 or len({r[0] for r in self.entries}) != len(self.entries)):
             raise ValueError("unique complete immutable continuous query observations required")
+        self._seal_arrays()
 
     def metadata(self):
         return dict(schema="quantbt.mode5.continuous_retention.v1", count=len(self.entries),

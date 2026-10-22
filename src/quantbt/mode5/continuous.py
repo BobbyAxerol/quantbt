@@ -211,6 +211,7 @@ class ContinuousStream(SnapshotValue):
                 or not np.isfinite(array).all()):
             raise ValueError("finite nonempty original scalar or columnar financial stream required")
         object.__setattr__(self, "values", immutable_storage(array))
+        self._seal_arrays()
 
 
 @dataclass(frozen=True)
@@ -233,6 +234,7 @@ class ContinuousAccountEvaluation(SnapshotValue):
                 or len({s.name for s in self.streams}) != len(self.streams)
                 or self.execution.request_identity != self.request.identity):
             raise ValueError("complete detached continuous evaluation required")
+        self._seal_arrays()
 
     @property
     def raw_whole_sharpe(self):
