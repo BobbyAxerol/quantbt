@@ -112,7 +112,10 @@ def test_t04_hand_return_distribution_and_denominators():
                         ("profit_factor", "profit_factor"), ("avg_win", "avg_win"),
                         ("avg_loss", "avg_loss"), ("win_rate", "win_rate")]:
         assert report[actual] == pytest.approx(expected[key])
-    assert period_statistics(expected["returns"], conditional_downside=True)["sortino"] == .5
+    # Zero-MAR Sortino is scale invariant. Binary-exact returns lock the
+    # conditional denominator without CPython-version-dependent decimal sums.
+    exact_returns = [1 / 8, 1 / 4, -1 / 8, 0.]
+    assert period_statistics(exact_returns, conditional_downside=True)["sortino"] == .5
     assert period_statistics(expected["returns"], rf=.005)["sharpe"] == pytest.approx(0.)
     assert period_statistics([.01, -.01], mar=.005)["sortino"] == pytest.approx(-math.sqrt(2) / 3)
 
