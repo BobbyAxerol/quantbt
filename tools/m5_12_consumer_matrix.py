@@ -171,6 +171,14 @@ def validate_execution(execution, optimizer):
     if (not isinstance(planned, list) or len(planned) != 1 or not isinstance(planned[0], dict)
             or not planned[0] or applied != planned or execution.get("donor_sources") != ["warm_start"]):
         raise ValueError("actual donor coordinates differ from explicit selected fold")
+    snapshots = execution.get("continuous_snapshot_checks")
+    if not isinstance(snapshots, dict) or set(snapshots) != {"baseline", "challenger"}:
+        raise ValueError("actual continuous snapshot roundtrips required for both arms")
+    for row in snapshots.values():
+        if (not isinstance(row, dict) or type(row.get("query_count")) is not int
+                or row["query_count"] < 1
+                or row.get("protocols") != ["copy", "deepcopy", "pickle4", "pickle5"]):
+            raise ValueError("actual continuous snapshot roundtrips incomplete")
     for key in ("donor_plan_id", "baseline_winner_id", "challenger_winner_id", "winner_report_id"):
         value = summary.get(key)
         if not isinstance(value, str) or len(value) != 64 or any(c not in "0123456789abcdef" for c in value):

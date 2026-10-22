@@ -19,7 +19,9 @@ def test_current_qualification_preserves_historical_claims_without_reissuing_the
     monkeypatch.setattr(qms_e04_source_guard, "verify", historical_verify)
     source = guard.verify_current_source()
     assert source["current_source_qualified"] is True
-    assert source["source_commit"] == "77af917f4184e4061a908c68557420223434e2db"
+    from tools.m5_12_snapshot_amendment import SOURCE_COMMIT
+    assert source["source_commit"] == SOURCE_COMMIT
+    assert source["pre_m512_source_commit"] == "77af917f4184e4061a908c68557420223434e2db"
     assert source["acc01_source_commit"] == "70fe9f7c9b14469e6ea935e75f180f26ca1c175e"
     assert source["cold_extraction_semantics_unchanged"]
     assert source["previous_source_commit"] == "9c2bfd95c65f71618f52c736dfff341953066961"

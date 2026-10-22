@@ -103,6 +103,39 @@ def test_bounded_mode5_cross_mode_execution(tmp_path, record_property, request):
         retained = json.loads((workdir / (arm + "-reconciliation.json")).read_text())
         assert retained == outcome["completed"][arm]["report"].record.data
         reconciled[arm] = retained["status"]
+    from copy import copy, deepcopy
+    import pickle
+    import numpy as np
+    from quantbt.mode5.continuous import ContinuousStream
+
+    clones = dict(copy=copy, deepcopy=deepcopy,
+        pickle4=lambda value: pickle.loads(pickle.dumps(value, protocol=4)),
+        pickle5=lambda value: pickle.loads(pickle.dumps(value, protocol=5)))
+    snapshot_checks = {}
+    for arm in ("baseline", "challenger"):
+        original = outcome["completed"][arm]["result"].metadata["walk_forward_result"].mode5_continuous_accounts
+        assert original.entries, "actual calibration must retain continuous observations"
+        original.validate_snapshot()
+        for clone in clones.values():
+            restored = clone(original)
+            restored.validate_snapshot()
+            assert restored.metadata() == original.metadata()
+            for (_, before), (_, after) in zip(original.entries, restored.entries, strict=True):
+                assert before.identity == after.identity
+                np.testing.assert_array_equal(before.observations.equity, after.observations.equity)
+                for a, b in zip(before.streams, after.streams, strict=True):
+                    assert a.name == b.name and a.values.shape == b.values.shape
+                    np.testing.assert_array_equal(a.values, b.values)
+                    assert a.values is not b.values and not b.values.flags.writeable
+        snapshot_checks[arm] = dict(query_count=len(original.entries), protocols=list(clones))
+    original_stream = ContinuousStream("margin", np.arange(8., dtype=np.float64).reshape(4, 2))
+    for clone in clones.values():
+        stream = clone(original_stream)
+        assert stream.values.shape == (4, 2) and not stream.values.flags.writeable
+        stream.values.shape = (8,)
+        with pytest.raises(ValueError, match="array header changed"):
+            stream.validate_snapshot()
+        original_stream.validate_snapshot()
     evidence = dict(summary=summary, summary_json=raw, summary_sha256=sha256(raw.encode()).hexdigest(),
         protocol=json.loads((workdir / "protocol.json").read_text()),
         reconciliation_statuses=reconciled, winner_report_id=outcome["winner"].identity,
@@ -110,7 +143,7 @@ def test_bounded_mode5_cross_mode_execution(tmp_path, record_property, request):
         winner_candidate_id=winner["subject"]["candidate_id"],
         baseline_candidate_id=outcome["completed"]["baseline"]["metadata"]["selected_params_digest"],
         planned_donor_params=planned, applied_donor_params=[row["effective_params"] for row in applied],
-        donor_sources=[row["source"] for row in applied])
+        donor_sources=[row["source"] for row in applied], continuous_snapshot_checks=snapshot_checks)
     record_property(EXECUTION_PROPERTY, json.dumps(evidence, sort_keys=True, allow_nan=False))
 
 

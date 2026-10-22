@@ -250,7 +250,9 @@ def execution_case():
         reconciliation_statuses=dict(baseline="RECONCILED_RETAINED_RUN", challenger="RECONCILED_RETAINED_RUN"),
         winner_baseline_status="SOURCE_BOUND_SELECTED_PATHS", winner_report_id="d" * 64,
         winner_candidate_id="c" * 64, baseline_candidate_id="b" * 64,
-        planned_donor_params=[dict(period=8)], applied_donor_params=[dict(period=8)], donor_sources=["warm_start"])
+        planned_donor_params=[dict(period=8)], applied_donor_params=[dict(period=8)], donor_sources=["warm_start"],
+        continuous_snapshot_checks={arm: dict(query_count=4, protocols=["copy", "deepcopy", "pickle4", "pickle5"])
+                                    for arm in ("baseline", "challenger")})
     optimizer = dict(execution_case=matrix.EXECUTION_CASE, execution_cases=1, proposal_limit=12,
         financial_limit=23, create_study_calls=4, optimize_trials=[2, 2], ask_calls=12,
         tell_calls=8, walkforward_runs=3, forbidden_calls=[], observed_proposals=12)
@@ -444,6 +446,24 @@ def test_execution_skip_or_missing_record_property_cannot_pass(tmp_path):
     row["execution"] = None
     with pytest.raises(ValueError):
         preflight.validate_row(row, manifest, "pair", "request")
+
+
+@pytest.mark.parametrize("defect", ["missing", "one-arm", "null", "zero", "bool", "protocol"])
+def test_missing_or_incomplete_actual_snapshot_roundtrips_are_rejected(defect):
+    execution, optimizer = execution_case()
+    checks = execution["continuous_snapshot_checks"]
+    if defect == "missing":
+        execution.pop("continuous_snapshot_checks")
+    elif defect == "one-arm":
+        checks.pop("challenger")
+    elif defect == "null":
+        checks["baseline"] = None
+    elif defect == "protocol":
+        checks["baseline"]["protocols"].pop()
+    else:
+        checks["baseline"]["query_count"] = True if defect == "bool" else 0
+    with pytest.raises(ValueError, match="snapshot roundtrips"):
+        matrix.validate_execution(execution, optimizer)
 
 
 def test_record_property_belongs_only_to_the_named_execution_case():
