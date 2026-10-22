@@ -67,6 +67,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--profile", choices=("release", "ci-core", "native"), default="release")
     parser.add_argument("--max-files-per-shard", type=int, default=8)
     parser.add_argument("--list", action="store_true", help="print the commands without running pytest")
+    parser.add_argument("--keep-going", action="store_true", help="run all shards and summarize failures")
     args = parser.parse_args(argv)
     if args.max_files_per_shard <= 0:
         parser.error("--max-files-per-shard must be > 0")
@@ -74,6 +75,7 @@ def main(argv: list[str] | None = None) -> int:
     env = os.environ.copy()
     env.setdefault("MPLCONFIGDIR", "/tmp")
     shard_number = 0
+    failures: list[tuple[int, int, list[Path]]] = []
     for group in _collect(args.profile):
         for shard in _chunks(group, args.max_files_per_shard):
             shard_number += 1
@@ -83,8 +85,18 @@ def main(argv: list[str] | None = None) -> int:
                 continue
             completed = subprocess.run(command, cwd=PROJECT_ROOT, env=env, check=False)
             if completed.returncode:
-                return completed.returncode
+                if not args.keep_going:
+                    return completed.returncode
+                failures.append((shard_number, completed.returncode, shard))
     print(f"completed {shard_number} isolated pytest shard(s)")
+    if failures:
+        print(f"failed {len(failures)} of {shard_number} isolated pytest shard(s):", flush=True)
+        for number, returncode, shard in failures:
+            paths = " ".join(str(path.relative_to(PROJECT_ROOT)) for path in shard)
+            print(f"[{number}] exit code {returncode}: {paths}", flush=True)
+        returncode = failures[0][1]
+        # subprocess uses negative signal numbers; expose a nonzero shell status.
+        return returncode if returncode > 0 else 128 - returncode
     return 0
 
 

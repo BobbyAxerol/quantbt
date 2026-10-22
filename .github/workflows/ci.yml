@@ -62,7 +62,7 @@ jobs:
         uses: ./.github/actions/qms-fixtures
 
       - name: Test
-        run: .venv/bin/python tools/run_test_shards.py --profile ci-core
+        run: .venv/bin/python tools/run_test_shards.py --profile ci-core --keep-going
 
       - name: Build package
         run: |
