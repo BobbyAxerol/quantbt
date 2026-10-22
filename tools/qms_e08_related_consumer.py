@@ -29,7 +29,8 @@ def consume(args):
             or not manifest.get("interpreter") or not manifest.get("native_inventory")
             or manifest.get("schema") != "qms-e08-installed-manifest-v1"
             or manifest.get("package_proof_schema") not in {"qms-release-installed-pair-v1",
-                "quantbt.m5_12.local_artifacts.v1", "qms-e08-local-artifacts-v1"}
+                "quantbt.m5_12.local_artifacts.v1", "quantbt.m5_12.local_artifacts.v2",
+                "qms-e08-local-artifacts-v1"}
             or not isinstance(manifest.get("package_proof_sha256"), str)
             or len(manifest["package_proof_sha256"]) != 64):
         raise ValueError("fresh selected-prefix/proof manifest required; historical snapshots grant no execution rights")

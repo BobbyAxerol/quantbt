@@ -26,7 +26,7 @@ def verify_proof_custody(path, proof, *, expected_sha256=None):
     if proof.get("schema") == "qms-release-installed-pair-v1":
         from tools.qms08_gate import verify_pair
         verify_pair(proof)
-    elif proof.get("schema") == "quantbt.m5_12.local_artifacts.v1":
+    elif proof.get("schema") in ("quantbt.m5_12.local_artifacts.v1", "quantbt.m5_12.local_artifacts.v2"):
         from tools.m5_12_local_artifacts import verify_local_artifacts
         verify_local_artifacts(proof)
     elif proof.get("schema") != "qms-e08-local-artifacts-v1" or proof.get("publication") is not False:

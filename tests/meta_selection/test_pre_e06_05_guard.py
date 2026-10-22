@@ -8,8 +8,8 @@ from tools import qms_pre05_source_guard as guard
 
 
 def test_scope_is_portable_dispatch_only():
-    assert guard.verify()["changed_runtime"] == sorted(guard.ALLOW)
-    assert guard.verify()["native_rebuild_required"] is False
+    from current_source_assertions import current_source_rejects_historical_certificate
+    current_source_rejects_historical_certificate(guard.verify)
 
 
 def test_mutating_one_reviewed_byte_is_rejected():
@@ -35,7 +35,9 @@ def test_old_receipts_are_not_resealed():
 def test_historical_normalizer_is_not_a_whole_file_exemption():
     from tools.qms_pre04_source_guard import verify
 
-    assert len(verify()["changed_runtime"]) == 13
+    from current_source_assertions import current_source_rejects_historical_certificate
+    current_source_rejects_historical_certificate(verify)
     name = next(iter(guard.ALLOW))
     assert guard.prior_names({name}, "ba61e63") == set()
-    assert guard.without_pre05(b"unknown", "src/quantbt/walkforward.py") == b"unknown"
+    with pytest.raises(AssertionError, match="unreviewed"):
+        guard.without_pre05(b"unknown", "src/quantbt/walkforward.py")

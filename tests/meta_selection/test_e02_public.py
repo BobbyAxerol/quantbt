@@ -104,7 +104,8 @@ def test_e02_t04_actual_market_funding_constraints_and_universe_change_binding(f
 
 
 def test_e02_t06_exact_review_guard_rejects_any_extra_adapter_or_financial_byte():
-    assert verify()["financial_numeric_source_unchanged"]
+    from current_source_assertions import current_source_rejects_historical_certificate
+    current_source_rejects_historical_certificate(verify)
     for name in ALLOW:
         with pytest.raises(AssertionError, match="unreviewed"):
             checked_source((ROOT/name).read_bytes()+b"\n# unreviewed\n", name)

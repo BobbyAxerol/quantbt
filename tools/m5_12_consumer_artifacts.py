@@ -37,7 +37,7 @@ def package_members(members, prefix):
 
 
 def artifact_manifest(proof, lane):
-    if proof.get("schema") == "quantbt.m5_12.local_artifacts.v1":
+    if proof.get("schema") in ("quantbt.m5_12.local_artifacts.v1", "quantbt.m5_12.local_artifacts.v2"):
         from tools.m5_12_local_artifacts import verify_local_artifacts
         verify_local_artifacts(proof)
     elif proof.get("schema") == "qms-release-installed-pair-v1":

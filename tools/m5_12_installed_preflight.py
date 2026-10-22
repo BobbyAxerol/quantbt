@@ -28,7 +28,8 @@ def verifier_manifest():
     return {name: digest(ROOT / name) for name in
             ("tools/m5_12_installed_preflight.py", "tools/m5_12_consumer_artifacts.py",
              "tools/m5_12_source_guard.py", "tools/m5_12_extraction_contract.py",
-             "tools/m5_12_local_artifacts.py",
+             "tools/m5_12_pct_source_amendment.py",
+             "tools/m5_12_local_artifacts.py", "tools/m5_12_native_build.py",
              "tools/portfolio_repair_source_guard.py", "tools/account_metrics_source_guard.py",
              "tools/public_inventory_source_amendment.py")}
 

@@ -16,7 +16,9 @@ QUALIFICATION_SHA256 = "e3e557086c940971f8cd3573fcf812fce24fe862564367d417abac98
 def without_portfolio_repair(source, name, *, expected_baseline=None):
     from tools.m5_12_source_guard import without_extraction
     from tools.public_inventory_source_amendment import without_inventory_refresh
+    from tools.m5_12_pct_source_amendment import without_pct_activity
     import sys
+    source = without_pct_activity(source, name, sys.modules[__name__])
     source = without_extraction(source, name, sys.modules[__name__])
     source = without_inventory_refresh(source, name, sys.modules[__name__])
     raw = MANIFEST.read_bytes()
@@ -145,11 +147,13 @@ def verify_current_source():
     current, metadata_amendments = current_inventory_amendment(current, ROOT)
     from tools.m5_12_source_guard import apply_extraction, MANIFEST_SHA256 as extraction_digest
     extraction, current, extracted_sources = apply_extraction(sys.modules[__name__], current, scopes)
+    from tools.m5_12_pct_source_amendment import apply_pct_activity, MANIFEST_SHA256 as pct_digest
+    pct, current, pct_changed = apply_pct_activity(sys.modules[__name__], current, scopes)
     _assert_current_sources(current, scopes)
     all_changed = sorted(name for name in before.keys() | current.keys() if before.get(name) != current.get(name))
     return dict(
         schema="quantbt.portfolio.current_source_qualification.v1",
-        baseline_commit=qualification["baseline_commit"], source_commit=extraction["source_commit"],
+        baseline_commit=qualification["baseline_commit"], source_commit=pct["source_commit"],
         qualification_sha256=QUALIFICATION_SHA256, repair_amendment_sha256=MANIFEST_SHA256,
         scopes=scopes, current_source_qualified=True, qualified_source_count=len(current),
         acc01_amendment_sha256=acc01_digest, acc01_changed_sources=acc01_changed,
@@ -157,6 +161,8 @@ def verify_current_source():
         source_metadata_amendments=metadata_amendments,
         acc01_source_commit=amendment["source_commit"], pre_m512_amendment_sha256=extraction_digest,
         pre_m512_extracted_sources=extracted_sources, cold_extraction_semantics_unchanged=True,
+        m5_12_pct_amendment_sha256=pct_digest, m5_12_pct_changed_sources=pct_changed,
+        pre_m512_source_commit=extraction["source_commit"],
         financial_source_changed=True, financial_numeric_source_unchanged=False,
         financial_rust_unchanged=not any(name.startswith("rust/") for name in all_changed),
         repair_changed_sources=all_changed, historical_receipts=_historical_receipts(qualification),

@@ -14,7 +14,9 @@ DATA = current.manifest(guard)
 
 def test_current_source_qualifies_extraction_without_reissuing_old_qms_claims():
     result = current.verify_current_source()
-    assert result["source_commit"] == DATA["source_commit"]
+    assert result["pre_m512_source_commit"] == DATA["source_commit"]
+    from tools.m5_12_pct_source_amendment import manifest
+    assert result["source_commit"] == manifest(guard)["source_commit"]
     assert result["acc01_source_commit"] == DATA["acc01_source_commit"]
     assert result["pre_m512_amendment_sha256"] == current.MANIFEST_SHA256
     assert result["financial_source_changed"] and not result["financial_numeric_source_unchanged"]

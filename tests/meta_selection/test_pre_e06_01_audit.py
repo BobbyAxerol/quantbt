@@ -142,7 +142,10 @@ def test_pre01_t04_source_symbols_links_and_current_state_are_consistent(invento
     plan = (audit.ROOT / "upgrade/implement.md").read_text()
     current = plan.split("Previous performance and package closure:", 1)[0]
     assert "E06-E08 remain **PLANNED_NOT_AUTHORIZED_FOR_EXECUTION**" not in current
-    assert "IMPLEMENTED_LOCAL_QUALIFICATION_INCOMPLETE" in current
+    assert "Current local package qualification" in current
+    phase = plan.split("### Phase M5-12 -", 1)[1].split("### Mode 5 Planning Verification", 1)[0]
+    assert "**Status:**" in phase and "local" in phase.lower()
+    assert "No automatic version bump or native/public package promotion" in phase
     handoff = (audit.ROOT / "handoff/WFO_META_CURRENT.md").read_text().split("## Historical Local Debt Closure", 1)[0]
     assert "E06-E08 are unapproved" not in handoff
     assert "C01 additional methods | Nested scalar runtime implemented PRE-E06-03" in handoff

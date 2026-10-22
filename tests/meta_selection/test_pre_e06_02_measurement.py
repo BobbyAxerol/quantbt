@@ -100,7 +100,8 @@ def test_pre02_intrabar_full_funding_series_matches_exact_original_window():
 
 def test_pre02_exact_source_amendment_rejects_unreviewed_changes():
     from tools.qms_pre02_source_guard import NAME, BASE, ROOT, verify, without_pre02_repairs
-    assert verify()["scientific_estimator_changed"] is False
+    from current_source_assertions import current_source_rejects_historical_certificate
+    current_source_rejects_historical_certificate(verify)
     for name in (NAME, BASE):
         with pytest.raises(AssertionError, match="unreviewed"):
             without_pre02_repairs((ROOT/name).read_bytes()+b"\n# hidden change\n", name)
