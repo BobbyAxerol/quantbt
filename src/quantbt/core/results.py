@@ -178,6 +178,12 @@ class BacktestScalarScoreResult:
 
 @dataclass(frozen=True)
 class NativeAccountingArrays:
+    """Accounting paths with UTC epoch-nanosecond timestamps.
+
+    ``datetime_index`` reconstructs a UTC-aware clock, not local wall time.
+    Naive result clocks require the reporting convention ``naive_timezone='UTC'``.
+    """
+
     timestamps: np.ndarray
     equity: np.ndarray
     returns: np.ndarray
@@ -193,10 +199,30 @@ class NativeAccountingArrays:
     liquidation_bar: int = -1
 
     @classmethod
-    def from_result(cls, result: BacktestResultV2) -> "NativeAccountingArrays":
+    def from_result(
+        cls, result: BacktestResultV2, *, naive_timezone: str | None = None,
+    ) -> "NativeAccountingArrays":
+        index = result.equity.index
+        if not isinstance(index, pd.DatetimeIndex):
+            raise ValueError("accounting timestamps require an explicit DatetimeIndex")
+        if len(index) == 0 or index.hasnans:
+            raise ValueError("accounting timestamps must be nonempty and contain no NaT")
+        if naive_timezone not in {None, "UTC"}:
+            raise ValueError("only explicit naive_timezone='UTC' is supported")
+        if index.tz is None:
+            if naive_timezone != "UTC":
+                raise ValueError("naive timestamps require explicit naive_timezone='UTC'")
+            index = index.tz_localize("UTC")
+        # as_unit checks overflow instead of reinterpreting resolution-dependent integers.
+        index = index.tz_convert("UTC").as_unit("ns")
+        timestamps = index.asi8
+        if not bool(np.all(timestamps[1:] > timestamps[:-1])):
+            if not index.is_unique:
+                raise ValueError("accounting timestamps contain duplicate timestamps")
+            raise ValueError("accounting timestamps must be strictly increasing")
         position_cols = [f"Position_{symbol}" for symbol in result.symbols]
         return cls(
-            timestamps=result.equity.index.view("int64").copy(),
+            timestamps=timestamps.copy(),
             equity=result.equity.to_numpy(dtype=np.float64, copy=True),
             returns=result.returns.to_numpy(dtype=np.float64, copy=True),
             positions=result.positions[position_cols].to_numpy(dtype=np.float64, copy=True),
@@ -219,7 +245,7 @@ class NativeAccountingArrays:
 
     @property
     def datetime_index(self) -> pd.DatetimeIndex:
-        return pd.DatetimeIndex(self.timestamps)
+        return pd.DatetimeIndex(pd.to_datetime(self.timestamps, unit="ns", utc=True))
 
 
 @dataclass(frozen=True)
