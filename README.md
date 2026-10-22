@@ -12,8 +12,8 @@ walk-forward validation.
 
 The public API stays Pythonic. NumPy and Numba power portable research paths,
 while a governed Rust/PyO3 companion accelerates certified event workloads.
-Every backend returns the same result surface for metrics, plots, reports, and
-audit metadata.
+Completed research/audit runs use the shared result/report surface. Explicit
+score/compact profiles retain only their documented outputs, not full audit data.
 
 ```python
 from quantbt import QuantBTEndpoint
@@ -32,8 +32,11 @@ The distribution name is **`quantbt-engine`**; the import name is
 
 On Linux x86_64 with glibc and CPython 3.11-3.13, installation also resolves
 the exact pre-built **`quantbt-native`** companion. Users do not need Cargo,
-Rust, Maturin, a second import, or a different endpoint. Unsupported platforms
-retain the complete Python/Numba API.
+Rust, Maturin, a second import, or a different endpoint. Portable Python/Numba
+routes remain available where their dependencies are supported; explicit Rust
+contracts still require a matching native wheel. Alpine/musl is not covered:
+the dependency marker cannot distinguish musl from glibc, so installation may
+fail there rather than automatically fall back.
 
 Prepared next release pair (not yet published):
 
@@ -47,6 +50,8 @@ QMS is opt-in: enabling its compiled capability does not enable meta selection
 or change an existing endpoint/account policy. See the
 [QMS release handoff](docs/meta_selection/RELEASE_HANDOFF.md) for exact artifact,
 installed-W3 and public-consumer gates and the owner-controlled release order.
+The [M5-12 preparation checklist](docs/mode5/M5_12_PREPARATION.md) separates
+current source checks from final artifact, platform and public-index proof.
 
 Optional features:
 
@@ -66,7 +71,7 @@ print("core:", version("quantbt-engine"))
 try:
     print("native:", version("quantbt-native"))
 except PackageNotFoundError:
-    print("native: unavailable; Python/Numba fallback is active")
+    print("native: unavailable; use a supported portable route or install the exact companion")
 ```
 
 Read the [native installation matrix](docs/native/install.md) for supported
@@ -76,9 +81,10 @@ platforms, backend controls, and troubleshooting.
 
 Completed endpoint/result `full_report()`, `show_metrics()` and `quick_plot()`
 accept `reporting=ReportingRequest(...)` for explicit account-period, execution,
-closed-trade/action and drawdown-episode reporting. Existing calls, scientific
-WFO/meta metrics and raw execution/accounting are unchanged. Missing outcome
-attribution is N/A with a reason, not a guessed trade count. Read the
+closed-trade/action and drawdown-episode reporting. This reporting opt-in does
+not change execution or the WFO/meta objective. Separate account correctness
+fixes in this candidate can change results; see the migration notice below.
+Missing outcome attribution is N/A with a reason, not a guessed trade count. Read the
 [reporting guide](docs/metrics/PUBLIC_REPORTING.md) and runnable
 [synthetic example](examples/reporting_metrics_v1.py).
 
@@ -176,6 +182,36 @@ implementation language.
 The full parameter, data, result, and support contracts are in the
 [endpoint guide](docs/endpoint.md). For a decision tree, read
 [backend selection](docs/backend_selection.md).
+
+### Candidate Compatibility And Account Corrections
+
+Endpoint factory names remain stable. Relative to `v1.1.1`, optional
+`execution_endpoint`, `meta_history` and `reporting` inputs and the
+`research_report(...)` method extend WFO and result analysis. The later ACC-01
+repairs do not change endpoint method signatures, but intentionally correct
+funding, sizing, order admission, attribution and reporting edge cases.
+Unsupported non-default account/execution settings now fail explicitly instead
+of appearing to work. Generic portfolio remains gross-cross/netting, not an
+isolated-collateral or simultaneous long/short inventory simulator.
+Read the [effective configuration matrix](docs/portfolio_review/ACC01_CONFIGURATION_AND_MIGRATION.md),
+[account qualification](docs/portfolio_review/ACC01_REPORT.md) and
+[API compatibility audit](docs/mode5/M5_12_PREPARATION.md#endpoint-compatibility).
+Historical accounting results and benchmarks remain historical, not current
+artifact certification.
+
+### Diagnostics And Opt-In Calibration
+
+Shared [alpha diagnostics](docs/diagnostics/SHARED_ALPHA_DIAGNOSTICS.md) expose
+coverage, parameter geometry, activity, sensitivity and supported conclusions.
+Mode 4 adds [fold consistency and meta-decision reporting](docs/diagnostics/REPORTING_COVERAGE_AND_HANDOFF.md);
+diagnostics-first [Mode 5 calibration](docs/mode5/PUBLIC_CALIBRATION_V1.md)
+uses an explicitly frozen research recipe to select one static parameter dict.
+Its [winner qualification](docs/diagnostics/MODE5_WINNER_QUALIFICATION.md) ties selection
+to annual/regime, risk, activity, probe/stress and baseline evidence with
+support/limits. Samplers are configurable independently of meta selection.
+Cross-mode assistance remains an explicit researcher choice, not an automatic
+router or a claim of universal improvement. Observed decay/robustness evidence
+is specific to its registered alpha, window, objective and comparison.
 
 ## Event-Driven Facade
 
@@ -496,17 +532,18 @@ compatibility callback fell from **5.477 s** (**18,259 bars/s**) to **2.430 s**
 (**41,145 bars/s**): median paired ratio **0.4473** and CI95
 `[0.4411, 0.4622]`. Both retain the public full-audit result and exact
 accounting/trace parity; isolated peak RSS stays effectively flat around
-**305 MiB**. These are current source-tree B1-to-B2 measurements, not a
+**305 MiB**. These are historical NEXT-01 source-tree B1-to-B2 measurements, not a
 published-release comparison, a generic WFO claim, or a Rust decision-callback
 claim. Read the [NEXT-01 evidence](docs/performance/next01_reactive_public_runtime.md).
 
-Phase 77.3 records current-candidate reactive closure separately from the
+Phase 77.3 records historical candidate reactive closure separately from the
 released table above. On its matched 10,000-bar prepared scalar fixture, R1,
 R2, and R3 score-only runs measured `20.077 ms`, `13.588 ms`, and `20.949 ms`
 (`498.1k`, `736.0k`, and `477.3k bars/s`). Its 2,000-bar W3 fixture with eight
 candidates measured `196.556 ms` sequential and `226.748 ms` for the distinct
 R3B schedule (`110.5k` and `105.4k` candidate-fold visits/s). These are
-development evidence on the current source tree, not a `v1.1.0` release claim,
+development evidence on its recorded source (`db39959`), not current ACC-01
+qualification or a `v1.1.0` release claim,
 not a comparison between different sampling schedules, and not a promise for
 arbitrary Python callback compute. The artifact also proves active Rust
 deadline/cancellation behavior and cross-route parity controls:
@@ -524,10 +561,11 @@ fold tables, selected parameters, segment equity, fees, funding, positions and
 strategy fingerprints match the compatibility path. See the
 [PERF-09 evidence](docs/performance/perf_09_reactive_boundary.md).
 
-The local Linux CPython candidate-pair gate also passed source-hash parity,
+The historical local Linux CPython candidate-pair gate passed source-hash parity,
 isolated core/native install, direct native-target smoke, and source-tree import
-blocking. Published-wheel platform certification remains a separate Phase 78
-release responsibility.
+blocking on its recorded bytes. Current final-source artifact certification is
+M5-12 work, followed by separately approved remote/public gates. Neither those
+historical timings nor the old candidate-pair PASS qualify current ACC-01 artifacts.
 
 The direct target rows are intentionally split. The narrow typed Rust score
 is slower than the frozen Numba pure kernel on this fixture, while the explicit

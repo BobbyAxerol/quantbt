@@ -7,15 +7,18 @@ QuantBT has one public Python API and two release artifacts:
 | `quantbt-engine` | `quantbt` | endpoint, Python/Numba engines, reports, compatibility oracle |
 | `quantbt-native` | never directly | internal `_quantbt_native` PyO3 extension for certified workloads |
 
-The Python core is sufficient for all public QuantBT endpoints:
+Ordinary portable routes use the Python core. Explicit Rust contracts and
+required native numeric capabilities need the exact compatible companion:
 
 ```bash
 pip install quantbt-engine
 ```
 
 The prepared next pair is `quantbt-engine==1.1.2` with
-`quantbt-native==0.4.3`; it is not published yet. The published predecessor
-is `1.1.1 / 0.4.2`. See the [QMS release handoff](../meta_selection/RELEASE_HANDOFF.md).
+`quantbt-native==0.4.3`; it is not published yet. The documented predecessor
+is `1.1.1 / 0.4.2`. This page is not a live index check.
+See the [QMS release handoff](../meta_selection/RELEASE_HANDOFF.md) and
+[M5-12 preparation](../mode5/M5_12_PREPARATION.md) for final-source gates.
 The core declares the companion as a direct,
 platform-marked dependency, so a normal supported consumer command remains:
 
@@ -31,13 +34,19 @@ users never need Cargo, Rust, or Maturin to install it. The required release
 order and public-index proof are maintained in the
 [TestPyPI release checklist](../testpypi_release_checklist.md).
 
-ARM64/aarch64, Alpine/musl, PyPy, and 32-bit Linux remain core-only Python
-installs for this release line. Their public endpoint behavior is unchanged.
+The dependency marker checks Linux, x86_64 and CPython 3.11-3.13, **not libc**.
+Alpine/musl on that platform therefore matches the dependency marker but has
+no certified wheel; the resolver may fail. There is no automatic core-only
+resolver fallback for musl, and no source-build/Rust-toolchain installation
+promise. Other platforms excluded by the marker can use portable routes only
+where all core dependencies support them; they are not native-certified.
 
 | Consumer platform | Resolver behavior | Runtime policy |
 | --- | --- | --- |
 | Linux x86_64 glibc, CPython 3.11-3.13 | core plus exact pre-built `quantbt-native` wheel | Rust auto only for exact Native Strategy IR `score`; Python otherwise |
-| macOS, Windows, Linux ARM64/musl, PyPy, unsupported Python | core only | Python/Numba fallback |
+| Linux x86_64 musl / Alpine, CPython 3.11-3.13 | marker requests native, but no supported wheel | unsupported install; no automatic resolver fallback |
+| macOS, Windows, Linux ARM64, non-CPython | marker excludes native | portable routes only if core dependencies support the platform |
+| Python outside 3.11-3.13 | excluded by core `Requires-Python` | unsupported core installation |
 
 ## Verify A Consumer Install
 
@@ -54,11 +63,11 @@ print("quantbt import:", Path(quantbt.__file__).resolve())
 try:
     print("quantbt-native:", version("quantbt-native"))
 except PackageNotFoundError:
-    print("quantbt-native: not installed; Python/Numba fallback is expected")
+    print("quantbt-native: not installed; explicit Rust contracts are unavailable")
 PY
 ```
 
-Supported Linux output for this release pair contains:
+After this pair is published, supported Linux output must contain:
 
 ```text
 quantbt-engine: 1.1.2
@@ -85,7 +94,8 @@ imports, and checks the exact core/native mapping from the product registry.
 
 ## Runtime behavior
 
-- Missing native extension: core remains fully functional.
+- Missing native extension: eligible portable routes retain their documented
+  fallback; explicit Rust and native-required requests fail clearly.
 - `backend="python"`: always selects the reference implementation.
 - `backend="rust"`: explicitly requests a certified static command-tape or
   bounded Native Strategy IR/batch route, verifies the extension descriptor,

@@ -39634,6 +39634,26 @@ The original portfolio repair is preserved as an earlier bounded certificate,
 not proof that the later eighteen findings are repaired.
 Package gates remain NOT_RUN; parent acceptance is not installed-artifact
 qualification or permission to launch release workflows.
+**Preparation update (2026-10-22 UTC):** owner requested docs/API/privacy review
+before M5-12, not launch of its builds/consumers or remote gates. The
+[preparation checklist](../docs/mode5/M5_12_PREPARATION.md) maps all six work
+packages, current versus historical source/artifact proof, endpoint compatibility,
+installation/migration limits and CI consumer/trigger wiring still required.
+Generated root inventory is refreshed from 516 to 527 exports with no removals;
+its exact metadata-only amendment preserves ACC-01 financial source/old receipts.
+The superseded owner draft is narrowly ignored/excluded without deleting it;
+private alpha/local data remain ignored and manifest-excluded; final artifact
+inspection is still required. Focused static gates
+and cleanup have a separate receipt and are not M512.01..06 PASS. Versions remain
+1.1.2/0.4.3; no push, CI, build, install, financial run, tag or publication.
+The same local static command used by CI identifies a real entry gap:
+`native_option.py` (1,040 lines) and `native_portfolio.py` (1,006) exceed the
+1,000-line architecture review trigger without declared exceptions. M512.01/05
+must resolve this with a cohesive parity-checked extraction or explicit owner
+review; do not relax the global size gate or call current CI ready. Native
+contract generation, benchmark governance and historical promotion-certificate
+integrity pass separately. Final package resource admission also needs a fresh
+forecast: about 5.22 GiB free leaves only about 0.22 GiB above the 5 GiB reserve.
 M5-11.4/11.5 retain their separately approved local closure. This planning
 request does not launch M5-12 or any CI, release or publication.
 **Goal:** deliver a reproducible privacy-safe local package and honest capability/

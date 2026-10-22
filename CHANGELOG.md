@@ -9,8 +9,9 @@ All notable changes to `quantbt-engine` are documented here.
 - Added opt-in `reporting=ReportingRequest(...)` on completed endpoint/result
   reports and quick plots. Account-period, execution, closed-trade/action and
   drawdown episode output has explicit baseline, frequency, currency, coverage
-  and unavailable policies. Legacy reports, scientific/WFO scores and raw
-  execution/accounting remain unchanged. Read [Reporting V1](docs/metrics/PUBLIC_REPORTING.md).
+  and unavailable policies. This opt-in does not alter execution or WFO/meta
+  objectives; separate account repairs below intentionally correct financial
+  edge cases. Read [Reporting V1](docs/metrics/PUBLIC_REPORTING.md).
 - Reduced optional reporting copies and duplicate hashing using immutable
   bytes-owned snapshots, a prepared boolean mask and one report/plot snapshot.
   Cache hits still rehash mutable completed input; formulas, exact identities,
@@ -27,10 +28,30 @@ All notable changes to `quantbt-engine` are documented here.
   parity, exact reusable calendar/market witnesses, observed thread telemetry
   and bounded sequential W3 meta on the original native accounting pass.
 - Enabled the already-qualified QMS native exports in default Cargo builds;
-  Linux core dependency is exactly `quantbt-native==0.4.3`. Native ABI and
-  financial kernels are unchanged. Meta remains disabled unless requested.
-- Added source-exact wheel/sdist, installed-W3 and six-row Ubuntu qualification;
-  release/public Poetry gates require the actual QMS/W3 consumers for this pair.
+  Linux core dependency is exactly `quantbt-native==0.4.3`. The ABI remains
+  versioned; later ACC-01 changes affect both Python and Rust financial source
+  and require fresh compatible artifacts. Meta remains disabled unless requested.
+- Earlier QMS wheel/sdist, installed-W3 and six-row Ubuntu receipts retain
+  their historical source scope. They do not certify the later Mode 5,
+  reporting and account repairs. Final M5-12 artifacts, remote qualification
+  and public consumers remain separate gates.
+- Added diagnostics-first opt-in Mode 5 calibration with versioned objectives,
+  selectors, diagnostic evidence/rights, frozen plans, explanation and winner
+  qualification. Shared diagnostics/reporting include Mode 4 fold consistency,
+  R/Q, decision coverage and explicit cross-mode researcher handoff. No automatic
+  sampler/selector router or universal economic improvement is claimed.
+- Extended the stable endpoint API additively: optional `execution_endpoint`
+  on `walk_forward`, keyword-only `meta_history` on `backtest`, optional
+  `reporting` on completed reports/plots, and `research_report(...)`.
+- Corrected current-capability account/configuration behavior: financial clocks,
+  funding interval coverage, contract multipliers, risk-reducing admission,
+  constraints, invalid inputs, actual attribution and reporting horizon/time
+  handling. Unsupported non-default options fail explicitly; gross-cross/netting
+  is not hedge inventory or isolated liquidation. See
+  [ACC-01 migration](docs/portfolio_review/ACC01_CONFIGURATION_AND_MIGRATION.md).
+- Refreshed the generated root API inventory to 527 exports (11 additions to
+  the stale generated list, no removals), with an exact metadata-only amendment
+  that preserves the separate financial source qualification and historical receipts.
 - Preparation only: no tag, upload, merge or scientific acceptance is implied.
   See [QMS release handoff](docs/meta_selection/RELEASE_HANDOFF.md).
 

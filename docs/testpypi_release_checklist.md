@@ -17,6 +17,9 @@ before creating the final tag.
 This pair is prepared only. Do not execute publication until the owner approves.
 The [QMS handoff](meta_selection/RELEASE_HANDOFF.md) distinguishes installed
 artifact qualification from the pending public-index proof. Meta stays opt-in.
+The [M5-12 preparation](mode5/M5_12_PREPARATION.md) lists current source,
+artifact and installed-consumer entry gates. Historical local/remote proof is
+not final-byte qualification after Mode 5/reporting/ACC-01 changes.
 
 CI and native-release tests require full Git history (`fetch-depth: 0`) because
 the source qualification validates ancestry of its recorded candidate commit.
@@ -24,8 +27,11 @@ Before merging, require both CI and Native Event API 0.4 Gate to pass on the
 current PR/commit. A source hash or local test pass does not replace that matrix.
 
 The core remains a complete Python package. On Linux x86_64 with CPython
-3.11-3.13, its direct platform marker resolves a pre-built native wheel. No
-consumer compiles Rust. Other platforms resolve the Python/Numba core only.
+3.11-3.13 with glibc, its direct platform marker resolves a pre-built native
+wheel. No supported consumer compiles Rust. The marker cannot test libc;
+musl may fail resolution, not automatically fall back. Marker-excluded
+platforms can use eligible portable routes where other core dependencies
+support them; explicit Rust/native-required requests still need the companion.
 
 The release channels are deliberately separate:
 
@@ -36,7 +42,8 @@ The release channels are deliberately separate:
 
 The workflows enforce this provenance. A final main tag does not go through
 TestPyPI, and an RC tag cannot publish to PyPI. Within either channel, publish
-`quantbt-native` first, prove the consumer, then publish `quantbt-engine`.
+`quantbt-native` first after its staged exact-pair certificate, then publish
+`quantbt-engine`, and finally prove public consumers against the public pair.
 
 ## One-Time Trusted Publishing Setup
 

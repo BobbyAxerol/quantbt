@@ -8,8 +8,9 @@ Use this page as the first stop when deciding which QuantBT document to read.
 |---|---|
 | Install | `pip install quantbt-engine` or `poetry add quantbt-engine` |
 | Import | `from quantbt import QuantBTEndpoint` |
-| Core release | `quantbt-engine==1.1.1` |
-| Native companion | `quantbt-native==0.4.2`, installed automatically on supported Linux x86_64 CPython 3.11-3.13 |
+| Prepared next pair | `quantbt-engine==1.1.2 / quantbt-native==0.4.3`; not yet published/qualified by M5-12 |
+| Documented predecessor | `quantbt-engine==1.1.1 / quantbt-native==0.4.2`; not a live index query |
+| Native companion install | Exact marked dependency on Linux x86_64 CPython 3.11-3.13; certified wheels require glibc, musl does not auto-fallback |
 | Native policy | Rust auto only for exact one-symbol Native Strategy IR `score` at >=2,000 bars; Python/Numba otherwise |
 
 The companion is an internal implementation package. Users do not import it
@@ -21,6 +22,7 @@ to verify the pair and [Endpoint contract](endpoint.md) to select a route.
 | Need | Read |
 |---|---|
 | Install the package and understand the core/native pair | [Native companion installation](native/install.md) |
+| Prepare final-source artifacts, migration, privacy and later CI/release | [M5-12 checklist](mode5/M5_12_PREPARATION.md), [ACC-01 effective configuration](portfolio_review/ACC01_CONFIGURATION_AND_MIGRATION.md) |
 | Inspect the exact Rust-auto route, evidence, fallbacks, and rollback controls | [Public Rust Promotion](native/public_rust_promotion.md) |
 | Choose the right backend | [Backend selection](backend_selection.md) |
 | Call QuantBT from notebooks/services | [Endpoint contract](endpoint.md) |

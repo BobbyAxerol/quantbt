@@ -1,6 +1,32 @@
 # WFO Meta Current Handoff
 
-## Current Ridge Research Result
+## Current Package Preparation
+
+2026-10-22 UTC: the current branch is `feat/mode5-diagnostics-first`; prepared
+pair remains core 1.1.2 / native 0.4.3. Parent M5-11 research scope was accepted;
+M5-11.14/15 and ACC-01 are locally closed. M5-12 remains
+APPROVED_CONDITIONAL / NOT_STARTED, with final package gates NOT_RUN.
+Read the [preparation checklist](../docs/mode5/M5_12_PREPARATION.md),
+[current release handoff](../docs/meta_selection/RELEASE_HANDOFF.md) and
+[ACC-01 migration](../docs/portfolio_review/ACC01_CONFIGURATION_AND_MIGRATION.md).
+Focused static docs/API/privacy checks are not full qualification, CI or
+publication approval. No new financial study or optimizer is launched here.
+
+Financial runtime `70fe9f7` changes both Python and Rust account behavior;
+stable endpoint signatures against pre-ACC `8f7df9d` do not imply unchanged
+economics or compatible artifacts. Earlier receipts/claims below remain
+historical. The root API inventory is refreshed separately, with no financial
+runtime modification. Exact source/pair/artifacts and installed consumers must
+be qualified before separately approved remote/public gates.
+
+Ridge V1 remains the baseline; ML research did not activate a new default
+learner. Diagnostics/cross-mode donors remain explicit researcher choices,
+not an automatic sampler/selector router or blanket economic efficacy claim.
+Public synthetic examples and source-bound report/probe rights stay distinct
+from private alpha evidence and final installed-package proof.
+
+<a id="current-ridge-research-result"></a>
+## Historical Ridge Research Result
 
 Owner has subsequently authorized sequential ML-03 -> ML-04 -> ML-05 local
 research. ML-03 framework/synthetic work is in progress; its
@@ -28,7 +54,8 @@ ML-03..05 authorization above does not activate older reporting/package phases
 or release.
 Earlier receipts below retain their historical source/claim scope.
 
-## Latest E08 Execution
+<a id="latest-e08-execution"></a>
+## Historical E08 Execution
 
 Owner authorizes local E08 gap closure and the bracket incident investigation
 (2026-10-07 UTC). The [current plan](../upgrade/implement.md#qms-e08) and

@@ -7,8 +7,8 @@ generated registry remains the executable source of truth.
 
 ## What Is Released
 
-`quantbt-engine` is a complete Python package. It installs and runs every
-public endpoint without native code on unsupported platforms. The governed
+`quantbt-engine` owns the public Python API. Eligible portable routes can run
+without native code; explicit Rust/native-required contracts cannot. The governed
 prepared pair is `quantbt-engine==1.1.2` and `quantbt-native==0.4.3`: supported
 Linux x86_64 / glibc / CPython 3.11-3.13 consumers receive the exact pre-built
 companion through the core's direct platform dependency. No consumer compiles
@@ -25,8 +25,17 @@ The public consumer contract is intentionally ordinary:
 poetry add quantbt-engine
 ```
 
-On the supported matrix this resolves the exact companion; elsewhere it keeps
-the same Python endpoint surface without attempting a source build.
+On the supported glibc matrix this resolves the exact companion. The dependency
+marker cannot distinguish glibc from musl: Alpine/musl can fail wheel resolution
+rather than automatically use a core-only install. Marker-excluded platforms
+can use portable routes only where the other core dependencies support them.
+Read the [installation limits](../native/install.md).
+
+Current-source M5-12 and ACC-01 qualification is still required before the
+commands below become a release-candidate runbook. The
+[preparation checklist](../mode5/M5_12_PREPARATION.md) records artifact/consumer
+coverage still to be executed; unchanged ABI/signatures do not certify changed
+financial source or an older native wheel.
 
 `src/quantbt/` is the sole package and wheel source. NEXT-03 retired the former
 root-level mirror (`endpoint.py`, `backends/`, `core/`, and related entries)
