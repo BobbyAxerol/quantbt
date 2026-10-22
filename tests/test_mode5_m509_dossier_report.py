@@ -37,7 +37,11 @@ def test_m509_current_plan_status_and_historical_receipts_are_distinct():
     next_phase = text.split('### Phase M5-10 -', 1)[1].split('### Phase M5-11 -', 1)[0]
     assert "COMPLETE_LOCAL_PUBLIC_OPT_IN" in next_phase
     package_phase = text.split('### Phase M5-12 -', 1)[1].split('\n### ', 1)[0]
-    assert "NOT_STARTED" in package_phase and "package gates remain NOT_RUN" in package_phase
+    assert "**Status:** TECHNICALLY_VALID_LOCAL_SCOPE;" in package_phase
+    assert "Earlier NOT_STARTED preparation notes below are historical" in package_phase
+    assert "../docs/mode5/evidence/m5-12-r3.json" in package_phase
+    current_local = json.loads((ROOT / "docs/mode5/evidence/m5-12-r3.json").read_text())
+    assert current_local["status"] == "TECHNICALLY_VALID"
     # The historical M5-09 receipt is not rewritten as later approval/progress.
     old = json.loads((ROOT / "docs/mode5/evidence/m5-09.json").read_text())
     assert old["next_phase_authorized"] is False

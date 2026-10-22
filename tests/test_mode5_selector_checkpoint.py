@@ -7,6 +7,7 @@ import importlib.util
 import json
 import math
 from pathlib import Path
+import subprocess
 import tempfile
 import unittest
 import sys
@@ -25,11 +26,9 @@ OBJECTIVE = dict(metric="economic_utility", unit="decimal_return", quality_floor
 
 @contextmanager
 def fixture_directory():
-    lane = SOURCE.parents[2]/"upgrade/private/mode5_upgrade_v1/m5-11-1/attempt-01/goal-step1"
-    root = lane/"cold-fixtures" if lane.is_dir() else Path(tempfile.gettempdir())/"mode5-selector-cold-fixtures"
-    root.mkdir(parents=True, exist_ok=True)
-    # Keep the small custody fixtures alongside their test receipt; no deletion.
-    yield tempfile.mkdtemp(prefix="custody-", dir=root)
+    # Synthetic custody rows are disposable; retained research evidence is not.
+    with tempfile.TemporaryDirectory(prefix="mode5-selector-custody-") as root:
+        yield root
 
 
 def metrics(utility, dd=.1):
@@ -329,7 +328,17 @@ class CustodyControls(unittest.TestCase):
         self.assertFalse((names | modules)-allowed)
 
     def test_no_financial_or_numeric_runtime_modules_loaded(self):
-        self.assertFalse({name.split(".")[0] for name in sys.modules} & {"quantbt", "numpy", "scipy", "numba"})
+        code = """
+import importlib.util
+import sys
+spec = importlib.util.spec_from_file_location('selector_checkpoint', sys.argv[1])
+module = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(module)
+assert not ({name.split('.')[0] for name in sys.modules} & {'quantbt', 'numpy', 'scipy', 'numba'})
+"""
+        completed = subprocess.run([sys.executable, "-B", "-c", code, str(SOURCE)],
+            capture_output=True, text=True, timeout=30)
+        self.assertEqual(completed.returncode, 0, completed.stdout + completed.stderr)
 
     def test_failed_hash_audit_remains_observable_without_cleanup_deletion(self):
         with fixture_directory() as tmp:
