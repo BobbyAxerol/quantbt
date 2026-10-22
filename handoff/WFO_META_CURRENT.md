@@ -2,6 +2,12 @@
 
 ## Current Local Package Qualification
 
+The owner retargets the candidate to **core1.2.0/native0.4.3** and requests
+measured reporting optimization. Read the
+[current supplement](../docs/mode5/M5_12_RELEASE120_REPORT.md). The following
+dated1.1.2closeout and R3 seals retain their historical scope; they do not
+certify new artifact bytes. No push/CI/merge/tag/publication is authorized.
+
 2026-10-22 UTC: the current branch is `feat/mode5-diagnostics-first`; prepared
 pair remains core 1.1.2 / native 0.4.3. Parent M5-11 research scope was accepted;
 M5-11.14/15 and ACC-01 are locally closed. M5-12 is now

@@ -2,7 +2,10 @@
 
 ## Authorization And Scope
 
-Owner-approved candidate pair: `quantbt-engine==1.1.2 / quantbt-native==0.4.3`.
+Owner-approved candidate pair: `quantbt-engine==1.2.0 / quantbt-native==0.4.3`.
+The [1.2.0 qualification supplement](../mode5/M5_12_RELEASE120_REPORT.md) takes
+precedence for new source/artifacts. Earlier1.1.2qualification and R3 seals
+below retain their exact historical scope and are not renamed to1.2.0.
 Current authorization includes **owner-approved local M5-12 qualification**
 and the narrow accepted-position/activity repair with a fresh native build,
 plus the approved continuous snapshot copy/pickle repair.

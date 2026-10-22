@@ -9,7 +9,7 @@ generated registry remains the executable source of truth.
 
 `quantbt-engine` owns the public Python API. Eligible portable routes can run
 without native code; explicit Rust/native-required contracts cannot. The governed
-prepared pair is `quantbt-engine==1.1.2` and `quantbt-native==0.4.3`: supported
+prepared pair is `quantbt-engine==1.2.0` and `quantbt-native==0.4.3`: supported
 Linux x86_64 / glibc / CPython 3.11-3.13 consumers receive the exact pre-built
 companion through the core's direct platform dependency. No consumer compiles
 Rust during installation.
@@ -31,11 +31,12 @@ rather than automatically use a core-only install. Marker-excluded platforms
 can use portable routes only where the other core dependencies support them.
 Read the [installation limits](../native/install.md).
 
-Current-source M5-12 and ACC-01 qualification is still required before the
-commands below become a release-candidate runbook. The
-[preparation checklist](../mode5/M5_12_PREPARATION.md) records artifact/consumer
-coverage still to be executed; unchanged ABI/signatures do not certify changed
-financial source or an older native wheel.
+The [1.2.0 supplement](../mode5/M5_12_RELEASE120_REPORT.md) records exact local
+artifact/consumer qualification. The earlier
+[preparation checklist](../mode5/M5_12_PREPARATION.md) retains its historical
+1.1.2 scope. New-source remote/manylinux and public-index proof remain separate;
+unchanged ABI/signatures do not certify an older native wheel. Generated native
+product metadata was rebuilt for 1.2.0 while retaining native version 0.4.3.
 
 `src/quantbt/` is the sole package and wheel source. NEXT-03 retired the former
 root-level mirror (`endpoint.py`, `backends/`, `core/`, and related entries)

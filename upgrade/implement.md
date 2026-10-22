@@ -2,7 +2,21 @@
 
 ## Current Mode 5 Diagnostics-First Upgrade - Full-Development Decision Support
 
-**Current local package qualification (2026-10-22, UTC):** owner-approved
+**Owner-approved post-qualification follow-up (2026-10-22, Asia/Saigon):**
+TECHNICALLY_VALID_LOCAL_SCOPE; exact new wheel/sdist consumers and affected
+reporting/version gates are complete. See the
+[current report](../docs/mode5/M5_12_RELEASE120_REPORT.md).
+optimize measured reporting overhead without changing metric mathematics,
+raw accounting, WFO/sampler/Ridge/RNG, public defaults or native execution.
+Generated native product metadata may advance with the core version; this is
+not a financial kernel/ABI change and requires a fresh exact native artifact.
+The owner advances the candidate pair to **core1.2.0/native0.4.3**. Earlier
+1.1.2 local artifacts/reports remain immutable historical qualifications;
+they are not renamed or represented as certification of the new candidate.
+Current amendment: [M5-12.P1](#mode5-m5-12-performance-120).
+No push, remote workflow, merge, tag or publication is authorized.
+
+**Previous 1.1.2 local package qualification (2026-10-22, UTC):** owner-approved
 [M5-12](#mode5-m5-12) is TECHNICALLY_VALID within registered local scope.
 The owner accepts all four reconciled operational exceptions, keeping original
 failed receipts and waiving no correctness/artifact/privacy gate. Final owner
@@ -39868,6 +39882,85 @@ all reports, privacy and cleanup receipts, owner capability/release checklist.
    final source-bound handoff/cleanup. No merge/tag/upload action in this phase.
 **Rollback:** disable the opt-in extension or pin prior compatible package pair;
    retain private evidence/oracles and old reproducible source/artifacts.
+
+<a id="mode5-m5-12-performance-120"></a>
+### M5-12.P1 - Reporting Cost And Core 1.2.0 Candidate Amendment
+
+**Status:** TECHNICALLY_VALID_LOCAL_SCOPE. The owner requests additional
+performance work and core1.2.0, keeping native0.4.3; this is not a new economic
+study or a release launch. Earlier M5-12 receipts retain their original scope.
+**Goal:** remove measured avoidable reporting work, preserve exact complete
+outputs and immutable/cache semantics, and align active release metadata with
+the new candidate pair without editing sealed historical receipts.
+**Guides:** [reporting contract](../docs/metrics/REPORTING_CONTRACT_V1.md),
+[public usage](../docs/metrics/PUBLIC_REPORTING.md),
+[latest historical cost study](../docs/metrics/MET03_COPY_COST_REPORT.md),
+[M5-12 guide](QUANTBT_MODE5_UPGRADE_V1_DIAGNOSTICS_FIRST_GUIDE_VI.md#phase-m5-12--qualification-docs-reproducibility-và-handoff),
+[architecture](../docs/architecture/execution-plan.md) and
+[cleanup](../docs/BUILD_TEST_CLEANUP.md).
+**Entry/baseline:** committed local closeout`b98c59e`; preserve the owner's
+unstaged plan hunk. Profile actual full reporting before changing runtime.
+**Work:** (1) freeze bounded fixtures and source identities; (2) profile and
+remove proven repeated metadata/ledger work, not risk/metric checks; (3) exact
+before/after report and identity parity plus adversarial oracle tests; (4)
+update canonical version/pair, lock and active docs/tests only; (5) append a
+strict source amendment and current-source qualification; (6) build/check exact
+new core artifacts and bounded outside-checkout consumers if admitted, preserving
+native provenance; (7) report all timing cells, limitations and cleanup.
+**Measurement:** one thread/CPU, two warmups and30alternating samples per cell;
+Python and explicit Numba, account2k/100k/1M, ledger32/2k trades and1k actions,
+plus high-cardinality reason controls. Keep full requested episodes, immutable
+snapshot/hash, ledger completeness horizon and JSON output. Do not reuse the
+old benchmark's ledger fixture without its now-required valuation witness.
+Cold compilation, same-process peak RSS and elapsed public report cost remain
+distinct; finite-sample p95 is descriptive, not a universal latency guarantee.
+**Tests/gates:** exact complete output/input SHA equality; scalar/subclass/
+metadata mutation, no shared mutable dictionaries, overflow/undefined and
+ledger order/count/roster tests; affected account/ledger/snapshot/cache/public
+reports; original execution/WFO source unchanged except approved core-version
+metadata; strict source drift/mutation negatives; version/pair/lock consistency,
+archive privacy and installed imports. No reduced output or relaxed oracle.
+**Resources:** initial available disk6,365,925,376bytes; primary environment
+reused for source tests. Profile/paired/report scratch64MiB, retained32MiB,
+one worker <=768MiB RSS, >=512MiB available RAM and5GiB disk reserve. Exact
+core build/serial consumer sublane forecasts896MiB incremental plus reserve;
+recheck admission before launch. Product generation embeds core version/registry
+identity into Rust, so the old native artifact cannot be reused by version alone.
+Permit a serial, offline, one-job native metadata rebuild at0.4.3 on the retained
+release target,192MiB incremental sublane plus5GiB reserve; no kernel/ABI change.
+**Cleanup inventory:** exact phase-owned fixture/JIT/report scratch and terminal
+new consumer/build envs only; retain source archives, original evidence, logs,
+core/native archives, primary tooling and offline dependencies. Host process/
+hash review precedes deletion. No service stop or broad cache purge.
+**Exit:** measured changes have exact behavioral parity and focused regression;
+new1.2.0source/artifact scope is explicit, old1.1.2receipts unchanged; worse/noisy
+timing cells disclosed, resource/cleanup receipt and meaningful local commits.
+**Debt/rollback:** no methodology or Rust financial-kernel change hidden as performance.
+If a candidate optimization fails parity or lacks gain, retain the baseline.
+Unrun new-artifact or remote gates stay explicitly pending, not inherited PASS.
+No automatic release or claim that all optimization is exhausted.
+
+**Execution/exit (2026-10-22, Asia/Saigon):** performance`61bfeed`, pair/wiring
+`67f75bf` and source-amendment/tooling`58eda01` are committed. Exact current
+runtime is`67f75bf`,466paths; exactly12reporting/version/generated-metadata
+paths differ from the prior snapshot baseline. Matched complete reporting
+retains exact full output SHA in all14cells,30alternating repeats/cell.
+Python1M p50 improves2028.301->1483.228ms; Numba account medians stay essentially
+flat and adverse p95 observations are retained. Reason-cardinality stress is
+separately labelled, not a usual-workload headline. Source qualification:
+509focused numeric cases;89version/consumer cases;1486broad passes with four
+original failures fully reconciled by94focused recovery cases, not relabelled.
+Two later wrapper/prelaunch failures also remain in original receipts.
+Fresh core1.2.0wheel/sdist and rebuilt native0.4.3descriptor each pass actual
+outside-checkout44feature,34new-reporting,19pct/alias consumers. Only generated
+product metadata changes in Rust; no financial kernel/ABI change. Serial
+consumers/build/fixture caches are retired after host/hash checks; source,
+scientific evidence, logs and exact archives remain. All239regular external
+fixture payloads are archived before five temporary-root removals. See the
+[full cost/qualification report](../docs/mode5/M5_12_RELEASE120_REPORT.md) and
+[new exact seal](../docs/mode5/evidence/m5-12-release120.json). Earlier1.1.2R3
+qualification is historical, not rewritten. New manylinux/remote/public proof,
+owner release review and any push/CI/merge/tag/publication remain separate.
 
 ### Mode 5 Planning Verification And Next Approval
 

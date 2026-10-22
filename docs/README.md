@@ -8,7 +8,7 @@ Use this page as the first stop when deciding which QuantBT document to read.
 |---|---|
 | Install | `pip install quantbt-engine` or `poetry add quantbt-engine` |
 | Import | `from quantbt import QuantBTEndpoint` |
-| Prepared next pair | `quantbt-engine==1.1.2 / quantbt-native==0.4.3`; not yet published/qualified by M5-12 |
+| Prepared next pair | `quantbt-engine==1.2.0 / quantbt-native==0.4.3`; local artifact qualification is distinct from remote/public proof |
 | Documented predecessor | `quantbt-engine==1.1.1 / quantbt-native==0.4.2`; not a live index query |
 | Native companion install | Exact marked dependency on Linux x86_64 CPython 3.11-3.13; certified wheels require glibc, musl does not auto-fallback |
 | Native policy | Rust auto only for exact one-symbol Native Strategy IR `score` at >=2,000 bars; Python/Numba otherwise |
@@ -22,11 +22,11 @@ to verify the pair and [Endpoint contract](endpoint.md) to select a route.
 | Need | Read |
 |---|---|
 | Install the package and understand the core/native pair | [Native companion installation](native/install.md) |
-| Prepare final-source artifacts, migration, privacy and later CI/release | [M5-12 checklist](mode5/M5_12_PREPARATION.md), [ACC-01 effective configuration](portfolio_review/ACC01_CONFIGURATION_AND_MIGRATION.md) |
+| Prepare final-source artifacts, migration, privacy and later CI/release | [1.2.0 qualification supplement](mode5/M5_12_RELEASE120_REPORT.md), historical [M5-12 checklist](mode5/M5_12_PREPARATION.md), [ACC-01 effective configuration](portfolio_review/ACC01_CONFIGURATION_AND_MIGRATION.md) |
 | Inspect the exact Rust-auto route, evidence, fallbacks, and rollback controls | [Public Rust Promotion](native/public_rust_promotion.md) |
 | Choose the right backend | [Backend selection](backend_selection.md) |
 | Call QuantBT from notebooks/services | [Endpoint contract](endpoint.md) |
-| Report account periods, executed trades/actions and observed drawdown episodes without changing WFO scores | [Reporting V1](metrics/PUBLIC_REPORTING.md), [metric dictionary](metrics/REPORTING_CONTRACT_V1.md), [latest copy/cost certification](metrics/MET03_COPY_COST_REPORT.md), historical [local certification](metrics/MET03_REPORT.md), [owner recheck](metrics/MET03_RECHECK_REPORT.md), [performance follow-up](metrics/MET03_PERFORMANCE_REPORT.md) |
+| Report account periods, executed trades/actions and observed drawdown episodes without changing WFO scores | [Reporting V1](metrics/PUBLIC_REPORTING.md), [metric dictionary](metrics/REPORTING_CONTRACT_V1.md), [1.2.0 cost and artifact qualification](mode5/M5_12_RELEASE120_REPORT.md), historical [copy/cost certification](metrics/MET03_COPY_COST_REPORT.md), [local certification](metrics/MET03_REPORT.md), [owner recheck](metrics/MET03_RECHECK_REPORT.md), [performance follow-up](metrics/MET03_PERFORMANCE_REPORT.md) |
 | Choose the correct execution timing contract | [Execution contracts](execution_contracts.md) |
 | Migrate SL/TP/trailing alphas to the fast intrabar route | [Fast intrabar](fast_intrabar.md) |
 | Run the explicit Rust bounded intrabar authority and inspect its trace contract | [Fast intrabar](fast_intrabar.md#explicit-rust-intrabar-authority) |

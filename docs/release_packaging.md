@@ -1,16 +1,18 @@
 # QuantBT Packaging And Release
 
 This document describes the current single-source package and native-first
-release workflow. The prepared pair is `1.1.2 / 0.4.3`; no new version is being
-selected here. Mode 5, reporting and ACC-01 account changes require M5-12
+release workflow. The owner-approved prepared pair is `1.2.0 / 0.4.3`.
+Earlier1.1.2receipts remain historical, not renamed qualification. Mode 5,
+reporting and ACC-01 account changes require M5-12
 qualification of the final source and matching artifacts before release.
-Start with [M5-12 preparation](mode5/M5_12_PREPARATION.md). Historical NEXT-03,
+Start with the [1.2.0 qualification supplement](mode5/M5_12_RELEASE120_REPORT.md)
+and historical [M5-12 preparation](mode5/M5_12_PREPARATION.md). Historical NEXT-03,
 Phase 55B/78 and QMS examples below are not instructions to reuse old proof or
 overwrite published artifacts.
 
 ## Phase 55B Public Native Pair
 
-Current preparation is `quantbt-engine==1.1.2 / quantbt-native==0.4.3`, with
+Current preparation is `quantbt-engine==1.2.0 / quantbt-native==0.4.3`, with
 default compiled QMS capability and no implicit meta activation. Financial
 Python/Rust source has changed in ACC-01; a versioned ABI alone does not
 establish artifact compatibility or qualification.
@@ -169,7 +171,7 @@ creating its tag. Do not reuse an existing PyPI version or Git tag.
    after its artifacts pass review.
 
 The historical `1.1.0` release established the first exact public-pair line.
-The prepared `1.1.2` / `0.4.3` pair still requires native-first publication;
+The prepared `1.2.0` / `0.4.3` pair still requires native-first publication;
 a local certificate does not by itself publish `quantbt-native`, enable generic
 endpoint auto routing, or remove the Python oracle. The Phase 55B
 TestPyPI/PyPI consumer proof is the additional release authorization.
@@ -187,7 +189,7 @@ from quantbt import QuantBTEndpoint
 - Source layout is `src/quantbt`.
 - Root production source is retired; `src/quantbt` is the only importable
   implementation tree.
-- The current package release line is `1.1.x`, continuing the existing GitHub
+- The prepared package release line is `1.2.0`, continuing the existing GitHub
   release series without changing the public Python import contract.
 - Earlier `0.1.x` references belong to the pre-PyPI packaging plan and were not
   published.
@@ -196,7 +198,7 @@ from quantbt import QuantBTEndpoint
   and Poetry consumer proof for the `1.1.1` governed-native patch release.
 - Python is the canonical/full-featured implementation for the first release.
 - `quantbt-native==0.4.3` is the exact wheel-only Linux x86_64 dependency for
-  prepared core `1.1.2`; its native-first OIDC upload and consumer proof are mandatory
+  prepared core `1.2.0`; its native-first OIDC upload and consumer proof are mandatory
   before a release is represented as publicly available.
 
 NEXT-03 retired the reviewed root source mirror after a clean candidate-wheel,

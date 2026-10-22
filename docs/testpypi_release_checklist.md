@@ -4,7 +4,7 @@ This is the release-owner handoff for the governed public pair. The version
 values below are the current release candidate pair:
 
 ```text
-quantbt-engine==1.1.2
+quantbt-engine==1.2.0
 quantbt-native==0.4.3
 ```
 
@@ -17,9 +17,10 @@ before creating the final tag.
 This pair is prepared only. Do not execute publication until the owner approves.
 The [QMS handoff](meta_selection/RELEASE_HANDOFF.md) distinguishes installed
 artifact qualification from the pending public-index proof. Meta stays opt-in.
-The [M5-12 preparation](mode5/M5_12_PREPARATION.md) lists current source,
-artifact and installed-consumer entry gates. Historical local/remote proof is
-not final-byte qualification after Mode 5/reporting/ACC-01 changes.
+The [M5-12 preparation](mode5/M5_12_PREPARATION.md) preserves the earlier1.1.2
+qualification. The [1.2.0 supplement](mode5/M5_12_RELEASE120_REPORT.md) records
+new source/artifact gates. Historical local/remote proof is not final-byte
+qualification after Mode5/reporting/ACC-01 or release-metadata changes.
 
 CI and native-release tests require full Git history (`fetch-depth: 0`) because
 the source qualification validates ancestry of its recorded candidate commit.
@@ -61,13 +62,19 @@ binary wheel.
 
 ## TestPyPI Sequence
 
+This optional channel requires separately prepared and approved RC metadata.
+The current project version1.2.0 is final-shaped; do not attach an RC tag to
+unchanged final metadata. An RC/core-version change also regenerates native
+product metadata and requires a matching artifact certificate. This section
+does not authorize creating an RC or dispatching any workflow.
+
 1. Work from the clean current `dev` commit and create a matching RC tag, for
-   example `v1.1.2rc1`. The RC tag must equal `project.version` and point to
+   example `v1.2.0rc1`. The RC tag must equal `project.version` and point to
    the exact current `dev` tip.
 2. Run **Publish quantbt-native** manually with:
 
    ```text
-   ref:   v1.1.2rc1
+   ref:   v1.2.0rc1
    index: testpypi
    ```
 
@@ -76,13 +83,13 @@ binary wheel.
    installed-pair certificate before the OIDC upload job.
 3. Inspect the uploaded certification artifact and confirm all three native
    wheels exist. Do not continue if a wheel is missing or an sdist appears.
-4. Run **Publish quantbt-engine to TestPyPI** manually with `ref: v1.1.2rc1`.
+4. Run **Publish quantbt-engine to TestPyPI** manually with `ref: v1.2.0rc1`.
    Its preflight resolves `quantbt-native==0.4.3` from TestPyPI before it can
    publish the core wheel/sdist.
 5. Run **Public Native Consumer Proof** with:
 
    ```text
-   ref:   v1.1.2rc1
+   ref:   v1.2.0rc1
    index: testpypi
    ```
 
@@ -108,6 +115,8 @@ The workflow is the release gate; this is a short human-readable repeat of the
 same consumer behavior. Use it only after both TestPyPI artifacts are visible:
 
 ```bash
+export EXPECTED_CORE_VERSION=1.2.0rc1
+export EXPECTED_NATIVE_VERSION=0.4.3
 smoke_dir="$(mktemp -d)"
 cd "$smoke_dir"
 poetry init --name quantbt-public-smoke --python '>=3.11,<3.14' --no-interaction
@@ -116,30 +125,33 @@ poetry source add --priority=supplemental PyPI
 poetry add quantbt-engine
 poetry run python - <<'PY'
 import importlib.metadata as metadata
+import os
 import _quantbt_native
 from quantbt.backends._native_event_rust import probe_native_event_rust_extension
 
-assert metadata.version("quantbt-engine") == "1.1.2"
-assert metadata.version("quantbt-native") == "0.4.3"
+assert metadata.version("quantbt-engine") == os.environ["EXPECTED_CORE_VERSION"]
+assert metadata.version("quantbt-native") == os.environ["EXPECTED_NATIVE_VERSION"]
 status = probe_native_event_rust_extension()
 assert status.compatible and status.executable, status.reason
 print(status)
 PY
 ```
 
-For normal PyPI, omit the two `poetry source add` commands and run the same
-`poetry add quantbt-engine` command.
+Set the expected versions to the exact approved uploaded pair, not a final
+version when testing an RC. For normal PyPI, set EXPECTED_CORE_VERSION=1.2.0,
+omit the two `poetry source add` commands and run the same
+`poetry add quantbt-engine` command. Do not run this before publication approval.
 
 ## Production Sequence
 
 1. Work from the final clean current `main` commit and create the matching
-   final tag, for example `v1.1.2`. The tag must equal `project.version` and
+   final tag, for example `v1.2.0`. The tag must equal `project.version` and
    point to the exact current `main` tip.
-2. Run **Publish quantbt-native** with `ref: v1.1.2`, `index: pypi`; approve
+2. Run **Publish quantbt-native** with `ref: v1.2.0`, `index: pypi`; approve
    its protected `pypi` environment only after checking the wheel names and
    certificate.
 3. Verify `quantbt-native==0.4.3` is visible on PyPI for CPython 3.11-3.13.
-4. Create and publish the GitHub Release for `v1.1.2`. The existing
+4. Create and publish the GitHub Release for `v1.2.0`. The existing
    **Publish quantbt-engine** workflow preflights the public companion,
    performs core regression/build/install gates, and then waits for the
    protected PyPI approval before upload.
