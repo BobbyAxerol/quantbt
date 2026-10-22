@@ -2,7 +2,11 @@
 
 from copy import deepcopy
 from hashlib import sha256
+from io import BytesIO
 import json
+import subprocess
+import tarfile
+import zipfile
 
 import pytest
 
@@ -74,19 +78,88 @@ def test_e07_public_patch_rejects_private_material(private, monkeypatch):
         closure.privacy()
 
 
-def test_e07_closure_bound_to_registered_source_and_native():
+def test_e07_historical_receipt_bound_to_committed_source_and_native():
     from tools.qms_e08_source_guard import ENTRY, baseline
-    from tools.qms_pre06_contract import checked_hashes
-    from tests.meta_selection.current_source_assertions import current_source_rejects_historical_certificate
-    registered = json.loads((closure.LANE / "registration.json").read_text())
-    assert registered["runtime_sha256"] == {
-        name: sha256(baseline(name, ENTRY)).hexdigest() for name in registered["runtime_sha256"]
+    from tools.qms_pre06_contract import NATIVE_SHA
+
+    name = "benchmarks/optimization/meta_selection/qms_e07_closure.json"
+    archived = baseline(name, ENTRY)
+    assert (closure.ROOT / name).read_bytes() == archived
+    receipt = json.loads(archived)
+    names = subprocess.check_output(["git", "ls-tree", "-r", "--name-only", ENTRY, "--",
+        "src/quantbt", "rust", "pyproject.toml", "MANIFEST.in"], cwd=closure.ROOT, text=True).splitlines()
+    runtime = {name: sha256(baseline(name, ENTRY)).hexdigest() for name in names}
+    assert len(runtime) == receipt["runtime_files"] == 322
+    assert sha256(json.dumps(runtime, sort_keys=True).encode()).hexdigest() == receipt["runtime_inventory_sha256"]
+    assert sha256(baseline(closure.GUIDE, ENTRY)).hexdigest() == receipt["guide_sha256"]
+    for name, expected in receipt["verification_source_sha256"].items():
+        assert sha256(baseline(name, ENTRY)).hexdigest() == expected
+    assert receipt["artifacts"]["wheel"]["modules"] == receipt["artifacts"]["sdist"]["modules"] == 260
+    assert receipt["native_sha256"] == NATIVE_SHA
+    assert {kind: row["cells"] for kind, row in receipt["evidence"].items()} == {
+        "source": 90, "wheel": 30, "sdist": 30,
     }
-    checked_hashes(registered["protected_sha256"])
-    assert len(registered["runtime_sha256"]) == 322
-    assert closure.artifacts(registered)["wheel"]["modules"] == 260
-    assert registered["native"]["extension_sha256"] == EXTENSION_SHA
+    assert receipt["publication"] is False
+
+
+def test_e07_current_source_cannot_reissue_historical_registration(tmp_path, monkeypatch):
+    from tools import qms_e07_contract as contract
+    from tests.meta_selection.current_source_assertions import current_source_rejects_historical_certificate
+
+    # A unit fixture exercises rejection; it is not a historical artifact receipt.
+    (tmp_path / "registration.json").write_text(json.dumps({
+        "runtime_sha256": {}, "guide_sha256": "unqualified", "protected_sha256": {},
+    }))
+    monkeypatch.setattr(contract, "LANE", tmp_path)
     current_source_rejects_historical_certificate(closure.check_registration, error=ValueError)
+
+
+@pytest.fixture
+def unit_artifacts(tmp_path, monkeypatch):
+    payload = b'"""Synthetic package fixture, not a release artifact."""\n'
+    wheel = tmp_path / "quantbt_engine-0.0.0-py3-none-any.whl"
+    with zipfile.ZipFile(wheel, "w") as archive:
+        archive.writestr("quantbt/__init__.py", payload)
+    sdist = tmp_path / "quantbt_engine-0.0.0.tar.gz"
+    with tarfile.open(sdist, "w:gz") as archive:
+        member = tarfile.TarInfo("quantbt_engine-0.0.0/src/quantbt/__init__.py")
+        member.size = len(payload)
+        archive.addfile(member, BytesIO(payload))
+    native = tmp_path / "synthetic-native.bin"
+    native.write_bytes(b"unit fixture only")
+    paths = {"wheel": wheel, "sdist": sdist, "native": native}
+    hashes = {kind: sha256(path.read_bytes()).hexdigest() for kind, path in paths.items()}
+    (tmp_path / "artifacts.json").write_text(json.dumps({
+        "paths": {kind: str(path) for kind, path in paths.items()}, "sha256": hashes,
+    }))
+    monkeypatch.setattr(closure, "LANE", tmp_path)
+    return paths, {"native": {"wheel_sha256": hashes["native"]},
+                   "core_inventory": {"__init__.py": sha256(payload).hexdigest()}}
+
+
+def test_e07_artifact_validator_reads_complete_synthetic_archives(unit_artifacts):
+    paths, registered = unit_artifacts
+    result = closure.artifacts(registered)
+    assert set(result) == {"wheel", "sdist"}
+    for kind, row in result.items():
+        assert row == {"modules": 1, "sha256": sha256(paths[kind].read_bytes()).hexdigest(),
+                       "bytes": paths[kind].stat().st_size}
+
+
+@pytest.mark.parametrize("mutation", ("wheel", "sdist", "native", "registered_native", "inventory"))
+def test_e07_artifact_validator_rejects_drift(unit_artifacts, mutation):
+    paths, registered = unit_artifacts
+    if mutation in paths:
+        paths[mutation].write_bytes(paths[mutation].read_bytes() + b"drift")
+        message = "exact artifact changed"
+    elif mutation == "registered_native":
+        registered["native"]["wheel_sha256"] = "wrong"
+        message = "different native wheel"
+    else:
+        registered["core_inventory"]["missing.py"] = "wrong"
+        message = "complete canonical package inventory mismatch"
+    with pytest.raises(ValueError, match=message):
+        closure.artifacts(registered)
 
 
 def test_e07_public_grid_example_fits_mature_history_without_private_inputs():
