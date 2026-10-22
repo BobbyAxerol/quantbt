@@ -180,6 +180,9 @@ def without_public_additions(source, name):
 
 
 def prior_names(names, entry):
+    from tools.m5_12_source_guard import historical_names
+    from tools import portfolio_repair_source_guard as portfolio_guard
+    names = historical_names(names, entry, portfolio_guard)
     m = json.loads(MANIFEST.read_text())
     continuous = json.loads(CONTINUOUS.read_text())
     reports = json.loads(DECISION_REPORT.read_text())
