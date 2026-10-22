@@ -31,12 +31,15 @@ class DrawdownEpisodes(SnapshotValue):
             raise ValueError("aligned typed drawdown episode matrices required")
         object.__setattr__(self, "integers", immutable_storage(np.ascontiguousarray(integers)))
         object.__setattr__(self, "numbers", immutable_storage(np.ascontiguousarray(numbers)))
+        self._seal_arrays()
 
     @property
     def retained_bytes(self):
+        self.validate_snapshot()
         return self.integers.nbytes + self.numbers.nbytes
 
     def to_rows(self):
+        self.validate_snapshot()
         rows = []
         for integers, numbers in zip(self.integers, self.numbers):
             row = dict(zip(INT_COLUMNS, map(int, integers)))

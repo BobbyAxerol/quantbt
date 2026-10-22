@@ -1,12 +1,11 @@
 """Net closed-population statistics from authoritative recorded outcomes only."""
 
-import json
 from functools import lru_cache
 
 import numpy as np
 
 from .drawdown import DAY_NS
-from .results import MetricBuilder, ReportingResult
+from .results import MetricBuilder, ReportingResult, serialize_provenance
 
 
 CORE_KEYS = ("closed_count", "win_count", "loss_count", "breakeven_count", "win_rate", "net_pnl",
@@ -49,8 +48,37 @@ def _compiled_streaks():
     return njit(cache=False, fastmath=False)(_streaks)
 
 
+def _mean(values):
+    if not len(values):
+        return None
+    value = float(values.mean())
+    if not np.isfinite(value) and np.isfinite(values).all():
+        value = float((values / len(values)).sum())
+    return value
+
+
+def _median(values):
+    if not len(values):
+        return None
+    value = float(np.median(values))
+    if not np.isfinite(value):
+        middle = len(values) // 2
+        partition = np.partition(values, (middle - 1, middle))
+        value = float(partition[middle - 1] / 2 + partition[middle] / 2)
+    return value
+
+
 def _statistics(builder, prefix, values, tolerance, backend):
     n = len(values)
+    if not np.isfinite(values).all():
+        # An overflowing action/recorded net is still a member of the population.
+        builder.add(prefix + "closed_count", n, unit="count", count=n)
+        for name in CORE_KEYS[1:]:
+            unit = "count" if name in {"win_count", "loss_count", "breakeven_count", "max_win_streak", "max_loss_streak"} else (
+                builder.contract.currency if name in {"net_pnl", "avg_profit", "avg_loss", "avg_pnl", "expected_payoff",
+                                                     "largest_win", "largest_loss", "median_pnl"} else "ratio")
+            builder.add(prefix + name, unit=unit, status="invalid", reason="numeric overflow in recorded population outcome", count=n)
+        return
     wins, losses = values[values > tolerance], values[values < -tolerance]
     gain = float(np.maximum(values, 0).sum())
     loss = float(-np.minimum(values, 0).sum())
@@ -61,20 +89,24 @@ def _statistics(builder, prefix, values, tolerance, backend):
     currency = builder.contract.currency
     builder.add(prefix + "net_pnl", net, unit=currency, count=n)
     builder.add(prefix + "win_rate", len(wins) / n if n else None, count=n)
-    builder.add(prefix + "avg_profit", float(wins.mean()) if len(wins) else None, unit=currency, count=len(wins))
-    builder.add(prefix + "avg_loss", float(losses.mean()) if len(losses) else None, unit=currency, count=len(losses))
+    avg_profit, avg_loss = _mean(wins), _mean(losses)
+    builder.add(prefix + "avg_profit", avg_profit, unit=currency, count=len(wins))
+    builder.add(prefix + "avg_loss", avg_loss, unit=currency, count=len(losses))
     for name in ("avg_pnl", "expected_payoff"):
-        builder.add(prefix + name, net / n if n else None, unit=currency, count=n)
+        builder.add(prefix + name, net / n if np.isfinite(net) and n else _mean(values), unit=currency, count=n)
     builder.ratio(prefix + "profit_factor", gain, loss, count=n)
     if len(wins) and len(losses):
-        builder.add(prefix + "payoff_ratio", float(wins.mean() / -losses.mean()), count=n)
+        builder.add(prefix + "payoff_ratio", avg_profit / -avg_loss, count=n)
     else:
         builder.add(prefix + "payoff_ratio", count=n, reason="both winning and losing populations required")
     for name, value, count in (("largest_win", float(wins.max()) if len(wins) else None, len(wins)),
                                ("largest_loss", float(losses.min()) if len(losses) else None, len(losses)),
-                               ("median_pnl", float(np.median(values)) if n else None, n)):
+                               ("median_pnl", _median(values), n)):
         builder.add(prefix + name, value, unit=currency, count=count)
-    builder.add(prefix + "top_profit_concentration", float(wins.max()) / gain if len(wins) and gain else None, count=n)
+    if len(wins):
+        builder.ratio(prefix + "top_profit_concentration", float(wins.max()), gain, count=n)
+    else:
+        builder.add(prefix + "top_profit_concentration", count=n)
     scan_values = memoryview(values) if backend == "python" else values
     best_win, best_loss = (_streaks if backend == "python" else _compiled_streaks())(scan_values, tolerance)
     builder.add(prefix + "max_win_streak", best_win, unit="count", count=n)
@@ -151,7 +183,8 @@ def reduce_ledger(observations, contract, *, backend="python", retain_population
     else:
         population.sort(key=lambda row: (row[0], row[1]))
         values = np.ascontiguousarray([item[2] for item in population], dtype=np.float64)
-        _statistics(builder, prefix, values, contract.breakeven_currency_tolerance, backend)
+        with np.errstate(over="ignore", invalid="ignore", divide="ignore"):
+            _statistics(builder, prefix, values, contract.breakeven_currency_tolerance, backend)
         n = len(population)
         holdings = []
         for timestamp, sequence, value, members in population:
@@ -215,13 +248,15 @@ def reduce_ledger(observations, contract, *, backend="python", retain_population
             symbol_pnl[row.symbol] = symbol_pnl.get(row.symbol, 0.) + recorded_net(row, contract.slippage_basis)
         if retain_population:
             metadata["closed_population_ids"] = [[row.trade_id for row in item[3]] for item in population]
+        with np.errstate(over="ignore", invalid="ignore"):
+            population_net_sum = float(values.sum())
         metadata.update(population_detail_retained=retain_population,
                         open_realized_basis="open outcomes, or all members of unfinished actions, plus recorded shared adjustment once",
                         open_shared_net_adjustment=open_adjustment,
                         symbol_closed_pnl=symbol_pnl, shared_net_adjustment=adjustments,
-                        leg_net_sum=sum(symbol_pnl.values()), population_net_sum=float(values.sum()),
+                        leg_net_sum=sum(symbol_pnl.values()), population_net_sum=population_net_sum,
                         reconciliation_basis="selected closed-population lifetime only; not scope account return",
                         population_reason_counts={reason: sum(row.close_reason == reason for row in selected_rows)
                                                   for reason in sorted({row.close_reason for row in selected_rows if row.close_reason is not None})})
     return ReportingResult(contract_identity=builder.contract_identity, input_identity=observations.identity,
-                           metrics=tuple(builder.metrics), provenance_json=json.dumps(metadata, sort_keys=True, allow_nan=False))
+                           metrics=tuple(builder.metrics), provenance_json=serialize_provenance(metadata))

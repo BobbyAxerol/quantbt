@@ -6,6 +6,7 @@ import json
 from .account import reduce_account
 from .execution import reduce_execution
 from .ledger import reduce_ledger
+from .snapshots import SnapshotValue
 
 
 class ReportingCache:
@@ -36,9 +37,12 @@ class ReportingCache:
         reducers = {"account": reduce_account, "ledger": reduce_ledger, "execution": reduce_execution}
         if kind not in reducers:
             raise ValueError("unknown reporting reducer")
+        if isinstance(observations, SnapshotValue):
+            observations.validate_snapshot()
         option_key = json.dumps(options, sort_keys=True, allow_nan=False)
         key = (kind, observations.identity, contract.identity, option_key)
         if key in self._entries:
+            self._entries[key][0].validate_snapshot()
             self.hits += 1
             self._entries.move_to_end(key)
             return self._entries[key][0]

@@ -55,6 +55,23 @@ def validate_account_scope(times, contract):
         raise ValueError("observation duration exceeds signed int64 nanoseconds")
 
 
+def _return_headers(end_times_ns, partial_mask, sampling, witness):
+    times = frozen_array(end_times_ns, np.int64, integer=True)
+    original = np.asarray(partial_mask)
+    if original.size and original.dtype.kind != "b":
+        raise ValueError("explicit boolean partial-period mask required")
+    partial = frozen_array(original, np.bool_)
+    if len(times) != len(partial):
+        raise ValueError("aligned return values/times/partial mask required")
+    if len(times) > 1 and np.any(times[1:] <= times[:-1]):
+        raise ValueError("strictly ordered return times required")
+    if sampling not in {"observed_bar", "observed_daily_utc", "explicit_period_returns"}:
+        raise ValueError("unknown return sampling")
+    if not witness or not isinstance(witness, str):
+        raise ValueError("producer must disclose the return/partial-period witness")
+    return times, partial
+
+
 @dataclass(frozen=True, kw_only=True)
 class ReturnObservations(SnapshotValue):
     values: np.ndarray
@@ -65,21 +82,41 @@ class ReturnObservations(SnapshotValue):
 
     def __post_init__(self):
         values = frozen_array(self.values, np.float64)
-        times = frozen_array(self.end_times_ns, np.int64, integer=True)
-        original = np.asarray(self.partial_mask)
-        if original.size and original.dtype.kind != "b":
-            raise ValueError("explicit boolean partial-period mask required")
-        partial = frozen_array(original, np.bool_)
+        times, partial = _return_headers(self.end_times_ns, self.partial_mask, self.sampling, self.witness)
         if len(values) != len(times) or len(values) != len(partial):
             raise ValueError("aligned return values/times/partial mask required")
-        if len(times) > 1 and np.any(times[1:] <= times[:-1]):
-            raise ValueError("strictly ordered return times required")
-        if self.sampling not in {"observed_bar", "observed_daily_utc", "explicit_period_returns"}:
-            raise ValueError("unknown return sampling")
-        if not self.witness or not isinstance(self.witness, str):
-            raise ValueError("producer must disclose the return/partial-period witness")
         for name, array in (("values", values), ("end_times_ns", times), ("partial_mask", partial)):
             object.__setattr__(self, name, array)
+        self._seal_arrays()
+
+
+@dataclass(frozen=True, kw_only=True)
+class UndefinedPeriodReturns(SnapshotValue):
+    """Observed period boundaries without invented returns after bankruptcy."""
+
+    end_times_ns: np.ndarray
+    partial_mask: np.ndarray
+    sampling: str
+    witness: str
+    first_undefined_time_ns: int
+
+    @property
+    def reason(self):
+        return "period return after nonpositive equity is undefined"
+
+    def __post_init__(self):
+        times, partial = _return_headers(self.end_times_ns, self.partial_mask, self.sampling, self.witness)
+        if type(self.first_undefined_time_ns) is not int or self.first_undefined_time_ns not in times:
+            raise ValueError("undefined period must identify an observed boundary")
+        object.__setattr__(self, "end_times_ns", times)
+        object.__setattr__(self, "partial_mask", partial)
+        self._seal_arrays()
+
+
+class UndefinedPeriodReturn(ValueError):
+    def __init__(self, observations):
+        super().__init__(observations.reason)
+        self.observations = observations
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -87,7 +124,7 @@ class AccountObservations(SnapshotValue):
     times_ns: np.ndarray
     equity: np.ndarray
     coverage: ReportingCoverageV1
-    returns: ReturnObservations | None = None
+    returns: ReturnObservations | UndefinedPeriodReturns | None = None
     identity: str = field(init=False)
 
     def __post_init__(self):
@@ -99,15 +136,23 @@ class AccountObservations(SnapshotValue):
         arrays = [times, equity]
         metadata = dict(coverage=self.coverage.__dict__)
         if self.returns is not None:
-            if not isinstance(self.returns, ReturnObservations):
+            if not isinstance(self.returns, (ReturnObservations, UndefinedPeriodReturns)):
                 raise ValueError("typed return observations required")
-            arrays.extend((self.returns.values, self.returns.end_times_ns, self.returns.partial_mask))
+            self.returns.validate_snapshot()
+            arrays.extend((self.returns.end_times_ns, self.returns.partial_mask))
+            if isinstance(self.returns, ReturnObservations):
+                arrays.insert(2, self.returns.values)
+            else:
+                metadata.update(undefined_period_reason=self.returns.reason,
+                                first_undefined_time_ns=self.returns.first_undefined_time_ns)
             metadata.update(sampling=self.returns.sampling, witness=self.returns.witness)
         object.__setattr__(self, "times_ns", times)
         object.__setattr__(self, "equity", equity)
         object.__setattr__(self, "identity", identity(metadata, *arrays))
+        self._seal_arrays()
 
     def validate_contract(self, contract: ReportingContractV1):
+        self.validate_snapshot()
         validate_account_scope(self.times_ns, contract)
         if self.returns is not None:
             if self.returns.sampling != contract.sampling:
@@ -135,7 +180,11 @@ def derived_returns(times, equity, contract, *, partial_mask, witness):
         selected = np.r_[days[1:] != days[:-1], True]
         marks, ends = equity[selected], times[selected]
     previous = np.r_[contract.baseline_equity, marks[:-1]]
-    if np.any(previous <= 0):
-        raise ValueError("period return after nonpositive equity is undefined")
+    invalid = previous <= 0
+    if np.any(invalid):
+        ends, partial = _return_headers(ends, partial_mask, contract.sampling, witness)
+        raise UndefinedPeriodReturn(UndefinedPeriodReturns(end_times_ns=ends, partial_mask=partial,
+            sampling=contract.sampling, witness=witness,
+            first_undefined_time_ns=int(ends[np.argmax(invalid)])))
     return ReturnObservations(values=marks / previous - 1, end_times_ns=ends,
         partial_mask=partial_mask, sampling=contract.sampling, witness=witness)

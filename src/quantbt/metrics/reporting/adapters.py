@@ -3,7 +3,7 @@
 import numpy as np
 
 from ..report_contracts import ReportingCoverageV1
-from .inputs import (AccountObservations, derived_returns, frozen_array,
+from .inputs import (AccountObservations, UndefinedPeriodReturn, derived_returns, frozen_array,
                      validate_account_path, validate_account_scope)
 from .ledger_inputs import LedgerObservations, RecordedOutcome
 
@@ -57,7 +57,10 @@ def account_from_completed(result, contract, *, result_identity, profile="comple
     if partial_mask is not None:
         if not return_witness:
             raise ValueError("return/partial-period producer witness required")
-        returns = derived_returns(timestamps, marks, contract, partial_mask=partial_mask, witness=return_witness)
+        try:
+            returns = derived_returns(timestamps, marks, contract, partial_mask=partial_mask, witness=return_witness)
+        except UndefinedPeriodReturn as error:
+            returns = error.observations
     observations = AccountObservations(times_ns=timestamps, equity=marks, coverage=coverage, returns=returns)
     observations.validate_contract(contract)
     return observations

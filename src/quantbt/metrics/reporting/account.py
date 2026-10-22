@@ -7,6 +7,7 @@ import math
 import numpy as np
 
 from .drawdown import DAY_NS, scan_drawdown
+from .inputs import UndefinedPeriodReturns
 from .results import MetricBuilder, ReportingResult
 
 
@@ -101,6 +102,13 @@ def reduce_account(observations, contract, *, backend="python", retain_episodes=
     if r is None:
         for name in PERIOD_KEYS:
             builder.add("period." + name, status="unavailable", reason="explicit return/partial-period witness missing")
+    elif isinstance(r, UndefinedPeriodReturns):
+        retained = len(r.end_times_ns) if contract.partial_periods == "include_disclosed" else int((~r.partial_mask).sum())
+        for name in PERIOD_KEYS:
+            if name == "count":
+                builder.add("period.count", retained, unit="count", count=retained)
+            else:
+                builder.add("period." + name, status="undefined", reason=r.reason, count=retained)
     else:
         values = r.values if contract.partial_periods == "include_disclosed" else r.values[~r.partial_mask]
         retained = len(values)
@@ -133,13 +141,16 @@ def reduce_account(observations, contract, *, backend="python", retain_episodes=
                     baseline_source="caller-declared authoritative scope-entry valuation",
                     return_witness=r.witness if r is not None else None,
                     partial_periods=int(r.partial_mask.sum()) if r is not None else None,
-                    observed_periods=len(r.values) if r is not None else 0, retained_periods=retained,
+                    observed_periods=len(r.end_times_ns) if r is not None else 0, retained_periods=retained,
                     drawdown_clock=contract.equity_clock, unseen_extrema_certified=False,
                     deepest_episode_index=int(summary[10]), longest_episode_index=int(summary[11]),
                     episode_detail_retained=retain_episodes,
                     observation_population="all supplied marks; engine retention completeness is not inferred",
                     recovered_duration_mean_excludes_open=True, all_episode_duration_mean_includes_censored=True,
                     native_v1_reducer="NOT_IMPLEMENTED; native_metric_v2 has a different scientific contract")
+    if isinstance(r, UndefinedPeriodReturns):
+        metadata.update(period_status="undefined", period_reason=r.reason,
+                        first_undefined_time_ns=r.first_undefined_time_ns)
     return ReportingResult(contract_identity=builder.contract_identity, input_identity=observations.identity,
                            metrics=tuple(builder.metrics), episodes=episodes,
                            provenance_json=json.dumps(metadata, sort_keys=True, allow_nan=False))

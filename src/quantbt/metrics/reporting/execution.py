@@ -56,6 +56,7 @@ class ExecutionObservations(SnapshotValue):
                         end=self.scope_end_ns, witness=self.witness, aggregates=aggregates,
                         paths=[name for name, _ in paths])
         object.__setattr__(self, "identity", identity(metadata, *([times] if times is not None else []), *[v for _, v in paths]))
+        self._seal_arrays()
 
 
 def execution_from_native(adapter, *, coverage, currency, scope_start_ns, scope_end_ns):
@@ -68,6 +69,7 @@ def execution_from_native(adapter, *, coverage, currency, scope_start_ns, scope_
 
 
 def reduce_execution(observations, contract):
+    observations.validate_snapshot()
     if contract.unit != "account_period" or observations.currency != contract.currency:
         raise ValueError("account execution contract/currency mismatch")
     if contract.baseline_time_ns < observations.scope_start_ns or contract.scope_end_ns > observations.scope_end_ns:
