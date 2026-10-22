@@ -922,9 +922,9 @@ def watch(lane, *, receipt=None):
         if row["event"] == "launch" and row["attempt"] not in journaled:
             started = Path(row["attempt"]) / "started.json"
             if started.exists():
-                receipt = _read(started)
-                verify_pins([receipt["intent"], row["intent"]])
-                starts.append(dict(cell_id=row["cell_id"], attempt=row["attempt"], owner=receipt["owner"]))
+                started_receipt = _read(started)
+                verify_pins([started_receipt["intent"], row["intent"]])
+                starts.append(dict(cell_id=row["cell_id"], attempt=row["attempt"], owner=started_receipt["owner"]))
     for row in starts:
         owner, attempt = row["owner"], Path(row["attempt"])
         members = _members(owner)

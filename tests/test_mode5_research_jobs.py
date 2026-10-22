@@ -222,6 +222,37 @@ def test_supervisor_interrupt_records_inflight_and_reaps_grandchild(fixture, sig
             process.wait(timeout=5)
 
 
+@pytest.mark.parametrize("write_receipt", [False, True])
+def test_watcher_unjournaled_start_preserves_receipt_destination(tmp_path, monkeypatch, write_receipt):
+    lane = tmp_path / "lane"
+    lane.mkdir()
+    attempt_path = lane / "attempt"
+    attempt_path.mkdir()
+    intent_path = attempt_path / "intent.json"
+    jobs._seal(intent_path, dict(fixture_only=True))
+    intent = jobs.file_identity(intent_path)
+    owner = dict(pid=123456, fixture_only=True)
+    jobs._seal(attempt_path / "started.json", dict(intent=intent, owner=owner))
+    journal = jobs.Journal(lane / "journal")
+    journal.append("launch", cell_id="candidate", attempt=str(attempt_path), intent=intent)
+    monkeypatch.setattr(jobs, "_members", lambda identity: [])
+    before = {str(p): jobs.file_identity(p) for p in lane.rglob("*") if p.is_file()}
+    output = tmp_path / "watch-report.json"
+
+    report = jobs.watch(lane, receipt=output if write_receipt else None)
+
+    assert report["workers"][0]["owner"] == owner
+    assert report["workers"][0]["start_journaled"] is False
+    assert report["financial_executions"] == 0 and not report["restart_permitted"]
+    assert before == {str(p): jobs.file_identity(p) for p in lane.rglob("*") if p.is_file()}
+    assert output.exists() is write_receipt
+    if write_receipt:
+        assert jobs._read(output) == report
+        with pytest.raises(FileExistsError):
+            jobs.watch(lane, receipt=output)
+        assert jobs._read(output) == report
+
+
 def test_readonly_watcher_stale_heartbeat_and_live_candidate_collision(fixture):
     spec = fixture["candidate"](mode="stall")
     lane, process = fixture["launch"]([spec])
