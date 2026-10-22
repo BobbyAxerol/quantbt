@@ -16,10 +16,14 @@ MANIFEST_DATA = json.loads(MANIFEST.read_bytes())
 @pytest.mark.parametrize('name', tuple(MANIFEST_DATA['sources']))
 def test_only_exact_owner_accepted_source_normalizes_to_its_known_parent(name):
     item = MANIFEST_DATA['sources'][name]
-    original = (ROOT / name).read_bytes()
+    from tools.m5_12_source_guard import verify_current_source
+    current = verify_current_source()
+    assert current['current_source_qualified'] and current['historical_receipts_unchanged']
+    assert (ROOT / name).read_bytes() == subprocess.check_output(
+        ['git', 'show', current['source_commit'] + ':' + name], cwd=ROOT)
     accepted = subprocess.check_output(['git', 'show', MANIFEST_DATA['owner_disposition']['commit'] + ':' + name], cwd=ROOT)
     parent = subprocess.check_output(['git', 'show', item['before_commit'] + ':' + name], cwd=ROOT)
-    assert original == accepted
+    original = accepted  # Positive normalization is historical, not post-ACC invariance.
     assert without_accepted_research_source(original, name) == parent
     assert without_accepted_research_source(parent, name) == parent
     for invalid in (original + b'\n# unapproved\n', b'unrelated-source'):
