@@ -79,7 +79,9 @@ jobs:
           .venv/bin/python -m tools.ci_native_identity --wheel-dir native-smoke --github-env "$GITHUB_ENV" --output .maturin/ci-native-identity.json
 
       - name: Test
-        run: .venv/bin/python tools/run_test_shards.py --profile ci-core --keep-going
+        # Only the isolated fake-worker custody suite needs access to PID 1's
+        # namespace. Keep its real guard; ordinary/financial tests stay non-root.
+        run: .venv/bin/python tools/run_test_shards.py --profile ci-core --keep-going --sudo-host-tests
 
       - name: Build package
         run: |

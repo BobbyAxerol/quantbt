@@ -99,3 +99,36 @@ def test_fork_thread_limit_is_child_local_not_global(monkeypatch):
     assert run_test_shards.main(["--profile", "ci-core"]) == 0
     assert all(run.call_args_list[0].kwargs["env"][name] == "1" for name in names)
     assert all(run.call_args_list[1].kwargs["env"][name] == "4" for name in names)
+
+
+def test_host_suite_is_singleton_without_omitting_other_files(tmp_path, monkeypatch):
+    names = ["test_before.py", "test_mode5_research_jobs.py", "test_z.py"]
+    for name in names:
+        (tmp_path / name).touch()
+    monkeypatch.setattr(run_test_shards, "TEST_ROOT", tmp_path)
+    groups = run_test_shards._collect("ci-core")
+    assert [[p.name for p in group] for group in groups] == [[name] for name in names]
+
+
+@pytest.mark.parametrize("sudo,uid,expected_prefix", [(False, 1000, []), (True, 0, []),
+                                                    (True, 1000, ["sudo", "-n", "--"])])
+def test_privilege_is_explicit_and_only_for_fake_worker_host_suite(monkeypatch, sudo, uid, expected_prefix):
+    host = run_test_shards.TEST_ROOT / "test_mode5_research_jobs.py"
+    regular = run_test_shards.TEST_ROOT / "test_regular.py"
+    monkeypatch.setattr(run_test_shards, "_collect", lambda profile: [[host], [regular]])
+    monkeypatch.setattr(run_test_shards.os, "geteuid", lambda: uid)
+    run = mock_runs(monkeypatch, [0, 0])
+    assert run_test_shards.main(["--profile", "ci-core", *(["--sudo-host-tests"] if sudo else [])]) == 0
+    host_command, regular_command = [call.args[0] for call in run.call_args_list]
+    assert host_command == expected_prefix + [sys.executable, "-m", "pytest", "-q", str(host.relative_to(run_test_shards.PROJECT_ROOT))]
+    assert regular_command == [sys.executable, "-m", "pytest", "-q", str(regular.relative_to(run_test_shards.PROJECT_ROOT))]
+
+
+def test_host_privilege_cannot_expand_to_an_unrelated_file(monkeypatch):
+    host = run_test_shards.TEST_ROOT / "test_mode5_research_jobs.py"
+    other = run_test_shards.TEST_ROOT / "test_regular.py"
+    monkeypatch.setattr(run_test_shards, "_collect", lambda profile: [[host, other]])
+    run = mock_runs(monkeypatch, [])
+    with pytest.raises(ValueError, match="dedicated singleton"):
+        run_test_shards.main(["--sudo-host-tests"])
+    run.assert_not_called()

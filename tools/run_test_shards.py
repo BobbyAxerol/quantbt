@@ -26,6 +26,7 @@ GRID_EXTERNAL_TESTS = {
     "test_phase47d_grid_optimizer.py",
 }
 SINGLE_THREAD_PARENT_TESTS = {"meta_selection/test_pre04_public.py"}
+HOST_PID_VIEW_TESTS = {"test_mode5_research_jobs.py"}
 
 
 def _chunks(values: list[Path], size: int) -> Iterable[list[Path]]:
@@ -64,7 +65,7 @@ def _collect(profile: str) -> list[list[Path]]:
     for name in ("core", "options", "native"):
         current: list[Path] = []
         for path in grouped[name]:
-            if path.relative_to(TEST_ROOT).as_posix() in SINGLE_THREAD_PARENT_TESTS:
+            if path.relative_to(TEST_ROOT).as_posix() in SINGLE_THREAD_PARENT_TESTS | HOST_PID_VIEW_TESTS:
                 if current:
                     groups.append(current)
                     current = []
@@ -82,6 +83,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--max-files-per-shard", type=int, default=8)
     parser.add_argument("--list", action="store_true", help="print the commands without running pytest")
     parser.add_argument("--keep-going", action="store_true", help="run all shards and summarize failures")
+    parser.add_argument("--sudo-host-tests", action="store_true",
+                        help="use sudo -n only for the isolated fake-worker host PID-view integration suite")
     args = parser.parse_args(argv)
     if args.max_files_per_shard <= 0:
         parser.error("--max-files-per-shard must be > 0")
@@ -94,6 +97,12 @@ def main(argv: list[str] | None = None) -> int:
         for shard in _chunks(group, args.max_files_per_shard):
             shard_number += 1
             command = [sys.executable, "-m", "pytest", "-q", *[str(path.relative_to(PROJECT_ROOT)) for path in shard]]
+            host_test = any(path.relative_to(TEST_ROOT).as_posix() in HOST_PID_VIEW_TESTS for path in shard)
+            if host_test:
+                if len(shard) != 1:
+                    raise ValueError("host PID-view tests must run in a dedicated singleton shard")
+                if args.sudo_host_tests and os.geteuid() != 0:
+                    command = ["sudo", "-n", "--", *command]
             print(f"[{shard_number}] {' '.join(command)}", flush=True)
             if args.list:
                 continue
