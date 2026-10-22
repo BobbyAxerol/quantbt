@@ -1,6 +1,6 @@
 # M5-12 Package Preparation
 
-Date: 2026-10-22 UTC. This is a source/documentation/privacy preflight, not
+Date: 2026-10-22 UTC. This includes the owner-approved technical preflight, not
 the M5-12 execution receipt or publication authorization. Candidate pair:
 **quantbt-engine 1.1.2 / quantbt-native 0.4.3**, unchanged by this preparation.
 No live PyPI index query is represented here.
@@ -52,6 +52,15 @@ financial claims must not be copied into the new release notes. The generated
 API metadata refresh has its own exact-byte amendment in
 `tools/public_inventory_source_amendment.py`; it does not rewrite historical
 receipts, normalize arbitrary drift or qualify a native artifact.
+
+The later approved cold extraction is committed as `77af917`: options validation
+and portfolio reporting move to focused helper modules while all retained engine
+AST, moved function bodies and endpoint signatures remain unchanged. Current
+source qualification covers 466 files through
+`.venv/bin/python -m tools.m5_12_source_guard --check` from the repo root and a
+[separate immutable amendment](../maintenance/evidence/pre-m512-source-amendment.json).
+This describes equivalence to the repaired ACC-01 source, not unchanged finance
+relative to old QMS. Native source/ABI is not changed by this extraction.
 
 ## Researcher Reading Path
 
@@ -114,28 +123,19 @@ Only synthetic strategies belong in public runnable examples.
 
 ### CI And Consumer Wiring Before Remote Admission
 
-The following architecture failure is locally reproduced by the same static
-command used in CI; no remote workflow has been run:
+The initial architecture failure remains in its original receipt. The approved
+extraction resolves it: `native_option.py` is 956 lines and
+`native_portfolio.py` is 811. The 1,000-line trigger, registry exceptions and
+import-boundary rules are unchanged; the architecture command now passes.
 
-- `tools/check_module_architecture.py` currently FAILS: ACC-01 leaves
-  `native_option.py` at 1,040 lines and `native_portfolio.py` at 1,006, above the
-  1,000-line review trigger without listed exceptions. Do not merge this as
-  CI-ready or raise the global threshold. M5-12 must make a small cohesive,
-  parity-checked extraction or obtain an explicit documented ownership review;
-  rerun this gate and exact-source/artifact qualification after the resolution.
-  This is a real architecture/pre-CI gap, not an observed new accounting defect.
-
-The remaining items are wiring inspection findings, not remote run failures:
-
-- `qms-candidate.yml` push trigger names `feat/meta-selection-samplers`, not the
-  current `feat/mode5-diagnostics-first`. Its PR paths cover earlier QMS and
-  execution changes but do not fully enumerate shared diagnostics/reporting,
-  current Mode 5 examples and ACC option/metric paths. Review these at M5-12;
-  do not assume a branch push runs the intended matrix.
-- The installed QMS matrix covers W3, scalar, portfolio, bounded packages,
-  liquidation, intrabar and event contracts. It has no final-source installed
-  Mode 5 winner/donor/shared-reporting or ACC-specific consumer step yet.
-  Add these before claiming the matrix certifies the candidate's whole scope.
+- Candidate workflow filters now include the current feature branch, canonical
+  source, shared diagnostics/reporting, Mode 5 examples, ACC and verifier changes.
+  No push or workflow execution occurs in this preflight.
+- A maintained [installed consumer roster](M5_12_CONSUMER_MATRIX.md) supplements
+  existing W3/scalar/portfolio/package/intrabar/event proofs with Mode 5,
+  winner/donor, reporting and ACC controls. Source unit/mutation verification
+  of the wiring is not installed PASS; the actual final-source artifact runs
+  remain M5-12 work. CI must execute them, not just collect/parse their metadata.
 - `qms08_package --release-pair` is an available artifact builder, not by itself
   a complete M5-12 verifier. Its older private-pair/native-reuse recipes and
   source reconciliations retain historical meaning. Qualify the final staging,
@@ -144,7 +144,9 @@ The remaining items are wiring inspection findings, not remote run failures:
   Preparation reconciles the approved diagnostics root exports by exact
   commit/hash and passes mutation negatives. The broader historical
   `qms08_gate.validate` still forbids changed financial source from its old
-  entry; it is not the final ACC-01/M5-12 source certificate.
+  entry; it remains a historical gate. The new installed preflight calls the
+  exact current-source guard before and after execution instead of treating
+  that old financial-invariance check as current certification.
 - Remote scope remains Ubuntu 22.04/24.04 x CPython 3.11/3.12/3.13, with the
   approved manylinux native release matrix. Source-only static gates and one
   local interpreter cannot replace it.
@@ -166,7 +168,15 @@ The [preparation receipt](../maintenance/M5_12_PREPARATION.md) records actual
 commands, results, source/metadata boundaries and exact scratch cleanup. These
 focused static checks are preparation, not M512.01..06 PASS. No environment
 replacement, native rebuild, package install, financial run or remote action
-is part of this audit. Final package execution needs its own forecast and
-admission; do not reuse this small docs/test lane's resource budget. At this
-cleanup only about 5.22 GiB is free, just 0.22 GiB above the required 5 GiB reserve;
-do not launch another environment/build from nominal free-space alone.
+is implied by the original audit. Later technical preflight has its own
+resource/cleanup [receipt](../maintenance/PRE_M512_TECHNICAL_PREFLIGHT.md);
+it is not a full M5-12 launch or artifact certificate.
+
+For local serial qualification, run `tools/m5_12_resources.py --check` again at
+admission. The registered incremental budget is 896 MiB **plus** the 5 GiB disk
+reserve and separate RAM guard. It permits one installed consumer environment
+at a time and conditional exact retained-native reuse, not a fresh native build,
+parallel environments or the legacy four-retained-consumer builder. Actual
+native artifact eligibility must still pass independently. If a native rebuild,
+larger fixture or different retention schedule is needed, stop for a new forecast;
+this budget is not permission to substitute an unverified wheel.

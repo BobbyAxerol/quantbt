@@ -7,6 +7,12 @@ failed runs. It is not a financial, empirical, remote or release certificate.
 The [unified plan](../upgrade/implement.md#mandatory-buildtest-cleanup-gate) and
 [workspace rules](../AGENTS.md#build-and-test-cleanup) govern this procedure.
 
+Latest approved architecture/source/wiring preflight:
+[pre-M5-12 technical closure](maintenance/PRE_M512_TECHNICAL_PREFLIGHT.md)
+records exact inactive consumer/unit-cache cleanup, preserved artifacts/source,
+measured recovery, terminal custody readback and the serial resource budget.
+Full M5-12, installed/remote qualification and publication remain unrun.
+
 Latest current-capability corrective cleanup:
 [ACC-01](maintenance/ACC01_CLEANUP.md) removes only the registered inactive
 scratch, verifies106retained files and464current source files, and observes

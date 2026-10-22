@@ -39654,6 +39654,32 @@ review; do not relax the global size gate or call current CI ready. Native
 contract generation, benchmark governance and historical promotion-certificate
 integrity pass separately. Final package resource admission also needs a fresh
 forecast: about 5.22 GiB free leaves only about 0.22 GiB above the 5 GiB reserve.
+**Owner-approved technical preflight follow-up (2026-10-22 UTC):** resolve the
+four preparation items locally, without launching full M5-12/artifact/remote
+qualification. Cold helpers extracted in `77af917` keep options at 956 lines
+and portfolio at 811, with unchanged eight moved function bodies and retained
+engine AST; the architecture trigger/registry is not weakened. The separate
+[source amendment](../docs/maintenance/evidence/pre-m512-source-amendment.json)
+and `tools/m5_12_source_guard.py` qualify 466 exact source files, preserving
+ACC-01/QMS receipts and the fact that finance changed versus original QMS.
+[Installed consumer wiring](../docs/mode5/M5_12_CONSUMER_MATRIX.md) covers the
+new Mode 5/reporting/ACC products on exact final artifacts, with current branch
+filters and no dispatch. Source/mock coverage is not installed/platform PASS.
+Resource cleanup retains exact artifacts, scientific evidence and current/
+referenced environments; only registered inactive consumers and superseded
+Rust unit-cache binaries are removed after host-use/hash review. The new local
+guard forecasts 896 MiB incremental disk plus 5 GiB reserve for one consumer
+at a time and conditional exact native reuse. Fresh Rust build, parallel or
+four-retained-consumer schedules need separate resource admission. README is
+expanded from actual supported capability/route/metric contracts, without new
+defaults, version changes or economic claims. Final execution/cleanup results
+are in the [technical closure receipt](../docs/maintenance/PRE_M512_TECHNICAL_PREFLIGHT.md):
+732 passing invocations / 731 distinct pytest IDs, architecture/API/contracts/
+source guards PASS, 44 future-installed cases wired but NOT_RUN. Two measured
+cleanup removals recover 759,783,424 bytes; terminal scratch custody is recovered
+after a receipt-writer error, with its exact free-space delta left unmeasured.
+Final resource readback fits the unchanged serial budget; rerun admission before
+launch. M5-12 itself remains NOT_STARTED; no remote/release action occurred.
 M5-11.4/11.5 retain their separately approved local closure. This planning
 request does not launch M5-12 or any CI, release or publication.
 **Goal:** deliver a reproducible privacy-safe local package and honest capability/

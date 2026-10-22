@@ -52,6 +52,13 @@ All notable changes to `quantbt-engine` are documented here.
 - Refreshed the generated root API inventory to 527 exports (11 additions to
   the stale generated list, no removals), with an exact metadata-only amendment
   that preserves the separate financial source qualification and historical receipts.
+- Extracted cold option validation and portfolio report helpers, preserving
+  endpoint/private aliases, moved function bodies and retained engine code.
+  Exact source qualification is separate from historical financial-invariance
+  receipts and still does not certify installed artifacts.
+- Added maintained installed-consumer/CI wiring for the prepared Mode 5,
+  winner/donor, reporting and account changes. Execution on final wheel/sdist
+  artifacts and remote/public qualification remain separate gates.
 - Preparation only: no tag, upload, merge or scientific acceptance is implied.
   See [QMS release handoff](docs/meta_selection/RELEASE_HANDOFF.md).
 

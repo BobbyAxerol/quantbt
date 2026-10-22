@@ -12,6 +12,15 @@ Read the [preparation checklist](../docs/mode5/M5_12_PREPARATION.md),
 Focused static docs/API/privacy checks are not full qualification, CI or
 publication approval. No new financial study or optimizer is launched here.
 
+The later approved technical preflight extracts cold option validation and
+portfolio reports (`77af917`), keeping the repaired account semantics and stable
+API. Current source guard admits only its exact reviewed bytes; original
+financial-change history is retained. The maintained Mode 5/reporting/ACC
+installed roster and updated workflow filters still need actual final-artifact
+execution in M5-12; no workflow is dispatched by this preparation.
+The [technical closure receipt](../docs/maintenance/PRE_M512_TECHNICAL_PREFLIGHT.md)
+records the passing source tests and current serial resource admission.
+
 Financial runtime `70fe9f7` changes both Python and Rust account behavior;
 stable endpoint signatures against pre-ACC `8f7df9d` do not imply unchanged
 economics or compatible artifacts. Earlier receipts/claims below remain

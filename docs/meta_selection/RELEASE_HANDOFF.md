@@ -3,7 +3,7 @@
 ## Authorization And Scope
 
 Owner-approved candidate pair: `quantbt-engine==1.1.2 / quantbt-native==0.4.3`.
-Current authorization is **local docs/package-hygiene preparation only**;
+Current authorization is **local technical/docs/package-hygiene preflight only**;
 M5-12 execution/builds are not launched by this audit; focused static preparation
 checks have their own [receipt](../mode5/M5_12_PREPARATION.md). No branch push,
 workflow dispatch, merge, tag or upload is authorized now. Preparation and
@@ -25,10 +25,23 @@ was owner-accepted on 2026-10-21 UTC; M5-11.14/15 and ACC-01 have local closures
 Separate M5-12 launch approval and resource admission remain pending. Read the
 [current phase](../../upgrade/implement.md#mode5-m5-12) and the
 [operator boundary](#non-publishing-qualification) before any qualification run.
-The [preparation checklist](../mode5/M5_12_PREPARATION.md) also records a locally
-reproduced pre-CI architecture failure: option/portfolio adapters crossed the
-1,000-line review trigger without listed exceptions. It remains to be resolved
-under M5-12; no global threshold or unreviewed exemption is applied.
+The [preparation checklist](../mode5/M5_12_PREPARATION.md) retains the original
+architecture failure and its approved resolution: cold validation/reporting
+helpers bring options/portfolio below the unchanged 1,000-line review trigger,
+with no new registry exception. Current exact source `77af917` is qualified
+separately from ACC-01 through the
+[extraction amendment](../maintenance/evidence/pre-m512-source-amendment.json).
+Moved functions and retained engine AST are unchanged; actual account/report
+controls compare against the repaired preflight-entry implementation.
+
+Consumer/branch wiring now has a maintained
+[Mode 5/reporting/ACC roster](../mode5/M5_12_CONSUMER_MATRIX.md). Wiring tests
+are not final installed-artifact or six-row platform proof. A separate local
+896-MiB incremental resource plan plus 5-GiB reserve covers only a serial,
+one-consumer/no-native-build schedule; run the resource guard again before use.
+The [technical preflight receipt](../maintenance/PRE_M512_TECHNICAL_PREFLIGHT.md)
+records 731 distinct passing focused test IDs, exact cleanup and retained
+failures. This closes the four preflight items, not M512.01..06.
 
 Final [ACC-01 runtime `70fe9f7`](../portfolio_review/ACC01_REPORT.md) intentionally
 corrects financial Python/Rust behavior. Public endpoint signatures remain
@@ -247,11 +260,11 @@ The broader
 guard against `559b4d1`. That historical verifier is not appropriate for
 certifying the final repaired payload, not grounds to revert ACC-01 or relax validation.
 The builder's four QMS lanes and the separate W3/execution consumer registries
-are not full M5-12 Mode 5/reporting/ACC-01 coverage. These tools are **not ready
-to run as complete final M5-12 qualification** until current source gates,
-member manifests, native binding and required installed-consumer wiring are
-qualified for that payload. Refreshing generated inventory and a scoped source
-guard is preparation, not full package qualification or installed proof.
+alone are not full M5-12 coverage. The new `m5_12_installed_preflight` binds
+current source, exact artifacts, staged public fixtures and actual installed
+module/native origins. Its maintained roster must actually execute on final
+artifacts before it is qualification. Current source/metadata guards and
+consumer wiring do not themselves establish installed proof.
 No such package gate was run or marked PASS in this audit.
 
 ### Historical QMS Commands

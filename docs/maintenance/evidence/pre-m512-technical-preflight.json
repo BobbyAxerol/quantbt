@@ -1,0 +1,603 @@
+{
+  "architecture": {
+    "new_registry_exceptions": 0,
+    "option_lines_after": 956,
+    "option_lines_before": 1040,
+    "portfolio_lines_after": 811,
+    "portfolio_lines_before": 1006,
+    "public_endpoint_signatures_unchanged_vs_pre_acc": 48,
+    "status": "PASS",
+    "unchanged_line_trigger": 1000
+  },
+  "builds": 0,
+  "candidate_pair": {
+    "core": "1.1.2",
+    "native": "0.4.3"
+  },
+  "cleanup": {
+    "cleaned_consumers_require_reinstallation": true,
+    "exact_terminal_free_space_delta": null,
+    "measured_admission_and_unit_cache_recovery_bytes": 759783424,
+    "protected_terminal_hashes": 137,
+    "removed_terminal_synthetic_files": 2610,
+    "retained_scientific_evidence_artifacts_logs_and_current_environments": true,
+    "status": "CUSTODY_VERIFIED",
+    "terminal_delta_reason": "Receipt writer failed after removal; original failure and readback retained"
+  },
+  "date": "2026-10-22",
+  "entry_commit": "7cdaadbc573435186ea7901162b9499973ec82b5",
+  "final_artifacts_qualified": false,
+  "installed_consumer_roster_cases": 44,
+  "installed_consumer_roster_executed": false,
+  "installs": 0,
+  "m5_12_status": "NOT_STARTED",
+  "merge": false,
+  "new_installed_bounded_execution": {
+    "financial_invocation_ceiling": 23,
+    "proposal_slots": 12,
+    "status": "NOT_RUN"
+  },
+  "new_optimizer_studies": 0,
+  "public_pair_qualified": false,
+  "publication": false,
+  "push": false,
+  "remote_matrix_qualified": false,
+  "resource_admission_current": {
+    "available_bytes": 6334521344,
+    "available_inodes": 5517731,
+    "available_memory_bytes": 2377641984,
+    "budget": {
+      "consumer_environment_bytes": 603979776,
+      "consumer_peak_rss_bytes": 671088640,
+      "core_build_and_artifacts_bytes": 100663296,
+      "disk_reserve_bytes": 5368709120,
+      "fixture_and_jit_bytes": 134217728,
+      "fresh_native_build": false,
+      "logs_and_incremental_headroom_bytes": 100663296,
+      "max_owned_consumers": 1,
+      "memory_reserve_bytes": 536870912
+    },
+    "disk_fits": true,
+    "exclusions": [
+      "fresh native compilation",
+      "legacy four retained consumers",
+      "parallel consumers",
+      "new research optimization"
+    ],
+    "full_m5_12_launch_authorized": false,
+    "memory_fits": true,
+    "peak_incremental_bytes": 939524096,
+    "resource_budget_fits": true,
+    "schema": "quantbt.m5-12.resource_admission.v1",
+    "scope": "serial core build/one consumer at a time; exact retained native reuse requires independent artifact qualification"
+  },
+  "retained_refs": [
+    {
+      "path": "upgrade/private/m5_12_preflight/attempt-01/candidate-gates-current.json",
+      "sha256": "d852a1e219cebbad6216b65d91efea4ea657fca334304dbd95330cbbc1ca3ca4"
+    },
+    {
+      "path": "upgrade/private/m5_12_preflight/attempt-01/candidate-gates-current.log",
+      "sha256": "8a8fc84a21853d04956c946d7e2b6c056b79c719ebb2f511a723d9a634f04a0d"
+    },
+    {
+      "path": "upgrade/private/m5_12_preflight/attempt-01/candidate-gates-current.xml",
+      "sha256": "ef120511dbd1534601c8377ab036f0d8d9bd6867ff85c1dbe89b37e8c9d0ef16"
+    },
+    {
+      "path": "upgrade/private/m5_12_preflight/attempt-01/candidate-gates.json",
+      "sha256": "fafb45c94289157054ec1e3c7bcf40657700f0a6d1be6934390ef5389ff78ed5"
+    },
+    {
+      "path": "upgrade/private/m5_12_preflight/attempt-01/candidate-gates.log",
+      "sha256": "5e419b2b1b6e93244ffee3c0d60a175d62cdf0703c7bced0f886307d47b828d4"
+    },
+    {
+      "path": "upgrade/private/m5_12_preflight/attempt-01/candidate-gates.xml",
+      "sha256": "a3d39d473609b6f7001dbfb400372cb6257579dd250c3f3c9cb6af3c0fdf97f8"
+    },
+    {
+      "path": "upgrade/private/m5_12_preflight/attempt-01/cleanup-admission-attempt-01-failure.json",
+      "sha256": "c80a7e1e38d4734820f737dc12afe8fddd6ffc3d57b7d00cbd0a487115616830"
+    },
+    {
+      "path": "upgrade/private/m5_12_preflight/attempt-01/cleanup-admission.json",
+      "sha256": "2fdff9f41fc421576baffb4bfcd7615a04830e12267701f50a83c2f01a5c822a"
+    },
+    {
+      "path": "upgrade/private/m5_12_preflight/attempt-01/cleanup-terminal-attempt-01-failure.json",
+      "sha256": "887b3e75ce191a9aaf10e70dbdf2ef45e8f68cd7c5a6c4535e15fbacd3049342"
+    },
+    {
+      "path": "upgrade/private/m5_12_preflight/attempt-01/cleanup-terminal-clarification.json",
+      "sha256": "1359b0366049920c50be711496fcc368844709b5a556bfd6ea463f6b1d331bb9"
+    },
+    {
+      "path": "upgrade/private/m5_12_preflight/attempt-01/cleanup-terminal-inventory.json",
+      "sha256": "b571b3dfb934ea930f30a2adfe716a6622a828eaa9b274f1f0581a05f36470a9"
+    },
+    {
+      "path": "upgrade/private/m5_12_preflight/attempt-01/cleanup-terminal.json",
+      "sha256": "6eda3e38b92c16fbbd2a1f5a08717f3c4e32b3fa73deab7a2747956cbfcdd43a"
+    },
+    {
+      "path": "upgrade/private/m5_12_preflight/attempt-01/consumer-wiring-final.json",
+      "sha256": "1af7a8ffbe0bc61528ff50d0e2f26f6eac5df89bf02e7d4f42e60849cbde91e3"
+    },
+    {
+      "path": "upgrade/private/m5_12_preflight/attempt-01/consumer-wiring-final.log",
+      "sha256": "3281d0fc7e81d301f5e408595a94e45fcdae892bef50ec20dfcdacdf40a04640"
+    },
+    {
+      "path": "upgrade/private/m5_12_preflight/attempt-01/consumer-wiring-final.xml",
+      "sha256": "8f6a5957d995898533ede4130818d3f3366bfb421346f5551e960b995476ed2e"
+    },
+    {
+      "path": "upgrade/private/m5_12_preflight/attempt-01/consumer-wiring.json",
+      "sha256": "f512a5c850e77bebce496f39c6a4c862b9758ae7c7cbbb393b5385e4b0433e14"
+    },
+    {
+      "path": "upgrade/private/m5_12_preflight/attempt-01/consumer-wiring.log",
+      "sha256": "83072d7bb1e760ef2964efec89dd36d268e502ea7b0473b143b1dba90ecf4278"
+    },
+    {
+      "path": "upgrade/private/m5_12_preflight/attempt-01/consumer-wiring.xml",
+      "sha256": "c6e7806da07af6b12bff88fce024e689c78a8bb47b486264a06df949f0f4c95d"
+    },
+    {
+      "path": "upgrade/private/m5_12_preflight/attempt-01/extraction-contract.json",
+      "sha256": "94bcf8756d3420836498fbf3fecdbbac81e77192183eed991913cf429be216c4"
+    },
+    {
+      "path": "upgrade/private/m5_12_preflight/attempt-01/extraction-contract.log",
+      "sha256": "13dfddd98a0bcc8048bc0b49e67b05f6b6c0909c61d5954e2e215e8ad42931b7"
+    },
+    {
+      "path": "upgrade/private/m5_12_preflight/attempt-01/extraction-contract.xml",
+      "sha256": "016c83664f13cb625e87aefc2b17ed5473ac51ed697948d3ed72b5b2176ba43a"
+    },
+    {
+      "path": "upgrade/private/m5_12_preflight/attempt-01/extraction.xml",
+      "sha256": "bcb8da99809815733d4091165f2f141001d7bfbb95448a65085a91e0af481ec7"
+    },
+    {
+      "path": "upgrade/private/m5_12_preflight/attempt-01/final-gates.json",
+      "sha256": "a136698d67dedc853865d483092c713ca260060f79ceeb8f0ff1bfcac60c5f36"
+    },
+    {
+      "path": "upgrade/private/m5_12_preflight/attempt-01/gate-architecture.log",
+      "sha256": "4ad282d45a23c171cf9ae7baebfaa86e70ab5ba4896a484643f27a6edb92c344"
+    },
+    {
+      "path": "upgrade/private/m5_12_preflight/attempt-01/gate-benchmark_governance.log",
+      "sha256": "d95cde642ae11ceaa412885bc47ad2c105b3b25c05646082fe8434ed3d844b41"
+    },
+    {
+      "path": "upgrade/private/m5_12_preflight/attempt-01/gate-endpoint.log",
+      "sha256": "88877eb58ccfd6cd1f27037cc6c05b1bd2974411564abd9af99dcba8f2821b34"
+    },
+    {
+      "path": "upgrade/private/m5_12_preflight/attempt-01/gate-historical_promotion_integrity.log",
+      "sha256": "1f772b957404d4cc6dc73faf1d2ea6125100dbe69590ef274ea9e62624e2d892"
+    },
+    {
+      "path": "upgrade/private/m5_12_preflight/attempt-01/gate-product_contracts.log",
+      "sha256": "ea0a2af6b879b1d1bf049c9e54c526efae6f910def72c1bf181324a1a498af1a"
+    },
+    {
+      "path": "upgrade/private/m5_12_preflight/attempt-01/gate-public_inventory.log",
+      "sha256": "2324246c6cc998a0061ff0983d47dda881849f022cad1fd847fda780345e3c2c"
+    },
+    {
+      "path": "upgrade/private/m5_12_preflight/attempt-01/gate-resources.log",
+      "sha256": "02e24969b899e5e31d733d0070081966a7d98782518f71029d85cb6a87d074ae"
+    },
+    {
+      "path": "upgrade/private/m5_12_preflight/attempt-01/gate-source.log",
+      "sha256": "9be27bc7fde33a14cb7380a69484dd0425c1a6929f28b0d55dc0f48dc408933b"
+    },
+    {
+      "path": "upgrade/private/m5_12_preflight/attempt-01/mixed-fixed.json",
+      "sha256": "cbcad0c9d1bd7a8aa92f6cdc4a6eb13518465bfe0d3d57c981239eaa1a2262a3"
+    },
+    {
+      "path": "upgrade/private/m5_12_preflight/attempt-01/mixed-fixed.log",
+      "sha256": "97ec54bf814e7fa9be285440074c7357e6c53730f812381592656f9ebb5ce822"
+    },
+    {
+      "path": "upgrade/private/m5_12_preflight/attempt-01/mixed-fixed.xml",
+      "sha256": "72d5b6b223de2ad25fc0597cf3084f3775005c376aa4ac5b10b41dc4b34330ba"
+    },
+    {
+      "path": "upgrade/private/m5_12_preflight/attempt-01/options.xml",
+      "sha256": "795ee806f2ac0162bbff1ba5aeec8cdae9434f2f008d31295145f277c40ae065"
+    },
+    {
+      "path": "upgrade/private/m5_12_preflight/attempt-01/portfolio.json",
+      "sha256": "06e6ec80c594e83e1b6eba86e91b69782b7ba7611bc44600446cb6975073a1fd"
+    },
+    {
+      "path": "upgrade/private/m5_12_preflight/attempt-01/portfolio.log",
+      "sha256": "731b6c171bb72f04d5e1740a9cb1c9132169af1d40a4f38fca7cc2b11369b0dd"
+    },
+    {
+      "path": "upgrade/private/m5_12_preflight/attempt-01/portfolio.xml",
+      "sha256": "086f3231b890d2043ce0b389fc9e45018183a51637f1d5f6bf98ff42e8c07824"
+    },
+    {
+      "path": "upgrade/private/m5_12_preflight/attempt-01/registration.json",
+      "sha256": "a4ccf3e2a26283f350c1659c231d1dd7c6443edc887f0f4df032598a7bfaeddb"
+    },
+    {
+      "path": "upgrade/private/m5_12_preflight/attempt-01/resources.json",
+      "sha256": "d7255eb19c9e0d4919eede72c5969a50262a23e4d212586e860c2f43d3f8b501"
+    },
+    {
+      "path": "upgrade/private/m5_12_preflight/attempt-01/resources.log",
+      "sha256": "1aa0e443d6a2862389f7bee3ed0eda88e529d0c587a357ebc29f39d56207d12e"
+    },
+    {
+      "path": "upgrade/private/m5_12_preflight/attempt-01/resources.xml",
+      "sha256": "5b2038284e1360b0361f57e83c53614c99a3fa091144614ecd5f56f9f3168ea1"
+    },
+    {
+      "path": "upgrade/private/m5_12_preflight/attempt-01/retired-unit-cleanup.json",
+      "sha256": "952d8e25f78ef877d176f41a94b84e11681e311879a635ee747ead47f2eaaeeb"
+    },
+    {
+      "path": "upgrade/private/m5_12_preflight/attempt-01/retired-unit-inventory.json",
+      "sha256": "71ce4ba7195077419da0073046c5ea10170f48fbfd9d059bcf8d6130bc898682"
+    },
+    {
+      "path": "upgrade/private/m5_12_preflight/attempt-01/source.json",
+      "sha256": "2bcb5e237847bb4c122756ee93e22ef9682194cb59b9a9707fe7bf70b45c00a3"
+    },
+    {
+      "path": "upgrade/private/m5_12_preflight/attempt-01/source.log",
+      "sha256": "97b9e182e89ccc830593e116c23d7fa4041bbd17270391af7542bb970b73d1fb"
+    },
+    {
+      "path": "upgrade/private/m5_12_preflight/attempt-01/source.xml",
+      "sha256": "ce3f401003f1ec5822818493c740a3cd314a22837910c88b613f73a727ed8211"
+    }
+  ],
+  "runtime_commit": "77af917f4184e4061a908c68557420223434e2db",
+  "schema": "quantbt.pre_m512.technical_preflight.v1",
+  "source_file_count": 466,
+  "source_provenance": {
+    "acc01_amendment_sha256": "95af947a570cc5c10bc6655c922b7dd8497f02e6da422aa3479af0163a94e0f1",
+    "acc01_changed_sources": [
+      "rust/crates/quantbt-execution/src/target.rs",
+      "rust/native_event/src/lib.rs",
+      "src/quantbt/backends/native_event.py",
+      "src/quantbt/backends/native_option.py",
+      "src/quantbt/backends/native_vectorized.py",
+      "src/quantbt/core/account_metadata.py",
+      "src/quantbt/core/event.py",
+      "src/quantbt/core/market_tape.py",
+      "src/quantbt/core/results.py",
+      "src/quantbt/core/vectorized.py",
+      "src/quantbt/endpoint.py",
+      "src/quantbt/metrics/reporting/account.py",
+      "src/quantbt/metrics/reporting/adapters.py",
+      "src/quantbt/metrics/reporting/cache.py",
+      "src/quantbt/metrics/reporting/drawdown.py",
+      "src/quantbt/metrics/reporting/execution.py",
+      "src/quantbt/metrics/reporting/inputs.py",
+      "src/quantbt/metrics/reporting/ledger.py",
+      "src/quantbt/metrics/reporting/results.py",
+      "src/quantbt/metrics/reporting/snapshots.py",
+      "src/quantbt/options/authority.py",
+      "src/quantbt/options/endpoint_validation.py",
+      "src/quantbt/options/execution.py",
+      "src/quantbt/options/fees.py",
+      "src/quantbt/options/hedging.py",
+      "src/quantbt/options/ledger.py",
+      "src/quantbt/options/lifecycle.py",
+      "src/quantbt/options/margin.py",
+      "src/quantbt/options/packages.py",
+      "src/quantbt/options/reporting.py",
+      "src/quantbt/options/schema.py",
+      "src/quantbt/options/strategy.py",
+      "src/quantbt/options/validation.py",
+      "src/quantbt/reporting/executed_attribution.py"
+    ],
+    "acc01_source_commit": "70fe9f7c9b14469e6ea935e75f180f26ca1c175e",
+    "baseline_commit": "59275659778e1e3306b35a3c92c7623a7e17c0c3",
+    "cold_extraction_semantics_unchanged": true,
+    "current_source_qualified": true,
+    "financial_numeric_source_unchanged": false,
+    "financial_rust_unchanged": false,
+    "financial_source_changed": true,
+    "historical_guards_reexecuted": false,
+    "historical_receipts": {
+      "c02": {
+        "claim_scope": "historical_only",
+        "path": "benchmarks/optimization/meta_selection/qms_c02_transport.json",
+        "sha256": "e2b6a11e5b47602a8758895424d6ec8df13454cee12811818268b766765d250d",
+        "source": {
+          "additive_atomic_token_getter": true,
+          "allowed_changes": [
+            "rust/native_event/src/reactive_numeric.rs",
+            "src/quantbt/backends/_native_event_rust.py",
+            "src/quantbt/backends/native_event.py",
+            "src/quantbt/backends/reactive_wfo.py",
+            "src/quantbt/backends/reactive_wfo_batch.py",
+            "src/quantbt/backends/reactive_wfo_workers.py",
+            "src/quantbt/endpoint.py",
+            "src/quantbt/optimization/meta_selection/observer.py",
+            "src/quantbt/optimization/meta_selection/reactive.py",
+            "src/quantbt/optimization/meta_selection/reactive_batch_witness.py",
+            "src/quantbt/optimization/meta_selection/reactive_execution.py",
+            "src/quantbt/optimization/meta_selection/reactive_transport.py"
+          ],
+          "baseline": "0bb77b5",
+          "financial_rust_unchanged": true,
+          "guide_sha256": "adad24b16024ec5d9f3bdaf3a4098a8c60305c1fc181f1c30a0ff0f648a8170d",
+          "release_identity_unchanged": true,
+          "schema": "qms-c02-source-guard-v1"
+        }
+      },
+      "e04": {
+        "claim_scope": "historical_only",
+        "path": "benchmarks/optimization/meta_selection/qms_e04_software_closure.json",
+        "sha256": "92220636ad363547e52a57af95bcbbe52259fd1f11bccb98c29973e5c3ea387a",
+        "source": {
+          "baseline": "7b83ba4",
+          "financial_numeric_source_unchanged": true,
+          "publication": false,
+          "schema": "qms-e04-exact-source-v1",
+          "source_sha256": {
+            "src/quantbt/endpoint.py": "a9688c49416167955a01054f4f596c571b793d62c5b19fb34bd4d125e5d5de8c",
+            "src/quantbt/optimization/meta_selection/config.py": "7045e938ed951b233e3cb4fc7e3f374fb42c0fcc1f326921f78f13b151e5f4ec",
+            "src/quantbt/optimization/meta_selection/domains/portfolio.py": "d01b9525c9cedba7e05eca13ef2e2f221966fd853dc001761c46ac36f6915980",
+            "src/quantbt/optimization/meta_selection/domains/portfolio_contract.py": "a81f4805ec052fbf81f895971082c6fa3c56d52344b1f56d8d21fc93004b7a39",
+            "src/quantbt/optimization/meta_selection/domains/portfolio_witness.py": "637735a33edbdeea1e1a5288bec55f3375668c89124d1df5a79a25db0ac66748",
+            "src/quantbt/optimization/meta_selection/domains/registry.py": "d818c4d83143b6cf655d52be5e5c71cdaa349876e84a4bca18c0e458051d3199",
+            "src/quantbt/optimization/meta_selection/observer.py": "0476769a47d791f4badcae3180a506ce52148120b0165e8278476f03e2ccbabd",
+            "src/quantbt/optimization/meta_selection/runtime.py": "476fa8d40b6c20f733ee9234ef04548cf3c0279d338479f8843ac30446d50b96",
+            "src/quantbt/walkforward.py": "f39b48cea35de46aaaa1d4a3914ca52f694785f6397111ef62247a4fc735896f"
+          }
+        }
+      }
+    },
+    "historical_receipts_unchanged": true,
+    "native_artifacts_qualified": false,
+    "pre_m512_amendment_sha256": "f1d4115f7000b4c7d266157a13cb80f9cc4c26e5fca5ad474267888990ce1b24",
+    "pre_m512_extracted_sources": [
+      "src/quantbt/backends/native_option.py",
+      "src/quantbt/backends/native_portfolio.py",
+      "src/quantbt/backends/option_validation.py",
+      "src/quantbt/backends/portfolio_reports.py"
+    ],
+    "previous_source_commit": "9c2bfd95c65f71618f52c736dfff341953066961",
+    "publication": false,
+    "qualification_sha256": "e3e557086c940971f8cd3573fcf812fce24fe862564367d417abac9887050e6c",
+    "qualified_source_count": 466,
+    "repair_amendment_sha256": "490806eab1e5118675dab4b5013df19ea0b3a3bde633632d9e0d3c4a99253edb",
+    "repair_changed_sources": [
+      "contracts/generated_public_api_inventory.json",
+      "rust/crates/quantbt-execution/src/target.rs",
+      "rust/crates/quantbt-portfolio/src/lib.rs",
+      "rust/native_event/src/lib.rs",
+      "src/quantbt/backends/native_event.py",
+      "src/quantbt/backends/native_intrabar_rust.py",
+      "src/quantbt/backends/native_option.py",
+      "src/quantbt/backends/native_portfolio.py",
+      "src/quantbt/backends/native_vectorized.py",
+      "src/quantbt/backends/native_wfo_public.py",
+      "src/quantbt/backends/option_validation.py",
+      "src/quantbt/backends/portfolio_reports.py",
+      "src/quantbt/backtester.py",
+      "src/quantbt/core/account_metadata.py",
+      "src/quantbt/core/constraints.py",
+      "src/quantbt/core/engine.py",
+      "src/quantbt/core/event.py",
+      "src/quantbt/core/intrabar_kernel.py",
+      "src/quantbt/core/intrabar_reference.py",
+      "src/quantbt/core/market_tape.py",
+      "src/quantbt/core/portfolio_validation.py",
+      "src/quantbt/core/preprocessor.py",
+      "src/quantbt/core/results.py",
+      "src/quantbt/core/schema.py",
+      "src/quantbt/core/vectorized.py",
+      "src/quantbt/endpoint.py",
+      "src/quantbt/engines.py",
+      "src/quantbt/metrics/performance.py",
+      "src/quantbt/metrics/reporting/account.py",
+      "src/quantbt/metrics/reporting/adapters.py",
+      "src/quantbt/metrics/reporting/cache.py",
+      "src/quantbt/metrics/reporting/drawdown.py",
+      "src/quantbt/metrics/reporting/execution.py",
+      "src/quantbt/metrics/reporting/inputs.py",
+      "src/quantbt/metrics/reporting/ledger.py",
+      "src/quantbt/metrics/reporting/results.py",
+      "src/quantbt/metrics/reporting/snapshots.py",
+      "src/quantbt/options/authority.py",
+      "src/quantbt/options/endpoint_validation.py",
+      "src/quantbt/options/execution.py",
+      "src/quantbt/options/fees.py",
+      "src/quantbt/options/hedging.py",
+      "src/quantbt/options/ledger.py",
+      "src/quantbt/options/lifecycle.py",
+      "src/quantbt/options/margin.py",
+      "src/quantbt/options/packages.py",
+      "src/quantbt/options/reporting.py",
+      "src/quantbt/options/schema.py",
+      "src/quantbt/options/strategy.py",
+      "src/quantbt/options/validation.py",
+      "src/quantbt/portfolio.py",
+      "src/quantbt/reporting/executed_attribution.py",
+      "src/quantbt/reporting/portfolio_audit.py",
+      "src/quantbt/sizing/fast.py",
+      "src/quantbt/sizing/modes.py"
+    ],
+    "schema": "quantbt.portfolio.current_source_qualification.v1",
+    "scopes": [
+      "src",
+      "rust",
+      "pyproject.toml",
+      "uv.lock",
+      "contracts",
+      "upgrade/QUANTBT_1_1_1_META_SELECTION_AND_SAMPLER_MODULE_GUIDE_V1_1_VI.md"
+    ],
+    "source_commit": "77af917f4184e4061a908c68557420223434e2db",
+    "source_metadata_amendments": [
+      {
+        "after_sha256": "dc348140142390a81f078d4dcf9562ad032d4a60f99e106e7d63b041f15c439f",
+        "before_sha256": "522e7ff87b95e5dba73369f4a0b7395e094d271443c72a31e05be3377a709103",
+        "financial_source_changed": false,
+        "path": "contracts/generated_public_api_inventory.json"
+      }
+    ]
+  },
+  "static_gates": {
+    "architecture": {
+      "command": [
+        "/root/bobby/pool_alpha/quantbt/.venv/bin/python",
+        "-B",
+        "tools/check_module_architecture.py"
+      ],
+      "log": "upgrade/private/m5_12_preflight/attempt-01/gate-architecture.log",
+      "log_sha256": "4ad282d45a23c171cf9ae7baebfaa86e70ab5ba4896a484643f27a6edb92c344",
+      "returncode": 0,
+      "seconds": 0.21734713180921972
+    },
+    "benchmark_governance": {
+      "command": [
+        "/root/bobby/pool_alpha/quantbt/.venv/bin/python",
+        "-B",
+        "tools/check_benchmark_governance.py"
+      ],
+      "log": "upgrade/private/m5_12_preflight/attempt-01/gate-benchmark_governance.log",
+      "log_sha256": "d95cde642ae11ceaa412885bc47ad2c105b3b25c05646082fe8434ed3d844b41",
+      "returncode": 0,
+      "seconds": 0.11150979716330767
+    },
+    "endpoint": {
+      "command": [
+        "/root/bobby/pool_alpha/quantbt/.venv/bin/python",
+        "-B",
+        "tools/check_endpoint_compatibility.py",
+        "--baseline",
+        "v1.1.1",
+        "--baseline",
+        "8f7df9d"
+      ],
+      "log": "upgrade/private/m5_12_preflight/attempt-01/gate-endpoint.log",
+      "log_sha256": "88877eb58ccfd6cd1f27037cc6c05b1bd2974411564abd9af99dcba8f2821b34",
+      "returncode": 0,
+      "seconds": 0.389596879016608
+    },
+    "historical_promotion_integrity": {
+      "command": [
+        "/root/bobby/pool_alpha/quantbt/.venv/bin/python",
+        "-B",
+        "tools/certify_phase78_public_promotion.py",
+        "--check"
+      ],
+      "log": "upgrade/private/m5_12_preflight/attempt-01/gate-historical_promotion_integrity.log",
+      "log_sha256": "1f772b957404d4cc6dc73faf1d2ea6125100dbe69590ef274ea9e62624e2d892",
+      "returncode": 0,
+      "seconds": 1.633249077014625
+    },
+    "product_contracts": {
+      "command": [
+        "/root/bobby/pool_alpha/quantbt/.venv/bin/python",
+        "-B",
+        "tools/generate_product_contracts.py",
+        "--check"
+      ],
+      "log": "upgrade/private/m5_12_preflight/attempt-01/gate-product_contracts.log",
+      "log_sha256": "ea0a2af6b879b1d1bf049c9e54c526efae6f910def72c1bf181324a1a498af1a",
+      "returncode": 0,
+      "seconds": 0.37142059905454516
+    },
+    "public_inventory": {
+      "command": [
+        "/root/bobby/pool_alpha/quantbt/.venv/bin/python",
+        "-B",
+        "tools/generate_public_api_inventory.py",
+        "--check"
+      ],
+      "log": "upgrade/private/m5_12_preflight/attempt-01/gate-public_inventory.log",
+      "log_sha256": "2324246c6cc998a0061ff0983d47dda881849f022cad1fd847fda780345e3c2c",
+      "returncode": 0,
+      "seconds": 0.07474306202493608
+    },
+    "resources": {
+      "command": [
+        "/root/bobby/pool_alpha/quantbt/.venv/bin/python",
+        "-B",
+        "tools/m5_12_resources.py",
+        "--check"
+      ],
+      "log": "upgrade/private/m5_12_preflight/attempt-01/gate-resources.log",
+      "log_sha256": "02e24969b899e5e31d733d0070081966a7d98782518f71029d85cb6a87d074ae",
+      "returncode": 1,
+      "seconds": 0.06802102015353739
+    },
+    "source": {
+      "command": [
+        "/root/bobby/pool_alpha/quantbt/.venv/bin/python",
+        "-B",
+        "tools/m5_12_source_guard.py",
+        "--check"
+      ],
+      "log": "upgrade/private/m5_12_preflight/attempt-01/gate-source.log",
+      "log_sha256": "9be27bc7fde33a14cb7380a69484dd0425c1a6929f28b0d55dc0f48dc408933b",
+      "returncode": 0,
+      "seconds": 1.126378655899316
+    }
+  },
+  "status": "LOCAL_TECHNICAL_PREFLIGHT_COMPLETE_NOT_PACKAGE_CERTIFICATION",
+  "tag": false,
+  "tests": {
+    "errors": 0,
+    "failures": 0,
+    "groups": {
+      "candidate-gates-current": {
+        "junit": "upgrade/private/m5_12_preflight/attempt-01/candidate-gates-current.xml",
+        "passed": 72,
+        "sha256": "ef120511dbd1534601c8377ab036f0d8d9bd6867ff85c1dbe89b37e8c9d0ef16"
+      },
+      "consumer-wiring-final": {
+        "junit": "upgrade/private/m5_12_preflight/attempt-01/consumer-wiring-final.xml",
+        "passed": 80,
+        "sha256": "8f6a5957d995898533ede4130818d3f3366bfb421346f5551e960b995476ed2e"
+      },
+      "extraction-contract": {
+        "junit": "upgrade/private/m5_12_preflight/attempt-01/extraction-contract.xml",
+        "passed": 6,
+        "sha256": "016c83664f13cb625e87aefc2b17ed5473ac51ed697948d3ed72b5b2176ba43a"
+      },
+      "options": {
+        "junit": "upgrade/private/m5_12_preflight/attempt-01/options.xml",
+        "passed": 226,
+        "sha256": "795ee806f2ac0162bbff1ba5aeec8cdae9434f2f008d31295145f277c40ae065"
+      },
+      "portfolio": {
+        "junit": "upgrade/private/m5_12_preflight/attempt-01/portfolio.xml",
+        "passed": 94,
+        "sha256": "086f3231b890d2043ce0b389fc9e45018183a51637f1d5f6bf98ff42e8c07824"
+      },
+      "resources": {
+        "junit": "upgrade/private/m5_12_preflight/attempt-01/resources.xml",
+        "passed": 8,
+        "sha256": "5b2038284e1360b0361f57e83c53614c99a3fa091144614ecd5f56f9f3168ea1"
+      },
+      "source": {
+        "junit": "upgrade/private/m5_12_preflight/attempt-01/source.xml",
+        "passed": 246,
+        "sha256": "ce3f401003f1ec5822818493c740a3cd314a22837910c88b613f73a727ed8211"
+      }
+    },
+    "initial_failures_retained": true,
+    "passed_invocations": 732,
+    "skipped": 0,
+    "unique_pytest_ids": 731
+  },
+  "verification_commit": "4b63f98b08df5cc3d0af2860127b8a5f336b5a19",
+  "version_changed": false,
+  "workflow_dispatches": 0
+}

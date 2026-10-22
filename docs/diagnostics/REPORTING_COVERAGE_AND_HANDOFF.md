@@ -24,6 +24,15 @@ and native-pair qualification, isolated installed consumers and retained
 privacy/regression/cost/cleanup receipts. CI/manylinux and public-index proofs
 remain later, separately approved gates.
 
+The approved pre-M5-12 technical extraction now qualifies source `77af917`
+through a separate exact-byte amendment: option validation and portfolio reports
+move to focused helpers, retaining original engine AST, formulas and endpoint
+signatures. The [consumer roster](../mode5/M5_12_CONSUMER_MATRIX.md) and current
+source guard are wired but do not change these historical reporting receipts
+or claim a new installed/platform PASS.
+See the [technical preflight receipt](../maintenance/PRE_M512_TECHNICAL_PREFLIGHT.md)
+for the actual source tests, resource/cleanup scope and remaining artifact gates.
+
 Final [ACC-01 runtime `70fe9f7`](../portfolio_review/ACC01_REPORT.md) corrects
 financial Python/Rust behavior. Public endpoint signatures remain stable
 relative to pre-ACC-01 `8f7df9d`, but the

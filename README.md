@@ -52,6 +52,10 @@ or change an existing endpoint/account policy. See the
 installed-W3 and public-consumer gates and the owner-controlled release order.
 The [M5-12 preparation checklist](docs/mode5/M5_12_PREPARATION.md) separates
 current source checks from final artifact, platform and public-index proof.
+The [prepared capability map](#prepared-release-capabilities) below describes
+the candidate source, not what an ordinary install command already provides.
+M5-12 package gates remain **NOT_RUN**; historical installed receipts do not
+certify this final source/pair, and preparation does not authorize publication.
 
 Optional features:
 
@@ -84,8 +88,17 @@ accept `reporting=ReportingRequest(...)` for explicit account-period, execution,
 closed-trade/action and drawdown-episode reporting. This reporting opt-in does
 not change execution or the WFO/meta objective. Separate account correctness
 fixes in this candidate can change results; see the migration notice below.
-Missing outcome attribution is N/A with a reason, not a guessed trade count. Read the
-[reporting guide](docs/metrics/PUBLIC_REPORTING.md) and runnable
+The four populations stay separate: `account_period`, `execution`,
+`closed_trade` and `closed_action`. Returns/drawdowns are numeric fractions
+(percentages are display-only); PnL/costs retain their currency, durations their
+declared units, and each metric its sample count, coverage and validity.
+Declare the baseline, clock, sampling and annual periods explicitly.
+Missing outcome attribution is metric-specific N/A with a reason, not a guessed
+trade count or zero. Undefined bankruptcy-period ratios and invalid overflow
+remain null with status; no-loss ratios are not JSON Infinity. Legacy scientific
+metrics and `tearsheet()` keep their separate contracts. Read the
+[reporting guide](docs/metrics/PUBLIC_REPORTING.md),
+[metric definitions and units](docs/metrics/REPORTING_CONTRACT_V1.md) and runnable
 [synthetic example](examples/reporting_metrics_v1.py).
 
 Measured local CPython 3.12 reporting cost, one thread, one warmup/five samples:
@@ -183,6 +196,50 @@ The full parameter, data, result, and support contracts are in the
 [endpoint guide](docs/endpoint.md). For a decision tree, read
 [backend selection](docs/backend_selection.md).
 
+## Prepared Release Capabilities
+
+For the prepared **1.1.2 / 0.4.3** pair, choose each research extension
+explicitly. Installing compiled capabilities does not enable meta, choose a
+sampler/selector, route a strategy or promote a default. Software support,
+registered economic findings and final installed/release certification are
+separate claims.
+
+| Research need | Capability and reading path |
+|---|---|
+| Choose search independently of meta | [Four shared sampler recipes](docs/meta_selection/SAMPLERS.md), [optional numeric-space helper](docs/meta_selection/SAMPLER_SPACE_HELPER.md), [synthetic example](examples/wfo_sampler_space.py) |
+| Learn from permitted historical tasks | [Meta off/shadow/active](docs/meta_selection/USAGE.md), [route bounds](docs/meta_selection/CURRENT_ROUTE_REVIEW.md), [nested scalar Mode 1](docs/meta_selection/NESTED_MODE1.md) |
+| Inspect evidence before/after search | [Shared alpha diagnostics](docs/diagnostics/SHARED_ALPHA_DIAGNOSTICS.md), [pre-search researcher view](docs/diagnostics/PRESEARCH_RESEARCHER_REPORT.md), [Mode 4 fold/decision reports](docs/diagnostics/FOLD_DECISION_REPORTS.md) |
+| Calibrate one fixed parameter dict | [Diagnostics-first Mode 5](docs/mode5/PUBLIC_CALIBRATION_V1.md), [sealed executable handoff](docs/diagnostics/MODE5_EXECUTABLE_HANDOFF.md), [decision components](docs/mode5/DECISION_QUALIFICATION_V1.md) |
+| Qualify a winner or explicitly reuse coordinates | [Winner, regime, activity, probe/stress and donor contracts](docs/diagnostics/MODE5_WINNER_QUALIFICATION.md), [synthetic cross-mode example](examples/mode5_cross_mode_qualification.py) |
+| Report completed results with explicit units/coverage | [Reporting V1](#optional-reporting-v1), [public usage](docs/metrics/PUBLIC_REPORTING.md) |
+| Understand corrected account behavior | [ACC-01 supported/inactive/rejected configuration matrix](docs/portfolio_review/ACC01_CONFIGURATION_AND_MIGRATION.md), [current-capability qualification](docs/portfolio_review/ACC01_REPORT.md) |
+
+### Independent Samplers And Causal Meta
+
+`optimization_config["sampler_config"]` selects `tpe_legacy`,
+`tpe_multivariate_group`, `cmaes` or `sobol` without enabling meta. Omission
+preserves historical sampler defaults. Optional `prepare_sampler_space`
+assesses declared schema compatibility, not profitability: numeric lists stay
+categorical by default. Declared regular integer grids can preserve support;
+float choices need schema overrides. Conversion can change proposal geometry.
+Mixed CMA and conditional Sobol require their
+[explicit policies](docs/meta_selection/CONDITIONAL_POLICIES.md); neither the
+helper nor diagnostics chooses a recipe from OOS outcomes.
+
+| Meta mode/schedule | Admitted software scope | Important boundary |
+|---|---|---|
+| Mode 4 / `per_fold_causal` | Five scalar targets; bounded portfolio, basket/arbitrage, intrabar, callback/command and pre-expiry delivery adapters | Original route-specific account, timing and scoring contracts still apply |
+| Nested Mode 1 / `per_fold_causal` | `signal_notional`, `notional`, `unit`, `pct_equity`, signed structural `dca_ladder` | Genuine inner validation within outer IS; not portfolio/package/execution/W3 meta |
+| Prepared W3, Mode 4 causal | Separate sequential, one-symbol reactive adapter | Reset-flat segments, not carry-account, shared multi-symbol or public meta batching |
+
+Shadow records proposals but executes the native winner; active may apply the
+learned choice or documented fallback. Current IS and a frozen snapshot of
+permitted matured history may inform selection; the current outer OOS never
+enters its fit/rank. Other mode/route
+combinations, including options/Nautilus meta, are not admitted merely because
+their standalone endpoint or result helper exists. Numeric meta acceleration
+and financial execution remain independent; Python callbacks are not Rust-owned.
+
 ### Candidate Compatibility And Account Corrections
 
 Endpoint factory names remain stable. Relative to `v1.1.1`, optional
@@ -191,9 +248,18 @@ Endpoint factory names remain stable. Relative to `v1.1.1`, optional
 repairs do not change endpoint method signatures, but intentionally correct
 funding, sizing, order admission, attribution and reporting edge cases.
 Unsupported non-default account/execution settings now fail explicitly instead
-of appearing to work. Generic portfolio remains gross-cross/netting, not an
-isolated-collateral or simultaneous long/short inventory simulator.
-Read the [effective configuration matrix](docs/portfolio_review/ACC01_CONFIGURATION_AND_MIGRATION.md),
+of appearing to work. These correctness repairs are not optional research
+policies; omitting meta/diagnostics does not restore old financial defects.
+
+| Current account family | Supported authority | Boundary |
+|---|---|---|
+| Linear event | Named event clocks, supported order constraints/risk reductions, costs and funding | Generic accounts are gross-cross/netting, not isolated collateral or simultaneous long/short inventory |
+| Linear vectorized / portfolio | CLOSE targets, quantity constraints, costs/funding and executed-buffer attribution | Other generic fill clocks/partial-fill policies and isolated/hedging accounts are explicitly rejected |
+| Options | Capital-matched opening wallet, reporting currency/explicit constant FX, option execution/margin and authoritative applied fees | Generic compatibility defaults can be inactive; changed generic controls fail rather than replacing option authorities; margin approximations are not venue-exact |
+
+Clocks, funding intervals/events, fee denomination/timing and configuration
+precedence retain their individual contracts, not one interchangeable model.
+Read the full [supported / inactive-default / rejected matrix](docs/portfolio_review/ACC01_CONFIGURATION_AND_MIGRATION.md),
 [account qualification](docs/portfolio_review/ACC01_REPORT.md) and
 [API compatibility audit](docs/mode5/M5_12_PREPARATION.md#endpoint-compatibility).
 Historical accounting results and benchmarks remain historical, not current
@@ -202,16 +268,39 @@ artifact certification.
 ### Diagnostics And Opt-In Calibration
 
 Shared [alpha diagnostics](docs/diagnostics/SHARED_ALPHA_DIAGNOSTICS.md) expose
-coverage, parameter geometry, activity, sensitivity and supported conclusions.
-Mode 4 adds [fold consistency and meta-decision reporting](docs/diagnostics/REPORTING_COVERAGE_AND_HANDOFF.md);
-diagnostics-first [Mode 5 calibration](docs/mode5/PUBLIC_CALIBRATION_V1.md)
-uses an explicitly frozen research recipe to select one static parameter dict.
-Its [winner qualification](docs/diagnostics/MODE5_WINNER_QUALIFICATION.md) ties selection
-to annual/regime, risk, activity, probe/stress and baseline evidence with
-support/limits. Samplers are configurable independently of meta selection.
-Cross-mode assistance remains an explicit researcher choice, not an automatic
-router or a claim of universal improvement. Observed decay/robustness evidence
-is specific to its registered alpha, window, objective and comparison.
+coverage, parameter geometry/branches, activity and source-backed sensitivity,
+local/regime/factor evidence with explicit missing support. They can precede
+any WFO-mode choice and require neither meta nor a new financial engine.
+Mode 4 [fold/meta reports](docs/diagnostics/REPORTING_COVERAGE_AND_HANDOFF.md)
+separate R/Q/IS, matched cohorts and native/proposed/actually applied decisions;
+they read original observations without rerunning accounts or fitting a model.
+
+Diagnostics-first [Mode 5 calibration](docs/mode5/PUBLIC_CALIBRATION_V1.md)
+freezes the objective, coefficients/reference, quality/support gates and
+selector before search, then selects **one static parameter dict**. Explicit
+selectors are `full_dro_cvar`, `full_sam_basin` and
+`full_pareto_chebyshev`; SAM needs registered local probes, Pareto frozen
+preferences. Utility, raw Sharpe and PSR are distinct, not interchangeable
+objectives. `NO_SELECTION` retains exclusions rather than inventing a winner.
+Reset-environment and continuous-account providers retain different contracts;
+annual/regime views of one continuous account are dependent descriptions,
+not independently optimized dicts or independent OOS. Annual positivity is not
+silently substituted for the registered objective.
+
+Continuous-account [winner qualification](docs/diagnostics/MODE5_WINNER_QUALIFICATION.md)
+joins the exact selected dict/formula/components to whole/annual/regime risk,
+activity/costs, runner-up/baseline trade-offs and exact-winner probe/stress
+support. State labels and evidence need their own source/rights witnesses;
+the reader does not fit regimes, run missing stress or infer fills/campaigns
+from position changes. Missing evidence stays unavailable, not PASS or zero.
+
+Cross-mode assistance is an explicit researcher choice: reviewed donor
+coordinates consume the destination budget and are rescored under its current
+contract, without importing old scores, model state or account paths.
+Full-development evidence cannot be backdated into a Mode 4 prefix. There is
+no automatic router, adaptive-selector promotion or universal economic claim;
+observed improvements, trade-offs and inconclusive findings keep their
+registered alpha/window/objective/comparison scope.
 
 ## Event-Driven Facade
 
@@ -692,7 +781,7 @@ Start with the [documentation map](docs/README.md).
 | Margin, buying power, and liquidation | [Margin and leverage](docs/margin_leverage.md) |
 | Causal WFO schedules and claims | [Causal walk-forward](docs/walkforward_causal.md) |
 | WFO methodology | [Walk-forward methodology](methodology/walk_forward.md) |
-| Feature-branch Mode-4 causal meta off/shadow/active, history, clocks and actual selection | [QMS public integration](docs/meta_selection/INTEGRATION.md) (not yet published) |
+| Prepared causal meta off/shadow/active, admitted routes and nested scalar Mode 1 | [QMS public integration](docs/meta_selection/INTEGRATION.md), [route matrix](docs/meta_selection/CURRENT_ROUTE_REVIEW.md), [nested Mode 1](docs/meta_selection/NESTED_MODE1.md) (not yet published) |
 | Feature-branch prepared meta parity and portable decision/model handoff | [QMS-06 capability/report](docs/meta_selection/QMS06_REPORT.md), [host consumer](docs/meta_selection/HANDOFF.md) (not yet published) |
 | Feature-branch QMS stable usage, sampler/meta policy, history, migration and candidate installation scope | [QMS user guide](docs/meta_selection/USAGE.md), [qualification](docs/meta_selection/QUALIFICATION.md), [complete cases](examples/wfo_meta_contract.py) (not yet published) |
 | Feature-branch exact owned sampler checkpoints, with no automatic WFO resume | [Continuation contract](docs/meta_selection/EXACT_CONTINUATION.md), [four-recipe example](examples/optimization_exact_continuation.py), [local report](docs/meta_selection/QMSC04_REPORT.md) (not yet published) |
@@ -713,6 +802,8 @@ Start with the [documentation map](docs/README.md).
 | Platform wheel matrix and route-level A5 status | [Native productization and A5](docs/native_productization_a5.md) |
 | Direct Rust target timing and target kinds | [Direct Target Execution Clock](docs/contracts/v1_1_target_execution_clock.md) |
 | Portfolio modes and migration | [Portfolio Engine V3](docs/portfolio_engine_v3.md) |
+| Current ACC-01 account/configuration support, intentional errors and migration | [Effective configuration matrix](docs/portfolio_review/ACC01_CONFIGURATION_AND_MIGRATION.md), [local qualification](docs/portfolio_review/ACC01_REPORT.md) |
+| Completed-result metric populations, units, N/A and drawdown episodes | [Reporting V1 usage](docs/metrics/PUBLIC_REPORTING.md), [metric contract](docs/metrics/REPORTING_CONTRACT_V1.md) |
 | Pair and basket packages | [Pair and basket guide](docs/pair_basket_guide.md) |
 | Nautilus validation and bundles | [Nautilus backend](docs/nautilus_backend.md) |
 | Reproduce benchmark evidence | [Benchmarking governance](docs/performance/benchmarking.md) |
