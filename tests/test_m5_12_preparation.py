@@ -66,7 +66,9 @@ def test_inventory_is_generated_and_refresh_is_metadata_only():
 
 def test_inventory_normalization_rejects_unknown_source():
     raw = (ROOT / amendment.NAME).read_bytes()
-    original = amendment.without_inventory_refresh(raw, amendment.NAME, guard)
+    from tools.m5_12_release120_amendment import without_release120
+    historical = without_release120(raw, amendment.NAME, guard)
+    original = amendment.without_inventory_refresh(historical, amendment.NAME, guard)
     assert sha256(original).hexdigest() == amendment.BEFORE_SHA256
     for name, value in [(amendment.NAME, raw+b"\n"), ("src/quantbt/__init__.py", raw)]:
         assert amendment.without_inventory_refresh(value, name, guard) == value
@@ -74,7 +76,9 @@ def test_inventory_normalization_rejects_unknown_source():
 
 def test_legacy_diagnostic_export_reconciliation_is_exact():
     raw = (ROOT / amendment.EXPORT_NAME).read_bytes()
-    before = amendment.without_diagnostic_root_exports(raw, amendment.EXPORT_NAME, guard)
+    from tools.m5_12_release120_amendment import without_release120
+    historical = without_release120(raw, amendment.EXPORT_NAME, guard)
+    before = amendment.without_diagnostic_root_exports(historical, amendment.EXPORT_NAME, guard)
     assert sha256(before).hexdigest() == amendment.EXPORT_PARENT_SHA256
     assert amendment.without_diagnostic_root_exports(raw+b"\n", amendment.EXPORT_NAME, guard) == raw+b"\n"
     assert amendment.without_diagnostic_root_exports(raw, "unrelated.py", guard) == raw

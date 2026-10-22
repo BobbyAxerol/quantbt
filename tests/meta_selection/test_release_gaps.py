@@ -169,10 +169,12 @@ def test_release_stage_has_no_private_identity_rewrites(tmp_path):
 
 def test_release_source_allowlist_cannot_hide_financial_changes():
     from tools.qms_release_source_guard import ROOT, PACKAGING_FILES, without_release_identity
-
+    from tools import portfolio_repair_source_guard as guard
+    # Current finance is certified by the exact amendment chain, not the old
+    # R03 identity-only allowlist. That historical guard must still reject drift.
+    assert guard.verify_current_source()["current_source_qualified"]
     for name in PACKAGING_FILES:
         source = (ROOT / name).read_bytes()
-        without_release_identity(source, name)
         with pytest.raises(AssertionError, match="unapproved"):
             without_release_identity(source + b"\n# unexpected economic change\n", name)
 

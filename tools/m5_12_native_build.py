@@ -28,13 +28,25 @@ def verify_native_build(value, wheel, lane):
             raise ValueError("retained fresh native build receipt changed or outside ownership")
         # Reuse the actual approved build, not an ACC receipt or version match.
         return verify_native_build(value["build"], wheel, origin.parent)
+    policies = {"FRESH_APPROVED_ACCEPTED_POSITION_PARITY", "FRESH_APPROVED_RELEASE120_PRODUCT_METADATA"}
     if (value.get("schema") != "quantbt.m5_12.fresh_native_build.v1"
-            or value.get("policy") != "FRESH_APPROVED_ACCEPTED_POSITION_PARITY"
+            or value.get("policy") not in policies
             or value.get("sources") != native_sources()
             or value.get("source_after") != value.get("sources")
             or value.get("jobs") != 1 or value.get("features") != "cargo_default"
             or value.get("publication") is not False):
         raise ValueError("fresh native source/build policy differs")
+    if value["policy"] == "FRESH_APPROVED_RELEASE120_PRODUCT_METADATA":
+        from tools import portfolio_repair_source_guard as guard
+        from tools.m5_12_release120_amendment import manifest, BASELINE_COMMIT, MANIFEST_SHA256
+        amendment = manifest(guard)
+        expected = guard._committed_source_hashes(BASELINE_COMMIT, ["rust"])
+        name = "rust/crates/quantbt-domain/src/generated_product_contracts.rs"
+        expected[name] = amendment["sources"][name]["after_sha256"]
+        if (value.get("release_pair") != {"core": "1.2.0", "native": "0.4.3"}
+                or value.get("metadata_amendment_sha256") != MANIFEST_SHA256
+                or value["sources"] != expected):
+            raise ValueError("native release120 metadata must match the exact sealed amendment")
     command = value.get("command", [])
     if (not command or Path(command[0]).name != "maturin"
             or command[1:6] != ["build", "--release", "--locked", "--offline", "--manifest-path"]

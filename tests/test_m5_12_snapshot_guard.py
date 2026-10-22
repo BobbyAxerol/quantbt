@@ -43,7 +43,9 @@ def test_manifest_follows_sealed_alias_without_reissuing_claims(sealed_data):
 
 def test_current_source_after_main_hook_is_source_only(sealed_data):
     result = guard.verify_current_source()
-    assert result["source_commit"] == sealed_data["source_commit"]
+    from tools.m5_12_release120_amendment import SOURCE_COMMIT
+    assert result["source_commit"] == SOURCE_COMMIT
+    assert result["m5_12_snapshot_source_commit"] == sealed_data["source_commit"]
     assert result["current_source_qualified"]
     assert result["qualified_source_count"] == current.SOURCE_COUNT == 466
     assert result["financial_source_changed"] and not result["financial_numeric_source_unchanged"]

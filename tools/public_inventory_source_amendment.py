@@ -32,10 +32,14 @@ def current_inventory_amendment(expected, root):
     """Admit one exact metadata delta while keeping the ACC runtime lock."""
     assert expected[NAME] == BEFORE_SHA256, "API inventory amendment baseline differs"
     raw = (root / NAME).read_bytes()
+    actual = raw
+    from tools import portfolio_repair_source_guard as guard
+    from tools.m5_12_release120_amendment import without_release120
+    raw = without_release120(raw, NAME, guard)
     assert sha256(raw).hexdigest() == AFTER_SHA256, "unreviewed API inventory bytes"
     from tools.generate_public_api_inventory import generated_outputs
     outputs = generated_outputs()
-    assert raw == outputs[root / NAME].encode(), "API inventory is not generated from current exports"
+    assert actual == outputs[root / NAME].encode(), "API inventory is not generated from current exports"
     updated = dict(expected, **{NAME: AFTER_SHA256})
     return updated, [dict(path=NAME, before_sha256=BEFORE_SHA256,
                           after_sha256=AFTER_SHA256, financial_source_changed=False)]

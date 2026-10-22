@@ -72,3 +72,32 @@ def test_python_only_followup_can_reuse_only_the_exact_retained_fresh_build(tmp_
         with pytest.raises(ValueError): build.verify_native_build(wrapper, wheel, tmp_path / "next")
     else:
         assert build.verify_native_build(wrapper, wheel, tmp_path / "next")
+
+
+@pytest.mark.parametrize("defect", (None, "core", "native", "amendment", "kernel", "unknown_policy"))
+def test_release120_native_rebuild_admits_only_exact_product_metadata(tmp_path,monkeypatch,defect):
+    from tools import m5_12_release120_amendment as release
+    from tools import portfolio_repair_source_guard as guard
+    value,wheel,lane = case(tmp_path,monkeypatch)
+    name = "rust/crates/quantbt-domain/src/generated_product_contracts.rs"
+    before = {"rust/Cargo.lock": "a"*64, name: "b"*64}
+    current = dict(before,**{name:"c"*64})
+    monkeypatch.setattr(guard,"_committed_source_hashes",lambda commit,scopes: before)
+    monkeypatch.setattr(release,"manifest",lambda candidate: {"sources":{name:{"after_sha256":"c"*64}}})
+    monkeypatch.setattr(build,"native_sources",lambda: current)
+    value.update(policy="FRESH_APPROVED_RELEASE120_PRODUCT_METADATA",sources=current,source_after=deepcopy(current),
+        release_pair=dict(core="1.2.0",native="0.4.3"),metadata_amendment_sha256=release.MANIFEST_SHA256)
+    if defect in {"core","native"}:
+        value["release_pair"][defect] = "unreviewed"
+    elif defect == "amendment":
+        value["metadata_amendment_sha256"] = "0"*64
+    elif defect == "kernel":
+        current["rust/Cargo.lock"] = "d"*64
+        value["source_after"] = deepcopy(current)
+    elif defect == "unknown_policy":
+        value["policy"] = "ALLOW_ANY_REBUILD"
+    if defect:
+        with pytest.raises(ValueError):
+            build.verify_native_build(value,wheel,lane)
+    else:
+        assert build.verify_native_build(value,wheel,lane)

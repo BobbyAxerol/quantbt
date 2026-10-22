@@ -32,6 +32,7 @@ def verifier_manifest():
              "tools/m5_12_pct_alias_amendment.py",
              "tools/m5_12_local_artifacts.py", "tools/m5_12_native_build.py",
              "tools/m5_12_snapshot_amendment.py",
+             "tools/m5_12_release120_amendment.py",
              "tools/portfolio_repair_source_guard.py", "tools/account_metrics_source_guard.py",
              "tools/public_inventory_source_amendment.py")}
 
