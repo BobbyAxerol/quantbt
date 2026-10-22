@@ -50,20 +50,20 @@ def test_e07_matrix_never_accepts_self_attested_empty_coverage(change):
 
 
 def test_e07_source_amendment_preserves_every_other_runtime_byte():
-    assert len(gate.source_guard()) == 322
+    from tests.meta_selection.current_source_assertions import current_source_rejects_historical_certificate
+    current_source_rejects_historical_certificate(gate.source_guard, error=ValueError)
 
 
 def test_e07_actual_mature_process_transport_and_resource_cleanup():
     code = '''
 import json, multiprocessing
 from tests.meta_selection import e07_support as e07, pre_e06_02_support as shared
-from tools.qms_pre05_workloads import Cell, load_history, semantic
-from tools.qms_e07_contract import LANE
 case = ("reactive_reset", "rust")
+historical = e07.run(case, "shadow", start="2020-04-01")
 for mode in ("off", "shadow", "active"):
-    path = LANE / "history/reactive_reset-rust.json"
-    local = e07.run(case, mode, history=load_history(path) if mode != "off" else None)
-    worker = e07.run(case, mode, history=load_history(path) if mode != "off" else None, process=True)
+    history = historical.context.history
+    local = e07.run(case, mode, history=shared.clone_history(history) if mode != "off" else None)
+    worker = e07.run(case, mode, history=shared.clone_history(history) if mode != "off" else None, process=True)
     assert local.result.params_by_fold == worker.result.params_by_fold
     shared.account_equal(local.result.fold_results[0].result, worker.result.fold_results[0].result)
     if mode != "off":

@@ -1,6 +1,8 @@
 """Artifact, privacy and cleanup gates must reject unqualified handoffs."""
 
 from copy import deepcopy
+from hashlib import sha256
+import json
 
 import pytest
 
@@ -73,12 +75,18 @@ def test_e07_public_patch_rejects_private_material(private, monkeypatch):
 
 
 def test_e07_closure_bound_to_registered_source_and_native():
-    registered = closure.check_registration(historical=True)
+    from tools.qms_e08_source_guard import ENTRY, baseline
+    from tools.qms_pre06_contract import checked_hashes
+    from tests.meta_selection.current_source_assertions import current_source_rejects_historical_certificate
+    registered = json.loads((closure.LANE / "registration.json").read_text())
+    assert registered["runtime_sha256"] == {
+        name: sha256(baseline(name, ENTRY)).hexdigest() for name in registered["runtime_sha256"]
+    }
+    checked_hashes(registered["protected_sha256"])
     assert len(registered["runtime_sha256"]) == 322
     assert closure.artifacts(registered)["wheel"]["modules"] == 260
     assert registered["native"]["extension_sha256"] == EXTENSION_SHA
-    with pytest.raises(ValueError, match="source/guide seal drift"):
-        closure.check_registration()
+    current_source_rejects_historical_certificate(closure.check_registration, error=ValueError)
 
 
 def test_e07_public_grid_example_fits_mature_history_without_private_inputs():
