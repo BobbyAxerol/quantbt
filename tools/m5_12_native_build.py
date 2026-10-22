@@ -1,6 +1,7 @@
 """Fresh native build provenance, separate from historical artifact reuse."""
 
 from hashlib import sha256
+import json
 from pathlib import Path
 import subprocess
 from zipfile import ZipFile
@@ -16,6 +17,17 @@ def native_sources():
 
 
 def verify_native_build(value, wheel, lane):
+    if value.get("schema") == "quantbt.m5_12.reused_fresh_native_build.v1":
+        ref = value["receipt"]
+        origin = ROOT / ref["path"]
+        if (origin.resolve() != origin or origin.is_symlink()
+                or not origin.is_relative_to(ROOT / ".maturin/qms08")
+                or origin.name != "native-build.json"
+                or sha256(origin.read_bytes()).hexdigest() != ref["sha256"]
+                or json.loads(origin.read_text()) != value.get("build")):
+            raise ValueError("retained fresh native build receipt changed or outside ownership")
+        # Reuse the actual approved build, not an ACC receipt or version match.
+        return verify_native_build(value["build"], wheel, origin.parent)
     if (value.get("schema") != "quantbt.m5_12.fresh_native_build.v1"
             or value.get("policy") != "FRESH_APPROVED_ACCEPTED_POSITION_PARITY"
             or value.get("sources") != native_sources()
