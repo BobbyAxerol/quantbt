@@ -19,7 +19,10 @@ PACKAGING_FILES = frozenset({
 
 def without_release_identity(source, name):
     from tools.mode5_public_source_guard import without_public_additions
-    source = without_public_additions(source, name)
+    try:
+        source = without_public_additions(source, name)
+    except AssertionError as exc:
+        raise AssertionError(f"unapproved release/financial source change: {name}: {exc}") from exc
     if name not in PACKAGING_FILES:
         return source
     old = subprocess.check_output(["git", "show", f"{ENTRY}:{name}"], cwd=ROOT)

@@ -35,6 +35,15 @@ def test_signature_breaks_are_detected(new):
     assert api.breaking_changes(args("self, x=1"), args(new))
 
 
+@pytest.mark.parametrize("before,after", [
+    ("@classmethod\ndef method(cls): pass", "def method(cls): pass"),
+    ("@staticmethod\ndef method(): pass", "def method(): pass"),
+    ("def method(self): pass", "async def method(self): pass"),
+])
+def test_method_binding_and_async_breaks_are_detected(before, after):
+    assert api.method_breaking_changes(ast.parse(before).body[0], ast.parse(after).body[0])
+
+
 @pytest.mark.parametrize("baseline", ["v1.1.1", "8f7df9d"])
 def test_endpoint_baselines_are_additive(baseline):
     result = api.audit(baseline)
@@ -63,6 +72,14 @@ def test_inventory_normalization_rejects_unknown_source():
         assert amendment.without_inventory_refresh(value, name, guard) == value
 
 
+def test_legacy_diagnostic_export_reconciliation_is_exact():
+    raw = (ROOT / amendment.EXPORT_NAME).read_bytes()
+    before = amendment.without_diagnostic_root_exports(raw, amendment.EXPORT_NAME, guard)
+    assert sha256(before).hexdigest() == amendment.EXPORT_PARENT_SHA256
+    assert amendment.without_diagnostic_root_exports(raw+b"\n", amendment.EXPORT_NAME, guard) == raw+b"\n"
+    assert amendment.without_diagnostic_root_exports(raw, "unrelated.py", guard) == raw
+
+
 def test_inventory_current_admission_rejects_other_bytes(tmp_path):
     path = tmp_path / amendment.NAME
     path.parent.mkdir(parents=True)
@@ -71,6 +88,14 @@ def test_inventory_current_admission_rejects_other_bytes(tmp_path):
         amendment.current_inventory_amendment({amendment.NAME: amendment.BEFORE_SHA256}, tmp_path)
     with pytest.raises(AssertionError, match="baseline differs"):
         amendment.current_inventory_amendment({amendment.NAME: "0"*64}, tmp_path)
+
+
+def test_stale_inventory_is_not_current_source_qualification(tmp_path):
+    path = tmp_path / amendment.NAME
+    path.parent.mkdir(parents=True)
+    path.write_bytes(guard._blob(amendment.BASELINE_COMMIT, amendment.NAME, amendment.BEFORE_SHA256))
+    with pytest.raises(AssertionError, match="unreviewed API inventory"):
+        amendment.current_inventory_amendment({amendment.NAME: amendment.BEFORE_SHA256}, tmp_path)
 
 
 @pytest.mark.parametrize("name", ["upgrade/alphas/local.py", "upgrade/private/x.json", "upgrade/local/run.py",

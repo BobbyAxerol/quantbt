@@ -153,6 +153,9 @@ def without_reporting(source, name):
 
 
 def without_public_additions(source, name):
+    from tools.public_inventory_source_amendment import without_diagnostic_root_exports
+    from tools import portfolio_repair_source_guard as portfolio_guard
+    source = without_diagnostic_root_exports(source, name, portfolio_guard)
     from tools.portfolio_repair_source_guard import without_portfolio_repair
     source = without_portfolio_repair(source, name)
     source = without_full_development_additions(source, name)

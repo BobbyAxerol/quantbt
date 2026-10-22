@@ -19,7 +19,7 @@ INIT = "src/quantbt/__init__.py"
 def methods(source):
     tree = ast.parse(source)
     cls = next(node for node in tree.body if isinstance(node, ast.ClassDef) and node.name == "QuantBTEndpoint")
-    return {node.name: node.args for node in cls.body
+    return {node.name: node for node in cls.body
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and not node.name.startswith("_")}
 
 
@@ -55,14 +55,27 @@ def breaking_changes(old, new):
     return findings
 
 
+def callable_contract(node):
+    return dict(kind=type(node).__name__, decorators=[ast.dump(item) for item in node.decorator_list])
+
+
+def method_breaking_changes(old, new):
+    findings = breaking_changes(old.args, new.args)
+    if callable_contract(old) != callable_contract(new):
+        findings.append("method binding or synchronous/asynchronous contract changed")
+    return findings
+
+
 def audit(baseline, root=ROOT):
     commit = subprocess.check_output(["git", "rev-parse", "--verify", baseline + "^{commit}"], cwd=root, text=True).strip()
     blob = lambda name: subprocess.check_output(["git", "show", commit + ":" + name], cwd=root)
     old_source, source = blob(ENDPOINT), (root / ENDPOINT).read_bytes()
     old, new = methods(old_source), methods(source)
-    changes = {name: dict(before=ast.unparse(old[name]), after=ast.unparse(new[name]),
-                         breaking=breaking_changes(old[name], new[name]))
-               for name in sorted(old.keys() & new.keys()) if ast.dump(old[name]) != ast.dump(new[name])}
+    changes = {name: dict(before=ast.unparse(old[name].args), after=ast.unparse(new[name].args),
+                         before_callable=callable_contract(old[name]), after_callable=callable_contract(new[name]),
+                         breaking=method_breaking_changes(old[name], new[name]))
+               for name in sorted(old.keys() & new.keys())
+               if ast.dump(old[name].args) != ast.dump(new[name].args) or callable_contract(old[name]) != callable_contract(new[name])}
     old_exports, new_exports = exports(blob(INIT)), exports((root / INIT).read_bytes())
     return dict(baseline=baseline, baseline_commit=commit, endpoint_sha256=sha256(source).hexdigest(),
                 public_method_count=len(new), added_methods=sorted(new.keys()-old.keys()),
