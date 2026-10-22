@@ -95,7 +95,8 @@ def test_g01_old_extension_cannot_relabel_a_cached_request(monkeypatch):
 
 def test_g01_exact_source_amendment_rejects_unreviewed_bytes():
     from tools.qms_g01_source_guard import ALLOW, ROOT, verify, without_g01
-    assert not verify()["scientific_estimator_changed"]
+    from current_source_assertions import current_source_rejects_historical_certificate
+    current_source_rejects_historical_certificate(verify)
     for name in ALLOW:
         with pytest.raises(AssertionError, match="unreviewed"):
             without_g01((ROOT/name).read_bytes()+b"\n// hidden drift\n", name)

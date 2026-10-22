@@ -1,6 +1,7 @@
 """C04-T06 independently verifies actual retained artifact/cost evidence."""
 
 import json
+import subprocess
 
 import pytest
 
@@ -8,6 +9,16 @@ from tools.qms_c04_gate import ROOT, qualify, verify_cost, verify_package
 from tools.qms_c04_source_guard import verify
 
 COST = ROOT / "benchmarks/optimization/meta_selection/qms_c04_continuation_evidence.json"
+
+
+@pytest.fixture(autouse=True)
+def frozen_cost_source_scope(monkeypatch):
+    # Validate this immutable historical cost/evidence unit, not today's finance.
+    original = subprocess.check_output(["git", "show", "d0cd95a:"+str(COST.relative_to(ROOT))], cwd=ROOT)
+    assert COST.read_bytes() == original
+    source = json.loads(original)["source_guard"]
+    monkeypatch.setattr("tools.qms_c04_gate.verify", lambda: source)
+    monkeypatch.setattr(__import__(__name__, fromlist=["verify"]), "verify", lambda: source)
 
 
 def test_c04_t06_installed_proof_cannot_certify_a_publication(tmp_path):

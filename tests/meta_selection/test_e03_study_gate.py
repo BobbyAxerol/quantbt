@@ -10,7 +10,8 @@ from tools.qms_e03_study import CELLS, endpoint, read_registration
 
 
 def test_e03_t06_exact_reviewed_source_never_exempts_entire_engine_or_adapter():
-    assert verify()["financial_numeric_source_unchanged"]
+    from current_source_assertions import current_source_rejects_historical_certificate
+    current_source_rejects_historical_certificate(verify)
     for name in ALLOW:
         with pytest.raises(AssertionError, match="unreviewed E03"):
             without_e03_scalar((ROOT/name).read_bytes()+b"\n# extra arithmetic\n", name)

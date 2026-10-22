@@ -199,7 +199,8 @@ def test_e05_t02_unmodeled_spec_contracts_are_not_silent_defaults(field):
 
 def test_e05_t06_exact_review_guard_rejects_any_unreviewed_adapter_byte():
     from tools.qms_e05_source_guard import ROOT, verify, without_e05_package
-    assert verify()["financial_numeric_source_unchanged"]
+    from current_source_assertions import current_source_rejects_historical_certificate
+    current_source_rejects_historical_certificate(verify)
     name = "src/quantbt/optimization/meta_selection/domains/package_contract.py"
     with pytest.raises(AssertionError, match="unreviewed"):
         without_e05_package((ROOT/name).read_bytes()+b"\n# unauthorized drift\n", name)

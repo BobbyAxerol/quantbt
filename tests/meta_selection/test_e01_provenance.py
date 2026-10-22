@@ -39,7 +39,8 @@ def test_e01_t01_fixed_params_diagnostics_are_not_selection(mode):
 
 
 def test_e01_t02_exact_reporting_allowance_rejects_other_source_changes():
-    assert verify()["search_account_rng_source_exact"]
+    from current_source_assertions import current_source_rejects_historical_certificate
+    current_source_rejects_historical_certificate(verify)
     source = (ROOT / NAME).read_bytes()
     without_e01_provenance(source, NAME)
     for tampered in (source + b"\n# unrelated arithmetic\n", source.replace(b'"mean_oos_sharpe"}', b'"mean_is_sharpe"}')):

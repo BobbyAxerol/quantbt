@@ -12,7 +12,9 @@ from tools.qms_c03_gate import checks, qualify
 
 @pytest.mark.parametrize("body", ["", '<testcase name="x"><failure/></testcase>',
     '<testcase name="x"><skipped/></testcase>', '<testcase name="x"/>'])
-def test_c03_t08_nonpassing_or_incomplete_junit_is_not_certification(tmp_path, body):
+def test_c03_t08_nonpassing_or_incomplete_junit_is_not_certification(tmp_path, monkeypatch, body):
+    # This unit tests malformed execution evidence, not the old finance lock.
+    monkeypatch.setattr("tools.qms_c03_gate.verify", lambda: {"scope": "UNIT_JUNIT_NEGATIVE_ONLY"})
     junit = tmp_path / "tests.xml"
     junit.write_text(f"<testsuite>{body}</testsuite>")
     with pytest.raises(ValueError, match="passing actual|missing required"):

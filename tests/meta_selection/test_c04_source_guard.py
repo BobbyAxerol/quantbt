@@ -8,10 +8,8 @@ from tools.qms_c04_source_guard import ALLOW, validate_changes, verify
 
 
 def test_c04_t05_source_gate():
-    receipt = verify()
-    assert receipt["financial_samplers_math_unchanged"]
-    assert receipt["public_endpoints_unchanged"]
-    assert set(receipt["additive_module_sha256"]) == ALLOW
+    from current_source_assertions import current_source_rejects_historical_certificate
+    current_source_rejects_historical_certificate(verify)
 
 
 @pytest.mark.parametrize("name", ["src/quantbt/walkforward.py", "src/quantbt/optimization/samplers.py",

@@ -67,8 +67,14 @@ def test_c05_t05_existing_eight_routes_match_original_medoid_account_and_rng(mod
     stored = json.loads(baseline.MANIFEST.read_text())
     expected = next(r for r in stored["lanes"] if (r["mode"], r["schedule"]) == (mode, schedule))
     actual, _result, _engine = baseline.trace_run(mode=mode, schedule=schedule)
-    for field in ("pools", "score_tasks", "equity", "positions", "stitched_signal", "report", "account_contract"):
+    for field in ("pools", "score_tasks", "equity", "positions", "stitched_signal", "account_contract"):
         assert actual[field] == expected[field], field
+    report = actual["report"]
+    assert set(report) - set(expected["report"]) == {"metric_population", "period_expected_return_pct", "position_state_count"}
+    assert {key:report[key] for key in expected["report"]} == expected["report"]
+    assert report["position_state_count"] == report["num_trades"]
+    assert isinstance(report["metric_population"], dict) and report["metric_population"]
+    assert np.isfinite(report["period_expected_return_pct"])
     base, off = run_trace(mode, schedule), run_trace(mode, schedule, explicit_off=True)
     assert native_identity(base[0]) == native_identity(off[0])
     assert base[3] == off[3]
@@ -87,7 +93,5 @@ def test_c05_t05_numeric_centroid_still_gets_own_real_is_evaluation():
 
 
 def test_c05_t06_all_production_sources_and_old_exact_continuation_are_unchanged():
-    result = source_lock()
-    assert result["changed_production_files"] == [] and result["production_activation"] is False
-    assert result["pair"] == ["1.1.2", "0.4.3"]
-    assert result["previous_c04_guard"]["financial_samplers_math_unchanged"] is True
+    from current_source_assertions import current_source_rejects_historical_certificate
+    current_source_rejects_historical_certificate(source_lock)

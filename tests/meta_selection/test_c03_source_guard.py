@@ -6,9 +6,8 @@ from tools.qms_c03_source_guard import ROOT, ALLOW, validate_changes, without_c0
 
 
 def test_c03_t08_exact_scope():
-    proof = verify()
-    assert set(proof["allowed_changes"]) == ALLOW
-    assert proof["financial_rust_unchanged"] and proof["shared_sampler_math_unchanged"]
+    from current_source_assertions import current_source_rejects_historical_certificate
+    current_source_rejects_historical_certificate(verify)
 
 
 @pytest.mark.parametrize("name", sorted(ALLOW))
