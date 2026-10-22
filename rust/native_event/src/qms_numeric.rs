@@ -4,17 +4,20 @@ use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
 
+type RidgeSolution = (Vec<f64>, Vec<f64>, Vec<f64>);
+type FitOutput<'py> = (
+    Bound<'py, PyArray1<f64>>,
+    Bound<'py, PyArray1<f64>>,
+    Bound<'py, PyArray1<f64>>,
+);
+type RankOutput<'py> = (Bound<'py, PyArray1<f64>>, Bound<'py, PyArray1<f64>>);
+type TransformOutput<'py> = (Bound<'py, PyArray1<f64>>, Bound<'py, PyArray1<u8>>);
+
 fn error(message: &str) -> PyErr {
     PyValueError::new_err(message.to_owned())
 }
 
-fn fit(
-    v: &[f64],
-    y: &[f64],
-    w: &[f64],
-    d: usize,
-    lambda: f64,
-) -> Result<(Vec<f64>, Vec<f64>, Vec<f64>), String> {
+fn fit(v: &[f64], y: &[f64], w: &[f64], d: usize, lambda: f64) -> Result<RidgeSolution, String> {
     if d == 0
         || y.is_empty()
         || y.len().checked_mul(d) != Some(v.len())
@@ -109,11 +112,7 @@ pub fn qms_fit_v1<'py>(
     y: PyReadonlyArray1<'py, f64>,
     weights: PyReadonlyArray1<'py, f64>,
     lambda_reg: f64,
-) -> PyResult<(
-    Bound<'py, PyArray1<f64>>,
-    Bound<'py, PyArray1<f64>>,
-    Bound<'py, PyArray1<f64>>,
-)> {
+) -> PyResult<FitOutput<'py>> {
     let shape = v.as_array().shape().to_vec();
     let rows = v.as_slice()?.to_vec();
     let y = y.as_slice()?.to_vec();
@@ -134,7 +133,7 @@ pub fn qms_rank_v1<'py>(
     v: PyReadonlyArray2<'py, f64>,
     beta: PyReadonlyArray1<'py, f64>,
     delta_is: PyReadonlyArray1<'py, f64>,
-) -> PyResult<(Bound<'py, PyArray1<f64>>, Bound<'py, PyArray1<f64>>)> {
+) -> PyResult<RankOutput<'py>> {
     let shape = v.as_array().shape().to_vec();
     let rows = v.as_slice()?.to_vec();
     let beta = beta.as_slice()?.to_vec();
@@ -177,7 +176,7 @@ pub fn qms_transform_v1<'py>(
     constant: PyReadonlyArray1<'py, u8>,
     observed: PyReadonlyArray1<'py, u8>,
     tolerance: f64,
-) -> PyResult<(Bound<'py, PyArray1<f64>>, Bound<'py, PyArray1<u8>>)> {
+) -> PyResult<TransformOutput<'py>> {
     let shape = values.as_array().shape().to_vec();
     if active.as_array().shape() != shape {
         return Err(error("META_DESCRIPTOR_SHAPE"));
