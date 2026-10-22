@@ -2,6 +2,7 @@
 
 import argparse
 from hashlib import sha256
+from html import escape
 import json
 import os
 from pathlib import Path
@@ -22,6 +23,16 @@ SECTIONS = (
     ("Potential And Limitations", ("potential_assessment", "blocking_issues")),
     ("Performance", ("performance",)),
     ("Review And Reproduction", ("review", "reproduction")),
+)
+CONSUMER_COLUMNS = (
+    ("kind", "Kind"),
+    ("feature_cases", "Feature Cases"),
+    ("execution_cases", "Execution Cases"),
+    ("pct_cases", "Pct-Equity Cases"),
+    ("integrated_families", "Integrated Families"),
+    ("private_alpha_controls", "Private Alpha Controls"),
+    ("representative_reports", "Representative Reports"),
+    ("status", "Recorded Status"),
 )
 
 
@@ -48,6 +59,38 @@ def _block(value):
     longest = max((len(run) for run in re.findall(r"`+", payload)), default=0)
     fence = "`" * max(3, longest + 1)
     return fence + "json\n" + payload + "\n" + fence
+
+
+def _cell(value):
+    text = value if isinstance(value, str) else json.dumps(value, sort_keys=True, ensure_ascii=True, allow_nan=False)
+    text = escape(text, quote=False).replace("\\", "\\\\")
+    for marker in "`*_[]()!":
+        text = text.replace(marker, "\\" + marker)
+    return text.replace("|", "&#124;").replace("\r\n", "\n").replace("\r", "\n").replace("\n", "<br>")
+
+
+def _recorded_summary(report):
+    rows = [("Phase Status", report["status"]), ("Scientific Status", report["scientific_status"]),
+            ("Next Phase Ready", report["next_phase_ready"])]
+    source = report["source_identity"]
+    source_rows = [("source_identity." + key, source[key]) for key in (
+        "source_commit", "runtime_source_commit", "current_source_commit", "tested_source_commit",
+        "guard_source_commit", "branch") if isinstance(source, dict) and key in source]
+    rows.extend(source_rows or [("source_identity", source)])
+    lines = ["", "## Recorded Summary", "", "| Field | Recorded Value |", "| --- | --- |"]
+    lines.extend("| " + _cell(key) + " | " + _cell(value) + " |" for key, value in rows)
+    matrices = report["matrices"]
+    consumers = matrices.get("installed_consumers") if isinstance(matrices, dict) else None
+    if isinstance(consumers, list) and consumers:
+        fields = {key for key, _ in CONSUMER_COLUMNS}
+        if any(not isinstance(row, dict) or not fields <= row.keys() for row in consumers):
+            raise ValueError("installed consumer table requires every recorded column")
+        lines.extend(("", "## Installed Consumers", "",
+            "| " + " | ".join(label for _, label in CONSUMER_COLUMNS) + " |",
+            "| --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |"))
+        lines.extend("| " + " | ".join(_cell(row[key]) for key, _ in CONSUMER_COLUMNS) + " |"
+                     for row in consumers)
+    return lines
 
 
 def render_closeout(raw, *, expected_sha256):
@@ -79,6 +122,7 @@ def render_closeout(raw, *, expected_sha256):
         "Recorded values and dispositions are reproduced without recomputation. "
         "Rendering does not certify artifacts, scientific success or release authority.",
     ]
+    lines.extend(_recorded_summary(report))
     covered = set()
     for title, fields in SECTIONS:
         payload = {key: report[key] for key in fields}

@@ -73,6 +73,82 @@ def test_exact_recorded_numbers_statuses_artifacts_and_limits_are_preserved():
     assert "fixtures/not-present.whl" in rendered and "fixtures/not-present.log" in rendered
 
 
+def _consumers():
+    return [
+        dict(kind="synthetic-pair", feature_cases=7, execution_cases=3, pct_cases=0,
+             integrated_families=2, private_alpha_controls=None, representative_reports=1, status="NONPASS"),
+        dict(kind="synthetic-sdist", feature_cases=None, execution_cases=None, pct_cases=9,
+             integrated_families=0, private_alpha_controls=None, representative_reports=0, status=None),
+    ]
+
+
+def _consumer_table(rendered):
+    return rendered.split("\n## Installed Consumers\n\n", 1)[1].split("\n\n", 1)[0]
+
+
+def test_readable_summary_uses_recorded_status_and_source_without_inference():
+    report = _report()
+    rendered = _render(report)
+    summary = rendered.split("\n## Recorded Summary\n\n", 1)[1].split("\n\n", 1)[0]
+    assert "| Phase Status | BLOCKED\\_SYNTHETIC\\_FIXTURE |" in summary
+    assert "| Scientific Status | INCONCLUSIVE |" in summary
+    assert "| Next Phase Ready | false |" in summary
+    assert "| source\\_identity.source\\_commit | " + "a" * 40 + " |" in summary
+    assert _recover(rendered) == report
+
+
+def test_optional_table_preserves_exact_supplied_counts_nonpass_and_nulls():
+    report = _report()
+    report["matrices"] = dict(installed_consumers=_consumers())
+    rendered = _render(report)
+    assert _consumer_table(rendered) == (
+        "| Kind | Feature Cases | Execution Cases | Pct-Equity Cases | Integrated Families | "
+        "Private Alpha Controls | Representative Reports | Recorded Status |\n"
+        "| --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |\n"
+        "| synthetic-pair | 7 | 3 | 0 | 2 | null | 1 | NONPASS |\n"
+        "| synthetic-sdist | null | null | 9 | 0 | null | 0 | null |"
+    )
+    assert _recover(rendered) == report
+    assert "Total" not in _consumer_table(rendered)
+    for title, fields in closeout.SECTIONS:
+        assert "\n## " + title + "\n\n" + closeout._block({key: report[key] for key in fields}) in rendered
+
+
+def test_summary_and_consumer_table_escape_pipes_newlines_and_markup():
+    report = _report()
+    report["status"] = "NONPASS | waiting\nreview"
+    report["source_identity"] = dict(source_commit="recorded|commit\r\nnot-certified")
+    report["matrices"] = dict(installed_consumers=_consumers())
+    row = report["matrices"]["installed_consumers"][0]
+    row["kind"] = "synthetic|pair\nnext"
+    row["status"] = "[NONPASS](link)|pending\r\n<script>"
+    rendered = _render(report)
+    table = _consumer_table(rendered)
+    assert "synthetic&#124;pair<br>next" in table
+    assert "\\[NONPASS\\]\\(link\\)&#124;pending<br>&lt;script&gt;" in table
+    assert all(line.count("|") == 9 for line in table.splitlines())
+    assert "NONPASS &#124; waiting<br>review" in rendered
+    assert "recorded&#124;commit<br>not-certified" in rendered
+    assert _recover(rendered) == report
+
+
+@pytest.mark.parametrize("matrices", [[], None, {}, {"installed_consumers": None}, {"installed_consumers": []}])
+def test_missing_optional_consumer_list_does_not_create_counts(matrices):
+    report = _report()
+    report["matrices"] = matrices
+    rendered = _render(report)
+    assert "## Installed Consumers" not in rendered
+    assert _recover(rendered) == report
+
+
+def test_consumer_table_missing_column_does_not_silently_fill_zero():
+    report = _report()
+    report["matrices"] = dict(installed_consumers=_consumers())
+    del report["matrices"]["installed_consumers"][0]["pct_cases"]
+    with pytest.raises(ValueError, match="every recorded column"):
+        _render(report)
+
+
 @pytest.mark.parametrize("field", REPORT_FIELDS)
 def test_every_required_canonical_field_is_validated(field):
     report = _report()

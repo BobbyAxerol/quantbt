@@ -18,7 +18,9 @@ def without_portfolio_repair(source, name, *, expected_baseline=None):
     from tools.public_inventory_source_amendment import without_inventory_refresh
     from tools.m5_12_pct_source_amendment import without_pct_activity
     from tools.m5_12_pct_alias_amendment import without_pct_alias
+    from tools.m5_12_snapshot_amendment import without_snapshot
     import sys
+    source = without_snapshot(source, name, sys.modules[__name__])
     source = without_pct_alias(source, name, sys.modules[__name__])
     source = without_pct_activity(source, name, sys.modules[__name__])
     source = without_extraction(source, name, sys.modules[__name__])
@@ -153,11 +155,13 @@ def verify_current_source():
     pct, current, pct_changed = apply_pct_activity(sys.modules[__name__], current, scopes)
     from tools.m5_12_pct_alias_amendment import apply_pct_alias, MANIFEST_SHA256 as alias_digest
     alias, current, alias_changed = apply_pct_alias(sys.modules[__name__], current, scopes)
+    from tools.m5_12_snapshot_amendment import apply_snapshot, MANIFEST_SHA256 as snapshot_digest
+    snapshot, current, snapshot_changed = apply_snapshot(sys.modules[__name__], current, scopes)
     _assert_current_sources(current, scopes)
     all_changed = sorted(name for name in before.keys() | current.keys() if before.get(name) != current.get(name))
     return dict(
         schema="quantbt.portfolio.current_source_qualification.v1",
-        baseline_commit=qualification["baseline_commit"], source_commit=alias["source_commit"],
+        baseline_commit=qualification["baseline_commit"], source_commit=snapshot["source_commit"],
         qualification_sha256=QUALIFICATION_SHA256, repair_amendment_sha256=MANIFEST_SHA256,
         scopes=scopes, current_source_qualified=True, qualified_source_count=len(current),
         acc01_amendment_sha256=acc01_digest, acc01_changed_sources=acc01_changed,
@@ -167,6 +171,8 @@ def verify_current_source():
         pre_m512_extracted_sources=extracted_sources, cold_extraction_semantics_unchanged=True,
         m5_12_pct_amendment_sha256=pct_digest, m5_12_pct_changed_sources=pct_changed,
         m5_12_pct_alias_amendment_sha256=alias_digest, m5_12_pct_alias_changed_sources=alias_changed,
+        m5_12_pct_alias_source_commit=alias["source_commit"],
+        m5_12_snapshot_amendment_sha256=snapshot_digest, m5_12_snapshot_changed_sources=snapshot_changed,
         m5_12_pct_source_commit=pct["source_commit"],
         pre_m512_source_commit=extraction["source_commit"],
         financial_source_changed=True, financial_numeric_source_unchanged=False,

@@ -42,7 +42,7 @@ def test_manifest_follows_sealed_activity_repair_without_reissuing_claims(sealed
 
 def test_current_source_qualification_uses_alias_commit_without_historical_claims(sealed_data):
     result = guard.verify_current_source()
-    assert result["source_commit"] == sealed_data["source_commit"]
+    assert result["m5_12_pct_alias_source_commit"] == sealed_data["source_commit"]
     assert result["current_source_qualified"]
     assert result["qualified_source_count"] == current.SOURCE_COUNT == 466
     assert result["financial_source_changed"] and not result["financial_numeric_source_unchanged"]
