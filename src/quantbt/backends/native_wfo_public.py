@@ -32,6 +32,7 @@ from .native_prepared_evaluation import (
     NativeEvaluationMetricContractV1,
     NativePreparedEvaluationRuntimeV1,
     NativePreparedWorkloadV1,
+    _PCT_EQUITY_ACTIVITY_V1,
 )
 from .native_vectorized import NativeVectorizedConfig
 
@@ -142,7 +143,11 @@ class NativePreparedPublicWfoScorerV1:
             "fresh_account_per_evaluation": True,
             "deterministic_given_contract": True,
             "cross_run_reuse": False,
-            "engine_semantic_build": "native_prepared_public_wfo_legacy_zero_base_v1",
+            "engine_semantic_build": (
+                "native_prepared_public_wfo_legacy_zero_base_pct_accepted_qty_v1"
+                if self.target_mode in {"pct_equity", "%_equity"}
+                else "native_prepared_public_wfo_legacy_zero_base_v1"
+            ),
             "numeric_contract": "native_prepared_scalar_columns_v1",
             "market_identity": str(state.template.market.signature),
             "template_identity": str(state.template.signature),
@@ -270,7 +275,10 @@ class NativePreparedPublicWfoScorerV1:
             from ..endpoint import _walkforward_scoring_config
 
             score_config = _walkforward_scoring_config(self.config, self.target_mode)
-            contract = canonical_metric_contract(trading_days=self.wf_config.scoring_trading_days)
+            contract = canonical_metric_contract(
+                trading_days=self.wf_config.scoring_trading_days,
+                accepted_contract_units=(self.target_mode == "pct_equity"),
+            )
             economic_id = economics_identity(score_config, symbols=[state.symbol])
             for scenario_id, task in enumerate(entries):
                 index = pd.DatetimeIndex(task["index"])
@@ -397,15 +405,22 @@ class NativePreparedPublicWfoScorerV1:
             funding_map[symbol].reindex(index).fillna(0.0).to_numpy(dtype=np.float64).reshape(-1, 1)
         )
         cache = NativeExecutionPreparationCache(CachePolicy())
-        target_core = getattr(cache._native(), "NativeTargetExecutionRequestCore", None)
+        native = cache._native()
+        target_core = getattr(native, "NativeTargetExecutionRequestCore", None)
         policies = getattr(target_core, "metric_zero_base_policies", None)
         if policies is None or "legacy_zero_base_v1" not in policies():
             raise NativePreparedPublicWfoUnsupported(
                 "LEGACY_ZERO_BASE_METRIC_MISSING: prepared endpoint scoring requires the repaired native metric policy; auto uses the original endpoint, require needs the qualified native wheel"
             )
+        if self.target_mode in {"pct_equity", "%_equity"} and getattr(
+            native, "PCT_EQUITY_ACCEPTED_QTY_ACTIVITY_V1", None
+        ) != _PCT_EQUITY_ACTIVITY_V1:
+            raise NativePreparedPublicWfoUnsupported(
+                "PCT_EQUITY_ACTIVITY_SUPPORT_MISSING: prepared pct scoring requires a native wheel with accepted quantity position-state activity"
+            )
         if self.meta_metric_support:
             from ..optimization.meta_selection.prepared import PREPARED_WITNESS_ABI
-            if getattr(cache._native(), "QMS_PREPARED_METRIC_SUPPORT_V1", None) != PREPARED_WITNESS_ABI:
+            if getattr(native, "QMS_PREPARED_METRIC_SUPPORT_V1", None) != PREPARED_WITNESS_ABI:
                 raise NativePreparedPublicWfoUnsupported(
                     "META_METRIC_SUPPORT_MISSING: native 0.4.2 has no authoritative prepared witness; auto uses original-result scorer, require needs a qualified versioned candidate"
                 )

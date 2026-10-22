@@ -3302,9 +3302,8 @@ class QuantBTEndpoint:
         This is deliberately narrow and explicit.  The historical endpoint
         still defaults to the Numba/legacy implementation; callers request
         this route with ``target_runtime='rust'``.  Rust owns the accepted
-        unit/account trace while the public compatibility result continues to
-        expose processed signal weights, as the legacy endpoint has always
-        done for report trade-count and hit-rate semantics.
+        unit/account trace. Public positions expose accepted contract units;
+        processed requested weights remain explicit compatibility metadata.
         """
 
         symbol_list = list(symbols)
@@ -3382,12 +3381,14 @@ class QuantBTEndpoint:
             equity_fraction=self.config.alloc_per_trade,
         )
         accepted_positions = result.positions.copy(deep=True)
-        result.positions = pd.DataFrame(
+        requested_positions = pd.DataFrame(
             {f"Position_{symbol}": raw_signal.to_numpy(dtype=np.float64)}, index=idx
         )
         result.metadata.update(
             {
                 "target_runtime": "rust_pct_equity_transition_v1",
+                "positions_semantics": "accepted_contract_units",
+                "legacy_requested_positions_report": requested_positions,
                 "canonical_one_way_fee_rate": float(self.config.v2_fee_rate),
                 "legacy_slippage_rate": float(self.config.slippage),
                 "canonical_slippage_rate": float(execution.slippage_rate),
@@ -3399,8 +3400,9 @@ class QuantBTEndpoint:
                     "sizing_policy": "live_equity_on_processed_signal_transition_only",
                     "drift_rebalance": False,
                     "rejection_retry_policy": "no_retry_until_processed_signal_changes",
-                    "public_position_surface": "processed_signal_weights",
-                    "accepted_position_surface": "metadata.accepted_positions",
+                    "public_position_surface": "accepted_contract_units",
+                    "requested_position_surface": "metadata.legacy_requested_positions_report",
+                    "accepted_position_surface": "metadata.pct_equity_transition.accepted_positions",
                     "legacy_symbol_surface": symbol,
                     "requested_symbol_ignored_for_legacy_compatibility": requested_symbol,
                     "accepted_positions": accepted_positions,
@@ -5071,7 +5073,10 @@ class _WalkForwardEndpointScorer:
             if wf_config is None:
                 raise NotImplementedError("META_METRIC_SUPPORT_MISSING: WFO metric contract required")
             from .optimization.meta_selection.observer import ResultMetricAdapter, canonical_metric_contract, economics_identity
-            self._meta_adapter = ResultMetricAdapter(canonical_metric_contract(trading_days=wf_config.scoring_trading_days))
+            self._meta_adapter = ResultMetricAdapter(canonical_metric_contract(
+                trading_days=wf_config.scoring_trading_days,
+                accepted_contract_units=(self.target_mode == "pct_equity"),
+            ))
             self._meta_economics_id = economics_identity(self.score_config, symbols=self.symbols)
         self.use_prepared_cache = bool((wf_config.metadata if wf_config is not None else {}).get("use_prepared_scoring_cache", True))
         self.use_scalar_trial_scoring = bool(

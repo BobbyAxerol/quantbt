@@ -20,7 +20,7 @@ from .records import (
 )
 
 
-def canonical_metric_contract(*, trading_days=365):
+def canonical_metric_contract(*, trading_days=365, accepted_contract_units=False):
     from ...metrics import performance
     import inspect
 
@@ -36,9 +36,15 @@ def canonical_metric_contract(*, trading_days=365):
             performance._array_annualization_periods,
         )
     )
+    if type(accepted_contract_units) is not bool:
+        raise MetaRecordError("activity population flag must be boolean")
+    activity = digest(inspect.getsource(performance._array_number_of_trades))
+    if accepted_contract_units:
+        # The same reducer applied to requested weights is a different population.
+        activity = digest({"reducer": activity, "positions_semantics": "accepted_contract_units_v1"})
     return MetricContract(
         hashlib.sha256(source.encode()).hexdigest(),
-        digest(inspect.getsource(performance._array_number_of_trades)),
+        activity,
         trading_days,
     )
 
@@ -111,10 +117,13 @@ class ResultMetricAdapter:
     """Reuse QuantBT's reducer and sample definition; support is not a new Sharpe."""
 
     def __init__(self, contract: MetricContract):
-        canonical = canonical_metric_contract(trading_days=contract.trading_days)
-        if contract != canonical:
+        supported = tuple(canonical_metric_contract(
+            trading_days=contract.trading_days, accepted_contract_units=value,
+        ) for value in (False, True))
+        if contract not in supported:
             raise MetaRecordError("unsupported/changed raw metric contract")
         self.contract = contract
+        self._accepted_contract_units = contract == supported[1]
 
     def observe(
         self,
@@ -138,6 +147,9 @@ class ResultMetricAdapter:
             raise MetaRecordError(
                 "META_METRIC_SUPPORT_MISSING: original financial result required"
             )
+        if (self._accepted_contract_units
+                and result.metadata.get("positions_semantics") != "accepted_contract_units"):
+            raise MetaRecordError("accepted-contract activity requires accepted-position provenance")
         actual_config = result.metadata.get("run_config")
         if actual_config is None and execution_config is not None:
             from ...endpoint import _endpoint_run_config_payload

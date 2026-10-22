@@ -770,27 +770,6 @@ fn record_public_position_transitions(previous: &mut [f64], current: &[f64], cou
     }
 }
 
-/// Count the legacy public `%_equity` position trace.  Its historical result
-/// surface exposes processed strategy weights, rather than accepted units, so
-/// a rejected margin admission remains a visible signal transition.  Keep the
-/// calculation separate from lifecycle/fill counters used by direct-target
-/// accounting and audit output.
-fn processed_signal_trade_count(
-    request: &DirectTargetRequestV1,
-    n_bars: usize,
-    n_symbols: usize,
-) -> u64 {
-    let mut count = n_symbols as u64;
-    for bar in 1..n_bars {
-        for symbol in 0..n_symbols {
-            if request.target_at(bar, symbol) != request.target_at(bar - 1, symbol) {
-                count = count.saturating_add(1);
-            }
-        }
-    }
-    count
-}
-
 #[allow(clippy::too_many_lines)]
 fn execute_direct_target(
     request: &DirectTargetRequestV1,
@@ -1306,14 +1285,6 @@ fn execute_direct_target(
             equity,
         );
         metric_reducer.observe(market.timestamps_ns[source_bar], equity, gross_exposure)?;
-    }
-
-    if pct_equity_transition {
-        // Public legacy reports count processed signal transitions, not
-        // accepted fills or forced liquidations. This preserves minimum-trade
-        // penalties and report metadata without changing the Rust account
-        // trace retained for audit.
-        report_trade_count = processed_signal_trade_count(request, n_bars, n_symbols);
     }
 
     score.final_equity = equity;

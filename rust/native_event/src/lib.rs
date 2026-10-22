@@ -9765,6 +9765,10 @@ fn run_full_tape_profile(
 
 #[pymodule]
 fn _quantbt_native(module: &Bound<'_, PyModule>) -> PyResult<()> {
+    module.add(
+        "PCT_EQUITY_ACCEPTED_QTY_ACTIVITY_V1",
+        "accepted_qty_position_states_v1",
+    )?;
     #[cfg(feature = "qms-prepared-witness-candidate")]
     module.add(
         "QMS_PREPARED_METRIC_SUPPORT_V1",

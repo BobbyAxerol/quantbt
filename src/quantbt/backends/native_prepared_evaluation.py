@@ -38,6 +38,7 @@ _CANCELED = "canceled"
 _FAILED = "failed"
 _STATUS_BY_CODE = {0: _SUCCESS, 1: _CANCELED, 2: _FAILED}
 _CERTIFIED_ANNUALIZATION = 365
+_PCT_EQUITY_ACTIVITY_V1 = "accepted_qty_position_states_v1"
 
 
 class NativePreparedWorkloadV1(str, Enum):
@@ -330,6 +331,7 @@ class NativePreparedEvaluationRuntimeV1:
             raise ValueError("prepared evaluation requires at least one worker")
         budget.require_preflight(bars=1, workers=int(plan.rust_workers))
         native = cache._native()
+        self._pct_activity = getattr(native, "PCT_EQUITY_ACCEPTED_QTY_ACTIVITY_V1", None)
         core_type = getattr(native, "NativePreparedEvaluationRuntimeCore", None)
         if core_type is None:
             raise RuntimeError(
@@ -397,6 +399,8 @@ class NativePreparedEvaluationRuntimeV1:
             raise ValueError(
                 f"prepared workload {kind.value!r} cannot bind request workload {request.workload!r}"
             )
+        if kind is NativePreparedWorkloadV1.PCT_EQUITY_TRANSITION and self._pct_activity != _PCT_EQUITY_ACTIVITY_V1:
+            raise NotImplementedError("PCT_EQUITY_ACTIVITY_SUPPORT_MISSING: prepared pct scoring requires a native wheel with accepted quantity position-state activity")
         identifiers = (candidate_id, fold_id, scenario_id)
         if any(isinstance(value, bool) or int(value) < 0 for value in identifiers):
             raise ValueError("candidate_id, fold_id, and scenario_id must be non-negative integers")
@@ -445,6 +449,7 @@ class NativePreparedEvaluationRuntimeV1:
             evaluation_end=end,
             account_policy=policy,
             metric_contract=metrics.fingerprint,
+            **({"engine_semantic_build": self._pct_activity} if kind is NativePreparedWorkloadV1.PCT_EQUITY_TRANSITION else {}),
         )
         return NativePreparedEvaluationBindingV1(
             request=request,

@@ -2,8 +2,8 @@
 
 The reference remains the long-lived Numba ``_engine_pct_equity`` route.
 These tests intentionally compare public endpoint behavior rather than just a
-Rust kernel: legacy result positions expose processed signal weights while the
-native audit retains accepted units separately.
+Rust kernel: both routes expose accepted contract units, with processed
+requested weights retained separately as compatibility metadata.
 """
 
 from __future__ import annotations
@@ -17,6 +17,7 @@ import pytest
 from quantbt import QuantBTEndpoint
 from quantbt.core.schema import ExecutionConfig
 from quantbt.backends.native_prepared_evaluation import (
+    NativeEvaluationMetricContractV1,
     NativePreparedEvaluationRuntimeV1,
     NativePreparedWorkloadV1,
 )
@@ -100,9 +101,13 @@ def test_pct_equity_rust_transition_matches_legacy_with_funding_and_lots() -> No
     transition = native.metadata["pct_equity_transition"]
     assert transition["contract"] == "pct_equity_transition_v1"
     assert transition["drift_rebalance"] is False
-    assert transition["public_position_surface"] == "processed_signal_weights"
+    assert transition["public_position_surface"] == "accepted_contract_units"
+    assert native.metadata["positions_semantics"] == "accepted_contract_units"
+    assert transition["requested_position_surface"] == "metadata.legacy_requested_positions_report"
     accepted = transition["accepted_positions"]
-    assert accepted.shape == native.positions.shape
+    pd.testing.assert_frame_equal(accepted, native.positions)
+    pd.testing.assert_frame_equal(native.metadata["legacy_requested_positions_report"],
+                                  reference.metadata["legacy_requested_positions_report"])
     assert list(native.positions.columns) == ["Position_DEFAULT"]
     assert transition["requested_symbol_ignored_for_legacy_compatibility"] == "BTC"
     assert native.metadata["canonical_one_way_fee_rate"] == pytest.approx(0.0002)
@@ -121,7 +126,10 @@ def test_pct_equity_rust_transition_preserves_non_pyramiding_sign_processing() -
 
     _assert_endpoint_parity(reference, native)
     expected = np.sign(signal.to_numpy(dtype=np.float64))
-    np.testing.assert_array_equal(native.positions.iloc[:, 0].to_numpy(dtype=np.float64), expected)
+    np.testing.assert_array_equal(
+        native.metadata["legacy_requested_positions_report"].iloc[:, 0].to_numpy(dtype=np.float64), expected
+    )
+    pd.testing.assert_frame_equal(native.positions, native.metadata["pct_equity_transition"]["accepted_positions"])
 
 
 def test_pct_equity_rust_transition_matches_legacy_liquidation_path() -> None:
@@ -154,13 +162,105 @@ def test_pct_equity_rejection_does_not_retry_without_a_new_signal_transition() -
     native = QuantBTEndpoint.pct_equity(**kwargs, target_runtime="rust").backtest(data=data, signal=signal)
     accepted = native.metadata["pct_equity_transition"]["accepted_positions"].iloc[:, 0]
 
-    # The raw public signal remains visible while the rejected unit target
-    # stays flat. Bars 2-4 must not create repeated rejected admissions.
-    assert native.positions.iloc[1:5, 0].eq(1.0).all()
+    # Requested weights remain visible separately from flat accepted units.
+    # Bars 2-4 must not create repeated rejected admissions.
+    assert native.metadata["legacy_requested_positions_report"].iloc[1:5, 0].eq(1.0).all()
+    assert native.positions.iloc[:, 0].eq(0.0).all()
     assert accepted.iloc[1:5].eq(0.0).all()
+    assert native.full_report()["num_trades"] == 1
     diagnostics = native.diagnostics
     assert int(diagnostics["rejected_orders"].sum()) == 1
     assert int(diagnostics["rejected_orders"].iloc[2:5].sum()) == 0
+
+
+@pytest.mark.parametrize(
+    ("weights", "allocation", "leverage", "lows", "expected_units", "expected_equity",
+     "expected_count", "liquidation_bar", "rejected_count"),
+    [
+        pytest.param(
+            [1., 0., 1., 0.], 0.5, 1., [100.] * 4,
+            [0., 0., 100., 0.], [20_000.] * 4, 3, -1, 0,
+            id="first_bar_ignored",
+        ),
+        pytest.param(
+            [0., 1., 1., 1., 0.], 500., 1., [100.] * 5,
+            [0.] * 5, [20_000.] * 5, 1, -1, 1,
+            id="rejected_entry_not_activity",
+        ),
+        pytest.param(
+            [0., 2., 2., 2., 2., 2.], 1., 3., [100., 100., 1., 1., 1., 1.],
+            [0., 400., 0., 0., 0., 0.], [20_000., 20_000., 0., 0., 0., 0.], 3, 2, 0,
+            id="liquidation_is_accepted_position_change",
+        ),
+    ],
+)
+def test_pct_equity_accepted_positions_and_prepared_activity_oracle(
+    weights, allocation, leverage, lows, expected_units, expected_equity,
+    expected_count, liquidation_bar, rejected_count,
+) -> None:
+    # At price100, allocation50% gives100 contracts; leverage changes margin,
+    # not requested notional. A200% target at leverage3 gives400 contracts.
+    index = pd.date_range("2024-04-01", periods=len(weights), freq="1D", tz="UTC")
+    data = pd.DataFrame(
+        {"open": 100., "high": 100., "low": lows, "close": 100., "volume": 1_000.},
+        index=index,
+    )
+    signal = pd.Series(weights, index=index, dtype=float)
+    kwargs = _pct_kwargs(alloc_per_trade=allocation, leverage=leverage)
+    kwargs.update(fee=0., slippage=0., use_funding=False)
+    reference = QuantBTEndpoint.pct_equity(**kwargs).backtest(data=data, signal=signal)
+    native = QuantBTEndpoint.pct_equity(**kwargs, target_runtime="rust").backtest(data=data, signal=signal)
+    _assert_endpoint_parity(reference, native)
+    for result in (reference, native):
+        np.testing.assert_array_equal(result.positions.iloc[:, 0], expected_units)
+        np.testing.assert_array_equal(result.equity, expected_equity)
+        np.testing.assert_array_equal(result.metadata["legacy_requested_positions_report"].iloc[:, 0], weights)
+        assert result.full_report()["num_trades"] == expected_count
+        assert result.liquidation_bar == liquidation_bar
+        assert result.liquidated is (liquidation_bar >= 0)
+    assert int(native.diagnostics["rejected_orders"].sum()) == rejected_count
+    np.testing.assert_array_equal(native.fees, 0.)
+    np.testing.assert_array_equal(native.funding, 0.)
+
+    # Exercise the same score-only count consumed by prepared WFO. Explicit
+    # expected paths/counts above are the oracle, not another Rust row.
+    cache = NativeExecutionPreparationCache(CachePolicy(max_bytes=2_000_000, max_entries=8))
+    close = np.full((len(index), 1), 100., dtype=np.float64)
+    market = cache.prepare_market(
+        timestamps_ns=np.ascontiguousarray(index.as_unit("ns").asi8),
+        opens=close, highs=close, lows=np.ascontiguousarray(data.low.to_numpy().reshape(-1, 1)),
+        closes=close, volumes=np.full_like(close, 1_000.), funding=np.zeros_like(close),
+        funding_mask=np.zeros(len(index), dtype=np.bool_), symbols=["DEFAULT"],
+    )
+    template = cache.prepare_template(
+        market, contract_sizes=np.ones(1), leverages=np.full(1, leverage), fee_rates=np.zeros(1),
+        initial_capital=20_000., maintenance_ratio=0.005, slippage_rate=0., use_funding=False,
+    )
+    request = cache.direct_target_request(
+        template, targets=np.ascontiguousarray(signal.to_numpy().reshape(-1, 1)),
+        target_kind="pct_equity_transition", qty_step=np.full(1, 0.001),
+        equity_fraction=np.array([allocation / 100. if allocation > 1. else allocation]),
+        output_profile=0, metric_zero_base_policy="legacy_zero_base_v1",
+    )
+    runtime = NativePreparedEvaluationRuntimeV1(cache, workers=1)
+    try:
+        binding = runtime.bind_request(
+            request, workload=NativePreparedWorkloadV1.PCT_EQUITY_TRANSITION,
+            candidate_id=1, fold_id=0, scenario_id=0,
+            metric_contract=NativeEvaluationMetricContractV1(zero_base_return_policy="legacy_zero_base_v1"),
+        )
+        cold = runtime.evaluate((binding,))
+        columns = runtime.evaluate_score_columns((binding,))
+        assert cold.errors == columns.errors == ()
+        assert len(cold.rows) == 1
+        row = cold.rows[0]
+        assert row.status == "success"
+        assert int(columns.status[0]) == 0
+        assert row.report_trade_count == int(columns.report_trade_count[0]) == expected_count
+        assert row.final_equity == expected_equity[-1]
+        assert row.total_return == float(columns.total_return[0]) == expected_equity[-1] / 20_000. - 1.
+    finally:
+        runtime.close()
 
 
 @pytest.mark.parametrize(

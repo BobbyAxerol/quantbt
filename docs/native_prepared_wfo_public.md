@@ -64,9 +64,17 @@ and fresh repaired artifacts require separate approval.
 Transition-sized `pct_equity` is a narrow explicit exception: it requires
 `target_runtime="rust"`, `native_prepared_wfo="require"`, one symbol, and an
 exact legacy/V2 fee/slippage configuration. Its Rust request owns transition
-sizing and accounting, while the public result still exposes processed signal
-weights and keeps accepted units under
-`metadata["pct_equity_transition"]["accepted_positions"]`. `"auto"` preserves
+sizing and accounting. Under the ACC-01/M5-12 contract, public `positions`
+contains accepted contract quantities, also retained under
+`metadata["pct_equity_transition"]["accepted_positions"]`; requested processed
+weights are separate in `metadata["legacy_requested_positions_report"]`.
+The historical `num_trades` activity population is the initial position-state
+count plus subsequent accepted quantity changes, not fills or closed trades.
+Prepared pct requires native capability `PCT_EQUITY_ACCEPTED_QTY_ACTIVITY_V1`;
+an older binary is rejected explicitly. Pct metric/history/cache identities
+change with this corrected population; old history must not be relabeled.
+Sharpe, fills, equity and fees are not redefined by this compatibility repair.
+`"auto"` preserves
 the legacy route. Portfolio, basket, package/arbitrage, DCA/grid, generic order
 tapes, and reactive lifecycle strategies retain their dedicated certified
 routes; they are not coerced into this scalar target scorer.
