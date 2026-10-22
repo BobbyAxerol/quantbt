@@ -20,7 +20,9 @@ def test_current_source_qualifies_extraction_without_reissuing_old_qms_claims():
     from tools.m5_12_release120_amendment import manifest as release120_manifest
     assert result["m5_12_release120_source_commit"] == release120_manifest(guard)["source_commit"]
     from tools.m5_12_ci_format_amendment import manifest as ci_format_manifest
-    assert result["source_commit"] == ci_format_manifest(guard)["source_commit"]
+    assert result["m5_12_ci_format_source_commit"] == ci_format_manifest(guard)["source_commit"]
+    from tools.m5_12_ci_rust_amendment import SOURCE_COMMIT
+    assert result["source_commit"] == SOURCE_COMMIT
     assert result["acc01_source_commit"] == DATA["acc01_source_commit"]
     assert result["pre_m512_amendment_sha256"] == current.MANIFEST_SHA256
     assert result["financial_source_changed"] and not result["financial_numeric_source_unchanged"]

@@ -43,7 +43,7 @@ def test_manifest_follows_sealed_alias_without_reissuing_claims(sealed_data):
 
 def test_current_source_after_main_hook_is_source_only(sealed_data):
     result = guard.verify_current_source()
-    from tools.m5_12_ci_format_amendment import SOURCE_COMMIT
+    from tools.m5_12_ci_rust_amendment import SOURCE_COMMIT
     from tools.m5_12_release120_amendment import SOURCE_COMMIT as release120_commit
     assert result["source_commit"] == SOURCE_COMMIT
     assert result["m5_12_release120_source_commit"] == release120_commit

@@ -13,7 +13,7 @@ from tools import portfolio_repair_source_guard as guard
 def test_current_release120_source_is_separate_from_historical_snapshots():
     value = amendment.manifest(guard)
     result = guard.verify_current_source()
-    from tools.m5_12_ci_format_amendment import SOURCE_COMMIT
+    from tools.m5_12_ci_rust_amendment import SOURCE_COMMIT
     assert result["source_commit"] == SOURCE_COMMIT != amendment.SOURCE_COMMIT
     assert result["m5_12_release120_source_commit"] == value["source_commit"] == amendment.SOURCE_COMMIT
     assert result["m5_12_snapshot_source_commit"] == amendment.BASELINE_COMMIT

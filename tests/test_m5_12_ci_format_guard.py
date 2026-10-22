@@ -58,7 +58,9 @@ def test_sealed_manifest_follows_release120_without_reissuing_artifact_claims(se
 def test_current_source_keeps_release120_and_snapshot_identities(sealed_data, current_result):
     from tools import m5_12_snapshot_amendment as snapshot
 
-    assert current_result["source_commit"] == sealed_data["source_commit"]
+    from tools.m5_12_ci_rust_amendment import SOURCE_COMMIT
+    assert current_result["source_commit"] == SOURCE_COMMIT
+    assert current_result["m5_12_ci_format_source_commit"] == sealed_data["source_commit"]
     assert current_result["m5_12_release120_source_commit"] == release120.SOURCE_COMMIT
     assert current_result["m5_12_snapshot_source_commit"] == snapshot.SOURCE_COMMIT == release120.BASELINE_COMMIT
     assert current_result["m5_12_release120_amendment_sha256"] == release120.MANIFEST_SHA256
