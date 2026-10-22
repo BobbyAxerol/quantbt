@@ -17,6 +17,9 @@ def without_portfolio_repair(source, name, *, expected_baseline=None):
     raw = MANIFEST.read_bytes()
     assert sha256(raw).hexdigest() == MANIFEST_SHA256, "portfolio repair manifest digest"
     manifest = json.loads(raw)
+    from tools.account_metrics_source_guard import without_acc01
+    import sys
+    source = without_acc01(source, name, sys.modules[__name__])
     entry = manifest["sources"].get(name)
     if entry is None:
         return source
@@ -130,15 +133,21 @@ def verify_current_source():
     before = _committed_source_hashes(qualification["baseline_commit"], scopes)
     after = _committed_source_hashes(qualification["source_commit"], scopes)
     changed = _verify_repair_delta(repair, before, after, qualification)
-    _assert_current_sources(after, scopes)
+    from tools.account_metrics_source_guard import verify_amendment, MANIFEST_SHA256 as acc01_digest
+    import sys
+    amendment, current, acc01_changed = verify_amendment(sys.modules[__name__], qualification, after)
+    _assert_current_sources(current, scopes)
+    all_changed = sorted(name for name in before.keys() | current.keys() if before.get(name) != current.get(name))
     return dict(
         schema="quantbt.portfolio.current_source_qualification.v1",
-        baseline_commit=qualification["baseline_commit"], source_commit=qualification["source_commit"],
+        baseline_commit=qualification["baseline_commit"], source_commit=amendment["source_commit"],
         qualification_sha256=QUALIFICATION_SHA256, repair_amendment_sha256=MANIFEST_SHA256,
-        scopes=scopes, current_source_qualified=True, qualified_source_count=len(after),
+        scopes=scopes, current_source_qualified=True, qualified_source_count=len(current),
+        acc01_amendment_sha256=acc01_digest, acc01_changed_sources=acc01_changed,
+        previous_source_commit=qualification["source_commit"],
         financial_source_changed=True, financial_numeric_source_unchanged=False,
-        financial_rust_unchanged=not any(name.startswith("rust/") for name in changed),
-        repair_changed_sources=changed, historical_receipts=_historical_receipts(qualification),
+        financial_rust_unchanged=not any(name.startswith("rust/") for name in all_changed),
+        repair_changed_sources=all_changed, historical_receipts=_historical_receipts(qualification),
         historical_receipts_unchanged=True, historical_guards_reexecuted=False,
         native_artifacts_qualified=False, publication=False,
     )

@@ -19,7 +19,9 @@ def test_current_qualification_preserves_historical_claims_without_reissuing_the
     monkeypatch.setattr(qms_e04_source_guard, "verify", historical_verify)
     source = guard.verify_current_source()
     assert source["current_source_qualified"] is True
-    assert source["source_commit"] == "9c2bfd95c65f71618f52c736dfff341953066961"
+    assert source["source_commit"] == "0969ffeba78f2f0e905ceaf658c8ad75c46e0dc0"
+    assert source["previous_source_commit"] == "9c2bfd95c65f71618f52c736dfff341953066961"
+    assert source["acc01_amendment_sha256"]
     assert source["financial_source_changed"] is True
     assert source["financial_numeric_source_unchanged"] is False
     assert source["financial_rust_unchanged"] is False
