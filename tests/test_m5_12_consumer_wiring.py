@@ -259,6 +259,13 @@ def execution_case():
     return execution, optimizer
 
 
+def test_current_source_amendment_verifiers_are_in_installed_custody():
+    hashes = preflight.verifier_manifest()
+    for name in ("tools/m5_12_pct_source_amendment.py", "tools/m5_12_pct_alias_amendment.py",
+                 "tools/m5_12_snapshot_amendment.py"):
+        assert hashes[name] == preflight.digest(preflight.ROOT/name)
+
+
 def row_case(tmp_path):
     prefix = tmp_path / "pair"
     version = ".".join(map(str, sys.version_info[:2]))
