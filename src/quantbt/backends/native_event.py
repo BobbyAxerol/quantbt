@@ -107,11 +107,11 @@ from ..core.preprocessor import (
     PreparedMarketArrays,
     align_series,
     build_market_arrays,
-    make_funding_mask,
     prepare_funding,
     validate_datetime,
 )
 from ..core.portfolio_validation import validate_gross_cross_account
+from ..core.account_metadata import capacity_metadata
 from ..core.results import (
     BacktestResultV2,
     NativeAccountingArrays,
@@ -191,7 +191,6 @@ _LEGACY_EVENT_TO_LIFECYCLE_KIND = {
     ORDER_EVENT_REJECT: LifecycleEventKind.REJECT,
 }
 
-
 def _event_engine_name(clock: EventClockContract, suffix: str) -> str:
     version = "v3" if clock.contract_id == EVENT_LIFECYCLE_V3_NEXT_OPEN else "v2"
     return f"event_{version}_{suffix}"
@@ -224,6 +223,8 @@ class NativeEventConfig:
 
     def __post_init__(self) -> None:
         validate_gross_cross_account(self.account)
+        if self.execution.slippage_rate >= 1.0:
+            raise ValueError("event slippage must produce positive execution prices")
         if not isinstance(self.runtime_budget, RuntimeBudgetV1):
             raise TypeError("runtime_budget must be RuntimeBudgetV1")
         if isinstance(self.fee_rate, dict):
@@ -2805,6 +2806,8 @@ class NativeEventBackend:
         is the default; ``native_static_abi='0.4_compat'`` remains an explicit
         rollback setting inherited from this backend configuration.
         """
+        if self.config.execution.min_order_notional > 0.0:
+            raise NotImplementedError("prepared batched runner cannot enforce min_order_notional; use run_order_commands with constraints")
         idx = validate_datetime(datetime_index)
         clock = get_event_clock_contract(execution_contract or self.config.execution_contract)
         symbol_list = list(symbols) if symbols is not None else list(closes.keys())
@@ -2828,17 +2831,16 @@ class NativeEventBackend:
                 np.column_stack([open_map[symbol].to_numpy(dtype=np.float64) for symbol in symbol_list])
             )
         configured_fee = self.config.fee_rate
-        if isinstance(configured_fee, dict):
-            configured_fee = configured_fee.get(symbol_list[0], 0.0)
         return RustFullRunner(
             idx=idx,
             symbols=symbol_list,
             market_arrays=market_arrays,
-            contract_sizes=self._per_symbol_array(contract_size, symbol_list, default=1.0),
+            contract_sizes=self._per_symbol_array(contract_size, symbol_list, default=1.0, positive=True),
             leverages=self._per_symbol_array(
                 self.config.account.leverage if leverage is None else leverage,
                 symbol_list,
                 default=self.config.account.leverage,
+                positive=True,
             ),
             fee_rates=self._per_symbol_array(configured_fee if fee_rate is None else fee_rate, symbol_list, default=0.0),
             initial_capital=float(
@@ -2891,6 +2893,8 @@ class NativeEventBackend:
 
         if not isinstance(program, NativeStrategyIR):
             raise TypeError("program must be a NativeStrategyIR")
+        if self.config.execution.min_order_notional > 0.0:
+            raise NotImplementedError("native IR runner cannot enforce min_order_notional; use run_order_commands with constraints")
         idx = validate_datetime(datetime_index)
         symbol_list = list(symbols) if symbols is not None else list(closes.keys())
         if not symbol_list:
@@ -2930,11 +2934,12 @@ class NativeEventBackend:
             symbols=symbol_list,
             market_arrays=market_arrays,
             opens_arr=opens_arr,
-            contract_sizes=self._per_symbol_array(contract_size, symbol_list, default=1.0),
+            contract_sizes=self._per_symbol_array(contract_size, symbol_list, default=1.0, positive=True),
             leverages=self._per_symbol_array(
                 self.config.account.leverage if leverage is None else leverage,
                 symbol_list,
                 default=self.config.account.leverage,
+                positive=True,
             ),
             fee_rates=self._per_symbol_array(configured_fee, symbol_list, default=0.0),
             execution_contract=clock,
@@ -3101,11 +3106,12 @@ class NativeEventBackend:
             if bool((contract_sizes <= 0.0).any()) or bool((leverages <= 0.0).any()):
                 raise ValueError("prepared contract_sizes and leverages must be > 0")
         else:
-            contract_sizes = self._per_symbol_array(contract_size, symbol_list, default=1.0)
+            contract_sizes = self._per_symbol_array(contract_size, symbol_list, default=1.0, positive=True)
             leverages = self._per_symbol_array(
                 self.config.account.leverage if leverage is None else leverage,
                 symbol_list,
                 default=self.config.account.leverage,
+                positive=True,
             )
             configured_fee = self.config.fee_rate if fee_rate is None else fee_rate
             fee_rates = self._per_symbol_array(configured_fee, symbol_list, default=0.0)
@@ -3139,7 +3145,7 @@ class NativeEventBackend:
             )
         prepare_finished_ns = perf_counter_ns() if diagnostics_requested else 0
 
-        constraints = build_quantity_constraints(
+        constraints = self._quantity_constraints(
             symbol_list,
             instruments=instruments,
             qty_step=qty_step,
@@ -3611,7 +3617,7 @@ class NativeEventBackend:
             "id_values": compiled_commands.id_values,
             "quantity_constraints": constraints.as_dict(),
             "quantity_preflight": quantity_preflight,
-            "initial_buying_power": self.config.account.initial_capital * float(np.mean(leverages)),
+            **capacity_metadata(self.config.account.initial_capital, leverages, symbol_list),
             "liquidation_reason": int(liq_reason),
             "lifecycle_counters": lifecycle_counters,
             "event_clock_contract": clock.to_metadata(),
@@ -3882,8 +3888,8 @@ class NativeEventBackend:
         )
         market_prepare_ns = perf_counter_ns() - market_prepare_started_ns
 
-        contract_sizes = self._per_symbol_array(contract_size, symbol_list, default=1.0)
-        constraints = build_quantity_constraints(
+        contract_sizes = self._per_symbol_array(contract_size, symbol_list, default=1.0, positive=True)
+        constraints = self._quantity_constraints(
             symbol_list,
             instruments=instruments,
             qty_step=qty_step,
@@ -3896,6 +3902,7 @@ class NativeEventBackend:
             self.config.account.leverage if leverage is None else leverage,
             symbol_list,
             default=self.config.account.leverage,
+            positive=True,
         )
         fee_rates = self._per_symbol_array(
             self.config.fee_rate if fee_rate is None else fee_rate,
@@ -4658,11 +4665,12 @@ class NativeEventBackend:
                 np.column_stack([open_map[symbol].to_numpy(dtype=np.float64) for symbol in symbol_list])
             )
 
-        contract_sizes = self._per_symbol_array(contract_size, symbol_list, default=1.0)
+        contract_sizes = self._per_symbol_array(contract_size, symbol_list, default=1.0, positive=True)
         leverages = self._per_symbol_array(
             self.config.account.leverage if leverage is None else leverage,
             symbol_list,
             default=self.config.account.leverage,
+            positive=True,
         )
         configured_fee = self.config.fee_rate if fee_rate is None else fee_rate
         fee_rates = self._per_symbol_array(configured_fee, symbol_list, default=0.0)
@@ -4801,7 +4809,7 @@ class NativeEventBackend:
             market_arrays=market_arrays,
             opens_arr=opens_arr,
             volumes_arr=volumes_arr,
-            constraints=build_quantity_constraints(symbol_list),
+            constraints=self._quantity_constraints(symbol_list),
             contract_sizes=contract_sizes,
             leverages=leverages,
             fee_rates=fee_rates,
@@ -4868,6 +4876,7 @@ class NativeEventBackend:
         slot_size: Optional[Union[float, Dict[str, float]]] = None,
         min_qty: Optional[Union[float, Dict[str, float]]] = None,
         min_notional: Optional[Union[float, Dict[str, float]]] = None,
+        _retain_account_attribution: bool = False,
     ) -> BacktestResultV2:
         idx = validate_datetime(datetime_index)
         symbol_list = symbols or list(closes.keys())
@@ -4884,8 +4893,8 @@ class NativeEventBackend:
         elif market_arrays.signature != self._market_signature(idx, symbol_list):
             raise ValueError("prepared market arrays do not match datetime_index/symbols")
 
-        contract_sizes = self._per_symbol_array(contract_size, symbol_list, default=1.0)
-        constraints = build_quantity_constraints(
+        contract_sizes = self._per_symbol_array(contract_size, symbol_list, default=1.0, positive=True)
+        constraints = self._quantity_constraints(
             symbol_list,
             instruments=instruments,
             qty_step=qty_step,
@@ -4916,10 +4925,13 @@ class NativeEventBackend:
         ):
             raise ValueError("compiled orders do not match prepared market arrays")
         n_orders = compiled_orders.n_orders
+        attribution = (np.zeros((len(idx), len(symbol_list), 4), dtype=np.float64)
+                       if _retain_account_attribution else None)
         leverages = self._per_symbol_array(
             self.config.account.leverage if leverage is None else leverage,
             symbol_list,
             default=self.config.account.leverage,
+            positive=True,
         )
         fee_rates = self._per_symbol_array(
             self.config.fee_rate if fee_rate is None else fee_rate,
@@ -4969,6 +4981,8 @@ class NativeEventBackend:
             contract_sizes=contract_sizes,
             slippage=self.config.execution.slippage_rate,
             use_funding=bool(self.config.use_funding),
+            attribution=attribution,
+            order_reduce_only=np.asarray([item[1].reduce_only for item in compiled_orders.sorted_orders], dtype=np.bool_),
         )
 
         fills = self._build_fills(compiled_orders.sorted_orders, idx, fill_bar, fill_qty, fill_price, fill_fee)
@@ -5032,7 +5046,9 @@ class NativeEventBackend:
                 "order_report": order_report,
                 "quantity_constraints": constraints.as_dict(),
                 "quantity_preflight": quantity_preflight,
-                "initial_buying_power": self.config.account.initial_capital * float(np.mean(leverages)),
+                **({"_executed_account_attribution": attribution,
+                    "leg_pnl_authority": "executed_account_buffers_v1"} if attribution is not None else {}),
+                **capacity_metadata(self.config.account.initial_capital, leverages, symbol_list),
                 "liquidation_reason": int(liq_reason),
             },
         )
@@ -5072,8 +5088,8 @@ class NativeEventBackend:
                     price,
                     float(contract_sizes[col]),
                     float(constraints.qty_step[col]),
-                    float(constraints.min_qty[col]),
-                    float(constraints.min_notional[col]),
+                    0.0 if order.reduce_only else float(constraints.min_qty[col]),
+                    0.0 if order.reduce_only else float(constraints.min_notional[col]),
                 )
             )
             if q <= 0.0:
@@ -5141,8 +5157,8 @@ class NativeEventBackend:
                     price,
                     float(contract_sizes[col]),
                     float(constraints.qty_step[col]),
-                    float(constraints.min_qty[col]),
-                    float(constraints.min_notional[col]),
+                    0.0 if command.reduce_only else float(constraints.min_qty[col]),
+                    0.0 if command.reduce_only else float(constraints.min_notional[col]),
                 )
             )
             if q <= 0.0:
@@ -5404,7 +5420,7 @@ class NativeEventBackend:
             "compact_order_event_ledger": compact_order_event_ledger if plan.keep_event_ledger else None,
             "quantity_constraints": session.constraints.as_dict(),
             "quantity_preflight": quantity_preflight,
-            "initial_buying_power": self.config.account.initial_capital * float(np.mean(leverages)),
+            **capacity_metadata(self.config.account.initial_capital, leverages, symbol_list),
             "liquidation_reason": int(session.liquidation_reason),
             "lifecycle_counters": lifecycle_counters,
             "execution_counters": dict(getattr(session, "execution_counters", {})),
@@ -6923,6 +6939,7 @@ class NativeEventBackend:
             fee_rate=fee_rates,
             symbols=symbols,
             market_arrays=market_arrays,
+            _retain_account_attribution=True,
         )
         funding_dict = prepare_funding(stat_funding if self.config.use_funding else 0.0, symbols, idx)
         roles = self._stat_arb_roles(spec)
@@ -7020,6 +7037,7 @@ class NativeEventBackend:
             fee_rate=fee_rates,
             symbols=symbols,
             market_arrays=market_arrays,
+            _retain_account_attribution=True,
         )
 
         funding_dict = prepare_funding(basis_funding if self.config.use_funding else 0.0, symbols, idx)
@@ -7123,6 +7141,7 @@ class NativeEventBackend:
             fee_rate=fee_rates,
             symbols=symbols,
             market_arrays=market_arrays,
+            _retain_account_attribution=True,
         )
 
         funding_dict = prepare_funding(package_funding if self.config.use_funding else 0.0, symbols, idx)
@@ -7159,7 +7178,7 @@ class NativeEventBackend:
                 "spread_report": self._basis_spread_report(idx, spec, close_dict, plan.target_units),
                 "leg_pnl_report": leg_pnl_report,
                 "package_pnl_report": package_report,
-                "carry_report": self._carry_report(idx, spec, result, close_dict, funding_dict, contract_sizes),
+                "carry_report": self._carry_report(idx, spec, result, close_dict, funding_dict, contract_sizes, leg_pnl_report),
                 "fee_rate_oneway": fee_rates,
                 "contract_size": contract_sizes,
             }
@@ -7399,14 +7418,25 @@ class NativeEventBackend:
         raise NotImplementedError(f"unsupported tif={tif!r}")
 
     @staticmethod
-    def _per_symbol_array(value, symbols: List[str], default: float) -> np.ndarray:
+    def _per_symbol_array(value, symbols: List[str], default: float, *, positive=False) -> np.ndarray:
         if isinstance(value, dict):
             out = np.array([float(value.get(s, default)) for s in symbols], dtype=np.float64)
         else:
             out = np.full(len(symbols), float(value), dtype=np.float64)
         if not np.isfinite(out).all():
             raise ValueError("per-symbol financial configuration must be finite")
+        invalid = np.any(out <= 0.0) if positive else np.any(out < 0.0)
+        if invalid:
+            raise ValueError("per-symbol financial configuration must be positive" if positive
+                             else "per-symbol financial configuration must be nonnegative")
         return out
+
+    def _quantity_constraints(self, symbols, *, instruments=None, **options):
+        constraints = build_quantity_constraints(symbols, instruments=instruments, **options)
+        instrument_minimum = build_quantity_constraints(symbols, instruments=instruments).min_notional
+        minimum = np.maximum(constraints.min_notional, instrument_minimum)
+        minimum = np.maximum(minimum, self.config.execution.min_order_notional)
+        return replace(constraints, min_notional=minimum)
 
     @staticmethod
     def _market_signature(idx: pd.DatetimeIndex, symbols: List[str]):
@@ -7568,56 +7598,9 @@ class NativeEventBackend:
         funding: Dict[str, pd.Series],
         contract_sizes: Dict[str, float],
     ) -> pd.DataFrame:
-        fill_rows = {}
-        for fill in result.fills:
-            ts = pd.Timestamp(fill.timestamp)
-            if ts.tz is None:
-                ts = ts.tz_localize("UTC")
-            else:
-                ts = ts.tz_convert("UTC")
-            key = (ts, fill.symbol)
-            fee, fill_pnl = fill_rows.get(key, (0.0, 0.0))
-            close_price = float(closes[fill.symbol].loc[ts])
-            cs = float(contract_sizes[fill.symbol])
-            fill_pnl += fill.signed_qty * (close_price - float(fill.price)) * cs
-            fee += float(fill.fee)
-            fill_rows[key] = (fee, fill_pnl)
+        from ..reporting.executed_attribution import executed_leg_pnl_report
 
-        funding_mask = make_funding_mask(idx)
-        cumulative = {symbol: 0.0 for symbol in symbols}
-        rows = []
-        for i, ts in enumerate(idx):
-            for symbol in symbols:
-                cs = float(contract_sizes[symbol])
-                close_price = float(closes[symbol].iloc[i])
-                prev_units = 0.0 if i == 0 else float(result.positions[f"Position_{symbol}"].iloc[i - 1])
-                units = float(result.positions[f"Position_{symbol}"].iloc[i])
-                price_pnl = 0.0
-                if i > 0:
-                    price_pnl = prev_units * (close_price - float(closes[symbol].iloc[i - 1])) * cs
-                funding_cost = 0.0
-                if self.config.use_funding and funding_mask[i]:
-                    funding_cost = prev_units * close_price * cs * float(funding[symbol].iloc[i])
-                fee, fill_pnl = fill_rows.get((ts, symbol), (0.0, 0.0))
-                total_pnl = price_pnl + fill_pnl - fee - funding_cost
-                cumulative[symbol] += total_pnl
-                rows.append(
-                    {
-                        "timestamp": ts,
-                        "symbol": symbol,
-                        "role": roles.get(symbol, "leg"),
-                        "units": units,
-                        "close": close_price,
-                        "notional": abs(units) * close_price * cs,
-                        "price_pnl": price_pnl,
-                        "fill_pnl": fill_pnl,
-                        "fee": fee,
-                        "funding_pnl": -funding_cost,
-                        "total_pnl": total_pnl,
-                        "cumulative_pnl": cumulative[symbol],
-                    }
-                )
-        return pd.DataFrame(rows)
+        return executed_leg_pnl_report(idx, symbols, roles, result, closes, contract_sizes)
 
     @staticmethod
     def _package_pnl_report(idx: pd.DatetimeIndex, result: BacktestResultV2, leg_pnl_report: pd.DataFrame) -> pd.DataFrame:
@@ -7662,57 +7645,10 @@ class NativeEventBackend:
         funding: Dict[str, pd.Series],
         contract_sizes: Dict[str, float],
     ) -> pd.DataFrame:
-        fill_rows = {}
-        for fill in result.fills:
-            ts = pd.Timestamp(fill.timestamp)
-            if ts.tz is None:
-                ts = ts.tz_localize("UTC")
-            else:
-                ts = ts.tz_convert("UTC")
-            key = (ts, fill.symbol)
-            fee, fill_pnl = fill_rows.get(key, (0.0, 0.0))
-            close_price = float(closes[fill.symbol].loc[ts])
-            cs = float(contract_sizes[fill.symbol])
-            fill_pnl += fill.signed_qty * (close_price - float(fill.price)) * cs
-            fee += float(fill.fee)
-            fill_rows[key] = (fee, fill_pnl)
+        from ..reporting.executed_attribution import executed_leg_pnl_report
 
-        funding_mask = make_funding_mask(idx)
-        cumulative = {leg.symbol: 0.0 for leg in spec.legs}
-        rows = []
-        for i, ts in enumerate(idx):
-            for leg in spec.legs:
-                symbol = leg.symbol
-                cs = float(contract_sizes[symbol])
-                close_price = float(closes[symbol].iloc[i])
-                prev_pos = 0.0 if i == 0 else float(result.positions[f"Position_{symbol}"].iloc[i - 1])
-                units = float(result.positions[f"Position_{symbol}"].iloc[i])
-                price_pnl = 0.0
-                if i > 0:
-                    price_pnl = prev_pos * (close_price - float(closes[symbol].iloc[i - 1])) * cs
-                funding_cost = 0.0
-                if self.config.use_funding and funding_mask[i]:
-                    funding_cost = prev_pos * close_price * cs * float(funding[symbol].iloc[i])
-                fee, fill_pnl = fill_rows.get((ts, symbol), (0.0, 0.0))
-                total_pnl = price_pnl + fill_pnl - fee - funding_cost
-                cumulative[symbol] += total_pnl
-                rows.append(
-                    {
-                        "timestamp": ts,
-                        "symbol": symbol,
-                        "role": leg.role,
-                        "units": units,
-                        "close": close_price,
-                        "notional": abs(units) * close_price * cs,
-                        "price_pnl": price_pnl,
-                        "fill_pnl": fill_pnl,
-                        "fee": fee,
-                        "funding_pnl": -funding_cost,
-                        "total_pnl": total_pnl,
-                        "cumulative_pnl": cumulative[symbol],
-                    }
-                )
-        return pd.DataFrame(rows)
+        return executed_leg_pnl_report(idx, [leg.symbol for leg in spec.legs],
+            {leg.symbol: leg.role for leg in spec.legs}, result, closes, contract_sizes)
 
     @staticmethod
     def _basis_spread_report(
@@ -7770,18 +7706,17 @@ class NativeEventBackend:
         closes: Dict[str, pd.Series],
         funding: Dict[str, pd.Series],
         contract_sizes: Dict[str, float],
+        leg_pnl_report: pd.DataFrame,
     ) -> pd.DataFrame:
         rows = []
-        funding_mask = make_funding_mask(idx)
+        actual_funding = leg_pnl_report.set_index(["timestamp", "symbol"])["funding_pnl"]
         for i, ts in enumerate(idx):
             for leg in spec.legs:
                 symbol = leg.symbol
                 prev_units = 0.0 if i == 0 else float(result.positions[f"Position_{symbol}"].iloc[i - 1])
                 close_price = float(closes[symbol].iloc[i])
                 notional = abs(prev_units) * close_price * float(contract_sizes[symbol])
-                funding_cost = 0.0
-                if funding_mask[i] and leg.funding_enabled:
-                    funding_cost = prev_units * close_price * float(contract_sizes[symbol]) * float(funding[symbol].iloc[i])
+                funding_cost = -float(actual_funding.loc[(ts, symbol)])
                 rows.append(
                     {
                         "timestamp": ts,

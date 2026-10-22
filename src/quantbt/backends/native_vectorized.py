@@ -36,6 +36,7 @@ from ..core.schema import (
     SameBarPolicy,
 )
 from ..core.vectorized import _engine_units_v2
+from ..core.account_metadata import capacity_metadata
 from ..core.arbitrage import (
     ArbitrageSpec,
     ArbitragePlan,
@@ -55,7 +56,6 @@ from ..core.arbitrage import (
 )
 from ..core.basket import build_frozen_basket_orders
 from ..core.orders import OrderIntent
-from ..core.preprocessor import make_funding_mask
 from ..core.preprocessor import build_tradable_matrix
 from ..core.schema import OrderSide
 from ..core.target_intents import StaticDcaTargetStepV1, StaticTargetTapeV1, compile_static_dca_target_tape
@@ -78,6 +78,8 @@ class NativeVectorizedConfig:
 
     def __post_init__(self) -> None:
         validate_gross_cross_account(self.account)
+        if self.execution.slippage_rate >= 1.0:
+            raise ValueError("vectorized slippage must produce positive execution prices")
         if isinstance(self.fee_rate, dict):
             if any(not np.isfinite(float(rate)) or float(rate) < 0.0 for rate in self.fee_rate.values()):
                 raise ValueError("fee_rate must be >= 0")
@@ -186,6 +188,10 @@ class NativeVectorizedBackend:
 
         if self._rust_target_preparation is None:
             self._rust_target_preparation = NativeExecutionPreparationCache()
+        if output_profile == 2:
+            native = importlib.import_module("_quantbt_native")
+            if not hasattr(native.NativeAuditOutputV1, "direct_target_account_attribution"):
+                raise RuntimeError("Rust package attribution requires a native wheel with executed account attribution")
         cache = self._rust_target_preparation
         closes_array = np.ascontiguousarray(closes_m, dtype=np.float64)
         highs_array = np.ascontiguousarray(highs_m, dtype=np.float64)
@@ -415,6 +421,7 @@ class NativeVectorizedBackend:
         min_notional: Optional[Union[float, Dict[str, float]]] = None,
         _target_kind: str = "units",
         _equity_fraction: Optional[Union[float, Dict[str, float]]] = None,
+        _retain_account_attribution: bool = False,
     ) -> BacktestResultV2:
         idx = validate_datetime(datetime_index)
         symbol_list = symbols or list(target_units.keys())
@@ -478,6 +485,7 @@ class NativeVectorizedBackend:
             high_low_source=high_low_source,
             _target_kind=_target_kind,
             _equity_fraction=_equity_fraction,
+            _retain_account_attribution=_retain_account_attribution,
             tradable_mask=build_tradable_matrix(closes, idx, symbol_list, closes_m),
         )
 
@@ -642,6 +650,7 @@ class NativeVectorizedBackend:
         _target_kind: str = "units",
         _equity_fraction: Optional[Union[float, Dict[str, float]]] = None,
         tradable_mask: Optional[np.ndarray] = None,
+        _retain_account_attribution: bool = False,
     ) -> Union[BacktestResultV2, BacktestScalarScoreResult]:
         target_kind = str(_target_kind).strip().lower()
         if target_kind not in {"units", "notional", "weight", "equity_fraction", "pct_equity_transition"}:
@@ -679,6 +688,7 @@ class NativeVectorizedBackend:
         rust_execution_metadata: Optional[dict[str, Any]] = None
         rust_preparation: Optional[dict[str, Any]] = None
         use_rust_target = self._use_rust_target_runtime(target_kind)
+        attribution = None
         if target_kind != "units" and not use_rust_target:
             raise NotImplementedError(
                 f"native_vectorized {target_kind!r} targets require target_runtime='rust'; "
@@ -704,7 +714,7 @@ class NativeVectorizedBackend:
                 constraints=constraints,
                 target_kind=target_kind,
                 equity_fraction=equity_fraction,
-                output_profile=1,
+                output_profile=2 if _retain_account_attribution else 1,
                 tradable_mask=tradable_mask,
             )
             equity_arr = np.ascontiguousarray(rust_payload.equity, dtype=np.float64)
@@ -729,7 +739,14 @@ class NativeVectorizedBackend:
             liq_flag = bool(rust_payload.liquidated)
             liq_idx = int(rust_payload.liquidation_bar)
             liq_reason = int(rust_payload.liquidation_reason)
+            if _retain_account_attribution:
+                values = getattr(rust_payload, "direct_target_account_attribution", None)
+                if values is None:
+                    raise RuntimeError("Rust package attribution requires a native wheel with executed account attribution")
+                attribution = np.asarray(values, dtype=np.float64).reshape(len(idx), len(symbol_list), 4)
         else:
+            if _retain_account_attribution:
+                attribution = np.zeros((len(idx), len(symbol_list), 4), dtype=np.float64)
             target_m = quantize_target_units_matrix(target_m, closes_m, contract_sizes, constraints, check_minima=False)
             (
                 equity_arr,
@@ -763,6 +780,7 @@ class NativeVectorizedBackend:
                 min_qtys=constraints.min_qty,
                 min_notionals=constraints.min_notional,
                 tradable=tradable_mask,
+                attribution=attribution,
             )
 
         if _scalar_score_trading_days is not None:
@@ -846,7 +864,7 @@ class NativeVectorizedBackend:
             {
                 "fee_rate_oneway": self._fee_rate_metadata(fee_rates, symbol_list),
                 "slippage_bps": self.config.execution.slippage_bps,
-                "initial_buying_power": self.config.account.initial_capital * float(np.mean(leverages)),
+                **capacity_metadata(self.config.account.initial_capital, leverages, symbol_list),
                 "liquidation_reason": int(liq_reason),
                 "quantity_constraints": constraints.as_dict(),
                 "target_runtime": "rust_direct_target_v1" if rust_payload is not None else "numba_units_v2",
@@ -860,6 +878,9 @@ class NativeVectorizedBackend:
                     "native_target_preparation": rust_preparation,
                 }
             )
+        if attribution is not None:
+            metadata["_executed_account_attribution"] = attribution
+            metadata["leg_pnl_authority"] = "executed_account_buffers_v1"
 
         return BacktestResultV2(
             equity=equity,
@@ -1093,6 +1114,7 @@ class NativeVectorizedBackend:
             leverage=leverage,
             fee_rate=fee_rates,
             symbols=symbols,
+            _retain_account_attribution=True,
         )
         funding_dict = prepare_funding(basis_funding if self.config.use_funding else 0.0, symbols, idx)
         leg_pnl_report = self._leg_pnl_report(
@@ -1186,6 +1208,7 @@ class NativeVectorizedBackend:
             leverage=leverage,
             fee_rate=fee_rates,
             symbols=symbols,
+            _retain_account_attribution=True,
         )
         funding_dict = prepare_funding(stat_funding if self.config.use_funding else 0.0, symbols, idx)
         leg_pnl_report = self._leg_pnl_report(
@@ -1272,6 +1295,7 @@ class NativeVectorizedBackend:
             leverage=leverage,
             fee_rate=fee_rates,
             symbols=symbols,
+            _retain_account_attribution=True,
         )
         funding_dict = prepare_funding(package_funding if self.config.use_funding else 0.0, symbols, idx)
         leg_pnl_report = self._leg_pnl_report(
@@ -1297,7 +1321,7 @@ class NativeVectorizedBackend:
                 "spread_report": self._basis_spread_report(idx, spec, close_dict, plan.target_units),
                 "leg_pnl_report": leg_pnl_report,
                 "package_pnl_report": package_report,
-                "carry_report": self._carry_report(idx, spec, result, close_dict, funding_dict, contract_sizes),
+                "carry_report": self._carry_report(idx, spec, result, close_dict, funding_dict, contract_sizes, leg_pnl_report),
                 "fee_rate_oneway": fee_rates,
                 "contract_size": contract_sizes,
             }
@@ -1628,45 +1652,9 @@ class NativeVectorizedBackend:
         contract_sizes: Dict[str, float],
         fee_rates: Dict[str, float],
     ) -> pd.DataFrame:
-        funding_mask = make_funding_mask(idx)
-        cumulative = {symbol: 0.0 for symbol in symbols}
-        rows = []
-        slippage = self.config.execution.slippage_rate
-        for i, ts in enumerate(idx):
-            for symbol in symbols:
-                cs = float(contract_sizes[symbol])
-                close_price = float(closes[symbol].iloc[i])
-                prev_units = 0.0 if i == 0 else float(result.positions[f"Position_{symbol}"].iloc[i - 1])
-                units = float(result.positions[f"Position_{symbol}"].iloc[i])
-                delta = units - prev_units
-                price_pnl = 0.0
-                if i > 0:
-                    price_pnl = prev_units * (close_price - float(closes[symbol].iloc[i - 1])) * cs
-                exec_price = close_price * (1.0 + slippage if delta > 0.0 else 1.0 - slippage)
-                fee = abs(delta) * exec_price * cs * float(fee_rates[symbol]) if abs(delta) > 1e-12 else 0.0
-                slippage_cost = abs(delta) * abs(exec_price - close_price) * cs if abs(delta) > 1e-12 else 0.0
-                funding_cost = 0.0
-                if self.config.use_funding and funding_mask[i]:
-                    funding_cost = prev_units * close_price * cs * float(funding[symbol].iloc[i])
-                total_pnl = price_pnl - fee - slippage_cost - funding_cost
-                cumulative[symbol] += total_pnl
-                rows.append(
-                    {
-                        "timestamp": ts,
-                        "symbol": symbol,
-                        "role": roles.get(symbol, "leg"),
-                        "units": units,
-                        "close": close_price,
-                        "notional": abs(units) * close_price * cs,
-                        "price_pnl": price_pnl,
-                        "fill_pnl": -slippage_cost,
-                        "fee": fee,
-                        "funding_pnl": -funding_cost,
-                        "total_pnl": total_pnl,
-                        "cumulative_pnl": cumulative[symbol],
-                    }
-                )
-        return pd.DataFrame(rows)
+        from ..reporting.executed_attribution import executed_leg_pnl_report
+
+        return executed_leg_pnl_report(idx, symbols, roles, result, closes, contract_sizes)
 
     @staticmethod
     def _package_pnl_report(idx: pd.DatetimeIndex, result: BacktestResultV2, leg_pnl_report: pd.DataFrame) -> pd.DataFrame:
@@ -1756,18 +1744,17 @@ class NativeVectorizedBackend:
         closes: Dict[str, pd.Series],
         funding: Dict[str, pd.Series],
         contract_sizes: Dict[str, float],
+        leg_pnl_report: pd.DataFrame,
     ) -> pd.DataFrame:
         rows = []
-        funding_mask = make_funding_mask(idx)
+        actual_funding = leg_pnl_report.set_index(["timestamp", "symbol"])["funding_pnl"]
         for i, ts in enumerate(idx):
             for leg in spec.legs:
                 symbol = leg.symbol
                 prev_units = 0.0 if i == 0 else float(result.positions[f"Position_{symbol}"].iloc[i - 1])
                 close_price = float(closes[symbol].iloc[i])
                 notional = abs(prev_units) * close_price * float(contract_sizes[symbol])
-                funding_cost = 0.0
-                if funding_mask[i] and leg.funding_enabled:
-                    funding_cost = prev_units * close_price * float(contract_sizes[symbol]) * float(funding[symbol].iloc[i])
+                funding_cost = -float(actual_funding.loc[(ts, symbol)])
                 rows.append(
                     {
                         "timestamp": ts,

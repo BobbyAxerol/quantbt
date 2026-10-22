@@ -212,9 +212,53 @@ pub struct DirectTargetAuditV1 {
     pub decision_count: usize,
     pub rejected_decision_count: usize,
     pub detail_retention: AuditRetentionV1,
+    /// Audit-only bar/symbol-major fees, slippage, funding, liquidation adjustment.
+    /// Populated by the account pass, never reconstructed from target transitions.
+    pub account_attribution: Vec<f64>,
 }
 
 impl DirectTargetAuditV1 {
+    fn record_cost(
+        &mut self,
+        bar: usize,
+        symbol: usize,
+        symbols: usize,
+        column: usize,
+        amount: f64,
+    ) {
+        if !self.account_attribution.is_empty() {
+            self.account_attribution[(bar * symbols + symbol) * 4 + column] += amount;
+        }
+    }
+
+    fn record_liquidation(
+        &mut self,
+        bar: usize,
+        positions: &[f64],
+        closes: &[f64],
+        sizes: &[f64],
+        equity: f64,
+    ) {
+        if self.account_attribution.is_empty() {
+            return;
+        }
+        let gross: f64 = positions
+            .iter()
+            .enumerate()
+            .map(|(s, p)| p.abs() * closes[s] * sizes[s])
+            .sum();
+        for (s, p) in positions.iter().enumerate() {
+            let share = if gross > 0.0 {
+                p.abs() * closes[s] * sizes[s] / gross
+            } else if s == 0 {
+                1.0
+            } else {
+                0.0
+            };
+            self.record_cost(bar, s, positions.len(), 3, equity * share);
+        }
+    }
+
     fn with_detail_limit(detail_row_limit: usize) -> Self {
         Self {
             detail_retention: AuditRetentionV1::new(detail_row_limit),
@@ -792,6 +836,9 @@ fn execute_direct_target(
         DirectTargetAuditV1::default()
     };
     let mut rejected_by_bar = requirements.retain_paths.then(|| vec![0_i64; n_bars]);
+    if requirements.retain_detail {
+        target_audit.account_attribution = vec![0.0; n_bars * n_symbols * 4];
+    }
     let mut reject_code_by_bar = requirements.retain_paths.then(|| vec![0_i64; n_bars]);
     let mut liquidated = false;
     let mut liquidation_bar = -1_i64;
@@ -858,6 +905,13 @@ fn execute_direct_target(
             liquidated = true;
             liquidation_bar = bar as i64;
             liquidation_reason = TARGET_LIQ_INTRABAR;
+            target_audit.record_liquidation(
+                bar,
+                &current_positions,
+                &market.closes[source_bar * n_symbols..(source_bar + 1) * n_symbols],
+                contract_sizes,
+                equity,
+            );
             equity = 0.0;
             current_positions.fill(0.0);
             record_public_position_transitions(
@@ -887,6 +941,7 @@ fn execute_direct_target(
                     let cost = position * close * contract_sizes[symbol] * funding;
                     equity -= cost;
                     funding_bar += cost;
+                    target_audit.record_cost(bar, symbol, n_symbols, 2, cost);
                 }
             }
         }
@@ -903,6 +958,13 @@ fn execute_direct_target(
             liquidated = true;
             liquidation_bar = bar as i64;
             liquidation_reason = TARGET_LIQ_AFTER_FUNDING;
+            target_audit.record_liquidation(
+                bar,
+                &current_positions,
+                &market.closes[source_bar * n_symbols..(source_bar + 1) * n_symbols],
+                contract_sizes,
+                equity,
+            );
             equity = 0.0;
             current_positions.fill(0.0);
             record_public_position_transitions(
@@ -1088,6 +1150,8 @@ fn execute_direct_target(
                     equity -= fee_cost + slippage_cost;
                     current_positions[symbol] = target_units;
                     fee_bar += fee_cost;
+                    target_audit.record_cost(bar, symbol, n_symbols, 0, fee_cost);
+                    target_audit.record_cost(bar, symbol, n_symbols, 1, slippage_cost);
                     turnover_bar += trade_notional;
                     available = if pure_reduction {
                         // Clipped pre-fill availability loses any IM deficit.
@@ -1175,6 +1239,13 @@ fn execute_direct_target(
             liquidated = true;
             liquidation_bar = bar as i64;
             liquidation_reason = TARGET_LIQ_AFTER_REBALANCE;
+            target_audit.record_liquidation(
+                bar,
+                &current_positions,
+                &market.closes[source_bar * n_symbols..(source_bar + 1) * n_symbols],
+                contract_sizes,
+                equity,
+            );
             equity = 0.0;
             current_positions.fill(0.0);
             record_public_position_transitions(
@@ -3017,6 +3088,19 @@ mod tests {
             TARGET_LIQ_INTRABAR
         );
         assert_eq!(direct.output.score().final_equity, 0.0);
+        assert_eq!(direct.target_audit.account_attribution.len(), 4 * 2 * 4);
+        assert!(
+            (direct
+                .target_audit
+                .account_attribution
+                .iter()
+                .skip(3)
+                .step_by(4)
+                .sum::<f64>()
+                - 100.0)
+                .abs()
+                < 1.0e-10
+        );
         for policy in POLICIES {
             let result = shared(request.clone(), policy).execute().unwrap();
             assert_eq!(result.output.score().liquidation_bar, 2);
@@ -3027,5 +3111,58 @@ mod tests {
             assert_eq!(result.output.score().final_equity, 0.0);
             assert_eq!(result.output.score().final_positions, vec![0.0; 2]);
         }
+    }
+
+    #[test]
+    fn acc01_executed_attribution_has_no_fictional_liquidation_fees_or_funding() {
+        let mut request = request(
+            &[100.0; 8],
+            2,
+            &[0.0, 0.0, -10.0, 10.0, -10.0, 10.0, 0.0, 0.0],
+            100.0,
+            0.001,
+            0.0,
+            0.0,
+            0.0,
+        );
+        let mut market = request.template.market().as_ref().clone();
+        market.highs[4..6].fill(190.0);
+        market.lows[4..6].fill(10.0);
+        market.funding[4] = 0.01;
+        market.funding_mask[2] = true;
+        request.template = Arc::new(
+            NativeExecutionTemplateV1::new(
+                Arc::new(market),
+                InstrumentTableV1::sequential(vec![1.0; 2], vec![100.0; 2], vec![0.001; 2])
+                    .unwrap(),
+                AccountModelV1::new(100.0, 0.005, 0.0, true).unwrap(),
+                ExecutionContractV1::new(CONTRACT_EVENT_LIFECYCLE_V2_NEXT_BAR_CLOSE).unwrap(),
+            )
+            .unwrap(),
+        );
+        request.fingerprint = request.compute_fingerprint();
+        let result = request.execute().unwrap();
+        let costs = &result.target_audit.account_attribution;
+        assert_eq!(result.output.score().final_equity, 0.0);
+        assert_eq!(costs.iter().step_by(4).sum::<f64>(), 2.0);
+        assert_eq!(costs.iter().skip(2).step_by(4).sum::<f64>(), 0.0);
+        assert_eq!(costs.iter().skip(3).step_by(4).sum::<f64>(), 98.0);
+        request.output = NativeOutputProfileV1::Compact;
+        request.audit_detail_row_limit = None;
+        request.fingerprint = request.compute_fingerprint();
+        let compact = request.execute().unwrap();
+        assert!(compact.target_audit.account_attribution.is_empty());
+        assert_eq!(
+            compact.output.score().final_equity,
+            result.output.score().final_equity
+        );
+        request.output = NativeOutputProfileV1::Score;
+        request.fingerprint = request.compute_fingerprint();
+        let score = request.execute().unwrap();
+        assert!(score.target_audit.account_attribution.is_empty());
+        assert_eq!(
+            score.output.score().final_equity,
+            result.output.score().final_equity
+        );
     }
 }

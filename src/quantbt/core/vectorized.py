@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import numpy as np
 from numba import njit
+from .engine import _allocate_portfolio_liquidation
 
 
 REJECT_NONE = 0
@@ -43,6 +44,7 @@ def _engine_units_v2(
     min_qtys=None,
     min_notionals=None,
     tradable=None,
+    attribution=None,
 ):
     equity_curve = np.zeros(n_bars, dtype=np.float64)
     pos_out      = np.zeros((n_bars, n_syms), dtype=np.float64)
@@ -90,6 +92,9 @@ def _engine_units_v2(
             liq_flag = True
             liq_idx = i
             liq_reason = LIQ_INTRABAR
+            if attribution is not None:
+                _allocate_portfolio_liquidation(equity, current_pos, closes[i], contract_sizes,
+                                                np.zeros(n_syms), attribution, i)
             equity = 0.0
             for s in range(n_syms):
                 current_pos[s] = 0.0
@@ -105,6 +110,8 @@ def _engine_units_v2(
                     cost = p * closes[i, s] * contract_sizes[s] * funding_rates[i, s]
                     equity -= cost
                     funding_arr[i] += cost
+                    if attribution is not None:
+                        attribution[i, s, 2] += cost
 
         close_mm = 0.0
         for s in range(n_syms):
@@ -116,6 +123,9 @@ def _engine_units_v2(
             liq_flag = True
             liq_idx = i
             liq_reason = LIQ_AFTER_FUNDING
+            if attribution is not None:
+                _allocate_portfolio_liquidation(equity, current_pos, closes[i], contract_sizes,
+                                                np.zeros(n_syms), attribution, i)
             equity = 0.0
             for s in range(n_syms):
                 current_pos[s] = 0.0
@@ -180,6 +190,9 @@ def _engine_units_v2(
             equity -= fee_cost + slip_cost
             current_pos[s] = target
             fee_arr[i] += fee_cost
+            if attribution is not None:
+                attribution[i, s, 0] += fee_cost
+                attribution[i, s, 1] += slip_cost
             turnover_arr[i] += trade_notional
             if reduction:
                 # Clipped pre-fill availability omits any carried IM deficit.
@@ -205,6 +218,9 @@ def _engine_units_v2(
             liq_flag = True
             liq_idx = i
             liq_reason = LIQ_AFTER_REBALANCE
+            if attribution is not None:
+                _allocate_portfolio_liquidation(equity, current_pos, closes[i], contract_sizes,
+                                                np.zeros(n_syms), attribution, i)
             equity = 0.0
             for s in range(n_syms):
                 current_pos[s] = 0.0

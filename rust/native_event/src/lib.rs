@@ -3128,6 +3128,7 @@ enum NativeWorkloadAuditFieldsCore {
         rejection_code: Py<PyArray1<i64>>,
         rejected_by_bar: Option<Py<PyArray1<i64>>>,
         reject_code_by_bar: Option<Py<PyArray1<i64>>>,
+        account_attribution: Py<PyArray1<f64>>,
     },
     PortfolioTarget {
         decision_count: usize,
@@ -3178,6 +3179,7 @@ impl NativeWorkloadAuditFieldsCore {
             decision_count: audit.decision_count,
             rejected_decision_count: audit.rejected_decision_count,
             retention: audit.detail_retention,
+            account_attribution: PyArray1::from_vec(py, audit.account_attribution).unbind(),
             bar: PyArray1::from_vec(py, audit.bar).unbind(),
             symbol: PyArray1::from_vec(py, audit.symbol).unbind(),
             requested_units: PyArray1::from_vec(py, audit.requested_units).unbind(),
@@ -4039,6 +4041,37 @@ struct NativeAuditOutputCore {
 
 #[pymethods]
 impl NativeAuditOutputCore {
+    #[getter]
+    fn direct_target_account_attribution(&self, py: Python<'_>) -> Option<Py<PyArray1<f64>>> {
+        match &self.workload_audit {
+            NativeWorkloadAuditFieldsCore::DirectTarget {
+                account_attribution,
+                ..
+            } => Some(account_attribution.clone_ref(py)),
+            _ => None,
+        }
+    }
+
+    #[getter]
+    fn direct_target_rejected_by_bar(&self, py: Python<'_>) -> Option<Py<PyArray1<i64>>> {
+        match &self.workload_audit {
+            NativeWorkloadAuditFieldsCore::DirectTarget {
+                rejected_by_bar, ..
+            } => rejected_by_bar.as_ref().map(|v| v.clone_ref(py)),
+            _ => None,
+        }
+    }
+
+    #[getter]
+    fn direct_target_reject_code_by_bar(&self, py: Python<'_>) -> Option<Py<PyArray1<i64>>> {
+        match &self.workload_audit {
+            NativeWorkloadAuditFieldsCore::DirectTarget {
+                reject_code_by_bar, ..
+            } => reject_code_by_bar.as_ref().map(|v| v.clone_ref(py)),
+            _ => None,
+        }
+    }
+
     #[getter]
     fn terminal_state_v1(&self, py: Python<'_>) -> Option<Py<NativeTerminalStateCore>> {
         self.terminal_state
@@ -8693,10 +8726,15 @@ fn add_native_workload_audit_core_fields(
             rejection_code,
             rejected_by_bar,
             reject_code_by_bar,
+            account_attribution,
             ..
         } => {
             payload.set_item("direct_target_kind", *target_kind)?;
             payload.set_item("direct_target_timing", *timing)?;
+            payload.set_item(
+                "direct_target_account_attribution",
+                account_attribution.clone_ref(py),
+            )?;
             payload.set_item(
                 "direct_target_invalid_target_policy",
                 *invalid_target_policy,
@@ -9041,6 +9079,7 @@ fn direct_target_output_bytes(result: &execution::target::DirectTargetExecutionR
         .saturating_add(bytes_f64(&result.target_audit.requested_units))
         .saturating_add(bytes_f64(&result.target_audit.accepted_units))
         .saturating_add(bytes_i64(&result.target_audit.rejection_code))
+        .saturating_add(bytes_f64(&result.target_audit.account_attribution))
         .saturating_add(result.rejected_by_bar.as_deref().map_or(0, bytes_i64))
         .saturating_add(result.reject_code_by_bar.as_deref().map_or(0, bytes_i64))
 }
@@ -9177,6 +9216,10 @@ fn direct_target_output_payload(
         )?;
         payload.set_item("direct_target_accepted_units", target_audit.accepted_units)?;
         payload.set_item("direct_target_rejection_code", target_audit.rejection_code)?;
+        payload.set_item(
+            "direct_target_account_attribution",
+            target_audit.account_attribution,
+        )?;
     }
     Ok(payload.unbind())
 }
