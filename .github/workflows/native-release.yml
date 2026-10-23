@@ -86,6 +86,7 @@ jobs:
           command: build
           args: >-
             --release
+            --locked
             --manifest-path rust/native_event/Cargo.toml
             --interpreter python${{ matrix.python-version }}
             --out dist/native
@@ -123,12 +124,17 @@ jobs:
         if: matrix.python-version == '3.12'
         uses: ./.github/actions/qms-fixtures
 
+      - name: Install and pin workflow-built native for release regression
+        if: matrix.python-version == '3.12'
+        run: |
+          uv pip install --python .venv/bin/python --reinstall --no-deps dist/native/quantbt_native-*.whl
+          .venv/bin/python -m tools.ci_native_identity --wheel-dir dist/native --github-env "$GITHUB_ENV" --output .maturin/native-release-identity.json
+
       - name: Full source regression and certified workload benchmarks
         if: matrix.python-version == '3.12'
         env:
           MPLCONFIGDIR: /tmp
         run: |
-          uv pip install --python .venv/bin/python --no-deps dist/native/quantbt_native-*.whl
           # Evidence is written before the certificate captures candidate
           # identity. Keep generated evidence ignored and make any future
           # violation immediately diagnosable instead of surfacing later as a
@@ -140,7 +146,7 @@ jobs:
           }
           .venv/bin/python tools/certify_phase78_public_promotion.py \
             --output native-release-evidence/phase78-public-promotion.json
-          .venv/bin/python tools/run_test_shards.py --profile release --max-files-per-shard 8
+          .venv/bin/python tools/run_test_shards.py --profile release --max-files-per-shard 8 --keep-going --sudo-host-tests
           .venv/bin/python benchmarks/native_event/benchmark_phase54b2_public_routes.py \
             --static-bars 10000 --ir-bars 2000 --scenarios 64 --repeats 5 \
             --output native-release-evidence/phase54b2-public-routes.json

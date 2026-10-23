@@ -4,7 +4,9 @@ All notable changes to `quantbt-engine` are documented here.
 
 ## [Unreleased]
 
-### Prepared 1.2.0 / Native 0.4.3
+## [1.2.0] - 2026-10-23
+
+### Core 1.2.0 / Native 0.4.3
 
 - Retargeted the unreleased core candidate from1.1.2to1.2.0 to reflect the
   diagnostics, Mode4/Mode5, sampler/meta, reporting and account upgrade below.
@@ -67,11 +69,14 @@ All notable changes to `quantbt-engine` are documented here.
   endpoint/private aliases, moved function bodies and retained engine code.
   Exact source qualification is separate from historical financial-invariance
   receipts and still does not certify installed artifacts.
-- Added maintained installed-consumer/CI wiring for the prepared Mode 5,
+- Added maintained installed-consumer/CI wiring for the Mode 5,
   winner/donor, reporting and account changes. Execution on final wheel/sdist
   artifacts and remote/public qualification remain separate gates.
-- Preparation only: no tag, upload, merge or scientific acceptance is implied.
-  See [QMS release handoff](docs/meta_selection/RELEASE_HANDOFF.md).
+- Aligned tag/release regression with the qualified CI native-wheel identity
+  pin and isolated host-PID tests. Release publication is native-first and
+  requires its own artifact and public-consumer gates; this changelog is not
+  a publication receipt or a new scientific acceptance claim. See the
+  [release checklist](docs/testpypi_release_checklist.md).
 
 ## [1.1.1]
 

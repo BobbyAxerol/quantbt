@@ -66,6 +66,28 @@ def test_workflow_builds_default_native_before_core_tests_and_pins_its_bytes():
     assert "tools.ci_native_identity" in steps[pin]["run"]
 
 
+@pytest.mark.parametrize("filename,job,test_name,build_name", [
+    ("publish.yml", "test", "Test", "Build local native companion for release regression"),
+    ("native-release.yml", "certify-native-pair", "Full source regression and certified workload benchmarks", "Build native wheel"),
+])
+def test_release_regression_keeps_fresh_native_and_host_custody_contract(filename, job, test_name, build_name):
+    path = Path(__file__).parents[1] / ".github/workflows" / filename
+    steps = yaml.safe_load(path.read_text())["jobs"][job]["steps"]
+    names = [step.get("name") for step in steps]
+    pin_name = "Install and pin workflow-built native for release regression"
+    pin = names.index(pin_name)
+    assert names.index(build_name) < pin < names.index(test_name)
+    assert names.index("Build isolated QMS regression fixtures") < pin
+    assert "--locked" in steps[names.index(build_name)]["with"]["args"]
+    assert "--reinstall --no-deps" in steps[pin]["run"]
+    assert "tools.ci_native_identity" in steps[pin]["run"]
+    assert '--github-env "$GITHUB_ENV"' in steps[pin]["run"]
+    assert "--sudo-host-tests" in steps[names.index(test_name)]["run"]
+    assert "--keep-going" in steps[names.index(test_name)]["run"]
+    if filename == "native-release.yml":
+        assert steps[pin]["if"] == steps[names.index(test_name)]["if"]
+
+
 def test_identity_cli_exports_only_verified_wheel_hash(wheel, tmp_path, monkeypatch):
     import sys
     from types import SimpleNamespace

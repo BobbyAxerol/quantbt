@@ -38,27 +38,27 @@ contracts still require a matching native wheel. Alpine/musl is not covered:
 the dependency marker cannot distinguish musl from glibc, so installation may
 fail there rather than automatically fall back.
 
-Prepared next release pair (not yet published):
+Release pair declared by this source revision:
 
 | Distribution | Version | Purpose |
 |---|---:|---|
 | `quantbt-engine` | `1.2.0` | Public API, Python/Numba engines, reports, compatibility oracle |
 | `quantbt-native` | `0.4.3` | Internal PyO3 extension, including default QMS numerics and prepared witnesses |
 
-The published `1.1.1 / 0.4.2` pair remains separate from this preparation.
-QMS is opt-in: enabling its compiled capability does not enable meta selection
-or change an existing endpoint/account policy. See the
+The previous release pair was `1.1.1 / 0.4.2`. QMS is opt-in: enabling its
+compiled capability does not enable meta selection or change an existing
+endpoint/account policy. See the
 [QMS release handoff](docs/meta_selection/RELEASE_HANDOFF.md) for exact artifact,
 installed-W3 and public-consumer gates and the owner-controlled release order.
-The [M5-12 preparation checklist](docs/mode5/M5_12_PREPARATION.md) retains the
-earlier1.1.2candidate qualification. The owner has retargeted the next core
-release to1.2.0, with native0.4.3; new source/artifact qualification is recorded
-separately from old receipts and later platform/public-index proof.
-The [prepared capability map](#prepared-release-capabilities) below describes
-the candidate source, not what an ordinary install command already provides.
-M5-12 records final-source local artifact qualification separately from
-historical installed receipts, platform certification and public-index proof.
-Local qualification does not authorize publication.
+The [M5-12 preparation checklist](docs/mode5/M5_12_PREPARATION.md) preserves
+the earlier `1.1.2` candidate qualification under its original scope. Current
+source/artifact qualification, platform certification and public-index proof
+are separate from historical receipts. The [release capability map](#prepared-release-capabilities)
+below describes this source revision. For a checkout or candidate artifact,
+verify the installed versions rather than assuming it is already on PyPI.
+The [release checklist](docs/testpypi_release_checklist.md) requires the native
+companion to be public before core publication, then a public consumer proof.
+Local qualification alone is not evidence of publication.
 
 Optional features:
 
@@ -90,7 +90,7 @@ Completed endpoint/result `full_report()`, `show_metrics()` and `quick_plot()`
 accept `reporting=ReportingRequest(...)` for explicit account-period, execution,
 closed-trade/action and drawdown-episode reporting. This reporting opt-in does
 not change execution or the WFO/meta objective. Separate account correctness
-fixes in this candidate can change results; see the migration notice below.
+fixes in this release can change results; see the migration notice below.
 The four populations stay separate: `account_period`, `execution`,
 `closed_trade` and `closed_action`. Returns/drawdowns are numeric fractions
 (percentages are display-only); PnL/costs retain their currency, durations their
@@ -199,9 +199,11 @@ The full parameter, data, result, and support contracts are in the
 [endpoint guide](docs/endpoint.md). For a decision tree, read
 [backend selection](docs/backend_selection.md).
 
-## Prepared Release Capabilities
+<a id="prepared-release-capabilities"></a>
 
-For the prepared **1.2.0 / 0.4.3** pair, choose each research extension
+## Release Capabilities
+
+For the **1.2.0 / 0.4.3** pair, choose each research extension
 explicitly. Installing compiled capabilities does not enable meta, choose a
 sampler/selector, route a strategy or promote a default. Software support,
 registered economic findings and final installed/release certification are
@@ -243,7 +245,7 @@ combinations, including options/Nautilus meta, are not admitted merely because
 their standalone endpoint or result helper exists. Numeric meta acceleration
 and financial execution remain independent; Python callbacks are not Rust-owned.
 
-### Candidate Compatibility And Account Corrections
+### Compatibility And Account Corrections
 
 Endpoint factory names remain stable. Relative to `v1.1.1`, optional
 `execution_endpoint`, `meta_history` and `reporting` inputs and the
@@ -784,15 +786,15 @@ Start with the [documentation map](docs/README.md).
 | Margin, buying power, and liquidation | [Margin and leverage](docs/margin_leverage.md) |
 | Causal WFO schedules and claims | [Causal walk-forward](docs/walkforward_causal.md) |
 | WFO methodology | [Walk-forward methodology](methodology/walk_forward.md) |
-| Prepared causal meta off/shadow/active, admitted routes and nested scalar Mode 1 | [QMS public integration](docs/meta_selection/INTEGRATION.md), [route matrix](docs/meta_selection/CURRENT_ROUTE_REVIEW.md), [nested Mode 1](docs/meta_selection/NESTED_MODE1.md) (not yet published) |
-| Feature-branch prepared meta parity and portable decision/model handoff | [QMS-06 capability/report](docs/meta_selection/QMS06_REPORT.md), [host consumer](docs/meta_selection/HANDOFF.md) (not yet published) |
-| Feature-branch QMS stable usage, sampler/meta policy, history, migration and candidate installation scope | [QMS user guide](docs/meta_selection/USAGE.md), [qualification](docs/meta_selection/QUALIFICATION.md), [complete cases](examples/wfo_meta_contract.py) (not yet published) |
-| Feature-branch exact owned sampler checkpoints, with no automatic WFO resume | [Continuation contract](docs/meta_selection/EXACT_CONTINUATION.md), [four-recipe example](examples/optimization_exact_continuation.py), [local report](docs/meta_selection/QMSC04_REPORT.md) (not yet published) |
-| Optional sampler-space assessment and caller overrides, independent of meta | [Sampler-space helper](docs/meta_selection/SAMPLER_SPACE_HELPER.md), [pct-equity example](examples/wfo_sampler_space.py) (feature branch; not yet published) |
-| Feature-branch diagnostics-first Mode 5 with sealed recipes, shared samplers and original selected-account audit | [Opt-in calibration](docs/mode5/PUBLIC_CALIBRATION_V1.md), [local qualification and matched timings](docs/mode5/M5_10_PUBLIC_RUNTIME_REPORT.md), [optional example](examples/mode5_calibration_optin.py) (not yet published; not independent OOS) |
-| Feature-branch shared alpha diagnostics and cold Mode 4/5 decision reports | [Pre-search contract](docs/diagnostics/PRESEARCH_RESEARCHER_REPORT.md), [endpoint/result API](docs/diagnostics/FOLD_DECISION_REPORTS.md), [coverage and handoff](docs/diagnostics/REPORTING_COVERAGE_AND_HANDOFF.md) (explicit permissions; no automatic recipe choice or financial replay) |
-| Feature-branch Mode 5 exact-winner qualification and explicit cross-mode donors | [Winner/account/state/probe/stress report and coordinate-only handoff](docs/diagnostics/MODE5_WINNER_QUALIFICATION.md), [public synthetic example](examples/mode5_cross_mode_qualification.py) (researcher opt-in; unchanged defaults; not a universal superiority claim) |
-| Feature-branch scalar sizing meta, actual ETH R/Q and repaired liquidation metric compatibility | [E03 assessment](docs/meta_selection/QMSE03_REPORT.md), [G01 repair](docs/meta_selection/QMSE03_G01_CLOSURE.md), [scalar example](examples/wfo_meta_scalar.py) (not yet published; no economic promotion) |
+| Causal meta off/shadow/active, admitted routes and nested scalar Mode 1 | [QMS public integration](docs/meta_selection/INTEGRATION.md), [route matrix](docs/meta_selection/CURRENT_ROUTE_REVIEW.md), [nested Mode 1](docs/meta_selection/NESTED_MODE1.md) |
+| Prepared meta parity and portable decision/model handoff | [QMS-06 capability/report](docs/meta_selection/QMS06_REPORT.md), [host consumer](docs/meta_selection/HANDOFF.md) (historical qualification scope retained) |
+| QMS usage, sampler/meta policy, history and migration | [QMS user guide](docs/meta_selection/USAGE.md), [qualification](docs/meta_selection/QUALIFICATION.md), [complete cases](examples/wfo_meta_contract.py) |
+| Exact owned sampler checkpoints, with no automatic WFO resume | [Continuation contract](docs/meta_selection/EXACT_CONTINUATION.md), [four-recipe example](examples/optimization_exact_continuation.py), [local report](docs/meta_selection/QMSC04_REPORT.md) |
+| Optional sampler-space assessment and caller overrides, independent of meta | [Sampler-space helper](docs/meta_selection/SAMPLER_SPACE_HELPER.md), [pct-equity example](examples/wfo_sampler_space.py) |
+| Diagnostics-first Mode 5 with sealed recipes, shared samplers and original selected-account audit | [Opt-in calibration](docs/mode5/PUBLIC_CALIBRATION_V1.md), [local qualification and matched timings](docs/mode5/M5_10_PUBLIC_RUNTIME_REPORT.md), [optional example](examples/mode5_calibration_optin.py) (not independent OOS) |
+| Shared alpha diagnostics and cold Mode 4/5 decision reports | [Pre-search contract](docs/diagnostics/PRESEARCH_RESEARCHER_REPORT.md), [endpoint/result API](docs/diagnostics/FOLD_DECISION_REPORTS.md), [coverage and handoff](docs/diagnostics/REPORTING_COVERAGE_AND_HANDOFF.md) (explicit permissions; no automatic recipe choice or financial replay) |
+| Mode 5 exact-winner qualification and explicit cross-mode donors | [Winner/account/state/probe/stress report and coordinate-only handoff](docs/diagnostics/MODE5_WINNER_QUALIFICATION.md), [public synthetic example](examples/mode5_cross_mode_qualification.py) (researcher opt-in; unchanged defaults; not a universal superiority claim) |
+| Scalar sizing meta, actual ETH R/Q and repaired liquidation metric compatibility | [E03 assessment](docs/meta_selection/QMSE03_REPORT.md), [G01 repair](docs/meta_selection/QMSE03_G01_CLOSURE.md), [scalar example](examples/wfo_meta_scalar.py) (no economic promotion) |
 | Intrabar fixed-notional sizing, signal timing and zero-fill diagnostic | [Sizing contract](docs/fast_intrabar.md#fixed-notional-units-and-zero-fill-diagnostics), [public BTC/ETH/SOL-like reproduction](examples/intrabar_bracket_diagnostic.py) |
 | Public scalar WFO prepared-native scorer, W0/W1/W2, and fallback matrix | [Public prepared-native WFO scoring](docs/native_prepared_wfo_public.md) |
 | Fresh cache-cold ordinary/reactive WFO performance, parity, and supported-mode boundaries | [NEXT-02 WFO closure](docs/performance/next02_fresh_wfo_reactive_wfo.md) |

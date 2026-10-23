@@ -27,6 +27,13 @@ the source qualification validates ancestry of its recorded candidate commit.
 Before merging, require both CI and Native Event API 0.4 Gate to pass on the
 current PR/commit. A source hash or local test pass does not replace that matrix.
 
+Release regression uses the same fresh-native identity and isolated host-custody
+test contract as core CI: build with the locked Cargo graph, install the exact
+workflow wheel, pin its extension SHA before pytest, and use `--sudo-host-tests`
+only for the singleton fake-worker host PID-view suite on disposable Linux
+runners. Financial/ordinary tests remain unprivileged; no host safety guard or
+parity assertion is disabled for publishing.
+
 The core remains a complete Python package. On Linux x86_64 with CPython
 3.11-3.13 with glibc, its direct platform marker resolves a pre-built native
 wheel. No supported consumer compiles Rust. The marker cannot test libc;
